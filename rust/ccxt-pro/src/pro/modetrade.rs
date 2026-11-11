@@ -372,11 +372,11 @@ impl Modetrade {
 }
 
     pub fn request_id(&self, mut url: Value) -> Value {
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "requestId", &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "requestId", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut previousValue: i64 = self.safe_integer(options.clone(), url.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
+        })]).into_dict();
+        let mut previousValue: i64 = self.safe_integer(&options, url.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut newValue: Value = self.sum(&[Value::from(previousValue), Value::Int(1)]);
         if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("requestId".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), newValue.clone()); } }
         return newValue;
@@ -1263,7 +1263,7 @@ impl Modetrade {
         if trigger {
             topic = "algoexecutionreport".to_string();
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         let mut messageHash: String = topic.clone();
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -1277,7 +1277,7 @@ impl Modetrade {
                 m.insert("topic".to_string(), Value::from(topic));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut orders: Value = self.watch_private(Value::from(messageHash), message, &[]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1322,7 +1322,7 @@ impl Modetrade {
         if trigger {
             topic = "algoexecutionreport".to_string();
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("stop".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("stop".into()), &[]).into_dict();
         let mut messageHash: String = "myTrades".to_string();
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -1336,7 +1336,7 @@ impl Modetrade {
                 m.insert("topic".to_string(), Value::from(topic));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut orders: Value = self.watch_private(Value::from(messageHash), message, &[]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1567,7 +1567,7 @@ impl Modetrade {
             }
             cachedOrders.append(parsed);
             client.resolve(&[self.orders.clone(), topic.clone()]);
-            client.resolve(&[self.orders.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(":".into())).into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into())]);
+            client.resolve(&[self.orders.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())]);
         }
 }
 

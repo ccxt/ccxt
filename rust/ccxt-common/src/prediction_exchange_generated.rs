@@ -498,7 +498,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             return Value::from(vec![]);
         }
         let mut result: Vec<Value> = Vec::new();
-        let mut seen: Value = Value::Map({
+        let mut seen: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -509,8 +509,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             while { if !__for_first_199 { i += 1; } __for_first_199 = false; i < (keys.len() as i64) } {
             let mut event: Value = get_value(&self.pred().events, &keys.get(i as usize).cloned().unwrap_or(Value::Null));
             let mut identity: Value = self.safe_string2(event.clone(), Value::Str("id".into()), Value::Str("event".into()), &[keys.get(i as usize).cloned().unwrap_or(Value::Null)]);
-            if !(matches!((&seen, &identity), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&identity), Value::Bool(true)); }
+            if !(matches!(&identity, Value::Str(__k) if seen.contains_key(__k.as_ref()))) {
+                seen.insert(crate::runtime::stringify_param(&identity), Value::Bool(true));
                 result.push(event);
             }
         }
@@ -2100,7 +2100,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (datetime.is_none()) {
             datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
         }
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.safe_string_k(outcomeOrder.clone(), "id", &[]));
                 m.insert("clientOrderId".to_string(), self.safe_string_k(outcomeOrder.clone(), "clientOrderId", &[]));
@@ -2130,7 +2130,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("info".to_string(), self.safe_value_k(outcomeOrder.clone(), "info", &[outcomeOrder.clone()]));
             m
         });
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -2149,7 +2149,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (datetime.is_none()) {
             datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
         }
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.safe_string_k(trade.clone(), "id", &[]));
                 m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order", &[]));
@@ -2170,7 +2170,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("info".to_string(), self.safe_value_k(trade.clone(), "info", &[trade.clone()]));
             m
         });
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -2200,7 +2200,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (datetime.is_none()) {
             datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
         }
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), Value::from(timestamp));
                 m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2227,7 +2227,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("info".to_string(), self.safe_value_k(ticker.clone(), "info", &[ticker.clone()]));
             m
         });
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -2240,7 +2240,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (datetime.is_none()) {
             datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
         }
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.safe_string_k(position.clone(), "id", &[]));
                 m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -2268,7 +2268,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("info".to_string(), self.safe_value_k(position.clone(), "info", &[position.clone()]));
             m
         });
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -2436,17 +2436,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // venue-specific outcome filtering stays in the exchange (position identity differs
         // per venue: kalshi positions are market-level, polymarket ones are per token)
         let mut rows: Value = self.to_array(positions);
-        let mut results: Value = Value::from(vec![]);
+        let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_217: bool = true;
             while { if !__for_first_217 { i += 1; } __for_first_217 = false; i < (rows.len() as i64) } {
             let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             let mut position: Value = self.extend(parsed, &[params.clone()]);
-            if let Value::Arr(__a) = &mut results { std::sync::Arc::make_mut(__a).push(position); }
+            results.push(position);
         }
         }
-        return results;
+        return Value::from(results);
 
     Value::Null
 }

@@ -329,14 +329,14 @@ impl P2b {
     m
 }));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), name);
                 m.insert("params".to_string(), request);
                 m.insert("id".to_string(), self.milliseconds());
             m
         });
-        let mut query: Value = self.extend(subscribe, &[params]);
+        let mut query: Value = self.extend(Value::Map(subscribe), &[params]);
         return self.watch(url, messageHash.clone(), &[query, messageHash.clone()]).await;
 
     Value::Null
@@ -371,11 +371,11 @@ impl P2b {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut channel: Option<i64> = self.safe_integer(timeframes, timeframe.clone(), &[]).as_i64();
+        })]).into_dict();
+        let mut channel: Option<i64> = self.safe_integer(&timeframes, timeframe.clone(), &[]).as_i64();
         if (channel.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV cannot take a timeframe of ".into())).into()), timeframe)));
         }
@@ -461,7 +461,7 @@ impl P2b {
         let mut name: String = self.safe_string_k(&watchTickerOptions, "name", &[Value::Str("state".into())]).as_str().unwrap_or("state").to_string(); // or price
         let nameOptionparamsNameVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchTickers".into()), Value::Str("name".into()), &[Value::from(name)]).as_array().cloned().unwrap_or_default();
         let mut nameOption: Value = nameOptionparamsNameVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsName: Value = nameOptionparamsNameVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsName: crate::value::Dict = nameOptionparamsNameVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageHashes: Value = Value::from(vec![]);
         let mut args: Vec<Value> = Vec::new();
         {
@@ -481,7 +481,7 @@ impl P2b {
                 m.insert("id".to_string(), self.milliseconds());
             m
         });
-        let __ws_arg_0 = self.extend(Value::Map(request), &[paramsName]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsName]);
         self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
         Value::Null
@@ -817,8 +817,8 @@ impl P2b {
         let mut marketId: Option<String> = self.safe_string(params, Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into());
-        let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), symbol);
+        let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -868,7 +868,7 @@ impl P2b {
             }
         }
         orderbook.set_book_meta("symbol", symbol);
-        client.resolve(&[orderbook, messageHash]);
+        client.resolve(&[orderbook, Value::from(messageHash)]);
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {

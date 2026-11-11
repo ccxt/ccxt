@@ -474,11 +474,11 @@ impl Mudrex {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
-        let mut apiUrls: Value = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut base: Option<String> = self.safe_string(apiUrls, apiName.clone(), &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut base: Option<String> = self.safe_string(&apiUrls, apiName.clone(), &[]).as_str().map(str::to_owned);
         if (base.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unknown API namespace: ".into())).into()), apiName)));
         }
@@ -641,17 +641,17 @@ impl Mudrex {
         let mut windowEnd: Value = self.parse_to_int((match (&(startTime), &((match (&(duration), &(requestLimit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
             _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("price".into()), Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("price".into()), Value::Str("until".into())]), &[]).into_dict();
         let mut cappedEnd: Value = (if (windowEnd.as_f64().unwrap_or(f64::NAN) > now.as_f64().unwrap_or(f64::NAN)) { now } else { windowEnd });
         let mut endTime: Value = self.parse_to_int((if (until != Value::Null) { ((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { cappedEnd }));
         request.insert("start_time".into(), startTime);
         request.insert("end_time".into(), endTime);
         let mut response: Value = Value::Null;
         if (priceType.as_deref() == Some("mark")) {
-            let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.market_get_price_mark_kline(&[__ws_arg_0]).await;
         }  else {
-            let __ws_arg_1 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.market_get_price_kline(&[__ws_arg_1]).await;
         }
         //
@@ -791,10 +791,10 @@ impl Mudrex {
         }  else {
             rows = self.safe_list_k(data, "items", &[Value::from(vec![])]);
         }
-        let mut resultTickers: indexmap::IndexMap<String, Value> = {
+        let mut resultTickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         {
                         let mut i: i64 = 0;
             let mut __for_first_969: bool = true;
@@ -1034,7 +1034,7 @@ impl Mudrex {
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut requested: Option<String> = self.safe_string_n(paramsMarketType.clone(), Value::from(vec![Value::Str("trade_currency".into()), Value::Str("tradeCurrency".into()), Value::Str("currency".into())]), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(paramsMarketType, Value::from(vec![Value::Str("trade_currency".into()), Value::Str("tradeCurrency".into()), Value::Str("currency".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsMarketType, Value::from(vec![Value::Str("trade_currency".into()), Value::Str("tradeCurrency".into()), Value::Str("currency".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1044,13 +1044,13 @@ impl Mudrex {
             if (requested.is_some()) {
                 request.insert("currency".into(), requested.clone().map(Value::from).unwrap_or(Value::Null));
             }
-            let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_get_wallet_funds(&[__ws_arg_5]).await;
         }  else {
             if (requested.is_some()) {
                 request.insert("trade_currency".into(), requested.clone().map(Value::from).unwrap_or(Value::Null));
             }
-            let __ws_arg_6 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_futures_funds(&[__ws_arg_6]).await;
         }
         let mut currency: Option<String> = requested;
@@ -1186,8 +1186,8 @@ impl Mudrex {
                 m.insert("leverage".to_string(), leverage);
             m
         });
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("marginType".into())]), &[]);
-        let __ws_arg_9 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("marginType".into())]), &[]).into_dict();
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_futures_asset_id_leverage(&[__ws_arg_9]).await;
         return response;
         Value::Null
@@ -1245,7 +1245,7 @@ impl Mudrex {
             if (positionId.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order".into()))));
             }
-            let mut paramsOmitted: Value = self.omit(params.clone(), Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("positionId".into()), Value::Str("position_id".into())]), &[]);
+            let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("positionId".into()), Value::Str("position_id".into())]), &[]).into_dict();
             let mut riskRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("position_id".to_string(), positionId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1259,7 +1259,7 @@ impl Mudrex {
                 riskRequest.insert("is_stoploss".into(), Value::Bool(true));
                 riskRequest.insert("stoploss_price".into(), self.price_to_precision(symbol.clone(), stopLossPrice.clone().map(Value::from).unwrap_or(Value::Null)));
             }
-            let __ws_arg_10 = self.extend(Value::Map(riskRequest), &[paramsOmitted]);
+            let __ws_arg_10 = self.extend(Value::Map(riskRequest), &[&paramsOmitted]);
             let mut riskResponse: Value = self.private_post_futures_positions_position_id_riskorder(&[__ws_arg_10]).await;
             let mut riskData: Value = self.safe_dict_k(riskResponse.clone(), "data", &[riskResponse.clone()]);
             return self.parse_order(riskData, &[(market).raw.clone()]);
@@ -1291,8 +1291,8 @@ impl Mudrex {
             request.insert("is_stoploss".into(), Value::Bool(true));
             request.insert("stoploss_price".into(), self.price_to_precision(symbol, self.safe_string_n(stopLoss, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[])));
         }
-        let mut orderParams: Value = self.omit(params, Value::from(vec![Value::Str("leverage".into()), Value::Str("reduceOnly".into()), Value::Str("takeProfit".into()), Value::Str("stopLoss".into())]), &[]);
-        let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[orderParams]);
+        let mut orderParams: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("leverage".into()), Value::Str("reduceOnly".into()), Value::Str("takeProfit".into()), Value::Str("stopLoss".into())]), &[]).into_dict();
+        let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&orderParams]);
         let mut response: Value = self.private_post_futures_asset_id_order(&[__ws_arg_11]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
         // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
@@ -1918,14 +1918,14 @@ impl Mudrex {
             if (orderType == "LIMIT") && (lp.is_some()) {
                 request.insert("limit_price".into(), lp.clone().map(Value::from).unwrap_or(Value::Null));
             }
-            let mut partialParams: Value = self.omit(params.clone(), Value::from(vec![Value::Str("order_type".into()), Value::Str("limit_price".into()), Value::Str("amount".into()), Value::Str("position_id".into())]), &[]);
-            let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[partialParams]);
+            let mut partialParams: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("order_type".into()), Value::Str("limit_price".into()), Value::Str("amount".into()), Value::Str("position_id".into())]), &[]).into_dict();
+            let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[&partialParams]);
             let mut partialResponse: Value = self.private_post_futures_positions_position_id_close_partial(&[__ws_arg_17]).await;
             let mut partialData: Value = self.safe_dict_k(partialResponse.clone(), "data", &[partialResponse.clone()]);
             return self.parse_order(partialData, &[(market).raw.clone()]);
         }
-        let mut closeParams: Value = self.omit(params, Value::from(vec![Value::Str("position_id".into())]), &[]);
-        let __ws_arg_18 = self.extend(Value::Map(request), &[closeParams]);
+        let mut closeParams: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("position_id".into())]), &[]).into_dict();
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&closeParams]);
         let mut response: Value = self.private_post_futures_positions_position_id_close(&[__ws_arg_18]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
         return self.parse_order(data, &[(market).raw.clone()]);
@@ -1978,8 +1978,8 @@ impl Mudrex {
                 m.insert("margin".to_string(), self.cost_to_precision(symbol, amount));
             m
         });
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("position_id".into())]), &[]);
-        let __ws_arg_19 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("position_id".into())]), &[]).into_dict();
+        let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_futures_positions_position_id_add_margin(&[__ws_arg_19]).await;
         return self.extend(response, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2051,7 +2051,7 @@ impl Mudrex {
         }
         let maxCallsparamsPaginationCallsVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginationCalls".into()), &[Value::Int(10)]).as_array().cloned().unwrap_or_default();
         let mut maxCalls: Value = maxCallsparamsPaginationCallsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginationCalls: Value = maxCallsparamsPaginationCallsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginationCalls: crate::value::Dict = maxCallsparamsPaginationCallsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
         let mut pageSize: Value = (if (limit == Value::Null) { Value::Int(0) } else { (match (&(limit), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }) });
         let mut allRows: Vec<Value> = Vec::new();
@@ -2068,7 +2068,7 @@ impl Mudrex {
                 request.insert("limit".into(), pageSize.clone());
                 request.insert("offset".into(), offset.clone());
             }
-            let __ws_arg_20 = self.extend(Value::Map(request), &[paramsPaginationCalls.clone()]);
+            let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsPaginationCalls]);
             let mut response: crate::value::Dict = self.private_get_futures_fee_history(&[__ws_arg_20]).await.into_dict();
             let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut dataLength: Value = Value::Int(data.len() as i64);

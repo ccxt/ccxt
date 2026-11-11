@@ -748,19 +748,19 @@ impl Coincheck {
         let mut response: crate::value::Dict = self.private_get_exchange_orders_opens(&[params]).await.into_dict();
         let mut rawOrders: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
         let mut parsedOrders: Value = self.parse_orders(rawOrders, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_565: bool = true;
             while { if !__for_first_565 { i += 1; } __for_first_565 = false; i < (parsedOrders.len() as i64) } {
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(self.extend(parsedOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
+            result.push(self.extend(parsedOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("open".into()));
                 m
-            })])); }
+            })]));
         }
         }
-        return result;
+        return Value::from(result);
         Value::Null
         }).await?))
     }
@@ -993,12 +993,12 @@ impl Coincheck {
             }  else if (liquidity.as_deref() == Some("M")) {
                 takerOrMaker = Some("maker".to_string());
             }
-            let mut funds: Value = self.safe_dict_k(trade.clone(), "funds", &[Value::Map({
+            let mut funds: crate::value::Dict = self.safe_dict_k(trade.clone(), "funds", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            amountString = self.safe_string(funds.clone(), baseId, &[]).as_str().map(str::to_owned);
-            costString = self.safe_string(funds, quoteId, &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            amountString = self.safe_string(&funds, baseId, &[]).as_str().map(str::to_owned);
+            costString = self.safe_string(&funds, quoteId, &[]).as_str().map(str::to_owned);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), self.safe_string_k(trade.clone(), "fee_currency", &[]));
@@ -1196,13 +1196,13 @@ impl Coincheck {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut symbols: Value = self.symbols.clone();
         if (symbols == Value::Null) {
-            return result;
+            return Value::Map(result);
         }
         {
                         let mut i: i64 = 0;
@@ -1214,7 +1214,7 @@ impl Coincheck {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -1223,10 +1223,10 @@ impl Coincheck {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }

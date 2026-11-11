@@ -2240,7 +2240,7 @@ impl Bitstamp {
         // in a local dictionary here instead of a temp key inside this.options
         // because the shared scratch key raced between concurrent
         // fetchCurrencies invocations in the multi threaded runtimes
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2270,18 +2270,17 @@ impl Bitstamp {
             }
             let mut parts: Value = Value::Array(if let Some(__s) = minimumOrder.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
             let mut cost: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
-            if (base != Value::Null) && !(matches!((&result, &base), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (base != Value::Null) && !(matches!(&base, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
                 let mut baseDecimals: Option<i64> = self.safe_integer_k(market.clone(), "base_decimals", &[]).as_i64();
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&base), self.construct_currency_object(baseId.clone().map(Value::from).unwrap_or(Value::Null), base.clone(), baseDescription.clone().map(Value::from).unwrap_or(Value::Null), Value::from(baseDecimals), Value::Null, market.clone())); }
+                result.insert(crate::runtime::stringify_param(&base), self.construct_currency_object(baseId.clone().map(Value::from).unwrap_or(Value::Null), base.clone(), baseDescription.clone().map(Value::from).unwrap_or(Value::Null), Value::from(baseDecimals), Value::Null, market.clone()));
             }
-            if (quote != Value::Null) && !(matches!((&result, &quote), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (quote != Value::Null) && !(matches!(&quote, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
                 let mut counterDecimals: Option<i64> = self.safe_integer_k(market.clone(), "counter_decimals", &[]).as_i64();
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&quote), self.construct_currency_object(quoteId.clone().map(Value::from).unwrap_or(Value::Null), quote.clone(), quoteDescription.clone().map(Value::from).unwrap_or(Value::Null), Value::from(counterDecimals),
-                    self.parse_number(cost.map(Value::from).unwrap_or(Value::Null), &[]), market)); }
+                result.insert(crate::runtime::stringify_param(&quote), self.construct_currency_object(quoteId.clone().map(Value::from).unwrap_or(Value::Null), quote.clone(), quoteDescription.clone().map(Value::from).unwrap_or(Value::Null), Value::from(counterDecimals), self.parse_number(cost.map(Value::from).unwrap_or(Value::Null), &[]), market));
             }
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -2511,8 +2510,8 @@ impl Bitstamp {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" getMarketFromTrade() too many keys: ".into())).into()), json_stringify(&currencyIds.clone().into())).into()), Value::Str(" in the trade: ".into())).into()), json_stringify(&tradeOmitted))));
         }
         if (numCurrencyIds == 2.0) {
-            let mut firstCurrencyId: String = self.safe_string(currencyIds.clone().into(), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut secondCurrencyId: String = self.safe_string(currencyIds.clone().into(), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut firstCurrencyId: String = self.safe_string(&currencyIds, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut secondCurrencyId: String = self.safe_string(&currencyIds, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketId: Value = Value::Str(format!("{}{}", firstCurrencyId, secondCurrencyId).into());
             if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return self.safe_market(&[marketId.clone()]);
@@ -2823,8 +2822,8 @@ impl Bitstamp {
                 request.insert("limit".into(), Value::Int(1000));
             }
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
-        let __ws_arg_3 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_ohlc_pair(&[__ws_arg_3]).await.into_dict();
         //
         //     {
@@ -2986,7 +2985,7 @@ impl Bitstamp {
 }
 
     pub fn parse_trading_fees(&self, mut fees: Value) -> Value {
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), fees.clone());
             m
@@ -2999,11 +2998,11 @@ impl Bitstamp {
             let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(feesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
             let mut symbol: Value = fee.get("symbol").cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(fee)); }
+                result.insert(crate::runtime::stringify_param(&symbol), Value::Map(fee));
             }
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }

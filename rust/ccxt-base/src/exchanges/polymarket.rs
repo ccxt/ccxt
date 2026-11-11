@@ -843,7 +843,7 @@ impl Polymarket {
         let mut responses: Value = promise_all(&promises).await;
         let mut instruments: Vec<Value> = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut assets: Vec<Value> = self.safe_list(responses, Value::Int(1), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -857,13 +857,13 @@ impl Polymarket {
                 continue;
             }
             let mut code: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            if !(matches!((&result, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if !(matches!(&code, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
                 // the venue tags each underlying with a category - only the
                 // crypto ones are unified as crypto, equities, commodities and
                 // indices map onto the other currency type
                 let mut category: Option<String> = self.safe_string_k(instrument.clone(), "category", &[]).as_str().map(str::to_owned);
                 let mut currencyType: Value = (if (category.as_deref() == Some("crypto")) { Value::Str("crypto".into()) } else { Value::Str("other".into()) });
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
+                result.insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), baseId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.clone());
@@ -880,12 +880,12 @@ impl Polymarket {
     m
 }));
     m
-}))); }
+})));
             }
         }
         }
         // every instrument quotes using usd
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("USD".into(), self.safe_currency_structure(Value::Map({
+        result.insert("USD".into(), self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("USD".into()));
         m.insert("code".to_string(), Value::Str("USD".into()));
@@ -905,7 +905,7 @@ impl Polymarket {
     m
 }));
     m
-}))); }
+})));
         {
                         let mut i: i64 = 0;
             let mut __for_first_1099: bool = true;
@@ -916,7 +916,7 @@ impl Polymarket {
                 continue;
             }
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
+            result.insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), currencyId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.clone());
@@ -933,10 +933,10 @@ impl Polymarket {
     m
 }));
     m
-}))); }
+})));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -1894,7 +1894,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1906,7 +1906,7 @@ impl Polymarket {
             let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
             let mut category: Option<String> = self.safe_string_k_opt(market.get("info").cloned().unwrap_or(Value::Null), "category", &[]);
             let mut entry: Value = self.safe_dict(Value::Map(byCategory.clone()), category.map(Value::from).unwrap_or(Value::Null), &[fallback.clone()]);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -1915,10 +1915,10 @@ impl Polymarket {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -3670,14 +3670,14 @@ impl Polymarket {
         if (leverage.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a params.leverage argument, the venue updates the mode and the leverage in one operation".into()))));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("leverage".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("leverage".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marginMode".to_string(), marginMode);
             m
         });
         let mut leverageInt: Value = self.parse_to_int(Value::from(leverage));
-        let __ws_arg_15 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
         return crate::types::IntoRaw::into_raw(self.set_leverage(leverageInt.as_i64().unwrap_or_default(), symbol.as_str(), __ws_arg_15).await);
         Value::Null
         }).await?))

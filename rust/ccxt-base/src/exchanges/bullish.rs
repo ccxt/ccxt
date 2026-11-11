@@ -1939,12 +1939,12 @@ impl Bullish {
 }));
         let maxRetriesparamsMaxRetriesVariable: Vec<Value> = self.handle_option_integer_and_params(params, method.clone(), Value::Str("maxRetries".into()), &[Value::Int(3)]).as_array().cloned().unwrap_or_default();
         let mut maxRetries: Value = maxRetriesparamsMaxRetriesVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMaxRetries: Value = maxRetriesparamsMaxRetriesVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMaxRetries: crate::value::Dict = maxRetriesparamsMaxRetriesVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (method.as_str() != Some("fetchOHLCV")) && (method.as_str() != Some("fetchFundingRateHistory")) && (method.as_str() != Some("fetchTrades")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" safeDeterministicCall() does not support the ".into())).into()), method).into()), Value::Str(" method".into()))));
         }
         let mut errors: Value = self.parse_to_int(Value::Int(0));
-        let mut paramsOmitted: Value = self.omit(paramsMaxRetries, Value::Str("until".into()), &[]);
+        let mut paramsOmitted: Value = self.omit(&paramsMaxRetries, Value::Str("until".into()), &[]);
         while errors.as_f64().unwrap_or(f64::NAN) <= maxRetries.as_f64().unwrap_or(f64::NAN) {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 if (method.as_str() == Some("fetchOHLCV")) {
@@ -2197,7 +2197,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let methodResolvedparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsSinceAndUntil, Value::Str("fetchOrders".into()), Value::Str("method".into()), &[Value::Str("privateGetV2HistoryOrders".into())]).as_array().cloned().unwrap_or_default();
         let mut methodResolved: Option<String> = methodResolvedparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMethod: Value = methodResolvedparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMethod: crate::value::Dict = methodResolvedparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::from(vec![]);
         if (methodResolved.as_deref() == Some("privateGetV2Orders")) {
             //
@@ -2229,10 +2229,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             //         }
             //     ]
             //
-            let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[paramsMethod.clone()]);
+            let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsMethod]);
             response = self.private_get_v2_orders(&[__ws_arg_7]).await;
         }  else if (methodResolved.as_deref() == Some("privateGetV2HistoryOrders")) {
-            let __ws_arg_8 = self.extend(Value::Map(request), &[paramsMethod]);
+            let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsMethod]);
             response = self.private_get_v2_history_orders(&[__ws_arg_8]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() method parameter must be either \"privateGetV2Orders\" or \"privateGetV2HistoryOrders\"".into()))));
@@ -3032,13 +3032,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (networkCode != Value::Null) {
             request.insert("network".into(), self.network_code_to_id(networkCode, &[code]));
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter".into()))));
         }
-        let __ws_arg_19 = self.extend(Value::Map(request), &[paramsNetworkCode]);
+        let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let mut response: Value = self.private_post_v1_wallets_withdrawal(&[__ws_arg_19]).await;
         return self.parse_transaction(response, &[currency]);
         Value::Null

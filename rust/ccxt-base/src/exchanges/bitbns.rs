@@ -1115,7 +1115,7 @@ impl Bitbns {
         let mut triggerPrice: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("t_rate".into())]), &[]).as_str().map(str::to_owned);
         let mut targetRate: Option<String> = self.safe_string_k(params.clone(), "target_rate", &[]).as_str().map(str::to_owned);
         let mut trailRate: Option<String> = self.safe_string_k(params.clone(), "trail_rate", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("trail_rate".into()), Value::Str("target_rate".into()), Value::Str("t_rate".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("trail_rate".into()), Value::Str("target_rate".into()), Value::Str("t_rate".into())]), &[]).into_dict();
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1140,10 +1140,10 @@ impl Bitbns {
         }
         let mut response: Value = Value::Null;
         if (type_var.as_str() == Some("limit")) {
-            let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.v2_post_orders(&[__ws_arg_1]).await;
         }  else {
-            let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.v1_post_place_market_order_qnty_symbol(&[__ws_arg_2]).await;
         }
         //
@@ -1196,7 +1196,7 @@ impl Bitbns {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut isTrigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("entry_id".to_string(), id);
@@ -1208,7 +1208,7 @@ impl Bitbns {
         let mut quoteSide: String = (if (Value::from((market).quote_id.clone()).as_str() == Some("USDT")) { "usdtcancel".to_string() } else { "cancel".to_string() });
         quoteSide.push_str(&tail);
         request.insert("side".into(), Value::from(quoteSide));
-        let __ws_arg_3 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
         response = self.v2_post_cancel(&[__ws_arg_3]).await;
         let mut parsed: Value = (if (response == Value::Null) { Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1329,7 +1329,7 @@ impl Bitbns {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut isTrigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         let mut quoteSide: String = "listOpen".to_string();
         if (Value::from((market).quote_id.clone()).as_str() == Some("USDT")) {
             quoteSide = "usdtListOpen".to_string();
@@ -1341,7 +1341,7 @@ impl Bitbns {
                 m.insert("side".to_string(), (if (isTrigger == Some(true)) { (Value::Str(format!("{}{}", quoteSide, Value::Str("StopOrders".into())).into())) } else { (Value::Str(format!("{}{}", quoteSide, Value::Str("Orders".into())).into())) }));
             m
         });
-        let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.v2_post_getordersnew(&[__ws_arg_5]).await.into_dict();
         //
         //     {
@@ -1725,11 +1725,11 @@ impl Bitbns {
 }));
             m
         });
-        let mut statuses: Value = self.safe_dict(Value::Map(statusesByType), type_var, &[Value::Map({
+        let mut statuses: crate::value::Dict = self.safe_dict(Value::Map(statusesByType), type_var, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+})]).into_dict();
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {

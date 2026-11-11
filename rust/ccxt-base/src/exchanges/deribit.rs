@@ -2321,14 +2321,14 @@ impl Deribit {
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone()]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string2(ticker.clone(), Value::Str("last_price".into()), Value::Str("last".into()), &[]).as_str().map(str::to_owned);
-        let mut stats: Value = self.safe_dict_k(ticker.clone(), "stats", &[ticker.clone()]);
+        let mut stats: crate::value::Dict = self.safe_dict_k(ticker.clone(), "stats", &[ticker.clone()]).into_dict();
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("high".to_string(), self.safe_string2(stats.clone(), Value::Str("high".into()), Value::Str("max_price".into()), &[]));
-        m.insert("low".to_string(), self.safe_string2(stats.clone(), Value::Str("low".into()), Value::Str("min_price".into()), &[]));
+        m.insert("high".to_string(), self.safe_string2(&stats, Value::Str("high".into()), Value::Str("max_price".into()), &[]));
+        m.insert("low".to_string(), self.safe_string2(&stats, Value::Str("low".into()), Value::Str("min_price".into()), &[]));
         m.insert("bid".to_string(), self.safe_string2(ticker.clone(), Value::Str("best_bid_price".into()), Value::Str("bid_price".into()), &[]));
         m.insert("bidVolume".to_string(), self.safe_string_k(ticker.clone(), "best_bid_amount", &[]));
         m.insert("ask".to_string(), self.safe_string2(ticker.clone(), Value::Str("best_ask_price".into()), Value::Str("ask_price".into()), &[]));
@@ -2341,8 +2341,8 @@ impl Deribit {
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string_k(stats.clone(), "volume", &[]));
-        m.insert("quoteVolume".to_string(), self.safe_string2(stats, Value::Str("volume_notional".into()), Value::Str("volume_usd".into()), &[]));
+        m.insert("baseVolume".to_string(), self.safe_string_k(&stats, "volume", &[]));
+        m.insert("quoteVolume".to_string(), self.safe_string2(&stats, Value::Str("volume_notional".into()), Value::Str("volume_usd".into()), &[]));
         m.insert("markPrice".to_string(), self.safe_string_k(ticker.clone(), "mark_price", &[]));
         m.insert("indexPrice".to_string(), self.safe_string_k(ticker.clone(), "index_price", &[]));
         m.insert("info".to_string(), ticker);
@@ -2447,7 +2447,7 @@ impl Deribit {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut code: Option<String> = self.safe_string2(params.clone(), Value::Str("code".into()), Value::Str("currency".into()), &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = None;
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("code".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("code".into())]), &[]).into_dict();
         if (symbolsNormalized != Value::Null) {
             {
                                 let mut i: i64 = 0;
@@ -2483,7 +2483,7 @@ impl Deribit {
                 request.insert("kind".into(), Value::Str("option".into()));
             }
         }
-        let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_get_book_summary_by_currency(&[__ws_arg_5]).await.into_dict();
         //
         //     {
@@ -2516,10 +2516,10 @@ impl Deribit {
         //     }
         //
         let mut result: Vec<Value> = self.safe_list_k(&response, "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut tickers: indexmap::IndexMap<String, Value> = {
+        let mut tickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         {
                         let mut i: i64 = 0;
             let mut __for_first_624: bool = true;
@@ -2956,7 +2956,7 @@ impl Deribit {
             }
         }
         }
-        let mut parsedFees: Value = Value::Map({
+        let mut parsedFees: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2984,10 +2984,10 @@ impl Deribit {
             }  else if (market).option {
                 fee = self.extend(fee.clone(), &[Value::Map(optionFee.clone())]);
             }
-            if let Value::Dict(__d) = &mut parsedFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fee); }
+            parsedFees.insert(crate::runtime::stringify_param(&symbol), fee);
         }
         }
-        return parsedFees;
+        return Value::Map(parsedFees);
         Value::Null
         }).await?))
     }
@@ -3408,13 +3408,13 @@ impl Deribit {
                 request.insert("time_in_force".into(), Value::Str("fill_or_kill".into()));
             }
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into()), Value::Str("trailingAmount".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into()), Value::Str("trailingAmount".into())]), &[]).into_dict();
         let mut response: Value = Value::Null;
         if (self.capitalize(side).as_str() == Some("Buy")) {
-            let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_get_buy(&[__ws_arg_12]).await;
         }  else {
-            let __ws_arg_13 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_sell(&[__ws_arg_13]).await;
         }
         //
@@ -4574,7 +4574,7 @@ impl Deribit {
             m
         });
         let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("method".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("method".into()), &[]).into_dict();
         if (method.is_none()) {
             let mut transferOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "transfer", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4584,10 +4584,10 @@ impl Deribit {
         }
         let mut response: Value = Value::Null;
         if (method.as_deref() == Some("privateGetSubmitTransferToUser")) {
-            let __ws_arg_37 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_37 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_get_submit_transfer_to_user(&[__ws_arg_37]).await;
         }  else {
-            let __ws_arg_38 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_submit_transfer_to_subaccount(&[__ws_arg_38]).await;
         }
         //

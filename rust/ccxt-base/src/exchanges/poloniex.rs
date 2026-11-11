@@ -2740,10 +2740,10 @@ impl Poloniex {
             }
         }
         let mut isTrigger: Option<bool> = self.safe_bool2_opt(paramsMarketType.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
-        let mut paramsOmitted: Value = self.omit(paramsMarketType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsMarketType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         let mut response: Value = Value::from(vec![]);
         if (marketType.as_deref() != Some("spot")) {
-            let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             let mut raw: crate::value::Dict = self.swap_private_get_v3_trade_order_opens(&[__ws_arg_8]).await.into_dict();
             //
             //    {
@@ -2786,10 +2786,10 @@ impl Poloniex {
             //
             response = self.safe_list_k(&raw, "data", &[Value::from(vec![])]);
         }  else if (isTrigger == Some(true)) {
-            let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_get_smartorders(&[__ws_arg_9]).await;
         }  else {
-            let __ws_arg_10 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_orders(&[__ws_arg_10]).await;
         }
         //
@@ -3349,16 +3349,16 @@ impl Poloniex {
         let mut idValue: Value = (if (clientOrderId.is_some()) { clientOrderId.clone().map(Value::from).unwrap_or(Value::Null) } else { id });
         request.insert("id".into(), idValue);
         let mut isTrigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         let mut response: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (isTrigger == Some(true)) {
-            let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_delete_smartorders_id(&[__ws_arg_18]).await;
         }  else {
-            let __ws_arg_19 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_orders_id(&[__ws_arg_19]).await;
         }
         return self.parse_order(response, &[]);
@@ -3399,7 +3399,7 @@ impl Poloniex {
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut clientOrderIds: Value = self.safe_list2(paramsMarketType.clone(), Value::Str("clientOrderIds".into()), Value::Str("clOrdIds".into()), &[]);
-        let mut query: Value = self.omit(paramsMarketType, Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("clOrdIds".into())]), &[]);
+        let mut query: crate::value::Dict = self.omit(paramsMarketType, Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("clOrdIds".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3416,7 +3416,7 @@ impl Poloniex {
             }  else if (clientOrderIds != Value::Null) {
                 request.insert("clOrdIds".into(), clientOrderIds.clone());
             }
-            let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+            let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[&query]);
             let mut responseRaw: crate::value::Dict = self.swap_private_delete_v3_trade_batch_orders(&[__ws_arg_20]).await.into_dict();
             //
             //     {
@@ -3437,7 +3437,7 @@ impl Poloniex {
         if (clientOrderIds != Value::Null) {
             request.insert("clientOrderIds".into(), clientOrderIds);
         }
-        let __ws_arg_21 = self.extend(Value::Map(request), &[query]);
+        let __ws_arg_21 = self.extend(Value::Map(request), &[&query]);
         let mut response: Value = self.private_delete_orders_cancel_by_ids(&[__ws_arg_21]).await;
         return self.parse_orders(response, &[market]);
         Value::Null
@@ -3503,12 +3503,12 @@ impl Poloniex {
             return self.parse_orders(response.clone(), &[market.clone()]);
         }
         let mut isTrigger: Option<bool> = self.safe_bool2_opt(paramsMarketType.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
-        let mut paramsOmitted: Value = self.omit(paramsMarketType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsMarketType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         if (isTrigger == Some(true)) {
-            let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_delete_smartorders(&[__ws_arg_23]).await;
         }  else {
-            let __ws_arg_24 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_orders(&[__ws_arg_24]).await;
         }
         return self.parse_orders(response, &[market]);
@@ -3559,17 +3559,17 @@ impl Poloniex {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() is not supported for ".into())).into()), marketType).into()), Value::Str(" markets yet".into()))));
         }
         let mut isTrigger: Option<bool> = self.safe_bool2_opt(paramsMarketType.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
-        let mut paramsOmitted: Value = self.omit(paramsMarketType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsMarketType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         let mut response: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (isTrigger == Some(true)) {
-            let __ws_arg_25 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_25 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_get_smartorders_id(&[__ws_arg_25]).await;
             response = self.safe_value(response.clone(), Value::Int(0), &[]);
         }  else {
-            let __ws_arg_26 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_orders_id(&[__ws_arg_26]).await;
         }
         //
@@ -3836,7 +3836,7 @@ impl Poloniex {
         //         "volume30D" : "0.00"
         //     }
         //
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -3846,7 +3846,7 @@ impl Poloniex {
             let mut __for_first_1091: bool = true;
             while { if !__for_first_1091 { i += 1; } __for_first_1091 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -3855,10 +3855,10 @@ impl Poloniex {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -4145,12 +4145,12 @@ impl Poloniex {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut currency: Value = self.currency(code.clone());
-        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[fromAccount.clone()]);
-        let mut toId: Value = self.safe_string(accountsByType, toAccount.clone(), &[toAccount.clone()]);
+})]).into_dict();
+        let mut fromId: Value = self.safe_string(&accountsByType, fromAccount.clone(), &[fromAccount.clone()]);
+        let mut toId: Value = self.safe_string(&accountsByType, toAccount.clone(), &[toAccount.clone()]);
         let mut amountToPrecision: Value = self.currency_to_precision(code, amount, &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4297,10 +4297,10 @@ impl Poloniex {
         let mut timestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "createTime", &[]).as_i64();
         let mut fromAccountId: Option<String> = self.safe_string_k(transfer.clone(), "fromAccount", &[]).as_str().map(str::to_owned);
         let mut toAccountId: Option<String> = self.safe_string_k(transfer.clone(), "toAccount", &[]).as_str().map(str::to_owned);
-        let mut accountIds: Value = self.safe_dict_k(self.options.clone(), "accountsById", &[Value::Map({
+        let mut accountIds: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsById", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer.clone());
@@ -4309,8 +4309,8 @@ impl Poloniex {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(transfer.clone(), "currency", &[]), &[currency]));
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
-        m.insert("fromAccount".to_string(), self.safe_string(accountIds.clone(), fromAccountId.clone().map(Value::from).unwrap_or(Value::Null), &[fromAccountId.clone().map(Value::from).unwrap_or(Value::Null)]));
-        m.insert("toAccount".to_string(), self.safe_string(accountIds, toAccountId.clone().map(Value::from).unwrap_or(Value::Null), &[toAccountId.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("fromAccount".to_string(), self.safe_string(&accountIds, fromAccountId.clone().map(Value::from).unwrap_or(Value::Null), &[fromAccountId.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("toAccount".to_string(), self.safe_string(&accountIds, toAccountId.clone().map(Value::from).unwrap_or(Value::Null), &[toAccountId.clone().map(Value::from).unwrap_or(Value::Null)]));
         m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(transfer, "state", &[])).map(Value::from).unwrap_or(Value::Null));
     m
 });
@@ -4357,7 +4357,7 @@ impl Poloniex {
         });
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(paramsWithdrawTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (networkCode == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw requires a network parameter for ".into())).into()), code).into()), Value::Str(".".into()))));
         }
@@ -4365,7 +4365,7 @@ impl Poloniex {
         if (tagWithdrawTag != Value::Null) {
             request.insert("paymentId".into(), tagWithdrawTag);
         }
-        let __ws_arg_38 = self.extend(Value::Map(request), &[paramsNetworkCode]);
+        let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let mut response: Value = self.private_post_v2_wallets_withdraw(&[__ws_arg_38]).await;
         return self.parse_transaction(response, &[currency]);
         Value::Null
@@ -4608,7 +4608,7 @@ impl Poloniex {
                                                 let mut j: i64 = 0;
                         let mut __for_first_1095: bool = true;
                         while { if !__for_first_1095 { j += 1; } __for_first_1095 = false; j < (childChains.len() as i64) } {
-                        let mut rawNetworkId: Value = self.safe_string(childChains.clone().into(), Value::Int(j), &[Value::Str("".into())]);
+                        let mut rawNetworkId: Value = self.safe_string(&childChains, Value::Int(j), &[Value::Str("".into())]);
                         let mut networkId: Value = rawNetworkId.as_str().zip(code.as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| rawNetworkId.clone());
                         let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), self.safe_string_k(currency.clone(), "code", &[])]);
                         let mut networkInfo: crate::value::Dict = self.safe_dict(response.clone(), networkId, &[]).into_dict();
@@ -4932,12 +4932,12 @@ impl Poloniex {
         });
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchLeverage".into()), &[params]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marginMode == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\"".into()))));
         }
         request.insert("mgnMode".into(), (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-        let __ws_arg_43 = self.extend(Value::Map(request), &[paramsMarginMode]);
+        let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsMarginMode]);
         let mut response: Value = self.swap_private_get_v3_position_leverages(&[__ws_arg_43]).await;
         return self.parse_leverage(response, &[(market).raw.clone()]);
         Value::Null

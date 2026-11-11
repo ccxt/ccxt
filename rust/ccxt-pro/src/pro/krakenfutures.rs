@@ -1349,7 +1349,7 @@ impl Krakenfutures {
                 }
                 // update the newUpdates count
                 orders.append(self.safe_order(previousOrder, &[]));
-                client.resolve(&[orders.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into())]);
+                client.resolve(&[orders.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())]);
                 client.resolve(&[orders.clone(), Value::from(messageHash.clone())]);
             }
         }  else {
@@ -1473,7 +1473,7 @@ impl Krakenfutures {
             m
         });
         let mut cachedOrders: Value = self.orders.clone();
-        let mut snapshotIds: Value = Value::Map({
+        let mut snapshotIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1489,7 +1489,7 @@ impl Krakenfutures {
             }
             let mut parsedId: Option<String> = self.safe_string_k_opt(parsed.clone(), "id", &[]);
             if (parsedId.is_some()) {
-                if let Value::Dict(__d) = &mut snapshotIds { std::sync::Arc::make_mut(__d).insert(parsedId.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                snapshotIds.insert(parsedId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
             cachedOrders.append(parsed);
         }
@@ -1515,7 +1515,7 @@ impl Krakenfutures {
                 let mut __for_first_438: bool = true;
                 while { if !__for_first_438 { j += 1; } __for_first_438 = false; j < (cachedIds.len() as i64) } {
                 let mut cachedId: Value = cachedIds.get(j as usize).cloned().unwrap_or(Value::Null);
-                if !(matches!((&snapshotIds, &cachedId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if !(matches!(&cachedId, Value::Str(__k) if snapshotIds.contains_key(__k.as_ref()))) {
                     let mut cachedOrder: Value = self.safe_dict(ordersById.clone(), cachedId.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
@@ -2104,7 +2104,7 @@ impl Krakenfutures {
             if let Value::Dict(__r08a) = &mut self.balance { let __r08e = std::sync::Arc::make_mut(__r08a).entry("margin".to_string()).or_insert(Value::Null); if let Value::Dict(__r08b) = __r08e { std::sync::Arc::make_mut(__r08b).insert("info".to_string(), message.clone()); } }
             if let Value::Dict(__r08a) = &mut self.balance { let __r08e = std::sync::Arc::make_mut(__r08a).entry("margin".to_string()).or_insert(Value::Null); if let Value::Dict(__r08b) = __r08e { std::sync::Arc::make_mut(__r08b).insert("timestamp".to_string(), Value::from(timestamp)); } }
             { let __be_tmp = self.iso8601(Value::from(timestamp)); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("margin".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } };
-            let mut futuresSymbols: Value = Value::Map({
+            let mut futuresSymbols: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -2126,13 +2126,13 @@ impl Krakenfutures {
                     m
                 });
                 if (symbol != Value::Null) && (code != Value::Null) {
-                    if let Value::Dict(__d) = &mut futuresSymbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
+                    futuresSymbols.insert(crate::runtime::stringify_param(&symbol), Value::Bool(true));
                     symbolAccounts.insert(crate::runtime::stringify_param(&code), newAccount.clone());
                 }
                 if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("margin".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&symbol), Value::Map(symbolAccounts)); } }
             }
             }
-            { let __be_tmp = self.prune_stale_balance_keys(crate::value::get_value_k(&self.balance, "margin"), futuresSymbols); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("margin".into(), __be_tmp); } }
+            { let __be_tmp = self.prune_stale_balance_keys(crate::value::get_value_k(&self.balance, "margin"), Value::Map(futuresSymbols)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("margin".into(), __be_tmp); } }
             { let __be_tmp = self.safe_balance(crate::value::get_value_k(&self.balance, "margin")); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("margin".into(), __be_tmp); } }
             client.resolve(&[self.balance.as_map().and_then(|__m| __m.get("margin")).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", messageHash, Value::Str(":futures".into())).into())]);
             if (updatedBalance == Value::Null) {
@@ -2185,7 +2185,7 @@ impl Krakenfutures {
         // legacy behaviour): a second resolve on the same hash is not portable
         // (the rust client hands the consumer the LAST resolved value)
         if (updatedBalance != Value::Null) {
-            client.resolve(&[updatedBalance, Value::from(messageHash.clone())]);
+            client.resolve(&[updatedBalance, Value::from(messageHash)]);
         }
 }
 

@@ -989,7 +989,7 @@ impl Hollaex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: Value = self.public_get_orderbooks(&[params]).await;
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1005,10 +1005,10 @@ impl Hollaex {
 })]);
             let mut symbol: Value = self.safe_symbol(marketId, &[Value::Null, Value::Str("-".into())]);
             let mut timestamp: Value = self.parse8601(self.safe_string_k(orderbook.clone(), "timestamp", &[]));
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_order_book(orderbook, symbol.clone(), &[timestamp])); }
+            result.insert(crate::runtime::stringify_param(&symbol), self.parse_order_book(orderbook, symbol.clone(), &[timestamp]));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -1144,10 +1144,10 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut result: indexmap::IndexMap<String, Value> = {
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         let mut keys: Vec<Value> = Value::Array(tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -1405,15 +1405,15 @@ impl Hollaex {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut makerFees: Value = self.safe_dict_k(fees.clone(), "maker", &[Value::Map({
+        let mut makerFees: crate::value::Dict = self.safe_dict_k(fees.clone(), "maker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut takerFees: Value = self.safe_dict_k(fees.clone(), "taker", &[Value::Map({
+})]).into_dict();
+        let mut takerFees: crate::value::Dict = self.safe_dict_k(fees.clone(), "taker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut result: Value = Value::Map({
+})]).into_dict();
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1424,9 +1424,9 @@ impl Hollaex {
             while { if !__for_first_763 { i += 1; } __for_first_763 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut makerString: Option<String> = self.safe_string(makerFees.clone(), Value::from((market).id.clone()), &[]).as_str().map(str::to_owned);
-            let mut takerString: Option<String> = self.safe_string(takerFees.clone(), Value::from((market).id.clone()), &[]).as_str().map(str::to_owned);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            let mut makerString: Option<String> = self.safe_string(&makerFees, Value::from((market).id.clone()), &[]).as_str().map(str::to_owned);
+            let mut takerString: Option<String> = self.safe_string(&takerFees, Value::from((market).id.clone()), &[]).as_str().map(str::to_owned);
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fees.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -1435,10 +1435,10 @@ impl Hollaex {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -1500,8 +1500,8 @@ impl Hollaex {
             request.insert("from".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); // convert to seconds
         }
         request.insert("to".into(), self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); // convert to seconds
-        let mut paramsOmitted: Value = self.omit(paramsPaginate, Value::Str("until".into()), &[]);
-        let __ws_arg_4 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::Str("until".into()), &[]).into_dict();
+        let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.public_get_chart(&[__ws_arg_4]).await;
         return self.parse_ohlc_vs(self.to_array(response), &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
@@ -1533,7 +1533,7 @@ impl Hollaex {
                         let mut i: i64 = 0;
             let mut __for_first_764: bool = true;
             while { if !__for_first_764 { i += 1; } __for_first_764 = false; i < (currencyIds.len() as i64) } {
-            let mut currencyId: String = self.safe_string(currencyIds.clone().into(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut currencyId: String = self.safe_string(&currencyIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut code: Value = self.safe_currency_code(Value::from(currencyId.clone()), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", currencyId, Value::Str("_available".into())).into()), &[]));
@@ -1972,8 +1972,8 @@ impl Hollaex {
     m
 }));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stop".into())]), &[]);
-        let __ws_arg_10 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stop".into())]), &[]).into_dict();
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_order(&[__ws_arg_10]).await;
         return self.parse_order(response, &[(market).raw.clone()]);
         Value::Null

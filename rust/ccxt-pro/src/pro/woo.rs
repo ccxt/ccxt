@@ -404,11 +404,11 @@ impl Woo {
 }
 
     pub fn request_id(&mut self, mut url: Value) -> Value {
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "requestId", &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "requestId", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut previousValue: i64 = self.safe_integer(options.clone(), url.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
+        })]).into_dict();
+        let mut previousValue: i64 = self.safe_integer(&options, url.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut newValue: Value = self.sum(&[Value::from(previousValue), Value::Int(1)]);
         let mut entry: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1650,7 +1650,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if trigger {
             topic = "algoexecutionreportv2".to_string();
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         let mut messageHash: String = topic.clone();
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -1663,7 +1663,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 m.insert("topic".to_string(), Value::from(topic.clone()));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut orders: Value = self.watch_private(Value::from(messageHash), message.clone(), &[]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1708,7 +1708,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if trigger {
             topic = "algoexecutionreportv2".to_string();
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         let mut messageHash: String = "myTrades".to_string();
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -1721,7 +1721,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 m.insert("topic".to_string(), Value::from(topic.clone()));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut trades: Value = self.watch_private(Value::from(messageHash), message.clone(), &[]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1989,10 +1989,10 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut trade: Value = self.parse_ws_trade(message.clone(), &[]);
         myTrades.append(trade.clone());
         let mut tradeSymbol: String = self.safe_string_k(trade, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), tradeSymbol).into());
-        client.resolve(&[myTrades.clone(), messageHash.clone()]);
-        messageHash = Value::Str("myTrades".into());
-        client.resolve(&[myTrades, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("myTrades:".into()), tradeSymbol);
+        client.resolve(&[myTrades.clone(), Value::from(messageHash.clone())]);
+        messageHash = "myTrades".to_string();
+        client.resolve(&[myTrades, Value::from(messageHash)]);
 }
 
 /*

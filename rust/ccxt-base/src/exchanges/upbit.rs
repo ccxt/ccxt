@@ -1258,7 +1258,7 @@ impl Upbit {
         //                               "ask_size": 2.752,
         //                               "bid_size": 0.4650305 }    ] }   ]
         //
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1274,7 +1274,7 @@ impl Upbit {
             let mut marketId: Option<String> = self.safe_string_k(&orderbook, "market", &[]).as_str().map(str::to_owned);
             let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("-".into())]);
             let mut timestamp: Option<i64> = self.safe_integer_k(&orderbook, "timestamp", &[]).as_i64();
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("bids".to_string(), self.sort_by(self.parse_order_book_bids_asks(orderbook.get("orderbook_units").cloned().unwrap_or(Value::Null), &[Value::Str("bid_price".into()), Value::Str("bid_size".into())]), Value::Int(0), &[Value::Bool(true)]));
@@ -1283,10 +1283,10 @@ impl Upbit {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("nonce".to_string(), Value::Null);
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -1456,7 +1456,7 @@ impl Upbit {
                 while { if !__for_first_1141 { i += 1; } __for_first_1141 = false; i < (queries.len() as i64) } {
                 let __ws_arg_4 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("markets".to_string(), self.safe_string(queries.clone().into(), Value::Int(i), &[Value::Str("".into())]));
+                        m.insert("markets".to_string(), self.safe_string(&queries, Value::Int(i), &[Value::Str("".into())]));
                     m
                 }), &[params.clone()]);
                 promises.push(self.public_get_ticker(&[__ws_arg_4]).await);
@@ -2034,12 +2034,12 @@ impl Upbit {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a timeInForce parameter for best type orders".into()))));
         }
         let mut response: Value = Value::Null;
-        let mut paramsRequest: Value = self.omit(paramsOrdType, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("postOnly".into()), Value::Str("clientOrderId".into()), Value::Str("cost".into()), Value::Str("selfTradePrevention".into()), Value::Str("smp_type".into()), Value::Str("test".into())]), &[]);
+        let mut paramsRequest: crate::value::Dict = self.omit(paramsOrdType, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("postOnly".into()), Value::Str("clientOrderId".into()), Value::Str("cost".into()), Value::Str("selfTradePrevention".into()), Value::Str("smp_type".into()), Value::Str("test".into())]), &[]).into_dict();
         if test {
-            let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[paramsRequest.clone()]);
+            let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsRequest]);
             response = self.private_post_orders_test(&[__ws_arg_9]).await;
         }  else {
-            let __ws_arg_10 = self.extend(Value::Map(request), &[paramsRequest]);
+            let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsRequest]);
             response = self.private_post_orders(&[__ws_arg_10]).await;
         }
         return self.parse_order(response, &[]);
@@ -2201,9 +2201,9 @@ impl Upbit {
         if (self.safe_string(Value::Map(request.clone()), Value::Str("new_ord_type".into()), &[]).as_str() == Some("best")) && (timeInForce.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a timeInForce parameter for best type orders".into()))));
         }
-        let mut paramsRequest: Value = self.omit(paramsOrdType, Value::from(vec![Value::Str("newTimeInForce".into()), Value::Str("new_time_in_force".into()), Value::Str("postOnly".into()), Value::Str("newClientOrderId".into()), Value::Str("cost".into()), Value::Str("selfTradePrevention".into()), Value::Str("new_smp_type".into())]), &[]);
+        let mut paramsRequest: crate::value::Dict = self.omit(paramsOrdType, Value::from(vec![Value::Str("newTimeInForce".into()), Value::Str("new_time_in_force".into()), Value::Str("postOnly".into()), Value::Str("newClientOrderId".into()), Value::Str("cost".into()), Value::Str("selfTradePrevention".into()), Value::Str("new_smp_type".into())]), &[]).into_dict();
         // console.log ('check the each request paramsOmitted: ', request);
-        let __ws_arg_12 = self.extend(Value::Map(request), &[paramsRequest]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsRequest]);
         let mut response: crate::value::Dict = self.private_post_orders_cancel_and_new(&[__ws_arg_12]).await.into_dict();
         //   {
         //     uuid: '63b38774-27db-4439-ac20-1be16a24d18e',        //previous order data
@@ -2972,7 +2972,7 @@ impl Upbit {
         let mut currency: Value = self.currency(code);
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (networkCode == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress requires params[\"network\"]".into()))));
         }
@@ -2981,7 +2981,7 @@ impl Upbit {
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("net_type".to_string(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency, "code", &[])]));
             m
-        }), &[paramsNetworkCode]);
+        }), &[&paramsNetworkCode]);
         let mut response: Value = self.private_get_deposits_coin_address(&[__ws_arg_21]).await;
         return self.parse_deposit_address(response, &[]);
         Value::Null
@@ -3091,14 +3091,14 @@ impl Upbit {
             if (network.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network argument".into()))));
             }
-            let mut paramsOmitted: Value = self.omit(paramsTag.clone(), Value::from(vec![Value::Str("network".into())]), &[]);
+            let mut paramsOmitted: crate::value::Dict = self.omit(paramsTag.clone(), Value::from(vec![Value::Str("network".into())]), &[]).into_dict();
             request.insert("net_type".into(), network.clone().map(Value::from).unwrap_or(Value::Null));
             request.insert("currency".into(), currency.get("id").cloned().unwrap_or(Value::Null));
             request.insert("address".into(), address);
             if (tagResolved != Value::Null) {
                 request.insert("secondary_address".into(), tagResolved);
             }
-            let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[paramsOmitted]);
+            let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_post_withdraws_coin(&[__ws_arg_23]).await;
         }  else {
             let __ws_arg_24 = self.extend(Value::Map(request), &[paramsTag]);

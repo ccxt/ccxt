@@ -1671,10 +1671,10 @@ impl Coinbaseexchange {
         //         ]
         //     }
         //
-        let mut result: indexmap::IndexMap<String, Value> = {
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         let mut marketIds: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut delimiter: String = "-".to_string();
         {
@@ -1959,7 +1959,7 @@ impl Coinbaseexchange {
         //
         let mut maker: Option<f64> = self.safe_number_k(response.clone(), "maker_fee_rate", &[]).as_f64();
         let mut taker: Option<f64> = self.safe_number_k(response.clone(), "taker_fee_rate", &[]).as_f64();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1969,7 +1969,7 @@ impl Coinbaseexchange {
             let mut __for_first_554: bool = true;
             while { if !__for_first_554 { i += 1; } __for_first_554 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -1978,10 +1978,10 @@ impl Coinbaseexchange {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -2043,7 +2043,7 @@ impl Coinbaseexchange {
             request.insert("granularity".into(), timeframe.clone());
         }
         let mut until: Value = self.safe_value2(paramsPaginate.clone(), Value::Str("until".into()), Value::Str("end".into()), &[]);
-        let mut paramsOmitted: Value = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
         let mut cappedLimit: Value = self.parse_to_int((if (limit == Value::Null) { Value::Int(300) } else { crate::runtime::Math::min(&limit, &Value::Int(300)) }));
         let mut limitResolved: Value = (if (since != Value::Null) { cappedLimit.clone() } else { limit });
@@ -2066,7 +2066,7 @@ impl Coinbaseexchange {
                 request.insert("end".into(), self.iso8601(until));
             }
         }
-        let __ws_arg_11 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.public_get_products_id_candles(&[__ws_arg_11]).await;
         return self.parse_ohlc_vs(self.to_array(response), &[(market).raw.clone(), timeframe, since, limitResolved]);
         Value::Null
@@ -2229,8 +2229,8 @@ impl Coinbaseexchange {
             response = self.private_get_orders_id(&[__ws_arg_12]).await;
         }  else {
             request.insert("client_oid".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
-            let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_oid".into())]), &[]);
-            let __ws_arg_13 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_oid".into())]), &[]).into_dict();
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_orders_client_client_oid(&[__ws_arg_13]).await;
         }
         return self.parse_order(response, &[]);

@@ -1303,7 +1303,7 @@ impl Hibachi {
         //    },
         let mut makerFeeRate: Option<f64> = self.safe_number_k(response.clone(), "tradeMakerFeeRate", &[]).as_f64();
         let mut takerFeeRate: Option<f64> = self.safe_number_k(response.clone(), "tradeTakerFeeRate", &[]).as_f64();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1313,7 +1313,7 @@ impl Hibachi {
             let mut __for_first_734: bool = true;
             while { if !__for_first_734 { i += 1; } __for_first_734 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -1321,10 +1321,10 @@ impl Hibachi {
         m.insert("taker".to_string(), Value::from(takerFeeRate));
         m.insert("percentage".to_string(), Value::Bool(true));
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -1438,8 +1438,8 @@ impl Hibachi {
         if (triggerPrice.is_some()) {
             request.insert("triggerPrice".into(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into())]), &[]);
-        return self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into())]), &[]).into_dict();
+        return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
 }
@@ -1825,23 +1825,23 @@ impl Hibachi {
         //
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
-        let mut ret: Value = Value::from(vec![]);
+        let mut ret: Vec<Value> = Vec::new();
         let mut responseOrders: Vec<Value> = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_740: bool = true;
             while { if !__for_first_740 { i += 1; } __for_first_740 = false; i < (responseOrders.len() as i64) } {
             let mut responseOrder: Value = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Arr(__a) = &mut ret { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
+            ret.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), responseOrder.clone());
         m.insert("id".to_string(), self.safe_string_k(responseOrder, "orderId", &[]));
         m.insert("status".to_string(), Value::Str("canceled".into()));
     m
-}), &[])); }
+}), &[]));
         }
         }
-        return ret;
+        return Value::from(ret);
         Value::Null
         }).await?))
     }
@@ -2243,11 +2243,11 @@ impl Hibachi {
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOrdersByStatus".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (until != Value::Null) {
             request.insert("endTime".into(), until);
         }
-        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsUntil]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_trade_orders_history(&[__ws_arg_14]).await.into_dict();
         //
         //     {
@@ -2391,11 +2391,11 @@ impl Hibachi {
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (until != Value::Null) {
             request.insert("toMs".into(), until);
         }
-        let __ws_arg_15 = self.extend(Value::Map(request), &[paramsUntil]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::Dict = self.public_get_market_data_klines(&[__ws_arg_15]).await.into_dict();
         //
         // [
@@ -3134,11 +3134,11 @@ impl Hibachi {
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchMySettlementHistory".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (until != Value::Null) {
             request.insert("endTime".into(), self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
-        let __ws_arg_20 = self.extend(Value::Map(request), &[paramsUntil]);
+        let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_trade_account_settlements_history(&[__ws_arg_20]).await.into_dict();
         //
         //     {

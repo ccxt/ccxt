@@ -2633,7 +2633,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut errorMessage: Option<String> = self.safe_string2_opt(message.clone(), Value::Str("errorMessage".into()), Value::Str("error".into()), &[]);
         if (errorMessage.is_some()) {
-            let mut requestId: Option<String> = self.safe_string2_opt(message, Value::Str("reqid".into()), Value::Str("req_id".into()), &[]);
+            let mut requestId: Option<String> = self.safe_string2(message, Value::Str("reqid".into()), Value::Str("req_id".into()), &[]).as_str().map(str::to_owned);
             let mut broad: Value = self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null);
             let mut broadKey: Value = self.find_broadly_matched_key(broad.clone(), errorMessage.clone().map(Value::from).unwrap_or(Value::Null));
             let mut exception: Value = Value::Null;

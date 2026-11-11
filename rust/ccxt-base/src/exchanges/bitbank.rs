@@ -963,7 +963,7 @@ impl Bitbank {
             m
         })]).into_dict();
         let mut pairs: Vec<Value> = self.safe_list_k(&data, "pairs", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -975,7 +975,7 @@ impl Bitbank {
             let mut marketId: Option<String> = self.safe_string_k(pair.clone(), "name", &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), pair.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -984,10 +984,10 @@ impl Bitbank {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }

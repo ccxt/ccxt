@@ -2068,20 +2068,20 @@ impl Woo {
 })]).into_dict();
         let mut maker: Option<String> = self.safe_string_k(&data, "makerFeeRate", &[]).as_str().map(str::to_owned);
         let mut taker: Option<String> = self.safe_string_k(&data, "takerFeeRate", &[]).as_str().map(str::to_owned);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut symbols: Value = self.symbols.clone();
         if (symbols == Value::Null) {
-            return result;
+            return Value::Map(result);
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_1167: bool = true;
             while { if !__for_first_1167 { i += 1; } __for_first_1167 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -2090,10 +2090,10 @@ impl Woo {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -2670,14 +2670,14 @@ impl Woo {
             });
             request.insert("childOrders".into(), Value::from(vec![outterOrder]));
         }
-        let mut paramsRequest: Value = self.omit(paramsCost, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopLoss".into()),
-            Value::Str("takeProfit".into()), Value::Str("trailingPercent".into()), Value::Str("trailingAmount".into()), Value::Str("trailingTriggerPrice".into())]), &[]);
+        let mut paramsRequest: crate::value::Dict = self.omit(paramsCost, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopLoss".into()),
+            Value::Str("takeProfit".into()), Value::Str("trailingPercent".into()), Value::Str("trailingAmount".into()), Value::Str("trailingTriggerPrice".into())]), &[]).into_dict();
         let mut response: Value = Value::Null;
         if isConditional {
-            let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[paramsRequest.clone()]);
+            let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[&paramsRequest]);
             response = self.v3_private_post_trade_algo_order(&[__ws_arg_2]).await;
         }  else {
-            let __ws_arg_3 = self.extend(Value::Map(request), &[paramsRequest]);
+            let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsRequest]);
             response = self.v3_private_post_trade_order(&[__ws_arg_3]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
@@ -2783,9 +2783,9 @@ impl Woo {
             }
         }
         let mut isTrigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into()),
-            Value::Str("trailingTriggerPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()), Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
-        let mut isConditional: bool = isTrigger || isTrailing || (triggerPrice.is_some()) || (self.safe_list_k(paramsOmitted.clone(), "childOrders", &[]) != Value::Null);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into()),
+            Value::Str("trailingTriggerPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()), Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
+        let mut isConditional: bool = isTrigger || isTrailing || (triggerPrice.is_some()) || (self.safe_list_k(&paramsOmitted, "childOrders", &[]) != Value::Null);
         let mut response: Value = Value::Null;
         if isConditional {
             if isByClientOrder {
@@ -2793,7 +2793,7 @@ impl Woo {
             }  else {
                 request.insert("algoOrderId".into(), id.clone());
             }
-            let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.v3_private_put_trade_algo_order(&[__ws_arg_5]).await;
         }  else {
             if isByClientOrder {
@@ -2801,7 +2801,7 @@ impl Woo {
             }  else {
                 request.insert("orderId".into(), id.clone());
             }
-            let __ws_arg_6 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.v3_private_put_trade_order(&[__ws_arg_6]).await;
         }
         //
@@ -2870,7 +2870,7 @@ impl Woo {
         });
         let mut clientOrderIdUnified: Option<String> = self.safe_string2(paramsOmitted.clone(), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
         let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(paramsOmitted.clone(), "client_order_id", &[clientOrderIdUnified.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
+        let mut paramsOmitted2: crate::value::Dict = self.omit(paramsOmitted, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
         let mut isByClientOrder: bool = clientOrderIdExchangeSpecific != Value::Null;
         let mut response: Value = Value::Null;
         if isTrigger {
@@ -2879,7 +2879,7 @@ impl Woo {
             }  else {
                 request.insert("algoOrderId".into(), id.clone());
             }
-            let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[paramsOmitted2.clone()]);
+            let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsOmitted2]);
             response = self.v3_private_delete_trade_algo_order(&[__ws_arg_7]).await;
         }  else {
             request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
@@ -2888,7 +2888,7 @@ impl Woo {
             }  else {
                 request.insert("orderId".into(), id.clone());
             }
-            let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted2]);
+            let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted2]);
             response = self.v3_private_delete_trade_order(&[__ws_arg_8]).await;
         }
         //
@@ -3122,7 +3122,7 @@ impl Woo {
         });
         let mut market: Value = Value::Null;
         let mut trigger: Option<bool> = self.safe_bool2_opt(paramsPaginate.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
-        let mut paramsOmitted: Value = self.omit(paramsPaginate, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -3130,8 +3130,8 @@ impl Woo {
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
         }
-        let mut until: Option<i64> = self.safe_integer_k(paramsOmitted.clone(), "until", &[]).as_i64(); // unified in milliseconds
-        let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut until: Option<i64> = self.safe_integer_k(&paramsOmitted, "until", &[]).as_i64(); // unified in milliseconds
+        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
@@ -3140,10 +3140,10 @@ impl Woo {
         }
         let mut response: Value = Value::Null;
         if (trigger == Some(true)) {
-            let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[paramsOmitted2.clone()]);
+            let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[&paramsOmitted2]);
             response = self.v3_private_get_trade_algo_orders(&[__ws_arg_13]).await;
         }  else {
-            let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted2]);
+            let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted2]);
             response = self.v3_private_get_trade_orders(&[__ws_arg_14]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
@@ -3762,11 +3762,11 @@ impl Woo {
             request.insert("after".into(), (match (&(since), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); // #27793
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
         if (until.is_some()) {
             request.insert("before".into(), Value::from(until));
         }
-        let __ws_arg_18 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.v3_public_get_kline_history(&[__ws_arg_18]).await.into_dict();
         //
         //     {
@@ -4171,14 +4171,14 @@ impl Woo {
         let mut currency: Value = self.currency(code);
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("token".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("network".to_string(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]));
             m
         });
-        let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[paramsNetworkCode]);
+        let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[&paramsNetworkCode]);
         let mut response: crate::value::Dict = self.v3_private_get_asset_wallet_deposit(&[__ws_arg_21]).await.into_dict();
         //
         //     {
@@ -4269,7 +4269,7 @@ impl Woo {
         }
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (networkCode != Value::Null) {
             request.insert("network".into(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]));
         }
@@ -4279,12 +4279,12 @@ impl Woo {
         if (limit != Value::Null) {
             request.insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
-        let mut transactionType: Option<String> = self.safe_string_k(paramsNetworkCode.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(paramsNetworkCode, Value::Str("type".into()), &[]);
+        let mut transactionType: Option<String> = self.safe_string_k(&paramsNetworkCode, "type", &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsNetworkCode, Value::Str("type".into()), &[]).into_dict();
         if (transactionType.is_some()) {
             request.insert("type".into(), transactionType.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_23 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.v3_private_get_asset_wallet_history(&[__ws_arg_23]).await.into_dict();
         //
         //     {
@@ -4913,10 +4913,10 @@ impl Woo {
         if (network.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter for ".into())).into()), code)));
         }
-        let mut paramsOmitted: Value = self.omit(paramsWithdrawTag, Value::Str("network".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsWithdrawTag, Value::Str("network".into()), &[]).into_dict();
         request.insert("token".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         request.insert("network".into(), self.network_code_to_id(network.clone().map(Value::from).unwrap_or(Value::Null), &[self.safe_string_k(currency.clone(), "code", &[])]));
-        let __ws_arg_29 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.v3_private_post_asset_wallet_withdraw(&[__ws_arg_29]).await.into_dict();
         //
         //     {
@@ -5233,14 +5233,14 @@ impl Woo {
             request.insert("startTime".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(paramsPaginate.clone(), "until", &[]).as_i64(); // unified in milliseconds
-        let mut paramsOmitted: Value = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
         if (limit != Value::Null) {
             request.insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
-        let __ws_arg_34 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.v3_private_get_futures_funding_fee_history(&[__ws_arg_34]).await.into_dict();
         //
         //     {
@@ -5659,9 +5659,9 @@ impl Woo {
             });
             let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchLeverage".into()), &[params, Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
             let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
+            let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             request.insert("marginMode".into(), self.encode_margin_mode(marginMode).map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_38 = self.extend(Value::Map(request), &[paramsMarginMode]);
+            let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsMarginMode]);
             response = self.v3_private_get_futures_leverage(&[__ws_arg_38]).await;
         }  else {
             let mut marketType: String = self.safe_string_k((market).raw.clone(), "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -5765,9 +5765,9 @@ impl Woo {
             request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
             let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params, Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
             let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
+            let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             request.insert("marginMode".into(), self.encode_margin_mode(marginMode).map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_40 = self.extend(Value::Map(request), &[paramsMarginMode]);
+            let __ws_arg_40 = self.extend(Value::Map(request), &[&paramsMarginMode]);
             return self.v3_private_put_futures_leverage(&[__ws_arg_40]).await;
         }  else {
             let mut marketType: String = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -6676,7 +6676,7 @@ impl Woo {
             }
         }
         }
-        return self.safe_string(networkKeys.clone().into(), Value::Int(0), &[]);
+        return self.safe_string(&networkKeys, Value::Int(0), &[]);
 
     Value::Null
 }

@@ -1353,13 +1353,13 @@ impl Whitebit {
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        let mut messageHash: Value = Value::Str("wallet:".into());
+        let mut messageHash: String = "wallet:".to_string();
         if method.as_deref().unwrap_or_default().contains("Spot") {
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str("spot".into())).into());
+            messageHash.push_str("spot");
         }  else {
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str("margin".into())).into());
+            messageHash.push_str("margin");
         }
-        client.resolve(&[self.balance.clone(), messageHash]);
+        client.resolve(&[self.balance.clone(), Value::from(messageHash)]);
 }
 
     pub async fn watch_public(&mut self, mut messageHash: Value, mut method: Value, optional_args: &[Value]) -> Value {
@@ -1399,10 +1399,10 @@ impl Whitebit {
         let mut request: Value = Value::Null;
         let mut marketIds: Value = Value::from(vec![]);
         if (client == Value::Null) {
-            let mut subscription: indexmap::IndexMap<String, Value> = {
+            let mut subscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
-            };
+            });
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             if (marketId != Value::Null) {

@@ -484,7 +484,7 @@ impl Bingx {
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchTicker".into()), &[(market).raw.clone(), paramsMarketType, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_str() == Some("swap")) {
             url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType, &[]);
         }  else {
@@ -507,7 +507,7 @@ impl Bingx {
                 m.insert("id".to_string(), uuid);
             m
         });
-        let __ws_arg_1 = self.extend(Value::Map(request), &[paramsSubType]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsSubType]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_1, messageHash.clone(), Value::Map(subscription)]).await;
         Value::Null
         }).await?))
@@ -761,7 +761,7 @@ impl Bingx {
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchTrades".into()), &[(market).raw.clone(), paramsMarketType, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_str() == Some("swap")) {
             url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType, &[]).as_str().map(str::to_owned);
         }  else {
@@ -784,7 +784,7 @@ impl Bingx {
                 m.insert("id".to_string(), uuid);
             m
         });
-        let __ws_arg_2 = self.extend(Value::Map(request), &[paramsSubType]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsSubType]);
         let mut trades: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_2, Value::from(messageHash), Value::Map(subscription)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1435,11 +1435,11 @@ impl Bingx {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut timeframes: Value = self.safe_dict_k(&options, "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(&options, "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut rawTimeframe: Value = self.safe_string(timeframes, timeframe.clone(), &[timeframe.clone()]);
+        })]).into_dict();
+        let mut rawTimeframe: Value = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: Value = self.get_message_hash(Value::Str("ohlcv".into()), &[Value::from((market).symbol.clone()), timeframe]).map(Value::from).unwrap_or(Value::Null);
         let mut subscriptionHash: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]), Value::Str("@kline_".into())).into()), rawTimeframe);
         let mut uuid: Value = self.uuid(&[]);
@@ -1504,11 +1504,11 @@ impl Bingx {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut timeframes: Value = self.safe_dict_k(&options, "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(&options, "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut rawTimeframe: Value = self.safe_string(timeframes, timeframe.clone(), &[timeframe.clone()]);
+        })]).into_dict();
+        let mut rawTimeframe: Value = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]), Value::Str("@kline_".into())).into()), rawTimeframe);
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe::".into()), subMessageHash);
         let mut topic: String = "ohlcv".to_string();
@@ -2101,7 +2101,7 @@ impl Bingx {
                         let mut i: i64 = 0;
             let mut __for_first_95: bool = true;
             while { if !__for_first_95 { i += 1; } __for_first_95 = false; i < (messageHashes.len() as i64) } {
-            let mut messageHash: Value = self.safe_string(messageHashes.clone().into(), Value::Int(i), &[Value::Str("".into())]);
+            let mut messageHash: Value = self.safe_string(&messageHashes, Value::Int(i), &[Value::Str("".into())]);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
             let mut filteredSymbols: Value = Value::Array(if let Some(__s) = symbolsString.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
@@ -2691,13 +2691,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut messageHashes: Vec<Value> = (match __pro_message.get("messageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
-        let mut subMessageHashes: Value = (match __pro_message.get("subMessageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut subMessageHashes: crate::value::List = (match __pro_message.get("subMessageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_100: bool = true;
             while { if !__for_first_100 { i += 1; } __for_first_100 = false; i < (messageHashes.len() as i64) } {
-            let mut unsubHash: String = self.safe_string(messageHashes.clone().into(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut subHash: String = self.safe_string(subMessageHashes.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut unsubHash: String = self.safe_string(&messageHashes, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut subHash: String = self.safe_string(&subMessageHashes, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             self.clean_unsubscription(client.clone(), Value::from(subHash), Value::from(unsubHash), &[]);
         }
         }

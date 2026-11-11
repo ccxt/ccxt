@@ -2007,12 +2007,12 @@ impl Apex {
                 timeInForce = Some("IMMEDIATE_OR_CANCEL".to_string());
             }
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("timeInForce".into()), &[]);
-        let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::Str("postOnly".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("timeInForce".into()), &[]).into_dict();
+        let mut paramsOmitted2: Value = self.omit(&paramsOmitted, Value::Str("postOnly".into()), &[]);
         let mut clientOrderId: Option<String> = self.safe_string_n(paramsOmitted2.clone(), Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
         let mut accountId: Value = self.get_account_id().await;
         let mut finalClientOrderId: Value = (if (clientOrderId.is_some()) { clientOrderId.clone().map(Value::from).unwrap_or(Value::Null) } else { self.generate_random_client_id_omni(accountId.clone()).map(Value::from).unwrap_or(Value::Null) });
-        let mut paramsOmitted3: Value = self.omit(paramsOmitted2, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("triggerPrice".into())]), &[]);
+        let mut paramsOmitted3: crate::value::Dict = self.omit(paramsOmitted2, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("triggerPrice".into())]), &[]).into_dict();
         let mut finalOrderPrice: Value = orderPrice; // java req
         let mut orderToSign: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2053,7 +2053,7 @@ impl Apex {
             request.insert("triggerPrice".into(), self.price_to_precision(symbol, triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
         }
         request.insert("signature".into(), signature);
-        let __ws_arg_6 = self.extend(Value::Map(request), &[paramsOmitted3]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted3]);
         let mut response: crate::value::Dict = self.private_post_v3_order(&[__ws_arg_6]).await.into_dict();
         let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2166,7 +2166,7 @@ impl Apex {
         let mut timestampSeconds: Value = self.parse_to_int((match ((self.milliseconds()).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut clientOrderId: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
         let mut finalClientOrderId: Value = (if (clientOrderId.is_some()) { clientOrderId.clone().map(Value::from).unwrap_or(Value::Null) } else { self.generate_random_client_id_omni(self.safe_string_k(self.options.clone(), "accountId", &[])).map(Value::from).unwrap_or(Value::Null) });
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
         if isContract {
             let mut formattedUint32: String = "4294967295".to_string();
             let mut zkSignAccountId: Value = crate::precise::Precise::stringMod(&Value::from(accountId), &Value::from(formattedUint32));
@@ -2198,7 +2198,7 @@ impl Apex {
                     m.insert("ethAddress".to_string(), Value::from(ethAddress));
                 m
             });
-            let __ws_arg_7 = self.extend(request.clone(), &[paramsOmitted.clone()]);
+            let __ws_arg_7 = self.extend(request.clone(), &[&paramsOmitted]);
             let mut response: Value = self.private_post_v3_contract_transfer_out(&[__ws_arg_7]).await;
             let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2251,7 +2251,7 @@ impl Apex {
                     m.insert("nonce".to_string(), Value::from(finalNonce));
                 m
             });
-            let __ws_arg_10 = self.extend(request, &[paramsOmitted]);
+            let __ws_arg_10 = self.extend(request, &[&paramsOmitted]);
             let mut response: Value = self.private_post_v3_transfer_out(&[__ws_arg_10]).await;
             let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2576,8 +2576,8 @@ impl Apex {
         }  else {
             request.insert("orderId".into(), id);
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clientId".into())]), &[]);
-        let __ws_arg_20 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clientId".into())]), &[]).into_dict();
+        let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_v3_order_fills(&[__ws_arg_20]).await.into_dict();
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();

@@ -481,14 +481,14 @@ impl Bitstamp {
         if (deltaNonce == Value::Null) {
             return;
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         if (nonce == Value::Null) {
             let mut cacheLength: Value = self.parse_to_int(get_array_length(&get_value(&storedOrderBook, &Value::Str("cache".into()))));
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
             let mut snapshotDelay: Value = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(6)]));
             if (cacheLength.as_f64() == snapshotDelay.as_f64()) {
-                self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), messageHash.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Map({
+                self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), Value::from(messageHash.clone()), symbol.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
@@ -499,7 +499,7 @@ impl Bitstamp {
             return;
         }
         self.handle_book_delta(storedOrderBook.clone(), delta);
-        client.resolve(&[storedOrderBook, messageHash]);
+        client.resolve(&[storedOrderBook, Value::from(messageHash)]);
 }
 
     pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
@@ -1007,12 +1007,12 @@ impl Bitstamp {
         //         "trade_account_id": 0
         //     }
         //
-        let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut subscription: Value = (if (channel == Value::Null) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone(), &[]) });
+        let mut subscription: Value = (if (channel.is_none()) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
         let mut symbol: Option<String> = self.safe_string_k(subscription.clone(), "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
@@ -1025,7 +1025,7 @@ impl Bitstamp {
         let mut stored: Value = self.myTrades.clone();
         let mut trade: Value = self.parse_ws_my_trade(data, &[market]);
         stored.append(trade);
-        client.resolve(&[stored, channel]);
+        client.resolve(&[stored, channel.map(Value::from).unwrap_or(Value::Null)]);
 }
 
     pub fn parse_ws_my_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -1111,12 +1111,12 @@ impl Bitstamp {
         //         "order_source": "orderbook"
         //     }
         //
-        let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut order: indexmap::IndexMap<String, Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) }).as_map().cloned().unwrap_or_default();
-        let mut subscription: Value = (if (channel == Value::Null) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone(), &[]) });
+        let mut subscription: Value = (if (channel.is_none()) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
         let mut symbol: Option<String> = self.safe_string_k(subscription.clone(), "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
@@ -1130,7 +1130,7 @@ impl Bitstamp {
         order.insert("event".into(), (match message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         let mut parsed: Value = self.parse_ws_order(Value::Map(order), &[market]);
         stored.append(parsed);
-        client.resolve(&[self.orders.clone(), channel]);
+        client.resolve(&[self.orders.clone(), channel.map(Value::from).unwrap_or(Value::Null)]);
 }
 
     pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {

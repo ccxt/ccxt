@@ -1087,7 +1087,7 @@ impl Foxbit {
         //     }
         // ]
         let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1099,10 +1099,10 @@ impl Foxbit {
             let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "market_symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(entry, &[market])); }
+            result.insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(entry, &[market]));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -1541,8 +1541,8 @@ impl Foxbit {
         if (clientOrderId.is_some()) {
             request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("triggerPrice".into()), Value::Str("clientOrderId".into())]), &[]);
-        let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("triggerPrice".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.v3_private_post_orders(&[__ws_arg_5]).await;
         return self.parse_order(response, &[(market).raw.clone()]);
         Value::Null
@@ -1967,11 +1967,11 @@ impl Foxbit {
         });
         let networkCodeparamsOmitedVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsOmitedVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOmited: Value = networkCodeparamsOmitedVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOmited: crate::value::Dict = networkCodeparamsOmitedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (networkCode != Value::Null) {
             request.insert("network_code".into(), self.network_code_to_id(networkCode, &[code]));
         }
-        let __ws_arg_12 = self.extend(Value::Map(request), &[paramsOmited]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmited]);
         let mut response: Value = self.v3_private_get_deposits_address(&[__ws_arg_12]).await;
         return self.parse_deposit_address(response, &[currency]);
         Value::Null
@@ -2361,11 +2361,11 @@ impl Foxbit {
         }
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(paramsWithdrawTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (networkCode != Value::Null) {
             request.insert("network_code".into(), self.network_code_to_id(networkCode, &[code]));
         }
-        let __ws_arg_16 = self.extend(Value::Map(request), &[paramsNetworkCode]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let mut response: Value = self.v3_private_post_withdrawals(&[__ws_arg_16]).await;
         return self.parse_transaction(response, &[]);
         Value::Null
@@ -2738,8 +2738,8 @@ impl Foxbit {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut cryptoDetails: Value = self.safe_dict_k(transaction.clone(), "details_crypto", &[]);
-        let mut address: Option<String> = self.safe_string2(cryptoDetails.clone(), Value::Str("receiving_address".into()), Value::Str("destination_address".into()), &[]).as_str().map(str::to_owned);
+        let mut cryptoDetails: crate::value::Dict = self.safe_dict_k(transaction.clone(), "details_crypto", &[]).into_dict();
+        let mut address: Option<String> = self.safe_string2(&cryptoDetails, Value::Str("receiving_address".into()), Value::Str("destination_address".into()), &[]).as_str().map(str::to_owned);
         let mut sn: Option<String> = self.safe_string_k(transaction.clone(), "sn", &[]).as_str().map(str::to_owned);
         let mut type_var: String = "withdrawal".to_string();
         if (sn.is_some()) && (sn.as_deref().unwrap_or_default().starts_with("D")) {
@@ -2770,7 +2770,7 @@ impl Foxbit {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string_k(transaction.clone(), "sn", &[]));
-        m.insert("txid".to_string(), self.safe_string_k(cryptoDetails, "transaction_id", &[]));
+        m.insert("txid".to_string(), self.safe_string_k(&cryptoDetails, "transaction_id", &[]));
         m.insert("timestamp".to_string(), timestamp);
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "network_code", &[]), currencyCode.clone().map(Value::from).unwrap_or(Value::Null)]));

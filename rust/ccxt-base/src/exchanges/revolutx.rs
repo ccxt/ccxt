@@ -672,7 +672,7 @@ impl Revolutx {
         //
         let mut markets: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
         let mut keys: Vec<Value> = Value::Array(markets.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1115: bool = true;
@@ -693,10 +693,10 @@ impl Revolutx {
                     m.insert("id".to_string(), Value::from(marketId));
                 m
             })]);
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(self.parse_market(marketData)); }
+            result.push(self.parse_market(marketData));
         }
         }
-        return result;
+        return Value::from(result);
         Value::Null
         }).await?))
     }
@@ -800,7 +800,7 @@ impl Revolutx {
         //
         let mut currencies: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
         let mut keys: Vec<Value> = Value::Array(currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -823,10 +823,10 @@ impl Revolutx {
             if (code == "") {
                 continue;
             }
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(code, parsed); }
+            result.insert(code, parsed);
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -952,7 +952,7 @@ impl Revolutx {
             m
         })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&metadata, "timestamp", &[]).as_i64();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -970,11 +970,11 @@ impl Revolutx {
             if (symbol.as_str() == Some("")) {
                 continue;
             }
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
+            result.insert(crate::runtime::stringify_param(&symbol), ticker);
         }
         }
         if (symbols != Value::Null) {
-            let mut filtered: Value = Value::Map({
+            let mut filtered: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -983,14 +983,14 @@ impl Revolutx {
                 let mut __for_first_1119: bool = true;
                 while { if !__for_first_1119 { i += 1; } __for_first_1119 = false; i < (symbols.len() as i64) } {
                 let mut s: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                if (matches!((&result, &s), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let Value::Dict(__d) = &mut filtered { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&s), (if let (Some(__m), Some(__k)) = (result.as_map(), s.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); }
+                if (matches!(&s, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
+                    filtered.insert(crate::runtime::stringify_param(&s), result.get(s.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
                 }
             }
             }
-            return filtered;
+            return Value::Map(filtered);
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }

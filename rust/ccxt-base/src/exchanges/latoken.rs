@@ -1092,7 +1092,7 @@ impl Latoken {
         let mut currencyType: Option<String> = self.safe_string_k(currency.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut isCrypto: bool = (currencyType.as_deref() == Some("CURRENCY_TYPE_CRYPTO")) || (currencyType.as_deref() == Some("CURRENCY_TYPE_IEO"));
         let mut bindings: Vec<Value> = self.safe_list_k(currency.clone(), "bindings", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut networks: Value = Value::Map({
+        let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1106,8 +1106,8 @@ impl Latoken {
             // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
             // entries would land on the same unified code - keep the first one for a
             // deterministic binding id, since withdrawals resolve the chain through it
-            if (networkCode != Value::Null) && !(matches!((&networks, &networkCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut networks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+            if (networkCode != Value::Null) && !(matches!(&networkCode, Value::Str(__k) if networks.contains_key(__k.as_ref()))) {
+                networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), binding.clone());
         m.insert("id".to_string(), self.safe_string_k(binding.clone(), "id", &[]));
@@ -1134,7 +1134,7 @@ impl Latoken {
     m
 }));
     m
-})); }
+}));
             }
         }
         }
@@ -1166,7 +1166,7 @@ impl Latoken {
 }));
     m
 }));
-        m.insert("networks".to_string(), networks);
+        m.insert("networks".to_string(), Value::Map(networks));
     m
 }));
 
@@ -1227,11 +1227,11 @@ impl Latoken {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut types: Value = self.safe_dict_k(self.options.clone(), "types", &[Value::Map({
+        let mut types: crate::value::Dict = self.safe_dict_k(self.options.clone(), "types", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut accountType: Value = self.safe_string(types, type_var.clone(), &[type_var.clone()]);
+})]).into_dict();
+        let mut accountType: Value = self.safe_string(&types, type_var.clone(), &[type_var.clone()]);
         let mut balancesByType: Value = self.group_by(response, Value::Str("type".into()), &[]);
         let mut balances: Vec<Value> = self.safe_list(balancesByType, accountType, &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut firstBalance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(0), &[]).into_dict();
@@ -1968,7 +1968,7 @@ impl Latoken {
         }
         let mut response: Value = Value::Null;
         let mut isTrigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1978,10 +1978,10 @@ impl Latoken {
             m
         });
         if (isTrigger == Some(true)) {
-            let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_get_auth_stop_order_pair_currency_quote_active(&[__ws_arg_7]).await;
         }  else {
-            let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_auth_order_pair_currency_quote_active(&[__ws_arg_8]).await;
         }
         return self.parse_orders(response, &[(market).raw.clone(), since, limit]);
@@ -2026,7 +2026,7 @@ impl Latoken {
         });
         let mut market: Value = Value::Null;
         let mut isTrigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default 100
         }
@@ -2036,18 +2036,18 @@ impl Latoken {
             request.insert("currency".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
             request.insert("quote".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
             if (isTrigger == Some(true)) {
-                let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_get_auth_stop_order_pair_currency_quote(&[__ws_arg_9]).await;
             }  else {
-                let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_get_auth_order_pair_currency_quote(&[__ws_arg_10]).await;
             }
         }  else {
             if (isTrigger == Some(true)) {
-                let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_get_auth_stop_order(&[__ws_arg_11]).await;
             }  else {
-                let __ws_arg_12 = self.extend(Value::Map(request), &[paramsOmitted]);
+                let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_auth_order(&[__ws_arg_12]).await;
             }
         }
@@ -2089,13 +2089,13 @@ impl Latoken {
             m
         });
         let mut isTrigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         let mut response: Value = Value::Null;
         if (isTrigger == Some(true)) {
-            let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_get_auth_stop_order_get_order_id(&[__ws_arg_13]).await;
         }  else {
-            let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_auth_order_get_order_id(&[__ws_arg_14]).await;
         }
         return self.parse_order(response, &[]);
@@ -2159,14 +2159,14 @@ impl Latoken {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
         }
         let mut triggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]).into_dict();
         let mut response: Value = Value::Null;
         if (triggerPrice.is_some()) {
             request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
-            let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_post_auth_stop_order_place(&[__ws_arg_15]).await;
         }  else {
-            let __ws_arg_16 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_auth_order_place(&[__ws_arg_16]).await;
         }
         return self.parse_order(response, &[(market).raw.clone()]);
@@ -2207,13 +2207,13 @@ impl Latoken {
             m
         });
         let mut isTrigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         let mut response: Value = Value::Null;
         if (isTrigger == Some(true)) {
-            let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_post_auth_stop_order_cancel(&[__ws_arg_17]).await;
         }  else {
-            let __ws_arg_18 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_auth_order_cancel(&[__ws_arg_18]).await;
         }
         return self.parse_order(response, &[]);
@@ -2252,25 +2252,25 @@ impl Latoken {
         });
         let mut market: Value = Value::Null;
         let mut isTrigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         let mut response: Value = Value::Null;
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             request.insert("currency".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
             request.insert("quote".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
             if (isTrigger == Some(true)) {
-                let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_post_auth_stop_order_cancel_all_currency_quote(&[__ws_arg_19]).await;
             }  else {
-                let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_post_auth_order_cancel_all_currency_quote(&[__ws_arg_20]).await;
             }
         }  else {
             if (isTrigger == Some(true)) {
-                let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_post_auth_stop_order_cancel_all(&[__ws_arg_21]).await;
             }  else {
-                let __ws_arg_22 = self.extend(Value::Map(request), &[paramsOmitted]);
+                let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_post_auth_order_cancel_all(&[__ws_arg_22]).await;
             }
         }

@@ -439,14 +439,14 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into())]), &[]).into_dict();
         let mut userLimit: Value = self.safe_integer_k(params, "limit", &[]);
         let mut pageLimit: Value = self.safe_integer_k(self.options.clone(), "marketsPageLimit", &[Value::Int(20)]);
         let mut maxPages: Value = self.safe_integer_k(self.options.clone(), "maxMarketsPages", &[Value::Int(50)]);
         let mut flatMarkets: Vec<Value> = Vec::new();
         // seen-guard keyed by the event handle; the events themselves go through setEvents below
         // so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
-        let mut seenEvents: Value = Value::Map({
+        let mut seenEvents: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -464,7 +464,7 @@ impl Opinion {
                     m.insert("page".to_string(), page.clone());
                 m
             });
-            let __ws_arg_0 = self.extend(Value::Map(request), &[rest.clone()]);
+            let __ws_arg_0 = self.extend(Value::Map(request), &[&rest]);
             let mut response: crate::value::Dict = self.opinion_public_get_market(&[__ws_arg_0]).await.into_dict();
             let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -495,8 +495,8 @@ impl Opinion {
                     }
                     }
                     let mut eventKey: Option<String> = self.safe_string_k_opt(event.clone(), "event", &[]);
-                    if (eventKey.is_some()) && (eventKey.as_deref() != Some("")) && !(matches!((&seenEvents, &eventKey.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        if let Value::Dict(__d) = &mut seenEvents { std::sync::Arc::make_mut(__d).insert(eventKey.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                    if (eventKey.is_some()) && (eventKey.as_deref() != Some("")) && !(matches!(&eventKey.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if seenEvents.contains_key(__k.as_ref()))) {
+                        seenEvents.insert(eventKey.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                         eventsList.push(event);
                     }
                 }  else {
@@ -737,21 +737,21 @@ impl Opinion {
         let mut eventId: Option<String> = self.safe_string_k(params.clone(), "eventId", &[]).as_str().map(str::to_owned);
         let mut slug: Option<String> = self.safe_string_k(params.clone(), "slug", &[]).as_str().map(str::to_owned);
         if (eventId.is_some()) || (slug.is_some()) {
-            let mut singleRest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into()), Value::Str("status".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("limit".into())]), &[]);
+            let mut singleRest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into()), Value::Str("status".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("limit".into())]), &[]).into_dict();
             let mut singleResponse: Value = Value::Null;
             if (slug.is_some()) {
                 let __ws_arg_1 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("slug".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
                     m
-                }), &[singleRest.clone()]);
+                }), &[&singleRest]);
                 singleResponse = self.opinion_public_get_market_slug_slug(&[__ws_arg_1]).await;
             }  else {
                 let __ws_arg_2 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("marketId".to_string(), eventId.clone().map(Value::from).unwrap_or(Value::Null));
                     m
-                }), &[singleRest]);
+                }), &[&singleRest]);
                 singleResponse = self.opinion_public_get_market_categorical_market_id(&[__ws_arg_2]).await;
             }
             let mut singleResult: crate::value::Dict = self.safe_dict_k(singleResponse, "result", &[Value::Map({
@@ -766,7 +766,7 @@ impl Opinion {
             self.index_event_outcomes(single.clone());
             return self.apply_event_fetch_params(Value::from(vec![single]), &[params.clone(), queries.clone()]);
         }
-        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into()), Value::Str("status".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("limit".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into()), Value::Str("status".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("limit".into())]), &[]).into_dict();
         let mut pageLimit: Value = self.parse_to_int(self.safe_integer_k(self.options.clone(), "defaultFetchEventsLimit", &[Value::Int(20)]));
         // bound how many events are actually FETCHED: the user limit when given, otherwise
         // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
@@ -791,7 +791,7 @@ impl Opinion {
                     m.insert("page".to_string(), page.clone());
                 m
             });
-            let __ws_arg_3 = self.extend(Value::Map(request), &[rest.clone()]);
+            let __ws_arg_3 = self.extend(Value::Map(request), &[&rest]);
             let mut response: crate::value::Dict = self.opinion_public_get_market(&[__ws_arg_3]).await.into_dict();
             let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1698,7 +1698,7 @@ impl Opinion {
         let mut sideInt: Value = (if (sideStr.as_str() == Some("BUY")) { Value::Int(0) } else { Value::Int(1) });
         let mut salt: Option<String> = self.number_to_string(self.milliseconds()).as_str().map(str::to_owned);
         let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("postOnly".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("postOnly".into())]), &[]).into_dict();
         let mut maker: Value = self.load_multi_sign_address().await;
         // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
         // against a differently-cased walletAddress with strict equality would pick the wrong
@@ -1752,7 +1752,7 @@ impl Opinion {
                 m.insert("orderExpTime".to_string(), Value::Str("0".into()));
                 m.insert("postOnly".to_string(), Value::Bool(postOnly));
             m
-        }), &[rest]);
+        }), &[&rest]);
         let mut response: crate::value::Dict = self.opinion_private_post_order(&[orderBody]).await.into_dict();
         let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2364,7 +2364,7 @@ impl Opinion {
             return self.parse_prediction_positions(positions.clone(), &[]);
         }
         let mut parsed: Vec<Value> = self.parse_prediction_positions(positions, &[]).as_array().cloned().unwrap_or_default();
-        let mut wantedTokenIds: Value = Value::Map({
+        let mut wantedTokenIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2377,11 +2377,11 @@ impl Opinion {
             let mut outcomeObj: Value = self.outcome(outcomesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             let mut tokenId: Option<String> = self.safe_string_k_opt(outcomeObj, "outcomeId", &[]);
             if (tokenId.is_some()) {
-                if let Value::Dict(__d) = &mut wantedTokenIds { std::sync::Arc::make_mut(__d).insert(tokenId.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                wantedTokenIds.insert(tokenId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
         }
         }
-        let mut filtered: Value = Value::from(vec![]);
+        let mut filtered: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1402: bool = true;
@@ -2392,12 +2392,12 @@ impl Opinion {
     m
 })]).into_dict();
             let mut tokenId: Option<String> = self.safe_string_k_opt(&info, "tokenId", &[]);
-            if (tokenId.is_some()) && (matches!((&wantedTokenIds, &tokenId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Arr(__a) = &mut filtered { std::sync::Arc::make_mut(__a).push(position); }
+            if (tokenId.is_some()) && (matches!(&tokenId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if wantedTokenIds.contains_key(__k.as_ref()))) {
+                filtered.push(position);
             }
         }
         }
-        return filtered;
+        return Value::from(filtered);
         Value::Null
         }).await?))
     }

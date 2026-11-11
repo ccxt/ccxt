@@ -1936,10 +1936,10 @@ impl Coinbaseinternational {
         if (symbolsResolved == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() requires a symbols argument".into()))));
         }
-        let mut tickers: indexmap::IndexMap<String, Value> = {
+        let mut tickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         {
                         let mut i: i64 = 0;
             let mut __for_first_559: bool = true;
@@ -2527,15 +2527,15 @@ impl Coinbaseinternational {
                         let mut i: i64 = 0;
             let mut __for_first_561: bool = true;
             while { if !__for_first_561 { i += 1; } __for_first_561 = false; i < (summaries.len() as i64) } {
-            let mut data: Value = self.safe_dict(summaries.clone(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(data.clone(), "currency", &[]).as_str().map(str::to_owned);
+            let mut data: crate::value::Dict = self.safe_dict(summaries.clone(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&data, "currency", &[]).as_str().map(str::to_owned);
             let mut currencyCode: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string_k(data.clone(), "available_funds", &[]));
+            account.insert("free".into(), self.safe_string_k(&data, "available_funds", &[]));
             // available_funds is max(0, margin_balance - initial_margin), so using
             // margin_balance as total lets safeBalance derive the used collateral
             // consistently (and avoids reporting maintenance_margin as used funds).
-            account.insert("total".into(), self.safe_string2(data, Value::Str("margin_balance".into()), Value::Str("equity".into()), &[]));
+            account.insert("total".into(), self.safe_string2(&data, Value::Str("margin_balance".into()), Value::Str("equity".into()), &[]));
             if (currencyCode != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&currencyCode), Value::Map(account));
             }
@@ -3843,9 +3843,9 @@ impl Coinbaseinternational {
         if (triggerPrice.is_some()) {
             request.insert("trigger_price".into(), Value::from(triggerPrice));
         }
-        let mut paramsOrder: Value = self.omit(paramsResolved, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]);
+        let mut paramsOrder: crate::value::Dict = self.omit(paramsResolved, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).into_dict();
         self.authenticate_v2(&[]).await;
-        let __ws_arg_15 = self.extend(Value::Map(request), &[paramsOrder]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOrder]);
         let mut response: crate::value::Dict = self.private_get_edit(&[__ws_arg_15]).await.into_dict();
         //
         //     {
@@ -4766,7 +4766,7 @@ impl Coinbaseinternational {
 }));
         let routeparamsResolvedVariable: Vec<Value> = self.handle_option_string_and_params(params, methodName, Value::Str("route".into()), &[Value::Str("auto".into())]).as_array().cloned().unwrap_or_default();
         let mut route: Value = routeparamsResolvedVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsResolved: Value = routeparamsResolvedVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsResolved: crate::value::Dict = routeparamsResolvedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut deribit: Value = self.resolve_route(&[route]);
         let mut previousBackend: Value = self.safe_bool_k(self.options.clone(), "routeBackend", &[]);
         let mut configuredBackend: Value = self.is_native_deribit_credentials();
@@ -4788,7 +4788,7 @@ impl Coinbaseinternational {
         if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("routeBackend".into(), deribit.clone()); }
         if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert("fetchLeverage".into(), Value::Bool(!(deribit.as_bool() == Some(true)))); }
         if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert("setLeverage".into(), Value::Bool(!(deribit.as_bool() == Some(true)))); }
-        return self.omit(paramsResolved, Value::from(vec![Value::Str("route".into()), Value::Str("defaultRoute".into()), Value::Str("callerMethodName".into())]), &[]);
+        return self.omit(&paramsResolved, Value::from(vec![Value::Str("route".into()), Value::Str("defaultRoute".into()), Value::Str("callerMethodName".into())]), &[]);
 
     Value::Null
 }

@@ -1165,7 +1165,7 @@ impl Btcturk {
             while { if !__for_first_477 { i += 1; } __for_first_477 = false; i < (timestamp.len() as i64) } {
             let mut ohlcv: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("timestamp".to_string(), self.safe_integer(timestamp.clone().into(), Value::Int(i), &[]));
+                    m.insert("timestamp".to_string(), self.safe_integer(&timestamp, Value::Int(i), &[]));
                     m.insert("high".to_string(), self.safe_number(high.clone(), Value::Int(i), &[]));
                     m.insert("open".to_string(), self.safe_number(open.clone(), Value::Int(i), &[]));
                     m.insert("low".to_string(), self.safe_number(low.clone(), Value::Int(i), &[]));

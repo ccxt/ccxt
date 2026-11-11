@@ -1033,7 +1033,7 @@ impl Blockchaincom {
             m
         });
         let mut triggerPrice: Value = self.safe_value_n(paramsOmitted.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]);
-        let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]);
+        let mut paramsOmitted2: crate::value::Dict = self.omit(paramsOmitted, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]).into_dict();
         if (uppercaseOrderType.as_str() == Some("STOP")) || (uppercaseOrderType.as_str() == Some("STOPLIMIT")) {
             if (triggerPrice == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a stopPx or triggerPrice param for a ".into())).into()), uppercaseOrderType).into()), Value::Str(" order".into()))));
@@ -1061,7 +1061,7 @@ impl Blockchaincom {
         if stopPriceRequired {
             request.insert("stopPx".into(), self.price_to_precision(symbol, triggerPrice));
         }
-        let __ws_arg_3 = self.extend(Value::Map(request), &[paramsOmitted2]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted2]);
         let mut response: Value = self.private_post_orders(&[__ws_arg_3]).await;
         return self.parse_order(response, &[(market).raw.clone()]);
         Value::Null
@@ -1182,7 +1182,7 @@ impl Blockchaincom {
         //
         let mut makerFee: Option<f64> = self.safe_number_k(response.clone(), "makerRate", &[]).as_f64();
         let mut takerFee: Option<f64> = self.safe_number_k(response.clone(), "takerRate", &[]).as_f64();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1192,17 +1192,17 @@ impl Blockchaincom {
             let mut __for_first_458: bool = true;
             while { if !__for_first_458 { i += 1; } __for_first_458 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), Value::from(makerFee));
         m.insert("taker".to_string(), Value::from(takerFee));
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -1797,13 +1797,13 @@ impl Blockchaincom {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut accountName: String = self.safe_string_k(params.clone(), "account", &[Value::Str("primary".into())]).as_str().unwrap_or("primary").to_string();
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("account".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("account".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account".to_string(), Value::from(accountName.clone()));
             m
         });
-        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_get_accounts(&[__ws_arg_14]).await;
         //
         //     {

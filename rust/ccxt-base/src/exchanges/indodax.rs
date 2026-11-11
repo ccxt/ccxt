@@ -749,10 +749,10 @@ impl Indodax {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut used: Value = self.safe_dict_k(&balances, "balance_hold", &[Value::Map({
+        let mut used: crate::value::Dict = self.safe_dict_k(&balances, "balance_hold", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_timestamp_k(&balances, "server_time", &[]).as_i64();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -770,7 +770,7 @@ impl Indodax {
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string(free.clone(), currencyId.clone(), &[]));
-            account.insert("used".into(), self.safe_string(used.clone(), currencyId, &[]));
+            account.insert("used".into(), self.safe_string(&used, currencyId, &[]));
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
@@ -1119,7 +1119,7 @@ impl Indodax {
         let mut selectedTimeframe: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut now: Value = self.seconds();
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[now.clone()]);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("to".to_string(), until);
@@ -1142,7 +1142,7 @@ impl Indodax {
                     Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
             }
         }
-        let __ws_arg_3 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.public_get_tradingview_history_v2(&[__ws_arg_3]).await;
         return self.parse_ohlc_vs(self.to_array(response), &[(market).raw.clone(), timeframe, since, limitResolved]);
         Value::Null

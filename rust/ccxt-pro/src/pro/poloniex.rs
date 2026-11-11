@@ -472,12 +472,12 @@ impl Poloniex {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
-        let mut subscribe: indexmap::IndexMap<String, Value> = {
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("channel".to_string(), Value::from(vec![name.clone()]));
             m
-        };
+        });
         let mut marketIds: Value = Value::from(vec![]);
         if self.is_empty(symbols.clone()).as_bool() == Some(true) {
             append_to_array(&mut marketIds, Value::Str("all".into()));
@@ -623,9 +623,9 @@ impl Poloniex {
             let mut quoteAmount: Value = Value::Null;
             let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
             let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
-            let mut paramsRequiresPrice: Value = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null);
-            let mut cost: Option<f64> = self.safe_number_k(paramsRequiresPrice.clone(), "cost", &[]).as_f64();
-            paramsOmitted = self.omit(paramsRequiresPrice, Value::Str("cost".into()), &[]);
+            let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+            let mut cost: Option<f64> = self.safe_number_k(&paramsRequiresPrice, "cost", &[]).as_f64();
+            paramsOmitted = self.omit(&paramsRequiresPrice, Value::Str("cost".into()), &[]);
             if (cost.is_some()) {
                 quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
             }  else if createMarketBuyOrderRequiresPrice {
@@ -815,11 +815,11 @@ impl Poloniex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut channel: Value = self.safe_string(timeframes, timeframe.clone(), &[timeframe.clone()]);
+        })]).into_dict();
+        let mut channel: Value = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]);
         if (channel == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV cannot take a timeframe of ".into())).into()), timeframe)));
         }
@@ -858,11 +858,11 @@ impl Poloniex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut channel: Value = self.safe_string(timeframes, timeframe.clone(), &[timeframe.clone()]);
+        })]).into_dict();
+        let mut channel: Value = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]);
         if (channel == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchOHLCV cannot take a timeframe of ".into())).into()), timeframe)));
         }
@@ -1930,8 +1930,8 @@ impl Poloniex {
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut name: String = "book_lv2".to_string();
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol).into());
-            let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol);
+            let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
@@ -1990,7 +1990,7 @@ impl Poloniex {
                 orderbook.set_book_meta("symbol", symbol);
                 orderbook.set_book_meta("timestamp", Value::from(timestamp));
                 orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
-                client.resolve(&[orderbook, messageHash]);
+                client.resolve(&[orderbook, Value::from(messageHash)]);
             }
         }
         }
@@ -2157,7 +2157,7 @@ impl Poloniex {
                         let mut i: i64 = 0;
             let mut __for_first_634: bool = true;
             while { if !__for_first_634 { i += 1; } __for_first_634 = false; i < (marketIds.len() as i64) } {
-            let mut symbol: Option<String> = self.safe_symbol(self.safe_string(marketIds.clone().into(), Value::Int(i), &[]), &[]).as_str().map(str::to_owned);
+            let mut symbol: Option<String> = self.safe_symbol(self.safe_string(&marketIds, Value::Int(i), &[]), &[]).as_str().map(str::to_owned);
             let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol.clone().map(Value::from).unwrap_or(Value::Null));
             if (channel == "trades") {
                 self.clean_cache(Value::Map({

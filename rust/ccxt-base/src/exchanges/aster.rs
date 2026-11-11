@@ -2254,23 +2254,23 @@ impl Aster {
         let mut price: Option<String> = self.safe_string_k(paramsUntil.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut isMark: bool = price.as_deref() == Some("mark");
         let mut isIndex: bool = price.as_deref() == Some("index");
-        let mut paramsOmitted: Value = self.omit(paramsUntil, Value::Str("price".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsUntil, Value::Str("price".into()), &[]).into_dict();
         let mut response: Value = Value::Null;
         if isMark {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])); }
-            let __ws_arg_0 = self.extend(requestUntil.clone(), &[paramsOmitted.clone()]);
+            let __ws_arg_0 = self.extend(requestUntil.clone(), &[&paramsOmitted]);
             response = self.fapi_public_get_v3_mark_price_klines(&[__ws_arg_0]).await;
         }  else if isIndex {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("pair".into(), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])); }
-            let __ws_arg_1 = self.extend(requestUntil.clone(), &[paramsOmitted.clone()]);
+            let __ws_arg_1 = self.extend(requestUntil.clone(), &[&paramsOmitted]);
             response = self.fapi_public_get_v3_index_price_klines(&[__ws_arg_1]).await;
         }  else {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])); }
             if ((market).linear == Some(true)) {
-                let __ws_arg_2 = self.extend(requestUntil.clone(), &[paramsOmitted.clone()]);
+                let __ws_arg_2 = self.extend(requestUntil.clone(), &[&paramsOmitted]);
                 response = self.fapi_public_get_v3_klines(&[__ws_arg_2]).await;
             }  else {
-                let __ws_arg_3 = self.extend(requestUntil, &[paramsOmitted]);
+                let __ws_arg_3 = self.extend(requestUntil, &[&paramsOmitted]);
                 response = self.sapi_public_get_v3_klines(&[__ws_arg_3]).await;
             }
         }
@@ -3186,13 +3186,13 @@ impl Aster {
                         let mut i: i64 = 0;
             let mut __for_first_231: bool = true;
             while { if !__for_first_231 { i += 1; } __for_first_231 = false; i < (rows.len() as i64) } {
-            let mut balance: Value = self.safe_dict(rows.clone(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "asset", &[]).as_str().map(str::to_owned);
+            let mut balance: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&balance, "asset", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string2(balance.clone(), Value::Str("free".into()), Value::Str("availableBalance".into()), &[]));
-            account.insert("used".into(), self.safe_string_k(balance.clone(), "locked", &[]));
-            account.insert("total".into(), self.safe_string_k(balance, "balance", &[]));
+            account.insert("free".into(), self.safe_string2(&balance, Value::Str("free".into()), Value::Str("availableBalance".into()), &[]));
+            account.insert("used".into(), self.safe_string_k(&balance, "locked", &[]));
+            account.insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
@@ -3533,7 +3533,7 @@ impl Aster {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clientOid".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clientOid".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clientOid".into())]), &[]).into_dict();
         if (clientOrderId.is_some()) {
             request.insert("origClientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }  else {
@@ -3541,10 +3541,10 @@ impl Aster {
         }
         let mut response: Value = Value::Null;
         if (market).swap {
-            let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.fapi_private_get_v3_order(&[__ws_arg_22]).await;
         }  else {
-            let __ws_arg_23 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.sapi_private_get_v3_order(&[__ws_arg_23]).await;
         }
         return self.parse_order(response, &[(market).raw.clone()]);
@@ -3586,7 +3586,7 @@ impl Aster {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clientOid".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clientOid".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clientOid".into())]), &[]).into_dict();
         if (clientOrderId.is_some()) {
             request.insert("origClientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }  else {
@@ -3594,10 +3594,10 @@ impl Aster {
         }
         let mut response: Value = Value::Null;
         if (market).spot {
-            let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.sapi_private_get_v3_open_order(&[__ws_arg_24]).await;
         }  else {
-            let __ws_arg_25 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.fapi_private_get_v3_open_order(&[__ws_arg_25]).await;
         }
         return self.parse_order(response, &[(market).raw.clone()]);
@@ -3714,13 +3714,13 @@ impl Aster {
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchOpenOrders".into()), &[market.clone(), paramsMarketType]).as_array().cloned().unwrap_or_default();
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if self.is_linear(marketType.clone(), &[subType]).as_bool() == Some(true) {
-            let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[paramsSubType.clone()]);
+            let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
             response = self.fapi_private_get_v3_open_orders(&[__ws_arg_28]).await;
         }  else if (marketType.as_str() == Some("spot")) {
-            let __ws_arg_29 = self.extend(Value::Map(request), &[paramsSubType]);
+            let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsSubType]);
             response = self.sapi_private_get_v3_open_orders(&[__ws_arg_29]).await;
         }
         return self.parse_orders(response, &[market, since, limit]);
@@ -4005,14 +4005,14 @@ impl Aster {
         }
         let tifOptionparamsTifOptionVariable: Vec<Value> = self.handle_option_string_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tifOption: Value = tifOptionparamsTifOptionVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsTifOption: Value = tifOptionparamsTifOptionVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsTifOption: crate::value::Dict = tifOptionparamsTifOptionVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut tifIsMissing: bool = timeInForceIsRequired && (self.safe_string_k(params.clone(), "timeInForce", &[]) == Value::Null) && (self.safe_string(Value::Map(request.clone()), Value::Str("timeInForce".into()), &[]) == Value::Null);
         let mut omitKeys: Value = Value::from(vec![Value::Str("newClientOrderId".into()), Value::Str("clientOrderId".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("trailingTriggerPrice".into()), Value::Str("trailingPercent".into()), Value::Str("trailingDelta".into()), Value::Str("stopPrice".into()),
             Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]);
         let mut requestParams: Value = Value::Null;
         if tifIsMissing {
             request.insert("timeInForce".into(), tifOption);
-            requestParams = self.omit(paramsTifOption, omitKeys.clone(), &[]);
+            requestParams = self.omit(&paramsTifOption, omitKeys.clone(), &[]);
         }  else {
             requestParams = self.omit(params, omitKeys, &[]);
         }
@@ -4112,13 +4112,13 @@ impl Aster {
         }  else {
             request.insert("orderId".into(), id);
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
         let mut response: Value = Value::Null;
         if (market).swap {
-            let __ws_arg_33 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_33 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.fapi_private_delete_v3_order(&[__ws_arg_33]).await;
         }  else {
-            let __ws_arg_34 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.sapi_private_delete_v3_order(&[__ws_arg_34]).await;
         }
         return self.parse_order(response, &[(market).raw.clone()]);
@@ -4405,7 +4405,7 @@ impl Aster {
         self.load_markets_and_sign_in().await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
@@ -4423,7 +4423,7 @@ impl Aster {
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        let __ws_arg_38 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.fapi_private_get_v3_position_margin_history(&[__ws_arg_38]).await;
         //
         //     [
@@ -4840,12 +4840,12 @@ impl Aster {
         let mut linear: bool = matches!(&position, Value::Dict(__d) if __d.contains_key("notional"));
         if (marginMode.as_deref() == Some("cross")) {
             // calculate collateral
-            let mut precision: Value = self.safe_dict_k(marketResolved, "precision", &[Value::Map({
+            let mut precision: crate::value::Dict = self.safe_dict_k(marketResolved, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut basePrecisionValue: Option<String> = self.safe_string_k(precision.clone(), "base", &[]).as_str().map(str::to_owned);
-            let mut quotePrecisionValue: Option<String> = self.safe_string2(precision.clone(), Value::Str("quote".into()), Value::Str("price".into()), &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut basePrecisionValue: Option<String> = self.safe_string_k(&precision, "base", &[]).as_str().map(str::to_owned);
+            let mut quotePrecisionValue: Option<String> = self.safe_string2(&precision, Value::Str("quote".into()), Value::Str("price".into()), &[]).as_str().map(str::to_owned);
             let mut precisionIsUndefined: bool = (basePrecisionValue.is_none()) && (quotePrecisionValue.is_none());
             if !precisionIsUndefined {
                 if linear {
@@ -4860,7 +4860,7 @@ impl Aster {
                     }
                     let mut inner: Value = crate::precise::Precise::stringMul(&liquidationPriceString, &onePlusMaintenanceMarginPercentageString);
                     let mut leftSide: Value = crate::precise::Precise::stringAdd(&inner, &entryPriceSignString);
-                    let mut quotePrecision: Value = self.precision_from_string(self.safe_string2(precision.clone(), Value::Str("quote".into()), Value::Str("price".into()), &[]));
+                    let mut quotePrecision: Value = self.precision_from_string(self.safe_string2(&precision, Value::Str("quote".into()), Value::Str("price".into()), &[]));
                     collateralString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringMul(&leftSide, &contractsAbs.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into()), &quotePrecision).as_str().map(str::to_owned);
                 }  else {
                     // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
@@ -4874,7 +4874,7 @@ impl Aster {
                     }
                     let mut leftSide: Value = crate::precise::Precise::stringMul(&contractsAbs.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null));
                     let mut rightSide: Value = crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceSignString), &crate::precise::Precise::stringDiv(&onePlusMaintenanceMarginPercentageString, &liquidationPriceString));
-                    let mut basePrecision: Value = self.precision_from_string(self.safe_string_k(precision, "base", &[]));
+                    let mut basePrecision: Value = self.precision_from_string(self.safe_string_k(&precision, "base", &[]));
                     collateralString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringMul(&leftSide, &rightSide), &Value::Str("1".into()), &basePrecision).as_str().map(str::to_owned);
                 }
             }
@@ -5544,21 +5544,21 @@ impl Aster {
         });
         let mut chainId: Option<i64> = self.safe_integer_k(paramsWithdrawTag.clone(), "chainId", &[]).as_i64();
         // TODO: check how ARBI signature would work
-        let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
+        let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut network: Value = self.safe_string_upper_k(paramsWithdrawTag.clone(), "network", &[]);
         if (network != Value::Null) {
             network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]); // accepts aliases like ETH for ERC20
         }
-        network = self.safe_string(networks, network.clone(), &[network.clone()]);
+        network = self.safe_string(&networks, network.clone(), &[network.clone()]);
         if (chainId.is_none()) && (network != Value::Null) {
-            let mut chainIds: Value = self.safe_dict_k(self.options.clone(), "networksToChainId", &[Value::Map({
+            let mut chainIds: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networksToChainId", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            chainId = self.safe_integer(chainIds, network.clone(), &[]).as_i64();
+})]).into_dict();
+            chainId = self.safe_integer(&chainIds, network.clone(), &[]).as_i64();
         }
         if (chainId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw require chainId or network parameter".into()))));
@@ -5569,10 +5569,10 @@ impl Aster {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw require fee parameter".into()))));
         }
         request.insert("fee".into(), fee.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut paramsOmitted: Value = self.omit(paramsWithdrawTag, Value::from(vec![Value::Str("chainId".into()), Value::Str("network".into()), Value::Str("fee".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsWithdrawTag, Value::from(vec![Value::Str("chainId".into()), Value::Str("network".into()), Value::Str("fee".into())]), &[]).into_dict();
         request.insert("amount".into(), self.currency_to_precision(code, amount, &[network.clone()]));
         { let __be_tmp = self.sign_withdraw_payload(Value::Map(request.clone()), network).map(Value::from).unwrap_or(Value::Null); request.insert("userSignature".into(), __be_tmp); }
-        let __ws_arg_45 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_45 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.sapi_private_post_v3_aster_user_withdraw(&[__ws_arg_45]).await;
         return self.parse_transaction(response, &[currency]);
         Value::Null

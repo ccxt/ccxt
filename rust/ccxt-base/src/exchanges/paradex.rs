@@ -1753,7 +1753,7 @@ impl Paradex {
         //     }
         //
         let mut fees: Vec<Value> = self.safe_list_k(&response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1763,10 +1763,10 @@ impl Paradex {
             while { if !__for_first_1056 { i += 1; } __for_first_1056 = false; i < (fees.len() as i64) } {
             let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
             let mut symbol: Value = fee.get("symbol").cloned().unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(fee)); }
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map(fee));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -1819,7 +1819,7 @@ impl Paradex {
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut hasEnd: bool = matches!(&request, Value::Dict(__d) if __d.contains_key("end_at"));
-        let mut paramsOmitted: Value = self.omit(paramsUntil, Value::from(vec![Value::Str("price".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsUntil, Value::from(vec![Value::Str("price".into())]), &[]).into_dict();
         // exchange has undocumented limit slightly above, but 1000 is reliable limit
         let mut limitResolved: Value = (if ((limit == Value::Null) || (limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64))) { Value::Int(1000) } else { limit.clone() });
         let mut windowLength: Value = self.parse_to_int((match (&((match (&(duration), &(((match (&(self.parse_to_int(limitResolved)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
@@ -1839,7 +1839,7 @@ impl Paradex {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_at".into(), (match (&((match (&(endAt), &(windowLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64),
                 (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })); }
         }
-        let __ws_arg_1 = self.extend(requestUntil, &[paramsOmitted]);
+        let __ws_arg_1 = self.extend(requestUntil, &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_markets_klines(&[__ws_arg_1]).await.into_dict();
         //
         //     {
@@ -2953,7 +2953,7 @@ impl Paradex {
         }
         let recvWindowparamsRecvWindowVariable: Vec<Value> = self.handle_option_and_params2(params, Value::Str("createOrder".into()), Value::Str("recvWindow".into()), Value::Str("recv_window".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut recvWindow: Value = recvWindowparamsRecvWindowVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsRecvWindow: Value = recvWindowparamsRecvWindowVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsRecvWindow: crate::value::Dict = recvWindowparamsRecvWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (recvWindow != Value::Null) {
             request.insert("recv_window".into(), self.parse_to_int(recvWindow));
         }
@@ -2987,9 +2987,9 @@ impl Paradex {
         if (reduceOnly == Some(true)) {
             request.insert("flags".into(), Value::from(vec![Value::Str("REDUCE_ONLY".into())]));
         }
-        let mut paramsOmitted: Value = self.omit(paramsRecvWindow, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("post_only".into()), Value::Str("timeInForce".into()),
-            Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]);
-        return self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsRecvWindow, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("post_only".into()),
+            Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).into_dict();
+        return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
 }
@@ -3391,7 +3391,7 @@ impl Paradex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut clientOrderIds: Value = self.safe_list_n(params.clone(), Value::from(vec![Value::Str("clOrdIDs".into()), Value::Str("clientOrderIds".into()), Value::Str("client_order_ids".into())]), &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clOrdIDs".into()), Value::Str("clientOrderIds".into()), Value::Str("client_order_ids".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clOrdIDs".into()), Value::Str("clientOrderIds".into()), Value::Str("client_order_ids".into())]), &[]).into_dict();
         let mut hasOrderIds: bool = ids != Value::Null;
         let mut hasClientOrderIds: bool = (clientOrderIds != Value::Null) && (matches!(&clientOrderIds, Value::Arr(_)));
         if !hasOrderIds && !hasClientOrderIds {
@@ -3407,7 +3407,7 @@ impl Paradex {
         if hasClientOrderIds {
             request.insert("client_order_ids".into(), clientOrderIds);
         }
-        let __ws_arg_10 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_delete_orders_batch(&[__ws_arg_10]).await.into_dict();
         //
         // {
@@ -3434,7 +3434,7 @@ impl Paradex {
         // }
         //
         let mut results: Vec<Value> = self.safe_list_k(&response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut orders: Value = Value::from(vec![]);
+        let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1060: bool = true;
@@ -3451,7 +3451,7 @@ impl Paradex {
             }  else if (status.as_deref() == Some("NOT_FOUND")) {
                 orderStatus = Some("rejected".to_string());
             }
-            if let Value::Arr(__a) = &mut orders { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
+            orders.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), result.clone());
         m.insert("id".to_string(), self.safe_string_k(result.clone(), "id", &[]));
@@ -3459,10 +3459,10 @@ impl Paradex {
         m.insert("status".to_string(), orderStatus.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
     m
-}), &[market])); }
+}), &[market]));
         }
         }
-        return orders;
+        return Value::from(orders);
         Value::Null
         }).await?))
     }
@@ -3544,15 +3544,15 @@ impl Paradex {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
         let mut response: Value = Value::Null;
         if (clientOrderId.is_some()) {
             request.insert("client_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_get_orders_by_client_id_client_id(&[__ws_arg_12]).await;
         }  else {
             request.insert("order_id".into(), id);
-            let __ws_arg_13 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_orders_order_id(&[__ws_arg_13]).await;
         }
         return self.parse_order(response, &[]);
@@ -4719,7 +4719,7 @@ impl Paradex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let leverageOptionparamsLeverageVariable: Vec<Value> = self.handle_option_and_params(params, Value::Str("setMarginMode".into()), Value::Str("leverage".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut leverageOption: Value = leverageOptionparamsLeverageVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsLeverage: Value = leverageOptionparamsLeverageVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsLeverage: crate::value::Dict = leverageOptionparamsLeverageVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut leverage: Value = leverageOption;
         if (leverage == Value::Null) {
             // the endpoint always sets the leverage too, keep the current one instead of resetting it
@@ -4736,7 +4736,7 @@ impl Paradex {
                 m.insert("margin_type".to_string(), self.encode_margin_mode(marginMode).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_24 = self.extend(Value::Map(request), &[paramsLeverage]);
+        let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsLeverage]);
         return self.private_post_account_margin_market(&[__ws_arg_24]).await;
         Value::Null
         }).await?))
@@ -4851,7 +4851,7 @@ impl Paradex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params, Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::from((market).id.clone()));
@@ -4859,7 +4859,7 @@ impl Paradex {
                 m.insert("margin_type".to_string(), self.encode_margin_mode(marginMode).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_26 = self.extend(Value::Map(request), &[paramsMarginMode]);
+        let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsMarginMode]);
         return self.private_post_account_margin_market(&[__ws_arg_26]).await;
         Value::Null
         }).await?))

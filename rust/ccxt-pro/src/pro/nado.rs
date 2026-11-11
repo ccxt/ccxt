@@ -813,9 +813,9 @@ impl Nado {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_507: bool = true;
             while { if !__for_first_507 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_507 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            let mut symbolAndTimeframe: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
-            let mut marketSymbol: Option<String> = self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-            let mut timeframe: String = self.safe_string(symbolAndTimeframe, Value::Int(1), &[Value::Str("1m".into())]).as_str().unwrap_or("1m").to_string();
+            let mut symbolAndTimeframe: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]).into_list();
+            let mut marketSymbol: Option<String> = self.safe_string(&symbolAndTimeframe, Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut timeframe: String = self.safe_string(&symbolAndTimeframe, Value::Int(1), &[Value::Str("1m".into())]).as_str().unwrap_or("1m").to_string();
             let mut market: crate::types::Market = (match self.market(marketSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             markets.push((market).raw.clone());
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), timeframe).into()), Value::Str(":".into())).into()), Value::from((market).symbol.clone())).into()));
@@ -901,9 +901,9 @@ impl Nado {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_508: bool = true;
             while { if !__for_first_508 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_508 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            let mut symbolAndTimeframe: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
-            let mut marketSymbol: Option<String> = self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-            let mut timeframe: String = self.safe_string(symbolAndTimeframe, Value::Int(1), &[Value::Str("1m".into())]).as_str().unwrap_or("1m").to_string();
+            let mut symbolAndTimeframe: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]).into_list();
+            let mut marketSymbol: Option<String> = self.safe_string(&symbolAndTimeframe, Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut timeframe: String = self.safe_string(&symbolAndTimeframe, Value::Int(1), &[Value::Str("1m".into())]).as_str().unwrap_or("1m").to_string();
             let mut market: crate::types::Market = (match self.market(marketSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             markets.push((market).raw.clone());
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), timeframe).into()), Value::Str(":".into())).into()), Value::from((market).symbol.clone())).into()));
@@ -2015,7 +2015,7 @@ impl Nado {
         let mut paramsRecvWindow: Value = recvWindowparamsRecvWindowVariable.get(1).cloned().unwrap_or(Value::Null);
         let subaccountparamsSubaccountVariable: Vec<Value> = self.handle_option_string_and_params(paramsRecvWindow, Value::Str("authenticate".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
         let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubaccount: Value = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSubaccount: crate::value::Dict = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut id: Value = self.request_id();
         let mut sender: Value = self.parent.create_subaccount(self.walletAddress.clone(), &[subaccount]).map(Value::from).unwrap_or(Value::Null);
         let mut expiration: Value = self.sum(&[self.milliseconds(), recvWindow]);
@@ -2041,7 +2041,7 @@ impl Nado {
             m
         });
         __ch.add_subscription(&Value::Str(format!("{}{}", Value::Str("authentication:".into()), self.safe_string(Value::Map(request.clone()), Value::Str("id".into()), &[Value::Str("".into())])).into()), Value::from(messageHash.clone()));
-        let __ws_arg_17 = self.extend(Value::Map(request), &[paramsSubaccount]);
+        let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsSubaccount]);
         return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[__ws_arg_17, Value::from(messageHash.clone())]).await;
 
     Value::Null
@@ -2665,7 +2665,7 @@ impl Nado {
     m
 }) });
         let mut marketIds: Vec<Value> = object_keys(&bbos).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2695,11 +2695,11 @@ impl Nado {
                     m
                 }), &[market.clone()]).as_map().cloned().unwrap_or_default();
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(ticker)); }
+                result.insert(crate::runtime::stringify_param(&symbol), Value::Map(ticker));
             }
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }

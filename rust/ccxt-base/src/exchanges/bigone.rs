@@ -1546,11 +1546,11 @@ impl Bigone {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timestamp: Option<i64> = self.safe_integer_product_k(data, "Timestamp", Value::Float(0.000001), &[]).as_i64();
+        })]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_product_k(&data, "Timestamp", Value::Float(0.000001), &[]).as_i64();
         if (timestamp.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchTime() missing timestamp".into()))));
         }
@@ -1596,13 +1596,13 @@ impl Bigone {
             response = self.contract_public_get_depth_symbol_snapshot(&[__ws_arg_2]).await;
             return self.parse_contract_order_book(response.clone(), Value::from((market).symbol.clone()), &[limit.clone()]);
         }  else {
-            let mut request: indexmap::IndexMap<String, Value> = {
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("asset_pair_name".to_string(), Value::from((market).id.clone()));
                 m
-            };
+            });
             if (limit != Value::Null) {
-                request.insert("limit".into(), limit);; // default 50, max 200
+                request.insert("limit".into(), limit); // default 50, max 200
             }
             let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
             response = self.public_get_asset_pairs_asset_pair_name_depth(&[__ws_arg_3]).await;
@@ -1971,8 +1971,8 @@ impl Bigone {
         }  else if (until != Value::Null) {
             request.insert("time".into(), self.iso8601((match (&(until), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
-        let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_asset_pairs_asset_pair_name_candles(&[__ws_arg_5]).await.into_dict();
         //
         //     {
@@ -2430,19 +2430,19 @@ impl Bigone {
         })]).into_dict();
         let mut cancelled: Vec<Value> = self.safe_list_k(&data, "cancelled", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut failed: Vec<Value> = self.safe_list_k(&data, "failed", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_268: bool = true;
             while { if !__for_first_268 { i += 1; } __for_first_268 = false; i < (cancelled.len() as i64) } {
             let mut orderId: Value = cancelled.get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
+            result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), orderId.clone());
         m.insert("id".to_string(), orderId.clone());
         m.insert("status".to_string(), Value::Str("canceled".into()));
     m
-}), &[])); }
+}), &[]));
         }
         }
         {
@@ -2450,16 +2450,16 @@ impl Bigone {
             let mut __for_first_269: bool = true;
             while { if !__for_first_269 { i += 1; } __for_first_269 = false; i < (failed.len() as i64) } {
             let mut orderId: Value = failed.get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
+            result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), orderId.clone());
         m.insert("id".to_string(), orderId);
         m.insert("status".to_string(), Value::Str("failed".into()));
     m
-}), &[])); }
+}), &[]));
         }
         }
-        return result;
+        return Value::from(result);
         Value::Null
         }).await?))
     }
@@ -2834,8 +2834,8 @@ impl Bigone {
         });
         let networkCodeparamsOmittedVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsOmittedVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOmitted: Value = networkCodeparamsOmittedVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = networkCodeparamsOmittedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_get_assets_asset_symbol_address(&[__ws_arg_14]).await;
         //
         // the actual response format is not the same as the documented one
@@ -3156,12 +3156,12 @@ impl Bigone {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[fromAccount.clone()]);
-        let mut toId: Value = self.safe_string(accountsByType, toAccount.clone(), &[toAccount.clone()]);
+})]).into_dict();
+        let mut fromId: Value = self.safe_string(&accountsByType, fromAccount.clone(), &[fromAccount.clone()]);
+        let mut toId: Value = self.safe_string(&accountsByType, toAccount.clone(), &[toAccount.clone()]);
         let mut guid: Value = self.safe_string_k(params.clone(), "guid", &[self.uuid(&[])]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3277,12 +3277,12 @@ impl Bigone {
         }
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(paramsWithdrawTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (networkCode != Value::Null) {
             request.insert("gateway_name".into(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]));
         }
         // requires write permission on the wallet
-        let __ws_arg_18 = self.extend(Value::Map(request), &[paramsNetworkCode]);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let mut response: crate::value::Dict = self.private_post_withdrawals(&[__ws_arg_18]).await.into_dict();
         //
         //     {

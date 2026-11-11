@@ -1347,7 +1347,7 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_629: bool = true;
             while { if !__for_first_629 { i += 1; } __for_first_629 = false; i < (subaccountIds.len() as i64) } {
-            let mut subaccountId: Option<String> = self.safe_string(subaccountIds.clone().into(), Value::Int(i), &[]).as_str().map(str::to_owned);
+            let mut subaccountId: Option<String> = self.safe_string(&subaccountIds, Value::Int(i), &[]).as_str().map(str::to_owned);
             accounts.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), subaccountId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1635,7 +1635,7 @@ impl Derive {
         let mut paramsMaxPages: Value = maxPagesparamsMaxPagesVariable.get(1).cloned().unwrap_or(Value::Null);
         let pageSizeparamsOmittedVariable: Vec<Value> = self.handle_option_integer_and_params(paramsMaxPages, Value::Str("getMarketsPaginated".into()), Value::Str("maxMarketsPerPage".into()), &[Value::Int(1000)]).as_array().cloned().unwrap_or_default();
         let mut pageSize: Value = pageSizeparamsOmittedVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOmitted: Value = pageSizeparamsOmittedVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOmitted: crate::value::Dict = pageSizeparamsOmittedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_630: bool = true;
@@ -1648,7 +1648,7 @@ impl Derive {
                 m
             });
             let __ws_arg_1 = self.extend(request.clone(), &[Value::Map(requestExtension)]);
-            let mut requestExtended: Value = self.extend(__ws_arg_1, &[paramsOmitted.clone()]); // nested because the csharp base defines extend with two arguments only
+            let mut requestExtended: Value = self.extend(__ws_arg_1, &[&paramsOmitted]); // nested because the csharp base defines extend with two arguments only
             let mut response: crate::value::Dict = self.public_post_get_all_instruments(&[requestExtended]).await.into_dict();
             let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2485,11 +2485,11 @@ impl Derive {
             request.insert("from_timestamp".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(paramsPaginate.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         if (until.is_some()) {
             request.insert("to_timestamp".into(), Value::from(until));
         }
-        let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_post_get_trade_history(&[__ws_arg_8]).await.into_dict();
         //
         //     {
@@ -2678,9 +2678,9 @@ impl Derive {
         let mut period: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let priceTypeparamsPriceVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("price".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut priceType: Option<String> = priceTypeparamsPriceVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsPrice: Value = priceTypeparamsPriceVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut until: Value = self.safe_integer_k(paramsPrice.clone(), "until", &[]);
-        let mut paramsOmitted: Value = self.omit(paramsPrice, Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut paramsPrice: crate::value::Dict = priceTypeparamsPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut until: Value = self.safe_integer_k(&paramsPrice, "until", &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPrice, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
         let mut untilSeconds: Value = self.seconds();
         if (until != Value::Null) {
@@ -2717,11 +2717,11 @@ impl Derive {
         let mut response: Value = Value::Null;
         if (priceType.as_deref() == Some("index")) {
             request.insert("currency".into(), Value::from((market).base_id.clone()));
-            let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.public_post_get_index_chart_data(&[__ws_arg_9]).await;
         }  else {
             request.insert("instrument_name".into(), Value::from((market).id.clone()));
-            let __ws_arg_10 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.public_post_get_tradingview_chart_data(&[__ws_arg_10]).await;
         }
         let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
@@ -2857,11 +2857,11 @@ impl Derive {
             request.insert("start_timestamp".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         if (until.is_some()) {
             request.insert("end_timestamp".into(), Value::from(until)); // the venue silently ignores the to_timestamp spelling other endpoints use
         }
-        let __ws_arg_11 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_post_get_funding_rate_history(&[__ws_arg_11]).await.into_dict();
         //
         //     {
@@ -3375,8 +3375,8 @@ impl Derive {
             request.insert("label".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
         request.insert("signature".into(), signature);
-        let mut paramsOmitted: Value = self.omit(paramsDeriveWalletAddress, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("postOnly".into()), Value::Str("clientOrderId".into())]), &[]);
-        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsDeriveWalletAddress, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("postOnly".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_replace(&[__ws_arg_14]).await.into_dict();
         //
         //     {
@@ -3507,29 +3507,29 @@ impl Derive {
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.handle_derive_subaccount_id(Value::Str("cancelOrder".into()), params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut paramsOmitted: Value = self.omit(paramsDeriveSubaccountId, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsDeriveSubaccountId, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
                 m.insert("subaccount_id".to_string(), subaccountId);
             m
         });
-        let mut clientOrderIdUnified: Option<String> = self.safe_string_k(paramsOmitted.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
-        let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(paramsOmitted.clone(), "label", &[clientOrderIdUnified.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let mut clientOrderIdUnified: Option<String> = self.safe_string_k(&paramsOmitted, "clientOrderId", &[]).as_str().map(str::to_owned);
+        let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(&paramsOmitted, "label", &[clientOrderIdUnified.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut isByClientOrder: bool = clientOrderIdExchangeSpecific != Value::Null;
         let mut response: Value = Value::Null;
         if isByClientOrder {
             request.insert("label".into(), clientOrderIdExchangeSpecific.clone());
-            let mut paramsLabel: Value = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("label".into())]), &[]);
-            let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[paramsLabel]);
+            let mut paramsLabel: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("label".into())]), &[]).into_dict();
+            let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[&paramsLabel]);
             response = self.private_post_cancel_by_label(&[__ws_arg_15]).await;
         }  else {
             request.insert("order_id".into(), id);
             if isTrigger {
-                let __ws_arg_16 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_16 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_post_cancel_trigger_order(&[__ws_arg_16]).await;
             }  else {
-                let __ws_arg_17 = self.extend(Value::Map(request), &[paramsOmitted]);
+                let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_post_cancel(&[__ws_arg_17]).await;
             }
         }
@@ -4421,8 +4421,8 @@ impl Derive {
                 m.insert("subaccount_id".to_string(), subaccountId);
             m
         });
-        let mut paramsOmitted: Value = self.omit(paramsDeriveSubaccountId, Value::from(vec![Value::Str("subaccount_id".into())]), &[]);
-        let __ws_arg_27 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsDeriveSubaccountId, Value::from(vec![Value::Str("subaccount_id".into())]), &[]).into_dict();
+        let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_get_positions(&[__ws_arg_27]).await.into_dict();
         //
         //     {
@@ -4613,11 +4613,11 @@ impl Derive {
             request.insert("page_size".into(), limit.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(paramsDeriveSubaccountId.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(paramsDeriveSubaccountId.clone(), Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsDeriveSubaccountId.clone(), Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         if (until.is_some()) {
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let __ws_arg_28 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_get_funding_history(&[__ws_arg_28]).await.into_dict();
         //
         //     {
@@ -4729,8 +4729,8 @@ impl Derive {
                     m.insert("subaccount_id".to_string(), Value::from(subaccountId));
                 m
             });
-            let mut subaccountParams: Value = self.omit(params.clone(), Value::Str("subaccount_id".into()), &[]);
-            let __ws_arg_29 = self.extend(Value::Map(subaccountRequest), &[subaccountParams]);
+            let mut subaccountParams: crate::value::Dict = self.omit(params.clone(), Value::Str("subaccount_id".into()), &[]).into_dict();
+            let __ws_arg_29 = self.extend(Value::Map(subaccountRequest), &[&subaccountParams]);
             let mut subaccountResponse: crate::value::Dict = self.private_post_get_subaccount(&[__ws_arg_29]).await.into_dict();
             // the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
             let mut subaccountResult: Value = self.safe_dict_k(&subaccountResponse, "result", &[Value::Map({
@@ -5231,11 +5231,11 @@ impl Derive {
             request.insert("start_timestamp".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(paramsDeriveSubaccountId.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(paramsDeriveSubaccountId, Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsDeriveSubaccountId, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         if (until.is_some()) {
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let __ws_arg_32 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_get_erc20_transfer_history(&[__ws_arg_32]).await.into_dict();
         //
         //     {
@@ -5310,7 +5310,7 @@ impl Derive {
         let mut currency: Value = self.currency(code.clone());
         let riskUniverseIdparamsUniverseVariable: Vec<Value> = self.handle_option_and_params(params, Value::Str("fetchBorrowRateHistory".into()), Value::Str("risk_universe_id".into()), &[Value::Int(1)]).as_array().cloned().unwrap_or_default();
         let mut riskUniverseId: Value = riskUniverseIdparamsUniverseVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUniverse: Value = riskUniverseIdparamsUniverseVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUniverse: crate::value::Dict = riskUniverseIdparamsUniverseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -5320,12 +5320,12 @@ impl Derive {
         if (since != Value::Null) {
             request.insert("start_timestamp".into(), since.clone());
         }
-        let mut until: Option<i64> = self.safe_integer_k(paramsUniverse.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(paramsUniverse, Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut until: Option<i64> = self.safe_integer_k(&paramsUniverse, "until", &[]).as_i64();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUniverse, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         if (until.is_some()) {
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let __ws_arg_33 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_post_get_interest_rate_history(&[__ws_arg_33]).await.into_dict();
         //
         //     {
@@ -5441,11 +5441,11 @@ impl Derive {
             request.insert("start_timestamp".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(paramsDeriveSubaccountId.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(paramsDeriveSubaccountId, Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsDeriveSubaccountId, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         if (until.is_some()) {
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let __ws_arg_34 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_get_interest_history(&[__ws_arg_34]).await.into_dict();
         //
         //     {

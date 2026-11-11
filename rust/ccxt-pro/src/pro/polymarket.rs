@@ -1020,11 +1020,11 @@ impl Polymarket {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut symbolResolved: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-        let mut wsTimeframes: Value = self.safe_dict_k(self.options.clone(), "wsTimeframes", &[Value::Map({
+        let mut wsTimeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "wsTimeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut interval: Option<String> = self.safe_string(wsTimeframes, timeframe.clone(), &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut interval: Option<String> = self.safe_string(&wsTimeframes, timeframe.clone(), &[]).as_str().map(str::to_owned);
         if (interval.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV() does not support the ".into())).into()), timeframe).into()), Value::Str(" timeframe over the websocket".into()))));
         }
@@ -1070,11 +1070,11 @@ impl Polymarket {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut symbolResolved: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut wsTimeframes: Value = self.safe_dict_k(self.options.clone(), "wsTimeframes", &[Value::Map({
+        let mut wsTimeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "wsTimeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut interval: Value = self.safe_string(wsTimeframes, timeframe.clone(), &[timeframe.clone()]);
+        })]).into_dict();
+        let mut interval: Value = self.safe_string(&wsTimeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolResolved);
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("klines::".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()), Value::Str("::".into())).into()), interval);
@@ -1319,7 +1319,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_641: bool = true;
             while { if !__for_first_641 { i += 1; } __for_first_641 = false; i < (symbolKeys.len() as i64) } {
-            let symbol: String = self.safe_string_opt(symbolKeys.clone().into(), Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
+            let symbol: String = self.safe_string_opt(&symbolKeys, Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
             client.resolve(&[stored.clone(), Value::Str(format!("{}{}", Value::Str("orders:".into()), symbol).into())]);
         }
         }
@@ -1446,7 +1446,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_643: bool = true;
             while { if !__for_first_643 { i += 1; } __for_first_643 = false; i < (symbolKeys.len() as i64) } {
-            let symbol: String = self.safe_string_opt(symbolKeys.clone().into(), Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
+            let symbol: String = self.safe_string_opt(&symbolKeys, Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
             client.resolve(&[stored.clone(), Value::Str(format!("{}{}", Value::Str("myTrades:".into()), symbol).into())]);
         }
         }

@@ -704,8 +704,8 @@ impl Phemex {
                         let mut i: i64 = 0;
             let mut __for_first_608: bool = true;
             while { if !__for_first_608 { i += 1; } __for_first_608 = false; i < (message.len() as i64) } {
-            let mut balance: Value = self.safe_dict(message.clone(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
+            let mut balance: crate::value::Dict = self.safe_dict(message.clone(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut currency: crate::value::Dict = self.safe_dict(self.currencies.clone(), code.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -713,19 +713,19 @@ impl Phemex {
             })]).into_dict();
             let mut scale: i64 = self.safe_integer_k(&currency, "valueScale", &[Value::Int(8)]).as_i64().unwrap_or(8);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            let mut used: Value = self.safe_string_k(balance.clone(), "totalUsedBalanceRv", &[]);
+            let mut used: Value = self.safe_string_k(&balance, "totalUsedBalanceRv", &[]);
             if (used == Value::Null) {
-                let mut usedEv: Option<String> = self.safe_string_k(balance.clone(), "totalUsedBalanceEv", &[]).as_str().map(str::to_owned);
+                let mut usedEv: Option<String> = self.safe_string_k(&balance, "totalUsedBalanceEv", &[]).as_str().map(str::to_owned);
                 if (usedEv.is_none()) {
-                    let mut lockedTradingBalanceEv: Option<String> = self.safe_string_k(balance.clone(), "lockedTradingBalanceEv", &[]).as_str().map(str::to_owned);
-                    let mut lockedWithdrawEv: Option<String> = self.safe_string2(balance.clone(), Value::Str("lockedWithdrawEv".into()), Value::Str("lockedWithdrawRv".into()), &[]).as_str().map(str::to_owned);
+                    let mut lockedTradingBalanceEv: Option<String> = self.safe_string_k(&balance, "lockedTradingBalanceEv", &[]).as_str().map(str::to_owned);
+                    let mut lockedWithdrawEv: Option<String> = self.safe_string2(&balance, Value::Str("lockedWithdrawEv".into()), Value::Str("lockedWithdrawRv".into()), &[]).as_str().map(str::to_owned);
                     usedEv = crate::precise::Precise::stringAdd(&lockedTradingBalanceEv.clone().map(Value::from).unwrap_or(Value::Null), &lockedWithdrawEv.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }
                 used = self.from_en(usedEv.clone().map(Value::from).unwrap_or(Value::Null), Value::from(scale));
             }
-            let mut total: Value = self.safe_string_k(balance.clone(), "accountBalanceRv", &[]);
+            let mut total: Value = self.safe_string_k(&balance, "accountBalanceRv", &[]);
             if (total == Value::Null) {
-                let mut totalEv: Option<String> = self.safe_string2(balance.clone(), Value::Str("accountBalanceEv".into()), Value::Str("balanceEv".into()), &[]).as_str().map(str::to_owned);
+                let mut totalEv: Option<String> = self.safe_string2(&balance, Value::Str("accountBalanceEv".into()), Value::Str("balanceEv".into()), &[]).as_str().map(str::to_owned);
                 total = self.from_en(totalEv.clone().map(Value::from).unwrap_or(Value::Null), Value::from(scale));
             }
             account.insert("used".into(), used);
@@ -826,8 +826,8 @@ impl Phemex {
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut candles: Value = self.safe_list2(message, Value::Str("kline".into()), Value::Str("kline_p".into()), &[Value::from(vec![])]);
-        let mut first: Value = self.safe_list(candles.clone(), Value::Int(0), &[Value::from(vec![])]);
-        let mut interval: Option<String> = self.safe_string(first, Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut first: crate::value::List = self.safe_list(candles.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut interval: Option<String> = self.safe_string(&first, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut timeframe: Value = self.find_timeframe(interval.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (timeframe != Value::Null) {
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol).into());
@@ -1381,7 +1381,7 @@ impl Phemex {
             _ => Value::Null
         });
         let mut name: String = "orderbook".to_string();
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), symbol);
         let mut nonce: Option<i64> = (match __pro_message.get("sequence").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
             Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut timestamp: Value = self.safe_integer_product_k(message.clone(), "timestamp", Value::Float(0.000001), &[]);
@@ -1403,7 +1403,7 @@ impl Phemex {
             }
             let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             orderbook.reset(snapshot);
-            client.resolve(&[orderbook.clone(), messageHash.clone()]);
+            client.resolve(&[orderbook.clone(), Value::from(messageHash.clone())]);
         }  else {
             if (matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
@@ -1419,7 +1419,7 @@ impl Phemex {
                 orderbook.set_book_meta("timestamp", timestamp.clone());
                 orderbook.set_book_meta("datetime", self.iso8601(timestamp));
                 if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
-                client.resolve(&[orderbook, messageHash]);
+                client.resolve(&[orderbook, Value::from(messageHash)]);
             }
         }
 }
@@ -2306,7 +2306,7 @@ impl Phemex {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: Option<i64> = self.seconds().as_i64();
         let mut settleIsUSDT: bool = self.safe_string_k(params.clone(), "settle", &[Value::Str("".into())]).as_str() == Some("USDT");
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("settle".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("settle".into()), &[]).into_dict();
         let mut channel: String = "aop.subscribe".to_string();
         if (type_var.as_str() == Some("spot")) {
             channel = "wo.subscribe".to_string();
@@ -2321,7 +2321,7 @@ impl Phemex {
                 m.insert("params".to_string(), Value::from(vec![]));
             m
         });
-        request = self.extend(request.clone(), &[paramsOmitted]);
+        request = self.extend(request.clone(), &[&paramsOmitted]);
         return self.watch(url, messageHash, &[request, Value::from(channel)]).await;
 
     Value::Null

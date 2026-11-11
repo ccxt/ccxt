@@ -1299,11 +1299,11 @@ impl Dydx {
             request.insert("fromIso".into(), self.iso8601(since.clone()));
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
         if (until.is_some()) {
             request.insert("toIso".into(), self.iso8601(Value::from(until)));
         }
-        let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.indexer_get_candles_perpetual_markets_market(&[__ws_arg_2]).await.into_dict();
         //
         // {
@@ -1599,7 +1599,7 @@ impl Dydx {
         let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null);
         let subAccountNumberparamsSubAccountNumberVariable: Vec<Value> = self.handle_option_string_and_params(paramsPublicAddress, Value::Str("fetchOrders".into()), Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]).as_array().cloned().unwrap_or_default();
         let mut subAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSubAccountNumber: crate::value::Dict = subAccountNumberparamsSubAccountNumberVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1617,7 +1617,7 @@ impl Dydx {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let __ws_arg_5 = self.extend(Value::Map(request), &[paramsSubAccountNumber]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsSubAccountNumber]);
         let mut response: Value = self.indexer_get_orders(&[__ws_arg_5]).await;
         return self.parse_orders(response, &[market, since, limit]);
         Value::Null
@@ -1817,7 +1817,7 @@ impl Dydx {
         let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null);
         let subAccountNumberparamsSubAccountNumberVariable: Vec<Value> = self.handle_option_string_and_params(paramsPublicAddress, Value::Str("fetchPositions".into()), Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]).as_array().cloned().unwrap_or_default();
         let mut subAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSubAccountNumber: crate::value::Dict = subAccountNumberparamsSubAccountNumberVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1828,7 +1828,7 @@ impl Dydx {
                 m.insert("status".to_string(), Value::Str("OPEN".into()));
             m
         });
-        let __ws_arg_8 = self.extend(Value::Map(request), &[paramsSubAccountNumber]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsSubAccountNumber]);
         let mut response: crate::value::Dict = self.indexer_get_perpetual_positions(&[__ws_arg_8]).await.into_dict();
         //
         // {
@@ -2132,7 +2132,7 @@ impl Dydx {
         // default is 30 days
         let goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable: Vec<Value> = self.handle_option_integer_and_params(paramsSubAccountId, Value::Str("createOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[Value::from(goodTillBlockTimeInSeconds)]).as_array().cloned().unwrap_or_default();
         let mut goodTillBlockTimeInSecondsOption: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsGoodTillBlockTimeInSeconds: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsGoodTillBlockTimeInSeconds: crate::value::Dict = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (orderFlag == Some(0)) {
             if (goodTillBlock == Value::Null) {
                 // short term order
@@ -2149,7 +2149,7 @@ impl Dydx {
         }
         let mut sideNumber: Value = (if (orderSide.as_str() == Some("BUY")) { Value::Int(1) } else { Value::Int(2) });
         let mut defaultClientOrderId: Value = self.rand_number(Value::Int(9)); // 2**32 - 1 is 10 digits, but it may overflow with 10
-        let mut clientOrderId: Value = self.safe_integer_k(paramsGoodTillBlockTimeInSeconds.clone(), "clientOrderId", &[defaultClientOrderId]);
+        let mut clientOrderId: Value = self.safe_integer_k(&paramsGoodTillBlockTimeInSeconds, "clientOrderId", &[defaultClientOrderId]);
         let mut orderPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order".to_string(), Value::Map({
@@ -2188,7 +2188,7 @@ impl Dydx {
                 m.insert("value".to_string(), Value::Map(orderPayload));
             m
         });
-        let mut paramsOmitted: Value = self.omit(paramsGoodTillBlockTimeInSeconds, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("clientOrderId".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()),
+        let mut paramsOmitted: Value = self.omit(&paramsGoodTillBlockTimeInSeconds, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("clientOrderId".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()),
             Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("latestBlockHeight".into()), Value::Str("goodTillBlock".into()), Value::Str("goodTillBlockTimeInSeconds".into()), Value::Str("subaccountId".into())]), &[]);
         let mut walletAddress: Value = self.get_wallet_address();
         let mut clobPairId: Value = self.safe_integer_k(Value::Map(marketInfo), "clobPairId", &[Value::Int(0)]);
@@ -2513,8 +2513,8 @@ impl Dydx {
         let mut subAccountId: i64 = 0;
         let subAccountIdOptionparamsSubAccountIdVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("cancelOrders".into()), Value::Str("subAccountId".into()), &[Value::from(subAccountId)]).as_array().cloned().unwrap_or_default();
         let mut subAccountIdOption: Value = subAccountIdOptionparamsSubAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubAccountId: Value = subAccountIdOptionparamsSubAccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut goodTillBlock: Value = self.safe_integer_k(paramsSubAccountId, "goodTillBlock", &[]);
+        let mut paramsSubAccountId: crate::value::Dict = subAccountIdOptionparamsSubAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut goodTillBlock: Value = self.safe_integer_k(&paramsSubAccountId, "goodTillBlock", &[]);
         if (goodTillBlock == Value::Null) {
             let mut latestBlockHeight: Value = self.fetch_latest_block_height(&[]).await;
             goodTillBlock = (match (&(latestBlockHeight), &(Value::Int(20))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
@@ -3296,14 +3296,14 @@ impl Dydx {
         let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null);
         let subAccountNumberparamsSubAccountNumberVariable: Vec<Value> = self.handle_option_string_and_params(paramsPublicAddress, methodName, Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]).as_array().cloned().unwrap_or_default();
         let mut subAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSubAccountNumber: crate::value::Dict = subAccountNumberparamsSubAccountNumberVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), userAddress);
                 m.insert("subaccountNumber".to_string(), subAccountNumber);
             m
         });
-        let __ws_arg_10 = self.extend(Value::Map(request), &[paramsSubAccountNumber]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsSubAccountNumber]);
         let mut response: crate::value::Dict = self.indexer_get_transfers(&[__ws_arg_10]).await.into_dict();
         //
         // {
@@ -3457,14 +3457,14 @@ impl Dydx {
         let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null);
         let subaccountNumberparamsSubaccountNumberVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPublicAddress, Value::Str("fetchBalance".into()), Value::Str("subaccountNumber".into()), &[Value::Int(0)]).as_array().cloned().unwrap_or_default();
         let mut subaccountNumber: Value = subaccountNumberparamsSubaccountNumberVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubaccountNumber: Value = subaccountNumberparamsSubaccountNumberVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSubaccountNumber: crate::value::Dict = subaccountNumberparamsSubaccountNumberVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), userAddress);
                 m.insert("subaccountNumber".to_string(), subaccountNumber);
             m
         });
-        let __ws_arg_12 = self.extend(Value::Map(request), &[paramsSubaccountNumber]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsSubaccountNumber]);
         let mut response: crate::value::Dict = self.indexer_get_addresses_address_subaccount_number_subaccount_number(&[__ws_arg_12]).await.into_dict();
         //
         // {

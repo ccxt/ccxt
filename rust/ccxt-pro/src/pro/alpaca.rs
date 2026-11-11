@@ -879,11 +879,11 @@ impl Alpaca {
         let mut orders: Value = self.orders.clone();
         let mut order: Value = self.parse_order(rawOrder, &[]);
         orders.append(order.clone());
-        let mut messageHash: Value = Value::Str("orders".into());
-        client.resolve(&[orders.clone(), messageHash.clone()]);
+        let mut messageHash: String = "orders".to_string();
+        client.resolve(&[orders.clone(), Value::from(messageHash.clone())]);
         let mut orderSymbol: String = self.safe_string_k(order, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        messageHash = Value::Str(format!("{}{}", Value::Str("orders:".into()), orderSymbol).into());
-        client.resolve(&[orders, messageHash]);
+        messageHash = format!("{}{}", Value::Str("orders:".into()), orderSymbol);
+        client.resolve(&[orders, Value::from(messageHash)]);
 }
 
     pub fn handle_my_trade(&self, mut client: Value, mut message: Value) {
@@ -957,10 +957,10 @@ impl Alpaca {
         }
         myTrades.append(trade.clone());
         let mut tradeSymbol: String = self.safe_string_k(trade, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), tradeSymbol).into());
-        client.resolve(&[myTrades.clone(), messageHash.clone()]);
-        messageHash = Value::Str("myTrades".into());
-        client.resolve(&[myTrades, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("myTrades:".into()), tradeSymbol);
+        client.resolve(&[myTrades.clone(), Value::from(messageHash.clone())]);
+        messageHash = "myTrades".to_string();
+        client.resolve(&[myTrades, Value::from(messageHash)]);
 }
 
     pub fn parse_my_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {

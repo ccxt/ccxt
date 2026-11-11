@@ -1186,7 +1186,7 @@ impl Coinbaseinternational {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut tickers: Value = crate::types::IntoRaw::into_raw(self.watch_tickers(symbols.to_opt_str_vec(), paramsResolved).await);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1198,10 +1198,10 @@ impl Coinbaseinternational {
             while { if !__for_first_251 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_251 = false; i.as_f64().unwrap_or(f64::NAN) < tickerSymbolsLength } {
             let mut symbol: Value = tickerSymbols.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut ticker: indexmap::IndexMap<String, Value> = get_value(&tickers, &symbol).as_map().cloned().unwrap_or_default();
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_funding_rate(ticker.get("info").cloned().unwrap_or(Value::Null), &[crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()))])); }
+            result.insert(crate::runtime::stringify_param(&symbol), self.parse_funding_rate(ticker.get("info").cloned().unwrap_or(Value::Null), &[crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()))]));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -2514,18 +2514,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
             return;
         }
-        let mut requestId: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        if (requestId != Value::Null) {
+        let mut requestId: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        if (requestId.is_some()) {
             let mut result: crate::value::Dict = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
             if (self.safe_string_k(&result, "version", &[]) != Value::Null) {
                 crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
             }
-            let mut authRequestId: Value = self.safe_string_k(self.options.clone(), "wsAuthRequestId", &[]);
+            let mut authRequestId: Option<String> = self.safe_string_k(self.options.clone(), "wsAuthRequestId", &[]).as_str().map(str::to_owned);
             if (requestId == authRequestId) {
                 self.handle_authentication_message(client.clone(), message.clone());
                 return;
             }
-            client.resolve(&[self.safe_value_k(message.clone(), "result", &[message.clone()]), requestId]);
+            client.resolve(&[self.safe_value_k(message.clone(), "result", &[message.clone()]), requestId.map(Value::from).unwrap_or(Value::Null)]);
         }
 }
 
@@ -2817,8 +2817,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (triggerPrice.is_some()) {
             request.insert("trigger_price".into(), Value::from(triggerPrice));
         }
-        let mut paramsRequest: Value = self.omit(paramsResolved, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]);
-        let __ws_arg_7 = self.extend(Value::Map(request), &[paramsRequest]);
+        let mut paramsRequest: crate::value::Dict = self.omit(paramsResolved, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).into_dict();
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsRequest]);
         let mut result: Value = self.request_ws(Value::Str("private/edit".into()), &[__ws_arg_7, Value::Bool(true)]).await;
         let mut order: Value = self.safe_dict_k(result.clone(), "order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();

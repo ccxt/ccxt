@@ -1829,9 +1829,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         client.resolve(&[self.balance.clone(), messageHash]);
-        let mut messageHashRequest: Value = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        if (messageHashRequest != Value::Null) {
-            client.resolve(&[self.balance.clone(), messageHashRequest]);
+        let mut messageHashRequest: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        if (messageHashRequest.is_some()) {
+            client.resolve(&[self.balance.clone(), messageHashRequest.map(Value::from).unwrap_or(Value::Null)]);
         }
 }
 

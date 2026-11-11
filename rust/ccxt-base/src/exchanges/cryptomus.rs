@@ -938,9 +938,9 @@ impl Cryptomus {
         let mut level: i64 = 0;
         let levelOptionparamsLevelVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOrderBook".into()), Value::Str("level".into()), &[Value::from(level)]).as_array().cloned().unwrap_or_default();
         let mut levelOption: Value = levelOptionparamsLevelVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsLevel: Value = levelOptionparamsLevelVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsLevel: crate::value::Dict = levelOptionparamsLevelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         request.insert("level".into(), levelOption);
-        let __ws_arg_0 = self.extend(Value::Map(request), &[paramsLevel]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsLevel]);
         let mut response: crate::value::Dict = self.public_get_v1_exchange_market_order_book_currency_pair(&[__ws_arg_0]).await.into_dict();
         //
         //     {
@@ -1664,21 +1664,21 @@ impl Cryptomus {
         makerFee = crate::precise::Precise::stringDiv(&makerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         takerFee = crate::precise::Precise::stringDiv(&takerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         let mut feeTiers: Value = self.safe_list_k(&data, "tariff_steps", &[Value::from(vec![])]);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut tiers: indexmap::IndexMap<String, Value> = self.parse_fee_tiers(feeTiers, &[]).as_map().cloned().unwrap_or_default();
         let mut symbols: Value = self.symbols.clone();
         if (symbols == Value::Null) {
-            return result;
+            return Value::Map(result);
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_605: bool = true;
             while { if !__for_first_605 { i += 1; } __for_first_605 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -1688,10 +1688,10 @@ impl Cryptomus {
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("tiers".to_string(), Value::Map(tiers.clone()));
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }

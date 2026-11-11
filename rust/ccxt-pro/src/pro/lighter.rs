@@ -1919,8 +1919,8 @@ impl Lighter {
     }
 
     pub fn request_id(&self, mut url: Value) -> Value {
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "requestId", &[self.create_safe_dictionary(&[])]);
-        let mut previousValue: i64 = self.safe_integer(options.clone(), url.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "requestId", &[self.create_safe_dictionary(&[])]).into_dict();
+        let mut previousValue: i64 = self.safe_integer(&options, url.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut newValue: Value = self.sum(&[Value::from(previousValue), Value::Int(1)]);
         if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("requestId".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), newValue.clone()); } }
         return self.number_to_string(newValue);
@@ -2110,7 +2110,7 @@ impl Lighter {
         //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         //
         let mut id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        client.resolve(&[message, Value::Str(format!("{}{}", Value::Str("jsonapi/sendtx:".into()), id.clone().map(Value::from).unwrap_or(Value::Null)).into())]);
+        client.resolve(&[message, Value::Str(format!("{}{}", Value::Str("jsonapi/sendtx:".into()), id.map(Value::from).unwrap_or(Value::Null)).into())]);
 }
 
     pub fn handle_orders(&mut self, mut client: Value, mut message: Value) -> Value {

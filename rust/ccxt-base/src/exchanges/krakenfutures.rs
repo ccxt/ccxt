@@ -1074,7 +1074,7 @@ impl Krakenfutures {
                         let mut i: i64 = 0;
             let mut __for_first_867: bool = true;
             while { if !__for_first_867 { i += 1; } __for_first_867 = false; i < (settlementCurrencies.len() as i64) } {
-            let mut code: String = self.safe_string(settlementCurrencies.clone().into(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut code: String = self.safe_string(&settlementCurrencies, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if let Value::Arr(__a) = &mut currencies { std::sync::Arc::make_mut(__a).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(code.to_lowercase()));
@@ -1454,7 +1454,7 @@ impl Krakenfutures {
             }
         }
         }
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1471,10 +1471,10 @@ impl Krakenfutures {
                 continue;
             }
             let mut volume: String = self.safe_string(Value::Map(volumes.clone()), uid.map(Value::from).unwrap_or(Value::Null), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(schedule, &[market, Value::from(volume)])); }
+            result.insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(schedule, &[market, Value::from(volume)]));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -1576,7 +1576,7 @@ impl Krakenfutures {
                 m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut paramsOmitted: Value = self.omit(paramsPaginate, Value::Str("price".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::Str("price".into()), &[]).into_dict();
         let mut windowLimit: Value = (if ((limit == Value::Null) || (limit.as_f64().unwrap_or(f64::NAN) > ((2000i64) as f64))) { Value::Int(2000) } else { limit.clone() });
         let mut windowSize: Value = self.parse_to_int(windowLimit);
         let mut limitResolved: Value = Value::Null;
@@ -1598,7 +1598,7 @@ impl Krakenfutures {
             request.insert("from".into(), self.parse_to_int((match (&(toTimestamp), &(((match (&(duration), &(windowSize)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                 Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })));
         }
-        let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.charts_get_price_type_symbol_interval(&[__ws_arg_2]).await.into_dict();
         //
         //    {
@@ -2039,8 +2039,8 @@ impl Krakenfutures {
         if (priceValue != Value::Null) && !isMarketOrder {
             request.insert("limitPrice".into(), self.price_to_precision(symbolValue.clone().map(Value::from).unwrap_or(Value::Null), priceValue));
         }
-        let mut paramsOmitted: Value = self.omit(paramsPostOnly, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]);
-        return self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPostOnly, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).into_dict();
+        return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
 }
@@ -2718,9 +2718,9 @@ impl Krakenfutures {
         }
         let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut response: Value = Value::Null;
-        let mut paramsOmitted: Value = self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         if isTrigger {
-            let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[paramsOmitted]);
+            let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.history_get_triggers(&[__ws_arg_12]).await;
         }  else {
             let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
@@ -2811,9 +2811,9 @@ impl Krakenfutures {
         }
         let mut response: Value = Value::Null;
         let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         if isTrigger {
-            let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[paramsOmitted]);
+            let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.history_get_triggers(&[__ws_arg_14]).await;
         }  else {
             let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
@@ -4733,9 +4733,9 @@ impl Krakenfutures {
         let mut marginLevels: Value = self.safe_list_k(info.clone(), "marginLevels", &[]);
         let mut marketId: Option<String> = self.safe_string_k(info, "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
-        let mut tiers: Value = Value::from(vec![]);
+        let mut tiers: Vec<Value> = Vec::new();
         if (marginLevels == Value::Null) {
-            return tiers;
+            return Value::from(tiers);
         }
         {
                         let mut i: i64 = 0;
@@ -4744,7 +4744,7 @@ impl Krakenfutures {
             let mut tier: Value = marginLevels.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut initialMargin: Option<String> = self.safe_string_k(tier.clone(), "initialMargin", &[]).as_str().map(str::to_owned);
             let mut minNotional: Option<f64> = self.safe_number2(tier.clone(), Value::Str("numNonContractUnits".into()), Value::Str("contracts".into()), &[]).as_f64();
-            if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
+            tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.sum(&[Value::Int(i), Value::Int(1)]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone()]));
@@ -4755,10 +4755,10 @@ impl Krakenfutures {
                     m.insert("maxLeverage".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &initialMargin.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
                     m.insert("info".to_string(), tier);
                 m
-            })); }
+            }));
         }
         }
-        return tiers;
+        return Value::from(tiers);
 
     Value::Null
 }
@@ -5113,22 +5113,22 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut methodVersions: Value = self.safe_dict(apiVersions, method.clone(), &[Value::Map({
+        let mut methodVersions: crate::value::Dict = self.safe_dict(apiVersions, method.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut defaultVersion: Value = self.safe_string(methodVersions, path.clone(), &[self.version.clone()]);
+})]).into_dict();
+        let mut defaultVersion: Value = self.safe_string(&methodVersions, path.clone(), &[self.version.clone()]);
         let mut version: Value = self.safe_string_k(params.clone(), "version", &[defaultVersion]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("version".into()), &[]);
         let mut apiAccess: Value = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("access")).cloned().unwrap_or(Value::Null), apiName.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut methodAccess: Value = self.safe_dict(apiAccess, method.clone(), &[Value::Map({
+        let mut methodAccess: crate::value::Dict = self.safe_dict(apiAccess, method.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut access: Option<String> = self.safe_string(methodAccess, path.clone(), &[Value::Str("public".into())]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut access: Option<String> = self.safe_string(&methodAccess, path.clone(), &[Value::Str("public".into())]).as_str().map(str::to_owned);
         let mut endpoint: String = format!("{}{}", Value::Str(format!("{}{}", version, Value::Str("/".into())).into()), self.implode_params(path.clone(), paramsOmitted.clone()));
         let mut paramsOmitted2: Value = self.omit(paramsOmitted, self.extract_params(path.clone()), &[]);
         let mut query: String = endpoint.clone();

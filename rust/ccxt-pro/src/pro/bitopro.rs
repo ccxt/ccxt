@@ -568,7 +568,7 @@ impl Bitopro {
             return;
         }
         let mut symbol: Value = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()));
-        let mut messageHash: Value = (match message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut messageHash: Option<String> = (match message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (self.myTrades.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCacheBySymbolById::new(limit);
@@ -576,9 +576,9 @@ impl Bitopro {
         let mut trades: Value = self.myTrades.clone();
         let mut parsed: Value = self.parse_ws_trade(data, &[]);
         trades.append(parsed);
-        client.resolve(&[trades.clone(), messageHash.clone()]);
-        if (messageHash != Value::Null) {
-            client.resolve(&[trades, Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into())]);
+        client.resolve(&[trades.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null)]);
+        if (messageHash.is_some()) {
+            client.resolve(&[trades, Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash.map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol).into())]);
         }
 }
 
@@ -874,7 +874,7 @@ impl Bitopro {
                         let mut i: i64 = 0;
             let mut __for_first_133: bool = true;
             while { if !__for_first_133 { i += 1; } __for_first_133 = false; i < (currencies.len() as i64) } {
-            let mut currency: Option<String> = self.safe_string(currencies.clone().into(), Value::Int(i), &[]).as_str().map(str::to_owned);
+            let mut currency: Option<String> = self.safe_string(&currencies, Value::Int(i), &[]).as_str().map(str::to_owned);
             let mut balance: crate::value::Dict = self.safe_dict(data.clone(), currency.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

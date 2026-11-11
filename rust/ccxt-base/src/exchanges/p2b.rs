@@ -1589,7 +1589,7 @@ impl P2b {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut untilParam: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
         let mut until: Value = self.parse_to_int(Value::Int(0));
         let mut sinceResolved: Value = self.parse_to_int(Value::Int(0));
         if (untilParam != Value::Null) {
@@ -1623,7 +1623,7 @@ impl P2b {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_account_market_deal_history(&[__ws_arg_8]).await.into_dict();
         //
         //    {
@@ -1693,7 +1693,7 @@ impl P2b {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut untilParam: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
@@ -1732,7 +1732,7 @@ impl P2b {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let __ws_arg_9 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_account_order_history(&[__ws_arg_9]).await.into_dict();
         //
         //    {

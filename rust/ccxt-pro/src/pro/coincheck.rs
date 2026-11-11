@@ -412,8 +412,8 @@ impl Coincheck {
         //         ]
         //     ]
         //
-        let mut first: Value = self.safe_list(message.clone(), Value::Int(0), &[Value::from(vec![])]);
-        let mut symbol: Value = self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(first, Value::Int(2), &[])).as_str().unwrap_or_default())), Value::Str("symbol".into()), &[Value::Str("".into())]);
+        let mut first: crate::value::List = self.safe_list(message.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut symbol: Value = self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&first, Value::Int(2), &[])).as_str().unwrap_or_default())), Value::Str("symbol".into()), &[Value::Str("".into())]);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);

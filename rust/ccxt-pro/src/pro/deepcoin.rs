@@ -1006,11 +1006,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut symbolValue: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-        let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut interval: Value = self.safe_string(timeframes, timeframe.clone(), &[timeframe.clone()]);
+        })]).into_dict();
+        let mut interval: Value = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv".into()), Value::Str("::".into())).into()), symbolValue).into()), Value::Str("::".into())).into()), timeframe);
         let mut suffix: String = format!("{}{}", Value::Str("_".into()), interval);
         let mut ohlcv: Value = self.watch_public(market, Value::from(messageHash), Value::Str("11".into()), &[params, Value::from(suffix)]).await;
@@ -1050,11 +1050,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut symbolValue: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut interval: Value = self.safe_string(timeframes, timeframe.clone(), &[timeframe.clone()]);
+        })]).into_dict();
+        let mut interval: Value = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv".into()), Value::Str("::".into())).into()), symbolValue).into()), Value::Str("::".into())).into()), timeframe);
         let mut suffix: String = format!("{}{}", Value::Str("_".into()), interval);
         let mut subscription: indexmap::IndexMap<String, Value> = ({

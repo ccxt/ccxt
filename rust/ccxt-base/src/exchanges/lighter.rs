@@ -2593,7 +2593,7 @@ if _try_result.is_err() {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         let mut now: Value = self.milliseconds();
         let mut startTs: Value = Value::Null;
         let mut endTs: Value = Value::Null;
@@ -2633,7 +2633,7 @@ if _try_result.is_err() {
                 m.insert("end_timestamp".to_string(), endTs);
             m
         });
-        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_candles(&[__ws_arg_14]).await.into_dict();
         //
         // {

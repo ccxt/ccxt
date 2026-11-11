@@ -1181,10 +1181,10 @@ impl Coinspot {
         //        }
         //    }
         //
-        let mut result: indexmap::IndexMap<String, Value> = {
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         let mut prices: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "prices", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1512,7 +1512,7 @@ impl Coinspot {
         if (side.as_deref() != Some("buy")) && (side.as_deref() != Some("sell")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a side parameter, \"buy\" or \"sell\"".into()))));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("side".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("side".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
@@ -1520,10 +1520,10 @@ impl Coinspot {
         });
         let mut response: Value = Value::Null;
         if (side.as_deref() == Some("buy")) {
-            let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_post_my_buy_cancel(&[__ws_arg_5]).await;
         }  else {
-            let __ws_arg_6 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_my_sell_cancel(&[__ws_arg_6]).await;
         }
         return self.safe_order(Value::Map({

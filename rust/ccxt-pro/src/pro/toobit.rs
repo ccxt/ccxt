@@ -699,22 +699,22 @@ impl Toobit {
         }
         let mut url: String = format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("common".into()), &[Value::Str("".into())]), Value::Str("/quote/ws/v1".into()));
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut timeframes: Value = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("timeframes".into()), &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("timeframes".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut marketIds: Vec<Value> = Vec::new();
         let mut selectedTimeframe: Value = Value::Null;
         {
                         let mut i: i64 = 0;
             let mut __for_first_652: bool = true;
             while { if !__for_first_652 { i += 1; } __for_first_652 = false; i < (symbolsAndTimeframes.len() as i64) } {
-            let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]);
-            let mut symbolStr: String = self.safe_string(data.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
+            let mut symbolStr: String = self.safe_string(&data, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut market: crate::types::Market = (match self.market(symbolStr.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: Value = Value::from((market).id.clone());
-            let mut unfiedTimeframe: String = self.safe_string(data, Value::Int(1), &[Value::Str("1m".into())]).as_str().unwrap_or("1m").to_string();
-            let mut rawTimeframe: Value = self.safe_string(timeframes.clone(), Value::from(unfiedTimeframe.clone()), &[Value::from(unfiedTimeframe.clone())]);
+            let mut unfiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("1m".into())]).as_str().unwrap_or("1m").to_string();
+            let mut rawTimeframe: Value = self.safe_string(&timeframes, Value::from(unfiedTimeframe.clone()), &[Value::from(unfiedTimeframe.clone())]);
             if (selectedTimeframe != Value::Null) && (selectedTimeframe.as_str() != rawTimeframe.as_str()) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() only supports a single timeframe for all symbols".into()))));
             }  else {
@@ -1060,7 +1060,7 @@ impl Toobit {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
         let channelparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBookForSymbols".into()), Value::Str("channel".into()), &[Value::Str("depth".into())]).as_array().cloned().unwrap_or_default();
         let mut channel: Value = channelparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsChannel: Value = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsChannel: crate::value::Dict = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
@@ -1079,7 +1079,7 @@ impl Toobit {
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
         });
-        let __ws_arg_5 = self.extend(Value::Map(request), &[paramsChannel]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsChannel]);
         let mut orderbook: Value = self.watch_multiple(Value::from(url), messageHashes.clone(), &[__ws_arg_5, messageHashes.clone()]).await;
         return orderbook.limit();
         Value::Null
@@ -1465,10 +1465,10 @@ impl Toobit {
         let mut orders: Value = self.orders.clone();
         let mut order: Value = self.parse_ws_order(message, &[]);
         orders.append(order.clone());
-        let mut messageHash: Value = Value::Str("orders".into());
-        client.resolve(&[orders.clone(), messageHash.clone()]);
-        messageHash = Value::Str(format!("{}{}", Value::Str("orders:".into()), self.safe_string_k(order, "symbol", &[Value::Str("".into())])).into());
-        client.resolve(&[orders, messageHash]);
+        let mut messageHash: String = "orders".to_string();
+        client.resolve(&[orders.clone(), Value::from(messageHash.clone())]);
+        messageHash = format!("{}{}", Value::Str("orders:".into()), self.safe_string_k(order, "symbol", &[Value::Str("".into())]));
+        client.resolve(&[orders, Value::from(messageHash)]);
 }
 
     pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1595,10 +1595,10 @@ impl Toobit {
         }
         let mut trade: Value = self.parse_my_trade(message, &[]);
         myTrades.append(trade.clone());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string_k(trade, "symbol", &[Value::Str("".into())])).into());
-        client.resolve(&[myTrades.clone(), messageHash.clone()]);
-        messageHash = Value::Str("myTrades".into());
-        client.resolve(&[myTrades, messageHash]);
+        let mut messageHash: String = format!("{}{}", Value::Str("myTrades:".into()), self.safe_string_k(trade, "symbol", &[Value::Str("".into())]));
+        client.resolve(&[myTrades.clone(), Value::from(messageHash.clone())]);
+        messageHash = "myTrades".to_string();
+        client.resolve(&[myTrades, Value::from(messageHash)]);
 }
 
     pub fn parse_my_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {

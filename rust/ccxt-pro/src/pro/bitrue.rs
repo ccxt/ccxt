@@ -1035,11 +1035,11 @@ impl Bitrue {
         if !(market).swap {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV is only supported for swap markets".into()))));
         }
-        let mut futuresTimeframes: Value = self.safe_dict_k(self.options.clone(), "futuresTimeframes", &[Value::Map({
+        let mut futuresTimeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "futuresTimeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut interval: Option<String> = self.safe_string(futuresTimeframes, timeframe.clone(), &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut interval: Option<String> = self.safe_string(&futuresTimeframes, timeframe.clone(), &[]).as_str().map(str::to_owned);
         if (interval.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV does not support timeframe ".into())).into()), timeframe)));
         }

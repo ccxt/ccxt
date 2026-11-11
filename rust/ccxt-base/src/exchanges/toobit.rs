@@ -1691,19 +1691,19 @@ impl Toobit {
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: Value = (Value::Bool(status.as_deref() == Some("TRADING")));
         let mut filters: Value = self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]);
-        let mut filtersByType: Value = self.index_by(filters, Value::Str("filterType".into()));
-        let mut priceFilter: crate::value::Dict = self.safe_dict_k(filtersByType.clone(), "PRICE_FILTER", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-        let mut lotSizeFilter: crate::value::Dict = self.safe_dict_k(filtersByType.clone(), "LOT_SIZE", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-        let mut minNotionalFilter: crate::value::Dict = self.safe_dict_k(filtersByType, "MIN_NOTIONAL", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut filtersByType: crate::value::Dict = self.index_by(filters, Value::Str("filterType".into())).into_dict();
+        let mut priceFilter: crate::value::Dict = self.safe_dict_k(&filtersByType, "PRICE_FILTER", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut lotSizeFilter: crate::value::Dict = self.safe_dict_k(&filtersByType, "LOT_SIZE", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut minNotionalFilter: crate::value::Dict = self.safe_dict_k(&filtersByType, "MIN_NOTIONAL", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
         let mut isContract: Value = (Value::Bool(self.safe_string_k(market.clone(), "contractMultiplier", &[]) != Value::Null));
         let mut inverse: Value = self.safe_bool2(market.clone(), Value::Str("isInverse".into()), Value::Str("inverse".into()), &[]);
@@ -2036,7 +2036,7 @@ impl Toobit {
         let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
         let endpointparamsPriceVariable: Vec<Value> = self.handle_option_string_and_params(paramsOmitted, Value::Str("fetchOHLCV".into()), Value::Str("price".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut endpoint: Option<String> = endpointparamsPriceVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsPrice: Value = endpointparamsPriceVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPrice: crate::value::Dict = endpointparamsPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isPriceKlines: bool = (endpoint.as_deref() == Some("index")) || (endpoint.as_deref() == Some("mark"));
         let mut startKey: String = "startTime".to_string();
         let mut endKey: String = "endTime".to_string();
@@ -2066,13 +2066,13 @@ impl Toobit {
         let mut response: Value = Value::from(vec![]);
         if (endpoint.as_deref() == Some("index")) {
             request.insert("symbol".into(), self.safe_string((market).raw.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("indexToken".into()), &[])); // index klines take the index id instead of the market id
-            let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[paramsPrice.clone()]);
+            let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[&paramsPrice]);
             response = self.common_get_quote_v1_index_klines(&[__ws_arg_2]).await;
         }  else if (endpoint.as_deref() == Some("mark")) {
-            let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[paramsPrice.clone()]);
+            let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[&paramsPrice]);
             response = self.common_get_quote_v1_mark_price_klines(&[__ws_arg_3]).await;
         }  else {
-            let __ws_arg_4 = self.extend(Value::Map(request), &[paramsPrice]);
+            let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsPrice]);
             response = self.common_get_quote_v1_klines(&[__ws_arg_4]).await;
         }
         let mut candles: Value = Value::from(vec![]);
@@ -2559,12 +2559,12 @@ impl Toobit {
                         let mut i: i64 = 0;
             let mut __for_first_1134: bool = true;
             while { if !__for_first_1134 { i += 1; } __for_first_1134 = false; i < (balances.len() as i64) } {
-            let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
-            let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "asset", &[]), &[]);
+            let mut balance: crate::value::Dict = self.safe_dict(balances.clone(), Value::Int(i), &[]).into_dict();
+            let mut code: Value = self.safe_currency_code(self.safe_string_k(&balance, "asset", &[]), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string2(balance.clone(), Value::Str("free".into()), Value::Str("availableBalance".into()), &[]));
-            account.insert("total".into(), self.safe_string2(balance.clone(), Value::Str("total".into()), Value::Str("balance".into()), &[]));
-            account.insert("used".into(), self.safe_string_k(balance, "locked", &[]));
+            account.insert("free".into(), self.safe_string2(&balance, Value::Str("free".into()), Value::Str("availableBalance".into()), &[]));
+            account.insert("total".into(), self.safe_string2(&balance, Value::Str("total".into()), Value::Str("balance".into()), &[]));
+            account.insert("used".into(), self.safe_string_k(&balance, "locked", &[]));
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
@@ -2954,7 +2954,7 @@ impl Toobit {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrder".into()), &[market.clone(), params, Value::Str("none".into())]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() == Some("none")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"".into()))));
         }
@@ -2963,10 +2963,10 @@ impl Toobit {
             m
         });
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+            let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.private_delete_api_v1_spot_order(&[__ws_arg_13]).await;
         }  else {
-            let __ws_arg_14 = self.extend(Value::Map(request), &[paramsMarketType]);
+            let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.private_delete_api_v1_futures_order(&[__ws_arg_14]).await;
         }
         // response same as in `createOrder`
@@ -3014,16 +3014,16 @@ impl Toobit {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), &[market, params, Value::Str("none".into())]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() == Some("none")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"".into()))));
         }
         let mut response: Value = Value::Null;
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+            let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.private_delete_api_v1_spot_open_orders(&[__ws_arg_15]).await;
         }  else {
-            let __ws_arg_16 = self.extend(Value::Map(request), &[paramsMarketType]);
+            let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.private_delete_api_v1_futures_batch_orders(&[__ws_arg_16]).await;
         }
         return Value::from(vec![self.safe_order(Value::Map({
@@ -3072,16 +3072,16 @@ impl Toobit {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrders".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params, Value::Str("none".into())]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() == Some("none")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"".into()))));
         }
         let mut response: Value = Value::Null;
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+            let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.private_delete_api_v1_spot_cancel_order_by_ids(&[__ws_arg_17]).await;
         }  else {
-            let __ws_arg_18 = self.extend(Value::Map(request), &[paramsMarketType]);
+            let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.private_delete_api_v1_futures_cancel_order_by_ids(&[__ws_arg_18]).await;
         }
         let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
@@ -3183,13 +3183,13 @@ impl Toobit {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOpenOrders".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::from(vec![]);
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+            let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.private_get_api_v1_spot_open_orders(&[__ws_arg_21]).await;
         }  else {
-            let __ws_arg_22 = self.extend(Value::Map(request), &[paramsMarketType]);
+            let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.private_get_api_v1_futures_open_orders(&[__ws_arg_22]).await;
         }
         return self.parse_orders(response, &[market, since, limit]);
@@ -3417,12 +3417,12 @@ impl Toobit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[fromAccount.clone()]);
-        let mut toId: Value = self.safe_string(accountsByType, toAccount.clone(), &[toAccount.clone()]);
+})]).into_dict();
+        let mut fromId: Value = self.safe_string(&accountsByType, fromAccount.clone(), &[fromAccount.clone()]);
+        let mut toId: Value = self.safe_string(&accountsByType, toAccount.clone(), &[toAccount.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -3506,13 +3506,13 @@ impl Toobit {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchLedger".into()), &[Value::Null, paramsUntil]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_25 = self.extend(requestUntil.clone(), &[paramsMarketType.clone()]);
+            let __ws_arg_25 = self.extend(requestUntil.clone(), &[&paramsMarketType]);
             response = self.private_get_api_v1_account_balance_flow(&[__ws_arg_25]).await;
         }  else {
-            let __ws_arg_26 = self.extend(requestUntil, &[paramsMarketType]);
+            let __ws_arg_26 = self.extend(requestUntil, &[&paramsMarketType]);
             response = self.private_get_api_v1_futures_balance_flow(&[__ws_arg_26]).await;
         }
         return self.parse_ledger(response, &[currency, since, limit]);
@@ -3889,11 +3889,11 @@ impl Toobit {
         if (status == Value::Null) {
             return None;
         }
-        let mut statuses: Value = self.safe_dict(Value::Map(statusesByType), type_var, &[Value::Map({
+        let mut statuses: crate::value::Dict = self.safe_dict(Value::Map(statusesByType), type_var, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+})]).into_dict();
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -3928,12 +3928,12 @@ impl Toobit {
         let __ws_arg_31 = self.extend(Value::Map(request.clone()), &[params]);
         let networkCodeparamsOmittedVariable: Vec<Value> = self.handle_network_code_and_params(__ws_arg_31).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsOmittedVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOmitted: Value = networkCodeparamsOmittedVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOmitted: crate::value::Dict = networkCodeparamsOmittedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (networkCode == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() : param[\"network\"] is required".into()))));
         }
         request.insert("chainType".into(), self.network_code_to_id(networkCode, &[code]));
-        let __ws_arg_32 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_get_api_v1_account_deposit_address(&[__ws_arg_32]).await;
         return self.parse_deposit_address(response, &[currency]);
         Value::Null
@@ -3991,7 +3991,7 @@ impl Toobit {
         self.check_address(&[address.clone()]);
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(paramsWithdrawTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (networkCode == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() : param[\"network\"] is required".into()))));
         }
@@ -4011,7 +4011,7 @@ impl Toobit {
         if (tag != Value::Null) {
             request.insert("addressExt".into(), tag);
         }
-        let __ws_arg_33 = self.extend(Value::Map(request), &[paramsNetworkCode]);
+        let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let mut response: Value = self.private_post_api_v1_account_withdraw(&[__ws_arg_33]).await;
         return self.parse_transaction(response, &[currency]);
         Value::Null

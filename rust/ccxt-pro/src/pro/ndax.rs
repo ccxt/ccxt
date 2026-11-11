@@ -597,8 +597,8 @@ impl Ndax {
                         let mut i: i64 = 0;
             let mut __for_first_522: bool = true;
             while { if !__for_first_522 { i += 1; } __for_first_522 = false; i < (payload.len() as i64) } {
-            let mut ohlcv: Value = self.safe_list(payload.clone().into(), Value::Int(i), &[]);
-            let mut marketId: Option<String> = self.safe_string_opt(ohlcv.clone(), Value::Int(8), &[]);
+            let mut ohlcv: crate::value::List = self.safe_list(payload.clone().into(), Value::Int(i), &[]).into_list();
+            let mut marketId: Option<String> = self.safe_string_opt(&ohlcv, Value::Int(8), &[]);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
             let mut marketUpdates: indexmap::IndexMap<String, Value> = ({
@@ -617,19 +617,19 @@ impl Ndax {
                 let mut timeframe: Value = keys.get(j as usize).cloned().unwrap_or(Value::Null);
                 let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
                 let mut duration: Value = (match (&(self.parse_to_int(interval)), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-                let mut timestamp: Value = self.safe_integer(ohlcv.clone(), Value::Int(0), &[]);
+                let mut timestamp: Value = self.safe_integer(&ohlcv, Value::Int(0), &[]);
                 if (timestamp == Value::Null) {
                     continue;
                 }
                 let mut candleTimestamp: Value = self.parse_to_int((match (&(((match ((timestamp).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
                     Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
-                let mut parsed: Value = Value::from(vec![candleTimestamp.clone(), self.safe_float(ohlcv.clone(), Value::Int(3), &[]), self.safe_float(ohlcv.clone(), Value::Int(1), &[]), self.safe_float(ohlcv.clone(), Value::Int(2), &[]), self.safe_float(ohlcv.clone(), Value::Int(4), &[]), self.safe_float(ohlcv.clone(), Value::Int(5), &[])]);
+                let mut parsed: Value = Value::from(vec![candleTimestamp.clone(), self.safe_float(&ohlcv, Value::Int(3), &[]), self.safe_float(&ohlcv, Value::Int(1), &[]), self.safe_float(&ohlcv, Value::Int(2), &[]), self.safe_float(&ohlcv, Value::Int(4), &[]), self.safe_float(&ohlcv, Value::Int(5), &[])]);
                 let mut stored: Value = self.safe_value((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), timeframe.clone(), &[Value::from(vec![])]);
                 let mut length: Value = Value::Int(stored.len() as i64);
                 let mut previous: Value = self.safe_value(stored.clone(), (match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
                 let mut previousTimestamp: Value = self.safe_integer(previous.clone(), Value::Int(0), &[]);
                 if (length.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && (previousTimestamp != Value::Null) && (previousTimestamp.as_f64() == candleTimestamp.as_f64()) {
-                    let mut parsedHigh: Value = self.safe_float(ohlcv.clone(), Value::Int(1), &[]);
+                    let mut parsedHigh: Value = self.safe_float(&ohlcv, Value::Int(1), &[]);
                     let mut previousHigh: Value = self.safe_float(previous.clone(), Value::Int(1), &[]);
                     let mut high: Value = previousHigh.clone();
                     if (parsedHigh != Value::Null) {
@@ -638,7 +638,7 @@ impl Ndax {
                             high = previousHigh;
                         }
                     }
-                    let mut parsedLow: Value = self.safe_float(ohlcv.clone(), Value::Int(2), &[]);
+                    let mut parsedLow: Value = self.safe_float(&ohlcv, Value::Int(2), &[]);
                     let mut previousLow: Value = self.safe_float(previous.clone(), Value::Int(2), &[]);
                     let mut low: Value = previousLow.clone();
                     if (parsedLow != Value::Null) {
@@ -648,7 +648,7 @@ impl Ndax {
                         }
                     }
                     add_element_to_object(&mut stored, &(match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }),
-                        Value::from(vec![candleTimestamp.clone(), self.safe_float(previous.clone(), Value::Int(1), &[]), high, low, self.safe_float(ohlcv.clone(), Value::Int(4), &[]), self.sum(&[self.safe_float(ohlcv.clone(), Value::Int(5), &[]), self.safe_float(previous, Value::Int(5), &[])])]));
+                        Value::from(vec![candleTimestamp.clone(), self.safe_float(previous.clone(), Value::Int(1), &[]), high, low, self.safe_float(&ohlcv, Value::Int(4), &[]), self.sum(&[self.safe_float(&ohlcv, Value::Int(5), &[]), self.safe_float(previous, Value::Int(5), &[])])]));
                     if (marketId.is_some()) {
                         marketUpdates.insert(crate::runtime::stringify_param(&timeframe), Value::Bool(true));
                     }
@@ -796,8 +796,8 @@ impl Ndax {
         //         0,   // 9 Side
         //     ],
         //
-        let mut firstBidAsk: Value = self.safe_list(payload.clone().into(), Value::Int(0), &[Value::from(vec![])]);
-        let mut marketId: Option<String> = self.safe_string(firstBidAsk.clone(), Value::Int(7), &[]).as_str().map(str::to_owned);
+        let mut firstBidAsk: crate::value::List = self.safe_list(payload.clone().into(), Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut marketId: Option<String> = self.safe_string(&firstBidAsk, Value::Int(7), &[]).as_str().map(str::to_owned);
         if (marketId.is_none()) {
             return;
         }
@@ -808,34 +808,34 @@ impl Ndax {
             return;
         }
         // seeded from the first entry so the locals keep a typed initializer (the loop re-reads it as a no-op)
-        let mut timestamp: Value = self.safe_integer(firstBidAsk.clone(), Value::Int(2), &[]);
-        let mut nonce: Value = self.safe_integer(firstBidAsk, Value::Int(0), &[]);
+        let mut timestamp: Value = self.safe_integer(&firstBidAsk, Value::Int(2), &[]);
+        let mut nonce: Value = self.safe_integer(&firstBidAsk, Value::Int(0), &[]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_525: bool = true;
             while { if !__for_first_525 { i += 1; } __for_first_525 = false; i < (payload.len() as i64) } {
-            let mut bidask: Value = self.safe_list(payload.clone().into(), Value::Int(i), &[]);
+            let mut bidask: crate::value::List = self.safe_list(payload.clone().into(), Value::Int(i), &[]).into_list();
             if (timestamp == Value::Null) {
-                timestamp = self.safe_integer(bidask.clone(), Value::Int(2), &[]);
+                timestamp = self.safe_integer(&bidask, Value::Int(2), &[]);
             }  else {
-                let mut newTimestamp: Value = self.safe_integer(bidask.clone(), Value::Int(2), &[]);
+                let mut newTimestamp: Value = self.safe_integer(&bidask, Value::Int(2), &[]);
                 if (newTimestamp != Value::Null) && (newTimestamp.as_f64().unwrap_or(f64::NAN) > timestamp.as_f64().unwrap_or(f64::NAN)) {
                     timestamp = newTimestamp;
                 }
             }
             if (nonce == Value::Null) {
-                nonce = self.safe_integer(bidask.clone(), Value::Int(0), &[]);
+                nonce = self.safe_integer(&bidask, Value::Int(0), &[]);
             }  else {
-                let mut newNonce: Value = self.safe_integer(bidask.clone(), Value::Int(0), &[]);
+                let mut newNonce: Value = self.safe_integer(&bidask, Value::Int(0), &[]);
                 if (newNonce != Value::Null) && (newNonce.as_f64().unwrap_or(f64::NAN) > nonce.as_f64().unwrap_or(f64::NAN)) {
                     nonce = newNonce;
                 }
             }
             // 0 new, 1 update, 2 remove
-            let mut type_var: Option<i64> = self.safe_integer(bidask.clone(), Value::Int(3), &[]).as_i64();
-            let mut price: Value = self.safe_float(bidask.clone(), Value::Int(6), &[]);
-            let mut amount: Value = self.safe_float(bidask.clone(), Value::Int(8), &[]);
-            let mut side: Option<i64> = self.safe_integer(bidask, Value::Int(9), &[]).as_i64();
+            let mut type_var: Option<i64> = self.safe_integer(&bidask, Value::Int(3), &[]).as_i64();
+            let mut price: Value = self.safe_float(&bidask, Value::Int(6), &[]);
+            let mut amount: Value = self.safe_float(&bidask, Value::Int(8), &[]);
+            let mut side: Option<i64> = self.safe_integer(&bidask, Value::Int(9), &[]).as_i64();
             // 0 buy, 1 sell, 2 short reserved for future use, 3 unknown
             let mut orderbookSide: Value = (if (side == Some(0)) { crate::value::get_value_k(&orderbook, "bids") } else { crate::value::get_value_k(&orderbook, "asks") });
             // 0 new, 1 update, 2 remove

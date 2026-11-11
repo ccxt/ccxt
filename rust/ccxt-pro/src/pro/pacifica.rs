@@ -704,7 +704,7 @@ impl Pacifica {
             m
         })]).into_dict();
         let mut results: Vec<Value> = self.safe_list_k(&data, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut ordersToReturn: Value = Value::from(vec![]);
+        let mut ordersToReturn: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_574: bool = true;
@@ -722,7 +722,7 @@ impl Pacifica {
             }  else {
                 status = Some("canceled".to_string());
             }
-            if let Value::Arr(__a) = &mut ordersToReturn { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
+            ordersToReturn.push(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("clientOrderId".to_string(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -730,10 +730,10 @@ impl Pacifica {
                     m.insert("info".to_string(), response.clone());
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
                 m
-            }), &[])); }
+            }), &[]));
         }
         }
-        return ordersToReturn;
+        return Value::from(ordersToReturn);
         Value::Null
         }).await?))
     }
@@ -924,7 +924,7 @@ impl Pacifica {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let aggLevelparamsAggLevelVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("aggLevel".into()), &[Value::Int(1)]).as_array().cloned().unwrap_or_default();
         let mut aggLevel: Value = aggLevelparamsAggLevelVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsAggLevel: Value = aggLevelparamsAggLevelVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsAggLevel: crate::value::Dict = aggLevelparamsAggLevelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: String = "api".to_string();
@@ -955,7 +955,7 @@ impl Pacifica {
 }));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsAggLevel]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsAggLevel]);
         let mut orderbook: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
         return orderbook.limit();
         Value::Null
@@ -989,7 +989,7 @@ impl Pacifica {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let aggLevelparamsAggLevelVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("aggLevel".into()), &[Value::Int(1)]).as_array().cloned().unwrap_or_default();
         let mut aggLevel: Value = aggLevelparamsAggLevelVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsAggLevel: Value = aggLevelparamsAggLevelVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsAggLevel: crate::value::Dict = aggLevelparamsAggLevelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subMessageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
@@ -1021,7 +1021,7 @@ impl Pacifica {
 }));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsAggLevel]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsAggLevel]);
         return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
         Value::Null
         }).await?))
@@ -1493,7 +1493,7 @@ impl Pacifica {
                         let mut i: i64 = 0;
             let mut __for_first_577: bool = true;
             while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (keys.len() as i64) } {
-            let mut currentMessageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string(keys.clone().into(), Value::Int(i), &[Value::Str("".into())])).into());
+            let mut currentMessageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string(&keys, Value::Int(i), &[Value::Str("".into())])).into());
             client.resolve(&[trades.clone(), currentMessageHash]);
         }
         }
@@ -2173,7 +2173,7 @@ impl Pacifica {
             client.resolve(&[stored.clone(), innerMessageHash]);
         }
         }
-        client.resolve(&[stored, Value::from(messageHash.clone())]);
+        client.resolve(&[stored, Value::from(messageHash)]);
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
@@ -2189,9 +2189,9 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        if (id == Value::Null) {
-            id = self.safe_string_k(data.clone(), "id", &[]);
+        let mut id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        if (id.is_none()) {
+            id = self.safe_string_k(data.clone(), "id", &[]).as_str().map(str::to_owned);
         }
         let mut wsOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2212,7 +2212,7 @@ impl Pacifica {
             }), Value::Str("".into()));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            client.reject(&[e, id]);
+            client.reject(&[e, id.map(Value::from).unwrap_or(Value::Null)]);
             return Value::Bool(true);
         }
         return Value::Bool(false);

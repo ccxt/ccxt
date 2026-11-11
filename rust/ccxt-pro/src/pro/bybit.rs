@@ -3279,7 +3279,7 @@ impl Bybit {
                 m
             });
         }
-        let mut messageHash: Value = Value::Str("balance".into());
+        let mut messageHash: String = "balance".to_string();
         let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut info: Value = Value::Null;
         let mut rawBalances: Value = Value::from(vec![]);
@@ -3332,16 +3332,16 @@ impl Bybit {
             if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), timestamp.clone()); } }
             { let __be_tmp = self.iso8601(timestamp.clone()); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } };
             { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), account.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), __be_tmp); } }
-            messageHash = Value::Str(format!("{}{}", Value::Str("balances:".into()), account).into());
-            client.resolve(&[(if let (Some(__m), Some(__k)) = (self.balance.as_map(), account.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.clone()]);
+            messageHash = format!("{}{}", Value::Str("balances:".into()), account);
+            client.resolve(&[(if let (Some(__m), Some(__k)) = (self.balance.as_map(), account.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::from(messageHash.clone())]);
         }  else {
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), info); }
             let mut timestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp.clone()); }
             { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
             { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-            messageHash = Value::Str("balances".into());
-            client.resolve(&[self.balance.clone(), messageHash]);
+            messageHash = "balances".to_string();
+            client.resolve(&[self.balance.clone(), Value::from(messageHash)]);
         }
 }
 
@@ -3630,9 +3630,9 @@ impl Bybit {
             return Value::Bool(false);
          #[allow(unreachable_code)] { Value::Null }}));
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: Value = panic_to_value(_try_err); 
-            let mut reqId: Value = self.safe_string2(message.clone(), Value::Str("req_id".into()), Value::Str("reqId".into()), &[]);
+            let mut reqId: Option<String> = self.safe_string2(message.clone(), Value::Str("req_id".into()), Value::Str("reqId".into()), &[]).as_str().map(str::to_owned);
             let mut foundSubscription: bool = false;
-            if (reqId != Value::Null) {
+            if (reqId.is_some()) {
                 let mut keys: Vec<Value> = __ch.subscription_keys();
                 {
                                         let mut i: i64 = 0;
@@ -3643,7 +3643,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         continue;
                     }
                     let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[]).into_dict();
-                    let mut subId: Value = self.safe_string_k(&subscription, "id", &[]);
+                    let mut subId: Option<String> = self.safe_string_k(&subscription, "id", &[]).as_str().map(str::to_owned);
                     if (reqId == subId) {
                         foundSubscription = true;
                         __ch.remove_subscription(&messageHash);
@@ -3653,8 +3653,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
             }
             if !foundSubscription {
-                if (reqId != Value::Null) {
-                    client.reject(&[Value::from(error.clone()), reqId.clone()]);
+                if (reqId.is_some()) {
+                    client.reject(&[Value::from(error.clone()), reqId.clone().map(Value::from).unwrap_or(Value::Null)]);
                 }  else if is_instance(&error, &Value::Str("AuthenticationError".into())) {
                     let mut authenticatedHash: Value = Value::Str("authenticated".into());
                     client.reject(&[Value::from(error.clone()), authenticatedHash.clone()]);
@@ -3673,7 +3673,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         client.reject(&[Value::from(error.clone())]);
                     }
                 }  else {
-                    client.reject(&[Value::from(error), reqId]);
+                    client.reject(&[Value::from(error), reqId.map(Value::from).unwrap_or(Value::Null)]);
                 }
             }
             return Value::Bool(true);
@@ -3889,13 +3889,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     continue;
                 }
                 let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-                let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]);
+                let mut subMessageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_214: bool = true;
                     while { if !__for_first_214 { j += 1; } __for_first_214 = false; j < (messageHashes.len() as i64) } {
                     let mut unsubHash: Value = messageHashes.get(j as usize).cloned().unwrap_or(Value::Null);
-                    let mut subHash: Option<String> = self.safe_string(subMessageHashes.clone(), Value::Int(j), &[]).as_str().map(str::to_owned);
+                    let mut subHash: Option<String> = self.safe_string(&subMessageHashes, Value::Int(j), &[]).as_str().map(str::to_owned);
                     let mut usePrefix: Value = Value::Bool((subHash.as_deref() == Some("orders")) || (subHash.as_deref() == Some("myTrades")) || (subHash.as_deref() == Some("positions")));
                     self.clean_unsubscription(client.clone(), subHash.clone().map(Value::from).unwrap_or(Value::Null), unsubHash, &[usePrefix]);
                 }

@@ -1209,7 +1209,7 @@ impl Bitopro {
         //         ]
         //     }
         //
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1221,7 +1221,7 @@ impl Bitopro {
             let mut __for_first_409: bool = true;
             while { if !__for_first_409 { i += 1; } __for_first_409 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), first.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -1230,10 +1230,10 @@ impl Bitopro {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -2311,12 +2311,12 @@ impl Bitopro {
             paramsOmitted = self.omit(paramsWithdrawTag.clone(), Value::from(vec![Value::Str("network".into())]), &[]);
         }
         if hasNetwork {
-            let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
+            let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut requestedNetwork: Option<String> = self.safe_string_upper_k(paramsWithdrawTag, "network", &[]).as_str().map(str::to_owned);
-            let mut networkId: Option<String> = (if (requestedNetwork.is_none()) { None } else { self.safe_string(networks, self.safe_string(self.networkAliases.clone(), requestedNetwork.clone().map(Value::from).unwrap_or(Value::Null), &[requestedNetwork.clone().map(Value::from).unwrap_or(Value::Null)]), &[]).as_str().map(str::to_owned) });
+            let mut networkId: Option<String> = (if (requestedNetwork.is_none()) { None } else { self.safe_string(&networks, self.safe_string(self.networkAliases.clone(), requestedNetwork.clone().map(Value::from).unwrap_or(Value::Null), &[requestedNetwork.clone().map(Value::from).unwrap_or(Value::Null)]), &[]).as_str().map(str::to_owned) });
             if (networkId.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid network ".into())).into()), requestedNetwork.clone().map(Value::from).unwrap_or(Value::Null))));
             }

@@ -721,7 +721,7 @@ impl Aster {
         let mut symbolsList: Value = symbolsNormalized;
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsList.clone()]);
         let mut type_var: String = self.safe_string_k(firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
-        let mut paramsOmitted: Value = self.omit(paramsCallerMethodName, Value::Str("callerMethodName".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsCallerMethodName, Value::Str("callerMethodName".into()), &[]).into_dict();
         let mut url: Option<String> = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), Value::from(type_var), &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
@@ -734,7 +734,7 @@ impl Aster {
                 m.insert("params".to_string(), subscriptionArgs.clone());
             m
         });
-        let mut use1sFreq: bool = self.safe_bool_k(paramsOmitted.clone(), "use1sFreq", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut use1sFreq: bool = self.safe_bool_k(&paramsOmitted, "use1sFreq", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         {
                         let mut i: i64 = 0;
             let mut __for_first_20: bool = true;
@@ -748,7 +748,7 @@ impl Aster {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into())); }
         }
         }
-        let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut newTicker: Value = self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), messageHashes.clone(), &[__ws_arg_2, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
@@ -801,7 +801,7 @@ impl Aster {
         let mut symbolsList: Value = symbolsNormalized;
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsList.clone()]);
         let mut type_var: String = self.safe_string_k(firstMarket, "type", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
-        let mut paramsOmitted: Value = self.omit(paramsCallerMethodName, Value::Str("callerMethodName".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsCallerMethodName, Value::Str("callerMethodName".into()), &[]).into_dict();
         let mut url: Option<String> = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), Value::from(type_var), &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
@@ -814,7 +814,7 @@ impl Aster {
                 m.insert("params".to_string(), subscriptionArgs.clone());
             m
         });
-        let mut use1sFreq: bool = self.safe_bool_k(paramsOmitted.clone(), "use1sFreq", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut use1sFreq: bool = self.safe_bool_k(&paramsOmitted, "use1sFreq", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         {
                         let mut i: i64 = 0;
             let mut __for_first_21: bool = true;
@@ -828,7 +828,7 @@ impl Aster {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into())); }
         }
         }
-        let __ws_arg_3 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
         return self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), messageHashes.clone(), &[__ws_arg_3, messageHashes.clone()]).await;
         Value::Null
         }).await?))
@@ -1665,7 +1665,7 @@ impl Aster {
         let methodNameparamsCallerMethodNameVariable: Vec<Value> = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[Value::Str("unWatchOrderBookForSymbols".into())]).as_array().cloned().unwrap_or_default();
         let mut methodName: Value = methodNameparamsCallerMethodNameVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsCallerMethodName: Value = methodNameparamsCallerMethodNameVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut paramsOmitted: Value = self.omit(paramsCallerMethodName, Value::Str("callerMethodName".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsCallerMethodName, Value::Str("callerMethodName".into()), &[]).into_dict();
         if (symbolsLength == 0.0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a non-empty array of symbols".into()))));
         }
@@ -1681,7 +1681,7 @@ impl Aster {
                 m.insert("params".to_string(), subscriptionArgs.clone());
             m
         });
-        let mut limit: Option<f64> = self.safe_number_k(paramsOmitted.clone(), "limit", &[]).as_f64();
+        let mut limit: Option<f64> = self.safe_number_k(&paramsOmitted, "limit", &[]).as_f64();
         let mut depthSuffix: String = "@depth20".to_string();
         if (limit == Some(5.0)) {
             depthSuffix = "@depth5".to_string();
@@ -1697,7 +1697,7 @@ impl Aster {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into())); }
         }
         }
-        let __ws_arg_9 = self.extend(Value::Map(request), &[self.omit(paramsOmitted, Value::Str("limit".into()), &[])]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[self.omit(&paramsOmitted, Value::Str("limit".into()), &[])]);
         return self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), messageHashes.clone(), &[__ws_arg_9, messageHashes.clone()]).await;
         Value::Null
         }).await?))
@@ -1866,14 +1866,14 @@ impl Aster {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_28: bool = true;
             while { if !__for_first_28 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_28 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
-            let mut symbolString: Option<String> = self.safe_string(data.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]).into_list();
+            let mut symbolString: Option<String> = self.safe_string(&data, Value::Int(0), &[]).as_str().map(str::to_owned);
             if (symbolString.is_none()) {
                 continue;
             }
             let mut market: crate::types::Market = (match self.market(symbolString.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolString = Value::from((market).symbol.clone()).as_str().map(str::to_owned);
-            let mut unfiedTimeframe: String = self.safe_string(data, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut unfiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut timeframeId: Value = self.safe_string(self.timeframes.clone(), Value::from(unfiedTimeframe.clone()), &[Value::from(unfiedTimeframe.clone())]);
             if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k((market).raw.clone(), "id", &[Value::Str("".into())]), Value::Str("@kline_".into())).into()), timeframeId).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())])).into()), Value::Str(":".into())).into()), unfiedTimeframe).into())); }
@@ -1945,14 +1945,14 @@ impl Aster {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_29: bool = true;
             while { if !__for_first_29 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_29 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
-            let mut symbolString: Option<String> = self.safe_string(data.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]).into_list();
+            let mut symbolString: Option<String> = self.safe_string(&data, Value::Int(0), &[]).as_str().map(str::to_owned);
             if (symbolString.is_none()) {
                 continue;
             }
             let mut market: crate::types::Market = (match self.market(symbolString.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolString = Value::from((market).symbol.clone()).as_str().map(str::to_owned);
-            let mut unfiedTimeframe: String = self.safe_string(data, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut unfiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut timeframeId: Value = self.safe_string(self.timeframes.clone(), Value::from(unfiedTimeframe.clone()), &[Value::from(unfiedTimeframe.clone())]);
             if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k((market).raw.clone(), "id", &[Value::Str("".into())]), Value::Str("@kline_".into())).into()), timeframeId).into())); };
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:ohlcv:".into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())])).into()), Value::Str(":".into())).into()), unfiedTimeframe).into())); }
@@ -2035,16 +2035,16 @@ impl Aster {
     m
 }));
         let mut time: Value = self.milliseconds();
-        let mut lastAuthenticatedTimeOptions: Value = self.safe_dict_k(self.options.clone(), "lastAuthenticatedTime", &[Value::Map({
+        let mut lastAuthenticatedTimeOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "lastAuthenticatedTime", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut lastAuthenticatedTime: Value = self.safe_integer(lastAuthenticatedTimeOptions, type_var.clone(), &[Value::Int(0)]);
-        let mut listenKeyRefreshRateOptions: Value = self.safe_dict_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Map({
+        })]).into_dict();
+        let mut lastAuthenticatedTime: Value = self.safe_integer(&lastAuthenticatedTimeOptions, type_var.clone(), &[Value::Int(0)]);
+        let mut listenKeyRefreshRateOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut listenKeyRefreshRate: Value = self.safe_integer(listenKeyRefreshRateOptions, type_var.clone(), &[Value::Int(3600000)]); // 1 hour
+        })]).into_dict();
+        let mut listenKeyRefreshRate: Value = self.safe_integer(&listenKeyRefreshRateOptions, type_var.clone(), &[Value::Int(3600000)]); // 1 hour
         if (match (&(time), &(lastAuthenticatedTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
             _ => Value::Null }).as_f64().unwrap_or(f64::NAN) > listenKeyRefreshRate.as_f64().unwrap_or(f64::NAN) {
             // single-flight leader election on a never-dialed client, see
@@ -2113,11 +2113,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[Value::Str("spot".into())]);
-        let mut listenKeyOptions: Value = self.safe_dict_k(self.options.clone(), "listenKey", &[Value::Map({
+        let mut listenKeyOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "listenKey", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut listenKey: Option<String> = self.safe_string(listenKeyOptions, type_var.clone(), &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut listenKey: Option<String> = self.safe_string(&listenKeyOptions, type_var.clone(), &[]).as_str().map(str::to_owned);
         if (listenKey.is_none()) {
             return Value::Null;
         }
@@ -2159,11 +2159,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 
     pub fn get_private_url(&self, optional_args: &[Value]) -> Value {
         let mut type_var = get_arg(optional_args, 0, Value::Str("spot".into()));
-        let mut listenKeyOptions: Value = self.safe_dict_k(self.options.clone(), "listenKey", &[Value::Map({
+        let mut listenKeyOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "listenKey", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut listenKey: String = self.safe_string(listenKeyOptions, type_var.clone(), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        })]).into_dict();
+        let mut listenKey: String = self.safe_string(&listenKeyOptions, type_var.clone(), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), type_var, &[Value::Str("".into())]), Value::Str("/".into())).into()), listenKey);
         return Value::from(url);
 

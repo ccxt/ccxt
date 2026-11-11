@@ -1271,8 +1271,8 @@ impl Coinone {
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last", &[]).as_str().map(str::to_owned);
-        let mut asks: Value = self.safe_list_k(ticker.clone(), "best_asks", &[Value::from(vec![])]);
-        let mut bids: Value = self.safe_list_k(ticker.clone(), "best_bids", &[Value::from(vec![])]);
+        let mut asks: crate::value::List = self.safe_list_k(ticker.clone(), "best_asks", &[Value::from(vec![])]).into_list();
+        let mut bids: crate::value::List = self.safe_list_k(ticker.clone(), "best_bids", &[Value::from(vec![])]).into_list();
         let mut baseId: Option<String> = self.safe_string_k(ticker.clone(), "target_currency", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(ticker.clone(), "quote_currency", &[]).as_str().map(str::to_owned);
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -1288,10 +1288,10 @@ impl Coinone {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
-        m.insert("bid".to_string(), self.safe_string_k(bids.clone(), "price", &[]));
-        m.insert("bidVolume".to_string(), self.safe_string_k(bids, "qty", &[]));
-        m.insert("ask".to_string(), self.safe_string_k(asks.clone(), "price", &[]));
-        m.insert("askVolume".to_string(), self.safe_string_k(asks, "qty", &[]));
+        m.insert("bid".to_string(), self.safe_string_k(&bids, "price", &[]));
+        m.insert("bidVolume".to_string(), self.safe_string_k(&bids, "qty", &[]));
+        m.insert("ask".to_string(), self.safe_string_k(&asks, "price", &[]));
+        m.insert("askVolume".to_string(), self.safe_string_k(&asks, "qty", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string_k(ticker.clone(), "first", &[]));
         m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));

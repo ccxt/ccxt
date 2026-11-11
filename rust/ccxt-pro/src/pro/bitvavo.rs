@@ -550,7 +550,7 @@ impl Bitvavo {
         //     }
         //
         self.handle_bid_ask(client.clone(), message);
-        let mut event: Option<String> = match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+        let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut tickers: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = vec![];
         {
@@ -570,7 +570,7 @@ impl Bitvavo {
             }
         }
         }
-        client.resolve(&[Value::Array(result), event.clone().map(Value::from).unwrap_or(Value::Null)]);
+        client.resolve(&[Value::Array(result), event.map(Value::from).unwrap_or(Value::Null)]);
 }
 
 /*
@@ -623,7 +623,7 @@ impl Bitvavo {
             client.resolve(&[ticker, messageHash]);
         }
         }
-        client.resolve(&[Value::Array(result), Value::from(event.clone())]);
+        client.resolve(&[Value::Array(result), Value::from(event)]);
 }
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -960,8 +960,8 @@ impl Bitvavo {
         let mut interval: String = (match message.get("interval") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         // use a reverse lookup in a static map instead
         let mut timeframe: Value = self.find_timeframe(Value::from(interval.clone()), &[]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), (match message.get("market") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),
-            Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) })).into()), Value::Str("_".into())).into()), interval).into());
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), (match message.get("market") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),
+            Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) })).into()), Value::Str("_".into())).into()), interval);
         let mut candles: Vec<Value> = (match message.get("candle") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -982,7 +982,7 @@ impl Bitvavo {
             stored.append(parsed);
         }
         }
-        client.resolve(&[stored.clone(), messageHash.clone()]);
+        client.resolve(&[stored.clone(), Value::from(messageHash.clone())]);
         // watchOHLCVForSymbols needs the symbol and timeframe to assemble its result
         client.resolve(&[Value::from(vec![symbol, timeframe, stored]), Value::Str(format!("{}{}", Value::Str("multi:".into()), messageHash).into())]);
 }
@@ -1955,7 +1955,7 @@ impl Bitvavo {
         });
         let operatorIdparamsOperatorIdVariable: Vec<Value> = self.handle_option_and_params(params, Value::Str("cancelAllOrdersWs".into()), Value::Str("operatorId".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut operatorId: Value = operatorIdparamsOperatorIdVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOperatorId: Value = operatorIdparamsOperatorIdVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOperatorId: crate::value::Dict = operatorIdparamsOperatorIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (operatorId != Value::Null) {
             request.insert("operatorId".into(), self.parse_to_int(operatorId));
         }  else {
@@ -1966,7 +1966,7 @@ impl Bitvavo {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             request.insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_1 = self.extend(Value::Map(request), &[paramsOperatorId]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOperatorId]);
         return self.watch_request(Value::Str("privateCancelOrders".into()), __ws_arg_1).await;
         Value::Null
         }).await?))

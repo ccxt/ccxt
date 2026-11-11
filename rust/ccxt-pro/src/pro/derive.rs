@@ -335,11 +335,11 @@ impl Derive {
 }
 
     pub fn request_id(&self, mut url: Value) -> Value {
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "requestId", &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "requestId", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut previousValue: i64 = self.safe_integer(options.clone(), url.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
+        })]).into_dict();
+        let mut previousValue: i64 = self.safe_integer(&options, url.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut newValue: Value = self.sum(&[Value::from(previousValue), Value::Int(1)]);
         if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("requestId".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), newValue.clone()); } }
         return newValue;
@@ -1179,7 +1179,7 @@ impl Derive {
         // }
         //
         let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
-        let mut topic: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
+        let mut topic: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
         let mut rawOrders: Vec<Value> = self.safe_list_k(&params, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -1221,7 +1221,7 @@ impl Derive {
             }
         }
         }
-        client.resolve(&[self.orders.clone(), topic.clone().map(Value::from).unwrap_or(Value::Null)]);
+        client.resolve(&[self.orders.clone(), topic.map(Value::from).unwrap_or(Value::Null)]);
 }
 
 /*
@@ -1353,7 +1353,7 @@ impl Derive {
             self.myTrades = myTrades.clone();
         }
         let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
-        let mut topic: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
+        let mut topic: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
         let mut rawTrades: Vec<Value> = self.safe_list_k(&params, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;

@@ -489,8 +489,8 @@ impl Blockchaincom {
         }  else if (event.as_deref() == Some("updated")) {
             let mut marketId: Option<String> = self.safe_string_k(message.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("-".into())]);
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into());
-            let mut request: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[]).into_dict();
+            let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbol);
+            let mut request: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]).into_dict();
             let mut timeframeId: Option<String> = self.safe_string_k(&request, "granularity", &[]).as_str().map(str::to_owned);
             let mut timeframe: Value = self.find_timeframe(timeframeId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut ohlcv: Value = (match __pro_message.get("price").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
@@ -505,7 +505,7 @@ impl Blockchaincom {
                 if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); } }
             }
             stored.append(ohlcv);
-            client.resolve(&[stored, messageHash]);
+            client.resolve(&[stored, Value::from(messageHash)]);
         }  else if (event.as_deref() != Some("subscribed")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
         }
@@ -1058,7 +1058,7 @@ impl Blockchaincom {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut type_var: String = self.safe_string_k(params.clone(), "type", &[Value::Str("l2".into())]).as_str().unwrap_or("l2").to_string();
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("type".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("type".into()), &[]).into_dict();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into()), Value::Str(":".into())).into()), type_var);
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1067,7 +1067,7 @@ impl Blockchaincom {
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[paramsOmitted]);
+        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[&paramsOmitted]);
         let mut orderbook: Value = self.watch(Value::from(url), Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
         return orderbook.limit();
         Value::Null

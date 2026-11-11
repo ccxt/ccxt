@@ -352,7 +352,7 @@ impl Bithumb {
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("watchTicker".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
         let mut generation: Value = generationparamsGenerationVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsGeneration: Value = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isGenerationTwo: bool = generation.as_f64() == Some(2.0);
         let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -364,8 +364,8 @@ impl Bithumb {
         let mut url: String = (if isGenerationTwo { self.safe_string_k(&wsUrls, "publicGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() } else { self.safe_string_k(&wsUrls, "public", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() });
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.clone()));
-        let mut tickTypes: String = self.safe_string_k(paramsGeneration.clone(), "tickTypes", &[Value::Str("24H".into())]).as_str().unwrap_or("24H").to_string();
-        let mut paramsOmitted: Value = self.omit(paramsGeneration, Value::Str("tickTypes".into()), &[]);
+        let mut tickTypes: String = self.safe_string_k(&paramsGeneration, "tickTypes", &[Value::Str("24H".into())]).as_str().unwrap_or("24H").to_string();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsGeneration, Value::Str("tickTypes".into()), &[]).into_dict();
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("ticker".into()));
@@ -384,10 +384,10 @@ impl Bithumb {
         m.insert("type".to_string(), Value::Str("ticker".into()));
         m.insert("codes".to_string(), Value::from(vec![marketIdRequest]));
     m
-}), &[paramsOmitted.clone()])]);
+}), &[&paramsOmitted])]);
             return self.watch(Value::from(url.clone()), Value::from(messageHash.clone()), &[request.clone(), Value::from(messageHash.clone())]).await;
         }
-        let __ws_arg_0 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_0 = self.extend(request, &[&paramsOmitted]);
         return self.watch(Value::from(url), Value::from(messageHash.clone()), &[__ws_arg_0, Value::from(messageHash)]).await;
         Value::Null
         }).await?))
@@ -421,7 +421,7 @@ impl Bithumb {
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("watchTickers".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
         let mut generation: Value = generationparamsGenerationVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsGeneration: Value = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isGenerationTwo: bool = generation.as_f64() == Some(2.0);
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut symbolsLength: Value = (if (symbolsNormalized == Value::Null) { Value::Int(0) } else { Value::Int(symbolsNormalized.len() as i64) });
@@ -459,8 +459,8 @@ impl Bithumb {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.clone())).into())); }
         }
         }
-        let mut tickTypes: String = self.safe_string_k(paramsGeneration.clone(), "tickTypes", &[Value::Str("24H".into())]).as_str().unwrap_or("24H").to_string();
-        let mut paramsOmitted: Value = self.omit(paramsGeneration, Value::Str("tickTypes".into()), &[]);
+        let mut tickTypes: String = self.safe_string_k(&paramsGeneration, "tickTypes", &[Value::Str("24H".into())]).as_str().unwrap_or("24H").to_string();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsGeneration, Value::Str("tickTypes".into()), &[]).into_dict();
         let mut message: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("ticker".into()));
@@ -478,9 +478,9 @@ impl Bithumb {
         m.insert("type".to_string(), Value::Str("ticker".into()));
         m.insert("codes".to_string(), Value::from(streamMarketIds));
     m
-}), &[paramsOmitted.clone()])]);
+}), &[&paramsOmitted])]);
         }  else {
-            message = self.extend(message.clone(), &[paramsOmitted]);
+            message = self.extend(message.clone(), &[&paramsOmitted]);
         }
         let mut newTicker: Value = self.watch_multiple(url, messageHashes.clone(), &[message, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
@@ -730,7 +730,7 @@ impl Bithumb {
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
         let mut generation: Value = generationparamsGenerationVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsGeneration: Value = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isGenerationTwo: bool = generation.as_f64() == Some(2.0);
         let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -760,9 +760,9 @@ impl Bithumb {
         m.insert("type".to_string(), Value::Str("orderbook".into()));
         m.insert("codes".to_string(), Value::from(vec![marketIdRequest]));
     m
-}), &[paramsGeneration.clone()])]);
+}), &[&paramsGeneration])]);
         }  else {
-            request = self.extend(request.clone(), &[paramsGeneration]);
+            request = self.extend(request.clone(), &[&paramsGeneration]);
         }
         let mut orderbook: Value = self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
         return orderbook.limit();
@@ -952,7 +952,7 @@ impl Bithumb {
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("watchTrades".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
         let mut generation: Value = generationparamsGenerationVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsGeneration: Value = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isGenerationTwo: bool = generation.as_f64() == Some(2.0);
         let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -982,9 +982,9 @@ impl Bithumb {
         m.insert("type".to_string(), Value::Str("trade".into()));
         m.insert("codes".to_string(), Value::from(vec![marketIdRequest]));
     m
-}), &[paramsGeneration.clone()])]);
+}), &[&paramsGeneration])]);
         }  else {
-            request = self.extend(request.clone(), &[paramsGeneration]);
+            request = self.extend(request.clone(), &[&paramsGeneration]);
         }
         let mut trades: Value = self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
         let mut limitResolved: Value = limit.clone();

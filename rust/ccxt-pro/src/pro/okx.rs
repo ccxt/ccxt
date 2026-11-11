@@ -900,14 +900,14 @@ impl Okx {
         let mut fundingRate: Value = self.watch_multiple(url, messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut symbol: Option<String> = self.safe_string_k_opt(fundingRate.clone(), "symbol", &[]);
-            let mut result: Value = Value::Map({
+            let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             if (symbol.is_some()) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), fundingRate); }
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), fundingRate);
             }
-            return result;
+            return Value::Map(result);
         }
         return self.filter_by_array(self.fundingRates.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
         Value::Null
@@ -1269,7 +1269,7 @@ impl Okx {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
         let channelparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchBidsAsks".into()), Value::Str("channel".into()), &[Value::Str("bbo-tbt".into())]).as_array().cloned().unwrap_or_default();
         let mut channel: Value = channelparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsChannel: Value = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsChannel: crate::value::Dict = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut url: Value = self.get_url(channel.clone(), &[Value::Str("public".into())]).map(Value::from).unwrap_or(Value::Null);
         let mut messageHashes: Value = Value::from(vec![]);
         let mut args: Vec<Value> = Vec::new();
@@ -1284,7 +1284,7 @@ impl Okx {
                     m.insert("instId".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
-            args.push(self.extend(Value::Map(arg), &[paramsChannel.clone()]));
+            args.push(self.extend(Value::Map(arg), &[&paramsChannel]));
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask::".into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
@@ -1386,15 +1386,15 @@ impl Okx {
         let mut bidVolume: Option<String> = self.safe_string_k(ticker.clone(), "bidSz", &[]).as_str().map(str::to_owned);
         if (ask.is_none()) {
             let mut asks: Value = self.safe_list_k(ticker.clone(), "asks", &[Value::from(vec![])]);
-            let mut firstAsk: Value = self.safe_list(asks, Value::Int(0), &[Value::from(vec![])]);
-            ask = self.safe_string(firstAsk.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-            askVolume = self.safe_string(firstAsk, Value::Int(1), &[]).as_str().map(str::to_owned);
+            let mut firstAsk: crate::value::List = self.safe_list(asks, Value::Int(0), &[Value::from(vec![])]).into_list();
+            ask = self.safe_string(&firstAsk, Value::Int(0), &[]).as_str().map(str::to_owned);
+            askVolume = self.safe_string(&firstAsk, Value::Int(1), &[]).as_str().map(str::to_owned);
         }
         if (bid.is_none()) {
             let mut bids: Value = self.safe_list_k(ticker.clone(), "bids", &[Value::from(vec![])]);
-            let mut firstBid: Value = self.safe_list(bids, Value::Int(0), &[Value::from(vec![])]);
-            bid = self.safe_string(firstBid.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-            bidVolume = self.safe_string(firstBid, Value::Int(1), &[]).as_str().map(str::to_owned);
+            let mut firstBid: crate::value::List = self.safe_list(bids, Value::Int(0), &[Value::from(vec![])]).into_list();
+            bid = self.safe_string(&firstBid, Value::Int(0), &[]).as_str().map(str::to_owned);
+            bidVolume = self.safe_string(&firstBid, Value::Int(1), &[]).as_str().map(str::to_owned);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1566,7 +1566,7 @@ impl Okx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         let mut accessType: String = "private".to_string();
         if isTrigger {
             accessType = "business".to_string();
@@ -1603,7 +1603,7 @@ impl Okx {
             m
         });
         let mut url: Value = self.get_url(Value::from(channel), &[Value::Str("private".into())]).map(Value::from).unwrap_or(Value::Null);
-        let __ws_arg_0 = self.deep_extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_0 = self.deep_extend(Value::Map(request), &[&paramsOmitted]);
         let mut newLiquidations: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newLiquidations;
@@ -2856,7 +2856,7 @@ impl Okx {
         let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("watchMyTrades".into()), &[paramsOmitted]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (uppercaseType.as_str() == Some("SPOT")) {
             if (marginMode.is_some()) {
                 uppercaseType = Value::Str("MARGIN".into());
@@ -2867,7 +2867,7 @@ impl Okx {
                 m.insert("instType".to_string(), uppercaseType);
             m
         });
-        let __ws_arg_1 = self.extend(Value::Map(request), &[paramsMarginMode]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsMarginMode]);
         let mut orders: Value = self.subscribe(Value::Str("private".into()), Value::from(messageHash), Value::from(channel), Value::Null, &[__ws_arg_1]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -3043,11 +3043,11 @@ impl Okx {
             cache.append(position);
         }
         }
-        let mut messageHash: Value = Value::from(channel.clone());
+        let mut messageHash: String = channel.clone();
         if (symbol != Value::Null) {
-            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol).into());
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol);
         }
-        client.resolve(&[Value::Array(newPositions), messageHash]);
+        client.resolve(&[Value::Array(newPositions), Value::from(messageHash)]);
 }
 
 /*
@@ -3112,7 +3112,7 @@ impl Okx {
         let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("watchOrders".into()), &[paramsOmitted]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (uppercaseType.as_str() == Some("SPOT")) {
             if (marginMode.is_some()) {
                 uppercaseType = Value::Str("MARGIN".into());
@@ -3127,7 +3127,7 @@ impl Okx {
         if isTrigger {
             channel = "orders-algo".to_string();
         }
-        let __ws_arg_3 = self.extend(Value::Map(request), &[paramsMarginMode]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsMarginMode]);
         let mut orders: Value = self.subscribe(Value::Str("private".into()), Value::from(channel.clone()), Value::from(channel), symbolResolved.clone(), &[__ws_arg_3]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -3200,7 +3200,7 @@ impl Okx {
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-        let mut channel: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
+        let mut channel: Option<String> = self.safe_string_k(&arg, "channel", &[]).as_str().map(str::to_owned);
         let mut orders: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut ordersLength: f64 = ((orders.len() as i64) as f64);
         if ordersLength > ((0i64) as f64) {
@@ -3340,8 +3340,8 @@ impl Okx {
         }
         }
         if (channel.is_some()) {
-            let mut messageHash: Value = Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("::myTrades".into())).into());
-            client.resolve(&[self.myTrades.clone(), messageHash.clone()]);
+            let mut messageHash: String = format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("::myTrades".into()));
+            client.resolve(&[self.myTrades.clone(), Value::from(messageHash.clone())]);
             let mut tradeSymbols: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
@@ -3563,7 +3563,7 @@ impl Okx {
         let mut url: Value = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]).map(Value::from).unwrap_or(Value::Null);
         let mut messageHash: Value = self.request_id().map(Value::from).unwrap_or(Value::Null);
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clOrdId".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clOrdId".into())]), &[]).into_dict();
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut instIdCode: Option<i64> = self.safe_integer_k(market, "instIdCode", &[]).as_i64();
         let mut arg: indexmap::IndexMap<String, Value> = ({
@@ -3580,7 +3580,7 @@ impl Okx {
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
                 m.insert("op".to_string(), Value::Str("cancel-order".into()));
-                m.insert("args".to_string(), Value::from(vec![self.extend(Value::Map(arg), &[paramsOmitted])]));
+                m.insert("args".to_string(), Value::from(vec![self.extend(Value::Map(arg), &[&paramsOmitted])]));
             m
         });
         return self.watch(url, messageHash.clone(), &[Value::Map(request), messageHash]).await;
@@ -3835,18 +3835,18 @@ impl Okx {
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // if the message contains an id, it means it is a response to a request
             // so we only reject that promise, instead of deleting all futures, destroying the authentication future
-            let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-            if (id == Value::Null) {
+            let mut id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+            if (id.is_none()) {
                 // try to parse it from the stringified json inside msg
                 let mut msg: Value = (match __pro_message.get("msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
                 if (msg != Value::Null) && (msg.as_str().unwrap_or("").starts_with("Illegal request: {")) {
                     let mut stringifiedJson: Value = msg.as_str().map(|__s| Value::Str(__s.replace("Illegal request: ", "").into())).unwrap_or_else(|| msg.clone());
                     let mut parsedJson: Value = self.parse_json_value(stringifiedJson);
-                    id = self.safe_string_k(parsedJson, "id", &[]);
+                    id = self.safe_string_k(parsedJson, "id", &[]).as_str().map(str::to_owned);
                 }
             }
-            if (id != Value::Null) {
-                client.reject(&[e.clone(), id.clone()]);
+            if (id.is_some()) {
+                client.reject(&[e.clone(), id.map(Value::from).unwrap_or(Value::Null)]);
                 return Value::Bool(false);
             }
             client.reject(&[e]);

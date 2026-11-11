@@ -831,10 +831,10 @@ impl Grvt {
                         let mut i: i64 = 0;
             let mut __for_first_355: bool = true;
             while { if !__for_first_355 { i += 1; } __for_first_355 = false; i < (symbolsAndTimeframes.len() as i64) } {
-            let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]);
-            let mut symbolString: Option<String> = self.safe_string(data.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
+            let mut symbolString: Option<String> = self.safe_string(&data, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbolString.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut unfiedTimeframe: String = self.safe_string(data, Value::Int(1), &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
+            let mut unfiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
             let mut timeframeId: Value = self.safe_string(self.timeframes.clone(), Value::from(unfiedTimeframe.clone()), &[Value::from(unfiedTimeframe.clone())]);
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]), Value::Str("@".into())).into()), timeframeId).into()), Value::Str("-TRADE".into())).into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), Value::from((market).symbol.clone())).into()), Value::Str("::".into())).into()), unfiedTimeframe).into()));
@@ -999,7 +999,7 @@ impl Grvt {
         }
         let intervalparamsIntervalVariable: Vec<Value> = self.handle_option_integer_and_params(paramsLimit, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[Value::Int(500)]).as_array().cloned().unwrap_or_default();
         let mut interval: Value = intervalparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsInterval: Value = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut extraPart: Value = Value::Null;
         if isSnapshot {
@@ -1025,7 +1025,7 @@ impl Grvt {
                 m.insert("selectors".to_string(), Value::from(rawHashes.clone()));
             m
         });
-        let __ws_arg_5 = self.extend(Value::Map(request), &[paramsInterval]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsInterval]);
         let mut orderbook: Value = self.subscribe_multiple(Value::from(messageHashes), __ws_arg_5, Value::from(rawHashes), &[]).await;
         return orderbook.limit();
         Value::Null

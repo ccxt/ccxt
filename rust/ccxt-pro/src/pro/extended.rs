@@ -1247,8 +1247,8 @@ impl Extended {
         let mut marketId: Option<String> = self.safe_string_k(first, "m", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
-        let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({
+        let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbol);
+        let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1273,7 +1273,7 @@ impl Extended {
             stored.append(trade);
         }
         }
-        client.resolve(&[stored, messageHash]);
+        client.resolve(&[stored, Value::from(messageHash)]);
 }
 
 /*
@@ -1320,14 +1320,14 @@ impl Extended {
                 candleType = Some("trades".to_string());
             }
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("candleType".into()), Value::Str("price".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("candleType".into()), Value::Str("price".into())]), &[]).into_dict();
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbolValue).into()), Value::Str(":".into())).into()), timeframe).into()), Value::Str(":".into())).into()), candleType.clone().map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_2 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("interval".to_string(), interval);
             m
-        }), &[paramsOmitted]);
+        }), &[&paramsOmitted]);
         let mut query: Value = self.urlencode(__ws_arg_2, &[]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]),
             Value::Str("/candles/".into())).into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()), Value::Str("/".into())).into()), candleType.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("?".into())).into()), query);

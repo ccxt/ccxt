@@ -846,9 +846,9 @@ impl Coinbase {
                 }
                 newTickers.push(result.clone());
                 if (channel.is_some()) {
-                    let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), symbol).into());
-                    client.resolve(&[result.clone(), messageHash.clone()]);
-                    self.try_resolve_usdc(client.clone(), messageHash, result);
+                    let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), symbol);
+                    client.resolve(&[result.clone(), Value::from(messageHash.clone())]);
+                    self.try_resolve_usdc(client.clone(), Value::from(messageHash), result);
                 }
             }
             }
@@ -1003,9 +1003,9 @@ impl Coinbase {
                     if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(timeframe.clone(), stored.clone()); } }
                 }
                 stored.append(parsed);
-                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("candles::".into()), symbol).into());
-                client.resolve(&[stored.clone(), messageHash.clone()]);
-                self.try_resolve_usdc(client.clone(), messageHash, stored);
+                let mut messageHash: String = format!("{}{}", Value::Str("candles::".into()), symbol);
+                client.resolve(&[stored.clone(), Value::from(messageHash.clone())]);
+                self.try_resolve_usdc(client.clone(), Value::from(messageHash), stored);
             }
             }
         }
@@ -1347,7 +1347,7 @@ impl Coinbase {
         let mut trade: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&trade, "product_id", &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("market_trades::".into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("market_trades::".into()), symbol);
         let mut tradesArray: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (tradesArray == Value::Null) {
             let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -1376,8 +1376,8 @@ impl Coinbase {
             }
         }
         }
-        client.resolve(&[tradesArray.clone(), messageHash.clone()]);
-        self.try_resolve_usdc(client, messageHash, tradesArray);
+        client.resolve(&[tradesArray.clone(), Value::from(messageHash.clone())]);
+        self.try_resolve_usdc(client, Value::from(messageHash), tradesArray);
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
@@ -1453,9 +1453,9 @@ impl Coinbase {
             while { if !__for_first_233 { i += 1; } __for_first_233 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symbol: Option<String> = self.safe_symbol(marketId, &[]).as_str().map(str::to_owned);
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("user::".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
-            client.resolve(&[self.orders.clone(), messageHash.clone()]);
-            self.try_resolve_usdc(client.clone(), messageHash, self.orders.clone());
+            let mut messageHash: String = format!("{}{}", Value::Str("user::".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null));
+            client.resolve(&[self.orders.clone(), Value::from(messageHash.clone())]);
+            self.try_resolve_usdc(client.clone(), Value::from(messageHash), self.orders.clone());
         }
         }
         client.resolve(&[self.orders.clone(), Value::Str("user".into())]);
@@ -1582,8 +1582,8 @@ impl Coinbase {
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("level2::".into()), symbol).into());
-            let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({
+            let mut messageHash: String = format!("{}{}", Value::Str("level2::".into()), symbol);
+            let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
@@ -1611,8 +1611,8 @@ impl Coinbase {
             orderbook.set_book_meta("timestamp", self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
             orderbook.set_book_meta("datetime", datetime.clone().map(Value::from).unwrap_or(Value::Null));
             orderbook.set_book_meta("symbol", symbol);
-            client.resolve(&[orderbook.clone(), messageHash.clone()]);
-            self.try_resolve_usdc(client.clone(), messageHash, orderbook);
+            client.resolve(&[orderbook.clone(), Value::from(messageHash.clone())]);
+            self.try_resolve_usdc(client.clone(), Value::from(messageHash), orderbook);
         }
         }
 }

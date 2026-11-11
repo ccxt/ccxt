@@ -799,13 +799,13 @@ impl Bitso {
         let mut currencyId: Option<String> = self.safe_string_k(&firstBalance, "currency", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency.clone()]).as_str().map(str::to_owned);
         let mut currencyResolved: Value = self.safe_currency(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]);
-        let mut details: Value = self.safe_dict_k(item.clone(), "details", &[Value::Map({
+        let mut details: crate::value::Dict = self.safe_dict_k(item.clone(), "details", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut referenceId: Option<String> = self.safe_string2(details.clone(), Value::Str("fid".into()), Value::Str("wid".into()), &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut referenceId: Option<String> = self.safe_string2(&details, Value::Str("fid".into()), Value::Str("wid".into()), &[]).as_str().map(str::to_owned);
         if (referenceId.is_none()) {
-            referenceId = self.safe_string_k(details, "tid", &[]).as_str().map(str::to_owned);
+            referenceId = self.safe_string_k(&details, "tid", &[]).as_str().map(str::to_owned);
         }
         if (operation.as_deref() == Some("funding")) {
             direction = Some("in".to_string());
@@ -1626,7 +1626,7 @@ impl Bitso {
             m
         })]).into_dict();
         let mut fees: Vec<Value> = self.safe_list_k(&payload, "fees", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1637,7 +1637,7 @@ impl Bitso {
             let mut fee: Value = fees.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k(fee.clone(), "book", &[]).as_str().map(str::to_owned);
             let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into())]);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -1646,10 +1646,10 @@ impl Bitso {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -1813,8 +1813,8 @@ impl Bitso {
         //         "payload": ["yWTQGxDMZ0VimZgZ"]
         //     }
         //
-        let mut payload: Value = self.safe_list_k(response.clone(), "payload", &[Value::from(vec![])]);
-        let mut orderId: Option<String> = self.safe_string(payload, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut payload: crate::value::List = self.safe_list_k(response.clone(), "payload", &[Value::from(vec![])]).into_list();
+        let mut orderId: Option<String> = self.safe_string(&payload, Value::Int(0), &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);

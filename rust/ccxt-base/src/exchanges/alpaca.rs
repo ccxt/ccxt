@@ -1281,7 +1281,7 @@ impl Alpaca {
                 m.insert("loc".to_string(), Value::from(loc));
             m
         });
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("loc".into()), Value::Str("method".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("loc".into()), Value::Str("method".into())]), &[]).into_dict();
         let mut symbolTrades: Value = Value::Null;
         if (method == "marketPublicGetV1beta3CryptoLocTrades") {
             if (since != Value::Null) {
@@ -1290,7 +1290,7 @@ impl Alpaca {
             if (limit != Value::Null) {
                 request.insert("limit".into(), limit.clone());
             }
-            let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             let mut response: Value = self.market_public_get_v1beta3_crypto_loc_trades(&[__ws_arg_1]).await;
             //
             //    {
@@ -1314,7 +1314,7 @@ impl Alpaca {
 })]);
             symbolTrades = self.safe_list(trades.clone(), marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]);
         }  else if (method == "marketPublicGetV1beta3CryptoLocLatestTrades") {
-            let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
             let mut response: Value = self.market_public_get_v1beta3_crypto_loc_latest_trades(&[__ws_arg_2]).await;
             //
             //    {
@@ -1694,8 +1694,8 @@ impl Alpaca {
                 m.insert("loc".to_string(), Value::from(loc));
             m
         });
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("loc".into()), &[]);
-        let __ws_arg_7 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("loc".into()), &[]).into_dict();
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.market_public_get_v1beta3_crypto_loc_snapshots(&[__ws_arg_7]).await.into_dict();
         //
         //     {
@@ -2003,10 +2003,10 @@ impl Alpaca {
         let mut paramsCost: Value = (if (cost.is_some()) { self.omit(params.clone(), Value::Str("cost".into()), &[]) } else { params });
         let defaultTIFparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(paramsCost, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut defaultTIF: Value = defaultTIFparamsTimeInForceVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsTimeInForce: Value = defaultTIFparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsTimeInForce: crate::value::Dict = defaultTIFparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
         request.insert("time_in_force".into(), (if (defaultTIF != Value::Null) { (if let Some(__s) = defaultTIF.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }) } else { defaultTIF }));
-        let mut paramsOmitted: Value = self.omit(paramsTimeInForce, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into())]), &[]);
+        let mut paramsOmitted: Value = self.omit(&paramsTimeInForce, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into())]), &[]);
         request.insert("client_order_id".into(), self.generate_client_order_id(paramsOmitted.clone()).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
         let mut order: Value = self.trader_private_post_v2_orders(&[__ws_arg_11]).await;
@@ -3159,7 +3159,7 @@ impl Alpaca {
     m
 })]).into_dict();
         let mut positions: Vec<Value> = self.safe_list_k(response.clone(), "positions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
             m
@@ -3172,7 +3172,7 @@ impl Alpaca {
             let mut equity: Option<String> = self.safe_string_k(&account, "equity", &[]).as_str().map(str::to_owned);
             let mut positionsValue: Option<String> = self.safe_string_k(&account, "position_market_value", &[]).as_str().map(str::to_owned);
             cashAccount.insert("total".into(), crate::precise::Precise::stringSub(&equity.clone().map(Value::from).unwrap_or(Value::Null), &positionsValue.clone().map(Value::from).unwrap_or(Value::Null))); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(cashAccount)); }
+            result.insert(crate::runtime::stringify_param(&code), Value::Map(cashAccount));
         }
         {
                         let mut i: i64 = 0;
@@ -3201,15 +3201,15 @@ impl Alpaca {
                 continue;
             }
             let mut positionCode: Value = self.safe_currency_code(baseId, &[]);
-            if (positionCode != Value::Null) && !(matches!((&result, &positionCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (positionCode != Value::Null) && !(matches!(&positionCode, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
                 let mut positionAccount: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 positionAccount.insert("free".into(), self.safe_string_k(&position, "qty_available", &[]));
                 positionAccount.insert("total".into(), self.safe_string_k(&position, "qty", &[]));
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&positionCode), Value::Map(positionAccount)); }
+                result.insert(crate::runtime::stringify_param(&positionCode), Value::Map(positionAccount));
             }
         }
         }
-        return self.safe_balance(result);
+        return self.safe_balance(Value::Map(result));
 
     Value::Null
 }

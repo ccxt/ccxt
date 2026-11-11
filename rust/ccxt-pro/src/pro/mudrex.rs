@@ -428,7 +428,7 @@ impl Mudrex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut priceType: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("price".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("price".into()), &[]).into_dict();
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         if (interval.as_str() != Some("1s")) && (interval.as_str() != Some("1m")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV() supports 1s and 1m timeframes only".into()))));
@@ -450,7 +450,7 @@ impl Mudrex {
                 m.insert("params".to_string(), Value::from(vec![Value::from(stream)]));
             m
         });
-        let mut request: Value = self.extend(Value::Map(subscribe), &[paramsOmitted]);
+        let mut request: Value = self.extend(Value::Map(subscribe), &[&paramsOmitted]);
         let mut ohlcv: Value = self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {

@@ -906,7 +906,7 @@ impl Bit2c {
             m
         })]);
         let mut keys: Vec<Value> = Value::Array(fees.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -921,7 +921,7 @@ impl Bit2c {
             let mut takerString: Option<String> = self.safe_string_k(fee.clone(), "FeeTaker", &[]).as_str().map(str::to_owned);
             let mut maker: Value = self.parse_number(crate::precise::Precise::stringDiv(&makerString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
             let mut taker: Value = self.parse_number(crate::precise::Precise::stringDiv(&takerString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee);
         m.insert("symbol".to_string(), symbol.clone());
@@ -930,10 +930,10 @@ impl Bit2c {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }

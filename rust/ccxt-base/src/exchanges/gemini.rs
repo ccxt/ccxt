@@ -1950,11 +1950,11 @@ impl Gemini {
         //         "ask":"9115.87"
         //     }
         //
-        let mut volume: Value = self.safe_dict_k(ticker.clone(), "volume", &[Value::Map({
+        let mut volume: crate::value::Dict = self.safe_dict_k(ticker.clone(), "volume", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(volume.clone(), "timestamp", &[]).as_i64();
+})]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&volume, "timestamp", &[]).as_i64();
         let mut symbol: Value = Value::Null;
         let mut marketId: Value = self.safe_string_lower_k(ticker.clone(), "pair", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone(), market]);
@@ -1986,8 +1986,8 @@ impl Gemini {
         let mut last: Value = self.safe_string2(ticker.clone(), Value::Str("last".into()), Value::Str("close".into()), &[price.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut percentage: Option<String> = self.safe_string_k(ticker.clone(), "percentChange24h", &[]).as_str().map(str::to_owned);
         let mut open: Option<String> = self.safe_string_k(ticker.clone(), "open", &[]).as_str().map(str::to_owned);
-        let mut baseVolume: Option<String> = self.safe_string(volume.clone(), baseId, &[]).as_str().map(str::to_owned);
-        let mut quoteVolume: Option<String> = self.safe_string(volume, quoteId, &[]).as_str().map(str::to_owned);
+        let mut baseVolume: Option<String> = self.safe_string(&volume, baseId, &[]).as_str().map(str::to_owned);
+        let mut quoteVolume: Option<String> = self.safe_string(&volume, quoteId, &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
@@ -2260,7 +2260,7 @@ impl Gemini {
         let mut takerString: Value = crate::precise::Precise::stringDiv(&takerBps.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into()));
         let mut maker: Value = self.parse_number(makerString, &[]);
         let mut taker: Value = self.parse_number(takerString, &[]);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2270,7 +2270,7 @@ impl Gemini {
             let mut __for_first_720: bool = true;
             while { if !__for_first_720 { i += 1; } __for_first_720 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -2279,10 +2279,10 @@ impl Gemini {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
-})); }
+}));
         }
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -2441,8 +2441,8 @@ impl Gemini {
         let mut id: Option<String> = self.safe_string_k(order.clone(), "order_id", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "client_order_id", &[]).as_str().map(str::to_owned);
-        let mut optionsArray: Value = self.safe_list_k(order.clone(), "options", &[Value::from(vec![])]);
-        let mut option: Option<String> = self.safe_string(optionsArray, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut optionsArray: crate::value::List = self.safe_list_k(order.clone(), "options", &[Value::from(vec![])]).into_list();
+        let mut option: Option<String> = self.safe_string(&optionsArray, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut timeInForce: String = "GTC".to_string();
         let mut postOnly: bool = false;
         if (option.is_some()) {
@@ -2642,7 +2642,7 @@ impl Gemini {
         if (triggerPrice.is_none()) {
             optionKeys = Value::from(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into())]);
         }
-        let mut paramsOmitted: Value = self.omit(params.clone(), self.array_concat(omitKeys, optionKeys), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), self.array_concat(omitKeys, optionKeys), &[]).into_dict();
         if (typeValue.as_str() == Some("stopLimit")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice parameter or a stop_price parameter for ".into())).into()), typeValue).into()), Value::Str(" orders".into()))));
         }
@@ -2671,7 +2671,7 @@ impl Gemini {
                 request.insert("options".into(), Value::from(vec![options.clone().map(Value::from).unwrap_or(Value::Null)]));
             }
         }
-        let __ws_arg_7 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_v1_order_new(&[__ws_arg_7]).await;
         return self.parse_order(response, &[]);
         Value::Null
@@ -3050,7 +3050,7 @@ impl Gemini {
         let mut codeValue: Value = currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (networkCode == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() requires a network parameter".into()))));
         }
@@ -3060,7 +3060,7 @@ impl Gemini {
                 m.insert("network".to_string(), networkId);
             m
         });
-        let __ws_arg_12 = self.extend(Value::Map(request), &[paramsNetworkCode]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let mut response: Value = self.private_post_v1_addresses_network(&[__ws_arg_12]).await;
         let mut results: Value = self.parse_deposit_addresses(response, &[Value::from(vec![codeValue.clone()]), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();

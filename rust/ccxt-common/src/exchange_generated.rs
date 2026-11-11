@@ -3034,17 +3034,17 @@ pub trait ExchangeBase:
                 while { if !__for_first_88 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_88 = false; i.as_f64().unwrap_or(f64::NAN) < ((values.len() as i64) as f64) } {
                 let mut market: Value = values.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 let mut defaultCurrencyPrecision: Value = (if (self.precisionMode.as_f64() == Value::Int(crate::runtime::DECIMAL_PLACES).as_f64()) { Value::Int(8) } else { self.parse_number(Value::Str("1e-8".into()), &[]) });
-                let mut marketPrecision: Value = self.safe_dict_k(market.clone(), "precision", &[Value::Map({
+                let mut marketPrecision: crate::value::Dict = self.safe_dict_k(market.clone(), "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
                 if (matches!(&market, Value::Dict(__d) if __d.contains_key("base"))) {
                     let mut currency: Value = self.safe_currency_structure(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("id".to_string(), self.safe_string2(market.clone(), Value::Str("baseId".into()), Value::Str("base".into()), &[]));
                             m.insert("numericId".to_string(), self.safe_integer_k(market.clone(), "baseNumericId", &[]));
                             m.insert("code".to_string(), self.safe_string_k(market.clone(), "base", &[]));
-                            m.insert("precision".to_string(), self.safe_value2(marketPrecision.clone(), Value::Str("base".into()), Value::Str("amount".into()), &[defaultCurrencyPrecision.clone()]));
+                            m.insert("precision".to_string(), self.safe_value2(&marketPrecision, Value::Str("base".into()), Value::Str("amount".into()), &[defaultCurrencyPrecision.clone()]));
                         m
                     }));
                     if let Value::Arr(__a) = &mut baseCurrencies { std::sync::Arc::make_mut(__a).push(currency.clone()); }
@@ -3055,7 +3055,7 @@ pub trait ExchangeBase:
                             m.insert("id".to_string(), self.safe_string2(market.clone(), Value::Str("quoteId".into()), Value::Str("quote".into()), &[]));
                             m.insert("numericId".to_string(), self.safe_integer_k(market.clone(), "quoteNumericId", &[]));
                             m.insert("code".to_string(), self.safe_string_k(market.clone(), "quote", &[]));
-                            m.insert("precision".to_string(), self.safe_value2(marketPrecision, Value::Str("quote".into()), Value::Str("price".into()), &[defaultCurrencyPrecision]));
+                            m.insert("precision".to_string(), self.safe_value2(&marketPrecision, Value::Str("quote".into()), Value::Str("price".into()), &[defaultCurrencyPrecision]));
                         m
                     }));
                     if let Value::Arr(__a) = &mut quoteCurrencies { std::sync::Arc::make_mut(__a).push(currency); }
@@ -3075,7 +3075,7 @@ pub trait ExchangeBase:
                 while { if !__for_first_90 { i += 1; } __for_first_90 = false; i < (codes.len() as i64) } {
                 let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut groupedCurrenciesCode: Vec<Value> = self.safe_list(groupedCurrencies.clone(), code, &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-                let mut highestPrecisionCurrency: Value = self.safe_value(groupedCurrenciesCode.clone().into(), Value::Int(0), &[]);
+                let mut highestPrecisionCurrency: Value = self.safe_value(&groupedCurrenciesCode, Value::Int(0), &[]);
                 {
                                         let mut j: i64 = 1;
                     let mut __for_first_89: bool = true;
@@ -4346,17 +4346,17 @@ pub trait ExchangeBase:
         let mut ms = get_arg(optional_args, 6, Value::Bool(false));
         let mut result: Vec<Value> = Vec::new();
         let mut timestamps: Vec<Value> = self.safe_list(ohlcvs.clone(), timestamp, &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut opens: Value = self.safe_list(ohlcvs.clone(), open, &[Value::from(vec![])]);
-        let mut highs: Value = self.safe_list(ohlcvs.clone(), high, &[Value::from(vec![])]);
-        let mut lows: Value = self.safe_list(ohlcvs.clone(), low, &[Value::from(vec![])]);
-        let mut closes: Value = self.safe_list(ohlcvs.clone(), close, &[Value::from(vec![])]);
-        let mut volumes: Value = self.safe_list(ohlcvs, volume, &[Value::from(vec![])]);
+        let mut opens: crate::value::List = self.safe_list(ohlcvs.clone(), open, &[Value::from(vec![])]).into_list();
+        let mut highs: crate::value::List = self.safe_list(ohlcvs.clone(), high, &[Value::from(vec![])]).into_list();
+        let mut lows: crate::value::List = self.safe_list(ohlcvs.clone(), low, &[Value::from(vec![])]).into_list();
+        let mut closes: crate::value::List = self.safe_list(ohlcvs.clone(), close, &[Value::from(vec![])]).into_list();
+        let mut volumes: crate::value::List = self.safe_list(ohlcvs, volume, &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_106: bool = true;
             while { if !__for_first_106 { i += 1; } __for_first_106 = false; i < (timestamps.len() as i64) } {
-            result.push(Value::from(vec![(if ms.as_bool() == Some(true) { self.safe_integer(timestamps.clone().into(), Value::Int(i), &[]) } else { self.safe_timestamp(timestamps.clone().into(), Value::Int(i), &[]) }), self.safe_value(opens.clone(), Value::Int(i), &[]), self.safe_value(highs.clone(), Value::Int(i), &[]), self.safe_value(lows.clone(),
-                Value::Int(i), &[]), self.safe_value(closes.clone(), Value::Int(i), &[]), self.safe_value(volumes.clone(), Value::Int(i), &[])]));
+            result.push(Value::from(vec![(if ms.as_bool() == Some(true) { self.safe_integer(&timestamps, Value::Int(i), &[]) } else { self.safe_timestamp(&timestamps, Value::Int(i), &[]) }), self.safe_value(&opens, Value::Int(i), &[]), self.safe_value(&highs, Value::Int(i), &[]), self.safe_value(&lows, Value::Int(i), &[]), self.safe_value(&closes,
+                Value::Int(i), &[]), self.safe_value(&volumes, Value::Int(i), &[])]));
         }
         }
         return Value::from(result);
@@ -4824,11 +4824,11 @@ pub trait ExchangeBase:
         if (networkId == Value::Null) {
             return Value::Null;
         }
-        let mut networkCodesByIds: Value = self.safe_dict_k(self.options.clone(), "networksById", &[Value::Map({
+        let mut networkCodesByIds: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networksById", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut mappedCode: Option<String> = self.safe_string(networkCodesByIds, networkId.clone(), &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut mappedCode: Option<String> = self.safe_string(&networkCodesByIds, networkId.clone(), &[]).as_str().map(str::to_owned);
         let mut networkCode: Value = (if (mappedCode.is_none()) { networkId } else { mappedCode.clone().map(Value::from).unwrap_or(Value::Null) });
         return self.safe_string(self.networkAliases.clone(), networkCode.clone(), &[networkCode.clone()]);
 
@@ -8272,16 +8272,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn parse_borrow_interests(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut interests: Value = Value::from(vec![]);
+        let mut interests: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_150: bool = true;
             while { if !__for_first_150 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_150 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut row: Value = self.safe_value(response.clone(), i.clone(), &[]);
-            if let Value::Arr(__a) = &mut interests { std::sync::Arc::make_mut(__a).push(<Self as crate::exchange_generated::ExchangeBase>::parse_borrow_interest(self, row, &[market.clone()])); }
+            interests.push(<Self as crate::exchange_generated::ExchangeBase>::parse_borrow_interest(self, row, &[market.clone()]));
         }
         }
-        return interests;
+        return Value::from(interests);
 
     Value::Null
 }
@@ -8314,7 +8314,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn parse_isolated_borrow_rates(&self, mut info: Value) -> Value {
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -8325,10 +8325,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut item: Value = self.safe_value(info.clone(), i.clone(), &[]);
             let mut borrowRate: Value = self.parse_isolated_borrow_rate(item, &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(borrowRate.clone(), "symbol", &[]);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), borrowRate); }
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), borrowRate);
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -9223,16 +9223,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn create_ohlcv_object(&self, mut symbol: Value, mut timeframe: Value, mut data: Value) -> Value {
-        let mut res: Value = Value::Map({
+        let mut res: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if let Value::Dict(__d) = &mut res { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+        res.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})); }
-        add_element_to_object(get_value_mut(&mut res, &symbol), &timeframe, data);
-        return res;
+}));
+        if let Value::Dict(__d) = res.entry(crate::runtime::stringify_param(&symbol)).or_default() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&timeframe), data); }
+        return Value::Map(res);
 
     Value::Null
 }
@@ -9317,8 +9317,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     }
                     errors = Value::Int(0);
                     result = self.array_concat(result.clone(), response.clone());
-                    let mut firstElement: Value = self.safe_dict(response.clone(), Value::Int(0), &[]);
-                    paginationTimestamp = self.safe_integer2(firstElement, Value::Str("timestamp".into()), Value::Int(0), &[]);
+                    let mut firstElement: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(0), &[]).into_dict();
+                    paginationTimestamp = self.safe_integer2(&firstElement, Value::Str("timestamp".into()), Value::Int(0), &[]);
                     if (paginationTimestamp == Value::Null) {
                         shouldBreak = true;
                         break;
@@ -9430,11 +9430,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut maxCallsLimit: Value = self.parse_to_int(maxCallsPaginationCalls);
         let maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, paramsPaginationCalls]).as_array().cloned().unwrap_or_default();
         let mut maxEntriesPerRequestOption: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMaxEntriesPerRequest: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMaxEntriesPerRequest: crate::value::Dict = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
         // pagination always walks forward internally, so strip it here to avoid leaking an
         // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
-        let mut paramsOmitted: Value = self.omit(paramsMaxEntriesPerRequest, Value::Str("paginationDirection".into()), &[]);
+        let mut paramsOmitted: Value = self.omit(&paramsMaxEntriesPerRequest, Value::Str("paginationDirection".into()), &[]);
         let mut current: Value = self.milliseconds();
         let mut tasks: Vec<Value> = Vec::new();
         let mut time: Value = (match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
@@ -9523,12 +9523,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut paramsMaxRetries: Value = maxRetriesOptionparamsMaxRetriesVariable.get(1).cloned().unwrap_or(Value::Null);
         let maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, paramsMaxRetries]).as_array().cloned().unwrap_or_default();
         let mut maxEntriesPerRequestOption: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMaxEntriesPerRequest: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMaxEntriesPerRequest: crate::value::Dict = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut cursorValue: Value = Value::Null;
         let mut errors: Value = Value::Int(0);
         let mut result: Value = Value::from(vec![]);
-        let mut timeframe: Option<String> = self.safe_string_k_opt(paramsMaxEntriesPerRequest.clone(), "timeframe", &[]);
-        let mut paramsOmitted: Value = self.omit(paramsMaxEntriesPerRequest, Value::Str("timeframe".into()), &[]); // reading the timeframe from the method arguments to avoid changing the signature
+        let mut timeframe: Option<String> = self.safe_string_k_opt(&paramsMaxEntriesPerRequest, "timeframe", &[]);
+        let mut paramsOmitted: Value = self.omit(&paramsMaxEntriesPerRequest, Value::Str("timeframe".into()), &[]); // reading the timeframe from the method arguments to avoid changing the signature
         let mut shouldBreak: bool = false;
         {
                         let mut i: Value = Value::Int(0);
@@ -9589,9 +9589,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut index: Value = (match (&((match (&(responseLength), &(j)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
                             &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                         let mut entry: crate::value::Dict = self.safe_dict(response.clone(), index, &[]).into_dict();
-                        let mut info: Value = self.safe_dict_k(&entry, "info", &[]);
+                        let mut info: crate::value::Dict = self.safe_dict_k(&entry, "info", &[]).into_dict();
                         if (cursorReceived != Value::Null) {
-                            cursorValue = self.safe_value(info, cursorReceived.clone(), &[]);
+                            cursorValue = self.safe_value(&info, cursorReceived.clone(), &[]);
                         }
                     }
                 }
@@ -9695,11 +9695,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn remove_repeated_elements_from_array(&self, mut input: Value, optional_args: &[Value]) -> Value {
         let mut fallbackToTimestamp = get_arg(optional_args, 0, Value::Bool(true));
-        let mut uniqueDic: Value = Value::Map({
+        let mut uniqueDic: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut uniqueResult: Value = Value::from(vec![]);
+        let mut uniqueResult: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_168: bool = true;
@@ -9709,15 +9709,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if fallbackToTimestamp.as_bool() == Some(true) {
                 uniqValue = self.safe_string_n(entry.clone(), Value::from(vec![Value::Str("id".into()), Value::Str("timestamp".into()), Value::Int(0)]), &[]);
             }
-            if (uniqValue != Value::Null) && !(matches!((&uniqueDic, &uniqValue), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut uniqueDic { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&uniqValue), Value::Int(1)); }
-                if let Value::Arr(__a) = &mut uniqueResult { std::sync::Arc::make_mut(__a).push(entry); }
+            if (uniqValue != Value::Null) && !(matches!(&uniqValue, Value::Str(__k) if uniqueDic.contains_key(__k.as_ref()))) {
+                uniqueDic.insert(crate::runtime::stringify_param(&uniqValue), Value::Int(1));
+                uniqueResult.push(entry);
             }
         }
         }
         let mut valuesLength: f64 = ((uniqueResult.len() as i64) as f64);
         if valuesLength > ((0i64) as f64) {
-            return uniqueResult;
+            return Value::from(uniqueResult);
         }
         return input;
 
@@ -10416,7 +10416,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: i64 = 0;
                 let mut __for_first_182: bool = true;
                 while { if !__for_first_182 { i += 1; } __for_first_182 = false; i < (symbols.len() as i64) } {
-                let mut symbol: Value = self.safe_string(symbols.clone().into(), Value::Int(i), &[Value::Str("".into())]);
+                let mut symbol: Value = self.safe_string(&symbols, Value::Int(i), &[Value::Str("".into())]);
                 if (topic.as_deref() == Some("trades")) {
                     if (matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.trades.clone(), &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }

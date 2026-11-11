@@ -426,10 +426,10 @@ impl Cex {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut usedBalance: Value = self.safe_dict_k(data.clone(), "obalance", &[Value::Map({
+        let mut usedBalance: crate::value::Dict = self.safe_dict_k(data.clone(), "obalance", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -445,7 +445,7 @@ impl Cex {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string(freeBalance.clone(), currencyId.clone(), &[]));
-            account.insert("used".into(), self.safe_string(usedBalance.clone(), currencyId.clone(), &[]));
+            account.insert("used".into(), self.safe_string(&usedBalance, currencyId.clone(), &[]));
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             if (code != Value::Null) {
                 if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); }
@@ -797,9 +797,9 @@ impl Cex {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
         client.resolve(&[ticker.clone(), messageHash]);
         client.resolve(&[ticker.clone(), Value::Str("tickers".into())]);
-        let mut oid: Value = (match message.get("oid") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        if (oid != Value::Null) {
-            client.resolve(&[ticker, oid]);
+        let mut oid: Option<String> = (match message.get("oid") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        if (oid.is_some()) {
+            client.resolve(&[ticker, oid.map(Value::from).unwrap_or(Value::Null)]);
         }
 }
 
@@ -828,14 +828,14 @@ impl Cex {
         //        "priceChangePercentage": "0.23",
         //        "pair": ["BTC", "USDT"]
         //    }
-        let mut pair: Value = self.safe_list_k(ticker.clone(), "pair", &[Value::from(vec![])]);
+        let mut pair: crate::value::List = self.safe_list_k(ticker.clone(), "pair", &[Value::from(vec![])]).into_list();
         let mut baseId: Option<String> = self.safe_string_k(ticker.clone(), "symbol1", &[]).as_str().map(str::to_owned);
         if (baseId.is_none()) {
-            baseId = self.safe_string(pair.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+            baseId = self.safe_string(&pair, Value::Int(0), &[]).as_str().map(str::to_owned);
         }
         let mut quoteId: Option<String> = self.safe_string_k(ticker.clone(), "symbol2", &[]).as_str().map(str::to_owned);
         if (quoteId.is_none()) {
-            quoteId = self.safe_string(pair, Value::Int(1), &[]).as_str().map(str::to_owned);
+            quoteId = self.safe_string(&pair, Value::Int(1), &[]).as_str().map(str::to_owned);
         }
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -1264,11 +1264,11 @@ impl Cex {
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
         let mut storedOrders: Value = self.orders.clone();
-        let mut ordersBySymbol: Value = self.safe_dict(storedOrders.hashmap(), Value::from(symbol.clone()), &[Value::Map({
+        let mut ordersBySymbol: crate::value::Dict = self.safe_dict(storedOrders.hashmap(), Value::from(symbol.clone()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut order: Value = self.safe_value(ordersBySymbol, orderId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        })]).into_dict();
+        let mut order: Value = self.safe_value(&ordersBySymbol, orderId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (order == Value::Null) {
             order = self.parse_ws_order_update(data.clone(), &[market]);
         }
@@ -2243,10 +2243,10 @@ impl Cex {
             panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
-            let mut messageHash: Value = (match message.get("oid") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-            let mut future: Value = self.safe_value(__ch.futures.clone(), messageHash.clone(), &[]);
+            let mut messageHash: Option<String> = (match message.get("oid") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+            let mut future: Value = self.safe_value(__ch.futures.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (future != Value::Null) {
-                client.reject(&[Value::from(error.clone()), messageHash]);
+                client.reject(&[Value::from(error.clone()), messageHash.map(Value::from).unwrap_or(Value::Null)]);
                 return Value::Bool(true);
             }  else {
                 panic!("{}", error);

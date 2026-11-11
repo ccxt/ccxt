@@ -614,21 +614,21 @@ impl Hyperliquid {
             m
         })]).into_dict();
         let mut statuses: Vec<Value> = self.safe_list_k(&data, "statuses", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut orders: Value = Value::from(vec![]);
+        let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_398: bool = true;
             while { if !__for_first_398 { i += 1; } __for_first_398 = false; i < (statuses.len() as i64) } {
             let mut status: Value = statuses.get(i as usize).cloned().unwrap_or(Value::Null);
-            if let Value::Arr(__a) = &mut orders { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
+            orders.push(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), status.clone());
                     m.insert("status".to_string(), status);
                 m
-            }), &[])); }
+            }), &[]));
         }
         }
-        return orders;
+        return Value::from(orders);
         Value::Null
         }).await?))
     }
@@ -1275,12 +1275,12 @@ impl Hyperliquid {
                 if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
             }
             }
-            let mut messageHash: Value = Value::Str("tickers".into());
+            let mut messageHash: String = "tickers".to_string();
             let mut dexMessage: Option<String> = self.safe_string_k(&data, "dex", &[]).as_str().map(str::to_owned);
             if (dexMessage.is_some()) {
-                messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), dexMessage.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
+                messageHash.push_str(&format!("{}{}", Value::Str(":".into()), dexMessage.clone().map(Value::from).unwrap_or(Value::Null)));
             }
-            client.resolve(&[self.tickers.clone(), messageHash]);
+            client.resolve(&[self.tickers.clone(), Value::from(messageHash)]);
         }
         return Value::Bool(true);
 
@@ -1407,7 +1407,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_402: bool = true;
             while { if !__for_first_402 { i += 1; } __for_first_402 = false; i < (keys.len() as i64) } {
-            client.resolve(&[trades.clone(), Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string(keys.clone().into(), Value::Int(i), &[Value::Str("".into())])).into())]);
+            client.resolve(&[trades.clone(), Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string(&keys, Value::Int(i), &[Value::Str("".into())])).into())]);
         }
         }
         // non-symbol specific
@@ -2301,7 +2301,7 @@ impl Hyperliquid {
             }
         }
         }
-        client.resolve(&[newPositions, Value::from(baseMessageHash.clone())]);
+        client.resolve(&[newPositions, Value::from(baseMessageHash)]);
 }
 
 /*
@@ -2530,7 +2530,7 @@ impl Hyperliquid {
             client.resolve(&[stored.clone(), innerMessageHash]);
         }
         }
-        client.resolve(&[stored, Value::from(messageHash.clone())]);
+        client.resolve(&[stored, Value::from(messageHash)]);
 }
 
     pub fn handle_error_message(&mut self, mut client: Value, mut message: Value) -> Value {
@@ -2593,9 +2593,9 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-        let mut id: Value = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        if (id == Value::Null) {
-            id = self.safe_string_k(&data, "id", &[]);
+        let mut id: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        if (id.is_none()) {
+            id = self.safe_string_k(&data, "id", &[]).as_str().map(str::to_owned);
         }
         let mut response: crate::value::Dict = self.safe_dict_k(&data, "response", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2608,13 +2608,13 @@ impl Hyperliquid {
         let mut status: Option<String> = self.safe_string_k(payload.clone(), "status", &[]).as_str().map(str::to_owned);
         if (status.is_some()) && (status.as_deref() != Some("ok")) {
             let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&payload))));
-            client.reject(&[Value::from(error.clone()), id.clone()]);
+            client.reject(&[Value::from(error.clone()), id.clone().map(Value::from).unwrap_or(Value::Null)]);
             return Value::Bool(true);
         }
         let mut type_var: Option<String> = self.safe_string_k(payload.clone(), "type", &[]).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("error")) {
             let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&payload))));
-            client.reject(&[Value::from(error), id.clone()]);
+            client.reject(&[Value::from(error), id.clone().map(Value::from).unwrap_or(Value::Null)]);
             return Value::Bool(true);
         }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -2627,7 +2627,7 @@ impl Hyperliquid {
             }), Value::Str("".into()));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            client.reject(&[e, id]);
+            client.reject(&[e, id.map(Value::from).unwrap_or(Value::Null)]);
             return Value::Bool(true);
         }
         return Value::Bool(false);

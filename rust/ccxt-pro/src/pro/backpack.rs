@@ -1909,7 +1909,7 @@ impl Backpack {
         let mut storedOrderBook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut nonce: Value = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]);
         let mut deltaNonce: Value = self.safe_integer_k(data.clone(), "u", &[]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         if (nonce == Value::Null) {
             let mut cacheLength: Value = Value::Int(get_value(&storedOrderBook, &Value::Str("cache".into())).len() as i64);
             // cache the triggering delta before a synchronous snapshot can inspect the cache
@@ -1920,7 +1920,7 @@ impl Backpack {
             let mut defaultSnapshotDelay: Value = (if isStockMarket { Value::Int(0) } else { Value::Int(10) });
             let mut snapshotDelay: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[defaultSnapshotDelay]);
             if is_equal(&cacheLength, &snapshotDelay) {
-                self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), messageHash.clone(), symbol, Value::Null, Value::Map({
+                self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), Value::from(messageHash.clone()), symbol, Value::Null, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
@@ -1930,7 +1930,7 @@ impl Backpack {
             return;
         }
         self.handle_book_delta(storedOrderBook.clone(), data);
-        client.resolve(&[storedOrderBook, messageHash]);
+        client.resolve(&[storedOrderBook, Value::from(messageHash)]);
 }
 
     pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
