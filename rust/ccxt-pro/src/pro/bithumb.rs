@@ -577,19 +577,19 @@ impl Bithumb {
         if (marketId.is_none()) {
             return;
         }
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         if isGenerationTwo {
-            symbol = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("-".into())]);
+            symbol = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("-".into())]).as_str().map(str::to_owned);
         }  else {
-            symbol = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into())]);
+            symbol = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into())]).as_str().map(str::to_owned);
         }
-        if (symbol == Value::Null) {
+        if (symbol.is_none()) {
             return;
         }
         let mut ticker: Value = self.parse_ws_ticker(tickerMessage, &[]);
-        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol);
-        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
-        client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
+        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol.as_deref().unwrap_or("null"));
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker); }
+        client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
     pub fn parse_ws_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -1160,13 +1160,13 @@ impl Bithumb {
         if (error.is_some()) {
             let mut errorName: String = self.safe_string_k(&error, "name", &[Value::Str("Error".into())]).as_str().unwrap_or("Error").to_string();
             let mut errorMessage: String = self.safe_string_k(&error, "message", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut addedMessage: Value = Value::Null;
+            let mut addedMessage: Option<String> = None;
             if (((errorMessage.chars().count() as i64)) > 0) {
-                addedMessage = (Value::Str(format!("{}{}", Value::Str(" ".into()), errorMessage).into()));
+                addedMessage = Some(format!("{}{}", Value::Str(" ".into()), errorMessage));
             }  else {
-                addedMessage = Value::Str("".into());
+                addedMessage = Some("".to_string());
             }
-            client.reject(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" websocket error ".into())).into()), errorName).into()), addedMessage)), None);
+            client.reject(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" websocket error ".into())).into()), errorName).into()), addedMessage.as_deref().unwrap_or("null"))), None);
             return Value::Bool(false);
         }
         if !(message.contains_key("status")) {

@@ -2536,8 +2536,8 @@ impl Bitvavo {
         //    }
         //
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut response: Value = (match message.get("response") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
-        let mut currencies: Value = self.parse_currencies(response);
+        let mut response: crate::value::List = message.get("response").cloned().unwrap_or_default().into_list();
+        let mut currencies: Value = self.parse_currencies(&response);
         client.resolve(currencies, messageHash.as_deref());
 }
 
@@ -2672,8 +2672,8 @@ impl Bitvavo {
         //        ]
         //    }
         //
-        let mut response: Value = (match message.get("response") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut markets: Value = self.parse_markets(response);
+        let mut response: crate::value::List = message.get("response").cloned().unwrap_or_default().into_list();
+        let mut markets: Value = self.parse_markets(&response);
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         client.resolve(markets, messageHash.as_deref());
 }

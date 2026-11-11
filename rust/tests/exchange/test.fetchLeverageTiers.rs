@@ -22,14 +22,14 @@ pub async fn testFetchLeverageTiers(mut exchange: Value, mut skippedProperties: 
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), tierKeys.clone(), symbol.clone()]);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1575: bool = true;
-        while { if !__for_first_1575 { i += 1; } __for_first_1575 = false; i < (tierKeys.len() as i64) } {
+        let mut __for_first_1576: bool = true;
+        while { if !__for_first_1576 { i += 1; } __for_first_1576 = false; i < (tierKeys.len() as i64) } {
         let mut tiersForSymbol: Value = get_value(&tiers, &tierKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), tiersForSymbol.clone(), symbol.clone()]);
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1574: bool = true;
-            while { if !__for_first_1574 { j += 1; } __for_first_1574 = false; j < (tiersForSymbol.len() as i64) } {
+            let mut __for_first_1575: bool = true;
+            while { if !__for_first_1575 { j += 1; } __for_first_1575 = false; j < (tiersForSymbol.len() as i64) } {
             testLeverageTier(exchange.clone(), skippedProperties.clone(), method.clone(), tiersForSymbol.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null));
         }
         }

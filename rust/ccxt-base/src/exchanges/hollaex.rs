@@ -703,8 +703,8 @@ impl Hollaex {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_759: bool = true;
-            while { if !__for_first_759 { i += 1; } __for_first_759 = false; i < (keys.len() as i64) } {
+            let mut __for_first_760: bool = true;
+            while { if !__for_first_760 { i += 1; } __for_first_760 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_dict(&pairs, key, &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "pair_base", &[]);
@@ -870,8 +870,8 @@ impl Hollaex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut values: Value = Value::Array(coins.values().cloned().collect());
-        return self.parse_currencies(values);
+        let mut values: crate::value::List = Value::Array(coins.values().cloned().collect()).into_list();
+        return self.parse_currencies(&values);
         Value::Null
         }).await?))
     }
@@ -896,8 +896,8 @@ impl Hollaex {
         let mut networkIds: Vec<Value> = Value::Array(rawNetworks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_760: bool = true;
-            while { if !__for_first_760 { j += 1; } __for_first_760 = false; j < (networkIds.len() as i64) } {
+            let mut __for_first_761: bool = true;
+            while { if !__for_first_761 { j += 1; } __for_first_761 = false; j < (networkIds.len() as i64) } {
             let mut networkId: Value = networkIds.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkEntry: Value = self.safe_dict(&rawNetworks, networkId.clone(), &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -996,8 +996,8 @@ impl Hollaex {
         let mut marketIds: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_761: bool = true;
-            while { if !__for_first_761 { i += 1; } __for_first_761 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_762: bool = true;
+            while { if !__for_first_762 { i += 1; } __for_first_762 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut orderbook: Value = self.safe_dict(response.clone(), marketId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1151,8 +1151,8 @@ impl Hollaex {
         let mut keys: Vec<Value> = Value::Array(tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_762: bool = true;
-            while { if !__for_first_762 { i += 1; } __for_first_762 = false; i < (keys.len() as i64) } {
+            let mut __for_first_763: bool = true;
+            while { if !__for_first_763 { i += 1; } __for_first_763 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.safe_value(tickers.clone(), key.clone(), &[]);
             let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[key]).as_str().map(str::to_owned);
@@ -1420,8 +1420,8 @@ impl Hollaex {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_763: bool = true;
-            while { if !__for_first_763 { i += 1; } __for_first_763 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_764: bool = true;
+            while { if !__for_first_764 { i += 1; } __for_first_764 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut makerString: Option<String> = self.safe_string(&makerFees, Value::from((market).id.clone()), &[]).as_str().map(str::to_owned);
@@ -1530,8 +1530,8 @@ impl Hollaex {
         let mut currencyIds: Vec<Value> = Value::Array(currenciesById.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_764: bool = true;
-            while { if !__for_first_764 { i += 1; } __for_first_764 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_765: bool = true;
+            while { if !__for_first_765 { i += 1; } __for_first_765 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: String = self.safe_string(&currencyIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.clone()), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -2681,8 +2681,8 @@ impl Hollaex {
             let mut keysLength: f64 = ((keys.len() as i64) as f64);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_765: bool = true;
-                while { if !__for_first_765 { i += 1; } __for_first_765 = false; (i as f64) < keysLength } {
+                let mut __for_first_766: bool = true;
+                while { if !__for_first_766 { i += 1; } __for_first_766 = false; (i as f64) < keysLength } {
                 let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut value: crate::value::Dict = self.safe_dict(withdrawalFees.clone(), key.clone(), &[]).into_dict();
                 let mut currencyId: Option<String> = self.safe_string_k(&value, "symbol", &[]).as_str().map(str::to_owned);

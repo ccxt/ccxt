@@ -1343,8 +1343,8 @@ impl Blofin {
     m
 }));
         let mut response: crate::value::Dict = self.public_get_market_instruments(&[params]).await.into_dict();
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_markets(data);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_markets(&data);
         Value::Null
         }).await?))
     }
@@ -1939,8 +1939,8 @@ impl Blofin {
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[query]);
         let mut response: crate::value::Dict = self.public_get_market_candles(&[__ws_arg_4]).await.into_dict();
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -2926,9 +2926,9 @@ impl Blofin {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchOpenOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone()]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchOpenOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2942,9 +2942,9 @@ impl Blofin {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default 100, max 100
         }
-        let mut isTrigger: bool = self.safe_bool_n(paramsPaginate.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut isTpSl: bool = self.safe_bool2(paramsPaginate.clone(), Value::Str("tpsl".into()), Value::Str("TPSL".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsPaginate, Value::Str("fetchOpenOrders".into()), Value::Str("method".into()), &[Value::Str("privateGetTradeOrdersPending".into())]).as_array().cloned().unwrap_or_default();
+        let mut isTrigger: bool = self.safe_bool_n(Value::from(&paramsPaginate), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTpSl: bool = self.safe_bool2(Value::from(&paramsPaginate), Value::Str("tpsl".into()), Value::Str("TPSL".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPaginate, Value::Str("fetchOpenOrders".into()), Value::Str("method".into()), &[Value::Str("privateGetTradeOrdersPending".into())]).as_array().cloned().unwrap_or_default();
         let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut query: crate::value::Dict = self.omit(&paramsMethod, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[]).into_dict();
@@ -3113,11 +3113,11 @@ impl Blofin {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("after".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_19 = self.extend(requestUntil, &[paramsUntil.clone()]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_19 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_asset_deposit_history(&[__ws_arg_19]).await.into_dict();
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_transactions(&data, &[currency, since, limit, paramsUntil]);
+        return self.parse_transactions(&data, &[currency, since, limit, Value::Dict(paramsUntil)]);
         Value::Null
         }).await?))
     }
@@ -3174,11 +3174,11 @@ impl Blofin {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("after".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_20 = self.extend(requestUntil, &[paramsUntil.clone()]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_20 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_asset_withdrawal_history(&[__ws_arg_20]).await.into_dict();
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_transactions(&data, &[currency, since, limit, paramsUntil]);
+        return self.parse_transactions(&data, &[currency, since, limit, Value::Dict(paramsUntil)]);
         Value::Null
         }).await?))
     }
@@ -3309,8 +3309,8 @@ impl Blofin {
         // one row per currency + chain pair, group them per currency
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         let mut dataByCurrencyId: Value = self.group_by(data, Value::Str("currency".into()), &[]);
-        let mut currencies: Value = Value::Array(dataByCurrencyId.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default());
-        return self.parse_currencies(currencies);
+        let mut currencies: crate::value::List = Value::Array(dataByCurrencyId.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).into_list();
+        return self.parse_currencies(&currencies);
         Value::Null
         }).await?))
     }
@@ -4348,8 +4348,8 @@ impl Blofin {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_29 = self.extend(requestUntil, &[paramsUntil.clone()]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_29 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_account_positions_history(&[__ws_arg_29]).await.into_dict();
         //
         //    {
@@ -4379,7 +4379,7 @@ impl Blofin {
         //    }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut positions: Value = self.parse_positions(&data, &[symbols, paramsUntil]);
+        let mut positions: Value = self.parse_positions(&data, &[symbols, Value::Dict(paramsUntil)]);
         return self.filter_by_since_limit(positions, &[since, limit]);
         Value::Null
         }).await?))
@@ -4839,9 +4839,9 @@ impl Blofin {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchClosedOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchClosedOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone()]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchClosedOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4858,8 +4858,8 @@ impl Blofin {
         if (since != Value::Null) {
             request.insert("begin".into(), since.clone());
         }
-        let mut isTrigger: bool = self.safe_bool_n(paramsPaginate.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsPaginate, Value::Str("fetchClosedOrders".into()), Value::Str("method".into()), &[Value::Str("privateGetTradeOrdersHistory".into())]).as_array().cloned().unwrap_or_default();
+        let mut isTrigger: bool = self.safe_bool_n(Value::from(&paramsPaginate), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPaginate, Value::Str("fetchClosedOrders".into()), Value::Str("method".into()), &[Value::Str("privateGetTradeOrdersHistory".into())]).as_array().cloned().unwrap_or_default();
         let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut query: crate::value::Dict = self.omit(&paramsMethod, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[]).into_dict();

@@ -1420,7 +1420,7 @@ impl Onetrading {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCacheBySymbolById::new(limit);
         }
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         let mut orders: Value = self.orders.clone();
         let mut update: crate::value::Dict = message.get("update").cloned().unwrap_or_default().into_dict();
         let mut updateType: Option<String> = self.safe_string_k(&update, "type", &[]).as_str().map(str::to_owned);
@@ -1432,7 +1432,7 @@ impl Onetrading {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            symbol = self.safe_string_k(&previousOrder, "symbol", &[]);
+            symbol = self.safe_string_k(&previousOrder, "symbol", &[]).as_str().map(str::to_owned);
             let mut filled: Option<String> = self.safe_string_k(&update, "filled_amount", &[]).as_str().map(str::to_owned);
             let mut status: Value = self.parse_ws_order_status(updateType.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
             if (updateType.as_deref() == Some("ORDER_CLOSED")) && crate::precise::Precise::stringEq(&filled.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
@@ -1441,7 +1441,7 @@ impl Onetrading {
             let mut orderObject: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("symbol".to_string(), symbol.clone());
+                    m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("status".to_string(), status);
                     m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
                     m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1450,10 +1450,10 @@ impl Onetrading {
             orders.append(orderObject);
         }  else {
             let mut parsed: Value = self.parse_order(Value::from(&update), &[]);
-            symbol = self.safe_string_k(parsed.clone(), "symbol", &[Value::Str("".into())]);
+            symbol = self.safe_string_k(parsed.clone(), "symbol", &[Value::Str("".into())]).as_str().map(str::to_owned);
             orders.append(parsed.clone());
         }
-        client.resolve(self.orders.clone(), &(Value::Str(format!("{}{}", Value::Str("orders:".into()), symbol).into())));
+        client.resolve(self.orders.clone(), &(Value::Str(format!("{}{}", Value::Str("orders:".into()), symbol.as_deref().unwrap_or("null")).into())));
         client.resolve(self.orders.clone(), "orders");
         // update balance
         let mut balanceKeys: crate::value::List = std::sync::Arc::new(vec![Value::Str("locked".into()), Value::Str("unlocked".into()), Value::Str("spent".into()), Value::Str("spent_on_fees".into()), Value::Str("credited".into()), Value::Str("deducted".into())]);
@@ -1471,10 +1471,10 @@ impl Onetrading {
         // update trades
         if (updateType.as_deref() == Some("TRADE_SETTLED")) {
             let mut parsed: Value = self.parse_trade(Value::Dict(update), &[]);
-            symbol = self.safe_string_k(parsed.clone(), "symbol", &[Value::Str("".into())]);
+            symbol = self.safe_string_k(parsed.clone(), "symbol", &[Value::Str("".into())]).as_str().map(str::to_owned);
             let mut myTrades: Value = self.myTrades.clone();
             myTrades.append(parsed);
-            client.resolve(self.myTrades.clone(), &(Value::Str(format!("{}{}", Value::Str("myTrades:".into()), symbol).into())));
+            client.resolve(self.myTrades.clone(), &(Value::Str(format!("{}{}", Value::Str("myTrades:".into()), symbol.as_deref().unwrap_or("null")).into())));
             client.resolve(self.myTrades.clone(), "myTrades");
         }
 }

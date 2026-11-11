@@ -1151,8 +1151,8 @@ impl Tokocrypto {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1126: bool = true;
-            while { if !__for_first_1126 { i += 1; } __for_first_1126 = false; i < (list.len() as i64) } {
+            let mut __for_first_1127: bool = true;
+            while { if !__for_first_1127 { i += 1; } __for_first_1127 = false; i < (list.len() as i64) } {
             let mut market: crate::value::Dict = list.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut baseId: Option<String> = self.safe_string_k(&market, "baseAsset", &[]).as_str().map(str::to_owned);
             let mut quoteId: Option<String> = self.safe_string_k(&market, "quoteAsset", &[]).as_str().map(str::to_owned);
@@ -1173,8 +1173,8 @@ impl Tokocrypto {
             let mut permissions: crate::value::List = self.safe_list_k(&market, "permissions", &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_1125: bool = true;
-                while { if !__for_first_1125 { j += 1; } __for_first_1125 = false; j < (permissions.len() as i64) } {
+                let mut __for_first_1126: bool = true;
+                while { if !__for_first_1126 { j += 1; } __for_first_1126 = false; j < (permissions.len() as i64) } {
                 if (self.safe_string(&permissions, Value::Int(j), &[]).as_str() == Some("TRD_GRP_003")) {
                     active = false;
                     break;
@@ -2093,8 +2093,8 @@ impl Tokocrypto {
         let mut balances: crate::value::List = self.safe_list_k(&data, "accountAssets", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1127: bool = true;
-            while { if !__for_first_1127 { i += 1; } __for_first_1127 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1128: bool = true;
+            while { if !__for_first_1128 { i += 1; } __for_first_1128 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "asset", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -3626,8 +3626,8 @@ if _try_result.is_err() {
             let mut limit: Value = self.safe_integer_k(&paramsDict, "limit", &[]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1128: bool = true;
-                while { if !__for_first_1128 { i += 1; } __for_first_1128 = false; i < (byLimit.len() as i64) } {
+                let mut __for_first_1129: bool = true;
+                while { if !__for_first_1129 { i += 1; } __for_first_1129 = false; i < (byLimit.len() as i64) } {
                 let mut entry: Value = byLimit.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut entryLimit: Value = self.safe_integer(entry.clone(), Value::Int(0), &[]);
                 if (limit != Value::Null) && (entryLimit != Value::Null) && (limit.as_f64().unwrap_or(f64::NAN) <= entryLimit.as_f64().unwrap_or(f64::NAN)) {

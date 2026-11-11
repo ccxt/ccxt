@@ -865,12 +865,13 @@ impl Bitvavo {
         }).await?))
     }
 
-    pub fn parse_markets(&self, mut markets: Value) -> Value {
+    pub fn parse_markets(&self, markets: impl Into<crate::Value>) -> Value {
+        let mut markets: Value = markets.into();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_453: bool = true;
-            while { if !__for_first_453 { i += 1; } __for_first_453 = false; (i as f64) < get_array_length(&markets).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_453 { i += 1; } __for_first_453 = false; i < (markets.len() as i64) } {
             let mut market: Value = self.safe_dict(markets.clone(), Value::Int(i), &[]);
             let mut id: Option<String> = self.safe_string_k(market.clone(), "market", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base", &[]).as_str().map(str::to_owned);

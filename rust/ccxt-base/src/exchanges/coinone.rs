@@ -767,8 +767,8 @@ impl Coinone {
         //         ]
         //     }
         //
-        let mut currencies: Value = self.safe_list_k(&response, "currencies", &[Value::from(vec![])]);
-        return self.parse_currencies(currencies);
+        let mut currencies: crate::value::List = self.safe_list_k(&response, "currencies", &[Value::from(vec![])]).into_list();
+        return self.parse_currencies(&currencies);
         Value::Null
         }).await?))
     }
@@ -881,8 +881,8 @@ impl Coinone {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_570: bool = true;
-            while { if !__for_first_570 { i += 1; } __for_first_570 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_571: bool = true;
+            while { if !__for_first_571 { i += 1; } __for_first_571 = false; i < (tickers.len() as i64) } {
             let mut entry: Value = self.safe_dict(&tickers, Value::Int(i), &[]);
             let mut id: Option<String> = self.safe_string_k(entry.clone(), "id", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_upper_k(entry.clone(), "target_currency", &[]).as_str().map(str::to_owned);
@@ -973,8 +973,8 @@ impl Coinone {
         let mut currencyIds: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_571: bool = true;
-            while { if !__for_first_571 { i += 1; } __for_first_571 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_572: bool = true;
+            while { if !__for_first_572 { i += 1; } __for_first_572 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut balance: crate::value::Dict = self.safe_dict(&balances, currencyId.clone(), &[]).into_dict();
             let mut code: Option<String> = self.safe_currency_code(currencyId, &[]).as_str().map(str::to_owned);
@@ -1910,8 +1910,8 @@ impl Coinone {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_572: bool = true;
-            while { if !__for_first_572 { i += 1; } __for_first_572 = false; i < (keys.len() as i64) } {
+            let mut __for_first_573: bool = true;
+            while { if !__for_first_573 { i += 1; } __for_first_573 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Option<String> = self.safe_string(&walletAddress, key.clone(), &[]).as_str().map(str::to_owned);
             if (value.is_none()) || (value.is_none()) || (value.as_deref() == Some("")) || (value.as_deref() == Some("-1")) {

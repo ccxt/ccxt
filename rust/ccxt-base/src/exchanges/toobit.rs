@@ -1400,8 +1400,8 @@ impl Toobit {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1129: bool = true;
-            while { if !__for_first_1129 { i += 1; } __for_first_1129 = false; i < (coins.len() as i64) } {
+            let mut __for_first_1130: bool = true;
+            while { if !__for_first_1130 { i += 1; } __for_first_1130 = false; i < (coins.len() as i64) } {
             let mut coin: Value = coins.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_currency(coin);
             if (parsed != Value::Null) {
@@ -1425,8 +1425,8 @@ impl Toobit {
         let mut rawNetworks: crate::value::List = self.safe_list_k(rawCurrency.clone(), "chainTypes", &[Value::from(vec![])]).into_list();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1130: bool = true;
-            while { if !__for_first_1130 { j += 1; } __for_first_1130 = false; j < (rawNetworks.len() as i64) } {
+            let mut __for_first_1131: bool = true;
+            while { if !__for_first_1131 { j += 1; } __for_first_1131 = false; j < (rawNetworks.len() as i64) } {
             let mut rawNetwork: crate::value::Dict = rawNetworks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&rawNetwork, "chainType", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -1658,8 +1658,8 @@ impl Toobit {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1131: bool = true;
-            while { if !__for_first_1131 { i += 1; } __for_first_1131 = false; i < (all.len() as i64) } {
+            let mut __for_first_1132: bool = true;
+            while { if !__for_first_1132 { i += 1; } __for_first_1132 = false; i < (all.len() as i64) } {
             let mut market: Value = self.safe_dict(&all, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2137,13 +2137,13 @@ impl Toobit {
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[market, params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (type_var.as_deref() == Some("spot")) {
-            let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+            let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.common_get_quote_v1_ticker24hr(&[__ws_arg_5]).await;
         }  else {
-            let __ws_arg_6 = self.extend(Value::Map(request), &[paramsMarketType.clone()]);
+            let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.common_get_quote_v1_contract_ticker24hr(&[__ws_arg_6]).await;
         }
         //
@@ -2165,8 +2165,8 @@ impl Toobit {
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1132: bool = true;
-            while { if !__for_first_1132 { i += 1; } __for_first_1132 = false; i < (response.len() as i64) } {
+            let mut __for_first_1133: bool = true;
+            while { if !__for_first_1133 { i += 1; } __for_first_1133 = false; i < (response.len() as i64) } {
             let mut ticker: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "s", &[]);
             if (marketId.is_some()) && (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -2174,7 +2174,7 @@ impl Toobit {
             }
         }
         }
-        return self.parse_tickers(Value::from(rows), &[symbolsNormalized.map_or(Value::Null, Value::Arr), paramsMarketType]);
+        return self.parse_tickers(Value::from(rows), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Dict(paramsMarketType)]);
         Value::Null
         }).await?))
     }
@@ -2333,8 +2333,8 @@ impl Toobit {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1133: bool = true;
-            while { if !__for_first_1133 { i += 1; } __for_first_1133 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_1134: bool = true;
+            while { if !__for_first_1134 { i += 1; } __for_first_1134 = false; i < (tickers.len() as i64) } {
             let mut parsedTicker: Value = self.parse_bid_ask_custom(tickers.get(i as usize).cloned().unwrap_or(Value::Null));
             let mut ticker: Value = self.extend(parsedTicker, &[params.clone()]);
             results.push(ticker);
@@ -2558,8 +2558,8 @@ impl Toobit {
         let mut balances: crate::value::List = self.safe_list_k(response.clone(), "balances", &[response.clone()]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1134: bool = true;
-            while { if !__for_first_1134 { i += 1; } __for_first_1134 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1135: bool = true;
+            while { if !__for_first_1135 { i += 1; } __for_first_1135 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "asset", &[]), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3312,8 +3312,8 @@ impl Toobit {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1135: bool = true;
-            while { if !__for_first_1135 { i += 1; } __for_first_1135 = false; i < (responseList.len() as i64) } {
+            let mut __for_first_1136: bool = true;
+            while { if !__for_first_1136 { i += 1; } __for_first_1136 = false; i < (responseList.len() as i64) } {
             ordersList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), responseList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
@@ -3745,8 +3745,8 @@ impl Toobit {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1136: bool = true;
-            while { if !__for_first_1136 { i += 1; } __for_first_1136 = false; i < (response.len() as i64) } {
+            let mut __for_first_1137: bool = true;
+            while { if !__for_first_1137 { i += 1; } __for_first_1137 = false; i < (response.len() as i64) } {
             let __ws_arg_30 = self.parse_transaction_with_type(response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[currency.clone(), transactType.clone()]);
             results.push(self.extend(__ws_arg_30, &[&paramsUntil]));
         }

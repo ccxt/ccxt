@@ -1504,7 +1504,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), symbolValue).into()), Value::Str(":".into())).into()), timeframe);
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchOHLCV".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: bool = utaparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut ohlcv: Value = Value::Null;
         if uta {
             let mut channel: String = "kline".to_string();
@@ -1514,7 +1514,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("interval".to_string(), period.clone());
                 m
             });
-            let __ws_arg_0 = self.extend(Value::Map(extendedParams), &[paramsUta.clone()]);
+            let __ws_arg_0 = self.extend(Value::Map(extendedParams), &[&paramsUta]);
             ohlcv = self.subscribe_public_uta(Value::from(messageHash.clone()), Value::from(channel), Value::from(symbolValue.clone()), &[__ws_arg_0]).await;
         }  else {
             let mut isFuturesMethod: bool = (market).contract;
@@ -1524,7 +1524,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 channelName = "/contractMarket/limitCandle:".to_string();
             }
             let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])).into()), Value::Str("_".into())).into()), period);
-            ohlcv = self.subscribe(url, Value::from(messageHash), Value::from(topic), &[paramsUta]).await;
+            ohlcv = self.subscribe(url, Value::from(messageHash), Value::from(topic), &[Value::Dict(paramsUta)]).await;
         }
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1568,7 +1568,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut uta: bool = false;
         let utaOptionparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("unWatchOHLCV".into()), Value::Str("uta".into()), &[Value::Bool(uta)]).as_array().cloned().unwrap_or_default();
         let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsUta: Value = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUta: crate::value::Dict = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut period: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut symbolAndTimeframe: Value = Value::from(vec![Value::from(symbolValue.clone()), timeframe.clone()]);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -1590,7 +1590,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("interval".to_string(), period.clone());
                 m
             });
-            let __ws_arg_1 = self.extend(Value::Map(extendedParams), &[paramsUta.clone()]);
+            let __ws_arg_1 = self.extend(Value::Map(extendedParams), &[&paramsUta]);
             return self.subscribe_public_uta(Value::from(utaMessageHash), Value::Str("kline".into()), Value::from(symbolValue), &[__ws_arg_1, Value::Map(subscription.clone())]).await;
         }  else {
             let mut isFuturesMethod: bool = (market).contract;
@@ -1606,7 +1606,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
             subscription.insert("messageHashes".into(), Value::from(vec![Value::from(messageHash.clone()), Value::from(topic.clone())]));
             subscription.insert("subMessageHashes".into(), Value::from(vec![Value::from(subMessageHash), Value::from(topic.clone())]));
-            return self.un_subscribe(url, Value::from(messageHash.clone()), Value::from(topic), Value::from(messageHash), &[paramsUta, Value::Map(subscription)]).await;
+            return self.un_subscribe(url, Value::from(messageHash.clone()), Value::from(topic), Value::from(messageHash), &[Value::Dict(paramsUta), Value::Map(subscription)]).await;
         }
         Value::Null
         }).await?))
@@ -2845,7 +2845,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut utaEnabled: Value = self.is_uta_enabled(&[]).await;
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchOrders".into()), Value::Str("uta".into()), &[utaEnabled]).as_array().cloned().unwrap_or_default();
         let mut uta: bool = utaparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2860,7 +2860,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut orders: Value = Value::Null;
         if uta {
-            let mut paramsExtended: Value = self.extend(paramsUta.clone(), &[Value::Map({
+            let mut paramsExtended: Value = self.extend(&paramsUta, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tradeType".to_string(), Value::Str("UNIFIED".into()));
                 m
@@ -2872,8 +2872,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             orders = self.subscribe_private_uta(Value::from(vec![messageHash.clone()]), messageHash.clone(), Value::from(channel), &[symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), paramsExtended]).await;
         }  else {
-            let mut trigger: Option<bool> = self.safe_bool2(paramsUta.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-            let mut paramsOmitted: Value = self.omit(paramsUta, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+            let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsUta), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+            let mut paramsOmitted: Value = self.omit(&paramsUta, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
             let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsOmitted]).as_array().cloned().unwrap_or_default();
             let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();

@@ -705,8 +705,8 @@ impl Foxbit {
         //     }
         //   ]
         // }
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_currencies(data);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_currencies(&data);
         Value::Null
         }).await?))
     }
@@ -725,8 +725,8 @@ impl Foxbit {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_675: bool = true;
-            while { if !__for_first_675 { j += 1; } __for_first_675 = false; j < (networks.len() as i64) } {
+            let mut __for_first_676: bool = true;
+            while { if !__for_first_676 { j += 1; } __for_first_676 = false; j < (networks.len() as i64) } {
             let mut network: crate::value::Dict = self.safe_dict(&networks, Value::Int(j), &[]).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&network, "code", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -927,8 +927,8 @@ impl Foxbit {
         //       }
         //     ]
         //   }
-        let mut markets: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_markets(markets);
+        let mut markets: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_markets(&markets);
         Value::Null
         }).await?))
     }
@@ -1093,8 +1093,8 @@ impl Foxbit {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_676: bool = true;
-            while { if !__for_first_676 { i += 1; } __for_first_676 = false; i < (data.len() as i64) } {
+            let mut __for_first_677: bool = true;
+            while { if !__for_first_677 { i += 1; } __for_first_677 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&entry, "market_symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
@@ -1321,8 +1321,8 @@ impl Foxbit {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_677: bool = true;
-            while { if !__for_first_677 { i += 1; } __for_first_677 = false; i < (accounts.len() as i64) } {
+            let mut __for_first_678: bool = true;
+            while { if !__for_first_678 { i += 1; } __for_first_678 = false; i < (accounts.len() as i64) } {
             let mut account: crate::value::Dict = self.safe_dict(&accounts, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&account, "currency_symbol", &[]).as_str().map(str::to_owned);
             let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -1575,8 +1575,8 @@ impl Foxbit {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_678: bool = true;
-            while { if !__for_first_678 { i += 1; } __for_first_678 = false; i < (orders.len() as i64) } {
+            let mut __for_first_679: bool = true;
+            while { if !__for_first_679 { i += 1; } __for_first_679 = false; i < (orders.len() as i64) } {
             let mut order: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&order, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2909,8 +2909,8 @@ impl Foxbit {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_679: bool = true;
-                while { if !__for_first_679 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_679 = false; i.as_f64().unwrap_or(f64::NAN) < ((paramKeys.len() as i64) as f64) } {
+                let mut __for_first_680: bool = true;
+                while { if !__for_first_680 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_680 = false; i.as_f64().unwrap_or(f64::NAN) < ((paramKeys.len() as i64) as f64) } {
                 let mut key: Value = paramKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 let mut value: Option<String> = self.safe_string(paramsOmitted.clone(), key.clone(), &[]).as_str().map(str::to_owned);
                 if (value.is_some()) {
@@ -2969,8 +2969,8 @@ impl Foxbit {
         if (details.is_some()) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_680: bool = true;
-                while { if !__for_first_680 { i += 1; } __for_first_680 = false; i < (details.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_681: bool = true;
+                while { if !__for_first_681 { i += 1; } __for_first_681 = false; i < (details.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 detailsString = format!("{}{}", Value::Str(format!("{}{}", detailsString, self.safe_string(&details, Value::Int(i), &[Value::Str("".into())])).into()), Value::Str(" ".into()));
             }
             }

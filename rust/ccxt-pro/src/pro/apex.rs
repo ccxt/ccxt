@@ -1093,19 +1093,19 @@ impl Apex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone());
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str(":".into())).into()), symbolResolved);
+            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str(":".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut url: Value = self.get_ws_private_url();
         self.authenticate(url.clone(), &[]).await;
         let mut trades: Value = self.watch_topics(url, Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::Str("myTrades".into())]), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.as_str(), limit.as_i64());
+            limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1195,10 +1195,10 @@ impl Apex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "orders".to_string();
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone());
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str(":".into())).into()), symbolResolved);
+            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str(":".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut url: Value = self.get_ws_private_url();
         self.authenticate(url.clone(), &[]).await;
@@ -1206,9 +1206,9 @@ impl Apex {
         let mut orders: Value = self.watch_topics(url, Value::from(vec![Value::from(messageHash)]), topics, &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
+            limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

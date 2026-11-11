@@ -1535,7 +1535,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn parse_currencies(&self, mut rawCurrencies: Value) -> Value {
+    fn parse_currencies(&self, rawCurrencies: impl Into<crate::Value>) -> Value {
+        let mut rawCurrencies: Value = rawCurrencies.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1567,13 +1568,16 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn parse_markets(&self, mut markets: Value) -> Value {
+    fn parse_markets(&self, markets: impl Into<crate::Value>) -> Value {
+        let mut markets: Value = markets.into();
+        let __markets_empty = Vec::new();
+        let markets = markets.as_array().unwrap_or(&__markets_empty);
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_80: bool = true;
-            while { if !__for_first_80 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_80 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&markets).as_f64().unwrap_or(f64::NAN) } {
-            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_market(self, get_value(&markets, &i));
+            while { if !__for_first_80 { i += 1; } __for_first_80 = false; i < (markets.len() as i64) } {
+            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_market(self, markets.get(i as usize).cloned().unwrap_or(Value::Null));
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
             if (market != Value::Null) {
                 result.push(market);
@@ -4949,7 +4953,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn parse_ohlc_vs(&self, mut ohlcvs: Value, optional_args: &[Value]) -> Value {
+    fn parse_ohlc_vs(&self, ohlcvs: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut ohlcvs: Value = ohlcvs.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timeframe = get_arg(optional_args, 1, Value::Str("1m".into()));
         let mut since = get_arg(optional_args, 2, Value::Null);
@@ -8265,19 +8270,22 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn parse_deposit_addresses(&self, mut addresses: Value, optional_args: &[Value]) -> Value {
+    fn parse_deposit_addresses(&self, addresses: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut addresses: Value = addresses.into();
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut indexed = get_arg(optional_args, 1, Value::Bool(true));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        let __addresses_empty = Vec::new();
+        let addresses = addresses.as_array().unwrap_or(&__addresses_empty);
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_149: bool = true;
-            while { if !__for_first_149 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_149 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&addresses).as_f64().unwrap_or(f64::NAN) } {
-            let mut address: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_deposit_address(self, get_value(&addresses, &i), &[]), &[params.clone()]);
+            while { if !__for_first_149 { i += 1; } __for_first_149 = false; i < (addresses.len() as i64) } {
+            let mut address: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_deposit_address(self, addresses.get(i as usize).cloned().unwrap_or(Value::Null), &[]), &[params.clone()]);
             std::sync::Arc::make_mut(&mut result).push(address);
         }
         }
@@ -8292,13 +8300,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn parse_borrow_interests(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    fn parse_borrow_interests(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut response: Value = response.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut interests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_150: bool = true;
-            while { if !__for_first_150 { i += 1; } __for_first_150 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_150 { i += 1; } __for_first_150 = false; i < (response.len() as i64) } {
             let mut row: Value = self.safe_value(response.clone(), Value::Int(i), &[]);
             interests.push(<Self as crate::exchange_generated::ExchangeBase>::parse_borrow_interest(self, row, &[market.clone()]));
         }
@@ -8335,7 +8344,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn parse_isolated_borrow_rates(&self, mut info: Value) -> Value {
+    fn parse_isolated_borrow_rates(&self, info: impl Into<crate::Value>) -> Value {
+        let mut info: Value = info.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -8343,7 +8353,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         {
                         let mut i: i64 = 0;
             let mut __for_first_152: bool = true;
-            while { if !__for_first_152 { i += 1; } __for_first_152 = false; (i as f64) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_152 { i += 1; } __for_first_152 = false; i < (info.len() as i64) } {
             let mut item: Value = self.safe_value(info.clone(), Value::Int(i), &[]);
             let mut borrowRate: Value = self.parse_isolated_borrow_rate(item, &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(borrowRate.clone(), "symbol", &[]);
@@ -8355,16 +8365,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn parse_funding_rate_histories(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    fn parse_funding_rate_histories(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut response: Value = response.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
+        let __response_empty = Vec::new();
+        let response = response.as_array().unwrap_or(&__response_empty);
         let mut rates: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_153: bool = true;
-            while { if !__for_first_153 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_153 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&response, &i);
+            while { if !__for_first_153 { i += 1; } __for_first_153 = false; i < (response.len() as i64) } {
+            let mut entry: Value = response.get(i as usize).cloned().unwrap_or(Value::Null);
             rates.push(<Self as crate::exchange_generated::ExchangeBase>::parse_funding_rate_history(self, entry, &[market.clone()]));
         }
         }
@@ -8428,12 +8441,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
+        let __response_empty = Vec::new();
+        let response = response.as_array().unwrap_or(&__response_empty);
         let mut rates: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_155: bool = true;
-            while { if !__for_first_155 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_155 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&response, &i);
+            while { if !__for_first_155 { i += 1; } __for_first_155 = false; i < (response.len() as i64) } {
+            let mut entry: Value = response.get(i as usize).cloned().unwrap_or(Value::Null);
             rates.push(self.parse_long_short_ratio(entry, &[market.clone()]));
         }
         }
@@ -8674,17 +8689,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn parse_open_interests(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    fn parse_open_interests(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut response: Value = response.into();
         let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let __response_empty = Vec::new();
+        let response = response.as_array().unwrap_or(&__response_empty);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_156: bool = true;
-            while { if !__for_first_156 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_156 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&response, &i);
+            while { if !__for_first_156 { i += 1; } __for_first_156 = false; i < (response.len() as i64) } {
+            let mut entry: Value = response.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_open_interest(self, entry, &[]);
             if (parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&(parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), parsed);

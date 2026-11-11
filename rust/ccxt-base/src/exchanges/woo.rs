@@ -1665,8 +1665,8 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
-        return self.parse_markets(rows);
+        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        return self.parse_markets(&rows);
         Value::Null
         }).await?))
     }
@@ -1693,7 +1693,7 @@ impl Woo {
             return Value::Null;
         }
         let mut settleId: Option<String> = None;
-        let mut settle: Value = Value::Null;
+        let mut settle: Option<String> = None;
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
         let mut contractSize: Value = Value::Null;
         let mut linear: Option<bool> = None;
@@ -1703,8 +1703,8 @@ impl Woo {
         if contract.as_bool() == Some(true) {
             margin = false;
             settleId = self.safe_string(parts, Value::Int(2), &[]).as_str().map(str::to_owned);
-            settle = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle);
+            settle = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
             contractSize = self.parse_number(Value::Str("1".into()), &[]);
             linear = Some(true);
             inverse = Some(false);
@@ -1716,7 +1716,7 @@ impl Woo {
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
-        m.insert("settle".to_string(), settle);
+        m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2078,8 +2078,8 @@ impl Woo {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1167: bool = true;
-            while { if !__for_first_1167 { i += 1; } __for_first_1167 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1168: bool = true;
+            while { if !__for_first_1168 { i += 1; } __for_first_1168 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2205,8 +2205,8 @@ impl Woo {
         let mut currencyIds: Vec<Value> = Value::Array(tokensById.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1168: bool = true;
-            while { if !__for_first_1168 { i += 1; } __for_first_1168 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_1169: bool = true;
+            while { if !__for_first_1169 { i += 1; } __for_first_1169 = false; i < (currencyIds.len() as i64) } {
             let mut id: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut customCurrency: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -2239,8 +2239,8 @@ impl Woo {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1169: bool = true;
-            while { if !__for_first_1169 { j += 1; } __for_first_1169 = false; j < (keys.len() as i64) } {
+            let mut __for_first_1170: bool = true;
+            while { if !__for_first_1170 { j += 1; } __for_first_1170 = false; j < (keys.len() as i64) } {
             let mut networkId: Value = keys.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut tokenEntry: Value = self.safe_dict(tokensByNetworkId.clone(), networkId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3112,17 +3112,17 @@ impl Woo {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(500)]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("page".into()), Value::Int(500)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
-        let mut trigger: Option<bool> = self.safe_bool2(paramsPaginate.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsPaginate), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -3695,8 +3695,8 @@ impl Woo {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1170: bool = true;
-            while { if !__for_first_1170 { i += 1; } __for_first_1170 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1171: bool = true;
+            while { if !__for_first_1171 { i += 1; } __for_first_1171 = false; i < (rows.len() as i64) } {
             let mut row: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(row.clone(), "symbol", &[]);
             if (marketId.is_none()) {
@@ -3794,8 +3794,8 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(rows, &[(market).raw.clone(), timeframe, since, limit]);
+        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&rows, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -4127,8 +4127,8 @@ impl Woo {
         let mut balances: crate::value::List = self.safe_list_k(response, "holding", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1171: bool = true;
-            while { if !__for_first_1171 { i += 1; } __for_first_1171 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1172: bool = true;
+            while { if !__for_first_1172 { i += 1; } __for_first_1172 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "token", &[]), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -4891,12 +4891,12 @@ impl Woo {
     m
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
+        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut currency: Value = self.currency(code.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4904,8 +4904,8 @@ impl Woo {
                 m.insert("address".to_string(), address.clone());
             m
         });
-        if (tagWithdrawTag != Value::Null) {
-            request.insert("extra".into(), tagWithdrawTag.clone());
+        if (tagWithdrawTag.is_some()) {
+            request.insert("extra".into(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut network: Option<String> = self.safe_string_k(&paramsWithdrawTag, "network", &[]).as_str().map(str::to_owned);
         if (network.is_none()) {
@@ -4936,7 +4936,7 @@ impl Woo {
                 m.insert("currency".to_string(), code);
                 m.insert("amount".to_string(), amount);
                 m.insert("addressTo".to_string(), address);
-                m.insert("tag".to_string(), tagWithdrawTag);
+                m.insert("tag".to_string(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
                 m.insert("network".to_string(), __ws_arg_32);
                 m.insert("type".to_string(), Value::Str("withdrawal".into()));
                 m.insert("status".to_string(), Value::Str("pending".into()));
@@ -5563,8 +5563,8 @@ impl Woo {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1172: bool = true;
-            while { if !__for_first_1172 { i += 1; } __for_first_1172 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1173: bool = true;
+            while { if !__for_first_1173 { i += 1; } __for_first_1173 = false; i < (rows.len() as i64) } {
             let mut entry: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
             let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "fundingRateTimestamp", &[]).as_i64();
@@ -5688,8 +5688,8 @@ impl Woo {
         let mut details: crate::value::List = self.safe_list_k(leverage.clone(), "details", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1173: bool = true;
-            while { if !__for_first_1173 { i += 1; } __for_first_1173 = false; i < (details.len() as i64) } {
+            let mut __for_first_1174: bool = true;
+            while { if !__for_first_1174 { i += 1; } __for_first_1174 = false; i < (details.len() as i64) } {
             let mut position: crate::value::Dict = self.safe_dict(&details, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6486,8 +6486,8 @@ impl Woo {
         let mut data: crate::value::List = self.safe_list_k(&response, "rows", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1174: bool = true;
-            while { if !__for_first_1174 { i += 1; } __for_first_1174 = false; i < (data.len() as i64) } {
+            let mut __for_first_1175: bool = true;
+            while { if !__for_first_1175 { i += 1; } __for_first_1175 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k(&entry, "token", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -6666,8 +6666,8 @@ impl Woo {
         let mut networkKeys: Vec<Value> = Value::Array(networks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1175: bool = true;
-            while { if !__for_first_1175 { i += 1; } __for_first_1175 = false; i < (networkKeys.len() as i64) } {
+            let mut __for_first_1176: bool = true;
+            while { if !__for_first_1176 { i += 1; } __for_first_1176 = false; i < (networkKeys.len() as i64) } {
             let mut network: Option<String> = networkKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (network.as_deref() == Some("ERC20")) {
                 return network.map(Value::from).unwrap_or(Value::Null);

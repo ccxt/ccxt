@@ -921,8 +921,8 @@ impl Bigone {
         //     ],
         // }
         //
-        let mut currenciesData: Value = self.safe_list_k(data, "data", &[Value::from(vec![])]);
-        return self.parse_currencies(currenciesData);
+        let mut currenciesData: crate::value::List = self.safe_list_k(data, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_currencies(&currenciesData);
         Value::Null
         }).await?))
     }
@@ -1467,7 +1467,7 @@ impl Bigone {
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isSpot: bool = type_var.as_deref() == Some("spot");
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1480,7 +1480,7 @@ impl Bigone {
                 let mut ids: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
                 request.insert("pair_names".into(), Value::Str(ids.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
             }
-            let __ws_arg_1 = self.extend(Value::Map(request), &[paramsMarketType.clone()]);
+            let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsMarketType]);
             let mut response: crate::value::Dict = self.public_get_asset_pairs_tickers(&[__ws_arg_1]).await.into_dict();
             //
             //    {
@@ -1511,7 +1511,7 @@ impl Bigone {
             //
             data = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         }  else {
-            let mut instruments: Value = self.contract_public_get_instruments(&[paramsMarketType]).await;
+            let mut instruments: Value = self.contract_public_get_instruments(&[Value::Dict(paramsMarketType)]).await;
             data = self.to_array(instruments);
         }
         let mut tickers: Value = self.parse_tickers(data, &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
@@ -1997,8 +1997,8 @@ impl Bigone {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limitResolved]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }

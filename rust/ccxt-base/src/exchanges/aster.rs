@@ -1835,8 +1835,8 @@ impl Aster {
     m
 }));
         let mut sapiResult: crate::value::Dict = self.sapi_public_get_v3_exchange_info(&[params]).await.into_dict();
-        let mut sapiRows: Value = self.safe_list_k(&sapiResult, "assets", &[Value::from(vec![])]);
-        return self.parse_currencies(sapiRows);
+        let mut sapiRows: crate::value::List = self.safe_list_k(&sapiResult, "assets", &[Value::from(vec![])]).into_list();
+        return self.parse_currencies(&sapiRows);
         Value::Null
         }).await?))
     }
@@ -2503,16 +2503,16 @@ impl Aster {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (marketType.as_deref() == Some("swap")) {
-            let __ws_arg_8 = self.extend(&requestUntil, &[paramsUntil.clone()]);
+            let __ws_arg_8 = self.extend(&requestUntil, &[&paramsUntil]);
             response = self.fapi_private_get_v3_user_trades(&[__ws_arg_8]).await;
         }  else {
-            let __ws_arg_9 = self.extend(requestUntil, &[paramsUntil.clone()]);
+            let __ws_arg_9 = self.extend(requestUntil, &[&paramsUntil]);
             response = self.sapi_private_get_v3_user_trades(&[__ws_arg_9]).await;
         }
-        return self.parse_trades(response, &[market, since, limit, paramsUntil]);
+        return self.parse_trades(response, &[market, since, limit, Value::Dict(paramsUntil)]);
         Value::Null
         }).await?))
     }
@@ -2792,12 +2792,12 @@ impl Aster {
         let mut market: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchLastPrices".into()), &[market, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (marketType.as_deref() == Some("swap")) {
-            response = self.fapi_public_get_v3_ticker_price(&[paramsMarketType.clone()]).await;
+            response = self.fapi_public_get_v3_ticker_price(&[Value::from(&paramsMarketType)]).await;
         }  else if (marketType.as_deref() == Some("spot")) {
-            response = self.sapi_public_get_v3_ticker_price(&[paramsMarketType.clone()]).await;
+            response = self.sapi_public_get_v3_ticker_price(&[Value::from(&paramsMarketType)]).await;
         }
         //
         // both SPOT & SWAP has same format
@@ -2823,7 +2823,7 @@ impl Aster {
             let mut marketId: Option<String> = self.safe_string_k(rows.get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[]).as_str().map(str::to_owned);
             let mut safeMarket: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]);
             let __ws_arg_14 = self.parse_last_price(rows.get(i as usize).cloned().unwrap_or(Value::Null), &[safeMarket]);
-            let mut priceData: Value = self.extend(__ws_arg_14, &[paramsMarketType.clone()]);
+            let mut priceData: Value = self.extend(__ws_arg_14, &[&paramsMarketType]);
             results.push(priceData);
         }
         }

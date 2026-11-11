@@ -1102,8 +1102,8 @@ impl Onetrading {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1036: bool = true;
-            while { if !__for_first_1036 { i += 1; } __for_first_1036 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1037: bool = true;
+            while { if !__for_first_1037 { i += 1; } __for_first_1037 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
             let mut tierObject: Value = (if matches!((self.safe_bool_k(&market, "spot", &[Value::Bool(false)])), Value::Bool(true)) { firstSpotTier.clone() } else { firstFuturesTier.clone() });
@@ -1191,8 +1191,8 @@ impl Onetrading {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1037: bool = true;
-            while { if !__for_first_1037 { i += 1; } __for_first_1037 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1038: bool = true;
+            while { if !__for_first_1038 { i += 1; } __for_first_1038 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
             let mut makerFee: Value = (if matches!((self.safe_bool_k(&market, "spot", &[Value::Bool(false)])), Value::Bool(true)) { spotMakerFee.clone().map(Value::from).unwrap_or(Value::Null) } else { futuresMakerFee.clone().map(Value::from).unwrap_or(Value::Null) });
@@ -1221,8 +1221,8 @@ impl Onetrading {
         let mut makerFees: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1038: bool = true;
-            while { if !__for_first_1038 { i += 1; } __for_first_1038 = false; i < (feeTiers.len() as i64) } {
+            let mut __for_first_1039: bool = true;
+            while { if !__for_first_1039 { i += 1; } __for_first_1039 = false; i < (feeTiers.len() as i64) } {
             let mut tier: crate::value::Dict = self.safe_dict(feeTiers.clone(), Value::Int(i), &[]).into_dict();
             let mut volume: Option<f64> = self.safe_number_k(&tier, "volume", &[]).as_f64();
             let mut taker: Option<String> = self.safe_string_k(&tier, "taker_fee", &[]).as_str().map(str::to_owned);
@@ -1389,8 +1389,8 @@ impl Onetrading {
         let mut rawTickers: crate::value::List = self.to_array(response).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1039: bool = true;
-            while { if !__for_first_1039 { i += 1; } __for_first_1039 = false; i < (rawTickers.len() as i64) } {
+            let mut __for_first_1040: bool = true;
+            while { if !__for_first_1040 { i += 1; } __for_first_1040 = false; i < (rawTickers.len() as i64) } {
             let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(rawTickers.get(i as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
             let mut symbol: Value = ticker.get("symbol").cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -1723,8 +1723,8 @@ impl Onetrading {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1040: bool = true;
-            while { if !__for_first_1040 { i += 1; } __for_first_1040 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1041: bool = true;
+            while { if !__for_first_1041 { i += 1; } __for_first_1041 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency_code", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);

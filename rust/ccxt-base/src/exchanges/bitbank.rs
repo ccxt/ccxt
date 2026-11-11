@@ -610,8 +610,8 @@ impl Bitbank {
         //     }
         //
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[]).into_dict();
-        let mut pairs: Value = self.safe_list_k(&data, "pairs", &[Value::from(vec![])]);
-        return self.parse_markets(pairs);
+        let mut pairs: crate::value::List = self.safe_list_k(&data, "pairs", &[Value::from(vec![])]).into_list();
+        return self.parse_markets(&pairs);
         Value::Null
         }).await?))
     }
@@ -1076,8 +1076,8 @@ impl Bitbank {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut ohlcv: Value = self.safe_list_k(&first, "ohlcv", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(ohlcv, &[(market).raw.clone(), timeframe, sinceResolved, limitResolved]);
+        let mut ohlcv: crate::value::List = self.safe_list_k(&first, "ohlcv", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&ohlcv, &[(market).raw.clone(), timeframe, sinceResolved, limitResolved]);
         Value::Null
         }).await?))
     }

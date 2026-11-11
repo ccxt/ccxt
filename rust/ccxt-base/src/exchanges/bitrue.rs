@@ -1328,8 +1328,8 @@ impl Bitrue {
         //         ],
         //     }
         //
-        let mut coins: Value = self.safe_list_k(&response, "coins", &[Value::from(vec![])]);
-        return self.parse_currencies(coins);
+        let mut coins: crate::value::List = self.safe_list_k(&response, "coins", &[Value::from(vec![])]).into_list();
+        return self.parse_currencies(&coins);
         Value::Null
         }).await?))
     }
@@ -1549,7 +1549,7 @@ impl Bitrue {
         let mut baseId: Option<String> = self.safe_string_k(market.clone(), "baseAsset", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "quoteAsset", &[]).as_str().map(str::to_owned);
         let mut settleId: Option<String> = None;
-        let mut settle: Value = Value::Null;
+        let mut settle: Option<String> = None;
         if isContract {
             let mut symbolSplit: Value = Value::Array(id.split("-").map(Value::from).collect());
             baseId = self.safe_string(symbolSplit.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
@@ -1559,7 +1559,7 @@ impl Bitrue {
             }  else {
                 settleId = baseId.clone();
             }
-            settle = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            settle = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         }
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -1567,8 +1567,8 @@ impl Bitrue {
             return Value::Null;
         }
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
-        if (settle != Value::Null) {
-            symbol.push_str(&format!("{}{}", Value::Str(":".into()), settle));
+        if (settle.is_some()) {
+            symbol.push_str(&format!("{}{}", Value::Str(":".into()), settle.as_deref().unwrap_or("null")));
         }
         let mut filters: Value = self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]);
         let mut filtersByType: crate::value::Dict = self.index_by(filters, Value::Str("filterType".into())).into_dict();
@@ -1604,7 +1604,7 @@ impl Bitrue {
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
-        m.insert("settle".to_string(), settle);
+        m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));

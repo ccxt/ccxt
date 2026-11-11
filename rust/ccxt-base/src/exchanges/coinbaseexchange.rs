@@ -1121,8 +1121,8 @@ impl Coinbaseexchange {
         let mut supportedNetworks: crate::value::List = self.safe_list_k(rawCurrency.clone(), "supported_networks", &[Value::from(vec![])]).into_list();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_550: bool = true;
-            while { if !__for_first_550 { j += 1; } __for_first_550 = false; j < (supportedNetworks.len() as i64) } {
+            let mut __for_first_551: bool = true;
+            while { if !__for_first_551 { j += 1; } __for_first_551 = false; j < (supportedNetworks.len() as i64) } {
             let mut network: crate::value::Dict = supportedNetworks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&network, "id", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -1260,8 +1260,8 @@ impl Coinbaseexchange {
         let mut rawMarkets: crate::value::List = self.to_array(response).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_551: bool = true;
-            while { if !__for_first_551 { i += 1; } __for_first_551 = false; i < (rawMarkets.len() as i64) } {
+            let mut __for_first_552: bool = true;
+            while { if !__for_first_552 { i += 1; } __for_first_552 = false; i < (rawMarkets.len() as i64) } {
             let mut market: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "id", &[]);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = id.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
@@ -1432,8 +1432,8 @@ impl Coinbaseexchange {
         let mut rawBalances: crate::value::List = self.to_array(response).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_552: bool = true;
-            while { if !__for_first_552 { i += 1; } __for_first_552 = false; i < (rawBalances.len() as i64) } {
+            let mut __for_first_553: bool = true;
+            while { if !__for_first_553 { i += 1; } __for_first_553 = false; i < (rawBalances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&rawBalances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -1679,8 +1679,8 @@ impl Coinbaseexchange {
         let mut delimiter: String = "-".to_string();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_553: bool = true;
-            while { if !__for_first_553 { i += 1; } __for_first_553 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_554: bool = true;
+            while { if !__for_first_554 { i += 1; } __for_first_554 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut entry: crate::value::List = self.safe_list(response.clone(), marketId.clone(), &[Value::from(vec![])]).into_list();
             let mut first: Value = self.safe_list(&entry, Value::Int(0), &[Value::from(vec![])]);
@@ -1966,8 +1966,8 @@ impl Coinbaseexchange {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_554: bool = true;
-            while { if !__for_first_554 { i += 1; } __for_first_554 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_555: bool = true;
+            while { if !__for_first_555 { i += 1; } __for_first_555 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2026,9 +2026,9 @@ impl Coinbaseexchange {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), Value::Int(300)]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), Value::Int(300)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut parsedTimeframe: Value = self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[]);
@@ -2042,8 +2042,8 @@ impl Coinbaseexchange {
         }  else {
             request.insert("granularity".into(), timeframe.clone());
         }
-        let mut until: Value = self.safe_value2(paramsPaginate.clone(), Value::Str("until".into()), Value::Str("end".into()), &[]);
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
+        let mut until: Value = self.safe_value2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("end".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
         let mut cappedLimit: Value = self.parse_to_int((if (limit == Value::Null) { Value::Int(300) } else { crate::runtime::Math::min(&limit, &Value::Int(300)) }));
         let mut limitResolved: Value = (if (since != Value::Null) { cappedLimit.clone() } else { limit });
@@ -2825,8 +2825,8 @@ impl Coinbaseexchange {
         let mut entries: Value = self.to_array(response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_555: bool = true;
-            while { if !__for_first_555 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_555 = false; i.as_f64().unwrap_or(f64::NAN) < ((entries.len() as i64) as f64) } {
+            let mut __for_first_556: bool = true;
+            while { if !__for_first_556 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_556 = false; i.as_f64().unwrap_or(f64::NAN) < ((entries.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut entries, &i), &Value::Str("currency".into()), code.clone());
         }
         }
@@ -2923,8 +2923,8 @@ impl Coinbaseexchange {
             response = self.to_array(transfers);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_556: bool = true;
-                while { if !__for_first_556 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_556 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
+                let mut __for_first_557: bool = true;
+                while { if !__for_first_557 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_557 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
                 let mut account_id: Option<String> = self.safe_string(response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("account_id".into()), &[]).as_str().map(str::to_owned);
                 let mut account: Value = self.safe_dict(self.accountsById.clone(), account_id.map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut codeInner: Option<String> = self.safe_string_k_opt(account, "code", &[]);
@@ -2963,8 +2963,8 @@ impl Coinbaseexchange {
             response = self.to_array(accountTransfers);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_557: bool = true;
-                while { if !__for_first_557 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_557 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
+                let mut __for_first_558: bool = true;
+                while { if !__for_first_558 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_558 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
                 add_element_to_object(get_value_mut(&mut response, &i), &Value::Str("currency".into()), code.clone());
             }
             }

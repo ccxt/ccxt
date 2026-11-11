@@ -1514,8 +1514,8 @@ impl Weex {
         let mut chains: crate::value::List = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::from(vec![])]).into_list();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1145: bool = true;
-            while { if !__for_first_1145 { j += 1; } __for_first_1145 = false; j < (chains.len() as i64) } {
+            let mut __for_first_1146: bool = true;
+            while { if !__for_first_1146 { j += 1; } __for_first_1146 = false; j < (chains.len() as i64) } {
             let mut chain: Value = self.safe_dict(&chains, Value::Int(j), &[]);
             let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "network", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -1946,8 +1946,8 @@ impl Weex {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1146: bool = true;
-            while { if !__for_first_1146 { i += 1; } __for_first_1146 = false; i < (response.len() as i64) } {
+            let mut __for_first_1147: bool = true;
+            while { if !__for_first_1147 { i += 1; } __for_first_1147 = false; i < (response.len() as i64) } {
             let mut rawTicker: Value = self.safe_value(response.clone(), Value::Int(i), &[]);
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             let mut marketId: Option<String> = self.safe_string_k(rawTicker.clone(), "symbol", &[]).as_str().map(str::to_owned);
@@ -2151,12 +2151,12 @@ impl Weex {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkPrice() supports contract markets only".into()))));
         }
         let priceTypeparamsPriceTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchMarkPrice".into()), Value::Str("priceType".into()), &[Value::Str("MARK".into())]).as_array().cloned().unwrap_or_default();
-        let mut priceType: Value = priceTypeparamsPriceTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut priceType: Option<String> = priceTypeparamsPriceTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPriceType: crate::value::Dict = priceTypeparamsPriceTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict(); // the endpoint defaults to INDEX
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
-                m.insert("priceType".to_string(), priceType.clone());
+                m.insert("priceType".to_string(), priceType.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsPriceType]);
@@ -2173,7 +2173,7 @@ impl Weex {
             let mut m = indexmap::IndexMap::new();
             m
         }), &[response]);
-        if (priceType.as_str() == Some("INDEX")) {
+        if (priceType.as_deref() == Some("INDEX")) {
             { let __be_tmp = self.safe_string_k(ticker.clone(), "price", &[]); if let Value::Dict(__d) = &mut ticker { std::sync::Arc::make_mut(__d).insert("indexPrice".into(), __be_tmp); } }
         }  else {
             { let __be_tmp = self.safe_string_k(ticker.clone(), "price", &[]); if let Value::Dict(__d) = &mut ticker { std::sync::Arc::make_mut(__d).insert("markPrice".into(), __be_tmp); } }
@@ -3011,8 +3011,8 @@ impl Weex {
         let mut balances: crate::value::List = self.safe_list_k(response.clone(), "balances", &[response.clone()]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1147: bool = true;
-            while { if !__for_first_1147 { i += 1; } __for_first_1147 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1148: bool = true;
+            while { if !__for_first_1148 { i += 1; } __for_first_1148 = false; i < (balances.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "asset", &[]).as_str().map(str::to_owned);
             if sandboxMode && (currencyId.as_deref() == Some("SUSDT")) {
@@ -4842,9 +4842,9 @@ impl Weex {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Int(100)]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Int(100)]).await;
         }
         let mut market: Value = Value::Null;
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4865,12 +4865,12 @@ impl Weex {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsPaginate.clone(), &[]).as_array().cloned().unwrap_or_default();
+        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
         let mut hasSince: bool = since != Value::Null;
-        let mut until: Option<i64> = self.safe_integer2(paramsPaginate, Value::Str("until".into()), Value::Str("till".into()), &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer2(Value::Dict(paramsPaginate), Value::Str("until".into()), Value::Str("till".into()), &[]).as_i64();
         let mut hasUntil: bool = until.is_some();
         if hasSince && !hasUntil {
             std::sync::Arc::make_mut(&mut requestUntil).insert("endTime".into(), self.milliseconds());

@@ -1226,16 +1226,16 @@ impl Coinbase {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchAccounts".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchAccounts".into()), &[Value::Null, Value::Null, Value::Null, paramsPaginate.clone(), Value::Str("next_starting_after".into()), Value::Str("starting_after".into()), Value::Null, Value::Int(100)]).await;
+            return self.fetch_paginated_call_cursor(Value::Str("fetchAccounts".into()), &[Value::Null, Value::Null, Value::Null, Value::from(&paramsPaginate), Value::Str("next_starting_after".into()), Value::Str("starting_after".into()), Value::Null, Value::Int(100)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("limit".to_string(), Value::Int(100));
             m
         });
-        let __ws_arg_0 = self.extend(Value::Map(request), &[paramsPaginate.clone()]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsPaginate]);
         let mut response: crate::value::Dict = self.v2_private_get_accounts(&[__ws_arg_0]).await.into_dict();
         //
         //     {
@@ -1301,7 +1301,7 @@ impl Coinbase {
     m
 })]); add_element_to_object(&mut accounts, &lastIndex, __be_tmp); };
         }
-        return self.parse_accounts(&data, &[paramsPaginate]);
+        return self.parse_accounts(&data, &[Value::Dict(paramsPaginate)]);
 
     Value::Null
 }
@@ -1316,16 +1316,16 @@ impl Coinbase {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchAccounts".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchAccounts".into()), &[Value::Null, Value::Null, Value::Null, paramsPaginate.clone(), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(250)]).await;
+            return self.fetch_paginated_call_cursor(Value::Str("fetchAccounts".into()), &[Value::Null, Value::Null, Value::Null, Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(250)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("limit".to_string(), Value::Int(250));
             m
         });
-        let __ws_arg_2 = self.extend(Value::Map(request), &[paramsPaginate.clone()]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsPaginate]);
         let mut response: crate::value::Dict = self.v3_private_get_brokerage_accounts(&[__ws_arg_2]).await.into_dict();
         //
         //     {
@@ -1372,7 +1372,7 @@ impl Coinbase {
     m
 })]); add_element_to_object(&mut accounts, &lastIndex, __be_tmp); };
         }
-        return self.parse_accounts(accounts, &[paramsPaginate]);
+        return self.parse_accounts(accounts, &[Value::Dict(paramsPaginate)]);
 
     Value::Null
 }
@@ -1395,8 +1395,8 @@ impl Coinbase {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_532: bool = true;
-            while { if !__for_first_532 { i += 1; } __for_first_532 = false; i < (portfolios.len() as i64) } {
+            let mut __for_first_533: bool = true;
+            while { if !__for_first_533 { i += 1; } __for_first_533 = false; i < (portfolios.len() as i64) } {
             let mut portfolio: crate::value::Dict = portfolios.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1517,8 +1517,8 @@ impl Coinbase {
             self.load_accounts(&[]).await;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_533: bool = true;
-                while { if !__for_first_533 { i += 1; } __for_first_533 = false; i < (self.accounts.len() as i64) } {
+                let mut __for_first_534: bool = true;
+                while { if !__for_first_534 { i += 1; } __for_first_534 = false; i < (self.accounts.len() as i64) } {
                 let mut account: Value = self.accounts.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if (self.safe_string_k(account.clone(), "code", &[]).as_str() == code.as_str()) && (self.safe_string_k(account.clone(), "type", &[]).as_str() == Some("wallet")) {
                     accountId = self.safe_string_k(account, "id", &[]).as_str().map(str::to_owned);
@@ -1670,19 +1670,19 @@ impl Coinbase {
 }));
         let requestparamsValueVariable: Vec<Value> = self.prepare_account_request_with_currency_code(&[code, limit.clone(), params]).await.as_array().cloned().unwrap_or_default();
         let mut request: Value = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsValue: Value = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsValue: crate::value::Dict = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_str() == Some("v2PrivateGetAccountsAccountIdTransactions")) {
-            let __ws_arg_7 = self.extend(request.clone(), &[paramsValue.clone()]);
+            let __ws_arg_7 = self.extend(request.clone(), &[&paramsValue]);
             response = self.v2_private_get_accounts_account_id_transactions(&[__ws_arg_7]).await.into_opt_dict();
         }  else if (method.as_str() == Some("v2PrivateGetAccountsAccountIdWithdrawals")) {
-            let __ws_arg_8 = self.extend(request.clone(), &[paramsValue.clone()]);
+            let __ws_arg_8 = self.extend(request.clone(), &[&paramsValue]);
             response = self.v2_private_get_accounts_account_id_withdrawals(&[__ws_arg_8]).await.into_opt_dict();
         }  else {
-            let __ws_arg_9 = self.extend(request, &[paramsValue]);
+            let __ws_arg_9 = self.extend(request, &[&paramsValue]);
             response = self.v2_private_get_accounts_account_id_deposits(&[__ws_arg_9]).await.into_opt_dict();
         }
         return self.parse_transactions(self.safe_list_k(&response, "data", &[Value::from(vec![])]), &[Value::Null, since, limit]);
@@ -2261,8 +2261,8 @@ impl Coinbase {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_535: bool = true;
-            while { if !__for_first_535 { i += 1; } __for_first_535 = false; i < (baseIds.len() as i64) } {
+            let mut __for_first_536: bool = true;
+            while { if !__for_first_536 { i += 1; } __for_first_536 = false; i < (baseIds.len() as i64) } {
             let mut baseId: Value = baseIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut base: Option<String> = self.safe_currency_code(baseId.clone(), &[]).as_str().map(str::to_owned);
             if (base.is_none()) {
@@ -2276,8 +2276,8 @@ impl Coinbase {
             if (type_var == "crypto") {
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_534: bool = true;
-                    while { if !__for_first_534 { j += 1; } __for_first_534 = false; j < (data.len() as i64) } {
+                    let mut __for_first_535: bool = true;
+                    while { if !__for_first_535 { j += 1; } __for_first_535 = false; j < (data.len() as i64) } {
                     let mut quoteCurrency: crate::value::Dict = data.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                     let mut quoteId: Option<String> = self.safe_string_k(&quoteCurrency, "id", &[]).as_str().map(str::to_owned);
                     let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -2363,12 +2363,12 @@ impl Coinbase {
 }));
         let usePrivateparamsUsePrivateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMarkets".into()), Value::Str("usePrivate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut usePrivate: bool = usePrivateparamsUsePrivateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsUsePrivate: Value = usePrivateparamsUsePrivateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUsePrivate: crate::value::Dict = usePrivateparamsUsePrivateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut spotUnresolvedPromises: Vec<Value> = Vec::new();
         if usePrivate {
-            spotUnresolvedPromises.push(self.v3_private_get_brokerage_products(&[paramsUsePrivate.clone()]).await);
+            spotUnresolvedPromises.push(self.v3_private_get_brokerage_products(&[Value::from(&paramsUsePrivate)]).await);
         }  else {
-            spotUnresolvedPromises.push(self.v3_public_get_brokerage_market_products(&[paramsUsePrivate.clone()]).await);
+            spotUnresolvedPromises.push(self.v3_public_get_brokerage_market_products(&[Value::from(&paramsUsePrivate)]).await);
         }
         //
         //    {
@@ -2416,7 +2416,7 @@ impl Coinbase {
         //    }
         //
         if self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true) {
-            spotUnresolvedPromises.push(self.v3_private_get_brokerage_transaction_summary(&[paramsUsePrivate.clone()]).await);
+            spotUnresolvedPromises.push(self.v3_private_get_brokerage_transaction_summary(&[Value::from(&paramsUsePrivate)]).await);
         }
         //
         //    {
@@ -2520,8 +2520,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_536: bool = true;
-            while { if !__for_first_536 { i += 1; } __for_first_536 = false; i < (data.len() as i64) } {
+            let mut __for_first_537: bool = true;
+            while { if !__for_first_537 { i += 1; } __for_first_537 = false; i < (data.len() as i64) } {
             let mut spotMarket: Value = self.parse_spot_market(data.get(i as usize).cloned().unwrap_or(Value::Null), feeTier.clone());
             if (spotMarket != Value::Null) {
                 result.push(spotMarket);
@@ -2531,8 +2531,8 @@ if _try_result.is_err() {
         let mut futureData: crate::value::List = self.safe_list_k(&expiringFutures, "products", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_537: bool = true;
-            while { if !__for_first_537 { i += 1; } __for_first_537 = false; i < (futureData.len() as i64) } {
+            let mut __for_first_538: bool = true;
+            while { if !__for_first_538 { i += 1; } __for_first_538 = false; i < (futureData.len() as i64) } {
             let mut futureMarket: Value = self.parse_contract_market(futureData.get(i as usize).cloned().unwrap_or(Value::Null), expiringFeeTier.clone());
             if (futureMarket != Value::Null) {
                 result.push(futureMarket);
@@ -2542,8 +2542,8 @@ if _try_result.is_err() {
         let mut perpetualData: crate::value::List = self.safe_list_k(&perpetualFutures, "products", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_538: bool = true;
-            while { if !__for_first_538 { i += 1; } __for_first_538 = false; i < (perpetualData.len() as i64) } {
+            let mut __for_first_539: bool = true;
+            while { if !__for_first_539 { i += 1; } __for_first_539 = false; i < (perpetualData.len() as i64) } {
             let mut perpetualMarket: Value = self.parse_contract_market(perpetualData.get(i as usize).cloned().unwrap_or(Value::Null), perpetualFeeTier.clone());
             if (perpetualMarket != Value::Null) {
                 result.push(perpetualMarket);
@@ -2553,8 +2553,8 @@ if _try_result.is_err() {
         let mut newMarkets: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_539: bool = true;
-            while { if !__for_first_539 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_539 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
+            let mut __for_first_540: bool = true;
+            while { if !__for_first_540 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_540 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
             let mut market: Value = result.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut info: crate::value::Dict = self.safe_dict_k(market.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3081,8 +3081,8 @@ if _try_result.is_err() {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_540: bool = true;
-            while { if !__for_first_540 { i += 1; } __for_first_540 = false; i < (currencies.len() as i64) } {
+            let mut __for_first_541: bool = true;
+            while { if !__for_first_541 { i += 1; } __for_first_541 = false; i < (currencies.len() as i64) } {
             let mut currency: Value = currencies.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut assetId: Option<String> = self.safe_string_k(currency.clone(), "asset_id", &[]).as_str().map(str::to_owned);
             let mut id: Option<String> = self.safe_string2(currency.clone(), Value::Str("id".into()), Value::Str("code".into()), &[]).as_str().map(str::to_owned);
@@ -3145,8 +3145,8 @@ if _try_result.is_err() {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_541: bool = true;
-            while { if !__for_first_541 { i += 1; } __for_first_541 = false; i < (ratesIds.len() as i64) } {
+            let mut __for_first_542: bool = true;
+            while { if !__for_first_542 { i += 1; } __for_first_542 = false; i < (ratesIds.len() as i64) } {
             let mut currencyId: Value = ratesIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if (code == Value::Null) || !(matches!(&code, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
@@ -3256,8 +3256,8 @@ if _try_result.is_err() {
         let mut delimiter: String = "-".to_string();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_542: bool = true;
-            while { if !__for_first_542 { i += 1; } __for_first_542 = false; i < (baseIds.len() as i64) } {
+            let mut __for_first_543: bool = true;
+            while { if !__for_first_543 { i += 1; } __for_first_543 = false; i < (baseIds.len() as i64) } {
             let mut baseId: Value = baseIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: String = format!("{}{}", Value::Str(format!("{}{}", baseId, delimiter).into()), quoteId);
             let mut market: Value = self.safe_market(&[Value::from(marketId), Value::Null, Value::from(delimiter.clone())]);
@@ -3348,8 +3348,8 @@ if _try_result.is_err() {
         };
         {
                         let mut i: i64 = 0;
-            let mut __for_first_543: bool = true;
-            while { if !__for_first_543 { i += 1; } __for_first_543 = false; i < (data.len() as i64) } {
+            let mut __for_first_544: bool = true;
+            while { if !__for_first_544 { i += 1; } __for_first_544 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&entry, "product_id", &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("-".into())]);
@@ -3694,8 +3694,8 @@ if _try_result.is_err() {
         });
         {
                         let mut b: i64 = 0;
-            let mut __for_first_544: bool = true;
-            while { if !__for_first_544 { b += 1; } __for_first_544 = false; b < (balances.len() as i64) } {
+            let mut __for_first_545: bool = true;
+            while { if !__for_first_545 { b += 1; } __for_first_545 = false; b < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(b), &[]).into_dict();
             let mut type_var: Option<String> = self.safe_string_k(&balance, "type", &[]).as_str().map(str::to_owned);
             if self.in_array(type_var.clone().map(Value::from).unwrap_or(Value::Null), accounts.clone()).as_bool() == Some(true) {
@@ -3896,11 +3896,11 @@ if _try_result.is_err() {
         }
         let requestparamsValueVariable: Vec<Value> = self.prepare_account_request_with_currency_code(&[code, limit.clone(), paramsPaginate]).await.as_array().cloned().unwrap_or_default();
         let mut request: Value = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsValue: Value = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsValue: crate::value::Dict = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_http_response -> pagination.next_starting_after
-        let __ws_arg_33 = self.extend(request, &[paramsValue]);
+        let __ws_arg_33 = self.extend(request, &[&paramsValue]);
         let mut response: crate::value::Dict = self.v2_private_get_accounts_account_id_transactions(&[__ws_arg_33]).await.into_dict();
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         let mut ledger: Value = self.parse_ledger(data, &[currency, since, limit]);
@@ -4283,8 +4283,8 @@ if _try_result.is_err() {
         self.load_accounts(&[Value::Bool(false), params]).await;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_545: bool = true;
-            while { if !__for_first_545 { i += 1; } __for_first_545 = false; i < (self.accounts.len() as i64) } {
+            let mut __for_first_546: bool = true;
+            while { if !__for_first_546 { i += 1; } __for_first_546 = false; i < (self.accounts.len() as i64) } {
             let mut account: Value = self.accounts.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(account.clone(), "code", &[]).as_str() == code.as_str()) {
                 return self.safe_string_k(account, "id", &[]);
@@ -4976,8 +4976,8 @@ if _try_result.is_err() {
         let mut orders: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_546: bool = true;
-            while { if !__for_first_546 { i += 1; } __for_first_546 = false; i < (orders.len() as i64) } {
+            let mut __for_first_547: bool = true;
+            while { if !__for_first_547 { i += 1; } __for_first_547 = false; i < (orders.len() as i64) } {
             let mut success: bool = self.safe_bool_k(orders.get(i as usize).cloned().unwrap_or(Value::Null), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if !success {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() has failed, check your arguments and parameters".into()))));
@@ -5496,9 +5496,9 @@ if _try_result.is_err() {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit, timeframe.clone(), paramsPaginate.clone(), Value::Int(299)]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit, timeframe.clone(), Value::from(&paramsPaginate), Value::Int(299)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -5507,8 +5507,8 @@ if _try_result.is_err() {
                 m.insert("granularity".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut until: Value = self.safe_integer2(paramsPaginate.clone(), Value::Str("until".into()), Value::Str("end".into()), &[]);
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
+        let mut until: Value = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("end".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
         let mut requestedDuration: Value = (match (&(limitValue), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut sinceString: Value = Value::Null;
@@ -5555,8 +5555,8 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut candles: Value = self.safe_list_k(&response, "candles", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(candles, &[(market).raw.clone(), timeframe, since, limitValue]);
+        let mut candles: crate::value::List = self.safe_list_k(&response, "candles", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&candles, &[(market).raw.clone(), timeframe, since, limitValue]);
         Value::Null
         }).await?))
     }
@@ -5918,7 +5918,7 @@ if _try_result.is_err() {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -5932,8 +5932,8 @@ if _try_result.is_err() {
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut accountId: Option<String> = self.safe_string2(paramsWithdrawTag.clone(), Value::Str("account_id".into()), Value::Str("accountId".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(paramsWithdrawTag, Value::from(vec![Value::Str("account_id".into()), Value::Str("accountId".into())]), &[]);
+        let mut accountId: Option<String> = self.safe_string2(Value::from(&paramsWithdrawTag), Value::Str("account_id".into()), Value::Str("accountId".into()), &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted: Value = self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("account_id".into()), Value::Str("accountId".into())]), &[]);
         if (accountId.is_none()) {
             if (code == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires an account_id (or accountId) parameter OR a currency code argument".into()))));
@@ -6038,8 +6038,8 @@ if _try_result.is_err() {
         let mut currency: Value = self.currency(code);
         let requestparamsValueVariable: Vec<Value> = self.prepare_account_request_with_currency_code(&[self.safe_string_k(currency, "code", &[]), Value::Null, params]).await.as_array().cloned().unwrap_or_default();
         let mut request: Value = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsValue: Value = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_55 = self.extend(request, &[paramsValue]);
+        let mut paramsValue: crate::value::Dict = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_55 = self.extend(request, &[&paramsValue]);
         let mut response: crate::value::Dict = self.v2_private_get_accounts_account_id_addresses(&[__ws_arg_55]).await.into_dict();
         //
         //    {
@@ -6096,8 +6096,8 @@ if _try_result.is_err() {
         //        ]
         //    }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut addressStructures: Value = self.parse_deposit_addresses(data, &[Value::Null, Value::Bool(false)]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut addressStructures: Value = self.parse_deposit_addresses(&data, &[Value::Null, Value::Bool(false)]);
         return self.index_by(addressStructures, Value::Str("network".into()));
         Value::Null
         }).await?))
@@ -6464,8 +6464,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_547: bool = true;
-            while { if !__for_first_547 { i += 1; } __for_first_547 = false; i < (ids.len() as i64) } {
+            let mut __for_first_548: bool = true;
+            while { if !__for_first_548 { i += 1; } __for_first_548 = false; i < (ids.len() as i64) } {
             let __ws_arg_59 = self.parse_deposit_method_id(ids.get(i as usize).cloned().unwrap_or(Value::Null));
             let mut id: Value = self.extend(__ws_arg_59, &[params.clone()]);
             result.push(id);
@@ -7034,8 +7034,8 @@ if _try_result.is_err() {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_548: bool = true;
-            while { if !__for_first_548 { i += 1; } __for_first_548 = false; i < (self.symbols.len() as i64) } {
+            let mut __for_first_549: bool = true;
+            while { if !__for_first_549 { i += 1; } __for_first_549 = false; i < (self.symbols.len() as i64) } {
             let mut symbol: Value = self.safe_string(self.symbols.clone(), Value::Int(i), &[Value::Str("".into())]);
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if (isSpot && matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true))) || (!isSpot && !(market).spot) {
@@ -7100,8 +7100,8 @@ if _try_result.is_err() {
         let mut parsedPositions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_549: bool = true;
-            while { if !__for_first_549 { i += 1; } __for_first_549 = false; i < (spotPositions.len() as i64) } {
+            let mut __for_first_550: bool = true;
+            while { if !__for_first_550 { i += 1; } __for_first_550 = false; i < (spotPositions.len() as i64) } {
             let mut position: Value = spotPositions.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currencyCode: String = self.safe_string_k(position.clone(), "asset", &[Value::Str("Unknown".into())]).as_str().unwrap_or("Unknown").to_string();
             let mut availableBalanceStr: String = self.safe_string_k(position.clone(), "available_to_trade_fiat", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
@@ -7478,8 +7478,8 @@ if _try_result.is_err() {
         let mut request: Value = self.prepare_account_request(&[Value::Null, params.clone()]);
         let __ws_arg_68 = self.extend(request, &[params]);
         let mut response: crate::value::Dict = self.v2_private_get_accounts_account_id_addresses(&[__ws_arg_68]).await.into_dict();
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_deposit_addresses(data, &[codes, Value::Bool(false), Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_deposit_addresses(&data, &[codes, Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

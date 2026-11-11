@@ -896,14 +896,14 @@ impl Krakenfutures {
         }
         let verboseparamsVerboseVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchOrders".into()), Value::Str("verbose".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut verbose: bool = verboseparamsVerboseVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsVerbose: Value = verboseparamsVerboseVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsVerbose: crate::value::Dict = verboseparamsVerboseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut name: Option<String> = Some("open_orders".to_string());
         let mut messageHash: String = "orders".to_string();
         if verbose {
             name = Some("open_orders_verbose".to_string());
             messageHash = "orders:verbose".to_string();
         }
-        let mut feed: Option<String> = self.safe_string_k(paramsVerbose.clone(), "feed", &[]).as_str().map(str::to_owned);
+        let mut feed: Option<String> = self.safe_string_k(&paramsVerbose, "feed", &[]).as_str().map(str::to_owned);
         if (feed.is_some()) {
             name = feed.clone();
             messageHash = "orders".to_string();
@@ -915,7 +915,7 @@ impl Krakenfutures {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             messageHash.push_str(&format!("{}{}", Value::Str(":".into()), Value::from((market).symbol.clone())));
         }
-        let mut orders: Value = self.subscribe_private(name.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash), &[paramsVerbose]).await;
+        let mut orders: Value = self.subscribe_private(name.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash), &[Value::Dict(paramsVerbose)]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());

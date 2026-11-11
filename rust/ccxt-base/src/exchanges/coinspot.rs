@@ -932,8 +932,8 @@ impl Coinspot {
             let mut numRows: f64 = ((rows.len() as i64) as f64);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_582: bool = true;
-                while { if !__for_first_582 { i += 1; } __for_first_582 = false; (i as f64) < numRows } {
+                let mut __for_first_583: bool = true;
+                while { if !__for_first_583 { i += 1; } __for_first_583 = false; (i as f64) < numRows } {
                 let mut currencies: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -941,8 +941,8 @@ impl Coinspot {
                 let mut currencyIdsList: Vec<Value> = Value::Array(currencies.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_581: bool = true;
-                    while { if !__for_first_581 { j += 1; } __for_first_581 = false; j < (currencyIdsList.len() as i64) } {
+                    let mut __for_first_582: bool = true;
+                    while { if !__for_first_582 { j += 1; } __for_first_582 = false; j < (currencyIdsList.len() as i64) } {
                     let mut currencyId: Value = currencyIdsList.get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut balance: crate::value::Dict = self.safe_dict(&currencies, currencyId.clone(), &[]).into_dict();
                     let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), &[]).as_str().map(str::to_owned);
@@ -959,8 +959,8 @@ impl Coinspot {
             let mut currencyIdsMap: Vec<Value> = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_583: bool = true;
-                while { if !__for_first_583 { i += 1; } __for_first_583 = false; i < (currencyIdsMap.len() as i64) } {
+                let mut __for_first_584: bool = true;
+                while { if !__for_first_584 { i += 1; } __for_first_584 = false; i < (currencyIdsMap.len() as i64) } {
                 let mut currencyId: Value = currencyIdsMap.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), &[]).as_str().map(str::to_owned);
                 let mut account: Value = self.account();
@@ -1192,8 +1192,8 @@ impl Coinspot {
         let mut ids: Vec<Value> = Value::Array(prices.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_584: bool = true;
-            while { if !__for_first_584 { i += 1; } __for_first_584 = false; i < (ids.len() as i64) } {
+            let mut __for_first_585: bool = true;
+            while { if !__for_first_585 { i += 1; } __for_first_585 = false; i < (ids.len() as i64) } {
             let mut id: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: Value = self.safe_market(&[id.clone().map(Value::from).unwrap_or(Value::Null)]);
             if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -1326,16 +1326,16 @@ impl Coinspot {
         let mut buyTrades: Value = self.safe_list_k(&response, "buyorders", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_585: bool = true;
-            while { if !__for_first_585 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_585 = false; i.as_f64().unwrap_or(f64::NAN) < ((buyTrades.len() as i64) as f64) } {
+            let mut __for_first_586: bool = true;
+            while { if !__for_first_586 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_586 = false; i.as_f64().unwrap_or(f64::NAN) < ((buyTrades.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut buyTrades, &i), &Value::Str("side".into()), Value::Str("buy".into()));
         }
         }
         let mut sellTrades: Value = self.safe_list_k(&response, "sellorders", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_586: bool = true;
-            while { if !__for_first_586 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_586 = false; i.as_f64().unwrap_or(f64::NAN) < ((sellTrades.len() as i64) as f64) } {
+            let mut __for_first_587: bool = true;
+            while { if !__for_first_587 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_587 = false; i.as_f64().unwrap_or(f64::NAN) < ((sellTrades.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut sellTrades, &i), &Value::Str("side".into()), Value::Str("sell".into()));
         }
         }

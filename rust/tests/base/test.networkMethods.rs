@@ -110,8 +110,8 @@ fn helperTestNetworkAliases() {
     let mut keys: Value = object_keys(&aliases);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1533: bool = true;
-        while { if !__for_first_1533 { i += 1; } __for_first_1533 = false; i < (keys.len() as i64) } {
+        let mut __for_first_1534: bool = true;
+        while { if !__for_first_1534 { i += 1; } __for_first_1534 = false; i < (keys.len() as i64) } {
         assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_string(exchange.prop(&&Value::Str("networkAliases".into())), keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]),
             &aliases.as_map().and_then(|__m| keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null))))));
         // unified codes are never aliases themselves

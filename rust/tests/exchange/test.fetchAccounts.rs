@@ -15,8 +15,8 @@ pub async fn testFetchAccounts(mut exchange: Value, mut skippedProperties: Value
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), accounts.clone()]);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1564: bool = true;
-        while { if !__for_first_1564 { i += 1; } __for_first_1564 = false; i < (accounts.len() as i64) } {
+        let mut __for_first_1565: bool = true;
+        while { if !__for_first_1565 { i += 1; } __for_first_1565 = false; i < (accounts.len() as i64) } {
         testAccount(exchange.clone(), skippedProperties.clone(), method.clone(), accounts.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
     }
     }

@@ -1952,10 +1952,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut token: Value = self.authenticate(&[]).await;
         let mut subscriptionHash: String = "executions".to_string();
         let mut messageHash: Value = name.clone();
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone());
-            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), symbolResolved).into());
+            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), symbolResolved.as_deref().unwrap_or("null")).into());
         }
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2");
         let mut requestId: Value = self.request_id();
@@ -1977,9 +1977,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = self.watch(url, messageHash, &[subscribe, Value::from(subscriptionHash)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = Value::from(result.get_limit(symbolResolved.as_str(), limit.as_i64()));
+            limitResolved = Value::from(result.get_limit(symbolResolved.as_deref(), limit.as_i64()));
         }
-        return self.filter_by_symbol_since_limit(result, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(result, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, limitResolved, Value::Bool(true)]);
 
     Value::Null
 }

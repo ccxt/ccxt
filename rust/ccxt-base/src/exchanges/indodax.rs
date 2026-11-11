@@ -654,8 +654,8 @@ impl Indodax {
         let mut rawMarkets: crate::value::List = self.to_array(response).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_838: bool = true;
-            while { if !__for_first_838 { i += 1; } __for_first_838 = false; i < (rawMarkets.len() as i64) } {
+            let mut __for_first_839: bool = true;
+            while { if !__for_first_839 { i += 1; } __for_first_839 = false; i < (rawMarkets.len() as i64) } {
             let mut market: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k(market.clone(), "id", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_k(market.clone(), "traded_currency", &[]).as_str().map(str::to_owned);
@@ -764,8 +764,8 @@ impl Indodax {
         let mut currencyIds: Vec<Value> = Value::Array(free.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_839: bool = true;
-            while { if !__for_first_839 { i += 1; } __for_first_839 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_840: bool = true;
+            while { if !__for_first_840 { i += 1; } __for_first_840 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -1000,8 +1000,8 @@ impl Indodax {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_840: bool = true;
-            while { if !__for_first_840 { i += 1; } __for_first_840 = false; i < (keys.len() as i64) } {
+            let mut __for_first_841: bool = true;
+            while { if !__for_first_841 { i += 1; } __for_first_841 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut rawTicker: Value = tickers.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = (if let Some(__s) = key.as_deref() { Some(__s.replace("_", "")) } else { None }).map(Value::from).unwrap_or(Value::Null);
@@ -1375,8 +1375,8 @@ impl Indodax {
         let mut exchangeOrders: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_841: bool = true;
-            while { if !__for_first_841 { i += 1; } __for_first_841 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_842: bool = true;
+            while { if !__for_first_842 { i += 1; } __for_first_842 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut marketOrders: Value = ordersDict.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
@@ -1828,8 +1828,8 @@ impl Indodax {
             let mut withdrawKeys: Vec<Value> = Value::Array(withdraw.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_842: bool = true;
-                while { if !__for_first_842 { i += 1; } __for_first_842 = false; i < (withdrawKeys.len() as i64) } {
+                let mut __for_first_843: bool = true;
+                while { if !__for_first_843 { i += 1; } __for_first_843 = false; i < (withdrawKeys.len() as i64) } {
                 let mut key: Value = withdrawKeys.get(i as usize).cloned().unwrap_or(Value::Null);
                 transactions = self.array_concat(transactions.clone(), withdraw.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
             }
@@ -1837,8 +1837,8 @@ impl Indodax {
             let mut depositKeys: Vec<Value> = Value::Array(deposit.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_843: bool = true;
-                while { if !__for_first_843 { i += 1; } __for_first_843 = false; i < (depositKeys.len() as i64) } {
+                let mut __for_first_844: bool = true;
+                while { if !__for_first_844 { i += 1; } __for_first_844 = false; i < (depositKeys.len() as i64) } {
                 let mut key: Value = depositKeys.get(i as usize).cloned().unwrap_or(Value::Null);
                 transactions = self.array_concat(transactions.clone(), deposit.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
             }
@@ -2078,8 +2078,8 @@ impl Indodax {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_845: bool = true;
-            while { if !__for_first_845 { i += 1; } __for_first_845 = false; i < (addressKeys.len() as i64) } {
+            let mut __for_first_846: bool = true;
+            while { if !__for_first_846 { i += 1; } __for_first_846 = false; i < (addressKeys.len() as i64) } {
             let mut marketId: Option<String> = addressKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut address: Option<String> = self.safe_string(&addresses, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -2099,8 +2099,8 @@ impl Indodax {
                         let mut networkIds: Vec<Value> = Value::Array(if let Some(__s) = networkId.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut j: i64 = 0;
-                            let mut __for_first_844: bool = true;
-                            while { if !__for_first_844 { j += 1; } __for_first_844 = false; j < (networkIds.len() as i64) } {
+                            let mut __for_first_845: bool = true;
+                            while { if !__for_first_845 { j += 1; } __for_first_845 = false; j < (networkIds.len() as i64) } {
                             let mut _netIdTmp: Value = self.network_id_to_code(&[networkIds.get(j as usize).cloned().unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
                             if (_netIdTmp != Value::Null) {
                                 if let Value::Arr(__a) = &mut network { std::sync::Arc::make_mut(__a).push((if let Some(__s) = _netIdTmp.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })); };

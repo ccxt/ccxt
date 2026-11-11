@@ -1253,17 +1253,17 @@ impl Bithumb {
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchBalance".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
         let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
-        let mut paramsGeneration: Value = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (generation == Some(2.0)) {
-            response = self.private_get_v1_accounts(&[paramsGeneration.clone()]).await;
+            response = self.private_get_v1_accounts(&[Value::from(&paramsGeneration)]).await;
         }  else {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), Value::Str("ALL".into()));
                 m
             });
-            let __ws_arg_2 = self.extend(Value::Map(request), &[paramsGeneration]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsGeneration]);
             response = self.private_post_info_balance(&[__ws_arg_2]).await;
         }
         return self.parse_balance_list(response);
@@ -2524,7 +2524,7 @@ impl Bithumb {
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("createOrder".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
         let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
-        let mut paramsGeneration: Value = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2532,7 +2532,7 @@ impl Bithumb {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Value = Value::Null;
         if (generation == Some(2.0)) {
-            request = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), paramsGeneration.clone()]).as_map().cloned().unwrap_or_default();
+            request = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), Value::from(&paramsGeneration)]).as_map().cloned().unwrap_or_default();
             response = self.private_post_v2_orders(&[Value::Map(request.clone())]).await;
         }  else {
             request.insert("order_currency".into(), Value::from((market).base.clone()));
@@ -2547,13 +2547,13 @@ impl Bithumb {
                     typeRequest = Some("ask".to_string());
                 }
                 request.insert("type".into(), typeRequest.map(Value::from).unwrap_or(Value::Null));
-                let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[paramsGeneration.clone()]);
+                let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
                 response = self.private_post_trade_place(&[__ws_arg_17]).await;
             }  else if (side.as_str() == Some("buy")) {
-                let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[paramsGeneration.clone()]);
+                let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
                 response = self.private_post_trade_market_buy(&[__ws_arg_18]).await;
             }  else {
-                let __ws_arg_19 = self.extend(Value::Map(request), &[paramsGeneration]);
+                let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsGeneration]);
                 response = self.private_post_trade_market_sell(&[__ws_arg_19]).await;
             }
         }
@@ -4078,7 +4078,7 @@ impl Bithumb {
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("createDepositAddress".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
         let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
-        let mut paramsGeneration: Value = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (generation != Some(2.0)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createDepositAddress() is only supported for the generation 2 API".into()))));
         }
@@ -4088,8 +4088,8 @@ impl Bithumb {
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut network: Option<String> = self.safe_string2(paramsGeneration.clone(), Value::Str("network".into()), Value::Str("net_type".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsGeneration, Value::Str("network".into()), &[]).into_dict();
+        let mut network: Option<String> = self.safe_string2(Value::from(&paramsGeneration), Value::Str("network".into()), Value::Str("net_type".into()), &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsGeneration, Value::Str("network".into()), &[]).into_dict();
         if (network.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), code).into()), Value::Str(" createDepositAddress() requires a network parameter".into()))));
         }
@@ -4128,7 +4128,7 @@ impl Bithumb {
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchDepositAddress".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
         let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
-        let mut paramsGeneration: Value = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (generation != Some(2.0)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() is only supported for the generation 2 API".into()))));
         }
@@ -4138,8 +4138,8 @@ impl Bithumb {
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut network: Option<String> = self.safe_string2(paramsGeneration.clone(), Value::Str("network".into()), Value::Str("net_type".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsGeneration, Value::Str("network".into()), &[]).into_dict();
+        let mut network: Option<String> = self.safe_string2(Value::from(&paramsGeneration), Value::Str("network".into()), Value::Str("net_type".into()), &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsGeneration, Value::Str("network".into()), &[]).into_dict();
         if (network.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), code).into()), Value::Str(" fetchDepositAddress() requires a network parameter".into()))));
         }

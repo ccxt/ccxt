@@ -1962,8 +1962,8 @@ impl Bittrade {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2058,8 +2058,8 @@ impl Bittrade {
         //         ]
         //     }
         //
-        let mut currencies: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_currencies(currencies);
+        let mut currencies: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_currencies(&currencies);
         Value::Null
         }).await?))
     }

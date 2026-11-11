@@ -1355,8 +1355,8 @@ impl Ndax {
         let mut asks: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_996: bool = true;
-            while { if !__for_first_996 { i += 1; } __for_first_996 = false; (i as f64) < get_array_length(&orderbook).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_997: bool = true;
+            while { if !__for_first_997 { i += 1; } __for_first_997 = false; (i as f64) < get_array_length(&orderbook).as_f64().unwrap_or(f64::NAN) } {
             let mut level: Value = self.safe_value(orderbook.clone(), Value::Int(i), &[]);
             let mut newTimestamp: Value = self.safe_integer(level.clone(), Value::Int(2), &[]);
             if (newTimestamp != Value::Null) && ((latestTimestamp == Value::Null) || (newTimestamp.as_f64().unwrap_or(f64::NAN) > latestTimestamp.as_f64().unwrap_or(f64::NAN))) {
@@ -1945,8 +1945,8 @@ impl Ndax {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_997: bool = true;
-            while { if !__for_first_997 { i += 1; } __for_first_997 = false; i < (response.len() as i64) } {
+            let mut __for_first_998: bool = true;
+            while { if !__for_first_998 { i += 1; } __for_first_998 = false; i < (response.len() as i64) } {
             let mut accountId: Option<String> = self.safe_string(response.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1973,8 +1973,8 @@ impl Ndax {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_998: bool = true;
-            while { if !__for_first_998 { i += 1; } __for_first_998 = false; i < (response.len() as i64) } {
+            let mut __for_first_999: bool = true;
+            while { if !__for_first_999 { i += 1; } __for_first_999 = false; i < (response.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "ProductId", &[]);
             if (currencyId.is_some()) && (self.currencies_by_id.clone() != Value::Null) && (matches!((&self.currencies_by_id, &currencyId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {

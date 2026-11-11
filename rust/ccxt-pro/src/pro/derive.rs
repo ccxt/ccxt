@@ -1097,14 +1097,14 @@ impl Derive {
         }
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("watchOrders".into()), params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subaccountIdString: Value = self.number_to_string(subaccountId);
         let mut topic: String = format!("{}{}", subaccountIdString, Value::Str(".orders".into()));
         let mut messageHash: String = topic.clone();
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone());
-            messageHash.push_str(&format!("{}{}", Value::Str(":".into()), symbolResolved));
+            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+            messageHash.push_str(&format!("{}{}", Value::Str(":".into()), symbolResolved.as_deref().unwrap_or("null")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1119,16 +1119,16 @@ impl Derive {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::from(topic));
-                m.insert("params".to_string(), paramsDeriveSubaccountId.clone());
+                m.insert("params".to_string(), Value::from(&paramsDeriveSubaccountId));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsDeriveSubaccountId]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
         let mut orders: Value = self.watch_private(Value::from(messageHash), message, Value::Map(subscription)).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
+            limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1304,14 +1304,14 @@ impl Derive {
         }
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("watchMyTrades".into()), params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subaccountIdString: Value = self.number_to_string(subaccountId);
         let mut topic: String = format!("{}{}", subaccountIdString, Value::Str(".trades".into()));
         let mut messageHash: String = topic.clone();
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone());
-            messageHash.push_str(&format!("{}{}", Value::Str(":".into()), symbolResolved));
+            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+            messageHash.push_str(&format!("{}{}", Value::Str(":".into()), symbolResolved.as_deref().unwrap_or("null")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1326,16 +1326,16 @@ impl Derive {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::from(topic));
-                m.insert("params".to_string(), paramsDeriveSubaccountId.clone());
+                m.insert("params".to_string(), Value::from(&paramsDeriveSubaccountId));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsDeriveSubaccountId]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
         let mut trades: Value = self.watch_private(Value::from(messageHash), message, Value::Map(subscription)).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.as_str(), limit.as_i64());
+            limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1448,7 +1448,7 @@ impl Derive {
         let mut paramsSnapshot: crate::value::Dict = fetchSnapshotparamsSnapshotVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("watchBalance".into()), &paramsSnapshot).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.balance.clone() == Value::Null) {
             let mut emptyBalances: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1467,7 +1467,7 @@ impl Derive {
                     m.insert("subaccount_id".to_string(), subaccountId.clone());
                 m
             });
-            let mut snapshotParams: Value = self.extend(Value::Map(snapshotRequest), &[paramsDeriveSubaccountId.clone()]);
+            let mut snapshotParams: Value = self.extend(Value::Map(snapshotRequest), &[&paramsDeriveSubaccountId]);
             let mut snapshot: crate::types::Balances = (match self.fetch_balance(snapshotParams).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut emptyBalance: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1491,10 +1491,10 @@ impl Derive {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::from(topic.clone()));
-                m.insert("params".to_string(), paramsDeriveSubaccountId.clone());
+                m.insert("params".to_string(), Value::from(&paramsDeriveSubaccountId));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsDeriveSubaccountId]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
         return self.watch_private(Value::from(topic), message, Value::Map(subscription)).await;
         Value::Null
         }).await?))
@@ -1535,7 +1535,7 @@ impl Derive {
         let mut paramsSnapshot: crate::value::Dict = fetchSnapshotparamsSnapshotVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("watchPositions".into()), &paramsSnapshot).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.positions.clone() == Value::Null) {
             let mut emptyCaches: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1563,7 +1563,7 @@ impl Derive {
                     m.insert("subaccount_id".to_string(), subaccountId.clone());
                 m
             });
-            let mut snapshotParams: Value = self.extend(Value::Map(snapshotRequest), &[paramsDeriveSubaccountId.clone()]);
+            let mut snapshotParams: Value = self.extend(Value::Map(snapshotRequest), &[&paramsDeriveSubaccountId]);
             let mut positionsSnapshot: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None, snapshotParams).await);
             let mut cache: Value = self.safe_value(self.positions.clone(), subaccountIdKey.clone(), &[]);
             {
@@ -1593,10 +1593,10 @@ impl Derive {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::from(topic));
-                m.insert("params".to_string(), paramsDeriveSubaccountId.clone());
+                m.insert("params".to_string(), Value::from(&paramsDeriveSubaccountId));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsDeriveSubaccountId]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
         let mut newPositions: Value = self.watch_private(Value::from(messageHash), message, Value::Map(subscription)).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;

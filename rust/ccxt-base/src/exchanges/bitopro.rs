@@ -674,8 +674,8 @@ impl Bitopro {
         //         ]
         //     }
         //
-        let mut currencies: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_currencies(currencies);
+        let mut currencies: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_currencies(&currencies);
         Value::Null
         }).await?))
     }
@@ -741,8 +741,8 @@ impl Bitopro {
     m
 }));
         let mut response: crate::value::Dict = self.public_get_provisioning_trading_pairs(&[]).await.into_dict();
-        let mut markets: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_markets(markets);
+        let mut markets: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_markets(&markets);
         Value::Null
         }).await?))
     }
@@ -1302,7 +1302,7 @@ impl Bitopro {
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_trading_history_pair(&[__ws_arg_3]).await.into_dict();
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         //
         //     {
         //         "data":[
@@ -1317,7 +1317,7 @@ impl Bitopro {
         //         ]
         //     }
         //
-        let mut sparse: Value = self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limitResolved.clone()]);
+        let mut sparse: Value = self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limitResolved.clone()]);
         return self.insert_missing_candles(sparse, (match (&(timeframeInSeconds), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), alignedSince, limitResolved);
         Value::Null
         }).await?))

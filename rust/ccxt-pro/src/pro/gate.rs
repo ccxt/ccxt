@@ -1061,9 +1061,9 @@ impl Gate {
         let mut interval: Value = Value::from(intervalDefault);
         let intervalOptionparamsIntervalVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[interval]).as_array().cloned().unwrap_or_default();
         let mut intervalOption: Value = intervalOptionparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsInterval: Value = intervalOptionparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsInterval: crate::value::Dict = intervalOptionparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageType: Value = self.get_type_by_market((market).raw.clone());
-        let mut limit: Value = self.safe_integer_k(paramsInterval.clone(), "limit", &[]);
+        let mut limit: Value = self.safe_integer_k(&paramsInterval, "limit", &[]);
         if (limit == Value::Null) {
             limit = (if matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) { Value::Int(50) } else { Value::Int(100) }); // max 100 atm
             if (messageType.as_str() == Some("options")) {
@@ -1090,7 +1090,7 @@ impl Gate {
         }
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbolValue);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook".into()), Value::Str(":".into())).into()), symbolValue);
-        return self.un_subscribe_public_multiple(url, Value::Str("orderbook".into()), Value::from(vec![Value::from(symbolValue)]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subMessageHash)]), payload, Value::from(channel), &[paramsInterval]).await;
+        return self.un_subscribe_public_multiple(url, Value::Str("orderbook".into()), Value::from(vec![Value::from(symbolValue)]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subMessageHash)]), payload, Value::from(channel), &[Value::Dict(paramsInterval)]).await;
         Value::Null
         }).await?))
     }
@@ -2336,20 +2336,20 @@ impl Gate {
         if !(self.is_empty(symbolsNormalized.clone().map_or(Value::Null, Value::Arr)).as_bool() == Some(true)) {
             market = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         }
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchPositions".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        if (type_var.as_str() == Some("spot")) {
-            type_var = Value::Str("swap".into());
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchPositions".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        if (type_var.as_deref() == Some("spot")) {
+            type_var = Some("swap".to_string());
         }
-        let mut typeId: Value = self.get_supported_mapping(type_var.clone(), &[Value::Map({
+        let mut typeId: Value = self.get_supported_mapping(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("future".to_string(), Value::Str("futures".into()));
                 m.insert("swap".to_string(), Value::Str("futures".into()));
                 m.insert("option".to_string(), Value::Str("options".into()));
             m
         })]);
-        let mut messageHash: String = format!("{}{}", type_var, Value::Str(":positions".into()));
+        let mut messageHash: String = format!("{}{}", type_var.as_deref().unwrap_or("null"), Value::Str(":positions".into()));
         if !(self.is_empty(symbolsNormalized.clone().map_or(Value::Null, Value::Arr)).as_bool() == Some(true)) {
             if (symbolsNormalized.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchPositions() symbols is required".into()))));
@@ -2360,20 +2360,20 @@ impl Gate {
         let mut subType: Option<String> = None;
         { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchPositions".into()), &[market, query.clone()]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut isInverse: Value = (Value::Bool(subType.as_deref() == Some("inverse")));
-        let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[isInverse]);
+        let mut url: Value = self.get_url_by_market_type(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[isInverse]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
-        self.set_positions_cache(client.as_value(), type_var.clone(), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
+        self.set_positions_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
         let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]);
-        let mut cache: Value = self.safe_value(self.positions.clone(), type_var.clone(), &[]);
+        let mut cache: Value = self.safe_value(self.positions.clone(), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (fetchPositionsSnapshot.as_bool() == Some(true)) && (awaitPositionsSnapshot.as_bool() == Some(true)) && (cache == Value::Null) {
-            return crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into()))).await;
+            return crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), Value::Str(":fetchPositionsSnapshot".into())).into()))).await;
         }
         let mut positions: Value = self.subscribe_private(url, Value::from(messageHash), payload, Value::from(channel), query, &[Value::Bool(true)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }
-        return self.filter_by_symbols_since_limit(self.safe_value(self.positions.clone(), type_var, &[]), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.safe_value(self.positions.clone(), type_var.map(Value::from).unwrap_or(Value::Null), &[]), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
         Value::Null
         }).await?))
     }

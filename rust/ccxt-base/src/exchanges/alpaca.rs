@@ -2319,13 +2319,13 @@ impl Alpaca {
         }
         let timeInForceparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(&paramsTrigger, Value::Str("editOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("gtc".into())]).as_array().cloned().unwrap_or_default();
         let mut timeInForce: Value = timeInForceparamsTimeInForceVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsTimeInForce: Value = timeInForceparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsTimeInForce: crate::value::Dict = timeInForceparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (timeInForce != Value::Null) {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
             request.insert("time_in_force".into(), (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
         }
-        request.insert("client_order_id".into(), self.generate_client_order_id(paramsTimeInForce.clone()).map(Value::from).unwrap_or(Value::Null));
-        let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(paramsTimeInForce, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
+        request.insert("client_order_id".into(), self.generate_client_order_id(Value::from(&paramsTimeInForce)).map(Value::from).unwrap_or(Value::Null));
+        let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(&paramsTimeInForce, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
         let mut response: Value = self.trader_private_patch_v2_orders_order_id(&[__ws_arg_17]).await;
         return self.parse_order(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         Value::Null

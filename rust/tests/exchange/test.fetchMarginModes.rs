@@ -17,8 +17,8 @@ pub async fn testFetchMarginModes(mut exchange: Value, mut skippedProperties: Va
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), marginModes.clone(), symbol.clone()]);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1577: bool = true;
-        while { if !__for_first_1577 { i += 1; } __for_first_1577 = false; i < (marginModeKeys.len() as i64) } {
+        let mut __for_first_1578: bool = true;
+        while { if !__for_first_1578 { i += 1; } __for_first_1578 = false; i < (marginModeKeys.len() as i64) } {
         let mut marginMode: Value = get_value(&marginModes, &marginModeKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), marginMode.clone(), symbol.clone()]);
         testMarginMode(exchange.clone(), skippedProperties.clone(), method.clone(), marginMode.clone());

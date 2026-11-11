@@ -670,8 +670,8 @@ impl Zaif {
         let mut currencyIds: Vec<Value> = Value::Array(funds.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1200: bool = true;
-            while { if !__for_first_1200 { i += 1; } __for_first_1200 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_1201: bool = true;
+            while { if !__for_first_1201 { i += 1; } __for_first_1201 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Option<String> = currencyIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut balance: Option<String> = self.safe_string(&funds, currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);

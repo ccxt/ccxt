@@ -1320,8 +1320,8 @@ impl Coinbaseinternational {
         //         "testnet": false
         //     }
         //
-        let mut instruments: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_markets(instruments);
+        let mut instruments: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        return self.parse_markets(&instruments);
         Value::Null
         }).await?))
     }
@@ -1508,8 +1508,8 @@ impl Coinbaseinternational {
         //         "testnet": false
         //     }
         //
-        let mut currencies: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_currencies(currencies);
+        let mut currencies: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        return self.parse_currencies(&currencies);
         Value::Null
         }).await?))
     }
@@ -1552,8 +1552,8 @@ impl Coinbaseinternational {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_558: bool = true;
-            while { if !__for_first_558 { i += 1; } __for_first_558 = false; i < (rawNetworks.len() as i64) } {
+            let mut __for_first_559: bool = true;
+            while { if !__for_first_559 { i += 1; } __for_first_559 = false; i < (rawNetworks.len() as i64) } {
             let mut rawNetwork: Value = rawNetworks.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k(rawNetwork.clone(), "resource_name", &[]).as_str().map(str::to_owned);
             let mut network: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -1841,8 +1841,8 @@ impl Coinbaseinternational {
         //         "testnet": false
         //     }
         //
-        let mut rawRates: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_funding_rate_histories(rawRates, &[(market).raw.clone(), since, limit]);
+        let mut rawRates: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        return self.parse_funding_rate_histories(&rawRates, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1938,8 +1938,8 @@ impl Coinbaseinternational {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_559: bool = true;
-            while { if !__for_first_559 { i += 1; } __for_first_559 = false; i < (symbolsResolved.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_560: bool = true;
+            while { if !__for_first_560 { i += 1; } __for_first_560 = false; i < (symbolsResolved.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = self.safe_string(&symbolsResolved, Value::Int(i), &[]).as_str().map(str::to_owned);
             if (symbol.is_none()) {
                 continue;
@@ -2138,8 +2138,8 @@ impl Coinbaseinternational {
                 }
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_560: bool = true;
-                    while { if !__for_first_560 { i += 1; } __for_first_560 = false; i < (depths.len() as i64) } {
+                    let mut __for_first_561: bool = true;
+                    while { if !__for_first_561 { i += 1; } __for_first_561 = false; i < (depths.len() as i64) } {
                     if limit.as_f64().unwrap_or(f64::NAN) <= self.parse_to_int(depths.get(i as usize).cloned().unwrap_or(Value::Null)).as_f64().unwrap_or(f64::NAN) {
                         request.insert("depth".into(), self.safe_integer(&depths, Value::Int(i), &[Value::Int(0)]));
                         break;
@@ -2521,8 +2521,8 @@ impl Coinbaseinternational {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_561: bool = true;
-            while { if !__for_first_561 { i += 1; } __for_first_561 = false; i < (summaries.len() as i64) } {
+            let mut __for_first_562: bool = true;
+            while { if !__for_first_562 { i += 1; } __for_first_562 = false; i < (summaries.len() as i64) } {
             let mut data: crate::value::Dict = self.safe_dict(summaries.clone(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&data, "currency", &[]).as_str().map(str::to_owned);
             let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -3043,8 +3043,8 @@ impl Coinbaseinternational {
         let mut transactions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_562: bool = true;
-            while { if !__for_first_562 { i += 1; } __for_first_562 = false; i < (logs.len() as i64) } {
+            let mut __for_first_563: bool = true;
+            while { if !__for_first_563 { i += 1; } __for_first_563 = false; i < (logs.len() as i64) } {
             let mut transaction: Value = logs.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut transactionType: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
             if (transactionType.as_deref() == Some("deposit")) || (transactionType.as_deref() == Some("withdrawal")) {

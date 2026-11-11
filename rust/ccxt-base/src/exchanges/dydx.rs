@@ -1143,8 +1143,8 @@ impl Dydx {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut markets: Value = Value::Array(data.values().cloned().collect());
-        return self.parse_markets(markets);
+        let mut markets: crate::value::List = Value::Array(data.values().cloned().collect()).into_list();
+        return self.parse_markets(&markets);
         Value::Null
         }).await?))
     }
@@ -1326,8 +1326,8 @@ impl Dydx {
         //     ]
         // }
         //
-        let mut rows: Value = self.safe_list_k(&response, "candles", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(rows, &[(market).raw.clone(), timeframe, since, limit]);
+        let mut rows: crate::value::List = self.safe_list_k(&response, "candles", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&rows, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1395,8 +1395,8 @@ impl Dydx {
         let mut rows: crate::value::List = self.safe_list_k(&response, "historicalFunding", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_658: bool = true;
-            while { if !__for_first_658 { i += 1; } __for_first_658 = false; i < (rows.len() as i64) } {
+            let mut __for_first_659: bool = true;
+            while { if !__for_first_659 { i += 1; } __for_first_659 = false; i < (rows.len() as i64) } {
             let mut entry: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut timestamp: Value = self.parse8601(self.safe_string_k(&entry, "effectiveAt", &[]));
             let mut marketId: Option<String> = self.safe_string_k(&entry, "ticker", &[]).as_str().map(str::to_owned);
@@ -2027,8 +2027,8 @@ impl Dydx {
         let mut c: Value = self.parse_to_int(m);
         {
                         let mut i: Value = Value::Int(1);
-            let mut __for_first_659: bool = true;
-            while { if !__for_first_659 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_659 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_660: bool = true;
+            while { if !__for_first_660 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_660 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
             r = crate::precise::Precise::stringMul(&r.clone().map(Value::from).unwrap_or(Value::Null), &n).as_str().map(str::to_owned);
         }
         }
@@ -2059,14 +2059,14 @@ impl Dydx {
         let mut subaccountId: i64 = 0;
         let subaccountIdOptionparamsSubAccountIdVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("createOrder".into()), Value::Str("subAccountId".into()), &[Value::from(subaccountId)]).as_array().cloned().unwrap_or_default();
         let mut subaccountIdOption: Value = subaccountIdOptionparamsSubAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubAccountId: Value = subaccountIdOptionparamsSubAccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut triggerPrice: Option<String> = self.safe_string2(paramsSubAccountId.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
-        let mut stopLossPrice: Option<String> = self.safe_string_k(paramsSubAccountId.clone(), "stopLossPrice", &[triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-        let mut takeProfitPrice: Option<String> = self.safe_string_k(paramsSubAccountId.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
+        let mut paramsSubAccountId: crate::value::Dict = subaccountIdOptionparamsSubAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut triggerPrice: Option<String> = self.safe_string2(Value::from(&paramsSubAccountId), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
+        let mut stopLossPrice: Option<String> = self.safe_string_k(&paramsSubAccountId, "stopLossPrice", &[triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut takeProfitPrice: Option<String> = self.safe_string_k(&paramsSubAccountId, "takeProfitPrice", &[]).as_str().map(str::to_owned);
         let mut isConditional: bool = (triggerPrice.is_some()) || (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
         let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
-        let mut timeInForce: Option<String> = self.safe_string_upper_k(paramsSubAccountId.clone(), "timeInForce", &[Value::Str("GTT".into())]).as_str().map(str::to_owned);
-        let mut postOnly: bool = self.is_post_only(isMarket, Value::Null, &[paramsSubAccountId.clone()]).as_bool() == Some(true);
+        let mut timeInForce: Option<String> = self.safe_string_upper_k(&paramsSubAccountId, "timeInForce", &[Value::Str("GTT".into())]).as_str().map(str::to_owned);
+        let mut postOnly: bool = self.is_post_only(isMarket, Value::Null, &[Value::from(&paramsSubAccountId)]).as_bool() == Some(true);
         let mut amountStr: Value = self.amount_to_precision(symbol.clone(), amount);
         let mut priceStr: Value = self.price_to_precision(symbol.clone(), price);
         let mut marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "info", &[Value::Map({
@@ -2125,12 +2125,12 @@ impl Dydx {
             }
             conditionalOrderTriggerSubticks = crate::precise::Precise::stringMul(&conditionalOrderTriggerSubticks.clone().map(Value::from).unwrap_or(Value::Null), &priceScale).as_str().map(str::to_owned);
         }
-        let mut latestBlockHeight: Value = self.safe_integer_k(paramsSubAccountId.clone(), "latestBlockHeight", &[]);
-        let mut goodTillBlock: Value = self.safe_integer_k(paramsSubAccountId.clone(), "goodTillBlock", &[]);
+        let mut latestBlockHeight: Value = self.safe_integer_k(&paramsSubAccountId, "latestBlockHeight", &[]);
+        let mut goodTillBlock: Value = self.safe_integer_k(&paramsSubAccountId, "goodTillBlock", &[]);
         let mut goodTillBlockTime: Value = Value::Null;
         let mut goodTillBlockTimeInSeconds: i64 = 2592000;
         // default is 30 days
-        let goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable: Vec<Value> = self.handle_option_integer_and_params(paramsSubAccountId, Value::Str("createOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[Value::from(goodTillBlockTimeInSeconds)]).as_array().cloned().unwrap_or_default();
+        let goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsSubAccountId, Value::Str("createOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[Value::from(goodTillBlockTimeInSeconds)]).as_array().cloned().unwrap_or_default();
         let mut goodTillBlockTimeInSecondsOption: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsGoodTillBlockTimeInSeconds: crate::value::Dict = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (orderFlag == Some(0)) {
@@ -3410,8 +3410,8 @@ impl Dydx {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_660: bool = true;
-            while { if !__for_first_660 { i += 1; } __for_first_660 = false; i < (rows.len() as i64) } {
+            let mut __for_first_661: bool = true;
+            while { if !__for_first_661 { i += 1; } __for_first_661 = false; i < (rows.len() as i64) } {
             let mut account: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut accountId: Option<String> = self.safe_string_k(&account, "subaccountNumber", &[]).as_str().map(str::to_owned);
             result.push(Value::Map({

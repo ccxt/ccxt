@@ -1225,10 +1225,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // itself was accepted on 116 and 117 of them, and the handful whose
         // tick was rejected accepted the next coarser level
         let mut symbol: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut aggregation: Value = Value::Null;
+        let mut aggregation: Option<String> = None;
         let mut paramsAggregation: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, methodName.clone(), Value::Str("aggregation".into()), &[]).as_array().cloned().unwrap_or_default(); aggregation = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsAggregation = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        if (aggregation == Value::Null) {
+        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, methodName.clone(), Value::Str("aggregation".into()), &[]).as_array().cloned().unwrap_or_default(); aggregation = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsAggregation = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        if (aggregation.is_none()) {
             let mut precision: crate::value::Dict = self.safe_dict_k(market, "precision", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1238,9 +1238,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a params[\"aggregation\"] price level for ".into())).into()),
                     symbol).into()), Value::Str(" because the market has no price precision".into()))));
             }
-            aggregation = self.number_to_string(Value::from(tickSize));
+            aggregation = self.number_to_string(Value::from(tickSize)).as_str().map(str::to_owned);
         }
-        return Value::from(vec![Value::Str(format!("{}{}", Value::Str("_".into()), aggregation).into()), paramsAggregation]);
+        return Value::from(vec![Value::Str(format!("{}{}", Value::Str("_".into()), aggregation.as_deref().unwrap_or("null")).into()), paramsAggregation]);
 
     Value::Null
 }

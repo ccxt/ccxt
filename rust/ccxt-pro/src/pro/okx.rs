@@ -2196,19 +2196,19 @@ impl Okx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
-        let mut depth: Value = Value::Null;
+        let mut depth: Option<String> = None;
         let mut paramsDepth: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("depth".into()), &[Value::Str("books".into())]).as_array().cloned().unwrap_or_default(); depth = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsDepth = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("depth".into()), &[Value::Str("books".into())]).as_array().cloned().unwrap_or_default(); depth = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsDepth = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut limit: Option<i64> = self.safe_integer_k(paramsDepth, "limit", &[]).as_i64();
         if (limit.is_some()) {
             if (limit == Some(1)) {
-                depth = Value::Str("bbo-tbt".into());
+                depth = Some("bbo-tbt".to_string());
             }  else if limit > Some(1) && (limit.is_some() && limit <= Some(5)) {
-                depth = Value::Str("books5".into());
+                depth = Some("books5".to_string());
             }  else if (limit == Some(50)) {
-                depth = Value::Str("books50-l2-tbt".into()); // Make sure you have VIP4 and above
+                depth = Some("books50-l2-tbt".to_string()); // Make sure you have VIP4 and above
             }  else if (limit == Some(400)) {
-                depth = Value::Str("books".into());
+                depth = Some("books".to_string());
             }
         }
         let mut topics: Vec<Value> = Vec::new();
@@ -2219,12 +2219,12 @@ impl Okx {
             let mut __for_first_544: bool = true;
             while { if !__for_first_544 { i += 1; } __for_first_544 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Value = symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null);
-            subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", depth, Value::Str(":".into())).into()), symbol).into()));
+            subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", depth.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), symbol).into()));
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), symbol).into())); }
             let mut marketId: Option<String> = self.market_id(symbol).as_str().map(str::to_owned);
             let mut topic: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("channel".to_string(), depth.clone());
+                    m.insert("channel".to_string(), depth.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("instId".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
                 m
             });
@@ -2237,7 +2237,7 @@ impl Okx {
                 m.insert("args".to_string(), Value::from(topics));
             m
         });
-        let mut url: Option<String> = self.get_url(depth, &[Value::Str("public".into())]);
+        let mut url: Option<String> = self.get_url(depth.map(Value::from).unwrap_or(Value::Null), &[Value::Str("public".into())]);
         return self.watch_multiple(url.as_deref(), messageHashes.clone(), &[Value::Map(request), messageHashes]).await;
         Value::Null
         }).await?))
@@ -2800,9 +2800,9 @@ impl Okx {
         // By default, receive order updates from any instrument type
         let typeOptionparamsTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchMyTrades".into()), Value::Str("type".into()), &[Value::Str("ANY".into())]).as_array().cloned().unwrap_or_default();
         let mut typeOption: Value = typeOptionparamsTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsType: Value = typeOptionparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isTrigger: bool = self.safe_bool2(paramsType.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(paramsType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
+        let mut paramsType: crate::value::Dict = typeOptionparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut isTrigger: bool = self.safe_bool2(Value::from(&paramsType), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut paramsOmitted: Value = self.omit(&paramsType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3059,9 +3059,9 @@ impl Okx {
         // By default, receive order updates from any instrument type
         let typeOptionparamsTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrders".into()), Value::Str("type".into()), &[Value::Str("ANY".into())]).as_array().cloned().unwrap_or_default();
         let mut typeOption: Value = typeOptionparamsTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsType: Value = typeOptionparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isTrigger: bool = self.safe_bool2(paramsType.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(paramsType, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
+        let mut paramsType: crate::value::Dict = typeOptionparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut isTrigger: bool = self.safe_bool2(Value::from(&paramsType), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut paramsOmitted: Value = self.omit(&paramsType, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3484,8 +3484,8 @@ impl Okx {
         let mut messageHash: Value = Value::Str(format!("{}", self.request_id()).into());
         let opparamsOpVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("editOrderWs".into()), Value::Str("op".into()), &[Value::Str("amend-order".into())]).as_array().cloned().unwrap_or_default();
         let mut op: Value = opparamsOpVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOp: Value = opparamsOpVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut args: Value = self.parent.edit_order_request(id, symbol.clone(), type_var, side, &[amount, price, paramsOp.clone()]);
+        let mut paramsOp: crate::value::Dict = opparamsOpVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut args: Value = self.parent.edit_order_request(id, symbol.clone(), type_var, side, &[amount, price, Value::from(&paramsOp)]);
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
         let mut instIdCode: Option<i64> = self.safe_integer_k(&market, "instIdCode", &[]).as_i64();
         if (instIdCode.is_some()) {
@@ -3499,7 +3499,7 @@ impl Okx {
                 m.insert("args".to_string(), Value::from(vec![args]));
             m
         });
-        let __ws_arg_4 = self.extend(Value::Map(request), &[paramsOp]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOp]);
         return self.watch(url.as_deref(), messageHash.clone(), &[__ws_arg_4, messageHash.clone()]).await;
         Value::Null
         }).await?))

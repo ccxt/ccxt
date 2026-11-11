@@ -2235,7 +2235,8 @@ impl Bitstamp {
         }).await?))
     }
 
-    pub fn parse_currencies(&self, mut rawCurrencies: Value) -> Value {
+    pub fn parse_currencies(&self, rawCurrencies: impl Into<crate::Value>) -> Value {
+        let mut rawCurrencies: Value = rawCurrencies.into();
         // each market row yields two currencies so the accumulation happens
         // in a local dictionary here instead of a temp key inside this.options
         // because the shared scratch key raced between concurrent
@@ -2841,8 +2842,8 @@ impl Bitstamp {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut ohlc: Value = self.safe_list_k(&data, "ohlc", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(ohlc, &[(market).raw.clone(), timeframe, since, limitResolved]);
+        let mut ohlc: crate::value::List = self.safe_list_k(&data, "ohlc", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&ohlc, &[(market).raw.clone(), timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -3641,8 +3642,8 @@ impl Bitstamp {
         //         ]
         //     }
         //
-        let mut values: Value = self.safe_list_k(&response, "funding_rate_history", &[Value::from(vec![])]);
-        return self.parse_funding_rate_histories(values, &[market, since, limit]);
+        let mut values: crate::value::List = self.safe_list_k(&response, "funding_rate_history", &[Value::from(vec![])]).into_list();
+        return self.parse_funding_rate_histories(&values, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -4408,12 +4409,12 @@ impl Bitstamp {
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
+        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), amount);
@@ -4423,12 +4424,12 @@ impl Bitstamp {
         let mut response: Value = Value::Null;
         if !(self.is_fiat(code.clone()).as_bool() == Some(true)) {
             if (code.as_str() == Some("XRP")) {
-                if (tagWithdrawTag != Value::Null) {
-                    request.insert("destination_tag".into(), tagWithdrawTag.clone());
+                if (tagWithdrawTag.is_some()) {
+                    request.insert("destination_tag".into(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null));
                 }
             }  else if (code.as_str() == Some("XLM")) || (code.as_str() == Some("HBAR")) {
-                if (tagWithdrawTag != Value::Null) {
-                    request.insert("memo_id".into(), tagWithdrawTag);
+                if (tagWithdrawTag.is_some()) {
+                    request.insert("memo_id".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
                 }
             }
             request.insert("address".into(), address.clone());

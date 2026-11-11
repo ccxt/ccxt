@@ -1272,10 +1272,10 @@ impl Pacifica {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "myTrades".to_string();
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone());
-            messageHash = format!("{}{}", Value::Str("myTrades:".into()), symbolResolved);
+            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+            messageHash = format!("{}{}", Value::Str("myTrades:".into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
@@ -1309,9 +1309,9 @@ impl Pacifica {
         let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.as_str(), limit.as_i64());
+            limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

@@ -2415,12 +2415,12 @@ impl Bitget {
             messageHash = "triggerOrder".to_string();
         }
         let mut subscriptionHash: String = "order:trades".to_string();
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]);
+            symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned);
             marketId = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]);
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved);
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(paramsTrigger, Value::Str("watchOrders".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: Option<bool> = utaparamsUtaVariable.get(0).and_then(Value::as_bool);
@@ -2432,10 +2432,10 @@ impl Bitget {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchOrders".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsMarketType, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if ((type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin"))) && (symbolResolved == Value::Null) {
+        if ((type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin"))) && (symbolResolved.is_none()) {
             marketId = Value::Str("default".into());
         }
-        if (productType.is_none()) && (type_var.as_deref() != Some("spot")) && (symbolResolved == Value::Null) {
+        if (productType.is_none()) && (type_var.as_deref() != Some("spot")) && (symbolResolved.is_none()) {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), subType);
         }  else if (productType.as_deref() == Some("USDT-FUTURES")) {
             messageHash = format!("{}{}", messageHash, Value::Str(":linear".into()));
@@ -2450,8 +2450,8 @@ impl Bitget {
         if !useSpotInstType {
             { let __destr_tmp: Vec<Value> = self.get_inst_type(Value::Str("watchOrders".into()), market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), &[uta.map_or(Value::Null, Value::Bool), paramsSubType]).as_array().cloned().unwrap_or_default(); instType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsInstType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }
-        if (type_var.as_deref() == Some("spot")) && (symbolResolved != Value::Null) {
-            subscriptionHash = format!("{}{}", Value::Str(format!("{}{}", subscriptionHash, Value::Str(":".into())).into()), symbolResolved);
+        if (type_var.as_deref() == Some("spot")) && (symbolResolved.is_some()) {
+            subscriptionHash = format!("{}{}", Value::Str(format!("{}{}", subscriptionHash, Value::Str(":".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         if (isTrigger.as_bool() == Some(true)) {
             subscriptionHash = format!("{}{}", subscriptionHash, Value::Str(":stop".into())); // we don't want to re-use the same subscription hash for stop orders
@@ -2506,9 +2506,9 @@ impl Bitget {
         let mut orders: Value = self.watch_private(uta.map_or(Value::Null, Value::Bool), Value::from(messageHash), Value::from(subscriptionHash), Value::Map(args), &[paramsRequest]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
+            limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3000,11 +3000,11 @@ impl Bitget {
         }
         let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "myTrades".to_string();
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]);
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved);
+            symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned);
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -3046,9 +3046,9 @@ impl Bitget {
         let mut trades: Value = self.watch_private(uta.map_or(Value::Null, Value::Bool), Value::from(messageHash), Value::from(subscriptionHash), Value::Map(args), &[paramsRequest]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.as_str(), limit.as_i64());
+            limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

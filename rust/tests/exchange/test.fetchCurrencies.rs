@@ -38,8 +38,8 @@ pub async fn testFetchCurrencies(mut exchange: Value, mut skippedProperties: Val
         let mut skipMajorCurrencyCheck: bool = in_op(&skippedProperties, &Value::Str("activeMajorCurrencies".into()));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1567: bool = true;
-            while { if !__for_first_1567 { i += 1; } __for_first_1567 = false; (i as f64) < currenciesLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1568: bool = true;
+            while { if !__for_first_1568 { i += 1; } __for_first_1568 = false; (i as f64) < currenciesLength.as_f64().unwrap_or(f64::NAN) } {
             let mut currency: Value = values.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             testCurrency(exchange.clone(), skippedProperties.clone(), method.clone(), currency.clone());
             // detailed check for deposit/withdraw
@@ -77,8 +77,8 @@ fn detectCurrencyConflicts(mut exchange: Value, mut currencyValues: Value) -> Va
     let mut keys: Value = object_keys(&currencyValues);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1568: bool = true;
-        while { if !__for_first_1568 { i += 1; } __for_first_1568 = false; i < (keys.len() as i64) } {
+        let mut __for_first_1569: bool = true;
+        while { if !__for_first_1569 { i += 1; } __for_first_1569 = false; i < (keys.len() as i64) } {
         let mut key: Value = keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         let mut currency: Value = get_value(&currencyValues, &key);
         let mut code: Value = get_value(&currency, &Value::Str("code".into()));

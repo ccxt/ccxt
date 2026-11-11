@@ -641,7 +641,7 @@ impl Bitflyer {
             let mut future: Value = (Value::Bool(marketType.as_deref() == Some("Futures")));
             let mut spot: bool = !(matches!(&swap, Value::Bool(true))) && !(matches!(&future, Value::Bool(true)));
             let mut type_var: String = "spot".to_string();
-            let mut settle: Value = Value::Null;
+            let mut settle: Option<String> = None;
             let mut baseId: Value = Value::Null;
             let mut quoteId: Value = Value::Null;
             let mut expiry: Value = Value::Null;
@@ -692,8 +692,8 @@ impl Bitflyer {
             if matches!(&contract, Value::Bool(true)) {
                 maker = Value::Int(0);
                 taker = Value::Int(0);
-                settle = Value::Str("JPY".into());
-                symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle);
+                settle = Some("JPY".to_string());
+                symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
                 if matches!(&future, Value::Bool(true)) {
                     symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.yymmdd(expiry.clone(), &[]));
                 }
@@ -704,7 +704,7 @@ impl Bitflyer {
                     m.insert("symbol".to_string(), Value::from(symbol));
                     m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("settle".to_string(), settle);
+                    m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
                     m.insert("baseId".to_string(), baseId);
                     m.insert("quoteId".to_string(), quoteId);
                     m.insert("settleId".to_string(), Value::Null);

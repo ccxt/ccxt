@@ -675,8 +675,8 @@ impl Revolutx {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1115: bool = true;
-            while { if !__for_first_1115 { i += 1; } __for_first_1115 = false; i < (keys.len() as i64) } {
+            let mut __for_first_1116: bool = true;
+            while { if !__for_first_1116 { i += 1; } __for_first_1116 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::value::Dict = self.safe_dict(&markets, key, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -806,8 +806,8 @@ impl Revolutx {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1116: bool = true;
-            while { if !__for_first_1116 { i += 1; } __for_first_1116 = false; i < (keys.len() as i64) } {
+            let mut __for_first_1117: bool = true;
+            while { if !__for_first_1117 { i += 1; } __for_first_1117 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currency: crate::value::Dict = self.safe_dict(&currencies, key.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -921,8 +921,8 @@ impl Revolutx {
             let mut marketIds: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1117: bool = true;
-                while { if !__for_first_1117 { i += 1; } __for_first_1117 = false; i < (symbols.len() as i64) } {
+                let mut __for_first_1118: bool = true;
+                while { if !__for_first_1118 { i += 1; } __for_first_1118 = false; i < (symbols.len() as i64) } {
                 let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 marketIds.push(Value::from((market).id.clone()));
@@ -958,8 +958,8 @@ impl Revolutx {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1118: bool = true;
-            while { if !__for_first_1118 { i += 1; } __for_first_1118 = false; i < (data.len() as i64) } {
+            let mut __for_first_1119: bool = true;
+            while { if !__for_first_1119 { i += 1; } __for_first_1119 = false; i < (data.len() as i64) } {
             let mut tickerData: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -980,8 +980,8 @@ impl Revolutx {
             });
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1119: bool = true;
-                while { if !__for_first_1119 { i += 1; } __for_first_1119 = false; i < (symbols.len() as i64) } {
+                let mut __for_first_1120: bool = true;
+                while { if !__for_first_1120 { i += 1; } __for_first_1120 = false; i < (symbols.len() as i64) } {
                 let mut s: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if (matches!((&result, &s), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     filtered.insert(crate::runtime::stringify_param(&s), (if let (Some(__m), Some(__k)) = (result.as_map(), s.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
@@ -1183,8 +1183,8 @@ impl Revolutx {
         //         "metadata": { "region": "EEA", "timestamp": 1785313433816 }
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1303,8 +1303,8 @@ impl Revolutx {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1120: bool = true;
-            while { if !__for_first_1120 { i += 1; } __for_first_1120 = false; i < (data.len() as i64) } {
+            let mut __for_first_1121: bool = true;
+            while { if !__for_first_1121 { i += 1; } __for_first_1121 = false; i < (data.len() as i64) } {
             let mut trade: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1361,8 +1361,8 @@ impl Revolutx {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1121: bool = true;
-            while { if !__for_first_1121 { i += 1; } __for_first_1121 = false; i < (data.len() as i64) } {
+            let mut __for_first_1122: bool = true;
+            while { if !__for_first_1122 { i += 1; } __for_first_1122 = false; i < (data.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1959,8 +1959,8 @@ impl Revolutx {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1122: bool = true;
-            while { if !__for_first_1122 { i += 1; } __for_first_1122 = false; i < (data.len() as i64) } {
+            let mut __for_first_1123: bool = true;
+            while { if !__for_first_1123 { i += 1; } __for_first_1123 = false; i < (data.len() as i64) } {
             let mut order: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2056,8 +2056,8 @@ impl Revolutx {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1123: bool = true;
-            while { if !__for_first_1123 { i += 1; } __for_first_1123 = false; i < (data.len() as i64) } {
+            let mut __for_first_1124: bool = true;
+            while { if !__for_first_1124 { i += 1; } __for_first_1124 = false; i < (data.len() as i64) } {
             let mut order: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2233,8 +2233,8 @@ impl Revolutx {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1124: bool = true;
-            while { if !__for_first_1124 { i += 1; } __for_first_1124 = false; i < (data.len() as i64) } {
+            let mut __for_first_1125: bool = true;
+            while { if !__for_first_1125 { i += 1; } __for_first_1125 = false; i < (data.len() as i64) } {
             let mut trade: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

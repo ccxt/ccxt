@@ -844,17 +844,17 @@ impl Hitbtc {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let methodNameparamsMethodVariable: Vec<Value> = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[Value::Str("watchTickers".into())]).as_array().cloned().unwrap_or_default();
         let mut methodName: Value = methodNameparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMethod: Value = methodNameparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null); // watchTicker passes its own name, so options.watchTicker still applies to it
+        let mut paramsMethod: crate::value::Dict = methodNameparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict(); // watchTicker passes its own name, so options.watchTicker still applies to it
         let mut options: crate::value::Dict = self.safe_dict(self.options.clone(), methodName, &[]).into_dict();
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("ticker/{speed}/batch".into())]).as_str().unwrap_or("ticker/{speed}/batch").to_string();
-        let mut method: Option<String> = self.safe_string2(paramsMethod.clone(), Value::Str("method".into()), Value::Str("defaultMethod".into()), &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
-        let mut speedValue: String = self.safe_string_k(paramsMethod.clone(), "speed", &[Value::Str("1s".into())]).as_str().unwrap_or("1s").to_string(); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
+        let mut method: Option<String> = self.safe_string2(Value::from(&paramsMethod), Value::Str("method".into()), Value::Str("defaultMethod".into()), &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
+        let mut speedValue: String = self.safe_string_k(&paramsMethod, "speed", &[Value::Str("1s".into())]).as_str().unwrap_or("1s").to_string(); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
         let mut name: Value = self.implode_params(method.map(Value::from).unwrap_or(Value::Null), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("speed".to_string(), Value::from(speedValue));
             m
         }));
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsMethod, Value::from(vec![Value::Str("method".into()), Value::Str("defaultMethod".into()), Value::Str("speed".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMethod, Value::from(vec![Value::Str("method".into()), Value::Str("defaultMethod".into()), Value::Str("speed".into())]), &[]).into_dict();
         let mut marketIds: Vec<Value> = Vec::new();
         if (symbolsNormalized.is_none()) {
             marketIds.push(Value::Str("*".into()));

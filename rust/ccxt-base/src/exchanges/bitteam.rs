@@ -766,8 +766,8 @@ impl Bitteam {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut markets: Value = self.safe_list_k(&result, "pairs", &[Value::from(vec![])]);
-        return self.parse_markets(markets);
+        let mut markets: crate::value::List = self.safe_list_k(&result, "pairs", &[Value::from(vec![])]).into_list();
+        return self.parse_markets(&markets);
         Value::Null
         }).await?))
     }
@@ -980,7 +980,7 @@ impl Bitteam {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut currencies: Value = self.safe_list_k(&responseResult, "currencies", &[Value::from(vec![])]);
+        let mut currencies: crate::value::List = self.safe_list_k(&responseResult, "currencies", &[Value::from(vec![])]).into_list();
         // using another endpoint to fetch statuses of deposits and withdrawals
         let mut statusesResponse: Value = self.public_get_trade_api_cmc_assets(&[]).await;
         //
@@ -1005,7 +1005,7 @@ impl Bitteam {
         //
         statusesResponse = self.index_by(statusesResponse.clone(), Value::Str("unified_cryptoasset_id".into()));
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("_temp_currencies_statuses".into(), statusesResponse); }
-        let mut result: Value = self.parse_currencies(currencies);
+        let mut result: Value = self.parse_currencies(&currencies);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).shift_remove("_temp_currencies_statuses"); }
         return result;
         Value::Null
@@ -1218,8 +1218,8 @@ impl Bitteam {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Value = self.safe_list_k(&result, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&result, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }

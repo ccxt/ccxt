@@ -1124,20 +1124,20 @@ impl Bybit {
         if isSpot {
             type_var = "spot".to_string();
         }
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         let mut parsed: Value = Value::Null;
         if (updateType.as_deref() == Some("snapshot")) {
             parsed = self.parse_ticker(data.clone(), &[]);
-            symbol = self.safe_string_k(parsed.clone(), "symbol", &[]);
+            symbol = self.safe_string_k(parsed.clone(), "symbol", &[]).as_str().map(str::to_owned);
         }  else if (updateType.as_deref() == Some("delta")) {
             let mut topicParts: Value = Value::Array(topic.split(".").map(Value::from).collect());
             let mut topicLength: Value = Value::Int(topicParts.len() as i64);
             let mut marketId: Option<String> = self.safe_string(topicParts, (match (&(topicLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
                 Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]);
-            symbol = self.safe_string_k(market, "symbol", &[]);
+            symbol = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
             // update the info in place
-            let mut ticker: crate::value::Dict = self.safe_dict(self.tickers.clone(), symbol.clone(), &[Value::Map({
+            let mut ticker: crate::value::Dict = self.safe_dict(self.tickers.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
@@ -1148,15 +1148,15 @@ impl Bybit {
             let mut merged: Value = self.extend(rawTicker, &[data]);
             parsed = self.parse_ticker(merged, &[]);
         }
-        if (parsed == Value::Null) || (symbol == Value::Null) {
+        if (parsed == Value::Null) || (symbol.is_none()) {
             return;
         }
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), Value::from(timestamp)); }
         if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(Value::from(timestamp))); }
-        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed); }
-        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol);
-        client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), parsed); }
+        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol.as_deref().unwrap_or("null"));
+        client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
 /*

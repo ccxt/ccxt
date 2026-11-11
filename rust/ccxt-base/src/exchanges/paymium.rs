@@ -429,8 +429,8 @@ impl Paymium {
         let mut currencies: Vec<Value> = Value::Array(self.currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1074: bool = true;
-            while { if !__for_first_1074 { i += 1; } __for_first_1074 = false; i < (currencies.len() as i64) } {
+            let mut __for_first_1075: bool = true;
+            while { if !__for_first_1075 { i += 1; } __for_first_1075 = false; i < (currencies.len() as i64) } {
             let mut code: Value = currencies.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
             let mut currencyId: Value = currency.get("id").cloned().unwrap_or(Value::Null);

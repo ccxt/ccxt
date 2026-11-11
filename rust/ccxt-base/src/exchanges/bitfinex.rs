@@ -4532,7 +4532,7 @@ impl Bitfinex {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), request);
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut requestHeaders: Value = Value::Null;
         if (apiName.as_deref() == Some("public")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
@@ -4543,8 +4543,8 @@ impl Bitfinex {
             self.check_required_credentials(&[]);
             // bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
             let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
-            requestBody = json_stringify(&query);
-            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/api/".into()), request).into()), nonce).into()), requestBody);
+            requestBody = json_stringify(&query).as_str().map(str::to_owned);
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/api/".into()), request).into()), nonce).into()), requestBody.as_deref().unwrap_or("null"));
             let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4555,7 +4555,7 @@ impl Bitfinex {
                 m
             });
         }
-        let mut bodyResolved: Value = requestBody;
+        let mut bodyResolved: Value = requestBody.map(Value::from).unwrap_or(Value::Null);
         let mut headersResolved: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -790,8 +790,8 @@ impl Zebpay {
         let mut types: crate::value::List = self.safe_list_k(&fetchMarketsOptions, "types", &[defaultMarkets]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1201: bool = true;
-            while { if !__for_first_1201 { i += 1; } __for_first_1201 = false; i < (types.len() as i64) } {
+            let mut __for_first_1202: bool = true;
+            while { if !__for_first_1202 { i += 1; } __for_first_1202 = false; i < (types.len() as i64) } {
             let mut type_var: String = self.safe_string(&types, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (type_var == "spot") {
                 promisesUnresolved.push(self.fetch_spot_markets(&[params.clone()]).await);
@@ -860,8 +860,8 @@ impl Zebpay {
         //             ]
         //     }
         //
-        let mut rows: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_currencies(rows);
+        let mut rows: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_currencies(&rows);
         Value::Null
         }).await?))
     }
@@ -883,8 +883,8 @@ impl Zebpay {
         let mut withdraw: bool = false;
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1202: bool = true;
-            while { if !__for_first_1202 { j += 1; } __for_first_1202 = false; j < (chains.len() as i64) } {
+            let mut __for_first_1203: bool = true;
+            while { if !__for_first_1203 { j += 1; } __for_first_1203 = false; j < (chains.len() as i64) } {
             let mut chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&chain, "chainId", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -1121,8 +1121,8 @@ impl Zebpay {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1203: bool = true;
-            while { if !__for_first_1203 { i += 1; } __for_first_1203 = false; i < (fees.len() as i64) } {
+            let mut __for_first_1204: bool = true;
+            while { if !__for_first_1204 { i += 1; } __for_first_1204 = false; i < (fees.len() as i64) } {
             let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
             let mut symbol: Value = fee.get("symbol").cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -1411,8 +1411,8 @@ impl Zebpay {
         //                 ]
         //             ]
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limitResolved]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -2533,8 +2533,8 @@ impl Zebpay {
         let mut markets: crate::value::List = self.safe_list_k(&data, "symbols", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1204: bool = true;
-            while { if !__for_first_1204 { i += 1; } __for_first_1204 = false; i < (markets.len() as i64) } {
+            let mut __for_first_1205: bool = true;
+            while { if !__for_first_1205 { i += 1; } __for_first_1205 = false; i < (markets.len() as i64) } {
             let mut market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_k(&market, "baseAsset", &[]).as_str().map(str::to_owned);
@@ -2640,8 +2640,8 @@ impl Zebpay {
         let mut markets: crate::value::List = self.safe_list_k(&data, "symbols", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1205: bool = true;
-            while { if !__for_first_1205 { i += 1; } __for_first_1205 = false; i < (markets.len() as i64) } {
+            let mut __for_first_1206: bool = true;
+            while { if !__for_first_1206 { i += 1; } __for_first_1206 = false; i < (markets.len() as i64) } {
             let mut market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_k(&market, "baseAsset", &[]).as_str().map(str::to_owned);
@@ -2710,8 +2710,8 @@ impl Zebpay {
         let mut currencyList: crate::value::List = self.safe_list_k(response, "data", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1206: bool = true;
-            while { if !__for_first_1206 { i += 1; } __for_first_1206 = false; i < (currencyList.len() as i64) } {
+            let mut __for_first_1207: bool = true;
+            while { if !__for_first_1207 { i += 1; } __for_first_1207 = false; i < (currencyList.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&currencyList, Value::Int(i), &[]).into_dict();
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&entry, "total", &[]));

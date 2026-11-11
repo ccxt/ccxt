@@ -613,8 +613,8 @@ impl P2b {
         //        ]
         //    }
         //
-        let mut markets: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_markets(markets);
+        let mut markets: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        return self.parse_markets(&markets);
         Value::Null
         }).await?))
     }
@@ -1162,8 +1162,8 @@ impl P2b {
         //        current_time: '1699256375.030494'
         //    }
         //
-        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(result, &[(market).raw.clone(), timeframe, since, limit]);
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&result, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1244,8 +1244,8 @@ impl P2b {
         let mut keys: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1041: bool = true;
-            while { if !__for_first_1041 { i += 1; } __for_first_1041 = false; i < (keys.len() as i64) } {
+            let mut __for_first_1042: bool = true;
+            while { if !__for_first_1042 { i += 1; } __for_first_1042 = false; i < (keys.len() as i64) } {
             let mut currencyId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut balance: crate::value::Dict = self.safe_dict(response.clone(), currencyId.clone(), &[]).into_dict();
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -1768,8 +1768,8 @@ impl P2b {
         let mut keys: Vec<Value> = Value::Array(result.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1042: bool = true;
-            while { if !__for_first_1042 { i += 1; } __for_first_1042 = false; i < (keys.len() as i64) } {
+            let mut __for_first_1043: bool = true;
+            while { if !__for_first_1043 { i += 1; } __for_first_1043 = false; i < (keys.len() as i64) } {
             let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut marketOrders: Value = result.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut parsedOrders: Value = self.parse_orders(marketOrders, &[market.clone(), sinceResolved.clone(), limit.clone()]);

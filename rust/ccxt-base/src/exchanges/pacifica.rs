@@ -1276,8 +1276,8 @@ if _try_result.is_err() {
         //   "error": null,
         //   "code": null
         // }
-        let mut markets: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_markets(markets);
+        let mut markets: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_markets(&markets);
         Value::Null
         }).await?))
     }
@@ -1543,8 +1543,8 @@ if _try_result.is_err() {
         let mut spotBalances: crate::value::List = self.safe_list_k(data.clone(), "spot_balances", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1043: bool = true;
-            while { if !__for_first_1043 { i += 1; } __for_first_1043 = false; i < (spotBalances.len() as i64) } {
+            let mut __for_first_1044: bool = true;
+            while { if !__for_first_1044 { i += 1; } __for_first_1044 = false; i < (spotBalances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&spotBalances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "symbol", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1728,8 +1728,8 @@ if _try_result.is_err() {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1044: bool = true;
-            while { if !__for_first_1044 { i += 1; } __for_first_1044 = false; (i as f64) < settingsLen } {
+            let mut __for_first_1045: bool = true;
+            while { if !__for_first_1045 { i += 1; } __for_first_1045 = false; (i as f64) < settingsLen } {
             let mut setting: Value = settings.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k(setting.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]).into_dict();
@@ -2113,8 +2113,8 @@ if _try_result.is_err() {
         //   "code": null
         // }
         //
-        let mut candles: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(candles, &[(market).raw.clone(), timeframe, since, limit]);
+        let mut candles: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&candles, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2644,8 +2644,8 @@ if _try_result.is_err() {
         let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default(); // unified sequence
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1045: bool = true;
-            while { if !__for_first_1045 { i += 1; } __for_first_1045 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1046: bool = true;
+            while { if !__for_first_1046 { i += 1; } __for_first_1046 = false; i < (orders.len() as i64) } {
             let mut order: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&order, "symbol", &[]).as_str().map(str::to_owned);
             let mut side: Option<String> = self.safe_string_k(&order, "side", &[]).as_str().map(str::to_owned);
@@ -2730,8 +2730,8 @@ if _try_result.is_err() {
         let mut ordersToReturn: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1046: bool = true;
-            while { if !__for_first_1046 { i += 1; } __for_first_1046 = false; i < (results.len() as i64) } {
+            let mut __for_first_1047: bool = true;
+            while { if !__for_first_1047 { i += 1; } __for_first_1047 = false; i < (results.len() as i64) } {
             let mut order: crate::value::Dict = results.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut error: Option<String> = self.safe_string_k(&order, "error", &[]).as_str().map(str::to_owned);
             let mut success: bool = self.safe_bool_k(&order, "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -2818,8 +2818,8 @@ if _try_result.is_err() {
         let mut ordersToReturn: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1047: bool = true;
-            while { if !__for_first_1047 { i += 1; } __for_first_1047 = false; i < (results.len() as i64) } {
+            let mut __for_first_1048: bool = true;
+            while { if !__for_first_1048 { i += 1; } __for_first_1048 = false; i < (results.len() as i64) } {
             let mut order: crate::value::Dict = results.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut error: Option<String> = self.safe_string_k(&order, "error", &[]).as_str().map(str::to_owned);
             let mut success: bool = self.safe_bool_k(&order, "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -2852,8 +2852,8 @@ if _try_result.is_err() {
         let mut actions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1048: bool = true;
-            while { if !__for_first_1048 { i += 1; } __for_first_1048 = false; i < (ids.len() as i64) } {
+            let mut __for_first_1049: bool = true;
+            while { if !__for_first_1049 { i += 1; } __for_first_1049 = false; i < (ids.len() as i64) } {
             let mut id: Option<String> = self.safe_string(ids.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
             let mut request: Value = self.cancel_order_request(id.map(Value::from).unwrap_or(Value::Null), &[symbol.clone(), params.clone()]);
             let mut action: Value = Value::Map({
@@ -2869,8 +2869,8 @@ if _try_result.is_err() {
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("clientOrderIds".into()), &[]).into_dict();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1049: bool = true;
-            while { if !__for_first_1049 { i += 1; } __for_first_1049 = false; i < (clientOrderIds.len() as i64) } {
+            let mut __for_first_1050: bool = true;
+            while { if !__for_first_1050 { i += 1; } __for_first_1050 = false; i < (clientOrderIds.len() as i64) } {
             let mut cloid: Value = clientOrderIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut cloidParams: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -3231,8 +3231,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1050: bool = true;
-            while { if !__for_first_1050 { i += 1; } __for_first_1050 = false; i < (data.len() as i64) } {
+            let mut __for_first_1051: bool = true;
+            while { if !__for_first_1051 { i += 1; } __for_first_1051 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "created_at", &[]).as_i64();
             result.push(Value::Map({
@@ -3305,8 +3305,8 @@ if _try_result.is_err() {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1051: bool = true;
-            while { if !__for_first_1051 { i += 1; } __for_first_1051 = false; i < (data.len() as i64) } {
+            let mut __for_first_1052: bool = true;
+            while { if !__for_first_1052 { i += 1; } __for_first_1052 = false; i < (data.len() as i64) } {
             let mut info: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ticker(info, &[]);
             let mut symbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
@@ -4022,8 +4022,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1052: bool = true;
-            while { if !__for_first_1052 { i += 1; } __for_first_1052 = false; i < (data.len() as i64) } {
+            let mut __for_first_1053: bool = true;
+            while { if !__for_first_1053 { i += 1; } __for_first_1053 = false; i < (data.len() as i64) } {
             result.push(self.parse_position(data.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Null]));
         }
         }
@@ -4340,8 +4340,8 @@ if _try_result.is_err() {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1053: bool = true;
-            while { if !__for_first_1053 { i += 1; } __for_first_1053 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1054: bool = true;
+            while { if !__for_first_1054 { i += 1; } __for_first_1054 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(data.clone(), &[crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()))]));
         }
@@ -4413,8 +4413,8 @@ if _try_result.is_err() {
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut response: crate::value::Dict = self.public_get_info_prices(&[params]).await.into_dict();
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_open_interests(data, &[symbolsNormalized]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_open_interests(&data, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }
@@ -5021,9 +5021,9 @@ if _try_result.is_err() {
         let mut agentAddress: Option<String> = agentAddressparamsAgentAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAgentAddress: crate::value::Dict = agentAddressparamsAgentAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let originAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("createSubAccount".into()), &paramsAgentAddress).as_array().cloned().unwrap_or_default();
-        let mut originAddress: Value = originAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut originAddress: Option<String> = originAddressparamsOriginAndSingleAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOriginAndSingleAddress: crate::value::Dict = originAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (originAddress == Value::Null) {
+        if (originAddress.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials".into()))));
         }
         if (agentAddress.is_some()) {
@@ -5056,7 +5056,7 @@ if _try_result.is_err() {
         });
         let mut subSigPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("account".to_string(), originAddress.clone());
+                m.insert("account".to_string(), originAddress.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut subaccountSignature: Value = self.sign_message(Value::Map(subaccountSignatureHeader), Value::Map(subSigPayload), subAccountPrivateKey.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
@@ -5073,7 +5073,7 @@ if _try_result.is_err() {
             m
         });
         let mut main_signature: Value = self.sign_message(Value::Map(mainSignatureHeader), Value::Map(mainSigPayload), self.privateKey.clone()).map(Value::from).unwrap_or(Value::Null);
-        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("main_account".into(), originAddress); }
+        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("main_account".into(), originAddress.map(Value::from).unwrap_or(Value::Null)); }
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("subaccount".into(), subAccountAddress.map(Value::from).unwrap_or(Value::Null)); }
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("sub_signature".into(), subaccountSignature); }
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("main_signature".into(), main_signature); }
@@ -5402,8 +5402,8 @@ if _try_result.is_err() {
             let mut sortedKeys: Value = self.sort(keys, &[]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1054: bool = true;
-                while { if !__for_first_1054 { i += 1; } __for_first_1054 = false; i < (sortedKeys.len() as i64) } {
+                let mut __for_first_1055: bool = true;
+                while { if !__for_first_1055 { i += 1; } __for_first_1055 = false; i < (sortedKeys.len() as i64) } {
                 let mut key: Value = self.safe_string(sortedKeys.clone(), Value::Int(i), &[Value::Str("".into())]);
                 result.insert(crate::runtime::stringify_param(&key), self.sort_json_keys(get_value(&value, &key)));
             }
@@ -5413,8 +5413,8 @@ if _try_result.is_err() {
             let mut sortedList: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1055: bool = true;
-                while { if !__for_first_1055 { i += 1; } __for_first_1055 = false; i < (value.len() as i64) } {
+                let mut __for_first_1056: bool = true;
+                while { if !__for_first_1056 { i += 1; } __for_first_1056 = false; i < (value.len() as i64) } {
                 sortedList.push(self.sort_json_keys(value.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)));
             }
             }

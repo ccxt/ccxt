@@ -1078,8 +1078,8 @@ impl Bitso {
         //
         let mut payload: crate::value::Dict = self.safe_dict_k(&catalogues, "payload", &[]).into_dict();
         let mut currencies: crate::value::Dict = self.safe_dict_k(&payload, "currencies", &[]).into_dict();
-        let mut metadata: Value = self.safe_list_k(&currencies, "metadata", &[Value::from(vec![])]);
-        return self.parse_currencies(metadata);
+        let mut metadata: crate::value::List = self.safe_list_k(&currencies, "metadata", &[Value::from(vec![])]).into_list();
+        return self.parse_currencies(&metadata);
         Value::Null
         }).await?))
     }
@@ -1389,8 +1389,8 @@ impl Bitso {
         //         ]
         //     }
         //
-        let mut payload: Value = self.safe_list_k(&response, "payload", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(payload, &[(market).raw.clone(), timeframe, since, limit]);
+        let mut payload: crate::value::List = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&payload, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }

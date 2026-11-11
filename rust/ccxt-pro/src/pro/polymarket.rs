@@ -1757,7 +1757,7 @@ impl Polymarket {
         let mut messageHashes: crate::value::List = self.safe_list_k(&pending, "messageHashes", &[Value::from(vec![])]).into_list();
         let mut subMessageHashes: crate::value::List = self.safe_list_k(&pending, "subMessageHashes", &[Value::from(vec![])]).into_list();
         let mut action: Option<String> = self.safe_string_k(&pending, "method", &[]).as_str().map(str::to_owned);
-        let mut errorMessage: Value = Value::Null;
+        let mut errorMessage: Option<String> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_646: bool = true;
@@ -1768,12 +1768,12 @@ impl Polymarket {
             })]).into_dict();
             let mut status: Option<String> = self.safe_string_k(&entry, "status", &[]).as_str().map(str::to_owned);
             if (status.as_deref() == Some("err")) {
-                errorMessage = self.safe_string_k(&entry, "error", &[]);
+                errorMessage = self.safe_string_k(&entry, "error", &[]).as_str().map(str::to_owned);
             }
         }
         }
-        if (errorMessage != Value::Null) {
-            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), errorMessage)));
+        if (errorMessage.is_some()) {
+            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), errorMessage.as_deref().unwrap_or("null"))));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_647: bool = true;

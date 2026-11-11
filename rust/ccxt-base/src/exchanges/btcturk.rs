@@ -585,8 +585,8 @@ impl Btcturk {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut markets: Value = self.safe_list_k(&data, "symbols", &[Value::from(vec![])]);
-        return self.parse_markets(markets);
+        let mut markets: crate::value::List = self.safe_list_k(&data, "symbols", &[Value::from(vec![])]).into_list();
+        return self.parse_markets(&markets);
         Value::Null
         }).await?))
     }
@@ -1140,30 +1140,54 @@ impl Btcturk {
             }
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.graph_get_klines_history(&[__ws_arg_2]).await;
-        return self.parse_ohlc_vs(response, &[(market).raw.clone(), timeframe, since, limitResolved]);
-        Value::Null
-        }).await?))
-    }
-
-    pub fn parse_ohlc_vs(&self, mut ohlcvs: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut timeframe = get_arg(optional_args, 1, Value::Str("1m".into()));
-        let mut since = get_arg(optional_args, 2, Value::Null);
-        let mut limit = get_arg(optional_args, 3, Value::Null);
-        let mut tail = get_arg(optional_args, 4, Value::Bool(false));
-        let mut results: Vec<Value> = Vec::new();
-        let mut timestamp: crate::value::List = self.safe_list_k(ohlcvs.clone(), "t", &[Value::from(vec![])]).into_list();
-        let mut high: crate::value::List = self.safe_list_k(ohlcvs.clone(), "h", &[Value::from(vec![])]).into_list();
-        let mut open: crate::value::List = self.safe_list_k(ohlcvs.clone(), "o", &[Value::from(vec![])]).into_list();
-        let mut low: crate::value::List = self.safe_list_k(ohlcvs.clone(), "l", &[Value::from(vec![])]).into_list();
-        let mut close: crate::value::List = self.safe_list_k(ohlcvs.clone(), "c", &[Value::from(vec![])]).into_list();
-        let mut volume: crate::value::List = self.safe_list_k(ohlcvs, "v", &[Value::from(vec![])]).into_list();
+        let mut response: crate::value::Dict = self.graph_get_klines_history(&[__ws_arg_2]).await.into_dict();
+        //
+        //    {
+        //        "s": "ok",
+        //        "t": [
+        //          1661990400,
+        //          1661990520,
+        //          ...
+        //        ],
+        //        "h": [
+        //          368388.0,
+        //          369090.0,
+        //          ...
+        //        ],
+        //        "o": [
+        //          368388.0,
+        //          368467.0,
+        //          ...
+        //        ],
+        //        "l": [
+        //          368388.0,
+        //          368467.0,
+        //          ...
+        //        ],
+        //        "c": [
+        //          368388.0,
+        //          369090.0,
+        //          ...
+        //        ],
+        //        "v": [
+        //          0.00035208,
+        //          0.2972395,
+        //          ...
+        //        ]
+        //    }
+        //
+        let mut timestamp: crate::value::List = self.safe_list_k(&response, "t", &[Value::from(vec![])]).into_list();
+        let mut high: crate::value::List = self.safe_list_k(&response, "h", &[Value::from(vec![])]).into_list();
+        let mut open: crate::value::List = self.safe_list_k(&response, "o", &[Value::from(vec![])]).into_list();
+        let mut low: crate::value::List = self.safe_list_k(&response, "l", &[Value::from(vec![])]).into_list();
+        let mut close: crate::value::List = self.safe_list_k(&response, "c", &[Value::from(vec![])]).into_list();
+        let mut volume: crate::value::List = self.safe_list_k(&response, "v", &[Value::from(vec![])]).into_list();
+        let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_477: bool = true;
             while { if !__for_first_477 { i += 1; } __for_first_477 = false; i < (timestamp.len() as i64) } {
-            let mut ohlcv: indexmap::IndexMap<String, Value> = ({
+            rows.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), self.safe_integer(&timestamp, Value::Int(i), &[]));
                     m.insert("high".to_string(), self.safe_number(&high, Value::Int(i), &[]));
@@ -1172,8 +1196,31 @@ impl Btcturk {
                     m.insert("close".to_string(), self.safe_number(&close, Value::Int(i), &[]));
                     m.insert("volume".to_string(), self.safe_number(&volume, Value::Int(i), &[]));
                 m
-            });
-            results.push(self.parse_ohlcv(Value::Map(ohlcv), &[market.clone()]));
+            }));
+        }
+        }
+        return self.parse_ohlc_vs(Value::from(rows), &[(market).raw.clone(), timeframe, since, limitResolved]);
+        Value::Null
+        }).await?))
+    }
+
+    pub fn parse_ohlc_vs(&self, ohlcvs: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut ohlcvs: Value = ohlcvs.into();
+        let mut market = get_arg(optional_args, 0, Value::Null);
+        let mut timeframe = get_arg(optional_args, 1, Value::Str("1m".into()));
+        let mut since = get_arg(optional_args, 2, Value::Null);
+        let mut limit = get_arg(optional_args, 3, Value::Null);
+        let mut tail = get_arg(optional_args, 4, Value::Bool(false));
+        let mut rows: crate::value::List = self.to_array(ohlcvs).into_list();
+        let mut results: Vec<Value> = Vec::new();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_478: bool = true;
+            while { if !__for_first_478 { i += 1; } __for_first_478 = false; i < (rows.len() as i64) } {
+            results.push(self.parse_ohlcv(self.safe_dict(&rows, Value::Int(i), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]), &[market.clone()]));
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(results), Value::Int(0), &[]);

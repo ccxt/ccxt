@@ -514,7 +514,7 @@ impl Woo {
         }
         let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("method".into()), &[Value::Str("orderbook".into())]).as_array().cloned().unwrap_or_default();
         let mut method: Value = methodparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketId: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@".into())).into()), method);
@@ -538,13 +538,13 @@ impl Woo {
                 m.insert("name".to_string(), method.clone());
                 m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
                 m.insert("limit".to_string(), limit.clone());
-                m.insert("params".to_string(), paramsMethod.clone());
+                m.insert("params".to_string(), Value::from(&paramsMethod));
             m
         });
         if (method.as_str() == Some("orderbookupdate")) {
             subscription.insert("method".into(), Value::Str("handle_order_book_subscription".into()).clone());
         }
-        let __ws_arg_2 = self.extend(Value::Map(request), &[paramsMethod]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsMethod]);
         let mut orderbook: Value = self.watch(url.as_str(), &topic[..], &[__ws_arg_2, Value::from(topic.clone()), Value::Map(subscription)]).await;
         return orderbook.limit();
         Value::Null
@@ -1648,10 +1648,10 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         let mut messageHash: String = topic.clone();
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone());
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(":".into())).into()), symbolResolved);
+            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(":".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1663,9 +1663,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut orders: Value = self.watch_private(Value::from(messageHash), message.clone(), &[]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
+            limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1706,10 +1706,10 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         let mut messageHash: String = "myTrades".to_string();
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone());
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str(":".into())).into()), symbolResolved);
+            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str(":".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1721,9 +1721,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut trades: Value = self.watch_private(Value::from(messageHash), message.clone(), &[]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.as_str(), limit.as_i64());
+            limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

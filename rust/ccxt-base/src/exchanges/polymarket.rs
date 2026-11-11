@@ -849,8 +849,8 @@ impl Polymarket {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1098: bool = true;
-            while { if !__for_first_1098 { i += 1; } __for_first_1098 = false; i < (instruments.len() as i64) } {
+            let mut __for_first_1099: bool = true;
+            while { if !__for_first_1099 { i += 1; } __for_first_1099 = false; i < (instruments.len() as i64) } {
             let mut instrument: Value = instruments.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut baseId: Option<String> = self.safe_string_k(instrument.clone(), "base_asset", &[]).as_str().map(str::to_owned);
             if (baseId.is_none()) {
@@ -908,8 +908,8 @@ impl Polymarket {
 })));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1099: bool = true;
-            while { if !__for_first_1099 { i += 1; } __for_first_1099 = false; i < (assets.len() as i64) } {
+            let mut __for_first_1100: bool = true;
+            while { if !__for_first_1100 { i += 1; } __for_first_1100 = false; i < (assets.len() as i64) } {
             let mut asset: Value = assets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currencyId: Option<String> = self.safe_string_k(asset.clone(), "asset", &[]).as_str().map(str::to_owned);
             if (currencyId.is_none()) {
@@ -1162,8 +1162,8 @@ impl Polymarket {
         let mut statistics: crate::value::List = self.safe_list(responses.clone(), Value::Int(1), &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1100: bool = true;
-            while { if !__for_first_1100 { i += 1; } __for_first_1100 = false; i < (statistics.len() as i64) } {
+            let mut __for_first_1101: bool = true;
+            while { if !__for_first_1101 { i += 1; } __for_first_1101 = false; i < (statistics.len() as i64) } {
             let mut entry: Value = statistics.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut instrumentId: Option<String> = self.safe_string_k_opt(entry.clone(), "instrument_id", &[]);
             // the 24 hourly kline rows are dropped from the merged payload to keep tickers light, candles are served by fetchOHLCV
@@ -1173,8 +1173,8 @@ impl Polymarket {
         let mut bbos: crate::value::List = self.safe_list(responses.clone(), Value::Int(2), &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1101: bool = true;
-            while { if !__for_first_1101 { i += 1; } __for_first_1101 = false; i < (bbos.len() as i64) } {
+            let mut __for_first_1102: bool = true;
+            while { if !__for_first_1102 { i += 1; } __for_first_1102 = false; i < (bbos.len() as i64) } {
             let mut entry: Value = bbos.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut instrumentId: Option<String> = self.safe_string_k_opt(entry.clone(), "instrument_id", &[]);
             let mut previous: Value = self.safe_dict(Value::Map(merged.clone()), instrumentId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
@@ -1189,8 +1189,8 @@ impl Polymarket {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1102: bool = true;
-            while { if !__for_first_1102 { i += 1; } __for_first_1102 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_1103: bool = true;
+            while { if !__for_first_1103 { i += 1; } __for_first_1103 = false; i < (tickers.len() as i64) } {
             let mut entry: Value = tickers.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut instrumentId: Option<String> = self.safe_string_k(entry.clone(), "instrument_id", &[]).as_str().map(str::to_owned);
             let mut previous: Value = self.safe_dict(Value::Map(merged.clone()), instrumentId.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
@@ -1533,8 +1533,8 @@ impl Polymarket {
         //         "more": false
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1722,8 +1722,8 @@ impl Polymarket {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1103: bool = true;
-            while { if !__for_first_1103 { i += 1; } __for_first_1103 = false; i < (data.len() as i64) } {
+            let mut __for_first_1104: bool = true;
+            while { if !__for_first_1104 { i += 1; } __for_first_1104 = false; i < (data.len() as i64) } {
             let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "timestamp", &[]).as_i64();
             rates.push(Value::Map({
@@ -1881,8 +1881,8 @@ impl Polymarket {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1104: bool = true;
-            while { if !__for_first_1104 { i += 1; } __for_first_1104 = false; i < (schedule.len() as i64) } {
+            let mut __for_first_1105: bool = true;
+            while { if !__for_first_1105 { i += 1; } __for_first_1105 = false; i < (schedule.len() as i64) } {
             let mut entry: Value = schedule.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut category: Option<String> = self.safe_string_k_opt(entry.clone(), "category", &[]);
             byCategory.insert(category.as_deref().unwrap_or("null").to_string(), entry.clone());
@@ -1898,8 +1898,8 @@ impl Polymarket {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1105: bool = true;
-            while { if !__for_first_1105 { i += 1; } __for_first_1105 = false; i < (self.symbols.len() as i64) } {
+            let mut __for_first_1106: bool = true;
+            while { if !__for_first_1106 { i += 1; } __for_first_1106 = false; i < (self.symbols.len() as i64) } {
             let mut symbol: Value = self.safe_string(self.symbols.clone(), Value::Int(i), &[Value::Str("".into())]);
             let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
             let mut category: Option<String> = self.safe_string_k(market.get("info").cloned().unwrap_or(Value::Null), "category", &[]).as_str().map(str::to_owned);
@@ -2110,8 +2110,8 @@ impl Polymarket {
         let mut ordersEntries: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1106: bool = true;
-            while { if !__for_first_1106 { i += 1; } __for_first_1106 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1107: bool = true;
+            while { if !__for_first_1107 { i += 1; } __for_first_1107 = false; i < (orders.len() as i64) } {
             let mut rawOrder: Value = orders.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symbol: Option<String> = self.safe_string_k(rawOrder.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
@@ -2147,8 +2147,8 @@ impl Polymarket {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1107: bool = true;
-            while { if !__for_first_1107 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1107 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
+            let mut __for_first_1108: bool = true;
+            while { if !__for_first_1108 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1108 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
             let mut ack: Value = self.safe_dict(response.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2261,8 +2261,8 @@ impl Polymarket {
             let mut numericIds: Value = Value::from(vec![]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1108: bool = true;
-                while { if !__for_first_1108 { i += 1; } __for_first_1108 = false; i < (ids.len() as i64) } {
+                let mut __for_first_1109: bool = true;
+                while { if !__for_first_1109 { i += 1; } __for_first_1109 = false; i < (ids.len() as i64) } {
                 if let Value::Arr(__a) = &mut numericIds { std::sync::Arc::make_mut(__a).push(self.parse_to_int(self.safe_string(ids.clone(), Value::Int(i), &[]))); };
             }
             }
@@ -2284,8 +2284,8 @@ impl Polymarket {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1109: bool = true;
-            while { if !__for_first_1109 { i += 1; } __for_first_1109 = false; i < (response.len() as i64) } {
+            let mut __for_first_1110: bool = true;
+            while { if !__for_first_1110 { i += 1; } __for_first_1110 = false; i < (response.len() as i64) } {
             let mut ack: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2705,8 +2705,8 @@ impl Polymarket {
         let mut positions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1110: bool = true;
-            while { if !__for_first_1110 { i += 1; } __for_first_1110 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1111: bool = true;
+            while { if !__for_first_1111 { i += 1; } __for_first_1111 = false; i < (rows.len() as i64) } {
             // the wrapper timestamp flows into the parser through the merged input
             let mut extended: Value = self.extend(rows.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2960,8 +2960,8 @@ impl Polymarket {
         let mut response: Value = self.private_get_account_orders(&[__ws_arg_8]).await;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1111: bool = true;
-            while { if !__for_first_1111 { i += 1; } __for_first_1111 = false; i < (response.len() as i64) } {
+            let mut __for_first_1112: bool = true;
+            while { if !__for_first_1112 { i += 1; } __for_first_1112 = false; i < (response.len() as i64) } {
             let mut row: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3124,8 +3124,8 @@ impl Polymarket {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1112: bool = true;
-            while { if !__for_first_1112 { i += 1; } __for_first_1112 = false; i < (data.len() as i64) } {
+            let mut __for_first_1113: bool = true;
+            while { if !__for_first_1113 { i += 1; } __for_first_1113 = false; i < (data.len() as i64) } {
             let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "instrument_id", &[]).as_str().map(str::to_owned);
             let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "timestamp", &[]).as_i64();
@@ -3512,8 +3512,8 @@ impl Polymarket {
         let mut response: Value = self.private_get_account_config(&[__ws_arg_14]).await;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1113: bool = true;
-            while { if !__for_first_1113 { i += 1; } __for_first_1113 = false; i < (response.len() as i64) } {
+            let mut __for_first_1114: bool = true;
+            while { if !__for_first_1114 { i += 1; } __for_first_1114 = false; i < (response.len() as i64) } {
             let mut row: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4054,8 +4054,8 @@ impl Polymarket {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1114: bool = true;
-            while { if !__for_first_1114 { i += 1; } __for_first_1114 = false; i < (row.len() as i64) } {
+            let mut __for_first_1115: bool = true;
+            while { if !__for_first_1115 { i += 1; } __for_first_1115 = false; i < (row.len() as i64) } {
             if (row.get(i as usize).cloned().unwrap_or(Value::Null) != Value::Null) {
                 result.push(row.get(i as usize).cloned().unwrap_or(Value::Null));
             }

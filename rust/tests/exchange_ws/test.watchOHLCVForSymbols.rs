@@ -57,8 +57,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             assert!(ccxt::runtime::is_true(&((matches!(&ohlcvs, Value::Arr(_))))));
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1606: bool = true;
-                while { if !__for_first_1606 { i += 1; } __for_first_1606 = false; i < (ohlcvs.len() as i64) } {
+                let mut __for_first_1607: bool = true;
+                while { if !__for_first_1607 { i += 1; } __for_first_1607 = false; i < (ohlcvs.len() as i64) } {
                 testOHLCV(exchange.clone(), skippedProperties.clone(), method.clone(), ohlcvs.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
             }
             }

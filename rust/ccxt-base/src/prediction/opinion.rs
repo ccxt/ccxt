@@ -455,8 +455,8 @@ impl Opinion {
         let mut fetchedRawRows: Vec<Value> = Vec::new();
         {
                         let mut page: Value = Value::Int(1);
-            let mut __for_first_1386: bool = true;
-            while { if !__for_first_1386 { if let Value::Int(n) = &mut page { *n += 1; } } __for_first_1386 = false; page.as_f64().unwrap_or(f64::NAN) <= maxPages.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1387: bool = true;
+            while { if !__for_first_1387 { if let Value::Int(n) = &mut page { *n += 1; } } __for_first_1387 = false; page.as_f64().unwrap_or(f64::NAN) <= maxPages.as_f64().unwrap_or(f64::NAN) } {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("marketType".to_string(), Value::Int(2));
@@ -478,8 +478,8 @@ impl Opinion {
             let mut total: Value = self.safe_integer_k(&result, "total", &[]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1385: bool = true;
-                while { if !__for_first_1385 { i += 1; } __for_first_1385 = false; (i as f64) < rawMarketsLength } {
+                let mut __for_first_1386: bool = true;
+                while { if !__for_first_1386 { i += 1; } __for_first_1386 = false; (i as f64) < rawMarketsLength } {
                 let mut raw: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
                 fetchedRawRows.push(raw.clone());
                 let mut marketType: Option<i64> = self.safe_integer_k(raw.clone(), "marketType", &[]).as_i64();
@@ -489,8 +489,8 @@ impl Opinion {
                     let mut childMarketsLength: f64 = ((childMarkets.len() as i64) as f64);
                     {
                                                 let mut ci: i64 = 0;
-                        let mut __for_first_1384: bool = true;
-                        while { if !__for_first_1384 { ci += 1; } __for_first_1384 = false; (ci as f64) < childMarketsLength } {
+                        let mut __for_first_1385: bool = true;
+                        while { if !__for_first_1385 { ci += 1; } __for_first_1385 = false; (ci as f64) < childMarketsLength } {
                         flatMarkets.push(childMarkets.get(ci as usize).cloned().unwrap_or(Value::Null));
                     }
                     }
@@ -597,8 +597,8 @@ impl Opinion {
         let mut resolvedOutcome: Value = Value::Null;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1387: bool = true;
-            while { if !__for_first_1387 { i += 1; } __for_first_1387 = false; i < (outcomeLabels.len() as i64) } {
+            let mut __for_first_1388: bool = true;
+            while { if !__for_first_1388 { i += 1; } __for_first_1388 = false; i < (outcomeLabels.len() as i64) } {
             let mut label: Option<String> = self.safe_string(&outcomeLabels, Value::Int(i), &[]).as_str().map(str::to_owned);
             let mut tokenId: Option<String> = self.safe_string(&outcomeTokenIds, Value::Int(i), &[]).as_str().map(str::to_owned);
             let mut outcomeHandle: Value = self.slug_to_outcome_symbol(effectiveEventSlug.clone(), slug.clone().map(Value::from).unwrap_or(Value::Null), label.clone().map(Value::from).unwrap_or(Value::Null));
@@ -776,8 +776,8 @@ impl Opinion {
         let mut rawEvents: Vec<Value> = Vec::new();
         {
                         let mut page: Value = Value::Int(1);
-            let mut __for_first_1389: bool = true;
-            while { if !__for_first_1389 { if let Value::Int(n) = &mut page { *n += 1; } } __for_first_1389 = false; page.as_f64().unwrap_or(f64::NAN) <= maxPages.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1390: bool = true;
+            while { if !__for_first_1390 { if let Value::Int(n) = &mut page { *n += 1; } } __for_first_1390 = false; page.as_f64().unwrap_or(f64::NAN) <= maxPages.as_f64().unwrap_or(f64::NAN) } {
             let mut fetchedSoFar: Value = Value::Int(rawEvents.len() as i64);
             let mut remaining: Value = self.parse_to_int((match (&(fetchCap), &(fetchedSoFar)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
             let mut reqLimit: Value = (if (remaining.as_f64().unwrap_or(f64::NAN) < pageLimit.as_f64().unwrap_or(f64::NAN)) { remaining } else { pageLimit.clone() });
@@ -801,8 +801,8 @@ impl Opinion {
             let mut pageEventsLength: f64 = ((pageEvents.len() as i64) as f64);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1388: bool = true;
-                while { if !__for_first_1388 { i += 1; } __for_first_1388 = false; (i as f64) < pageEventsLength } {
+                let mut __for_first_1389: bool = true;
+                while { if !__for_first_1389 { i += 1; } __for_first_1389 = false; (i as f64) < pageEventsLength } {
                 rawEvents.push(pageEvents.get(i as usize).cloned().unwrap_or(Value::Null));
             }
             }
@@ -821,8 +821,8 @@ impl Opinion {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1391: bool = true;
-            while { if !__for_first_1391 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1391 = false; i.as_f64().unwrap_or(f64::NAN) < rawEventsLength } {
+            let mut __for_first_1392: bool = true;
+            while { if !__for_first_1392 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1392 = false; i.as_f64().unwrap_or(f64::NAN) < rawEventsLength } {
             let mut event: Value = self.parse_event(rawEvents.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
             parsedEvents.push(event.clone());
             // register the parsed markets so populateOutcomes can index their outcomes
@@ -830,8 +830,8 @@ impl Opinion {
             let mut eventMarketsLength: f64 = ((eventMarkets.len() as i64) as f64);
             {
                                 let mut mi: i64 = 0;
-                let mut __for_first_1390: bool = true;
-                while { if !__for_first_1390 { mi += 1; } __for_first_1390 = false; (mi as f64) < eventMarketsLength } {
+                let mut __for_first_1391: bool = true;
+                while { if !__for_first_1391 { mi += 1; } __for_first_1391 = false; (mi as f64) < eventMarketsLength } {
                 let mut m: Value = eventMarkets.get(mi as usize).cloned().unwrap_or(Value::Null);
                 add_element_to_object(&mut self.markets, &crate::value::get_value_k(&m, "market"), m.clone());
             }
@@ -1007,8 +1007,8 @@ impl Opinion {
         let mut marketsList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1392: bool = true;
-            while { if !__for_first_1392 { i += 1; } __for_first_1392 = false; (i as f64) < rawChildrenLength } {
+            let mut __for_first_1393: bool = true;
+            while { if !__for_first_1393 { i += 1; } __for_first_1393 = false; (i as f64) < rawChildrenLength } {
             marketsList.push(self.parse_opinion_market(rawChildren.get(i as usize).cloned().unwrap_or(Value::Null), &[slug.clone().map(Value::from).unwrap_or(Value::Null)]));
         }
         }
@@ -1212,8 +1212,8 @@ impl Opinion {
         let mut promises: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1393: bool = true;
-            while { if !__for_first_1393 { i += 1; } __for_first_1393 = false; (i as f64) < outcomesLength } {
+            let mut __for_first_1394: bool = true;
+            while { if !__for_first_1394 { i += 1; } __for_first_1394 = false; (i as f64) < outcomesLength } {
             let mut outcomeObj: Value = self.outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             let mut tokenId: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]).as_str().map(str::to_owned);
             let __ws_arg_13 = self.extend(Value::Map({
@@ -1237,8 +1237,8 @@ impl Opinion {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1394: bool = true;
-            while { if !__for_first_1394 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1394 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
+            let mut __for_first_1395: bool = true;
+            while { if !__for_first_1395 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1395 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
             let mut outcomeObj: Value = self.outcome(outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             let mut priceIndex: Value = (match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             let mut priceResponse: Value = self.safe_value(responses.clone(), priceIndex.clone(), &[]);
@@ -1379,8 +1379,8 @@ impl Opinion {
         let mut historyLength: f64 = ((history.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1395: bool = true;
-            while { if !__for_first_1395 { i += 1; } __for_first_1395 = false; (i as f64) < historyLength } {
+            let mut __for_first_1396: bool = true;
+            while { if !__for_first_1396 { i += 1; } __for_first_1396 = false; (i as f64) < historyLength } {
             let mut point: crate::value::Dict = self.safe_dict(&history, Value::Int(i), &[]).into_dict();
             let mut price: Option<f64> = self.safe_number_k(&point, "p", &[]).as_f64();
             let mut timestamp: Option<i64> = self.safe_timestamp_k(&point, "t", &[]).as_i64();
@@ -1452,8 +1452,8 @@ impl Opinion {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1396: bool = true;
-            while { if !__for_first_1396 { i += 1; } __for_first_1396 = false; (i as f64) < listLength } {
+            let mut __for_first_1397: bool = true;
+            while { if !__for_first_1397 { i += 1; } __for_first_1397 = false; (i as f64) < listLength } {
             let mut entry: Value = list.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut address: Option<String> = self.safe_string_lower_k(entry.clone(), "quoteTokenAddress", &[]).as_str().map(str::to_owned);
             if (address.is_some()) {
@@ -1587,8 +1587,8 @@ impl Opinion {
             let mut decimalsCount: Value = self.parse_to_int(decimals);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1397: bool = true;
-                while { if !__for_first_1397 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1397 = false; i.as_f64().unwrap_or(f64::NAN) < decimalsCount.as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1398: bool = true;
+                while { if !__for_first_1398 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1398 = false; i.as_f64().unwrap_or(f64::NAN) < decimalsCount.as_f64().unwrap_or(f64::NAN) } {
                 decimalsStr = format!("{}{}", decimalsStr, Value::Str("0".into()));
             }
             }
@@ -2123,8 +2123,8 @@ impl Opinion {
         let mut tradesLength: f64 = ((trades.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1398: bool = true;
-            while { if !__for_first_1398 { i += 1; } __for_first_1398 = false; (i as f64) < tradesLength } {
+            let mut __for_first_1399: bool = true;
+            while { if !__for_first_1399 { i += 1; } __for_first_1399 = false; (i as f64) < tradesLength } {
             let mut trade: Value = trades.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut tokenId: Option<String> = self.safe_string_k(trade.clone(), "tokenId", &[]).as_str().map(str::to_owned);
             let mut marketId: Option<i64> = self.safe_integer_k(trade.clone(), "marketId", &[]).as_i64();
@@ -2266,8 +2266,8 @@ impl Opinion {
         let mut rawBalancesLength: f64 = ((rawBalances.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1399: bool = true;
-            while { if !__for_first_1399 { i += 1; } __for_first_1399 = false; (i as f64) < rawBalancesLength } {
+            let mut __for_first_1400: bool = true;
+            while { if !__for_first_1400 { i += 1; } __for_first_1400 = false; (i as f64) < rawBalancesLength } {
             let mut rawBalance: Value = rawBalances.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut quoteTokenAddress: Option<String> = self.safe_string_k(rawBalance.clone(), "quoteToken", &[]).as_str().map(str::to_owned);
             let mut quoteToken: Value = self.load_quote_token(quoteTokenAddress.map(Value::from).unwrap_or(Value::Null)).await;
@@ -2301,8 +2301,8 @@ impl Opinion {
         let mut balancesLength: f64 = ((balances.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1400: bool = true;
-            while { if !__for_first_1400 { i += 1; } __for_first_1400 = false; (i as f64) < balancesLength } {
+            let mut __for_first_1401: bool = true;
+            while { if !__for_first_1401 { i += 1; } __for_first_1401 = false; (i as f64) < balancesLength } {
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut code: String = self.safe_string_k(&balance, "symbol", &[Value::Str("USDT".into())]).as_str().unwrap_or("USDT").to_string();
             result.insert(code, Value::Map({
@@ -2372,8 +2372,8 @@ impl Opinion {
         let mut outcomesList: Value = (if (outcomes == Value::Null) { Value::from(vec![]) } else { outcomes });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1401: bool = true;
-            while { if !__for_first_1401 { i += 1; } __for_first_1401 = false; i < (outcomesList.len() as i64) } {
+            let mut __for_first_1402: bool = true;
+            while { if !__for_first_1402 { i += 1; } __for_first_1402 = false; i < (outcomesList.len() as i64) } {
             let mut outcomeObj: crate::value::Dict = self.outcome(outcomesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
             let mut tokenId: Option<String> = self.safe_string_k(&outcomeObj, "outcomeId", &[]).as_str().map(str::to_owned);
             if (tokenId.is_some()) {
@@ -2384,8 +2384,8 @@ impl Opinion {
         let mut filtered: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1402: bool = true;
-            while { if !__for_first_1402 { i += 1; } __for_first_1402 = false; i < (parsed.len() as i64) } {
+            let mut __for_first_1403: bool = true;
+            while { if !__for_first_1403 { i += 1; } __for_first_1403 = false; i < (parsed.len() as i64) } {
             let mut position: Value = parsed.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut info: crate::value::Dict = self.safe_dict_k(position.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2725,8 +2725,8 @@ if _try_result.is_err() {
         let mut marketKeysLength: f64 = ((marketKeys.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1403: bool = true;
-            while { if !__for_first_1403 { i += 1; } __for_first_1403 = false; (i as f64) < marketKeysLength } {
+            let mut __for_first_1404: bool = true;
+            while { if !__for_first_1404 { i += 1; } __for_first_1404 = false; (i as f64) < marketKeysLength } {
             let mut market: crate::value::Dict = self.safe_dict(self.markets.clone(), marketKeys.get(i as usize).cloned().unwrap_or(Value::Null), &[]).into_dict();
             let mut info: crate::value::Dict = self.safe_dict_k(&market, "info", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

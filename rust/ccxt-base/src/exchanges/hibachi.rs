@@ -758,8 +758,8 @@ impl Hibachi {
         //     "underlyingDecimals": 9,
         //     "underlyingSymbol": "ETH"
         // },
-        let mut rows: Value = self.safe_list_k(&response, "futureContracts", &[]);
-        return self.parse_markets(rows);
+        let mut rows: crate::value::List = self.safe_list_k(&response, "futureContracts", &[Value::from(vec![])]).into_list();
+        return self.parse_markets(&rows);
         Value::Null
         }).await?))
     }
@@ -1310,8 +1310,8 @@ impl Hibachi {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_734: bool = true;
-            while { if !__for_first_734 { i += 1; } __for_first_734 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_735: bool = true;
+            while { if !__for_first_735 { i += 1; } __for_first_735 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1517,8 +1517,8 @@ impl Hibachi {
         let mut requestOrders: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_735: bool = true;
-            while { if !__for_first_735 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_735 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_736: bool = true;
+            while { if !__for_first_736 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_736 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), i.clone(), &[]).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
             let mut type_var: Option<String> = self.safe_string_k(&rawOrder, "type", &[]).as_str().map(str::to_owned);
@@ -1550,8 +1550,8 @@ impl Hibachi {
         let mut responseOrders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_736: bool = true;
-            while { if !__for_first_736 { i += 1; } __for_first_736 = false; i < (responseOrders.len() as i64) } {
+            let mut __for_first_737: bool = true;
+            while { if !__for_first_737 { i += 1; } __for_first_737 = false; i < (responseOrders.len() as i64) } {
             let mut responseOrder: crate::value::Dict = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             ret.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1678,8 +1678,8 @@ impl Hibachi {
         let mut requestOrders: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_737: bool = true;
-            while { if !__for_first_737 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_737 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_738: bool = true;
+            while { if !__for_first_738 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_738 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), i.clone(), &[]).into_dict();
             let mut id: Option<String> = self.safe_string_k(&rawOrder, "id", &[]).as_str().map(str::to_owned);
             let mut symbol: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
@@ -1712,8 +1712,8 @@ impl Hibachi {
         let mut responseOrders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_738: bool = true;
-            while { if !__for_first_738 { i += 1; } __for_first_738 = false; i < (responseOrders.len() as i64) } {
+            let mut __for_first_739: bool = true;
+            while { if !__for_first_739 { i += 1; } __for_first_739 = false; i < (responseOrders.len() as i64) } {
             let mut responseOrder: crate::value::Dict = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             ret.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1807,8 +1807,8 @@ impl Hibachi {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_739: bool = true;
-            while { if !__for_first_739 { i += 1; } __for_first_739 = false; i < (ids.len() as i64) } {
+            let mut __for_first_740: bool = true;
+            while { if !__for_first_740 { i += 1; } __for_first_740 = false; i < (ids.len() as i64) } {
             let mut orderRequest: Value = self.cancel_order_request(self.safe_string(ids.clone(), Value::Int(i), &[Value::Str("".into())]));
             if let Value::Dict(__d) = &mut orderRequest { std::sync::Arc::make_mut(__d).insert("action".into(), Value::Str("cancel".into())); }
             orders.push(orderRequest);
@@ -1829,8 +1829,8 @@ impl Hibachi {
         let mut responseOrders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_740: bool = true;
-            while { if !__for_first_740 { i += 1; } __for_first_740 = false; i < (responseOrders.len() as i64) } {
+            let mut __for_first_741: bool = true;
+            while { if !__for_first_741 { i += 1; } __for_first_741 = false; i < (responseOrders.len() as i64) } {
             let mut responseOrder: crate::value::Dict = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             ret.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2410,8 +2410,8 @@ impl Hibachi {
         //     }
         //   ]
         //
-        let mut klines: Value = self.safe_list_k(&response, "klines", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(klines, &[(market).raw.clone(), timeframeValue, since, limit]);
+        let mut klines: crate::value::List = self.safe_list_k(&response, "klines", &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&klines, &[(market).raw.clone(), timeframeValue, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3083,8 +3083,8 @@ impl Hibachi {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_741: bool = true;
-            while { if !__for_first_741 { i += 1; } __for_first_741 = false; i < (settlements.len() as i64) } {
+            let mut __for_first_742: bool = true;
+            while { if !__for_first_742 { i += 1; } __for_first_742 = false; i < (settlements.len() as i64) } {
             result.push(self.parse_settlement(settlements.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]));
         }
         }
@@ -3364,8 +3364,8 @@ impl Hibachi {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_742: bool = true;
-            while { if !__for_first_742 { i += 1; } __for_first_742 = false; i < (data.len() as i64) } {
+            let mut __for_first_743: bool = true;
+            while { if !__for_first_743 { i += 1; } __for_first_743 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut timestamp: Value = self.safe_integer_product_k(&entry, "fundingTimestamp", Value::Int(1000), &[]);
             rates.push(Value::Map({

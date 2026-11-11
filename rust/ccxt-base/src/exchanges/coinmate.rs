@@ -829,8 +829,8 @@ impl Coinmate {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_567: bool = true;
-            while { if !__for_first_567 { i += 1; } __for_first_567 = false; i < (data.len() as i64) } {
+            let mut __for_first_568: bool = true;
+            while { if !__for_first_568 { i += 1; } __for_first_568 = false; i < (data.len() as i64) } {
             let mut market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k(&market, "name", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_k(&market, "firstCurrency", &[]).as_str().map(str::to_owned);
@@ -924,8 +924,8 @@ impl Coinmate {
         let mut currencyIds: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_568: bool = true;
-            while { if !__for_first_568 { i += 1; } __for_first_568 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_569: bool = true;
+            while { if !__for_first_569 { i += 1; } __for_first_569 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut balance: crate::value::Dict = self.safe_dict(&balances, currencyId, &[]).into_dict();
@@ -1121,8 +1121,8 @@ impl Coinmate {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_569: bool = true;
-            while { if !__for_first_569 { i += 1; } __for_first_569 = false; i < (keys.len() as i64) } {
+            let mut __for_first_570: bool = true;
+            while { if !__for_first_570 { i += 1; } __for_first_570 = false; i < (keys.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((keys.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(self.safe_value(&data, keys.get(i as usize).cloned().unwrap_or(Value::Null), &[]), &[(market).raw.clone()]).as_map().cloned().unwrap_or_default();
             result.insert(crate::runtime::stringify_param(&(Value::from((market).symbol.clone()))), Value::Map(ticker));
@@ -1353,9 +1353,9 @@ impl Coinmate {
     m
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
+        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1379,8 +1379,8 @@ impl Coinmate {
                 m.insert("address".to_string(), address.clone());
             m
         });
-        if (tagWithdrawTag != Value::Null) {
-            request.insert("destinationTag".into(), tagWithdrawTag.clone());
+        if (tagWithdrawTag.is_some()) {
+            request.insert("destinationTag".into(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut requestParams: Value = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let mut response: Option<crate::value::Dict> = None;
@@ -1424,7 +1424,7 @@ impl Coinmate {
             transaction.insert("amount".into(), amount);
             transaction.insert("currency".into(), code);
             transaction.insert("address".into(), address);
-            transaction.insert("tag".into(), tagWithdrawTag);
+            transaction.insert("tag".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
             transaction.insert("type".into(), Value::Str("withdrawal".into()));
             transaction.insert("status".into(), Value::Str("pending".into()));
         }
