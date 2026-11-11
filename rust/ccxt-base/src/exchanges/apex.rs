@@ -1310,8 +1310,8 @@ impl Apex {
             m
         });
         // default is 200 when requested with `since`, max 200
-        let mut limitResolved: Value = (if ((limit == Value::Null) || limit.as_f64().unwrap_or(f64::NAN) > ((200i64) as f64)) { Value::Int(200) } else { limit });
-        request.insert("limit".into(), limitResolved.clone());
+        let mut limitResolved: Option<i64> = (if ((limit == Value::Null) || limit.as_f64().unwrap_or(f64::NAN) > ((200i64) as f64)) { Some(200) } else { limit.as_i64() });
+        request.insert("limit".into(), Value::from(limitResolved));
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), params, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -1325,7 +1325,7 @@ impl Apex {
             m
         })]);
         let mut OHLCVs: Value = self.safe_list(data, self.safe_string_k(market.clone(), "id2", &[]), &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(OHLCVs, &[market, timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(OHLCVs, &[market, timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -1445,8 +1445,8 @@ impl Apex {
                 m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id2", &[]));
             m
         });
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(500) } else { limit }); // default is 50
-        request.insert("limit".into(), limitResolved.clone());
+        let mut limitResolved: i64 = limit.as_i64().unwrap_or(500); // default is 50
+        request.insert("limit".into(), Value::from(limitResolved));
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_v3_trades(&[__ws_arg_3]).await.into_dict();
         //
@@ -1470,7 +1470,7 @@ impl Apex {
         //  ]
         //
         let mut trades: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market, since, limitResolved]);
+        return self.parse_trades(trades, &[market, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -1996,12 +1996,12 @@ impl Apex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for market orders".into()))));
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut postOnly: Value = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[params.clone()]);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[params.clone()]).as_bool() == Some(true);
         if (timeInForce.is_none()) {
             timeInForce = Some("GOOD_TIL_CANCEL".to_string());
         }
         if !(isMarket) {
-            if postOnly.as_bool() == Some(true) {
+            if postOnly {
                 timeInForce = Some("POST_ONLY".to_string());
             }  else if (timeInForce.as_deref() == Some("ioc")) {
                 timeInForce = Some("IMMEDIATE_OR_CANCEL".to_string());

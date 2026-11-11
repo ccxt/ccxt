@@ -2033,11 +2033,11 @@ impl Cex {
             request.insert("timeInForce".into(), timeInForce);
         }
         let triggerPriceparamsTriggerPriceVariable: Vec<Value> = self.handle_param_string(&paramsTimeInForce, Value::Str("triggerPrice".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut triggerPrice: Value = triggerPriceparamsTriggerPriceVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut triggerPrice: Option<String> = triggerPriceparamsTriggerPriceVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTriggerPrice: crate::value::Dict = triggerPriceparamsTriggerPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (triggerPrice != Value::Null) {
+        if (triggerPrice.is_some()) {
             request.insert("type".into(), Value::Str("Stop Limit".into()));
-            request.insert("stopPrice".into(), triggerPrice);
+            request.insert("stopPrice".into(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsTriggerPrice]);
         let mut response: crate::value::Dict = self.private_post_do_my_new_order(&[__ws_arg_7]).await.into_dict();

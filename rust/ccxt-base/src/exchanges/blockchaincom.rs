@@ -1460,7 +1460,7 @@ impl Blockchaincom {
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_deposits_currency(&[__ws_arg_8]).await;
-        let mut rawAddress: Option<String> = self.safe_string_k_opt(response.clone(), "address", &[]);
+        let mut rawAddress: Option<String> = self.safe_string_k(response.clone(), "address", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = None;
         let mut address: Option<String> = None;
         if (rawAddress.is_some()) {

@@ -4113,14 +4113,14 @@ impl Nado {
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         let mut reduceOnly: bool = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut postOnly: Value = self.is_post_only(Value::Bool(false), Value::Null, &[params.clone()]);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(false), Value::Null, &[params.clone()]).as_bool() == Some(true);
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params, "timeInForce", &[]).as_str().map(str::to_owned);
         let mut orderType: i64 = 0;
         if (timeInForce.as_deref() == Some("IOC")) {
             orderType = 1;
         }  else if (timeInForce.as_deref() == Some("FOK")) {
             orderType = 2;
-        }  else if postOnly.as_bool() == Some(true) || (timeInForce.as_deref() == Some("PO")) {
+        }  else if postOnly || (timeInForce.as_deref() == Some("PO")) {
             orderType = 3;
         }  else if (timeInForce.is_some()) && (timeInForce.as_deref() != Some("GTC")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() only supports timeInForce values GTC, IOC, FOK, or PO".into()))));

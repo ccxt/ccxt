@@ -785,11 +785,11 @@ impl Mudrex {
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_futures(&[__ws_arg_4]).await.into_dict();
         let mut data: Value = self.safe_value_k(&response, "data", &[Value::from(vec![])]);
-        let mut rows: Value = Value::from(vec![]);
+        let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&data, Value::Arr(_))) {
-            rows = self.to_array(data.clone());
+            rows = self.to_array(data.clone()).into_list();
         }  else {
-            rows = self.safe_list_k(data, "items", &[Value::from(vec![])]);
+            rows = self.safe_list_k(data, "items", &[Value::from(vec![])]).into_list();
         }
         let mut resultTickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -799,7 +799,7 @@ impl Mudrex {
                         let mut i: i64 = 0;
             let mut __for_first_969: bool = true;
             while { if !__for_first_969 { i += 1; } __for_first_969 = false; i < (rows.len() as i64) } {
-            let mut t: Value = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut t: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut sym: Option<String> = self.safe_string_k(t.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (sym.is_none()) {
                 continue;
@@ -2099,7 +2099,7 @@ impl Mudrex {
         }
         // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
         let mut rebateKeys: Value = Value::from(vec![]);
-        let mut rebateAmounts: Value = Value::from(vec![]);
+        let mut rebateAmounts: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut transactions: Vec<Value> = Vec::new();
         let mut transactionKeys: Vec<Value> = Vec::new();
         {
@@ -2115,7 +2115,7 @@ impl Mudrex {
                 transactionKeys.push(Value::from(pairKey.clone()));
             }  else if (feeType.as_deref() == Some("REBATE")) {
                 if let Value::Arr(__a) = &mut rebateKeys { std::sync::Arc::make_mut(__a).push(Value::from(pairKey)); }
-                if let Value::Arr(__a) = &mut rebateAmounts { std::sync::Arc::make_mut(__a).push(self.safe_string_k(entry, "fee_amount", &[Value::Str("0".into())])); }
+                std::sync::Arc::make_mut(&mut rebateAmounts).push(self.safe_string_k(entry, "fee_amount", &[Value::Str("0".into())]));
             }
         }
         }
@@ -2130,7 +2130,7 @@ impl Mudrex {
                 let mut __for_first_976: bool = true;
                 while { if !__for_first_976 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_976 = false; j.as_f64().unwrap_or(f64::NAN) < ((rebateKeys.len() as i64) as f64) } {
                 if (rebateKeys.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_str() == transactionKeys.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null).as_str()) {
-                    rebate = self.safe_string(rebateAmounts.clone(), j.clone(), &[]).as_str().map(str::to_owned);
+                    rebate = self.safe_string(&rebateAmounts, j.clone(), &[]).as_str().map(str::to_owned);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
                     add_element_to_object(&mut rebateKeys, &j, Value::Str("".into()));
                     break;

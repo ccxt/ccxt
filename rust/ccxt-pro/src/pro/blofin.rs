@@ -1473,7 +1473,7 @@ impl Blofin {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), callerMethodNameOption).into()), Value::Str("() does not support ".into())).into()),
                 marketType.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" markets yet".into()))));
         }
-        let mut rawSubscriptions: Value = Value::from(vec![]);
+        let mut rawSubscriptions: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut messageHashes: Value = Value::from(vec![]);
         if (symbols.is_some()) && (((symbols.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64) > ((0i64) as f64)) {
             {
@@ -1497,27 +1497,27 @@ impl Blofin {
                         m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                     m
                 });
-                if let Value::Arr(__a) = &mut rawSubscriptions { std::sync::Arc::make_mut(__a).push(topic); }
+                std::sync::Arc::make_mut(&mut rawSubscriptions).push(topic);
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into())); }
             }
             }
         }  else {
-            if let Value::Arr(__a) = &mut rawSubscriptions { std::sync::Arc::make_mut(__a).push(Value::Map({
+            std::sync::Arc::make_mut(&mut rawSubscriptions).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("channel".to_string(), channelName.clone());
                 m
-            })); }
+            }));
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(channelName.clone()); }
         }
         // private channel are difference, they only need plural channel name for multiple symbols
         if self.in_array(channelName.clone(), Value::from(vec![Value::Str("orders".into()), Value::Str("orders-algo".into()), Value::Str("positions".into())])).as_bool() == Some(true) {
-            rawSubscriptions = Value::from(vec![Value::Map({
+            rawSubscriptions = std::sync::Arc::new(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), channelName);
     m
 })]);
         }
-        let mut request: Value = self.get_subscription_request(rawSubscriptions);
+        let mut request: Value = self.get_subscription_request(Value::Arr(rawSubscriptions));
         let mut privateOrPublic: String = "private".to_string();
         if (isPublic.as_bool() == Some(true)) {
             privateOrPublic = "public".to_string();

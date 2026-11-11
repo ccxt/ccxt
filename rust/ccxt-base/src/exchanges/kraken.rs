@@ -2930,7 +2930,7 @@ impl Kraken {
     m
 })]).into_dict();
         let mut orderDescriptionObj: Option<crate::value::Dict> = self.safe_dict_k(orderOmitted.clone(), "descr", &[]).into_opt_dict(); // can be null
-        let mut orderDescription: Value = (if (orderDescriptionObj.is_some()) { self.safe_string_k(&orderDescriptionObj, "order", &[]) } else { self.safe_string_k(orderOmitted.clone(), "descr", &[]) });
+        let mut orderDescription: Option<String> = (if (orderDescriptionObj.is_some()) { self.safe_string_k(&orderDescriptionObj, "order", &[]).as_str().map(str::to_owned) } else { self.safe_string_k(orderOmitted.clone(), "descr", &[]).as_str().map(str::to_owned) });
         let mut side: Value = Value::Null;
         let mut descriptionType: Option<String> = None;
         let mut marketId: Value = Value::Null;
@@ -2938,8 +2938,8 @@ impl Kraken {
         let mut amount: Value = Value::Null;
         let mut cost: Option<String> = None;
         let mut triggerPrice: Value = Value::Null;
-        if (orderDescription != Value::Null) {
-            let mut parts: Value = Value::Array(if let Some(__s) = orderDescription.as_str() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
+        if (orderDescription.is_some()) {
+            let mut parts: Value = Value::Array(if let Some(__s) = orderDescription.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
             side = self.safe_string(parts.clone(), Value::Int(0), &[]);
             if !isUsingCost {
                 amount = self.safe_string(parts.clone(), Value::Int(1), &[]);
@@ -4638,40 +4638,40 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]).into_dict();
         let mut defaultDepositMethod: Option<String> = self.safe_string(&defaultDepositMethods, codeResolved.clone(), &[]).as_str().map(str::to_owned);
-        let mut depositMethod: Value = self.safe_string_k(&paramsOmitted, "method", &[defaultDepositMethod.map(Value::from).unwrap_or(Value::Null)]);
+        let mut depositMethod: Option<String> = self.safe_string_k(&paramsOmitted, "method", &[defaultDepositMethod.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         // if the user has specified an exchange-specific method in params
         // we pass it as is, otherwise we take the 'network' unified param
-        if (depositMethod == Value::Null) {
+        if (depositMethod.is_none()) {
             let mut depositMethods: Value = self.fetch_deposit_methods(codeResolved.clone(), &[]).await;
             if (network != Value::Null) {
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_863: bool = true;
                     while { if !__for_first_863 { i += 1; } __for_first_863 = false; i < (depositMethods.len() as i64) } {
-                    let mut entry: Option<String> = self.safe_string_k_opt(depositMethods.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "method", &[]);
+                    let mut entry: Option<String> = self.safe_string_k(depositMethods.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "method", &[]).as_str().map(str::to_owned);
                     if (entry.is_none()) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() missing entry".into()))));
                     }
-                    if Value::Int(entry.as_deref().zip(network.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                        depositMethod = entry.map(Value::from).unwrap_or(Value::Null);
+                    if ((if let (Some(__h), Some(__n)) = (entry.as_deref(), (network).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
+                        depositMethod = entry;
                         break;
                     }
                 }
                 }
             }
             // if depositMethod was not specified, fallback to the first available deposit method
-            if (depositMethod == Value::Null) {
+            if (depositMethod.is_none()) {
                 let mut firstDepositMethod: crate::value::Dict = self.safe_dict(depositMethods, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-                depositMethod = self.safe_string_k(&firstDepositMethod, "method", &[]);
+                depositMethod = self.safe_string_k(&firstDepositMethod, "method", &[]).as_str().map(str::to_owned);
             }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("method".to_string(), depositMethod);
+                m.insert("method".to_string(), depositMethod.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOmitted]);

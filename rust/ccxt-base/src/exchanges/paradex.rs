@@ -2925,12 +2925,12 @@ impl Paradex {
         let mut isStopLossOrder: bool = stopLossPrice.is_some();
         let mut isStopOrder: bool = (triggerPrice.is_some()) || isTakeProfitOrder || isStopLossOrder;
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
+        let mut postOnly: bool = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]).as_bool() == Some(true);
         let mut instruction: Value = Value::Str("GTC".into());
         if (timeInForce.is_some()) {
             instruction = self.encode_time_in_force(timeInForce.map(Value::from).unwrap_or(Value::Null));
         }
-        if postOnly.as_bool() == Some(true) && (instruction.as_str() != Some("RPI")) {
+        if postOnly && (instruction.as_str() != Some("RPI")) {
             instruction = Value::Str("POST_ONLY".into());
         }
         if (instruction.as_str() == Some("POST_ONLY")) || (instruction.as_str() == Some("RPI")) {

@@ -1356,7 +1356,7 @@ impl Bullish {
         let mut option: bool = false;
         let mut contract: bool = true;
         let mut linear: Value = Value::Null;
-        let mut inverse: Value = Value::Null;
+        let mut inverse: Option<bool> = None;
         let mut expiryDatetime: Option<String> = None;
         let mut contractSize: Value = Value::Null;
         let mut optionType: Option<String> = None;
@@ -1370,7 +1370,7 @@ impl Bullish {
             contractSize = self.safe_number_k(market.clone(), "contractMultiplier", &[]);
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.clone().map(Value::from).unwrap_or(Value::Null));
             linear = Value::Bool(settle == quote);
-            inverse = Value::Bool(!(linear.as_bool() == Some(true)));
+            inverse = Some(!(linear.as_bool() == Some(true)));
             if (type_var.as_str() == Some("swap")) {
                 swap = true;
             }  else {
@@ -1411,7 +1411,7 @@ impl Bullish {
         m.insert("option".to_string(), Value::Bool(option));
         m.insert("contract".to_string(), Value::Bool(contract));
         m.insert("linear".to_string(), linear);
-        m.insert("inverse".to_string(), inverse);
+        m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("taker".to_string(), tradingFees.get("taker").cloned().unwrap_or(Value::Null));
         m.insert("maker".to_string(), tradingFees.get("maker").cloned().unwrap_or(Value::Null));
         m.insert("contractSize".to_string(), contractSize);

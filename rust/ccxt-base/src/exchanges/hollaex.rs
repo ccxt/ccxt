@@ -1958,14 +1958,14 @@ impl Hollaex {
 })]).into_dict();
         let mut exchangeSpecificParam: bool = self.safe_bool_k(&meta, "post_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isMarketOrder: bool = type_var.as_str() == Some("market");
-        let mut postOnly: Value = self.is_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(exchangeSpecificParam), &[params.clone()]);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(exchangeSpecificParam), &[params.clone()]).as_bool() == Some(true);
         if !(isMarketOrder) {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
         }
         if (triggerPrice.is_some()) {
             request.insert("stop".into(), self.price_to_precision(symbol, Value::from(triggerPrice)));
         }
-        if postOnly.as_bool() == Some(true) {
+        if postOnly {
             request.insert("meta".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("post_only".to_string(), Value::Bool(true));

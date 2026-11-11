@@ -3230,8 +3230,8 @@ impl Blofin {
             // because a stored strpos result and a two-argument slice do not
             // survive the php conversion (false-vs-int compare; length arg)
             let mut parts: Value = Value::Array(if let Some(__s) = chainId.as_str() { __s.split("(").map(Value::from).collect() } else { Vec::new() });
-            let mut tail: Value = self.safe_string(parts.clone(), Value::Int(1), &[Value::Str("".into())]);
-            let mut tailParts: Value = Value::Array(if let Some(__s) = tail.as_str() { __s.split(")").map(Value::from).collect() } else { Vec::new() });
+            let mut tail: String = self.safe_string(parts.clone(), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut tailParts: Value = Value::Array(tail.split(")").map(Value::from).collect());
             let mut suffix: Value = self.safe_string(tailParts, Value::Int(0), &[]);
             let mut suffixCode: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networkCodesBySuffix")).cloned().unwrap_or(Value::Null), suffix.clone(), &[]).as_str().map(str::to_owned);
             if (suffixCode.is_some()) {
@@ -3679,9 +3679,9 @@ impl Blofin {
             let mut entry: Value = self.safe_value(&data, Value::Int(i), &[]);
             let mut matches: bool = false;
             if (id != Value::Null) {
-                matches = self.safe_string_k(entry.clone(), "withdrawId", &[]).as_str() == id.as_str();
+                matches = (self.safe_string_k(entry.clone(), "withdrawId", &[]).as_str() == id.as_str());
             }  else {
-                matches = self.safe_string_k(entry.clone(), "clientId", &[]).as_str() == clientId.as_str();
+                matches = (self.safe_string_k(entry.clone(), "clientId", &[]).as_str() == clientId.as_str());
             }
             if matches {
                 return self.parse_transaction(entry, &[currency.clone()]);

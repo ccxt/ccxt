@@ -192,9 +192,9 @@ pub fn testYyyymmdd() {
     let mut testMs: Value = Value::Int(1750123456789); // 17 June 2025
     let mut value: Option<String> = exchange.yyyymmdd(testMs.clone(), &[Value::Str("_".into())]).as_str().map(str::to_owned);
     assert!(ccxt::runtime::is_true(&(Value::Bool(value.as_deref() == Some("2025_06_17")))));
-    let mut value2: Value = exchange.yyyymmdd(exchange.milliseconds(), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(value2.len() as i64).as_f64() == Some(10.0)))));
-    let mut intNum: Value = exchange.parse_to_int(((value2.as_str().map(|__s| Value::Str(__s.replace("-", "").into())).unwrap_or_else(|| value2.clone()))).as_str().map(|__s| Value::Str(__s.replace("-", "").into())).unwrap_or_else(|| ((value2.as_str().map(|__s| Value::Str(__s.replace("-", "").into())).unwrap_or_else(|| value2.clone()))).clone()));
+    let mut value2: Option<String> = exchange.yyyymmdd(exchange.milliseconds(), &[]).as_str().map(str::to_owned);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(((value2.as_deref().unwrap_or_default().chars().count() as i64)) == 10))));
+    let mut intNum: Value = exchange.parse_to_int((((if let Some(__s) = value2.as_deref() { Some(__s.replace("-", "")) } else { None }).map(Value::from).unwrap_or(Value::Null))).as_str().map(|__s| Value::Str(__s.replace("-", "").into())).unwrap_or_else(|| (((if let Some(__s) = value2.as_deref() { Some(__s.replace("-", "")) } else { None }).map(Value::from).unwrap_or(Value::Null))).clone()));
     assert!(ccxt::runtime::is_true(&(intNum.as_f64().unwrap_or(f64::NAN) > Value::Int(20260000).as_f64().unwrap_or(f64::NAN) && intNum.as_f64().unwrap_or(f64::NAN) < Value::Int(20360000).as_f64().unwrap_or(f64::NAN)))); // date between 2026 and 2036
 }
 pub fn testYmd() {

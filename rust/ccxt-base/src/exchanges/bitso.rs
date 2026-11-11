@@ -2836,15 +2836,15 @@ impl Bitso {
             // bitso rejects a nonce that is not higher than the previous one (error 104)
             let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
             endpoint = format!("{}{}", Value::Str("/api".into()), endpoint);
-            let mut request: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", nonce, method).into()), endpoint).into());
+            let mut request: String = format!("{}{}", Value::Str(format!("{}{}", nonce, method).into()), endpoint);
             if (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE")) {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                     let mut jsonBody: Value = json_stringify(&query);
                     requestBody = jsonBody.clone();
-                    request = Value::Str(format!("{}{}", request, jsonBody).into());
+                    request.push_str(&jsonBody.to_string());
                 }
             }
-            let mut signature: Value = self.hmac(self.encode(request), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut signature: Value = self.hmac(self.encode(Value::from(request)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(":".into())).into()), nonce).into()), Value::Str(":".into())).into()), signature);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();

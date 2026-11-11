@@ -1520,10 +1520,9 @@ impl Polymarket {
             // exactly the requested number of candle bins including the
             // current one, so the newest candle never falls off the range
             let mut end: Value = (if (until.is_some()) { Value::from(until) } else { self.milliseconds() });
-            let mut requestedLimit: Value = (if (limit != Value::Null) { limit.clone() } else { Value::Int(100) });
-            request.insert("start_timestamp".into(), (match (&(end), &((match (&(((match (&(requestedLimit), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            let mut requestedLimit: i64 = limit.as_i64().unwrap_or(100);
+            request.insert("start_timestamp".into(), (match (&(end), &((match (&((Value::Int((requestedLimit - 1)))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_info_klines(&[__ws_arg_2]).await.into_dict();
@@ -2109,7 +2108,7 @@ impl Polymarket {
         let mut rows: Vec<Value> = vec![];
         let mut entries: Vec<Value> = Vec::new();
         let mut ordersMarkets: Vec<Value> = Vec::new();
-        let mut ordersEntries: Value = Value::from(vec![]);
+        let mut ordersEntries: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_1106: bool = true;
@@ -2129,7 +2128,7 @@ impl Polymarket {
             rows.push(request.get("signable").cloned().unwrap_or(Value::Null));
             entries.push(request.get("entry").cloned().unwrap_or(Value::Null));
             ordersMarkets.push(market);
-            if let Value::Arr(__a) = &mut ordersEntries { std::sync::Arc::make_mut(__a).push(request.get("entry").cloned().unwrap_or(Value::Null)); }
+            std::sync::Arc::make_mut(&mut ordersEntries).push(request.get("entry").cloned().unwrap_or(Value::Null));
         }
         }
         let mut signable: Value = Value::from(vec![Value::Str("createOrders".into()), Value::Array(rows)]);
@@ -2156,7 +2155,7 @@ impl Polymarket {
     m
 })]);
             let mut marketInner: Value = ordersMarkets.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut echo: Value = self.safe_dict(ordersEntries.clone(), i.clone(), &[Value::Map({
+            let mut echo: Value = self.safe_dict(Value::Arr(ordersEntries.clone()), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

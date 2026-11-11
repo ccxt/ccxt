@@ -930,7 +930,7 @@ impl Sxbet {
         let raw = raw.as_map().unwrap_or(&__raw_empty);
         let __queries_empty = Vec::new();
         let queries = queries.as_array().unwrap_or(&__queries_empty);
-        let mut fields: Value = Value::from(vec![(match raw.get("teamOneName") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }),
+        let mut fields: crate::value::List = std::sync::Arc::new(vec![(match raw.get("teamOneName") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }),
             (match raw.get("teamTwoName") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }), (match raw.get("leagueLabel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()),
             Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }), (match raw.get("sportLabel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),
             Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }), (match raw.get("outcomeOneName") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }),
@@ -948,7 +948,7 @@ impl Sxbet {
                                 let mut fi: i64 = 0;
                 let mut __for_first_1499: bool = true;
                 while { if !__for_first_1499 { fi += 1; } __for_first_1499 = false; fi < (fields.len() as i64) } {
-                let mut field: Option<String> = fields.as_array().map(Vec::as_slice).unwrap_or_default().get(fi as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut field: Option<String> = fields.get(fi as usize).and_then(Value::as_str).map(str::to_owned);
                 if (field.is_none()) {
                     continue;
                 }
@@ -1174,7 +1174,7 @@ impl Sxbet {
             let mut __for_first_1502: bool = true;
             while { if !__for_first_1502 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1502 = false; i.as_f64().unwrap_or(f64::NAN) < hexLength } {
             let mut ch: Value = get_value(&lowerHex, &i);
-            let mut digitValue: Value = self.parse_to_int(Value::Int(Some(digits.as_str()).zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)));
+            let mut digitValue: Value = self.parse_to_int(Value::Int((if let (Some(__h), Some(__n)) = (Some(digits.as_str()), (ch).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })));
             let mut shifted: Value = (match (&(result), &(Value::Int(16))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             result = self.parse_to_int(self.sum(&[shifted, digitValue]));
         }
@@ -2864,7 +2864,7 @@ impl Sxbet {
         }
         let mut outcomesList: Value = outcomes;
         let mut outcomesLength: f64 = ((outcomesList.len() as i64) as f64);
-        let mut hashesOrder: Value = Value::from(vec![]);
+        let mut hashesOrder: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut seenHashes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2878,7 +2878,7 @@ impl Sxbet {
             let mut marketHash: Value = self.safe_string_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "marketHash", &[Value::Str("".into())]);
             if (self.safe_bool(Value::Map(seenHashes.clone()), marketHash.clone(), &[]) == Value::Null) {
                 seenHashes.insert(crate::runtime::stringify_param(&marketHash), Value::Bool(true));
-                if let Value::Arr(__a) = &mut hashesOrder { std::sync::Arc::make_mut(__a).push(marketHash.clone()); }
+                std::sync::Arc::make_mut(&mut hashesOrder).push(marketHash.clone());
             }
         }
         }
@@ -2896,7 +2896,7 @@ impl Sxbet {
                                 let mut i: i64 = 0;
                 let mut __for_first_1517: bool = true;
                 while { if !__for_first_1517 { i += 1; } __for_first_1517 = false; (i as f64) < hashesLength.as_f64().unwrap_or(f64::NAN) } {
-                let mut marketHash: Value = hashesOrder.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut marketHash: Value = hashesOrder.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut snapshot: Value = self.fetch_sxbet_book_snapshot(marketHash.clone()).await;
                 rowsByHash.insert(crate::runtime::stringify_param(&marketHash), self.parse_sxbet_snapshot_best_odds(snapshot));
             }
@@ -2919,7 +2919,7 @@ impl Sxbet {
             if chunkEnd.as_f64().unwrap_or(f64::NAN) > hashesLength.as_f64().unwrap_or(f64::NAN) {
                 end = self.parse_to_int(hashesLength.clone());
             }
-            let mut chunk: Value = self.array_slice(hashesOrder.clone(), start, &[end]);
+            let mut chunk: Value = self.array_slice(Value::Arr(hashesOrder.clone()), start, &[end]);
             let mut rows: Vec<Value> = self.fetch_sxbet_best_odds(chunk.to_str_vec(), &[params.clone()]).await.as_array().cloned().unwrap_or_default();
             let mut rowsLength: f64 = ((rows.len() as i64) as f64);
             {
@@ -3394,7 +3394,7 @@ impl Sxbet {
         if (push.is_none()) {
             return;
         }
-        let mut channel: Option<String> = self.safe_string_k_opt(&push, "channel", &[]);
+        let mut channel: Option<String> = self.safe_string_k(&push, "channel", &[]).as_str().map(str::to_owned);
         if (channel.is_none()) {
             return;
         }
@@ -3423,9 +3423,9 @@ impl Sxbet {
             self.handle_trades(client.clone(), rows.clone());
         }  else if (channelType.as_deref() == Some("account")) {
             // per-account channels: account:orders_v3_#addr / account:fills_v3_#addr
-            if channel.as_deref().unwrap_or("").contains("orders_v3") {
+            if channel.as_deref().unwrap_or_default().contains("orders_v3") {
                 self.handle_order(client.clone(), rows.clone());
-            }  else if channel.as_deref().unwrap_or("").contains("fills_v3") {
+            }  else if channel.as_deref().unwrap_or_default().contains("fills_v3") {
                 self.handle_my_trade(client, rows);
             }
         }

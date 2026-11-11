@@ -1332,14 +1332,14 @@ impl Coinbaseinternational {
         let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base_currency", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "counter_currency", &[]).as_str().map(str::to_owned);
         let mut settleId: Value = self.safe_string_k(market.clone(), "settlement_currency", &[quoteId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut kind: Value = self.safe_string_k(market.clone(), "kind", &[Value::Str("".into())]);
+        let mut kind: String = self.safe_string_k(market.clone(), "kind", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut settlementPeriod: Option<String> = self.safe_string_k(market.clone(), "settlement_period", &[]).as_str().map(str::to_owned);
-        let mut isSpot: Value = (Value::Bool(kind.as_str() == Some("spot")));
+        let mut isSpot: Value = (Value::Bool(kind == "spot"));
         let mut isPerpetual: Value = (Value::Bool(settlementPeriod.as_deref() == Some("perpetual")));
-        let mut isFuture: bool = !(matches!(&isPerpetual, Value::Bool(true))) && (kind.as_str().unwrap_or("").contains("future"));
-        let mut isOption: Value = (Value::Bool(kind.as_str().unwrap_or("").contains("option")));
-        let mut comboPosition: i64 = kind.as_str().and_then(|__s| __s.find("combo")).map(|__i| __i as i64).unwrap_or(-1);
-        let mut isComboMarket: bool = (comboPosition as f64) >= ((0i64) as f64);
+        let mut isFuture: bool = !(matches!(&isPerpetual, Value::Bool(true))) && (kind.contains("future"));
+        let mut isOption: Value = (Value::Bool(kind.contains("option")));
+        let mut comboPosition: i64 = (if let (Some(__h), Some(__n)) = (Some(kind.as_str()), Some("combo")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
+        let mut isComboMarket: bool = comboPosition >= 0;
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut settle: Option<String> = self.safe_currency_code(settleId.clone(), &[]).as_str().map(str::to_owned);
@@ -2136,7 +2136,7 @@ impl Coinbaseinternational {
         if (limit != Value::Null) {
             request.insert("depth".into(), limit.clone());
             if self.is_native_deribit_credentials().as_bool() == Some(true) {
-                let mut depths: Value = Value::from(vec![Value::Int(1), Value::Int(5), Value::Int(10), Value::Int(20), Value::Int(50), Value::Int(100), Value::Int(1000), Value::Int(10000)]);
+                let mut depths: crate::value::List = std::sync::Arc::new(vec![Value::Int(1), Value::Int(5), Value::Int(10), Value::Int(20), Value::Int(50), Value::Int(100), Value::Int(1000), Value::Int(10000)]);
                 if (limit.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64)) || (limit.as_f64().unwrap_or(f64::NAN) > ((10000i64) as f64)) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() limit must be between 1 and 10000".into()))));
                 }
@@ -2144,8 +2144,8 @@ impl Coinbaseinternational {
                                         let mut i: i64 = 0;
                     let mut __for_first_560: bool = true;
                     while { if !__for_first_560 { i += 1; } __for_first_560 = false; i < (depths.len() as i64) } {
-                    if limit.as_f64().unwrap_or(f64::NAN) <= self.parse_to_int(depths.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_f64().unwrap_or(f64::NAN) {
-                        request.insert("depth".into(), self.safe_integer(depths.clone(), Value::Int(i), &[Value::Int(0)]));
+                    if limit.as_f64().unwrap_or(f64::NAN) <= self.parse_to_int(depths.get(i as usize).cloned().unwrap_or(Value::Null)).as_f64().unwrap_or(f64::NAN) {
+                        request.insert("depth".into(), self.safe_integer(&depths, Value::Int(i), &[Value::Int(0)]));
                         break;
                     }
                 }
@@ -4630,9 +4630,9 @@ impl Coinbaseinternational {
         let mut access: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut rpcMethod: String = format!("{}{}", Value::Str(format!("{}{}", access, Value::Str("/".into())).into()), path);
         let mut requestParams: Value = self.handle_route_and_params(Value::Str("sign".into()), &[params]);
-        let mut isNativeDeribit: Value = self.is_native_deribit_credentials();
+        let mut isNativeDeribit: bool = self.is_native_deribit_credentials().as_bool() == Some(true);
         let mut baseApiUrl: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        if isNativeDeribit.as_bool() == Some(true) {
+        if isNativeDeribit {
             baseApiUrl = "https://www.deribit.com/api/v2".to_string();
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseApiUrl, Value::Str("/".into())).into()), rpcMethod);
@@ -4640,12 +4640,12 @@ impl Coinbaseinternational {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if isNativeDeribit.as_bool() == Some(true) && ((path.as_str() == Some("get_leverage")) || (path.as_str() == Some("set_leverage"))) {
+        if isNativeDeribit && ((path.as_str() == Some("get_leverage")) || (path.as_str() == Some("set_leverage"))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), rpcMethod).into()), Value::Str(" is only documented on the Coinbase gateway".into()))));
         }
         if (access.as_str() == Some("public")) && (path.as_str() == Some("auth")) {
             self.check_required_credentials(&[]);
-            if isNativeDeribit.as_bool() == Some(true) {
+            if isNativeDeribit {
                 requestParams = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("grant_type".to_string(), Value::Str("client_credentials".into()));
@@ -4662,7 +4662,7 @@ impl Coinbaseinternational {
                     m
                 }), &[requestParams.clone()]);
             }
-        }  else if (access.as_str() == Some("private")) && isNativeDeribit.as_bool() == Some(true) {
+        }  else if (access.as_str() == Some("private")) && isNativeDeribit {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
             let mut nonce: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);

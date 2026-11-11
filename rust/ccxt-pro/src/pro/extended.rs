@@ -770,9 +770,9 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_311: bool = true;
             while { if !__for_first_311 { i += 1; } __for_first_311 = false; i < (subscriptions.len() as i64) } {
-            let mut messageHash: Value = subscriptions.get(i as usize).cloned().unwrap_or(Value::Null);
-            if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("myTrades:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
-                client.resolve(stored.clone(), &messageHash);
+            let mut messageHash: Option<String> = subscriptions.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if (((if let (Some(__h), Some(__n)) = (messageHash.as_deref(), Some("myTrades:")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
+                client.resolve(stored.clone(), messageHash.as_deref());
             }
         }
         }
@@ -883,13 +883,13 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_313: bool = true;
             while { if !__for_first_313 { i += 1; } __for_first_313 = false; i < (messageHashes.len() as i64) } {
-            let mut messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-            let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
-            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
+            let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+            let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
+            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
             let mut filtered: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
             if !(self.is_empty(filtered.clone()).as_bool() == Some(true)) {
-                client.resolve(filtered, &messageHash);
+                client.resolve(filtered, messageHash.as_deref());
             }
         }
         }
@@ -977,9 +977,9 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_316: bool = true;
             while { if !__for_first_316 { i += 1; } __for_first_316 = false; i < (subscriptions.len() as i64) } {
-            let mut messageHash: Value = subscriptions.get(i as usize).cloned().unwrap_or(Value::Null);
-            if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("orders:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
-                client.resolve(orders.clone(), &messageHash);
+            let mut messageHash: Option<String> = subscriptions.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if (((if let (Some(__h), Some(__n)) = (messageHash.as_deref(), Some("orders:")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
+                client.resolve(orders.clone(), messageHash.as_deref());
             }
         }
         }

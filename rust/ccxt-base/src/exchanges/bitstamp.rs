@@ -2257,14 +2257,14 @@ impl Bitstamp {
             let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "counter_currency", &[]).as_str().map(str::to_owned);
             let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut description: Option<String> = self.safe_string_k_opt(market.clone(), "description", &[]);
+            let mut description: Option<String> = self.safe_string_k(market.clone(), "description", &[]).as_str().map(str::to_owned);
             if (description.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrencies() missing description".into()))));
             }
             let mut descriptionParts: Value = Value::Array(if let Some(__s) = description.as_deref() { __s.split(" / ").map(Value::from).collect() } else { Vec::new() });
             let mut baseDescription: Option<String> = self.safe_string(descriptionParts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut quoteDescription: Option<String> = self.safe_string(descriptionParts, Value::Int(1), &[]).as_str().map(str::to_owned);
-            let mut minimumOrder: Option<String> = self.safe_string_k_opt(market.clone(), "minimum_order_value", &[]);
+            let mut minimumOrder: Option<String> = self.safe_string_k(market.clone(), "minimum_order_value", &[]).as_str().map(str::to_owned);
             if (minimumOrder.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrencies() missing minimumOrder".into()))));
             }
@@ -3863,7 +3863,7 @@ impl Bitstamp {
         }
         let mut tag: Option<String> = None;
         let mut address: Option<String> = None;
-        let mut addressRaw: Option<String> = self.safe_string_k_opt(transaction.clone(), "address", &[]);
+        let mut addressRaw: Option<String> = self.safe_string_k(transaction.clone(), "address", &[]).as_str().map(str::to_owned);
         if (addressRaw.is_some()) {
             // dt (destination tag) is embedded into the address field
             let mut addressParts: Value = Value::Array(if let Some(__s) = addressRaw.as_deref() { __s.split("?dt=").map(Value::from).collect() } else { Vec::new() });
@@ -4090,9 +4090,9 @@ impl Bitstamp {
                                 let mut i: i64 = 0;
                 let mut __for_first_437: bool = true;
                 while { if !__for_first_437 { i += 1; } __for_first_437 = false; i < (keys.len() as i64) } {
-                let mut currentKey: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-                if currentKey.as_str().unwrap_or("").contains("_") {
-                    let mut marketId: Value = currentKey.as_str().map(|__s| Value::Str(__s.replace("_", "").into())).unwrap_or_else(|| currentKey.clone());
+                let mut currentKey: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                if currentKey.as_deref().unwrap_or_default().contains("_") {
+                    let mut marketId: Value = (if let Some(__s) = currentKey.as_deref() { Some(__s.replace("_", "")) } else { None }).map(Value::from).unwrap_or(Value::Null);
                     market = self.safe_market(&[marketId, market.clone()]);
                 }
             }
@@ -4567,9 +4567,9 @@ impl Bitstamp {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into());
-        url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", self.version.clone(), Value::Str("/".into())).into())).into());
-        url = Value::Str(format!("{}{}", url, self.implode_params(path.clone(), params.clone())).into());
+        let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into()));
+        url.push_str(&format!("{}{}", self.version.clone(), Value::Str("/".into())));
+        url.push_str(&(self.implode_params(path.clone(), params.clone())).to_string());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut isPrivatePost: bool = (apiName.as_deref() != Some("public")) && (method.as_str() == Some("POST"));
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
@@ -4593,7 +4593,7 @@ impl Bitstamp {
         });
         if (apiName.as_deref() == Some("public")) {
             if (queryString.as_deref() != Some("")) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString.map(Value::from).unwrap_or(Value::Null)).into())).into());
+                url.push_str(&format!("{}{}", Value::Str("?".into()), queryString.map(Value::from).unwrap_or(Value::Null)));
             }
         }  else {
             self.check_required_credentials(&[]);
@@ -4618,15 +4618,15 @@ impl Bitstamp {
             if isPrivatePost && (postBody.as_deref() != Some("")) {
                 authBody = postBody;
             }
-            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", xAuth, method).into()), url.as_str().map(|__s| Value::Str(__s.replace("https://", "").into())).unwrap_or_else(|| url.clone())).into()),
-                contentType).into()), xAuthNonce).into()), xAuthTimestamp).into()), xAuthVersion).into()), authBody.map(Value::from).unwrap_or(Value::Null));
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", xAuth, method).into()), Value::from(url.replace("https://", ""))).into()), contentType).into()), xAuthNonce).into()), xAuthTimestamp).into()),
+                xAuthVersion).into()), authBody.map(Value::from).unwrap_or(Value::Null));
             let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("X-Auth-Signature".into(), signature); }
         }
         let mut requestHeaders: Value = (if (apiName.as_deref() == Some("public")) { Value::Null } else { privateHeaders });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody);
         m.insert("headers".to_string(), requestHeaders);
@@ -4648,9 +4648,9 @@ impl Bitstamp {
         let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut error: Value = self.safe_value_k(response.clone(), "error", &[]);
         if (status.as_deref() == Some("error")) || (error != Value::Null) {
-            let mut errors: Value = Value::from(vec![]);
+            let mut errors: crate::value::List = std::sync::Arc::new(Vec::new());
             if matches!(&error, Value::Str(_)) {
-                if let Value::Arr(__a) = &mut errors { std::sync::Arc::make_mut(__a).push(error.clone()); }
+                std::sync::Arc::make_mut(&mut errors).push(error.clone());
             }  else if (error != Value::Null) {
                 let mut keys: Vec<Value> = Value::Array(error.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 {
@@ -4660,9 +4660,9 @@ impl Bitstamp {
                     let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut value: Value = self.safe_value(error.clone(), key, &[]);
                     if (matches!(&value, Value::Arr(_))) {
-                        errors = self.array_concat(errors.clone(), value.clone());
+                        errors = self.array_concat(Value::Arr(errors), value.clone()).into_list();
                     }  else {
-                        if let Value::Arr(__a) = &mut errors { std::sync::Arc::make_mut(__a).push(value.clone()); }
+                        std::sync::Arc::make_mut(&mut errors).push(value.clone());
                     }
                 }
                 }
@@ -4672,14 +4672,14 @@ impl Bitstamp {
                 m
             })]);
             if matches!(&reasonInner, Value::Str(_)) {
-                if let Value::Arr(__a) = &mut errors { std::sync::Arc::make_mut(__a).push(reasonInner.clone()); }
+                std::sync::Arc::make_mut(&mut errors).push(reasonInner.clone());
             }  else {
                 let mut all: crate::value::List = self.safe_list_k(reasonInner, "__all__", &[Value::from(vec![])]).into_list();
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_439: bool = true;
                     while { if !__for_first_439 { i += 1; } __for_first_439 = false; i < (all.len() as i64) } {
-                    if let Value::Arr(__a) = &mut errors { std::sync::Arc::make_mut(__a).push(all.get(i as usize).cloned().unwrap_or(Value::Null)); }
+                    std::sync::Arc::make_mut(&mut errors).push(all.get(i as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
             }
@@ -4692,7 +4692,7 @@ impl Bitstamp {
                                 let mut i: i64 = 0;
                 let mut __for_first_440: bool = true;
                 while { if !__for_first_440 { i += 1; } __for_first_440 = false; i < (errors.len() as i64) } {
-                let mut value: Option<String> = self.safe_string_opt(errors.clone(), Value::Int(i), &[]);
+                let mut value: Option<String> = self.safe_string_opt(&errors, Value::Int(i), &[]);
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), value.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), value.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             }

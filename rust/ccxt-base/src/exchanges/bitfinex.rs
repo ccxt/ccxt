@@ -2763,7 +2763,7 @@ impl Bitfinex {
             }
         }
         let mut status: Value = Value::Null;
-        let mut statusString: Option<String> = self.safe_string_opt(orderList.clone(), Value::Int(13), &[]);
+        let mut statusString: Option<String> = self.safe_string(orderList.clone(), Value::Int(13), &[]).as_str().map(str::to_owned);
         if (statusString.is_some()) {
             let mut parts: Value = Value::Array(if let Some(__s) = statusString.as_deref() { __s.split(" @ ").map(Value::from).collect() } else { Vec::new() });
             status = self.parse_order_status(self.safe_string(parts, Value::Int(0), &[])).map(Value::from).unwrap_or(Value::Null);
@@ -4258,7 +4258,7 @@ impl Bitfinex {
     m
 }));
         let tagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tag: Value = tagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tag: Option<String> = tagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone()]);
         if (self.markets.clone() == Value::Null) {
@@ -4288,8 +4288,8 @@ impl Bitfinex {
                 m.insert("address".to_string(), address);
             m
         });
-        if (tag != Value::Null) {
-            request.insert("payment_id".into(), tag);
+        if (tag.is_some()) {
+            request.insert("payment_id".into(), tag.map(Value::from).unwrap_or(Value::Null));
         }
         let mut withdrawOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4648,7 +4648,7 @@ impl Bitfinex {
         let mut timestamp: Option<i64> = self.safe_integer(itemList.clone(), Value::Int(3), &[]).as_i64();
         let mut amount: Option<f64> = self.safe_number(itemList.clone(), Value::Int(5), &[]).as_f64();
         let mut after: Option<f64> = self.safe_number(itemList.clone(), Value::Int(6), &[]).as_f64();
-        let mut description: Option<String> = self.safe_string_opt(itemList, Value::Int(8), &[]);
+        let mut description: Option<String> = self.safe_string(itemList, Value::Int(8), &[]).as_str().map(str::to_owned);
         if (description.is_some()) {
             let mut parts: Value = Value::Array(if let Some(__s) = description.as_deref() { __s.split(" @ ").map(Value::from).collect() } else { Vec::new() });
             let mut first: Option<String> = self.safe_string_lower(parts, Value::Int(0), &[]).as_str().map(str::to_owned);

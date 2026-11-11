@@ -1035,7 +1035,7 @@ impl Paymium {
             self.check_required_credentials(&[]);
             // paymium requires an increasing nonce
             let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
-            let mut auth: Value = Value::Str(format!("{}{}", nonce, url).into());
+            let mut auth: String = format!("{}{}", nonce, url);
             let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Api-Key".to_string(), self.apiKey.clone());
@@ -1048,17 +1048,17 @@ impl Paymium {
             }
             if (method.as_str() == Some("POST")) {
                 if hasQuery {
-                    auth = Value::Str(format!("{}{}", auth, signedBody).into());
+                    auth.push_str(&signedBody.to_string());
                     signedHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
                 }
             }  else {
                 if hasQuery {
                     let mut queryString: Value = self.urlencode(query, &[]);
-                    auth = Value::Str(format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString).into());
+                    auth = format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString);
                     url.push_str(&format!("{}{}", Value::Str("?".into()), queryString));
                 }
             }
-            signedHeaders.insert("Api-Signature".into(), self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
+            signedHeaders.insert("Api-Signature".into(), self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));

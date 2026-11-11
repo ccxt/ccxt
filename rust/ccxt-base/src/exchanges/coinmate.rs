@@ -1460,10 +1460,10 @@ impl Coinmate {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(1000) } else { limit });
+        let mut limitResolved: i64 = limit.as_i64().unwrap_or(1000);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("limit".to_string(), limitResolved.clone());
+                m.insert("limit".to_string(), Value::from(limitResolved));
             m
         });
         if (symbol != Value::Null) {
@@ -1476,7 +1476,7 @@ impl Coinmate {
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_trade_history(&[__ws_arg_3]).await.into_dict();
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[Value::Null, since, limitResolved]);
+        return self.parse_trades(data, &[Value::Null, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -1906,7 +1906,7 @@ impl Coinmate {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut method: Value = Value::Str(format!("{}{}", Value::Str("privatePost".into()), self.capitalize(side.clone())).into());
+        let mut method: String = format!("{}{}", Value::Str("privatePost".into()), self.capitalize(side.clone()));
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1919,21 +1919,21 @@ impl Coinmate {
             }  else {
                 request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount.clone())); // amount in fiat
             }
-            method = Value::Str(format!("{}{}", method, Value::Str("Instant".into())).into());
+            method.push_str("Instant");
         }  else {
             request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount)); // amount in crypto
             request.insert("price".into(), self.price_to_precision(symbol, price));
-            method = Value::Str(format!("{}{}", method, self.capitalize(type_var.clone())).into());
+            method.push_str(&(self.capitalize(type_var.clone())).to_string());
         }
         let mut requestParams: Value = self.extend(Value::Map(request), &[params]);
         let mut response: Value = Value::Null;
-        if (method.as_str() == Some("privatePostBuyInstant")) {
+        if (method == "privatePostBuyInstant") {
             response = self.private_post_buy_instant(&[requestParams.clone()]).await;
-        }  else if (method.as_str() == Some("privatePostSellInstant")) {
+        }  else if (method == "privatePostSellInstant") {
             response = self.private_post_sell_instant(&[requestParams.clone()]).await;
-        }  else if (method.as_str() == Some("privatePostBuyLimit")) {
+        }  else if (method == "privatePostBuyLimit") {
             response = self.private_post_buy_limit(&[requestParams.clone()]).await;
-        }  else if (method.as_str() == Some("privatePostSellLimit")) {
+        }  else if (method == "privatePostSellLimit") {
             response = self.private_post_sell_limit(&[requestParams]).await;
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support order type ".into())).into()), type_var)));

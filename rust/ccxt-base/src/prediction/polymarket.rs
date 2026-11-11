@@ -1301,7 +1301,7 @@ impl Polymarket {
             let mut __for_first_1413: bool = true;
             while { if !__for_first_1413 { i += 1; } __for_first_1413 = false; i < (chars.len() as i64) } {
             let mut ch: Value = chars.get(i as usize).cloned().unwrap_or(Value::Null);
-            if Value::Int(Some(allowed.as_str()).zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if ((if let (Some(__h), Some(__n)) = (Some(allowed.as_str()), (ch).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                 if pendingSep && (slug != "") {
                     slug = format!("{}{}", slug, Value::Str("-".into()));
                 }
@@ -4430,7 +4430,7 @@ impl Polymarket {
                 // the privateKey and cached in options (see setApiCredentials/loadApiCredentials)
                 // prefer the derived creds (owned by the privateKey's EOA) over any externally supplied ones
                 let mut apiKey: Option<String> = self.safe_string_k(self.options.clone(), "l2ApiKey", &[self.apiKey.clone()]).as_str().map(str::to_owned);
-                let mut secret: Value = self.safe_string_k(self.options.clone(), "l2Secret", &[self.secret.clone()]);
+                let mut secret: Option<String> = self.safe_string_k(self.options.clone(), "l2Secret", &[self.secret.clone()]).as_str().map(str::to_owned);
                 let mut passphrase: Option<String> = self.safe_string_k(self.options.clone(), "l2Passphrase", &[self.password.clone()]).as_str().map(str::to_owned);
                 // POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
                 let mut address: Value = Value::Null;
@@ -4450,19 +4450,19 @@ impl Polymarket {
                 // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
                 // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
                 // in a chain, leaving the inner call as an (invalid) method call
-                let mut plusSecret: Value = secret.as_str().map(|__s| Value::Str(__s.replace("-", "+").into())).unwrap_or_else(|| secret.clone());
-                let mut normalizedSecret: Value = plusSecret.as_str().map(|__s| Value::Str(__s.replace("_", "/").into())).unwrap_or_else(|| plusSecret.clone());
+                let mut plusSecret: Option<String> = (if let Some(__s) = secret.as_deref() { Some(__s.replace("-", "+")) } else { None });
+                let mut normalizedSecret: Value = (if let Some(__s) = plusSecret.as_deref() { Some(__s.replace("_", "/")) } else { None }).map(Value::from).unwrap_or(Value::Null);
                 let mut secretBytes: Value = self.base64_to_binary(normalizedSecret, &[]);
-                let mut signature: Value = self.hmac(self.encode(Value::from(auth)), secretBytes, Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+                let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), secretBytes, Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
                 // url-safe base64, preserving '=' padding (matches the reference client)
-                signature = signature.as_str().map(|__s| Value::Str(__s.replace("+", "-").into())).unwrap_or_else(|| signature.clone());
-                signature = signature.as_str().map(|__s| Value::Str(__s.replace("/", "_").into())).unwrap_or_else(|| signature.clone());
+                signature = (if let Some(__s) = signature.as_deref() { Some(__s.replace("+", "-")) } else { None });
+                signature = (if let Some(__s) = signature.as_deref() { Some(__s.replace("/", "_")) } else { None });
                 headersValue = self.extend(headersValue.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("POLY_ADDRESS".to_string(), address);
                         m.insert("POLY_API_KEY".to_string(), apiKey.map(Value::from).unwrap_or(Value::Null));
                         m.insert("POLY_PASSPHRASE".to_string(), passphrase.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("POLY_SIGNATURE".to_string(), signature);
+                        m.insert("POLY_SIGNATURE".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                         m.insert("POLY_TIMESTAMP".to_string(), timestamp);
                     m
                 })]);
@@ -4499,7 +4499,7 @@ impl Polymarket {
             while { if !__for_first_1450 { i += 1; } __for_first_1450 = false; i < (addrChars.len() as i64) } {
             let mut ch: Option<String> = addrChars.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut hashCh: Value = hashChars.get(i as usize).cloned().unwrap_or(Value::Null);
-            if Value::Int(Some(upperNibbles.as_str()).zip(hashCh.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if ((if let (Some(__h), Some(__n)) = (Some(upperNibbles.as_str()), (hashCh).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                 result = format!("{}{}", result, ch.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
             }  else {
                 result = format!("{}{}", result, ch.map(Value::from).unwrap_or(Value::Null));

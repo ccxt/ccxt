@@ -840,7 +840,7 @@ impl Btcmarkets {
     m
 })]).into_dict();
         let mut txid: Option<String> = self.safe_string_k(&cryptoPaymentDetail, "txId", &[]).as_str().map(str::to_owned);
-        let mut addressRaw: Option<String> = self.safe_string_k_opt(&cryptoPaymentDetail, "address", &[]);
+        let mut addressRaw: Option<String> = self.safe_string_k(&cryptoPaymentDetail, "address", &[]).as_str().map(str::to_owned);
         let mut address: Value = Value::Null;
         let mut tag: Value = Value::Null;
         if (addressRaw.is_some()) {

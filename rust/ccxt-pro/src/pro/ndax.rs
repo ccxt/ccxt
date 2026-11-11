@@ -735,12 +735,12 @@ impl Ndax {
     m
 })]), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut requestId: Value = self.request_id();
-        let mut limitValue: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() });
+        let mut limitValue: i64 = limit.as_i64().unwrap_or(100);
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), Value::from(omsId));
                 m.insert("InstrumentId".to_string(), self.safe_integer_k((market).raw.clone(), "id", &[]));
-                m.insert("Depth".to_string(), limitValue.clone());
+                m.insert("Depth".to_string(), Value::from(limitValue));
             m
         });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -759,7 +759,7 @@ impl Ndax {
                 m.insert("symbol".to_string(), Value::from(symbolValue));
                 m.insert("marketId".to_string(), Value::from((market).id.clone()));
                 m.insert("method".to_string(), Value::Str("handle_order_book_subscription".into()).clone());
-                m.insert("limit".to_string(), limitValue);
+                m.insert("limit".to_string(), Value::from(limitValue));
                 m.insert("params".to_string(), params.clone());
             m
         });

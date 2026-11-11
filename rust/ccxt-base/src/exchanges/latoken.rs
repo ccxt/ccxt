@@ -1882,7 +1882,7 @@ impl Latoken {
         if symbolKnown {
             marketResolved = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         }
-        let mut orderSide: Option<String> = self.safe_string_k_opt(order.clone(), "side", &[]);
+        let mut orderSide: Option<String> = self.safe_string_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
         if (orderSide.is_some()) {
             let mut parts: Value = Value::Array(if let Some(__s) = orderSide.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });

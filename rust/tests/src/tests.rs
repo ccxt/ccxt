@@ -1724,16 +1724,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_1638: bool = true;
             while { if !__for_first_1638 { i += 1; } __for_first_1638 = false; i < (files.len() as i64) } {
-            let mut file: Value = files.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut file: Option<String> = files.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             // the only non-json entry in the static dirs is the prediction/ subfolder (prediction
             // fixtures live under static/<type>/prediction/). skip it by name — a string-equality
             // check the AST transpiler renders correctly in every language (indexOf/slice on this
             // entry mis-transpile in PHP: array_search / mb_strpos(...) < 0 / undefined)
-            if (file.as_str() == Some("prediction")) {
+            if (file.as_deref() == Some("prediction")) {
                 continue;
             }
-            let mut exchangeName: Value = file.as_str().map(|__s| Value::Str(__s.replace(".json", "").into())).unwrap_or_else(|| file.clone());
-            let mut content: Value = ioFileRead(Value::Str(format!("{}{}", folder, file).into()), &[]);
+            let mut exchangeName: Value = (if let Some(__s) = file.as_deref() { Some(__s.replace(".json", "")) } else { None }).map(Value::from).unwrap_or(Value::Null);
+            let mut content: Value = ioFileRead(Value::Str(format!("{}{}", folder, file.map(Value::from).unwrap_or(Value::Null)).into()), &[]);
             result.insert(ccxt::runtime::stringify_param(&exchangeName), content.clone());
         }
         }
@@ -1747,7 +1747,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return Value::Null;
         }
         let mut urlParts: Vec<Value> = Value::Array(if let Some(__s) = url.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-        let mut res: Value = Value::Str("".into());
+        let mut res: String = "".to_string();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1639: bool = true;
@@ -1757,16 +1757,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if current.as_str().unwrap_or("").contains("?") {
                     // handle urls like this: /v1/account/accounts?AccessK
                     let mut currentParts: Vec<Value> = Value::Array(if let Some(__s) = current.as_str() { __s.split("?").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-                    res = Value::Str(format!("{}{}", res, Value::Str("/".into())).into());
-                    res = Value::Str(format!("{}{}", res, currentParts.get(0).cloned().unwrap_or(Value::Null)).into());
+                    res.push_str("/");
+                    res.push_str(&(currentParts.get(0).cloned().unwrap_or(Value::Null)).to_string());
                     break;
                 }
-                res = Value::Str(format!("{}{}", res, Value::Str("/".into())).into());
-                res = Value::Str(format!("{}{}", res, current).into());
+                res.push_str("/");
+                res.push_str(&current.to_string());
             }
         }
         }
-        return res;
+        return Value::from(res);
 
     Value::Null
 }
@@ -1781,8 +1781,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_1640: bool = true;
             while { if !__for_first_1640 { i += 1; } __for_first_1640 = false; i < (parts.len() as i64) } {
-            let mut part: Value = parts.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut keyValue: Value = Value::Array(if let Some(__s) = part.as_str() { __s.split("=").map(Value::from).collect() } else { Vec::new() });
+            let mut part: Option<String> = parts.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut keyValue: Value = Value::Array(if let Some(__s) = part.as_deref() { __s.split("=").map(Value::from).collect() } else { Vec::new() });
             let mut keysLength: Value = Value::Int(keyValue.len() as i64);
             if (keysLength.as_f64() != Some(2.0)) {
                 continue;

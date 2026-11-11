@@ -1629,7 +1629,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut allInstruments: Value = Value::from(vec![]);
+        let mut allInstruments: crate::value::List = std::sync::Arc::new(Vec::new());
         let maxPagesparamsMaxPagesVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("getMarketsPaginated".into()), Value::Str("maxMarketPages".into()), &[Value::Int(25)]).as_array().cloned().unwrap_or_default();
         let mut maxPages: Value = maxPagesparamsMaxPagesVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMaxPages: crate::value::Dict = maxPagesparamsMaxPagesVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -1655,7 +1655,7 @@ impl Derive {
                 m
             })]).into_dict();
             let mut data: Value = self.safe_list_k(&result, "instruments", &[Value::from(vec![])]);
-            allInstruments = self.array_concat(allInstruments.clone(), data);
+            allInstruments = self.array_concat(Value::Arr(allInstruments), data).into_list();
             let mut pagination: crate::value::Dict = self.safe_dict_k(&result, "pagination", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1667,7 +1667,7 @@ impl Derive {
             }
         }
         }
-        return allInstruments;
+        return Value::Arr(allInstruments);
 
     Value::Null
 }

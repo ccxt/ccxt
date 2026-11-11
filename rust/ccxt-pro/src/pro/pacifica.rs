@@ -438,9 +438,9 @@ impl Pacifica {
         let requestoperationTypeVariable: Vec<Value> = self.parent.create_order_request(symbol.clone(), type_var, side, amount, &[price, params]).as_array().cloned().unwrap_or_default();
         let mut request: Value = requestoperationTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut operationType: Option<String> = requestoperationTypeVariable.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
+        let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
-        if isTestnet.as_bool() == Some(true) {
+        if isTestnet {
             urlKey = "test".to_string();
         }
         let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
@@ -560,9 +560,9 @@ impl Pacifica {
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut request: Value = self.parent.edit_order_request(id.clone(), symbol.clone(), type_var, side, amount, price, market, &[params]);
-        let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
+        let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
-        if isTestnet.as_bool() == Some(true) {
+        if isTestnet {
             urlKey = "test".to_string();
         }
         let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
@@ -656,9 +656,9 @@ impl Pacifica {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str("cancelOrders() requires a \"symbol\" argument!".into()))));
         }
         let mut request: Value = self.parent.cancel_orders_request(ids, &[symbol, params]);
-        let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
+        let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
-        if isTestnet.as_bool() == Some(true) {
+        if isTestnet {
             urlKey = "test".to_string();
         }
         let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
@@ -773,9 +773,9 @@ impl Pacifica {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrderWs() requires a symbol argument".into()))));
         }
         let mut request: Value = self.parent.cancel_order_request(id.clone(), &[symbol.clone(), params]);
-        let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
+        let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
-        if isTestnet.as_bool() == Some(true) {
+        if isTestnet {
             urlKey = "test".to_string();
         }
         let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
@@ -865,9 +865,9 @@ impl Pacifica {
         }
         let mut operationType: String = "cancel_all_orders".to_string();
         let mut request: Value = self.parent.cancel_all_orders_request(symbol, &[params]);
-        let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
+        let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
-        if isTestnet.as_bool() == Some(true) {
+        if isTestnet {
             urlKey = "test".to_string();
         }
         let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
@@ -926,9 +926,9 @@ impl Pacifica {
         let mut aggLevel: Value = aggLevelparamsAggLevelVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsAggLevel: crate::value::Dict = aggLevelparamsAggLevelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
-        let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
+        let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
-        if isTestnet.as_bool() == Some(true) {
+        if isTestnet {
             urlKey = "test".to_string();
         }
         let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
@@ -992,9 +992,9 @@ impl Pacifica {
         let mut paramsAggLevel: crate::value::Dict = aggLevelparamsAggLevelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subMessageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
-        let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
+        let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
-        if isTestnet.as_bool() == Some(true) {
+        if isTestnet {
             urlKey = "test".to_string();
         }
         let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
@@ -1145,9 +1145,9 @@ impl Pacifica {
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
         let mut messageHash: String = "tickers".to_string();
-        let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
+        let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
-        if isTestnet.as_bool() == Some(true) {
+        if isTestnet {
             urlKey = "test".to_string();
         }
         let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
@@ -1208,9 +1208,9 @@ impl Pacifica {
         self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
         let mut subMessageHash: String = "tickers".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
-        let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
+        let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
-        if isTestnet.as_bool() == Some(true) {
+        if isTestnet {
             urlKey = "test".to_string();
         }
         let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
@@ -1278,9 +1278,9 @@ impl Pacifica {
             symbolResolved = self.symbol(symbol.clone());
             messageHash = format!("{}{}", Value::Str("myTrades:".into()), symbolResolved);
         }
-        let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
+        let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
-        if isTestnet.as_bool() == Some(true) {
+        if isTestnet {
             urlKey = "test".to_string();
         }
         let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
@@ -1348,9 +1348,9 @@ impl Pacifica {
         let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageHash: String = "unsubscribe:myTrades".to_string();
-        let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
+        let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
-        if isTestnet.as_bool() == Some(true) {
+        if isTestnet {
             urlKey = "test".to_string();
         }
         let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
@@ -1532,9 +1532,9 @@ impl Pacifica {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbolValue);
-        let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
+        let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
-        if isTestnet.as_bool() == Some(true) {
+        if isTestnet {
             urlKey = "test".to_string();
         }
         let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
@@ -1598,9 +1598,9 @@ impl Pacifica {
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut subMessageHash: String = format!("{}{}", Value::Str("trade:".into()), symbolValue);
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
-        let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
+        let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
-        if isTestnet.as_bool() == Some(true) {
+        if isTestnet {
             urlKey = "test".to_string();
         }
         let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
@@ -1803,10 +1803,10 @@ impl Pacifica {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
-        let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
+        let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut parsedTf: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut urlKey: String = "api".to_string();
-        if isTestnet.as_bool() == Some(true) {
+        if isTestnet {
             urlKey = "test".to_string();
         }
         let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
@@ -1872,9 +1872,9 @@ impl Pacifica {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
-        let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
+        let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
-        if isTestnet.as_bool() == Some(true) {
+        if isTestnet {
             urlKey = "test".to_string();
         }
         let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
@@ -2001,9 +2001,9 @@ impl Pacifica {
             symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]);
             messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
         }
-        let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
+        let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
-        if isTestnet.as_bool() == Some(true) {
+        if isTestnet {
             urlKey = "test".to_string();
         }
         let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
@@ -2068,9 +2068,9 @@ impl Pacifica {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchOrders() does not support a symbol argument, unWatch from all markets only".into()))));
         }
         let mut messageHash: String = "unsubscribe:order".to_string();
-        let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
+        let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
-        if isTestnet.as_bool() == Some(true) {
+        if isTestnet {
             urlKey = "test".to_string();
         }
         let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({

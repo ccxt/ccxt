@@ -988,7 +988,7 @@ impl Dydx {
         // }
         //
         let mut quoteId: String = "USDC".to_string();
-        let mut marketId: Option<String> = self.safe_string_k_opt(market.clone(), "ticker", &[]);
+        let mut marketId: Option<String> = self.safe_string_k(market.clone(), "ticker", &[]).as_str().map(str::to_owned);
         if (marketId.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing marketId".into()))));
         }
@@ -2066,7 +2066,7 @@ impl Dydx {
         let mut isConditional: bool = (triggerPrice.is_some()) || (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
         let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
         let mut timeInForce: Option<String> = self.safe_string_upper_k(paramsSubAccountId.clone(), "timeInForce", &[Value::Str("GTT".into())]).as_str().map(str::to_owned);
-        let mut postOnly: Value = self.is_post_only(isMarket, Value::Null, &[paramsSubAccountId.clone()]);
+        let mut postOnly: bool = self.is_post_only(isMarket, Value::Null, &[paramsSubAccountId.clone()]).as_bool() == Some(true);
         let mut amountStr: Value = self.amount_to_precision(symbol.clone(), amount);
         let mut priceStr: Value = self.price_to_precision(symbol.clone(), price);
         let mut marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "info", &[Value::Map({
@@ -2099,7 +2099,7 @@ impl Dydx {
             if (timeInForce.as_deref() == Some("GTT")) {
                 // long-term
                 orderFlag = Some(64);
-                if postOnly.as_bool() == Some(true) {
+                if postOnly {
                     timeInForceNumber = Some(2);
                 }  else {
                     timeInForceNumber = Some(0);

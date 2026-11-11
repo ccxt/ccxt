@@ -2701,16 +2701,16 @@ impl Deepcoin {
         }
         let mut marginMode: String = "cross".to_string();
         let marginModeOptionparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params, Value::from(marginMode)]).as_array().cloned().unwrap_or_default();
-        let mut marginModeOption: Value = marginModeOptionparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginModeOption: Option<String> = marginModeOptionparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeOptionparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isCrossMargin: i64 = 1;
-        if (marginModeOption.as_str() == Some("isolated")) {
+        if (marginModeOption.as_deref() == Some("isolated")) {
             isCrossMargin = 0;
         }
         let mut reduceOnly: bool = self.safe_bool_k(&paramsMarginMode, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::Str("reduceOnly".into()), &[]).into_dict();
         request.insert("isCrossMargin".into(), Value::from(isCrossMargin));
-        request.insert("tdMode".into(), marginModeOption);
+        request.insert("tdMode".into(), marginModeOption.map(Value::from).unwrap_or(Value::Null));
         if (market).swap {
             if reduceOnly {
                 if (side.as_str() == Some("buy")) {

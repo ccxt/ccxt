@@ -1862,7 +1862,7 @@ impl Phemex {
         //        ...
         //    ]
         //
-        let mut trades: Value = Value::from(vec![]);
+        let mut trades: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut parsedOrders: Vec<Value> = Vec::new();
         if (in_op(&message, &Value::Str("closed".into()))) || (in_op(&message, &Value::Str("fills".into()))) || (in_op(&message, &Value::Str("open".into()))) {
             let mut closed: Value = self.safe_list_k(message.clone(), "closed", &[Value::from(vec![])]);
@@ -1872,7 +1872,7 @@ impl Phemex {
             if (ordersLength == 0.0) {
                 return;
             }
-            trades = self.safe_list_k(message.clone(), "fills", &[Value::from(vec![])]);
+            trades = self.safe_list_k(message.clone(), "fills", &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_616: bool = true;
@@ -1895,14 +1895,14 @@ impl Phemex {
                 let mut action: Option<String> = self.safe_string_k(update.clone(), "action", &[]).as_str().map(str::to_owned);
                 if (action.is_some()) && (action.as_deref() != Some("Cancel")) {
                     // order + trade info together
-                    if let Value::Arr(__a) = &mut trades { std::sync::Arc::make_mut(__a).push(update.clone()); }
+                    std::sync::Arc::make_mut(&mut trades).push(update.clone());
                 }
                 let mut parsedOrder: Value = self.parse_ws_swap_order(update, &[]);
                 parsedOrders.push(parsedOrder);
             }
             }
         }
-        self.handle_my_trades(client.clone(), trades);
+        self.handle_my_trades(client.clone(), Value::Arr(trades));
         let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         let mut marketIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

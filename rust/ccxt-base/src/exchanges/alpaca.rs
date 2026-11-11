@@ -1144,7 +1144,7 @@ impl Alpaca {
         //         "price_increment": "1"
         //     }
         //
-        let mut marketId: Option<String> = self.safe_string_k_opt(asset.clone(), "symbol", &[]);
+        let mut marketId: Option<String> = self.safe_string_k(asset.clone(), "symbol", &[]).as_str().map(str::to_owned);
         if (marketId.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing marketId".into()))));
         }
@@ -1815,8 +1815,8 @@ impl Alpaca {
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
         let mut clientOrderIdprefix: Option<String> = self.safe_string_k(self.options.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
-        let mut uuid: Value = self.uuid(&[]);
-        let mut parts: Value = Value::Array(if let Some(__s) = uuid.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
+        let mut uuid: Option<String> = self.uuid(&[]).as_str().map(str::to_owned);
+        let mut parts: Value = Value::Array(if let Some(__s) = uuid.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
         let mut random_id: Value = Value::Str(parts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("")).unwrap_or_default().into());
         let mut defaultClientId: Value = self.implode_params(clientOrderIdprefix.map(Value::from).unwrap_or(Value::Null), Value::Map({
             let mut m = indexmap::IndexMap::new();

@@ -4480,12 +4480,12 @@ impl Btse {
         //
         // rows echo the short symbol form, while positionId carries the full market
         // id, optionally suffixed with the isolated wallet discriminator after a pipe
-        let mut marketId: Option<String> = self.safe_string_k_opt(position.clone(), "positionId", &[]);
+        let mut marketId: Option<String> = self.safe_string_k(position.clone(), "positionId", &[]).as_str().map(str::to_owned);
         if (marketId.is_some()) {
             let mut parts: Value = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("|").map(Value::from).collect() } else { Vec::new() });
-            marketId = self.safe_string_opt(parts, Value::Int(0), &[]);
+            marketId = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         }  else {
-            marketId = self.safe_string_k_opt(position.clone(), "symbol", &[]);
+            marketId = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
         }
         let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "timestamp", &[]).as_i64();

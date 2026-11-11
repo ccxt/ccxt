@@ -1501,7 +1501,7 @@ if _try_result.is_err() {
         let mut isConditional: bool = (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
         let mut isMarketOrder: Value = (Value::Bool(orderType.as_str() == Some("MARKET")));
         let mut timeInForce: Option<String> = self.safe_string_lower_k(paramsOrderExpiry.clone(), "timeInForce", &[Value::Str("gtt".into())]).as_str().map(str::to_owned);
-        let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Null, &[paramsOrderExpiry.clone()]);
+        let mut postOnly: bool = self.is_post_only(isMarketOrder.clone(), Value::Null, &[paramsOrderExpiry.clone()]).as_bool() == Some(true);
         let mut paramsOmitted: Value = self.omit(paramsOrderExpiry, Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("timeInForce".into())]), &[]);
         let mut orderTypeNum: Option<i64> = None;
         let mut timeInForceNum: Option<i64> = None;
@@ -1516,7 +1516,7 @@ if _try_result.is_err() {
         }  else {
             request.insert("is_ask".into(), Value::Int(1));
         }
-        if postOnly.as_bool() == Some(true) {
+        if postOnly {
             timeInForceNum = Some(2);
             orderExpiry = Value::Int(-1);
         }  else {
