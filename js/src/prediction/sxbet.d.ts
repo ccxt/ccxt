@@ -468,7 +468,7 @@ export default class sxbet extends Exchange {
      */
     parseSxbetV3BookSides(snapshot: Dict, isOutcomeOne: boolean): Dict;
     setWsOption(group: string, key: string, value: Str | Dict): void;
-    requestId(url: Str): number;
+    requestId(url: Str): int;
     /**
      * @ignore
      * @method

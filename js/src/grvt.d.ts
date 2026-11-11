@@ -363,7 +363,7 @@ export default class grvt extends Exchange {
     formatSignatureRS(value: string): string;
     defaultSignature(): Dict;
     handleUntilOptionString(key: string, request: Dict, params?: Dict, multiplier?: int): [Dict, Dict];
-    requestId(): number;
+    requestId(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

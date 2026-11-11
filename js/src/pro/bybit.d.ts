@@ -1,11 +1,11 @@
 import bybitRest from '../bybit.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, Bool, Market, NullableDict } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, Bool, Market, NullableDict, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bybit extends bybitRest {
     describe(): Dict;
     describeData(): any;
-    requestId(): number;
+    requestId(): int;
     getUrlByMarketType(symbol?: Str, isPrivate?: Bool, method?: Str, params?: Dict): Promise<string>;
     cleanParams(params: Dict): Dict;
     /**

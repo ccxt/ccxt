@@ -1,6 +1,6 @@
 import pacificaRest from '../pacifica.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, Bool } from '../base/types.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, Bool, type int } from '../base/types.js';
 export default class pacifica extends pacificaRest {
     describe(): Dict;
     setupApiKeyHeaders(key?: Str): void;
@@ -261,7 +261,7 @@ export default class pacifica extends pacificaRest {
         method: string;
     };
     handlePong(client: Client, message: Dict): Dict;
-    requestId(): string;
+    requestId(): int;
     wrapAsPostAction(operationType: Str, request: Dict): Dict;
     handleWsPost(client: Client, message: Dict): void;
 }

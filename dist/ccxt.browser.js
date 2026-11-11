@@ -544298,7 +544298,7 @@ class bittrade extends _bittrade_js__rspack_import_0/* ["default"] */.A {
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         this.unlockId();
-        return requestId.toString();
+        return requestId;
     }
     /**
      * @method
@@ -544326,10 +544326,10 @@ class bittrade extends _bittrade_js__rspack_import_0/* ["default"] */.A {
         const requestId = this.requestId();
         const request = {
             'sub': messageHash,
-            'id': requestId
+            'id': requestId.toString()
         };
         const subscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'symbol': market['symbol'],
             'params': params
@@ -544400,10 +544400,10 @@ class bittrade extends _bittrade_js__rspack_import_0/* ["default"] */.A {
         const requestId = this.requestId();
         const request = {
             'sub': messageHash,
-            'id': requestId
+            'id': requestId.toString()
         };
         const subscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'symbol': symbolValue,
             'params': params
@@ -544489,10 +544489,10 @@ class bittrade extends _bittrade_js__rspack_import_0/* ["default"] */.A {
         const requestId = this.requestId();
         const request = {
             'sub': messageHash,
-            'id': requestId
+            'id': requestId.toString()
         };
         const subscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'symbol': symbolValue,
             'timeframe': timeframe,
@@ -544576,10 +544576,10 @@ class bittrade extends _bittrade_js__rspack_import_0/* ["default"] */.A {
         const requestId = this.requestId();
         const request = {
             'sub': messageHash,
-            'id': requestId
+            'id': requestId.toString()
         };
         const subscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'symbol': symbolValue,
             'limit': limitValue,
@@ -544650,19 +544650,19 @@ class bittrade extends _bittrade_js__rspack_import_0/* ["default"] */.A {
             const requestId = this.requestId();
             const request = {
                 'req': messageHash,
-                'id': requestId
+                'id': requestId.toString()
             };
             // this is a temporary subscription by a specific requestId
             // it has a very short lifetime until the snapshot is received over ws
             const snapshotSubscription = {
-                'id': requestId,
+                'id': requestId.toString(),
                 'messageHash': messageHash,
                 'symbol': symbol,
                 'limit': limit,
                 'params': params,
                 'method': this.handleOrderBookSnapshot
             };
-            const orderbook = await this.watch(url, requestId, request, requestId, snapshotSubscription);
+            const orderbook = await this.watch(url, requestId.toString(), request, requestId.toString(), snapshotSubscription);
             return orderbook.limit();
         } catch (e) {
             delete client.subscriptions[messageHash];
@@ -552590,7 +552590,7 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         this.unlockId();
-        return requestId.toString();
+        return requestId;
     }
     /**
      * @method
@@ -552601,7 +552601,7 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */ async watchBalance(params = {}) {
         await this.authenticate(params);
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const url = this.safeString(this.urls['api'], 'ws', '');
         const subscribe = {
             'e': 'get-balance',
@@ -552823,7 +552823,7 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
                     market['baseId'],
                     market['quoteId']
                 ],
-                'oid': this.requestId()
+                'oid': this.requestId().toString()
             };
             subscriptionHash = 'ticker:' + symbolValue;
         }
@@ -552880,7 +552880,7 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const url = this.safeString(this.urls['api'], 'ws', '');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const request = this.extend({
             'e': 'ticker',
             'oid': messageHash,
@@ -552995,7 +552995,7 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         }
         await this.authenticate();
         const url = this.safeString(this.urls['api'], 'ws', '');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const request = this.extend({
             'e': 'get-balance',
             'oid': messageHash
@@ -553522,7 +553522,7 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
                 'subscribe': true,
                 'depth': depth
             },
-            'oid': this.requestId()
+            'oid': this.requestId().toString()
         };
         const request = this.deepExtend(subscribe, params);
         const orderbook = await this.watch(url, messageHash, request, messageHash);
@@ -553827,7 +553827,7 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
             'order_id': id.toString()
         }, params);
         const url = this.safeString(this.urls['api'], 'ws', '');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const request = {
             'e': 'get-order',
             'oid': messageHash,
@@ -553856,7 +553856,7 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         await this.authenticate();
         const market = this.market(symbol);
         const url = this.safeString(this.urls['api'], 'ws', '');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const data = this.extend({
             'pair': [
                 market['baseId'],
@@ -553894,7 +553894,7 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         await this.authenticate();
         const market = this.market(symbol);
         const url = this.safeString(this.urls['api'], 'ws', '');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const data = this.extend({
             'pair': [
                 market['baseId'],
@@ -553947,7 +553947,7 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
             'price': price,
             'order_id': id
         }, params);
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const url = this.safeString(this.urls['api'], 'ws', '');
         const request = {
             'e': 'cancel-replace-order',
@@ -553978,7 +553978,7 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         const data = this.extend({
             'order_id': id
         }, params);
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const url = this.safeString(this.urls['api'], 'ws', '');
         const request = {
             'e': 'cancel-order',
@@ -554005,7 +554005,7 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         await this.authenticate();
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const data = this.extend({
             'cancel-orders': ids
         }, params);
@@ -573299,7 +573299,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         this.unlockId();
-        return requestId.toString();
+        return requestId;
     }
     /**
      * @method
@@ -573784,12 +573784,12 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
         const requestId = this.requestId();
         const request = {
             'req': messageHash,
-            'id': requestId
+            'id': requestId.toString()
         };
         // this is a temporary subscription by a specific requestId
         // it has a very short lifetime until the snapshot is received over ws
         const snapshotSubscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'symbol': symbol,
             'limit': limit,
@@ -573799,7 +573799,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
             'method': this.handleOrderBookSnapshot
         };
         try {
-            const orderbook = await this.watch(url, requestId, request, requestId, snapshotSubscription);
+            const orderbook = await this.watch(url, requestId.toString(), request, requestId.toString(), snapshotSubscription);
             return orderbook.limit();
         } catch (e) {
             if (messageHash !== undefined) {
@@ -576108,10 +576108,10 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
         const requestId = this.requestId();
         const request = {
             'sub': messageHash,
-            'id': requestId
+            'id': requestId.toString()
         };
         const subscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'symbol': symbol,
             'params': params
@@ -576125,7 +576125,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
         const requestId = this.requestId();
         const request = {
             'unsub': subMessageHash,
-            'id': requestId
+            'id': requestId.toString()
         };
         const messageHash = 'unsubscribe::' + subMessageHash;
         const isFeed = topic === 'orderbook';
@@ -576135,7 +576135,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
         const url = this.getUrlByMarketType(market['type'], market['linear'], false, isFeed);
         const subscription = {
             'unsubscribe': true,
-            'id': requestId,
+            'id': requestId.toString(),
             'subMessageHashes': [
                 subMessageHash
             ],
@@ -576157,7 +576157,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
     async subscribePrivate(channel, messageHash, type, subtype, params = {}, subscriptionParams = {}) {
         const requestId = this.requestId();
         const subscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'params': params
         };
@@ -576172,7 +576172,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
             request = {
                 'op': 'sub',
                 'topic': channel,
-                'cid': requestId
+                'cid': requestId.toString()
             };
         }
         const isLinear = subtype === 'linear';
@@ -576256,7 +576256,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
             }
             const requestId = this.requestId();
             const subscription = {
-                'id': requestId,
+                'id': requestId.toString(),
                 'messageHash': messageHash,
                 'params': params
             };
@@ -588180,7 +588180,7 @@ class lighter extends _lighter_js__rspack_import_0/* ["default"] */.A {
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
         this.options['requestId'][url] = newValue;
-        return this.numberToString(newValue);
+        return newValue;
     }
     /**
      * @method
@@ -588204,7 +588204,9 @@ class lighter extends _lighter_js__rspack_import_0/* ["default"] */.A {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
         const url = this.urls['api']['ws'];
-        const requestId = this.requestId(url);
+        const nextId = this.requestId(url);
+        // the venue takes a string request id
+        const requestId = nextId.toString();
         const messageHash = 'jsonapi/sendtx:' + requestId;
         const [txType, txInfo, order] = await this.signAndCreateOrder('createOrderWs', symbol, type, side, amount, price, params);
         const market = this.market(symbol);
@@ -588236,7 +588238,9 @@ class lighter extends _lighter_js__rspack_import_0/* ["default"] */.A {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async cancelOrderWs(id, symbol = undefined, params = {}) {
         const url = this.urls['api']['ws'];
-        const requestId = this.requestId(url);
+        const nextId = this.requestId(url);
+        // the venue takes a string request id
+        const requestId = nextId.toString();
         const messageHash = 'jsonapi/sendtx:' + requestId;
         const [txType, txInfo] = await this.signAndCancelOrder('cancelOrderWs', id, symbol, params);
         const market = this.market(symbol);
@@ -588267,7 +588271,9 @@ class lighter extends _lighter_js__rspack_import_0/* ["default"] */.A {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async cancelAllOrdersWs(symbol = undefined, params = {}) {
         const url = this.urls['api']['ws'];
-        const requestId = this.requestId(url);
+        const nextId = this.requestId(url);
+        // the venue takes a string request id
+        const requestId = nextId.toString();
         const messageHash = 'jsonapi/sendtx:' + requestId;
         const [txType, txInfo] = await this.signAndCancelAllOrders('cancelAllOrdersWs', symbol, params);
         const parsedTx = this.parseJson(txInfo);
@@ -597950,10 +597956,10 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         }
     }
     requestId() {
+        // millisecond timestamp plus 3 random digits stays a safe integer
         const ts = this.milliseconds().toString();
-        const randomNumber = this.randNumber(4);
-        const randomPart = randomNumber.toString();
-        return ts + randomPart;
+        const randomPart = this.randNumber(3).toString();
+        return this.parseToInt(ts + randomPart);
     }
     /**
      * @method
@@ -597974,7 +597980,7 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         }
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const [op, paramsOp] = this.handleOptionStringAndParams(params, 'createOrderWs', 'op', 'batch-orders');
         const args = this.createOrderRequest(symbol, type, side, amount, price, paramsOp);
         const market = this.market(symbol);
@@ -598052,7 +598058,7 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         }
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const [op, paramsOp] = this.handleOptionStringAndParams(params, 'editOrderWs', 'op', 'amend-order');
         const args = this.editOrderRequest(id, symbol, type, side, amount, price, paramsOp);
         const market = this.market(symbol);
@@ -598089,7 +598095,7 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         }
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
         const paramsOmitted = this.omit(params, [
             'clientOrderId',
@@ -598136,7 +598142,7 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         }
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const args = [];
         const market = this.market(symbol);
         const instIdCode = this.safeInteger(market, 'instIdCode');
@@ -598177,7 +598183,7 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
         }
         const url = this.getUrl('private', 'private');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const request = {
             'id': messageHash,
             'op': 'mass-cancel',
@@ -602001,13 +602007,17 @@ class pacifica extends _pacifica_js__rspack_import_0/* ["default"] */.A {
         return message;
     }
     requestId() {
-        return this.uuid(); // uuid v4
+        // millisecond timestamp plus 3 random digits stays a safe integer
+        const ts = this.milliseconds().toString();
+        const randomPart = this.randNumber(3).toString();
+        return this.parseToInt(ts + randomPart);
     }
     wrapAsPostAction(operationType, request) {
         if (operationType === undefined) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + 'postAction() requires a "operationType" argument!');
         }
-        const requestId = this.requestId();
+        // the venue requires a full uuid v4 request id
+        const requestId = this.uuid();
         const postParams = {};
         postParams[operationType] = request;
         const payload = {
@@ -610992,7 +611002,7 @@ class weex extends _weex_js__rspack_import_0/* ["default"] */.A {
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         this.unlockId();
-        return this.numberToString(requestId);
+        return requestId;
     }
     async subscribePublic(messageHashes, channels, isContract = false, params = {}, subscription = {}) {
         const id = this.requestId();
@@ -611007,7 +611017,7 @@ class weex extends _weex_js__rspack_import_0/* ["default"] */.A {
             'params': channels
         };
         const subscriptionExtended = this.extend(subscription, {
-            'id': id
+            'id': id.toString()
         });
         let type = 'spot';
         if (isContract) {
@@ -611037,7 +611047,7 @@ class weex extends _weex_js__rspack_import_0/* ["default"] */.A {
             ]
         };
         const subscriptionExtended = this.extend(subscription, {
-            'id': id
+            'id': id.toString()
         });
         return await this.watch(url, messageHash, this.deepExtend(message, params), subscribeHash, subscriptionExtended);
     }

@@ -138,7 +138,7 @@ class htx extends htx$1["default"] {
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         this.unlockId();
-        return requestId.toString();
+        return requestId;
     }
     /**
      * @method
@@ -618,12 +618,12 @@ class htx extends htx$1["default"] {
         const requestId = this.requestId();
         const request = {
             'req': messageHash,
-            'id': requestId,
+            'id': requestId.toString(),
         };
         // this is a temporary subscription by a specific requestId
         // it has a very short lifetime until the snapshot is received over ws
         const snapshotSubscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'symbol': symbol,
             'limit': limit,
@@ -633,7 +633,7 @@ class htx extends htx$1["default"] {
             'method': this.handleOrderBookSnapshot,
         };
         try {
-            const orderbook = await this.watch(url, requestId, request, requestId, snapshotSubscription);
+            const orderbook = await this.watch(url, requestId.toString(), request, requestId.toString(), snapshotSubscription);
             return orderbook.limit();
         }
         catch (e) {
@@ -2928,10 +2928,10 @@ class htx extends htx$1["default"] {
         const requestId = this.requestId();
         const request = {
             'sub': messageHash,
-            'id': requestId,
+            'id': requestId.toString(),
         };
         const subscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'symbol': symbol,
             'params': params,
@@ -2945,7 +2945,7 @@ class htx extends htx$1["default"] {
         const requestId = this.requestId();
         const request = {
             'unsub': subMessageHash,
-            'id': requestId,
+            'id': requestId.toString(),
         };
         const messageHash = 'unsubscribe::' + subMessageHash;
         const isFeed = (topic === 'orderbook');
@@ -2955,7 +2955,7 @@ class htx extends htx$1["default"] {
         const url = this.getUrlByMarketType(market['type'], market['linear'], false, isFeed);
         const subscription = {
             'unsubscribe': true,
-            'id': requestId,
+            'id': requestId.toString(),
             'subMessageHashes': [subMessageHash],
             'messageHashes': [messageHash],
             'symbols': [market['symbol']],
@@ -2971,7 +2971,7 @@ class htx extends htx$1["default"] {
     async subscribePrivate(channel, messageHash, type, subtype, params = {}, subscriptionParams = {}) {
         const requestId = this.requestId();
         const subscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'params': params,
         };
@@ -2987,7 +2987,7 @@ class htx extends htx$1["default"] {
             request = {
                 'op': 'sub',
                 'topic': channel,
-                'cid': requestId,
+                'cid': requestId.toString(),
             };
         }
         const isLinear = subtype === 'linear';
@@ -3074,7 +3074,7 @@ class htx extends htx$1["default"] {
             }
             const requestId = this.requestId();
             const subscription = {
-                'id': requestId,
+                'id': requestId.toString(),
                 'messageHash': messageHash,
                 'params': params,
             };

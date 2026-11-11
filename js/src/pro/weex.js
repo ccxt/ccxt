@@ -86,7 +86,7 @@ export default class weex extends weexRest {
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         this.unlockId();
-        return this.numberToString(requestId);
+        return requestId;
     }
     async subscribePublic(messageHashes, channels, isContract = false, params = {}, subscription = {}) {
         const id = this.requestId();
@@ -100,7 +100,7 @@ export default class weex extends weexRest {
             'method': method,
             'params': channels,
         };
-        const subscriptionExtended = this.extend(subscription, { 'id': id });
+        const subscriptionExtended = this.extend(subscription, { 'id': id.toString() });
         let type = 'spot';
         if (isContract) {
             type = 'contract';
@@ -126,7 +126,7 @@ export default class weex extends weexRest {
             'method': method,
             'params': [channel],
         };
-        const subscriptionExtended = this.extend(subscription, { 'id': id });
+        const subscriptionExtended = this.extend(subscription, { 'id': id.toString() });
         return await this.watch(url, messageHash, this.deepExtend(message, params), subscribeHash, subscriptionExtended);
     }
     authenticate(url) {

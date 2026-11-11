@@ -55,7 +55,7 @@ export default class cex extends cexRest {
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         this.unlockId();
-        return requestId.toString();
+        return requestId;
     }
     /**
      * @method
@@ -67,7 +67,7 @@ export default class cex extends cexRest {
      */
     async watchBalance(params = {}) {
         await this.authenticate(params);
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const url = this.safeString(this.urls['api'], 'ws', '');
         const subscribe = {
             'e': 'get-balance',
@@ -288,7 +288,7 @@ export default class cex extends cexRest {
                 'data': [
                     market['baseId'], market['quoteId'],
                 ],
-                'oid': this.requestId(),
+                'oid': this.requestId().toString(),
             };
             subscriptionHash = 'ticker:' + symbolValue;
         }
@@ -347,7 +347,7 @@ export default class cex extends cexRest {
         }
         const market = this.market(symbol);
         const url = this.safeString(this.urls['api'], 'ws', '');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const request = this.extend({
             'e': 'ticker',
             'oid': messageHash,
@@ -460,7 +460,7 @@ export default class cex extends cexRest {
         }
         await this.authenticate();
         const url = this.safeString(this.urls['api'], 'ws', '');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const request = this.extend({
             'e': 'get-balance',
             'oid': messageHash,
@@ -991,7 +991,7 @@ export default class cex extends cexRest {
                 'subscribe': true,
                 'depth': depth,
             },
-            'oid': this.requestId(),
+            'oid': this.requestId().toString(),
         };
         const request = this.deepExtend(subscribe, params);
         const orderbook = await this.watch(url, messageHash, request, messageHash);
@@ -1298,7 +1298,7 @@ export default class cex extends cexRest {
             'order_id': id.toString(),
         }, params);
         const url = this.safeString(this.urls['api'], 'ws', '');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const request = {
             'e': 'get-order',
             'oid': messageHash,
@@ -1328,7 +1328,7 @@ export default class cex extends cexRest {
         await this.authenticate();
         const market = this.market(symbol);
         const url = this.safeString(this.urls['api'], 'ws', '');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const data = this.extend({
             'pair': [market['baseId'], market['quoteId']],
         }, params);
@@ -1364,7 +1364,7 @@ export default class cex extends cexRest {
         await this.authenticate();
         const market = this.market(symbol);
         const url = this.safeString(this.urls['api'], 'ws', '');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const data = this.extend({
             'pair': [market['baseId'], market['quoteId']],
             'amount': amount,
@@ -1412,7 +1412,7 @@ export default class cex extends cexRest {
             'price': price,
             'order_id': id,
         }, params);
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const url = this.safeString(this.urls['api'], 'ws', '');
         const request = {
             'e': 'cancel-replace-order',
@@ -1444,7 +1444,7 @@ export default class cex extends cexRest {
         const data = this.extend({
             'order_id': id,
         }, params);
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const url = this.safeString(this.urls['api'], 'ws', '');
         const request = {
             'e': 'cancel-order',
@@ -1472,7 +1472,7 @@ export default class cex extends cexRest {
             await this.loadMarkets();
         }
         await this.authenticate();
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const data = this.extend({
             'cancel-orders': ids,
         }, params);

@@ -5,7 +5,7 @@ export default class paradex extends paradexRest {
     describe(): Dict;
     getWsUrl(): string;
     getOrderBookChannel(marketId: Str, deltas?: boolean): string;
-    requestId(): number;
+    requestId(): int;
     /**
      * @ignore
      * @method

@@ -1,9 +1,9 @@
 import coinbaseinternationalRest from '../coinbaseinternational.js';
-import { Ticker, Int, Str, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool, Balances, Order, Position, OrderType, OrderSide, Num } from '../base/types.js';
+import { Ticker, Int, Str, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool, Balances, Order, Position, OrderType, OrderSide, Num, type int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coinbaseinternational extends coinbaseinternationalRest {
     describe(): Dict;
-    requestId(): any;
+    requestId(): int;
     getWsUrl(isPrivate?: boolean): string;
     ping(client: Client): Dict | Str;
     /**

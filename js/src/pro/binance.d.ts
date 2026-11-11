@@ -1,5 +1,5 @@
 import binanceRest from '../binance.js';
-import type { Balances, Dict, Int, Liquidation, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Liquidation, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class binance extends binanceRest {
@@ -194,7 +194,7 @@ export default class binance extends binanceRest {
             };
         };
     };
-    requestId(url: string): number;
+    requestId(url: string): int;
     isSpotUrl(client: Client): boolean;
     stream(type: Str, subscriptionHash: Str, numSubscriptions?: Int): Str;
     getWsUrl(type: string, category: string): string;

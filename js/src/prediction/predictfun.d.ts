@@ -598,7 +598,7 @@ export default class predictfun extends Exchange {
      * @description a monotonic id the venue echoes back so a subscription reply can be matched to its request
      * @returns {int} the next request id
      */
-    requestId(): number;
+    requestId(): int;
     /**
      * @ignore
      * @method

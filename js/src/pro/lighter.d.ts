@@ -1,4 +1,4 @@
-import type { Balances, Dict, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market, OrderType, OrderSide, Num } from '../base/types.js';
+import type { Balances, Dict, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market, OrderType, OrderSide, Num, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -210,7 +210,7 @@ export default class lighter extends lighterRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     unWatchOrders(symbol?: Str, params?: Dict): Promise<any>;
-    requestId(url: string): string;
+    requestId(url: string): int;
     /**
      * @method
      * @name lighter#createOrderWs

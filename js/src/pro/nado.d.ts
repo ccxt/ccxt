@@ -1,9 +1,9 @@
 import nadoRest from '../nado.js';
-import type { Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class nado extends nadoRest {
     describe(): Dict;
-    requestId(): Int;
+    requestId(): int;
     /**
      * @method
      * @name nado#watchTrades
@@ -396,7 +396,7 @@ export default class nado extends nadoRest {
     handleUnsubscriptionCache(messageHash: string): void;
     ping(client: Client): {
         method: string;
-        id: Int;
+        id: number;
         client_time: string;
     } | undefined;
     handlePong(client: Client, message: Dict): Dict;
