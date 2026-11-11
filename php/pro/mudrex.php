@@ -44,7 +44,7 @@ class mudrex extends \ccxt\async\mudrex {
         );
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         $reqid = $this->sum($this->safe_integer($this->options, 'correlationId', 0), 1);
         $this->options['correlationId'] = $reqid;
         return $reqid;

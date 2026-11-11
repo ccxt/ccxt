@@ -1283,12 +1283,12 @@ class lighter extends \ccxt\async\lighter {
         return Async\await($this->unsubscribe($messageHash, $this->extend($request, $paramsAccountIndex)));
     }
 
-    public function request_id(string $url): string {
+    public function request_id(string $url): int {
         $options = $this->safe_dict($this->options, 'requestId', $this->create_safe_dictionary());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
         $this->options['requestId'][$url] = $newValue;
-        return $this->number_to_string($newValue);
+        return $newValue;
     }
 
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
@@ -1318,7 +1318,9 @@ class lighter extends \ccxt\async\lighter {
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         $url = $this->urls['api']['ws'];
-        $requestId = $this->request_id($url);
+        $nextId = $this->request_id($url);
+        // the venue takes a string request id
+        $requestId = (string) $nextId;
         $messageHash = 'jsonapi/sendtx:' . $requestId;
         list($txType, $txInfo, $order) = Async\await($this->signAndCreateOrder('createOrderWs', $symbol, $type, $side, $amount, $price, $params));
         $market = $this->market($symbol);
@@ -1356,7 +1358,9 @@ class lighter extends \ccxt\async\lighter {
          * @return {array} an list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
          */
         $url = $this->urls['api']['ws'];
-        $requestId = $this->request_id($url);
+        $nextId = $this->request_id($url);
+        // the venue takes a string request id
+        $requestId = (string) $nextId;
         $messageHash = 'jsonapi/sendtx:' . $requestId;
         list($txType, $txInfo) = Async\await($this->signAndCancelOrder('cancelOrderWs', $id, $symbol, $params));
         $market = $this->market($symbol);
@@ -1393,7 +1397,9 @@ class lighter extends \ccxt\async\lighter {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $url = $this->urls['api']['ws'];
-        $requestId = $this->request_id($url);
+        $nextId = $this->request_id($url);
+        // the venue takes a string request id
+        $requestId = (string) $nextId;
         $messageHash = 'jsonapi/sendtx:' . $requestId;
         list($txType, $txInfo) = Async\await($this->signAndCancelAllOrders('cancelAllOrdersWs', $symbol, $params));
         $parsedTx = $this->parse_json($txInfo);

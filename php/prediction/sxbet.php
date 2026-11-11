@@ -2200,7 +2200,7 @@ class sxbet extends Exchange {
         $this->options[$group] = $this->extend($this->safe_dict($this->options, $group, array()), $entry);
     }
 
-    public function request_id(?string $url): float {
+    public function request_id(?string $url): int {
         $existing = $this->safe_value($this->options, 'requestId');
         if ($existing === null) {
             $this->options['requestId'] = $this->create_safe_dictionary();

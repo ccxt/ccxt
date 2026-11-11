@@ -112,7 +112,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $message;
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         $this->lock_id();
         $previousValue = $this->safe_integer($this->options, 'lastRequestId', 0);
         $newValue = $this->sum($previousValue, 1);

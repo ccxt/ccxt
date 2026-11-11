@@ -88,12 +88,12 @@ class weex extends \ccxt\async\weex {
         ));
     }
 
-    public function request_id(): ?string {
+    public function request_id(): int {
         $this->lock_id();
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
         $this->unlock_id();
-        return $this->number_to_string($requestId);
+        return $requestId;
     }
 
     public function subscribe_public(array $messageHashes, ?array $channels, bool $isContract = false, $params = array(), array $subscription = array()) {
@@ -112,7 +112,7 @@ class weex extends \ccxt\async\weex {
             'method' => $method,
             'params' => $channels,
         );
-        $subscriptionExtended = $this->extend($subscription, array( 'id' => $id ));
+        $subscriptionExtended = $this->extend($subscription, array( 'id' => (string) $id ));
         $type = 'spot';
         if ($isContract) {
             $type = 'contract';
@@ -143,7 +143,7 @@ class weex extends \ccxt\async\weex {
             'method' => $method,
             'params' => array( $channel ),
         );
-        $subscriptionExtended = $this->extend($subscription, array( 'id' => $id ));
+        $subscriptionExtended = $this->extend($subscription, array( 'id' => (string) $id ));
         return Async\await($this->watch($url, $messageHash, $this->deep_extend($message, $params), $subscribeHash, $subscriptionExtended));
     }
 

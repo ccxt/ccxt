@@ -2415,11 +2415,11 @@ class okx extends \ccxt\async\okx {
         }
     }
 
-    public function request_id(): string {
+    public function request_id(): int {
+        // millisecond timestamp plus 3 random digits stays a safe integer
         $ts = (string) $this->milliseconds();
-        $randomNumber = $this->rand_number(4);
-        $randomPart = (string) $randomNumber;
-        return $ts . $randomPart;
+        $randomPart = (string) $this->rand_number(3);
+        return $this->parse_to_int($ts . $randomPart);
     }
 
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
@@ -2446,7 +2446,7 @@ class okx extends \ccxt\async\okx {
         }
         Async\await($this->authenticate());
         $url = $this->get_url('private', 'private');
-        $messageHash = $this->request_id();
+        $messageHash = (string) $this->request_id();
         list($op, $paramsOp) = $this->handle_option_string_and_params($params, 'createOrderWs', 'op', 'batch-orders');
         $args = $this->create_order_request($symbol, $type, $side, $amount, $price, $paramsOp);
         $market = $this->market($symbol);
@@ -2529,7 +2529,7 @@ class okx extends \ccxt\async\okx {
         }
         Async\await($this->authenticate());
         $url = $this->get_url('private', 'private');
-        $messageHash = $this->request_id();
+        $messageHash = (string) $this->request_id();
         list($op, $paramsOp) = $this->handle_option_string_and_params($params, 'editOrderWs', 'op', 'amend-order');
         $args = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $paramsOp);
         $market = $this->market($symbol);
@@ -2570,7 +2570,7 @@ class okx extends \ccxt\async\okx {
         }
         Async\await($this->authenticate());
         $url = $this->get_url('private', 'private');
-        $messageHash = $this->request_id();
+        $messageHash = (string) $this->request_id();
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
         $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'clOrdId' ));
         $market = $this->market($symbol);
@@ -2618,7 +2618,7 @@ class okx extends \ccxt\async\okx {
         }
         Async\await($this->authenticate());
         $url = $this->get_url('private', 'private');
-        $messageHash = $this->request_id();
+        $messageHash = (string) $this->request_id();
         $args = array();
         $market = $this->market($symbol);
         $instIdCode = $this->safe_integer($market, 'instIdCode');
@@ -2665,7 +2665,7 @@ class okx extends \ccxt\async\okx {
             throw new BadRequest($this->id . ' cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
         }
         $url = $this->get_url('private', 'private');
-        $messageHash = $this->request_id();
+        $messageHash = (string) $this->request_id();
         $request = array(
             'id' => $messageHash,
             'op' => 'mass-cancel',

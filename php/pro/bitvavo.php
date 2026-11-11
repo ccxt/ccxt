@@ -1340,7 +1340,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         $ts = (string) $this->milliseconds();
         $randomNumber = $this->rand_number(4);
         $randomPart = (string) $randomNumber;

@@ -65,7 +65,7 @@ class lbank extends \ccxt\async\lbank {
         ));
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         $this->lock_id();
         $previousValue = $this->safe_integer($this->options, 'requestId', 0);
         $newValue = $this->sum($previousValue, 1);

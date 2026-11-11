@@ -183,7 +183,7 @@ class bybit extends \ccxt\async\bybit {
         );
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         $this->lock_id();
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;

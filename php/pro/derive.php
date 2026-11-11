@@ -57,7 +57,7 @@ class derive extends \ccxt\async\derive {
         ));
     }
 
-    public function request_id(string $url): float {
+    public function request_id(string $url): int {
         $options = $this->safe_dict($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);

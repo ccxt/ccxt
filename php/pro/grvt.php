@@ -136,7 +136,7 @@ class grvt extends \ccxt\async\grvt {
         return Async\await($this->watch_multiple($this->urls['api']['ws'][$apiPart], $messageHashes, $payload, $rawHashes));
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         $this->lock_id();
         $newValue = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $newValue;
