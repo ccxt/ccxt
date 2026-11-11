@@ -190,7 +190,7 @@
                 "method": "fetchOpenInterests",
                 "input": [
                     [
-                        "ETH/.COINDERIV/USD:USD",
+                        "ETH.COINDERIV/USD:USD",
                         "BTC/.COINDERIV/USD:USD"
                     ]
                 ],
@@ -240,8 +240,8 @@
                         "baseVolume": null,
                         "quoteVolume": null
                     },
-                    "ETH/.COINDERIV/USD:USD": {
-                        "symbol": "ETH/.COINDERIV/USD:USD",
+                    "ETH.COINDERIV/USD:USD": {
+                        "symbol": "ETH.COINDERIV/USD:USD",
                         "openInterestAmount": 237000,
                         "openInterestValue": 48312450,
                         "timestamp": 1794325154939,
