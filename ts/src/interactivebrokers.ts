@@ -4,7 +4,7 @@ import Exchange from './abstract/interactivebrokers.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidOrder, InvalidProxySettings, OperationFailed, OrderNotFound, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Dict, Endpoint, Greeks, Int, LastPrice, LastPrices, List, Market, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Account, Balances, Dict, Endpoint, Int, LastPrice, LastPrices, List, Market, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 import { rsa } from './base/functions/rsa.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { sha1 } from '@noble/hashes/legacy.js';
@@ -424,10 +424,10 @@ export default class interactivebrokers extends Exchange {
                     'cryptoCoinbasePerpSymbols': {
                         // the -NANO / -MICRO suffix follows the IBKR contract name ("nano Bitcoin ...", "Micro ..."), the multiplier is the contract size
                         // perp style futures (nominal 2030-12-20 expiry)
-                        'BIP': 'BTC.NANO', // nano Bitcoin BTC Perpetual Futures, 0.01 BTC
-                        'ETP': 'ETH.NANO', // nano Ether ETH Perpetual Futures, 0.1 ETH
-                        'SLP': 'SOL.NANO', // Nano Solana Perp Style Futures, 5 SOL
-                        'XPP': 'XRP.NANO', // Nano XRP Perp Style Futures, 500 XRP
+                        'BIP': 'BTC', // nano Bitcoin BTC Perpetual Futures, 0.01 BTC
+                        'ETP': 'ETH', // nano Ether ETH Perpetual Futures, 0.1 ETH
+                        'SLP': 'SOL', // Nano Solana Perp Style Futures, 5 SOL
+                        'XPP': 'XRP', // Nano XRP Perp Style Futures, 500 XRP
                         'ADP': 'ADA', // Cardano Perp Style Futures, 1000 ADA
                         'AVP': 'AVAX', // Avalanche Perp Style Futures, 10 AVAX
                         'BCP': 'BCH', // Bitcoin Cash Perp Style Futures, 1 BCH
@@ -450,7 +450,7 @@ export default class interactivebrokers extends Exchange {
                     // dated crypto futures (CME and coinbase derivatives), IBKR symbol -> unified base, resolved via trsrv/futures
                     // https://www.interactivebrokers.com/en/pricing/commissions-futures.php?region=americas
                     'cryptoFutureExchanges': [ 'CME', 'COINDERIV', 'CFE' ],
-                    'cryptoFutureSymbols': {
+                    'cryptoCmeFutureSymbols': {
                         // the order matters, on symbol collisions (same base and expiry) the earlier contract keeps the plain symbol
                         // the -NANO / -MICRO suffix follows the IBKR contract name ("nano Bitcoin ...", "Micro Bitcoin"), the multiplier is the contract size
                         // CME standard futures
@@ -462,13 +462,13 @@ export default class interactivebrokers extends Exchange {
                         'XLM': 'XLM', // CME CF Stellar Lumens Dollar Reference Rate, 250000 XLM
                         'ADA': 'ADA', // CME CF Cardano Dollar Reference Rate, 100000 ADA
                         // CME micro futures
-                        'MBT': 'BTC.MICRO', // Micro Bitcoin, 0.1 BTC
-                        'MET': 'ETH.MICRO', // Micro Ether, 0.1 ETH
-                        'EEM': 'ETH.MICRO', // Micro Ether Euro, 0.1 ETH, quoted in EUR
-                        'MSL': 'SOL.MICRO', // Micro Solana, 25 SOL
-                        'MXP': 'XRP.MICRO', // Micro XRP, 2500 XRP
-                        'MLN': 'LINK.MICRO', // Micro Chainlink, 250 LINK
-                        'MXL': 'XLM.MICRO', // Micro Lumens, 12500 XLM
+                        'MBT': 'BTC', // Micro Bitcoin, 0.1 BTC
+                        'MET': 'ETH', // Micro Ether, 0.1 ETH
+                        'EEM': 'ETH', // Micro Ether Euro, 0.1 ETH, quoted in EUR
+                        'MSL': 'SOL', // Micro Solana, 25 SOL
+                        'MXP': 'XRP', // Micro XRP, 2500 XRP
+                        'MLN': 'LINK', // Micro Chainlink, 250 LINK
+                        'MXL': 'XLM', // Micro Lumens, 12500 XLM
                         // CME other bitcoin and ether futures, kept under their IBKR ticker, BTC and ETH on CME are BRR and ETHUSDRR
                         // 'BFF' - CME CF Bitcoin Reference Rate New York (Bitcoin Friday Futures), 0.02 BTC
                         // 'QTF' -  Spot-Quoted Bitcoin (Cleared Future), 0.01 BTC
@@ -479,8 +479,8 @@ export default class interactivebrokers extends Exchange {
                         'PBT': 'BTC', // Cboe Kaiko Bitcoin Index, 0.01 BTC
                         'PET': 'ETH', // Cboe Kaiko Ether Index, 0.1 ETH
                         // coinbase derivatives dated (monthly) futures, listed after the CME contracts so those keep the plain symbol on collisions
-                        'BIT': 'BTC.NANO', // nano Bitcoin Futures, 0.01 BTC
-                        'ET': 'ETH.NANO', // nano Ether Futures, 0.1 ETH
+                        'BIT': 'BTC', // nano Bitcoin Futures, 0.01 BTC
+                        'ET': 'ETH', // nano Ether Futures, 0.1 ETH
                         'BTI': 'BTC', // Coinbase Bitcoin Futures, 1 BTC
                         'XRL': 'XRP', // XRP Futures Index, 10000 XRP
                         'AVA': 'AVAX', // Avalanche Futures Index, 10 AVAX
@@ -1276,7 +1276,7 @@ export default class interactivebrokers extends Exchange {
     /**
      * @method
      * @name interactivebrokers#fetchMarkets
-     * @description retrieves data on the market types of options.fetchMarkets.types: stocks of options.fetchMarkets.exchanges.STK, crypto of options.fetchMarkets.cryptoSpotSymbols, fx pairs of options.fetchMarkets.forexCurrencies, coinbase derivatives perp-style futures of options.fetchMarkets.cryptoCoinbasePerpSymbols (as swap, e.g. BTC/USD:USD), dated CME and coinbase derivatives crypto futures of options.fetchMarkets.cryptoFutureSymbols (as future, e.g. BTC/USD:USD-261127) and cfds of options.fetchMarkets.cfdExchanges (as swap, e.g. AAPL/USD:USD), the market id is the IBKR conid
+     * @description retrieves data on the market types of options.fetchMarkets.types: stocks of options.fetchMarkets.exchanges.STK, crypto of options.fetchMarkets.cryptoSpotSymbols, fx pairs of options.fetchMarkets.forexCurrencies, coinbase derivatives perp-style futures of options.fetchMarkets.cryptoCoinbasePerpSymbols (as swap, e.g. BTC/USD:USD), dated CME and coinbase derivatives crypto futures of options.fetchMarkets.cryptoCmeFutureSymbols (as future, e.g. BTC/USD:USD-261127) and cfds of options.fetchMarkets.cfdExchanges (as swap, e.g. AAPL/USD:USD), the market id is the IBKR conid
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-conids-by-exchange
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-future-by-symbol
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-contract-symbols-from-body
@@ -1433,7 +1433,7 @@ export default class interactivebrokers extends Exchange {
             const pairsRequest: Dict = {
                 'currency': fxCurrency,
             };
-            promises.push (this.webapiGetV1ApiIserverCurrencyPairs (pairsRequest));
+            promises.push (this.webapiGetV1ApiIserverCurrencyPairs (this.extend (pairsRequest, params)));
             //
             //    { "USD": [ { "symbol": "EUR.USD", "conid": 12087792, "ccyPair": "EUR" } ] }
             //
@@ -1466,7 +1466,7 @@ export default class interactivebrokers extends Exchange {
                 'symbol': cryptoSymbol,
                 'secType': 'CRYPTO',
             };
-            promises.push (this.webapiPostV1ApiIserverSecdefSearch (searchRequest));
+            promises.push (this.webapiPostV1ApiIserverSecdefSearch (this.extend (searchRequest, params)));
             //
             //     [
             //         {
@@ -1521,7 +1521,7 @@ export default class interactivebrokers extends Exchange {
         const request: Dict = {
             'symbols': symbols.join (','),
         };
-        const response = await this.webapiGetV1ApiTrsrvFutures (request);
+        const response = await this.webapiGetV1ApiTrsrvFutures (this.extend (request, params));
         //
         //     {
         //         "BIP": [
@@ -1564,7 +1564,7 @@ export default class interactivebrokers extends Exchange {
     /**
      * @method
      * @name interactivebrokers#fetchFutureMarkets
-     * @description retrieves the dated crypto futures (CME and coinbase derivatives) of options.fetchMarkets.cryptoFutureSymbols listed on options.fetchMarkets.cryptoFutureExchanges
+     * @description retrieves the dated crypto futures (CME and coinbase derivatives) of options.fetchMarkets.cryptoCmeFutureSymbols listed on options.fetchMarkets.cryptoFutureExchanges
      * @ignore
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-future-by-symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1573,15 +1573,15 @@ export default class interactivebrokers extends Exchange {
     async fetchFutureMarkets (params: Dict = {}): Promise<Market[]> {
         const entries: Dict = {};
         const options = this.safeDict (this.options, 'fetchMarkets', {});
-        const cryptoFutureSymbols = this.safeDict (options, 'cryptoFutureSymbols', {});
-        const symbols = Object.keys (cryptoFutureSymbols);
+        const cryptoCmeFutureSymbols = this.safeDict (options, 'cryptoCmeFutureSymbols', {});
+        const symbols = Object.keys (cryptoCmeFutureSymbols);
         if (symbols.length === 0) {
             return [];
         }
         const request: Dict = {
             'symbols': symbols.join (','),
         };
-        const response = await this.webapiGetV1ApiTrsrvFutures (request);
+        const response = await this.webapiGetV1ApiTrsrvFutures (this.extend (request, params));
         //
         //     {
         //         "MBT": [
@@ -1762,16 +1762,17 @@ export default class interactivebrokers extends Exchange {
         const options = this.safeDict (this.options, 'fetchMarkets', {});
         const baseTickerId = this.safeString2 (market, 'ticker', 'symbol') as string;
         const listingExchange = this.safeString2 (market, 'listingExchange', 'exchange');
-        const name = this.safeString (market, 'fullName', '');
+        const name = this.safeString (market, 'name', '');
+        const nameLower = name.toLowerCase ();
         // coinbase derivatives perp-style futures are listed as FUT with a far (2030) nominal expiry, they are rolled with a funding adjustment, so they are unified as swaps
         // cfds are undated, cash-settled linear contracts on a stock, etf or index, also unified as swaps
         // the other FUT contracts (CME and coinbase derivatives dated crypto futures) are unified as futures
         const isCfd = (assetClass === 'CFD');
         const isFut = (assetClass === 'FUT');
-        const cryptoCoinbasePerpSymbols = this.safeDict (options, 'cryptoCoinbasePerpSymbols', {});
-        const isPerpInName = name.indexOf ('Perpetual') !== -1;
-        const isKnownPerpSymbol = (baseTickerId in cryptoCoinbasePerpSymbols); //  && this.inArray (listingExchange, cryptoSwapExchanges)
-        const isPerp = isFut && (isKnownPerpSymbol || isPerpInName);
+        const isCoinbaseDerivatives = (listingExchange === 'COINDERIV');
+        const isPerpInName = (name.indexOf ('Perpetual') !== -1) || (name.indexOf ('Perp Style') !== -1);
+        const isCoinbasePerp = isCoinbaseDerivatives && isPerpInName;
+        const isPerp = isFut && isCoinbasePerp; // no other perp provides
         const isFuture = isFut && !isPerp;
         const isSwap = isCfd || isPerp;
         const isContract = isSwap || isFuture;
@@ -1792,15 +1793,30 @@ export default class interactivebrokers extends Exchange {
         } else {
             amountPrecision = this.safeString (options, 'stockAmountIncrement', '1');
         }
+        const cryptoCoinbasePerpSymbols = this.safeDict (options, 'cryptoCoinbasePerpSymbols', {});
+        const cryptoCmeFutureSymbols = this.safeDict (options, 'cryptoCmeFutureSymbols', {});
+        let microNanoPrefix: string = '';
         let base: Str = undefined;
         let contractSize: Str = undefined;
         let expiry: Int = undefined;
         if (isPerp) {
+            if (nameLower.startsWith ('nano')) {
+                microNanoPrefix = 'NANO.';
+            }
+            // atm only CB derivs provide perps
             base = this.safeString (cryptoCoinbasePerpSymbols, baseTickerId, baseTickerId);
             contractSize = this.safeString (market, 'multiplier'); // 0.01 BTC for BIP
         } else if (isFuture) {
-            const cryptoFutureSymbols = this.safeDict (options, 'cryptoFutureSymbols', {});
-            base = this.safeString (cryptoFutureSymbols, baseTickerId, baseTickerId);
+            if (nameLower.startsWith ('nano')) {
+                microNanoPrefix = 'NANO.';
+            } else if (nameLower.startsWith ('micro')) {
+                microNanoPrefix = 'MICRO.';
+            }
+            if (isCoinbaseDerivatives) {
+                base = this.safeString (cryptoCoinbasePerpSymbols, baseTickerId, baseTickerId);
+            } else {
+                base = this.safeString (cryptoCmeFutureSymbols, baseTickerId, baseTickerId);
+            }
             contractSize = this.safeString (market, 'multiplier'); // 0.1 BTC for MBT, 5 BTC for BRR
             const expirationDate = this.safeString2 (market, 'expirationDate', 'expiry'); // 20261127
             if (expirationDate !== undefined) {
@@ -1820,7 +1836,7 @@ export default class interactivebrokers extends Exchange {
                 contractSize = this.safeString (this.options, 'defaultContractSize', '1');
             }
         }
-        let symbol = base + '.' + listingExchange + '/' + quote; // specific to IBKR
+        let symbol = base + '.' + microNanoPrefix + listingExchange + '/' + quote; // specific to IBKR
         let settleId: Str = undefined;
         let settle: Str = undefined;
         if (isContract) {

@@ -85,7 +85,7 @@
                 ]
             },
             "currency": "USD",
-            "time": 12,
+            "time": 11,
             "chineseName": "&#x7F8E;&#x5143;",
             "allExchanges": "PAXOS",
             "listingExchange": "PAXOS",
@@ -105,8 +105,7 @@
             "type": "",
             "hasOptions": false,
             "fullName": "ETH",
-            "isEventContract": false,
-            "pageSize": 100
+            "isEventContract": false
         },
         "tierBased": false,
         "percentage": true,
@@ -301,9 +300,9 @@
                 ]
             },
             "currency": "USD",
-            "time": 31,
+            "time": 21,
             "chineseName": "&#x82F9;&#x679C;&#x516C;&#x53F8;",
-            "allExchanges": "AMEX,NYSE,CBOE,PHLX,CHX,ARCA,ISLAND,ISE,IDEAL,NASDAQQ,NASDAQ,DRCTEDGE,BEX,BATS,NITEECN,EDGEA,CSFBALGO,NYSENASD,PSX,BYX,PDQ,IBKRATS,CITADEL,NYSEDARK,MIAX,IBDARK,CITADELDP,NASDDARK,IEX,SUMMER,FINRA,UBSDARK,BTIG,VIRTU,JEFF,OPCO,DBK,JPMC,EDGX,JANE,FRACSHARE,RBCALGO,VIRTUDP,FOXRIVER,NITEEXST,PEARL,GSDARK,NITERTL,NYSENAT,IEXMID,HRT,FLOWTRADE,HRTDP,JANELP,PEAK6,CTDLZERO,HRTMID,JANEZERO,HRTEXST,IMCLP,LTSE,SOCGENDP,MEMX,INTELCROS,VIRTUBYIN,JUMPTRADE,NITEZERO,XTXEXST,XTXDP,XTXMID,COWENLP,BARCDP,JUMPLP,OLDMCLP,RBCCMALP,WALLBETH,IBEOS,JONES,GSLP,BLUEOCEAN,USIBSILP,OVERNIGHT,JANEMID,IBATSEOS,HRTZERO,VIRTUALGO,G1XLP,VIRTUMID,GLOBALXLP,CTDLMID,TPLUS0,JUMPMID,CLOSEOUT,T24X,OMCDP,OMCMID,TXSE,MOON,BRUCE,JUMPZERO",
+            "allExchanges": "AMEX,NYSE,CBOE,PHLX,CHX,ARCA,ISLAND,ISE,IDEAL,NASDAQQ,NASDAQ,DRCTEDGE,BEX,BATS,NITEECN,EDGEA,CSFBALGO,NYSENASD,PSX,BYX,PDQ,IBKRATS,CITADEL,NYSEDARK,MIAX,IBDARK,CITADELDP,NASDDARK,IEX,SUMMER,FINRA,UBSDARK,BTIG,VIRTU,JEFF,OPCO,DBK,JPMC,EDGX,JANE,FRACSHARE,RBCALGO,VIRTUDP,FOXRIVER,NITEEXST,PEARL,GSDARK,NITERTL,NYSENAT,IEXMID,HRT,FLOWTRADE,HRTDP,JANELP,PEAK6,CTDLZERO,HRTMID,JANEZERO,HRTEXST,IMCLP,LTSE,SOCGENDP,MEMX,INTELCROS,VIRTUBYIN,JUMPTRADE,NITEZERO,XTXEXST,XTXDP,XTXMID,COWENLP,BARCDP,JUMPLP,OLDMCLP,RBCCMALP,WALLBETH,IBEOS,JONES,GSLP,BLUEOCEAN,USIBSILP,OVERNIGHT,JANEMID,IBATSEOS,HRTZERO,VIRTUALGO,G1XLP,VIRTUMID,GLOBALXLP,CTDLMID,TPLUS0,JUMPMID,CLOSEOUT,T24X,OMCDP,OMCMID,TXSE,MOON,BRUCE,JUMPZERO,EARLY",
             "listingExchange": "NASDAQ",
             "countryCode": "US",
             "name": "APPLE INC",
@@ -409,7 +408,7 @@
                 ]
             },
             "currency": "USD",
-            "time": 3,
+            "time": 2,
             "chineseName": "&#x7F8E;&#x5143;",
             "allExchanges": "COINDERIV",
             "listingExchange": "COINDERIV",
@@ -519,7 +518,7 @@
                 ]
             },
             "currency": "USD",
-            "time": 4,
+            "time": 2,
             "chineseName": "&#x7F8E;&#x5143;",
             "allExchanges": "COINDERIV",
             "listingExchange": "COINDERIV",
