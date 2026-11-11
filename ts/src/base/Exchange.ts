@@ -1515,9 +1515,11 @@ export class BaseExchange {
             }
             return this.markets;
         }
-        const [ marketsFromCache, currenciesFromCache ] = this.marketsCacheRead ();
-        if (marketsFromCache !== undefined) {
-            return this.setMarkets (marketsFromCache, currenciesFromCache);
+        if (!reload) {
+            const [ marketsFromCache, currenciesFromCache ] = this.marketsCacheRead ();
+            if (marketsFromCache !== undefined) {
+                return this.setMarkets (marketsFromCache, currenciesFromCache);
+            }
         }
         let currencies: Currencies | undefined = undefined;
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
