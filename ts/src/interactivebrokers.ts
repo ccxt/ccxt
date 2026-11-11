@@ -422,71 +422,74 @@ export default class interactivebrokers extends Exchange {
                     // https://www.interactivebrokers.com/en/pricing/commissions-futures.php?region=americas
                     'cryptoSwapExchanges': [ 'COINDERIV' ],
                     'cryptoCoinbasePerpSymbols': {
-                        'BIP': 'BTC', // nano bitcoin, 0.01 BTC
-                        'ETP': 'ETH', // nano ether, 0.1 ETH
-                        'SLP': 'SOL',
-                        'XPP': 'XRP',
-                        'DOP': 'DOGE',
-                        'ADP': 'ADA',
-                        'AVP': 'AVAX',
-                        'LCP': 'LTC',
-                        'LNP': 'LINK',
-                        'HEP': 'HBAR',
-                        'SHP': '1000SHIB',
-                        'BCP': 'BCH',
-                        'POP': 'DOT',
-                        'XLP': 'XLM',
-                        'SUP': 'SUI',
-                        'PEP': '1000PEPE',
-                        'BIT': 'x',
-                        'ET': 'x',
-                        'GOL': 'x',
-                        'NOL': 'x',
-                        'SLR': 'x',
-                        'ZEC': 'x',
-                        'ENA': 'x',
-                        'HYP': 'x',
-                        'OND': 'x',
-                        'TEK': 'x',
-                        'AVA': 'x',
-                        'BCH': 'x',
-                        'DOG': 'x',
-                        'HYF': 'x',
-                        'LC': 'x',
-                        'NGS': 'x',
-                        'SHB': 'x',
-                        'SUI': 'x',
+                        // the -NANO / -MICRO suffix follows the IBKR contract name ("nano Bitcoin ...", "Micro ..."), the multiplier is the contract size
+                        // perp style futures (nominal 2030-12-20 expiry)
+                        'BIP': 'BTC-NANO', // nano Bitcoin BTC Perpetual Futures, 0.01 BTC
+                        'ETP': 'ETH-NANO', // nano Ether ETH Perpetual Futures, 0.1 ETH
+                        'SLP': 'SOL-NANO', // Nano Solana Perp Style Futures, 5 SOL
+                        'XPP': 'XRP-NANO', // Nano XRP Perp Style Futures, 500 XRP
+                        'ADP': 'ADA', // Cardano Perp Style Futures, 1000 ADA
+                        'AVP': 'AVAX', // Avalanche Perp Style Futures, 10 AVAX
+                        'BCP': 'BCH', // Bitcoin Cash Perp Style Futures, 1 BCH
+                        'DOP': 'DOGE', // Dogecoin Perp Style Futures, 5000 DOGE
+                        'ENA': 'ENA', // Ethena Perp Style Futures, 5000 ENA
+                        'HEP': 'HBAR', // Hedera Perp Style Futures, 5000 HBAR
+                        'HYP': 'HYPE', // Hype Perp Style Futures, 10 HYPE
+                        'LCP': 'LTC', // Litecoin Perp Style Futures, 5 LTC
+                        'LNP': 'LINK', // Chainlink Perp Style Futures, 50 LINK
+                        'NER': 'NEAR', // Near Protocol Index, 500 NEAR
+                        'OND': 'ONDO', // OND Perp Style Futures, 1000 ONDO
+                        'PEP': '1000PEPE', // 1k Pepe Perp Style Futures, 100000 x 1000 PEPE
+                        'POP': 'DOT', // Polkadot Perp Style Futures, 100 DOT
+                        'SHP': '1000SHIB', // 1K Shib Perp Style Futures, 10000 x 1000 SHIB
+                        'SUP': 'SUI', // SUI Perp Style Futures, 500 SUI
+                        'XLP': 'XLM', // Stellar Perp Style Futures, 5000 XLM
+                        'ZEC': 'ZEC', // Zcash Perp Style Futures, 1 ZEC
+                        // the coinbase derivatives dated (monthly) futures (BIT, ET, BTI, ...) are in cryptoFutureSymbols
                     },
                     // dated crypto futures (CME and coinbase derivatives), IBKR symbol -> unified base, resolved via trsrv/futures
                     // https://www.interactivebrokers.com/en/pricing/commissions-futures.php?region=americas
-                    'cryptoFutureExchanges': [ 'CME', 'COINDERIV', 'HKFE' ],
+                    'cryptoFutureExchanges': [ 'CME', 'COINDERIV', 'CFE' ],
                     'cryptoFutureSymbols': {
                         // the order matters, on symbol collisions (same base and expiry) the earlier contract keeps the plain symbol
-                        // CME Bitcoin Futures and Futures Options
-                        'BRR': 'BTC', // 5 BTC
-                        // CME Bitcoin Micro Futures and Futures Options & COINBASE Futures
-                        'MBT': 'BTC', // 0.1 BTC
-                        'BTI': 'BTC', // coinbase derivatives
-                        'XRL': 'XRP', // coinbase derivatives
-                        // CME Bitcoin Friday Futures and Futures Options
-                        'BFF': 'BTC', // 0.02 BTC
-                        // CME Ethereum Futures and Futures Options
-                        'ETHUSDRR': 'ETH', // 50 ETH
-                        'ETH': 'ETH',
-                        // CME Ethereum Micro Futures and Futures Options
-                        'MET': 'ETH', // 0.1 ETH
-                        // CME Solana, Ripple, Chainlink, Stellar Lumens, Cardano Futures
-                        'SOL': 'SOL',
-                        'XRP': 'XRP',
-                        'LNK': 'LINK',
-                        'XLM': 'XLM',
-                        'ADA': 'ADA',
-                        // CME Micro Solana, Micro Ripple, Micro Chainlink, Micro Stellar Lumens, Micro Cardano Futures
-                        'MSL': 'SOL',
-                        'MXP': 'XRP',
-                        'MLN': 'LINK',
-                        'MXL': 'XLM',
-                        'MCA': 'ADA',
+                        // the -NANO / -MICRO suffix follows the IBKR contract name ("nano Bitcoin ...", "Micro Bitcoin"), the multiplier is the contract size
+                        // CME standard futures
+                        'BRR': 'BTC', // CME CF Bitcoin Reference Rate, 5 BTC
+                        'ETHUSDRR': 'ETH', // CME CF Ether-Dollar Reference Rate, 50 ETH
+                        'SOL': 'SOL', // CME CF Solana Dollar Reference Rate, 500 SOL
+                        'XRP': 'XRP', // CME CF XRP-Dollar Reference Rate, 50000 XRP
+                        'LNK': 'LINK', // CME CF Chainlink Dollar Reference Rate, 5000 LINK
+                        'XLM': 'XLM', // CME CF Stellar Lumens Dollar Reference Rate, 250000 XLM
+                        'ADA': 'ADA', // CME CF Cardano Dollar Reference Rate, 100000 ADA
+                        // CME micro futures
+                        'MBT': 'BTC-MICRO', // Micro Bitcoin, 0.1 BTC
+                        'MET': 'ETH-MICRO', // Micro Ether, 0.1 ETH
+                        'EEM': 'ETH-MICRO', // Micro Ether Euro, 0.1 ETH, quoted in EUR
+                        'MSL': 'SOL-MICRO', // Micro Solana, 25 SOL
+                        'MXP': 'XRP-MICRO', // Micro XRP, 2500 XRP
+                        'MLN': 'LINK-MICRO', // Micro Chainlink, 250 LINK
+                        'MXL': 'XLM-MICRO', // Micro Lumens, 12500 XLM
+                        // CME other bitcoin and ether futures, kept under their IBKR ticker, BTC and ETH on CME are BRR and ETHUSDRR
+                        // 'BFF' - CME CF Bitcoin Reference Rate New York (Bitcoin Friday Futures), 0.02 BTC
+                        // 'QTF' -  Spot-Quoted Bitcoin (Cleared Future), 0.01 BTC
+                        // 'QTM' - Bitcoin Marker Spot Quoted Futures, 0.01 BTC
+                        // 'QEF' - Spot-Quoted Ether (Cleared Future), 0.2 ETH
+                        // 'QEM' - Ether Marker Spot Quoted Futures, 0.2 ETH
+                        // CFE (cboe) futures, a single contract with a far (2035) expiry
+                        'PBT': 'BTC', // Cboe Kaiko Bitcoin Index, 0.01 BTC
+                        'PET': 'ETH', // Cboe Kaiko Ether Index, 0.1 ETH
+                        // coinbase derivatives dated (monthly) futures, listed after the CME contracts so those keep the plain symbol on collisions
+                        'BIT': 'BTC-NANO', // nano Bitcoin Futures, 0.01 BTC
+                        'ET': 'ETH-NANO', // nano Ether Futures, 0.1 ETH
+                        'BTI': 'BTC', // Coinbase Bitcoin Futures, 1 BTC
+                        'XRL': 'XRP', // XRP Futures Index, 10000 XRP
+                        'AVA': 'AVAX', // Avalanche Futures Index, 10 AVAX
+                        'BCH': 'BCH', // Bitcoin Cash Futures, 1 BCH
+                        'DOG': 'DOGE', // Dogecoin Futures Index, 5000 DOGE
+                        'HYF': 'HYPE', // HYPE Futures Index, 10 HYPE
+                        'LC': 'LTC', // Litecoin Futures Index, 5 LTC
+                        'SHB': '1000SHIB', // 1K Shiba Index, 10000 x 1000 SHIB
+                        'SUI': 'SUI', // SUI Futures Index, 500 SUI
                     },
                     'cryptoSpotSymbols': [ 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK' ], // resolved via iserver/secdef/search
                     'cfdExchanges': [ 'IBUSCFD', 'IBCFD' ], // us and non-us cfds, on duplicate symbols the last exchange wins
@@ -1759,14 +1762,16 @@ export default class interactivebrokers extends Exchange {
         const options = this.safeDict (this.options, 'fetchMarkets', {});
         const baseTickerId = this.safeString2 (market, 'ticker', 'symbol') as string;
         const listingExchange = this.safeString2 (market, 'listingExchange', 'exchange');
+        const name = this.safeString (market, 'fullName', '');
         // coinbase derivatives perp-style futures are listed as FUT with a far (2030) nominal expiry, they are rolled with a funding adjustment, so they are unified as swaps
         // cfds are undated, cash-settled linear contracts on a stock, etf or index, also unified as swaps
         // the other FUT contracts (CME and coinbase derivatives dated crypto futures) are unified as futures
         const isCfd = (assetClass === 'CFD');
         const isFut = (assetClass === 'FUT');
         const cryptoCoinbasePerpSymbols = this.safeDict (options, 'cryptoCoinbasePerpSymbols', {});
-        const cryptoSwapExchanges = this.safeList (options, 'cryptoSwapExchanges', []);
-        const isPerp = isFut && (baseTickerId in cryptoCoinbasePerpSymbols) && this.inArray (listingExchange, cryptoSwapExchanges);
+        const isPerpInName = name.indexOf ('Perpetual') !== -1;
+        const isKnownPerpSymbol = (baseTickerId in cryptoCoinbasePerpSymbols); //  && this.inArray (listingExchange, cryptoSwapExchanges)
+        const isPerp = isFut && (isKnownPerpSymbol || isPerpInName);
         const isFuture = isFut && !isPerp;
         const isSwap = isCfd || isPerp;
         const isContract = isSwap || isFuture;
