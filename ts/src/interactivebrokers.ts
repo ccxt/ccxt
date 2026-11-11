@@ -451,11 +451,12 @@ export default class interactivebrokers extends Exchange {
                         'AVA': 'AVAX',
                         'BTI': 'BTC',
                         'DOG': 'DOGE',
-                        'SHB': 'SHIB',
+                        'SHB': '1000SHIB',
                         'HYF': 'HYPE',
                         'LC': 'LTC',
                         'SUI': 'SUI',
                         'XRL': 'XRP',
+                        'BCH': 'BCH',
                     },
                     // dated crypto futures (CME and coinbase derivatives), IBKR symbol -> unified base, resolved via trsrv/futures
                     // https://www.interactivebrokers.com/en/pricing/commissions-futures.php?region=americas
@@ -488,18 +489,6 @@ export default class interactivebrokers extends Exchange {
                         // CFE (cboe) futures, a single contract with a far (2035) expiry
                         'PBT': 'BTC', // Cboe Kaiko Bitcoin Index, 0.01 BTC
                         'PET': 'ETH', // Cboe Kaiko Ether Index, 0.1 ETH
-                        // coinbase derivatives dated (monthly) futures, listed after the CME contracts so those keep the plain symbol on collisions
-                        'BIT': 'BTC', // nano Bitcoin Futures, 0.01 BTC
-                        'ET': 'ETH', // nano Ether Futures, 0.1 ETH
-                        'BTI': 'BTC', // Coinbase Bitcoin Futures, 1 BTC
-                        'XRL': 'XRP', // XRP Futures Index, 10000 XRP
-                        'AVA': 'AVAX', // Avalanche Futures Index, 10 AVAX
-                        'BCH': 'BCH', // Bitcoin Cash Futures, 1 BCH
-                        'DOG': 'DOGE', // Dogecoin Futures Index, 5000 DOGE
-                        'HYF': 'HYPE', // HYPE Futures Index, 10 HYPE
-                        'LC': 'LTC', // Litecoin Futures Index, 5 LTC
-                        'SHB': '1000SHIB', // 1K Shiba Index, 10000 x 1000 SHIB
-                        'SUI': 'SUI', // SUI Futures Index, 500 SUI
                     },
                     'cryptoSpotSymbols': [ 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK' ], // resolved via iserver/secdef/search
                     'cfdExchanges': [ 'IBUSCFD', 'IBCFD' ], // us and non-us cfds, on duplicate symbols the last exchange wins
