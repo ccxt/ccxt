@@ -232,6 +232,10 @@ impl Value {
     pub fn into_dict(self) -> Dict {
         if let Value::Dict(m) = self { m } else { Arc::new(HashMap::new()) }
     }
+    /// The list a list-typed local holds, moved out of the box (an empty list for a non-list).
+    pub fn into_list(self) -> List {
+        if let Value::Arr(a) = self { a } else { Arc::new(Vec::new()) }
+    }
     pub fn as_array(&self) -> Option<&Vec<Value>> {
         if let Value::Arr(a) = self { Some(&**a) } else { None }
     }
@@ -681,17 +685,62 @@ pub fn get_value_k(obj: &Value, key: &str) -> Value {
 
 /// The shared map a dict-typed local holds; a non-dict value reads like an empty map.
 pub type Dict = Arc<HashMap<String, Value>>;
+/// The shared list a list-typed local holds; a non-list value reads like an empty list.
+pub type List = Arc<Vec<Value>>;
 
-/// A container the literal-key `safe_*_k` readers accept: a `Value` by value, a map or list by reference
-/// (a string key on a list reads nothing, as `get_value_k` does).
-pub trait KeyRead {
+/// A container the `safe_*` readers accept: a `Value` by value, a map or list by reference.
+/// `key_read` takes a literal key, `read` any key (a string key on a list reads nothing, as `get_value` does).
+pub trait KeyRead: Clone {
     fn key_read(&self, key: &str) -> Value;
+    fn read(&self, key: &Value) -> Value;
 }
-impl KeyRead for Value { fn key_read(&self, key: &str) -> Value { get_value_k(self, key) } }
-impl KeyRead for &Value { fn key_read(&self, key: &str) -> Value { get_value_k(self, key) } }
-impl KeyRead for &Dict { fn key_read(&self, key: &str) -> Value { get_map_value_k(self, key) } }
-impl KeyRead for &HashMap<String, Value> { fn key_read(&self, key: &str) -> Value { get_map_value_k(self, key) } }
-impl KeyRead for &Vec<Value> { fn key_read(&self, _key: &str) -> Value { Value::Null } }
+impl KeyRead for Value {
+    fn key_read(&self, key: &str) -> Value { get_value_k(self, key) }
+    fn read(&self, key: &Value) -> Value { get_value(self, key) }
+}
+impl KeyRead for &Value {
+    fn key_read(&self, key: &str) -> Value { get_value_k(self, key) }
+    fn read(&self, key: &Value) -> Value { get_value(self, key) }
+}
+impl KeyRead for &Dict {
+    fn key_read(&self, key: &str) -> Value { get_map_value_k(self, key) }
+    fn read(&self, key: &Value) -> Value { get_map_value(self, key) }
+}
+impl KeyRead for &HashMap<String, Value> {
+    fn key_read(&self, key: &str) -> Value { get_map_value_k(self, key) }
+    fn read(&self, key: &Value) -> Value { get_map_value(self, key) }
+}
+impl KeyRead for &Vec<Value> {
+    fn key_read(&self, _key: &str) -> Value { Value::Null }
+    fn read(&self, key: &Value) -> Value { get_list_value(self, key) }
+}
+impl KeyRead for &List {
+    fn key_read(&self, _key: &str) -> Value { Value::Null }
+    fn read(&self, key: &Value) -> Value { get_list_value(self, key) }
+}
+
+/// Extra operands of `extend` / `deep_extend`: a `Value` slice, or a dict local lent by reference.
+pub trait MergeOperands {
+    fn for_each_map(self, f: impl FnMut(&HashMap<String, Value>));
+    fn for_each_operand(self, f: impl FnMut(Value));
+}
+impl MergeOperands for &[Value] {
+    fn for_each_map(self, mut f: impl FnMut(&HashMap<String, Value>)) { for v in self { if let Value::Dict(m) = v { f(m) } } }
+    fn for_each_operand(self, mut f: impl FnMut(Value)) { for v in self { f(v.clone()) } }
+}
+impl<const N: usize> MergeOperands for &[Value; N] {
+    fn for_each_map(self, f: impl FnMut(&HashMap<String, Value>)) { (&self[..]).for_each_map(f) }
+    fn for_each_operand(self, f: impl FnMut(Value)) { (&self[..]).for_each_operand(f) }
+}
+impl MergeOperands for &[&Dict; 1] {
+    fn for_each_map(self, mut f: impl FnMut(&HashMap<String, Value>)) { f(self[0]) }
+    fn for_each_operand(self, mut f: impl FnMut(Value)) { f(Value::Dict(Arc::clone(self[0]))) }
+}
+
+/// The object `omit` drops keys from: a `Value` by value, or a dict local lent by reference (shares the map).
+pub trait OmitSource { fn into_operand(self) -> Value; }
+impl OmitSource for Value { fn into_operand(self) -> Value { self } }
+impl OmitSource for &Dict { fn into_operand(self) -> Value { Value::Dict(Arc::clone(self)) } }
 
 /// `get_value_k` on the map itself.
 pub fn get_map_value_k(m: &HashMap<String, Value>, key: &str) -> Value {
@@ -722,6 +771,27 @@ pub fn get_map_value_k(m: &HashMap<String, Value>, key: &str) -> Value {
 /// Access a value in a map by string key, or array by integer key encoded as
 /// a `Value::Str` / `Value::Int`. Returns `Value::Null` on miss.
 pub fn get_value(obj: &Value, key: &Value) -> Value {
+    match (obj, key) {
+        (Value::Dict(m), _) => get_map_value(m, key),
+        (Value::Arr(a), _) => get_list_value(a, key),
+        // JS string indexing: `s[i]` returns the i-th character as a
+        // 1-char string (e.g. bitfinex `amountString[0] === '-'` to detect
+        // a negative). Char-based so multi-byte UTF-8 is handled.
+        (Value::Str(s), Value::Int(i)) => {
+            if *i < 0 {
+                return Value::Null;
+            }
+            match s.chars().nth(*i as usize) {
+                Some(c) => Value::Str(c.to_string().into()),
+                None    => Value::Null,
+            }
+        }
+        _ => Value::Null,
+    }
+}
+
+/// `get_value` on the map itself.
+pub fn get_map_value(m: &HashMap<String, Value>, key: &Value) -> Value {
     // Cache / order-book / side markers expose numeric indexing as if
     // they were arrays — `cache[i]` reads `_data[i]`, `side[i]` reads
     // `_entries[i]`. Handle this before the regular dict lookup so the
@@ -730,7 +800,7 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
     // The index may arrive as an Int (`get_value(&side, &Value::Int(0))`) or as
     // a numeric string — the `safe_*` helpers stringify their key, so
     // `safe_value(cache, 0)` reaches here as `Str("0")`. Accept both.
-    if let Value::Dict(m) = obj {
+    {
         let idx = match key {
             Value::Int(i) if *i >= 0 => Some(*i as usize),
             Value::Str(s) => s.parse::<usize>().ok(),
@@ -748,8 +818,8 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
             }
         }
     }
-    match (obj, key) {
-        (Value::Dict(m), Value::Str(k)) => {
+    match key {
+        Value::Str(k) => {
             // A shared order book keeps its scalar meta (nonce/timestamp/…) in
             // the book store so mutations propagate across clones.
             if is_book_meta_key(k) {
@@ -798,24 +868,19 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
             }
             Value::Null
         }
-        (Value::Arr(a), Value::Int(i)) => a.get(*i as usize).cloned().unwrap_or(Value::Null),
-        (Value::Arr(a), Value::Str(k)) => {
+        _ => Value::Null,
+    }
+}
+
+/// `get_value` on the list itself.
+pub fn get_list_value(a: &[Value], key: &Value) -> Value {
+    match key {
+        Value::Int(i) => a.get(*i as usize).cloned().unwrap_or(Value::Null),
+        Value::Str(k) => {
             if let Ok(i) = k.parse::<usize>() {
                 a.get(i).cloned().unwrap_or(Value::Null)
             } else {
                 Value::Null
-            }
-        }
-        // JS string indexing: `s[i]` returns the i-th character as a
-        // 1-char string (e.g. bitfinex `amountString[0] === '-'` to detect
-        // a negative). Char-based so multi-byte UTF-8 is handled.
-        (Value::Str(s), Value::Int(i)) => {
-            if *i < 0 {
-                return Value::Null;
-            }
-            match s.chars().nth(*i as usize) {
-                Some(c) => Value::Str(c.to_string().into()),
-                None    => Value::Null,
             }
         }
         _ => Value::Null,
