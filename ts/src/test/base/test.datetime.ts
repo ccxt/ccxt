@@ -226,6 +226,9 @@ function testParseToInt () {
     assert (exchange.parseToInt (-42) === -42);
     assert (exchange.parseToInt ('-42.8') === -42);
     assert (exchange.parseToInt (-42.8) === -42);
+    assert (exchange.parseToInt ('1e5') === 100000);
+    assert (exchange.parseToInt ('1E-5') === 0);
+    assert (exchange.parseToInt ('2.5e3') === 2500);
 }
 
 function testDatetime () {

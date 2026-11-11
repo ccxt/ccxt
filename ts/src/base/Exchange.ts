@@ -4073,7 +4073,8 @@ export class BaseExchange {
         // the cast is erased at transpile-time, so output matches every target language, rather than
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
         const stringifiedNumber = this.numberToString (number) as string;
-        if (stringifiedNumber.indexOf ('.') >= 0) {
+        const isDecimalOrExponent = (stringifiedNumber.indexOf ('.') >= 0) || (stringifiedNumber.toLowerCase ().indexOf ('e') >= 0);
+        if (isDecimalOrExponent) {
             const convertedNumber = parseFloat (stringifiedNumber);
             return parseInt (convertedNumber as any);
         }
