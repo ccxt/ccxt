@@ -489,7 +489,7 @@ export default class bit2me extends bit2meRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint, the same as for createOrder
      * @param {float} [params.triggerPrice] the price at which a stop-limit order is activated, requires a limit price
      * @param {float} [params.cost] for market orders only, the amount to trade in units of the quote currency, overrides amount
-     * @param {string} [params.clientOrderId] a unique identifier for the order, one is generated when omitted because the response is matched by it
+     * @param {string} [params.clientOrderId] a unique identifier for the order, sent as CCXT-<clientOrderId>, CCXT-<uuid> when omitted, the response is matched by it
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
@@ -501,10 +501,8 @@ export default class bit2me extends bit2meRest {
         if (orderType === 'oco') {
             throw new NotSupported (this.id + ' createOrderWs() does not support oco orders, use createOrder() instead');
         }
-        let clientOrderId = this.safeString (restRequest, 'clientOrderId');
-        if (clientOrderId === undefined) {
-            clientOrderId = this.uuid ();
-        }
+        // createOrderRequest always sets a CCXT-<id> clientOrderId, the response is matched by it
+        const clientOrderId = this.safeString (restRequest, 'clientOrderId') as string;
         const request = this.omit (restRequest, 'orderType');
         request['event'] = 'add-order';
         request['type'] = orderType;

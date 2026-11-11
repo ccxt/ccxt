@@ -272,6 +272,7 @@ export default class bit2me extends Exchange {
                     'includeTestnet': false,
                 },
                 'mica': true, // MiCA compliant, USDT was delisted on 2025-03-21
+                'brokerId': 'CCXT', // every order carries a clientOrderId of the form CCXT-<id>
                 'createMarketBuyOrderRequiresPrice': true, // market buy orders with a price are converted to a cost (amount * price), without a price the amount is sent in the base currency
                 'accountsByType': {
                     'funding': 'wallet',
@@ -1026,7 +1027,7 @@ export default class bit2me extends Exchange {
      * @param {float} [params.cost] for market orders only, the amount to trade in units of the quote currency, overrides amount
      * @param {string} [params.timeInForce] 'GTC' (default) or 'FOK' (limit orders only), IOC is not available on bit2me
      * @param {boolean} [params.postOnly] true to place a post-only limit order
-     * @param {string} [params.clientOrderId] a unique identifier for the order, up to 48 characters
+     * @param {string} [params.clientOrderId] a unique identifier for the order, it is sent prefixed with the broker id as CCXT-<clientOrderId>, when omitted CCXT-<uuid> is sent, up to 48 characters in total, not accepted for OCO
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure), for an OCO the take profit leg is returned and both legs are available in info, cancelling one leg does not cancel the other
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
@@ -1098,7 +1099,13 @@ export default class bit2me extends Exchange {
         // a lone stop loss or take profit is a stop-limit order, the exchange triggers it in either direction
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         const cost = this.safeString (params, 'cost');
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        // every order placed through the library is tagged with the broker id, CCXT-<id>
+        let clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
+            const prefix = brokerId + '-';
+            clientOrderId = prefix + this.uuid ();
+        }
         let query = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLimitPrice', 'cost', 'clientOrderId' ]);
         let postOnly = false;
         [ postOnly, query ] = this.handlePostOnly (isMarketOrder, false, query);
@@ -1159,7 +1166,8 @@ export default class bit2me extends Exchange {
         if (timeInForce !== undefined) {
             request['timeInForce'] = timeInForce;
         }
-        if (clientOrderId !== undefined) {
+        if (!isOco) {
+            // the exchange does not accept a clientOrderId on oco orders
             request['clientOrderId'] = clientOrderId;
         }
         return this.extend (request, query);
