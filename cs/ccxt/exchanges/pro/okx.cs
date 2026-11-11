@@ -2553,12 +2553,12 @@ public partial class okx : ccxt.okx
         }
     }
 
-    public virtual string? requestId()
+    public virtual object requestId()
     {
+        // millisecond timestamp plus 3 random digits stays a safe integer
         string ts = this.milliseconds().ToString();
-        int randomNumber = this.randNumber(4);
-        string randomPart = randomNumber.ToString();
-        return (ts + randomPart);
+        string randomPart = this.randNumber(3).ToString();
+        return this.parseToInt((ts + randomPart));
     }
 
     /**
@@ -2584,7 +2584,7 @@ public partial class okx : ccxt.okx
         }
         await this.authenticate();
         string? url = this.getUrl("private", "private");
-        string messageHash = this.requestId();
+        string messageHash = this.requestId().ToString();
         (string?, object) opparamsOpVariable = this.handleOptionStringAndParams(parameters, "createOrderWs", "op", "batch-orders");
         string? op = opparamsOpVariable.Item1;
         IDictionary<string, object> paramsOp = ((IDictionary<string, object>)opparamsOpVariable.Item2);
@@ -2673,7 +2673,7 @@ public partial class okx : ccxt.okx
         }
         await this.authenticate();
         string? url = this.getUrl("private", "private");
-        string messageHash = this.requestId();
+        string messageHash = this.requestId().ToString();
         (string?, object) opparamsOpVariable = this.handleOptionStringAndParams(parameters, "editOrderWs", "op", "amend-order");
         string? op = opparamsOpVariable.Item1;
         IDictionary<string, object> paramsOp = ((IDictionary<string, object>)opparamsOpVariable.Item2);
@@ -2717,7 +2717,7 @@ public partial class okx : ccxt.okx
         }
         await this.authenticate();
         string? url = this.getUrl("private", "private");
-        string messageHash = this.requestId();
+        string messageHash = this.requestId().ToString();
         string? clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "clOrdId"}));
         Dictionary<string, object> market = this.market(symbol);
@@ -2768,7 +2768,7 @@ public partial class okx : ccxt.okx
         }
         await this.authenticate();
         string? url = this.getUrl("private", "private");
-        string messageHash = this.requestId();
+        string messageHash = this.requestId().ToString();
         List<object> args = new List<object>() {};
         Dictionary<string, object> market = this.market(symbol);
         Int64? instIdCode = this.safeInteger(market, "instIdCode");
@@ -2817,7 +2817,7 @@ public partial class okx : ccxt.okx
             throw new BadRequest ((this.id + " cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.")) ;
         }
         string? url = this.getUrl("private", "private");
-        string messageHash = this.requestId();
+        string messageHash = this.requestId().ToString();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", messageHash },
             { "op", "mass-cancel" },

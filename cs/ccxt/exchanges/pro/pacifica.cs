@@ -1748,9 +1748,12 @@ public partial class pacifica : ccxt.pacifica
         return message;
     }
 
-    public virtual string? requestId()
+    public virtual object requestId()
     {
-        return this.uuid();  // uuid v4
+        // millisecond timestamp plus 3 random digits stays a safe integer
+        string ts = this.milliseconds().ToString();
+        string randomPart = this.randNumber(3).ToString();
+        return this.parseToInt((ts + randomPart));
     }
 
     public virtual Dictionary<string, object> wrapAsPostAction(object operationType, IDictionary<string, object> request)
@@ -1759,7 +1762,8 @@ public partial class pacifica : ccxt.pacifica
         {
             throw new ArgumentsRequired ((this.id + "postAction() requires a \"operationType\" argument!")) ;
         }
-        string requestId = this.requestId();
+        // the venue requires a full uuid v4 request id
+        string requestId = this.uuid();
         Dictionary<string, object> postParams = new Dictionary<string, object>() {};
         postParams[(string)operationType] = request;
         Dictionary<string, object> payload = new Dictionary<string, object>() {

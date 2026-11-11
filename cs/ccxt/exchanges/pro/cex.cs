@@ -47,13 +47,13 @@ public partial class cex : ccxt.cex
         });
     }
 
-    public virtual string? requestId()
+    public virtual Int64 requestId()
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         this.options["requestId"] = requestId;
         this.unlockId();
-        return requestId.ToString();
+        return requestId;
     }
 
     /**
@@ -68,7 +68,7 @@ public partial class cex : ccxt.cex
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        string messageHash = this.requestId();
+        string messageHash = this.requestId().ToString();
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "e", "get-balance" },
@@ -316,7 +316,7 @@ public partial class cex : ccxt.cex
             message = new Dictionary<string, object>() {
                 { "e", "ticker" },
                 { "data", new List<object>() {(market.ContainsKey("baseId") ? market["baseId"] : null), (market.ContainsKey("quoteId") ? market["quoteId"] : null)} },
-                { "oid", this.requestId() },
+                { "oid", this.requestId().ToString() },
             };
             subscriptionHash = ("ticker:" + symbolValue);
         }
@@ -384,7 +384,7 @@ public partial class cex : ccxt.cex
         }
         Dictionary<string, object> market = this.market(symbol);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
-        string messageHash = this.requestId();
+        string messageHash = this.requestId().ToString();
         Dictionary<string, object> request = this.extend(new Dictionary<string, object>() {
             { "e", "ticker" },
             { "oid", messageHash },
@@ -510,7 +510,7 @@ public partial class cex : ccxt.cex
         }
         await this.authenticate();
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
-        string messageHash = this.requestId();
+        string messageHash = this.requestId().ToString();
         Dictionary<string, object> request = this.extend(new Dictionary<string, object>() {
             { "e", "get-balance" },
             { "oid", messageHash },
@@ -1089,7 +1089,7 @@ public partial class cex : ccxt.cex
                 { "subscribe", true },
                 { "depth", depth },
             } },
-            { "oid", this.requestId() },
+            { "oid", this.requestId().ToString() },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, request, messageHash));
@@ -1425,7 +1425,7 @@ public partial class cex : ccxt.cex
             { "order_id", id.ToString() },
         }, parameters);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
-        string messageHash = this.requestId();
+        string messageHash = this.requestId().ToString();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "e", "get-order" },
             { "oid", messageHash },
@@ -1460,7 +1460,7 @@ public partial class cex : ccxt.cex
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbol);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
-        string messageHash = this.requestId();
+        string messageHash = this.requestId().ToString();
         Dictionary<string, object> data = this.extend(new Dictionary<string, object>() {
             { "pair", new List<object>() {(market.ContainsKey("baseId") ? market["baseId"] : null), (market.ContainsKey("quoteId") ? market["quoteId"] : null)} },
         }, parameters);
@@ -1501,7 +1501,7 @@ public partial class cex : ccxt.cex
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbol);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
-        string messageHash = this.requestId();
+        string messageHash = this.requestId().ToString();
         Dictionary<string, object> data = this.extend(new Dictionary<string, object>() {
             { "pair", new List<object>() {(market.ContainsKey("baseId") ? market["baseId"] : null), (market.ContainsKey("quoteId") ? market["quoteId"] : null)} },
             { "amount", amount },
@@ -1555,7 +1555,7 @@ public partial class cex : ccxt.cex
             { "price", price },
             { "order_id", id },
         }, parameters);
-        string messageHash = this.requestId();
+        string messageHash = this.requestId().ToString();
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "e", "cancel-replace-order" },
@@ -1592,7 +1592,7 @@ public partial class cex : ccxt.cex
         Dictionary<string, object> data = this.extend(new Dictionary<string, object>() {
             { "order_id", id },
         }, parameters);
-        string messageHash = this.requestId();
+        string messageHash = this.requestId().ToString();
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "e", "cancel-order" },
@@ -1625,7 +1625,7 @@ public partial class cex : ccxt.cex
             await this.loadMarkets();
         }
         await this.authenticate();
-        string messageHash = this.requestId();
+        string messageHash = this.requestId().ToString();
         Dictionary<string, object> data = this.extend(new Dictionary<string, object>() {
             { "cancel-orders", ids },
         }, parameters);

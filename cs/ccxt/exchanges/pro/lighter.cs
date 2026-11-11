@@ -1324,13 +1324,13 @@ public partial class lighter : ccxt.lighter
         return await this.unsubscribe(messageHash, this.extend(request, paramsAccountIndex));
     }
 
-    public virtual string? requestId(object url)
+    public virtual Int64 requestId(object url)
     {
         IDictionary<string, object> options = this.safeDict(this.options, "requestId", this.createSafeDictionary());
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
         ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
-        return this.numberToString(newValue);
+        return newValue;
     }
 
     /**
@@ -1358,7 +1358,9 @@ public partial class lighter : ccxt.lighter
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
-        string requestId = this.requestId(url);
+        Int64 nextId = this.requestId(url);
+        // the venue takes a string request id
+        string requestId = nextId.ToString();
         string messageHash = ("jsonapi/sendtx:" + requestId);
         var txTypetxInfoorderVariable = await this.signAndCreateOrder("createOrderWs", symbol, type, side, amount, price, parameters);
         var txType = ((IList<object>) txTypetxInfoorderVariable)[0];
@@ -1397,7 +1399,9 @@ public partial class lighter : ccxt.lighter
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
-        string requestId = this.requestId(url);
+        Int64 nextId = this.requestId(url);
+        // the venue takes a string request id
+        string requestId = nextId.ToString();
         string messageHash = ("jsonapi/sendtx:" + requestId);
         var txTypetxInfoVariable = await this.signAndCancelOrder("cancelOrderWs", id, symbol, parameters);
         var txType = ((IList<object>) txTypetxInfoVariable)[0];
@@ -1434,7 +1438,9 @@ public partial class lighter : ccxt.lighter
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
-        string requestId = this.requestId(url);
+        Int64 nextId = this.requestId(url);
+        // the venue takes a string request id
+        string requestId = nextId.ToString();
         string messageHash = ("jsonapi/sendtx:" + requestId);
         var txTypetxInfoVariable = await this.signAndCancelAllOrders("cancelAllOrdersWs", symbol, parameters);
         var txType = ((IList<object>) txTypetxInfoVariable)[0];
