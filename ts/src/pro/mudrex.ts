@@ -4,7 +4,7 @@
 import mudrexRest from '../mudrex.js';
 import { ExchangeError, NotSupported, RateLimitExceeded } from '../base/errors.js';
 import { ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Strings, Ticker, Tickers, Dict } from '../base/types.js';
+import type { Int, OHLCV, Strings, Ticker, Tickers, Dict, int } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 
 // ---------------------------------------------------------------------------
@@ -40,7 +40,7 @@ export default class mudrex extends mudrexRest {
         };
     }
 
-    requestId (): number {
+    requestId (): int {
         const reqid = this.sum (this.safeInteger (this.options, 'correlationId', 0), 1);
         this.options['correlationId'] = reqid;
         return reqid;

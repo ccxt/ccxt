@@ -2131,7 +2131,7 @@ export default class sxbet extends Exchange {
         this.options[group] = this.extend (this.safeDict (this.options, group, {}), entry);
     }
 
-    requestId (url: Str): number {
+    requestId (url: Str): int {
         const existing = this.safeValue (this.options, 'requestId');
         if (existing === undefined) {
             this.options['requestId'] = this.createSafeDictionary ();

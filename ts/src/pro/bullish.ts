@@ -3,7 +3,7 @@
 
 import bullishRest from '../bullish.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, List, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, List, Order, OrderBook, Position, Str, Strings, Ticker, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -51,7 +51,7 @@ export default class bullish extends bullishRest {
         });
     }
 
-    requestId (): number {
+    requestId (): int {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         return requestId;

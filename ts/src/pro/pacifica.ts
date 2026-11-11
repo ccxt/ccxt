@@ -3,7 +3,7 @@
 import pacificaRest from '../pacifica.js';
 import { ArgumentsRequired, ExchangeError, NotSupported } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, Bool } from '../base/types.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, Bool, type int } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -1548,15 +1548,19 @@ export default class pacifica extends pacificaRest {
         return message;
     }
 
-    requestId (): string {
-        return this.uuid (); // uuid v4
+    requestId (): int {
+        // millisecond timestamp plus 3 random digits stays a safe integer
+        const ts = this.milliseconds ().toString ();
+        const randomPart = this.randNumber (3).toString ();
+        return this.parseToInt (ts + randomPart);
     }
 
     wrapAsPostAction (operationType: Str, request: Dict): Dict {
         if (operationType === undefined) {
             throw new ArgumentsRequired (this.id + 'postAction() requires a "operationType" argument!');
         }
-        const requestId = this.requestId ();
+        // the venue requires a full uuid v4 request id
+        const requestId = this.uuid ();
         const postParams: Dict = {};
         postParams[operationType] = request;
         const payload: Dict = {

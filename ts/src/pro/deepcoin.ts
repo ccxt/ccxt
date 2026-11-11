@@ -3,7 +3,7 @@
 
 import deepcoinRest from '../deepcoin.js';
 import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
-import type { Dict, FeeString, Int, List, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Dict, FeeString, Int, List, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade, int } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -106,7 +106,7 @@ export default class deepcoin extends deepcoinRest {
         return message;
     }
 
-    requestId (): number {
+    requestId (): int {
         this.lockId ();
         const previousValue = this.safeInteger (this.options, 'lastRequestId', 0);
         const newValue = this.sum (previousValue, 1);

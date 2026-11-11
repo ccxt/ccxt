@@ -1940,11 +1940,8 @@ impl Exchange {
 
     // ── extend / deep_extend / omit ─────────────────────────────────────────
 
-    pub fn extend(&self, a: Value, optional_args: impl crate::value::MergeOperands) -> Value {
-        let mut out = match a {
-            Value::Dict(m) => Arc::try_unwrap(m).unwrap_or_else(|x| (*x).clone()),
-            _ => HashMap::new(),
-        };
+    pub fn extend(&self, a: impl crate::value::ExtendHead, optional_args: impl crate::value::MergeOperands) -> Value {
+        let mut out = a.into_head();
         optional_args.for_each_map(|m| {
             for (k, v) in m.iter() {
                 out.insert(k.clone(), v.clone());

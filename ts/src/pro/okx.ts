@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import okxRest from '../okx.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, NullableDict, List, Liquidation, Bool, Market } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, NullableDict, List, Liquidation, Bool, Market, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -2292,11 +2292,11 @@ export default class okx extends okxRest {
         }
     }
 
-    requestId (): string {
+    requestId (): int {
+        // millisecond timestamp plus 3 random digits stays a safe integer
         const ts = this.milliseconds ().toString ();
-        const randomNumber = this.randNumber (4);
-        const randomPart = randomNumber.toString ();
-        return ts + randomPart;
+        const randomPart = this.randNumber (3).toString ();
+        return this.parseToInt (ts + randomPart);
     }
 
     /**
@@ -2319,7 +2319,7 @@ export default class okx extends okxRest {
         }
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.requestId ();
+        const messageHash: string = this.requestId ().toString ();
         const [ op, paramsOp ] = this.handleOptionStringAndParams (params, 'createOrderWs', 'op', 'batch-orders');
         const args = this.createOrderRequest (symbol, type, side, amount, price, paramsOp);
         const market = this.market (symbol);
@@ -2398,7 +2398,7 @@ export default class okx extends okxRest {
         }
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.requestId ();
+        const messageHash: string = this.requestId ().toString ();
         const [ op, paramsOp ] = this.handleOptionStringAndParams (params, 'editOrderWs', 'op', 'amend-order');
         const args = this.editOrderRequest (id, symbol, type, side, amount, price, paramsOp);
         const market = this.market (symbol);
@@ -2435,7 +2435,7 @@ export default class okx extends okxRest {
         }
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.requestId ();
+        const messageHash: string = this.requestId ().toString ();
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
         const market = this.market (symbol);
@@ -2479,7 +2479,7 @@ export default class okx extends okxRest {
         }
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.requestId ();
+        const messageHash: string = this.requestId ().toString ();
         const args: List = [];
         const market = this.market (symbol);
         const instIdCode = this.safeInteger (market, 'instIdCode');
@@ -2522,7 +2522,7 @@ export default class okx extends okxRest {
             throw new BadRequest (this.id + ' cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
         }
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.requestId ();
+        const messageHash: string = this.requestId ().toString ();
         const request: Dict = {
             'id': messageHash,
             'op': 'mass-cancel',

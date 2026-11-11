@@ -3163,7 +3163,7 @@ export default class myriad extends Exchange {
         }) as any;
     }
 
-    requestId (url: Str): number {
+    requestId (url: Str): int {
         const existing = this.safeValue (this.options, 'requestId');
         if (existing === undefined) {
             this.options['requestId'] = this.createSafeDictionary ();

@@ -134,7 +134,7 @@ impl Value {
     /// count of new updates since the last call (clamped by `limit`
     /// when supplied) and arms the per-symbol / global reset flag so
     /// the next `append` zeroes the counter.
-    pub fn get_limit(&mut self, symbol: Value, limit: Value) -> Value {
+    pub fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64> {
         if matches!(self, Value::Dict(d) if d.contains_key("__cacheKind")) {
             cache_get_limit(self, symbol, limit)
         } else {
@@ -753,12 +753,20 @@ impl MergeOperands for &[&Dict; 1] {
     fn for_each_operand(self, mut f: impl FnMut(Value)) { f(Value::Dict(Arc::clone(self[0]))) }
 }
 
+/// The first operand of `extend`: a `Value` or a dict local (owned or lent); the map is copied only when shared.
+pub trait ExtendHead { fn into_head(self) -> HashMap<String, Value>; }
+impl ExtendHead for Value { fn into_head(self) -> HashMap<String, Value> { if let Value::Dict(m) = self { Arc::try_unwrap(m).unwrap_or_else(|x| (*x).clone()) } else { HashMap::new() } } }
+impl ExtendHead for &Value { fn into_head(self) -> HashMap<String, Value> { if let Value::Dict(m) = self { (**m).clone() } else { HashMap::new() } } }
+impl ExtendHead for Dict { fn into_head(self) -> HashMap<String, Value> { Arc::try_unwrap(self).unwrap_or_else(|x| (*x).clone()) } }
+impl ExtendHead for &Dict { fn into_head(self) -> HashMap<String, Value> { (**self).clone() } }
+
 /// The object `omit` drops keys from: a `Value` by value, or a dict local lent by reference (shares the map).
 pub trait OmitSource { fn into_operand(self) -> Value; }
 impl OmitSource for Value { fn into_operand(self) -> Value { self } }
 impl OmitSource for &Dict { fn into_operand(self) -> Value { Value::Dict(Arc::clone(self)) } }
 /// A dict local lent to a `params: impl Into<Value>` parameter: the shared map, not a copy.
 impl From<&Dict> for Value { fn from(m: &Dict) -> Self { Value::Dict(Arc::clone(m)) } }
+impl From<&List> for Value { fn from(a: &List) -> Self { Value::Arr(Arc::clone(a)) } }
 /// A ws hash or key slot reads a `Value` key as its string (any other variant is no key).
 impl<'a> From<&'a Value> for Option<&'a str> { fn from(v: &'a Value) -> Self { v.as_str() } }
 
@@ -1668,8 +1676,9 @@ fn cache_append_inner(m: &mut HashMap<String, Value>, kind: &str, cap: Option<us
 }
 
 
-pub(crate) fn cache_get_limit(target: &mut Value, symbol: Value, limit: Value) -> Value {
+pub(crate) fn cache_get_limit(target: &mut Value, symbol: Option<&str>, limit: Option<i64>) -> Option<i64> {
     let kind = cache_kind(target).unwrap_or_default();
+    let symbol: Option<String> = symbol.map(String::from);
     if let Some(id) = cache_id_of(target) {
         return with_cache_cell(id, move |m| cache_get_limit_inner(m, &kind, symbol, limit));
     }
@@ -1685,40 +1694,33 @@ pub(crate) fn cache_get_limit(target: &mut Value, symbol: Value, limit: Value) -
 // symbol scope and arms its clear; `undefined` (Null) polls the global scope.
 // The count is `undefined` only when the key was never seen — then the caller's
 // `limit` passes through unclamped.
-fn cache_get_limit_inner(m: &mut HashMap<String, Value>, kind: &str, symbol: Value, limit: Value) -> Value {
-    {
-        // `ArrayCacheByTimestamp` doesn't track per-symbol updates —
-        // both `getLimit(undefined, …)` and `getLimit(sym, …)` return
-        // `this.newUpdates` and arm a single global `clearUpdates` flag.
-        if kind == "ArrayCacheByTimestamp" {
-            let v = cache_int_field(m, "_newUpdates");
-            cache_set_bool(m, "_clearUpdates", true);
-            return match limit {
-                Value::Int(l) => Value::Int(v.min(l)),
-                _             => Value::Int(v),
+fn cache_get_limit_inner(m: &mut HashMap<String, Value>, kind: &str, symbol: Option<String>, limit: Option<i64>) -> Option<i64> {
+    // `ArrayCacheByTimestamp` doesn't track per-symbol updates: both scopes
+    // return `this.newUpdates` and arm a single global `clearUpdates` flag.
+    if kind == "ArrayCacheByTimestamp" {
+        let v = cache_int_field(m, "_newUpdates");
+        cache_set_bool(m, "_clearUpdates", true);
+        return Some(match limit { Some(l) => v.min(l), None => v });
+    }
+    let new_updates_value: Option<i64> = match &symbol {
+        None => {
+            cache_set_bool(m, "_clearAllUpdates", true);
+            Some(cache_int_field(m, "_allNewUpdates"))
+        }
+        Some(sym) => {
+            let v = match cache_dict_field_mut(m, "_newUpdatesBySymbol").get(sym.as_str()) {
+                Some(Value::Int(n)) => Some(*n),
+                _ => None,
             };
+            cache_dict_field_mut(m, "_clearUpdatesBySymbol")
+                .insert(sym.clone(), Value::Bool(true));
+            v
         }
-        let new_updates_value: Option<i64> = match &symbol {
-            Value::Null => {
-                cache_set_bool(m, "_clearAllUpdates", true);
-                Some(cache_int_field(m, "_allNewUpdates"))
-            }
-            Value::Str(sym) => {
-                let v = match cache_dict_field_mut(m, "_newUpdatesBySymbol").get(sym.as_ref()) {
-                    Some(Value::Int(n)) => Some(*n),
-                    _ => None,
-                };
-                cache_dict_field_mut(m, "_clearUpdatesBySymbol")
-                    .insert(sym.to_string(), Value::Bool(true));
-                v
-            }
-            _ => None,
-        };
-        match (new_updates_value, &limit) {
-            (None,    _)              => limit.clone(),
-            (Some(v), Value::Int(l))  => Value::Int(v.min(*l)),
-            (Some(v), _)              => Value::Int(v),
-        }
+    };
+    match (new_updates_value, limit) {
+        (None,    _)       => limit,
+        (Some(v), Some(l)) => Some(v.min(l)),
+        (Some(v), None)    => Some(v),
     }
 }
 

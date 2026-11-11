@@ -675,7 +675,7 @@ export default class kraken extends krakenRest {
         client.resolve (stored, messageHash);
     }
 
-    requestId (): number {
+    requestId (): int {
         // their support said that reqid must be an int32, not documented
         this.lockId ();
         const reqid = this.sum (this.safeInteger (this.options, 'reqid', 0), 1);

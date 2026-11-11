@@ -3302,7 +3302,7 @@ export default class grvt extends Exchange {
         return [ request, params ];
     }
 
-    requestId (): number {
+    requestId (): int {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         return requestId;

@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import weexRest from '../weex.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, FeeString } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, FeeString, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import Precise from '../base/Precise.js';
@@ -83,12 +83,12 @@ export default class weex extends weexRest {
         });
     }
 
-    requestId (): Str {
+    requestId (): int {
         this.lockId ();
-        const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
+        const requestId: int = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         this.unlockId ();
-        return this.numberToString (requestId);
+        return requestId;
     }
 
     async subscribePublic (messageHashes: string[], channels: Strings, isContract: boolean = false, params: Dict = {}, subscription: Dict = {}) {
@@ -103,7 +103,7 @@ export default class weex extends weexRest {
             'method': method,
             'params': channels,
         };
-        const subscriptionExtended: Dict = this.extend (subscription, { 'id': id });
+        const subscriptionExtended: Dict = this.extend (subscription, { 'id': id.toString () });
         let type: Str = 'spot';
         if (isContract) {
             type = 'contract';
@@ -130,7 +130,7 @@ export default class weex extends weexRest {
             'method': method,
             'params': [ channel ],
         };
-        const subscriptionExtended: Dict = this.extend (subscription, { 'id': id });
+        const subscriptionExtended: Dict = this.extend (subscription, { 'id': id.toString () });
         return await this.watch (url, messageHash, this.deepExtend (message, params), subscribeHash, subscriptionExtended);
     }
 

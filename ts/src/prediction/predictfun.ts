@@ -3327,7 +3327,7 @@ export default class predictfun extends Exchange {
      * @description a monotonic id the venue echoes back so a subscription reply can be matched to its request
      * @returns {int} the next request id
      */
-    requestId (): number {
+    requestId (): int {
         this.lockId ();
         const previous = this.safeInteger (this.options, 'requestId', 0);
         const next = this.sum (previous, 1);

@@ -92,7 +92,7 @@ export default class paradex extends paradexRest {
         return 'order_book.' + marketId + '.snapshot@15@100ms';
     }
 
-    requestId (): number {
+    requestId (): int {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         return requestId;
