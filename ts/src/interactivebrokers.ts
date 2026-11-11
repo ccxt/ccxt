@@ -1811,6 +1811,8 @@ export default class interactivebrokers extends Exchange {
                 microNanoPrefix = 'NANO.';
             } else if (nameLower.startsWith ('micro')) {
                 microNanoPrefix = 'MICRO.';
+            } else if (name.indexOf ('New York Variant') !== -1) {
+                microNanoPrefix = 'NEWYORK.';
             }
             if (isCoinbaseDerivatives) {
                 base = this.safeString (cryptoCoinbasePerpSymbols, baseTickerId, baseTickerId);
