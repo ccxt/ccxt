@@ -846,7 +846,7 @@ export default class blofin extends blofinRest {
         }
         let rawSubscriptions: List = [];
         const messageHashes: List = [];
-        if ((symbols !== undefined) && (symbols.length > 0)) {
+        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
             for (let i = 0; i < symbols.length; i++) {
                 const current = symbols[i];
                 let market: Market = undefined;
