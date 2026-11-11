@@ -2,7 +2,7 @@ import bullishRest from '../bullish.js';
 import type { Balances, Dict, Int, List, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bullish extends bullishRest {
-    describe(): any;
+    describe(): Dict;
     requestId(): number;
     ping(client: Client): Dict;
     handlePong(client: Client, message: Dict): Dict;
@@ -98,5 +98,5 @@ export default class bullish extends bullishRest {
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     handlePositions(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: Dict): void;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
 }

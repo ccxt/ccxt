@@ -14,7 +14,7 @@ export declare class BaseExchange {
     static ccxtVersion: string;
     options: Dict;
     isSandboxModeEnabled: boolean;
-    api: Dictionary<any>;
+    api: Dictionary<Dict>;
     certified: boolean;
     pro: boolean;
     countries: Strings;
@@ -101,7 +101,7 @@ export declare class BaseExchange {
     positions: any;
     urls: {
         logo?: string;
-        api: NestedDictionary;
+        api: Dict;
         test: NestedDictionary;
         www?: string;
         doc?: string[];
@@ -122,7 +122,7 @@ export declare class BaseExchange {
     enableLastHttpResponse: boolean;
     enableLastResponseHeaders: boolean;
     last_http_response: string | undefined;
-    last_json_response: any;
+    last_json_response: Dict | undefined;
     last_response_headers: Dictionary<string> | undefined;
     last_request_headers: Dictionary<string> | undefined;
     last_request_body: any;
@@ -196,7 +196,7 @@ export declare class BaseExchange {
     hostname: Str;
     precisionMode: Int;
     paddingMode: Int;
-    exceptions: Dict;
+    exceptions: Dictionary<Dict>;
     timeframes: Dictionary<number | string>;
     version: Str;
     name: Str;
@@ -212,7 +212,7 @@ export declare class BaseExchange {
     alias: boolean;
     clients: Dictionary<WsClient>;
     newUpdates: boolean;
-    streaming: Dictionary<any>;
+    streaming: Dictionary<Dict>;
     sleep: typeof functions.sleep;
     deepExtend: typeof functions.deepExtend;
     deepExtendSafe: typeof functions.deepExtend;
@@ -474,7 +474,11 @@ export declare class BaseExchange {
     orderBook(snapshot?: {}, depth?: number): WsOrderBook;
     indexedOrderBook(snapshot?: {}, depth?: number): IndexedOrderBook;
     countedOrderBook(snapshot?: {}, depth?: number): CountedOrderBook;
-    handleMessage(client: any, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleListMessage(client: Client, message: List): void;
+    handleBinaryMessage(client: Client, message: unknown): void;
+    routeMessage(client: Client, message: Dict | List | string | Uint8Array): void;
     ping(client: Client): Dict | Str;
     client(url: Str): WsClient;
     calculateWsBackoffDelay(url: string): number;
@@ -547,8 +551,8 @@ export declare class BaseExchange {
     lighterGenerateApiKey(signer: any): any[];
     lighterSignChangePubkey(signer: any, request: any): any[];
     setLastRestRequestTimestamp(): void;
-    setLastRequest(request: any): void;
-    describe(): any;
+    setLastRequest(request: Dict): void;
+    describe(): Dict;
     cleanRestData(): void;
     cleanWsData(): void;
     safeBoolN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue: boolean): boolean;
@@ -569,20 +573,20 @@ export declare class BaseExchange {
     safeList2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue?: any[]): any[] | undefined;
     safeList(dictionaryOrList: any, key: NullableIndexType, defaultValue: any[]): any[];
     safeList(dictionaryOrList: any, key: NullableIndexType, defaultValue?: any[]): any[] | undefined;
-    storeByKey(dict: any, key: NullableIndexType, value: any): void;
+    storeByKey(dict: Dict, key: NullableIndexType, value: any): void;
     handleDeltas(bookside: any, deltas: any[]): void;
     handleDelta(bookside: any, delta: any): void;
-    handleBookDeltas(orderbook: WsOrderBook, deltas: any): void;
+    handleBookDeltas(orderbook: WsOrderBook, deltas: any[]): void;
     handleBookDelta(orderbook: WsOrderBook, delta: any): void;
-    handleDeltasWithKeys(bookSide: any, deltas: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): void;
-    getCacheIndex(orderbook: any, deltas: any): number;
+    handleDeltasWithKeys(bookSide: any, deltas: any[], priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): void;
+    getCacheIndex(orderbook: NullableDict, deltas: any[]): number;
     arraysConcat(arraysOfArrays: any[]): any[];
     findTimeframe(timeframe: any, timeframes?: NullableDict): Str;
     checkProxyUrlSettings(url?: Str, method?: Str, headers?: any, body?: any): Str;
     urlEncoderForProxyUrl(targetUrl: string): string;
     checkProxySettings(url?: Str, method?: Str, headers?: any, body?: any): Str[];
     checkWsProxySettings(): Str[];
-    checkConflictingProxies(proxyAgentSet: any, proxyUrlSet: any): void;
+    checkConflictingProxies(proxyAgentSet: Str, proxyUrlSet: Str): void;
     checkAddress(address?: Str, code?: Str, tag?: Str): Str;
     findMessageHashes(client: any, element: string): string[];
     filterByLimit(array: any[], limit?: Int, key?: IndexType, fromStart?: boolean): any[];
@@ -751,7 +755,7 @@ export declare class BaseExchange {
     filterByKey(objects: any, key: IndexType, value?: Str): any;
     filterBySymbol(objects: any, symbol?: Str): any;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
-    safeNetwork(network: any): {
+    safeNetwork(network: Dict): {
         info: any;
         id: Str;
         name: Str;
@@ -775,7 +779,7 @@ export declare class BaseExchange {
     networkCodeToId(networkCode: Str, currencyCode?: Str): Str;
     networkIdToCode(networkId?: Str, currencyCode?: Str): Str;
     handleNetworkCodeAndParams(params: Dict): [Str, Dict];
-    selectNetworkKeyFromNetworks(currencyCode: string, networkCode: Str, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode?: boolean): Str;
+    selectNetworkKeyFromNetworks(currencyCode: string, networkCode: Str, indexedNetworkEntries: Dict, isIndexedByUnifiedNetworkCode?: boolean): Str;
     safeNumber2(dictionary: object | undefined, key1: NullableIndexType, key2: NullableIndexType, d?: Num): number;
     parseOrderBook(orderbook: object | undefined, symbol: Str, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBook;
     parseOrderBookL3(orderbook: object | undefined, symbol: Str, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBookL3;
@@ -793,7 +797,7 @@ export declare class BaseExchange {
     parseTransactions(transactions: List, currency?: Currency, since?: Int, limit?: Int, params?: Dict): Transaction[];
     parseTransfers(transfers: List, currency?: Currency, since?: Int, limit?: Int, params?: Dict): TransferEntry[];
     parseLedger(data: any, currency?: Currency, since?: Int, limit?: Int, params?: Dict): LedgerEntry[];
-    nonce(): number;
+    nonce(): int;
     /**
      * @method
      * @ignore
@@ -805,7 +809,7 @@ export declare class BaseExchange {
      * so it narrows the duplicate-nonce race but does not remove it across instances or processes.
      * @returns {int} a strictly-increasing nonce in the unit returned by nonce ()
      */
-    incrementingNonce(): number;
+    incrementingNonce(): int;
     setHeaders(headers: any): any;
     currencyId(code: Str): Str;
     marketId(symbol: Str): Str;
@@ -840,9 +844,9 @@ export declare class BaseExchange {
     oath(): string;
     fetchBalance(params?: Dict): Promise<Balances>;
     fetchBalanceWs(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     watchBalance(params?: Dict): Promise<Balances>;
-    fetchPartialBalance(part: any, params?: Dict): Promise<Balance>;
+    fetchPartialBalance(part: string, params?: Dict): Promise<Balance>;
     fetchFreeBalance(params?: Dict): Promise<Balance>;
     fetchUsedBalance(params?: Dict): Promise<Balance>;
     fetchTotalBalance(params?: Dict): Promise<Balance>;
@@ -875,11 +879,11 @@ export declare class BaseExchange {
     handleMarketTypeAndParams(methodName: string, market?: Market, params?: Dict, defaultValue?: Str): [string, Dict];
     handleSubTypeAndParams(methodName: string, market?: Market, params?: Dict, defaultValue?: any): [SubType, Dict];
     handleMarginModeAndParams(methodName: string, params?: Dict, defaultValue?: Str): [Str, Dict];
-    throwExactlyMatchedException(exact: any, string: any, message: any): void;
-    throwBroadlyMatchedException(broad: any, string: any, message: any): void;
-    findBroadlyMatchedKey(broad: any, string: Str): Str;
-    handleErrors(statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: Dict): any;
+    throwExactlyMatchedException(exact: Dict, string: Str, message: Str): void;
+    throwBroadlyMatchedException(broad: Dict, string: Str, message: Str): void;
+    findBroadlyMatchedKey(broad: Dict, string: Str): Str;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: Dict): any;
     fetchSpotTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     fetchContractTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     fetchOrderBooks(symbols?: Strings, limit?: Int, params?: Dict): Promise<OrderBooks>;
@@ -927,7 +931,7 @@ export declare class BaseExchange {
      * @param {object} result the code-keyed balance dict being built
      * @param {string} code unified currency code
      * @param {object} account a balance account with string free/used/total/debt
-     * @returns {object} result — callers MUST reassign (`result = this.mergeBalanceAccount (result, ...)`): PHP arrays are passed by value, so the mutation is not visible through the argument
+     * @returns {object} result — callers MUST reassign the return value to their own result: PHP arrays are passed by value, so the mutation is not visible through the argument
      */
     mergeBalanceAccount(result: Dict, code: string, account: Dict): Dict;
     commonCurrencyCode(code: string): string;
@@ -968,11 +972,11 @@ export declare class BaseExchange {
     parseFundingRates(response: any, symbols?: Strings): FundingRates;
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
     parseLongShortRatioHistory(response: any, market?: Market, since?: Int, limit?: Int): LongShortRatio[];
-    handleTriggerPricesAndParams(symbol: any, params: any, omitParams?: boolean): [Str, Str, Str, Dict];
-    handleTriggerDirectionAndParams(params: any, exchangeSpecificKey?: Str, allowEmpty?: Bool): [Str, Dict];
+    handleTriggerPricesAndParams(symbol: any, params: Dict, omitParams?: boolean): [Str, Str, Str, Dict];
+    handleTriggerDirectionAndParams(params: Dict, exchangeSpecificKey?: Str, allowEmpty?: Bool): [Str, Dict];
     handleTriggerAndParams(params: any): [Bool, Dict];
     isTriggerOrder(params: any): [Bool, Dict];
-    isPostOnly(isMarketOrder: boolean, exchangeSpecificParam: any, params?: Dict): boolean;
+    isPostOnly(isMarketOrder: boolean, exchangeSpecificParam: Bool, params?: Dict): boolean;
     handlePostOnly(isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params?: Dict): [boolean, Dict];
     fetchLastPrices(symbols?: Strings, params?: Dict): Promise<LastPrices>;
     fetchTradingFees(params?: Dict): Promise<TradingFees>;
@@ -992,27 +996,27 @@ export declare class BaseExchange {
     checkRequiredMarginArgument(methodName: string, symbol: Str, marginMode: string): void;
     parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: Str): Dict;
     parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
-    depositWithdrawFee(info: any): any;
-    assignDefaultDepositWithdrawFees(fee: any, currency?: Currency): any;
+    depositWithdrawFee(info: NullableDict): Dict;
+    assignDefaultDepositWithdrawFees(fee: Dict, currency?: Currency): Dict;
     parseIncome(info: Dict, market?: Market): object;
     parseIncomes(incomes: any, market?: Market, since?: Int, limit?: Int): FundingHistory[];
     getMarketFromSymbols(symbols: string[]): MarketInterface;
     getMarketFromSymbols(symbols?: Strings): Market;
-    parseWsOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
+    parseWsOHLCVs(ohlcvs: object[], market?: Market, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
     fetchTransactions(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     filterByArrayPositions(objects: any, key: IndexType, values?: any): Position[];
     filterByArrayTickers(objects: any, key: IndexType, values?: any): Dictionary<Ticker>;
     filterByArrayADLRanks(objects: any, key: IndexType, values?: any, indexed?: boolean): ADL[];
-    createOHLCVObject(symbol: string, timeframe: string, data: any): Dictionary<Dictionary<OHLCV[]>>;
+    createOHLCVObject(symbol: string, timeframe: string, data: OHLCV[]): Dictionary<Dictionary<OHLCV[]>>;
     handleMaxEntriesPerRequestAndParams(method: string, maxEntriesPerRequest?: Int, params?: Dict): [Int, any];
     fetchPaginatedCallDynamic(method: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict, maxEntriesPerRequest?: Int, removeRepeated?: boolean): Promise<any[]>;
     safeDeterministicCall(method: string, symbol?: Str, since?: Int, limit?: Int, timeframe?: Str, params?: Dict): Promise<any>;
     fetchPaginatedCallDeterministic(method: string, symbol?: Str, since?: Int, limit?: Int, timeframe?: Str, params?: Dict, maxEntriesPerRequest?: Int): Promise<any[]>;
     fetchPaginatedCallCursor(method: string, symbol?: Str | Strings, since?: Int, limit?: Int, params?: Dict, cursorReceived?: Str, cursorSent?: Str, cursorIncrement?: Int, maxEntriesPerRequest?: Int): Promise<any[]>;
     fetchPaginatedCallIncremental(method: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict, pageKey?: Str, maxEntriesPerRequest?: Int): Promise<any[]>;
-    sortCursorPaginatedResult(result: any): any;
-    removeRepeatedElementsFromArray(input: any, fallbackToTimestamp?: boolean): any;
-    removeRepeatedTradesFromArray(input: any): any;
+    sortCursorPaginatedResult(result: any[]): any[];
+    removeRepeatedElementsFromArray(input: any[], fallbackToTimestamp?: boolean): any[];
+    removeRepeatedTradesFromArray(input: Dict[]): any;
     removeKeysFromDict(dict: Dict, removeKeys: string[]): Dict;
     handleUntilOption(key: string, request: Dict, params: Dict, multiplier?: number): [Dict, Dict];
     safeOpenInterest(interest: Dict, market?: Market): OpenInterest;
@@ -1103,7 +1107,7 @@ export default class Exchange extends BaseExchange {
     fetchTickerWs(symbol: string, params?: Dict): Promise<Ticker>;
     fetchTickersWs(symbols?: Strings, params?: Dict): Promise<Tickers>;
     fetchTradesWs(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    loadOrderBook(client: any, messageHash: string, symbol: string, limit?: Int, params?: {}): Promise<void>;
+    loadOrderBook(client: any, messageHash: string, symbol: string, limit?: Int, params?: Dict): Promise<void>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;

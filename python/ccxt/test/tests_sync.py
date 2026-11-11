@@ -1021,7 +1021,7 @@ class testMainClass:
                 tests['fetchPositions'] = [symbol]  # this test fetches all positions for 1 symbol
                 tests['fetchPosition'] = [symbol]
                 tests['fetchPositionRisk'] = [symbol]
-                tests['setPositionMode'] = [symbol]
+                tests['setPositionMode'] = [False, symbol]
                 tests['setMarginMode'] = [symbol]
                 tests['fetchOpenInterestHistory'] = [symbol]
                 tests['fetchFundingRateHistory'] = [symbol]
@@ -1563,12 +1563,7 @@ class testMainClass:
                 call_exchange_method_dynamically_sync(exchange, method, self.sanitize_data_input(data['input']))
         except Exception as e:
             if not (isinstance(e, InvalidProxySettings)):
-                # if it's not a BadRequest, it means our request was not created succesfully
-                # so we might have an error in the request creation
-                self.request_tests_failed = True
-                creation_error_message = '[' + self.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + exception_message(e)
-                dump('[TEST_FAILURE]' + creation_error_message)
-                return True
+                raise e
             output = exchange.last_request_body
             request_url = exchange.last_request_url
         try:
@@ -1922,7 +1917,8 @@ class testMainClass:
             exchange.walletAddress = str(wallet_address)
         accounts = exchange.safe_list(exchange_data, 'accounts')
         if accounts is not None and accounts is not None:
-            exchange.accounts = accounts
+            # the field is a List<object>: assign the call, not the untyped local
+            exchange.accounts = exchange.safe_list(exchange_data, 'accounts')
         # exchange.options = exchange.deepExtend (exchange.options, globalOptions); # custom options to be used in the tests
         exchange.extend_exchange_options(global_options)
         methods = exchange.safe_value(exchange_data, 'methods', {})
@@ -3090,7 +3086,7 @@ class testMainClass:
         token_expires = exchange.milliseconds() + 100000
         exchange.options['v2TokenExpires'] = token_expires
         exchange.options['portfolio'] = 'random'
-        id = 'nfqkvdjp'
+        id = 'ccxt'
         assert exchange.options['brokerId'] == id, 'id not in options'
         client_order_id = None
         try:
@@ -3102,7 +3098,8 @@ class testMainClass:
             assert len(url_parts) > 1, 'last_request_url has no query string: ' + url
             query = self.urlencoded_to_dict(url_parts[1])
             client_order_id = query['label']
-        assert client_order_id is not None and client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
+        # the label is built as "<brokerId>-<uuid22>", so assert the hyphenated prefix to ensure the uuid suffix was appended after the ccxt broker id
+        assert client_order_id is not None and client_order_id.startswith(id + '-'), 'clientOrderId ' + client_order_id + ' does not start with the brokerId prefix ' + id + '-'
         if not is_sync():
             close(exchange)
         return True

@@ -51,7 +51,7 @@ IDENT = r'@?\w+'
 ASSIGN = r'^(?:this\.)?(?P<f>' + IDENT + r') = '
 
 SCALAR = re.compile(ASSIGN + r'Exchange\.Safe(?P<kind>String|Float|Integer)\(\w+, "(?P<k>[^"]+)"\);$')
-BOOLF = re.compile(ASSIGN + r'Exchange\.SafeBool\(\w+, "(?P<k>[^"]+)"(?:, (?:true|false))?\);$')
+BOOLF = re.compile(ASSIGN + r'Exchange\.SafeBool\(\w+, "(?P<k>[^"]+)"(?:, (?:true|false))?\)(?: == true)?;$')
 BOOLV = re.compile(ASSIGN + r'Exchange\.SafeValue\(\w+, "(?P<k>[^"]+)"\) != null \? \(bool\)Exchange\.SafeValue\(\w+, "(?P=k)"\) : null;$')
 BOOLC = re.compile(ASSIGN + r'(?P<v>\w+)\.ContainsKey\("(?P<k>[^"]+)"\) && (?P=v)\["(?P=k)"\] != null \? \(bool\)(?P=v)\["(?P=k)"\] : null;$')
 INFO = re.compile(ASSIGN + r'Helper\.GetInfo\(\w+\);$')

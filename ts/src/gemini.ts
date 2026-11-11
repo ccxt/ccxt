@@ -16,7 +16,7 @@ import type { OpenInterest } from './base/types.js';
  * @augments Exchange
  */
 export default class gemini extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'gemini',
             'name': 'Gemini',
@@ -201,7 +201,7 @@ export default class gemini extends Exchange {
                         'v1/clearing/status': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/clearing/cancel': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/clearing/confirm': { 'cost': 1 } as Endpoint<Dict>,
-                        'v1/balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/balances': { 'cost': 1 } as Endpoint<List>,
                         'v1/balances/staking': { 'cost': 1 } as Endpoint<List>,
                         'v1/notionalbalances/{currency}': { 'cost': 1 } as Endpoint<List>,
                         'v1/transfers': { 'cost': 1 } as Endpoint<List>,
@@ -724,7 +724,7 @@ export default class gemini extends Exchange {
         const result: List = [];
         const options = this.safeDict (this.options, 'fetchMarketsFromAPI', {});
         const brokenPairs = this.safeList (this.options, 'brokenPairs', []);
-        const marketIds: List = [];
+        const marketIds: string[] = [];
         let allMarketIds: string[] = [];
         if (Array.isArray (marketIdsRaw)) {
             allMarketIds = marketIdsRaw;
@@ -892,8 +892,8 @@ export default class gemini extends Exchange {
         }
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
-        if (settleId !== undefined) {
-            symbol = symbol + ':' + settle;
+        if (settle !== undefined) {
+            symbol = base + '/' + quote + ':' + settle;
             swap = true;
             contractSize = tickSize; // always same
             linear = true; // always linear
@@ -1035,13 +1035,13 @@ export default class gemini extends Exchange {
         const tickerPromiseB = this.fetchTickerV2 (symbol, params);
         const [ tickerA, tickerB ] = await Promise.all ([ tickerPromiseA, tickerPromiseB ]);
         return this.deepExtend (tickerA, {
-            'open': tickerB['open'],
-            'high': tickerB['high'],
-            'low': tickerB['low'],
-            'change': tickerB['change'],
-            'percentage': tickerB['percentage'],
-            'average': tickerB['average'],
-            'info': tickerB['info'],
+            'open': this.safeString (tickerB, 'open'),
+            'high': this.safeString (tickerB, 'high'),
+            'low': this.safeString (tickerB, 'low'),
+            'change': this.safeString (tickerB, 'change'),
+            'percentage': this.safeString (tickerB, 'percentage'),
+            'average': this.safeString (tickerB, 'average'),
+            'info': this.safeValue (tickerB, 'info'),
         }) as Ticker;
     }
 
@@ -1302,7 +1302,7 @@ export default class gemini extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: Dict[]): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict (response, i);
@@ -1394,7 +1394,7 @@ export default class gemini extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.privatePostV1Balances (params);
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     override parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1694,7 +1694,10 @@ export default class gemini extends Exchange {
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stop_price', 'stopPrice' ]);
         // timeInForce and postOnly are consumed only by non-trigger orders
         const omitKeys: string[] = [ 'clientOrderId', 'client_order_id', 'type', 'triggerPrice', 'stop_price', 'stopPrice' ];
-        const optionKeys: string[] = (triggerPrice === undefined) ? [ 'timeInForce', 'postOnly' ] : [];
+        let optionKeys: string[] = [];
+        if (triggerPrice === undefined) {
+            optionKeys = [ 'timeInForce', 'postOnly' ];
+        }
         const paramsOmitted: Dict = this.omit (params, this.arrayConcat (omitKeys, optionKeys));
         if (typeValue === 'stopLimit') {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + typeValue + ' orders');
@@ -1883,7 +1886,7 @@ export default class gemini extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override nonce (): number {
+    override nonce (): int {
         const nonceMethod = this.safeString (this.options, 'nonce', 'milliseconds');
         if (nonceMethod === 'milliseconds') {
             return this.milliseconds ();
@@ -2059,12 +2062,12 @@ export default class gemini extends Exchange {
         let headersSigned: NullableDict = undefined;
         if (apiName === 'private') {
             this.checkRequiredCredentials ();
-            const apiKey = this.apiKey;
-            if (apiKey.indexOf ('account') < 0) {
+            if (this.apiKey.indexOf ('account') < 0) {
                 throw new AuthenticationError (this.id + ' sign() requires an account-key, master-keys are not-supported');
             }
             // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
-            const nonce = this.incrementingNonce ().toString ();
+            const nonceValue = this.incrementingNonce ();
+            const nonce = this.numberToString (nonceValue);
             const finalUrl = url;
             const request = this.extend ({
                 'request': finalUrl,
@@ -2080,7 +2083,7 @@ export default class gemini extends Exchange {
                 'X-GEMINI-SIGNATURE': signature,
             };
         } else {
-            if (Object.keys (query).length > 0) {
+            if (!(this.isEmpty (query))) {
                 url += '?' + this.urlencode (query);
             }
         }
@@ -2089,15 +2092,14 @@ export default class gemini extends Exchange {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         const fullUrl = apiUrl + url;
-        const headersResolved = (apiName === 'private') ? headersSigned : undefined;
         let bodyResolved = undefined;
         if ((method === 'POST') || (method === 'DELETE')) {
             bodyResolved = this.json (query);
         }
-        return { 'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
+        return { 'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersSigned };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             if (typeof body === 'string') {
                 const feedback = this.id + ' ' + body;

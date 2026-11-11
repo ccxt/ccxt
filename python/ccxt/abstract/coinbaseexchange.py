@@ -20,7 +20,7 @@ class ImplicitAPI:
     public_get_wrapped_assets_wrapped_asset_id_conversion_rate = publicGetWrappedAssetsWrappedAssetIdConversionRate = Entry[_Dict]('wrapped-assets/{wrapped_asset_id}/conversion-rate', ['public'], 'GET', {'cost': 1})
     private_get_address_book = privateGetAddressBook = Entry[_List]('address-book', ['private'], 'GET', {'cost': 1})
     private_get_address_book_counterparty = privateGetAddressBookCounterparty = Entry[_List]('address-book/counterparty', ['private'], 'GET', {'cost': 1})
-    private_get_accounts = privateGetAccounts = Entry[_Dict]('accounts', ['private'], 'GET', {'cost': 1})
+    private_get_accounts = privateGetAccounts = Entry[_List]('accounts', ['private'], 'GET', {'cost': 1})
     private_get_accounts_id = privateGetAccountsId = Entry[_Dict]('accounts/{id}', ['private'], 'GET', {'cost': 1})
     private_get_accounts_id_holds = privateGetAccountsIdHolds = Entry[_List]('accounts/{id}/holds', ['private'], 'GET', {'cost': 1})
     private_get_accounts_id_ledger = privateGetAccountsIdLedger = Entry[_List]('accounts/{id}/ledger', ['private'], 'GET', {'cost': 1})

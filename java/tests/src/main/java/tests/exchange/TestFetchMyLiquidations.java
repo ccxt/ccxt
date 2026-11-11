@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchMyLiquidations extends BaseTest {
-    public CompletableFuture<Object> testFetchMyLiquidations(BaseExchange exchange, Object skippedProperties, Object code)
+    public CompletableFuture<Object> testFetchMyLiquidations(BaseExchange exchange, Object skippedProperties, String code)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -25,14 +25,14 @@ public class TestFetchMyLiquidations extends BaseTest {
         {
             return true;
         }
-        Object items = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMyLiquidations", new Object[]{Helpers.toStringArg(code), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+        Object items = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMyLiquidations", new Object[]{code, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
         Assert((items instanceof List), ((((((exchange.id + " ") + method) + " ") + code) + " must return an array. ") + exchange.json(items)));
         // const now = exchange.milliseconds ();
         for (var i = 0; i < ((List<?>)items).size(); i++)
         {
-            TestLiquidation.testLiquidation(exchange, skippedProperties, method, (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)), code);
+            TestLiquidation.testLiquidation(exchange, skippedProperties, method, (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)), (String) (code));
         }
-        TestSharedMethods.AssertTimestampOrder(exchange, method, code, items);
+        TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (code), items);
         return true;
         });
 

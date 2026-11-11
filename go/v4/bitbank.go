@@ -15,7 +15,7 @@ func newBitbank() *Bitbank {
 	return p
 }
 
-func (this *Bitbank) Describe() any {
+func (this *Bitbank) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "bitbank",
 		"name":      "bitbank",
@@ -384,7 +384,7 @@ func (this *Bitbank) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(pairs))}
 	return nil
 }
-func (this *Bitbank) ParseMarket(entry any) any {
+func (this *Bitbank) ParseMarket(entry any) map[string]any {
 	var id *string = this.SafeString(entry, "name")
 	var baseId *string = this.SafeString(entry, "base_asset")
 	var quoteId *string = this.SafeString(entry, "quote_asset")
@@ -722,23 +722,20 @@ func (this *Bitbank) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	var pairs []any = SafeListTyped(data, "pairs")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(pairs); i++ {
-		var pair any = func() any {
-			if i >= 0 && i < len(pairs) {
-				return DerefScalar(pairs[i])
-			}
-			return nil
-		}()
+		var pair any = pairs[i]
 		var marketId *string = this.SafeString(pair, "name")
 		var market map[string]any = this.SafeMarket(marketId)
-		var symbol *string = SafeStringPtr(market["symbol"])
-		AddElementToObject(result, symbol, map[string]any{
-			"info":       pair,
-			"symbol":     symbol,
-			"maker":      this.SafeNumber(pair, "maker_fee_rate_quote"),
-			"taker":      this.SafeNumber(pair, "taker_fee_rate_quote"),
-			"percentage": true,
-			"tierBased":  false,
-		})
+		var symbol *string = this.SafeString(market, "symbol", "")
+		if symbol != nil {
+			result[*symbol] = map[string]any{
+				"info":       pair,
+				"symbol":     symbol,
+				"maker":      this.SafeNumber(pair, "maker_fee_rate_quote"),
+				"taker":      this.SafeNumber(pair, "taker_fee_rate_quote"),
+				"percentage": true,
+				"tierBased":  false,
+			}
+		}
 	}
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
@@ -1045,7 +1042,7 @@ func (this *Bitbank) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
@@ -1091,7 +1088,7 @@ func (this *Bitbank) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 	//
 	//    {
 	//        "success": 1,
@@ -1131,12 +1128,12 @@ func (this *Bitbank) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitbank) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bitbank) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitbank) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bitbank) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1379,21 +1376,11 @@ func (this *Bitbank) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagAndParams []any = this.HandleParamString(params, "tag")
-	var tagWithdrawTag *string = SafeStringPtr(func() any {
-		if 0 >= 0 && 0 < len(tagAndParams) {
-			return DerefScalar(tagAndParams[0])
-		}
-		return nil
-	}())
-	var paramsWithdrawTag any = func() any {
-		if 1 >= 0 && 1 < len(tagAndParams) {
-			return DerefScalar(tagAndParams[1])
-		}
-		return nil
-	}()
+	tagAndParamsSlot0, tagAndParamsSlot1 := this.HandleParamString(params, "tag")
+	var tagWithdrawTag *string = tagAndParamsSlot0
+	paramsWithdrawTag := tagAndParamsSlot1
 	this.CheckAddress(address, code, tagWithdrawTag)
-	if !(InOp(paramsWithdrawTag, "uuid")) {
+	if _, ok := params["uuid"]; !ok {
 		panic(ExchangeError(this.Id + " uuid is required for withdrawal"))
 	}
 	if this.Markets == nil {
@@ -1413,7 +1400,7 @@ func (this *Bitbank) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "success": 1,
@@ -1480,18 +1467,18 @@ func (this *Bitbank) ParseTransaction(transaction any, optionalArgs ...any) Tran
 		"info":        transaction,
 	})
 }
-func (this *Bitbank) Nonce() any {
+func (this *Bitbank) Nonce() int64 {
 	return this.Milliseconds()
 }
-func (this *Bitbank) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+func (this *Bitbank) Sign(path string, optionalArgs ...any) map[string]any {
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
-	var query any = this.Omit(params, this.ExtractParams(path))
+	var apiName string = api[0]
+	var query map[string]any = this.Extend(map[string]any{}, this.Omit(params, this.ExtractParams(path)))
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -1499,9 +1486,9 @@ func (this *Bitbank) Sign(path string, optionalArgs ...any) any {
 	var url string = this.ImplodeHostname(apiUrl) + "/"
 	var requestBody *string = nil
 	var requestHeaders any = nil
-	if (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "markets") {
+	if (apiName == "public") || (apiName == "markets") {
 		url += this.ImplodeParams(path, params)
-		if len(ObjectKeys(query)) > 0 {
+		if len(query) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
 	} else {
@@ -1510,11 +1497,11 @@ func (this *Bitbank) Sign(path string, optionalArgs ...any) any {
 		// 'timeWindow' (default): request time + validity window, stateless and safe for concurrent use of one key
 		// 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
 		// since bitbank offers no server time endpoint to compensate against
-		var authMethod *string = this.SafeString(this.Options, "authMethod", "timeWindow")
-		var isTimeWindow bool = (authMethod != nil && *authMethod == "timeWindow")
+		var authMethod string = *this.SafeString(this.Options, "authMethod", "timeWindow")
+		var isTimeWindow bool = (authMethod == "timeWindow")
 		var requestTime string = strconv.FormatInt(this.Milliseconds(), 10)
 		var timeWindow *string = this.SafeString(this.Options, "timeWindow", "5000")
-		var nonce string = ToString(this.IncrementingNonce())
+		var nonce string = strconv.FormatInt(this.IncrementingNonce(), 10)
 		var auth string = nonce
 		if isTimeWindow {
 			auth = requestTime + *timeWindow
@@ -1526,7 +1513,7 @@ func (this *Bitbank) Sign(path string, optionalArgs ...any) any {
 			auth += jsonBody
 		} else {
 			auth += "/" + this.Version + "/" + path
-			if len(ObjectKeys(query)) > 0 {
+			if len(query) > 0 {
 				var queryString string = this.Urlencode(query)
 				url += "?" + queryString
 				auth += "?" + queryString
@@ -1538,10 +1525,14 @@ func (this *Bitbank) Sign(path string, optionalArgs ...any) any {
 			"ACCESS-SIGNATURE": this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256),
 		}
 		if isTimeWindow {
-			AddElementToObject(requestHeaders, "ACCESS-REQUEST-TIME", requestTime)
-			AddElementToObject(requestHeaders, "ACCESS-TIME-WINDOW", timeWindow)
+			requestHeaders = this.Extend(requestHeaders, map[string]any{
+				"ACCESS-REQUEST-TIME": requestTime,
+				"ACCESS-TIME-WINDOW":  timeWindow,
+			})
 		} else {
-			AddElementToObject(requestHeaders, "ACCESS-NONCE", nonce)
+			requestHeaders = this.Extend(requestHeaders, map[string]any{
+				"ACCESS-NONCE": nonce,
+			})
 		}
 	}
 	var bodyResolved *string = requestBody
@@ -1553,7 +1544,7 @@ func (this *Bitbank) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResolved,
 	}
 }
-func (this *Bitbank) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bitbank) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -1622,9 +1613,9 @@ func (this *Bitbank) HandleErrors(httpCode any, reason any, url any, method any,
 			"70009": "We are currently temporarily restricting orders to be carried out. Please use the limit order.",
 			"70010": "We are temporarily raising the minimum order quantity as the system load is now rising.",
 		}
-		var code *string = this.SafeString(data, "code")
-		var message *string = this.SafeString(errorMessages, code, "Error")
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, message)
+		var codeError *string = this.SafeString(data, "code")
+		var message *string = this.SafeString(errorMessages, codeError, "Error")
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, message)
 		panic(ExchangeError(this.Id + " " + this.Json(response)))
 	}
 	return nil
@@ -1639,7 +1630,7 @@ func NewBitbank(userConfig map[string]any) *Bitbank {
 func (this *Bitbank) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods
