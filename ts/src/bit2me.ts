@@ -3,7 +3,7 @@
 
 import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bit2me.js';
-import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance } from './base/errors.js';
+import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Endpoint, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
@@ -166,7 +166,7 @@ export default class bit2me extends Exchange {
                         'v1/trading/movement': { 'cost': 1 } as Endpoint<List>,
                     },
                     'post': {
-                        'v1/trading/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/trading/order': { 'cost': 1 } as Endpoint<Dict | List>, // a list for oco orders
                         'v1/trading/wallet/deposit': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/trading/wallet/withdraw': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/signin/apikey': { 'cost': 1 } as Endpoint<Dict>,
@@ -197,8 +197,8 @@ export default class bit2me extends Exchange {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': undefined,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': false,
@@ -351,12 +351,14 @@ export default class bit2me extends Exchange {
                     'MISSING_FROM_POCKET_ID': BadRequest,
                     'NOT_ENOUGH_BALANCE': InsufficientFunds,
                     'NOT_ENOUGH_LIQUIDITY': InvalidOrder,
+                    'OCO_SIDE_NOT_ALLOWED': InvalidOrder, // {"statusCode":412,"message":"Only sell OCO orders are allowed","errorPayload":{"code":"OCO_SIDE_NOT_ALLOWED","side":"buy"}}
                     'ONLY_LIMIT_ORDERS_ALLOWED': InvalidOrder,
                     'ORDER_AMOUNT_GREATER_MARKET_MAX': InvalidOrder,
                     'ORDER_AMOUNT_GREATER_TOTAL_AMOUNT_IN_PURCHASE': InvalidOrder,
                     'ORDER_AMOUNT_GREATER_TOTAL_AMOUNT_IN_SALE': InvalidOrder,
                     'ORDER_AMOUNT_LOWER_EQUAL_ZERO': InvalidOrder,
                     'ORDER_AMOUNT_LOWER_MARKET_MIN': InvalidOrder,
+                    'ORDER_NOT_FOUND': OrderNotFound, // {"statusCode":404,"error":"Not Found","message":"The order with ID ... was not found","errorPayload":{"code":"ORDER_NOT_FOUND"}}
                     'ORDER_PRICE_LOWER_EQUAL_ZERO': InvalidOrder,
                     'ORDER_SIZE_LOWER_MARKET_MIN': InvalidOrder,
                     'ORDER_STOP_PRICE_LOWER_EQUAL_ZERO': InvalidOrder,
@@ -374,6 +376,8 @@ export default class bit2me extends Exchange {
                 },
                 'broad': {
                     'Market not found': BadSymbol, // {"statusCode":404,"error":"Not Found","message":"Market not found for symbol FOO/BAR"}
+                    'was not found': OrderNotFound, // {"statusCode":404,"error":"Not Found","message":"The ID ... was not found","errorPayload":null}
+                    'balance of the pocket is lower': InsufficientFunds, // {"statusCode":412,"error":"Precondition Failed","message":"The balance of the pocket is lower than the deposit amount"}
                     'invalid credentials': AuthenticationError, // {"code":403,"description":"invalid credentials"}
                     'Validation errors': BadRequest, // {"message":"Validation errors","errors":[...]}
                     'Invalid parameter': BadRequest,
@@ -1016,17 +1020,34 @@ export default class bit2me extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, required for limit orders, for market buy orders it is used to compute the cost to spend (amount * price)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a stop-limit order is activated, requires a limit price
+     * @param {float} [params.stopLossPrice] the trigger price of a stop loss, placed as a stop-limit order at the limit price, or as the stop loss leg of an OCO when takeProfitPrice is also set
+     * @param {float} [params.takeProfitPrice] the trigger price of a take profit, placed as a stop-limit order at the limit price, or as the take profit leg of an OCO when stopLossPrice is also set
+     * @param {float} [params.stopLimitPrice] OCO only, the limit price of the stop loss leg, defaults to the price argument and then to stopLossPrice
      * @param {float} [params.cost] for market orders only, the amount to trade in units of the quote currency, overrides amount
      * @param {string} [params.timeInForce] 'GTC' (default) or 'FOK' (limit orders only), IOC is not available on bit2me
      * @param {boolean} [params.postOnly] true to place a post-only limit order
      * @param {string} [params.clientOrderId] a unique identifier for the order, up to 48 characters
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure), for an OCO the take profit leg is returned and both legs are available in info, cancelling one leg does not cancel the other
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         const response = await this.privatePostV1TradingOrder (request);
+        //
+        // oco, the take profit limit leg first and the stop loss stop-limit leg second, linked by orderGroupId
+        //
+        //     [
+        //         { "id": "59b27fb6-...", "orderType": "limit", "status": "open", "price": 95928.16, "stopPrice": 0, "orderGroupId": "9a28690c-...", ... },
+        //         { "id": "514bf92e-...", "orderType": "stop-limit", "status": "inactive", "price": 50892.91, "stopPrice": 51630.49, "orderGroupId": "9a28690c-...", ... }
+        //     ]
+        //
+        if (Array.isArray (response)) {
+            const takeProfitLeg = this.safeDict (response, 0, {});
+            const ocoOrder = this.parseOrder (takeProfitLeg, market);
+            ocoOrder['info'] = response;
+            return ocoOrder;
+        }
         //
         //     {
         //         "cancelReason": null,
@@ -1070,10 +1091,15 @@ export default class bit2me extends Exchange {
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
         const isMarketOrder = (type === 'market');
-        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const stopLimitPrice = this.safeString (params, 'stopLimitPrice');
+        const isOco = (stopLossPrice !== undefined) && (takeProfitPrice !== undefined);
+        // a lone stop loss or take profit is a stop-limit order, the exchange triggers it in either direction
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         const cost = this.safeString (params, 'cost');
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        let query = this.omit (params, [ 'triggerPrice', 'stopPrice', 'cost', 'clientOrderId' ]);
+        let query = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLimitPrice', 'cost', 'clientOrderId' ]);
         let postOnly = false;
         [ postOnly, query ] = this.handlePostOnly (isMarketOrder, false, query);
         const timeInForce = this.safeStringUpper (query, 'timeInForce');
@@ -1083,7 +1109,23 @@ export default class bit2me extends Exchange {
             'side': side,
             'orderType': type,
         };
-        if (isMarketOrder) {
+        if (isOco) {
+            if (side !== 'sell') {
+                throw new InvalidOrder (this.id + ' createOrder() only supports OCO orders on the sell side');
+            }
+            if (isMarketOrder) {
+                throw new InvalidOrder (this.id + ' createOrder() OCO legs are limit orders, use the limit type');
+            }
+            request['orderType'] = 'oco';
+            request['amount'] = this.amountToPrecision (symbol, amount);
+            request['takeProfitPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+            request['stopPrice'] = this.priceToPrecision (symbol, stopLossPrice);
+            let stopLossLimit = stopLimitPrice;
+            if (stopLossLimit === undefined) {
+                stopLossLimit = (price !== undefined) ? this.numberToString (price) : stopLossPrice;
+            }
+            request['stopLimitPrice'] = this.priceToPrecision (symbol, stopLossLimit);
+        } else if (isMarketOrder) {
             if (triggerPrice !== undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support stop-market orders, use a limit price to place a stop-limit order');
             }
@@ -1744,6 +1786,11 @@ export default class bit2me extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    override nonce (): int {
+        // the nonce must be a unix timestamp in milliseconds, within 5 seconds of the server clock
+        return this.milliseconds ();
+    }
+
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         let requestHeaders: NullableDict = undefined;
@@ -1780,6 +1827,9 @@ export default class bit2me extends Exchange {
             }
         }
         const apiUrl = this.safeString (this.urls['api'], apiName);
+        if (apiUrl === undefined) {
+            throw new NotSupported (this.id + ' does not have a URL for ' + apiName + ' endpoints');
+        }
         const fullUrl = apiUrl + url;
         return { 'url': fullUrl, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
