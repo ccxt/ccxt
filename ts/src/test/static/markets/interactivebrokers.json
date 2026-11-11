@@ -436,8 +436,7 @@
         },
         "tierBased": false,
         "percentage": true,
-        "feeSide": "get",
-        "underlyingSymbol": "ETH/USD"
+        "feeSide": "get"
     },
     "BTC.NANO.COINDERIV/USD:USD": {
         "id": "805366677",
@@ -547,7 +546,6 @@
         },
         "tierBased": false,
         "percentage": true,
-        "feeSide": "get",
-        "underlyingSymbol": "BTC/USD"
+        "feeSide": "get"
     }
 }
