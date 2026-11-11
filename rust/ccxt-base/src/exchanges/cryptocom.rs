@@ -2078,8 +2078,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Value = self.safe_list_k(&result, "data", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&result, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2243,8 +2243,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Value = self.safe_list_k(&result, "data", &[Value::from(vec![])]);
-        let mut orderBook: Value = self.safe_dict(data, Value::Int(0), &[]);
+        let mut data: crate::value::List = self.safe_list_k(&result, "data", &[Value::from(vec![])]).into_list();
+        let mut orderBook: Value = self.safe_dict(&data, Value::Int(0), &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(orderBook.clone(), "t", &[]).as_i64();
         return self.parse_order_book(orderBook, symbol, &[Value::from(timestamp)]);
         Value::Null
@@ -2256,8 +2256,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut data: Value = self.safe_list_k(&responseResult, "data", &[Value::from(vec![])]);
-        let mut positionBalances: crate::value::List = self.safe_list(self.safe_dict(data, Value::Int(0), &[]), Value::Str("position_balances".into()), &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k(&responseResult, "data", &[Value::from(vec![])]).into_list();
+        let mut positionBalances: crate::value::List = self.safe_list(self.safe_dict(&data, Value::Int(0), &[]), Value::Str("position_balances".into()), &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -2267,7 +2267,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_589: bool = true;
             while { if !__for_first_589 { i += 1; } __for_first_589 = false; i < (positionBalances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(positionBalances.clone()), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&positionBalances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "instrument_name", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3260,8 +3260,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Value = self.safe_list_k(&result, "data", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market, since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&result, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3420,7 +3420,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_593: bool = true;
             while { if !__for_first_593 { i += 1; } __for_first_593 = false; (i as f64) < addressesLength } {
-            let mut value: Value = self.safe_dict(Value::Arr(addresses.clone()), Value::Int(i), &[]);
+            let mut value: Value = self.safe_dict(&addresses, Value::Int(i), &[]);
             let mut addressString: Option<String> = self.safe_string_k(value.clone(), "address", &[]).as_str().map(str::to_owned);
             let mut currencyId: Option<String> = self.safe_string_k(value.clone(), "currency", &[]).as_str().map(str::to_owned);
             let mut responseCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -3561,8 +3561,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut depositList: Value = self.safe_list_k(&data, "deposit_list", &[Value::from(vec![])]);
-        return self.parse_transactions(depositList, &[currency, since, limit]);
+        let mut depositList: crate::value::List = self.safe_list_k(&data, "deposit_list", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&depositList, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3646,8 +3646,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut withdrawalList: Value = self.safe_list_k(&data, "withdrawal_list", &[Value::from(vec![])]);
-        return self.parse_transactions(withdrawalList, &[currency, since, limit]);
+        let mut withdrawalList: crate::value::List = self.safe_list_k(&data, "withdrawal_list", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&withdrawalList, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -4641,8 +4641,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Value = self.safe_list_k(&result, "data", &[Value::from(vec![])]);
-        let mut entry: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&result, "data", &[Value::from(vec![])]).into_list();
+        let mut entry: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4855,8 +4855,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Value = self.safe_list_k(&result, "data", &[Value::from(vec![])]);
-        return self.parse_position(self.safe_dict(data, Value::Int(0), &[]), &[(market).raw.clone()]);
+        let mut data: crate::value::List = self.safe_list_k(&result, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_position(self.safe_dict(&data, Value::Int(0), &[]), &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }

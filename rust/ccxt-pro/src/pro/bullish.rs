@@ -458,11 +458,11 @@ impl Bullish {
             m
         });
         let mut trades: Value = self.watch_public(Value::from(url), Value::from(messageHash), &[Value::Map(request), params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbol, limit);
+            limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -501,8 +501,8 @@ impl Bullish {
             return;
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-        let mut rawTrades: Value = self.safe_list_k(&data, "trades", &[Value::from(vec![])]);
-        let mut trades: Value = self.parse_trades(rawTrades, &[market.clone()]);
+        let mut rawTrades: crate::value::List = self.safe_list_k(&data, "trades", &[Value::from(vec![])]).into_list();
+        let mut trades: Value = self.parse_trades(&rawTrades, &[market.clone()]);
         if !(matches!((&self.trades, symbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut tradesArrayCache = ArrayCache::new(limit);
@@ -792,11 +792,11 @@ impl Bullish {
             request.insert("tradingAccountId".into(), tradingAccountId.map(Value::from).unwrap_or(Value::Null));
         }
         let mut orders: Value = self.watch_private(Value::from(messageHash), Value::from(subscribeHash), &[Value::Map(request), paramsOmitted]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
+            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -943,11 +943,11 @@ impl Bullish {
             request.insert("tradingAccountId".into(), tradingAccountId.map(Value::from).unwrap_or(Value::Null));
         }
         let mut trades: Value = self.watch_private(Value::from(messageHash), Value::from(subscribeHash), &[Value::Map(request), paramsOmitted]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved, limit);
+            limitResolved = trades.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

@@ -2167,12 +2167,12 @@ impl Bitstamp {
 }));
         // this method is now redundant
         // currencies are now fetched before markets
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut timestamp: Value = self.safe_integer_k(options.clone(), "timestamp", &[]);
-        let mut expires: Value = self.safe_integer_k(options.clone(), "expires", &[Value::Int(1000)]);
+})]).into_dict();
+        let mut timestamp: Value = self.safe_integer_k(&options, "timestamp", &[]);
+        let mut expires: Value = self.safe_integer_k(&options, "expires", &[Value::Int(1000)]);
         let mut now: Value = self.milliseconds();
         if (timestamp == Value::Null) || ((expires != Value::Null) && (((match (&(now), &(timestamp)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
             _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > expires.as_f64().unwrap_or(f64::NAN))) {
@@ -2249,7 +2249,7 @@ impl Bitstamp {
                         let mut i: i64 = 0;
             let mut __for_first_430: bool = true;
             while { if !__for_first_430 { i += 1; } __for_first_430 = false; i < (arr.len() as i64) } {
-            let mut market: Value = self.safe_dict(Value::Arr(arr.clone()), Value::Int(i), &[Value::Map({
+            let mut market: Value = self.safe_dict(&arr, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2861,7 +2861,7 @@ impl Bitstamp {
                         let mut i: i64 = 0;
             let mut __for_first_433: bool = true;
             while { if !__for_first_433 { i += 1; } __for_first_433 = false; i < (responseEntries.len() as i64) } {
-            let mut currencyBalance: crate::value::Dict = self.safe_dict(Value::Arr(responseEntries.clone()), Value::Int(i), &[]).into_dict();
+            let mut currencyBalance: crate::value::Dict = self.safe_dict(&responseEntries, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&currencyBalance, "currency", &[]).as_str().map(str::to_owned);
             let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3150,7 +3150,7 @@ impl Bitstamp {
                         let mut j: i64 = 0;
             let mut __for_first_436: bool = true;
             while { if !__for_first_436 { j += 1; } __for_first_436 = false; j < (feeEntries.len() as i64) } {
-            let mut networkEntry: crate::value::Dict = self.safe_dict(Value::Arr(feeEntries.clone()), Value::Int(j), &[]).into_dict();
+            let mut networkEntry: crate::value::Dict = self.safe_dict(&feeEntries, Value::Int(j), &[]).into_dict();
             let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(&networkEntry, "network", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut withdrawFee: Value = self.safe_number_k(&networkEntry, "fee", &[]);
             result.insert("withdraw".into(), Value::Map({
@@ -3623,10 +3623,10 @@ impl Bitstamp {
             request.insert("since_timestamp".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.round())).unwrap_or(Value::Null));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("until_timestamp".into()), Value::Map(request), &paramsPaginate, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone());
         }
         let __ws_arg_19 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.public_get_funding_rate_history_pair(&[__ws_arg_19]).await.into_dict();

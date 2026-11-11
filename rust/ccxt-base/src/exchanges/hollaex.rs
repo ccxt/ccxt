@@ -695,18 +695,18 @@ impl Hollaex {
         //         "status": true
         //     }
         //
-        let mut pairs: Value = self.safe_dict_k(&response, "pairs", &[Value::Map({
+        let mut pairs: crate::value::Dict = self.safe_dict_k(&response, "pairs", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut keys: Vec<Value> = Value::Array(pairs.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut keys: Vec<Value> = Value::Array(pairs.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_759: bool = true;
             while { if !__for_first_759 { i += 1; } __for_first_759 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: Value = self.safe_dict(pairs.clone(), key, &[]);
+            let mut market: Value = self.safe_dict(&pairs, key, &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "pair_base", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "pair_2", &[]);
             let mut baseCode: Value = self.common_currency_code((if let Some(__s) = baseId.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
@@ -879,27 +879,27 @@ impl Hollaex {
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         let mut id: Option<String> = self.safe_string_k(rawCurrency.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-        let mut withdrawalLimits: Value = self.safe_list_k(rawCurrency.clone(), "withdrawal_limits", &[Value::from(vec![])]);
+        let mut withdrawalLimits: crate::value::List = self.safe_list_k(rawCurrency.clone(), "withdrawal_limits", &[Value::from(vec![])]).into_list();
         let mut rawType: Option<String> = self.safe_string_k(rawCurrency.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut type_var: String = "other".to_string();
         if (rawType.as_deref() == Some("blockchain")) {
             type_var = "crypto".to_string();
         }
-        let mut rawNetworks: Value = self.safe_dict_k(rawCurrency.clone(), "withdrawal_fees", &[Value::Map({
+        let mut rawNetworks: crate::value::Dict = self.safe_dict_k(rawCurrency.clone(), "withdrawal_fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut networkIds: Vec<Value> = Value::Array(rawNetworks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut networkIds: Vec<Value> = Value::Array(rawNetworks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
             let mut __for_first_760: bool = true;
             while { if !__for_first_760 { j += 1; } __for_first_760 = false; j < (networkIds.len() as i64) } {
             let mut networkId: Value = networkIds.get(j as usize).cloned().unwrap_or(Value::Null);
-            let mut networkEntry: Value = self.safe_dict(rawNetworks.clone(), networkId.clone(), &[]);
+            let mut networkEntry: Value = self.safe_dict(&rawNetworks, networkId.clone(), &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
@@ -950,7 +950,7 @@ impl Hollaex {
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
-        m.insert("max".to_string(), self.safe_number(withdrawalLimits, Value::Int(0), &[]));
+        m.insert("max".to_string(), self.safe_number(&withdrawalLimits, Value::Int(0), &[]));
     m
 }));
     m
@@ -1276,8 +1276,8 @@ impl Hollaex {
         //         ]
         //     }
         //
-        let mut trades: Value = self.safe_list(response, Value::from((market).id.clone()), &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        let mut trades: crate::value::List = self.safe_list(response, Value::from((market).id.clone()), &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2115,8 +2115,8 @@ impl Hollaex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[market, since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&data, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2307,8 +2307,8 @@ impl Hollaex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(data, &[currency, since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&data, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2367,8 +2367,8 @@ impl Hollaex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut transaction: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut transaction: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2444,8 +2444,8 @@ impl Hollaex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(data, &[currency, since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&data, &[currency, since, limit]);
         Value::Null
         }).await?))
     }

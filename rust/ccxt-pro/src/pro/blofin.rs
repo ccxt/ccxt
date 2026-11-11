@@ -434,12 +434,12 @@ impl Blofin {
         }
         let mut trades: Value = self.watch_multiple_wrapper(Value::Bool(true), Value::Str("trades".into()), Value::Str("watchTradesForSymbols".into()), &[symbols, params]).await;
         let mut firstMarket: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
-        let mut firstSymbol: Option<String> = self.safe_string_k_opt(&firstMarket, "symbol", &[]);
-        let mut limitResolved: Value = limit.clone();
+        let mut firstSymbol: Option<String> = self.safe_string_k(&firstMarket, "symbol", &[]).as_str().map(str::to_owned);
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(firstSymbol.map(Value::from).unwrap_or(Value::Null), limit);
+            limitResolved = trades.get_limit(firstSymbol.as_deref(), limit.as_i64());
         }
-        let mut result: Value = self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut result: Value = self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         return self.sort_by(result, Value::Str("timestamp".into()), &[]);
         Value::Null
         }).await?))
@@ -914,11 +914,11 @@ impl Blofin {
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("watchOHLCV".into())); }
         let mut result: crate::types::OHLCVsBySymbol = (match self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolResult: Value = self.safe_dict(crate::types::IntoRaw::into_raw(result), symbol, &[Value::Map({
+        let mut symbolResult: crate::value::Dict = self.safe_dict(crate::types::IntoRaw::into_raw(result), symbol, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.safe_list(symbolResult, timeframe, &[Value::from(vec![])]);
+        })]).into_dict();
+        return self.safe_list(&symbolResult, timeframe, &[Value::from(vec![])]);
         Value::Null
         }).await?))
     }
@@ -955,15 +955,15 @@ impl Blofin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut result: Value = self.watch_multiple_wrapper(Value::Bool(true), Value::Str("candle".into()), Value::Str("watchOHLCVForSymbols".into()), &[symbolsAndTimeframes, params]).await;
-        let mut symbol: Value = self.safe_string(result.clone(), Value::Int(0), &[Value::Str("".into())]);
+        let mut symbol: String = self.safe_string(result.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut timeframe: String = self.safe_string(result.clone(), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut candles: Value = self.safe_value(result, Value::Int(2), &[]);
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = candles.get_limit(symbol.clone(), limit);
+            limitResolved = candles.get_limit(Some(symbol.as_str()), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(candles, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
-        return self.create_ohlcv_object(symbol, Value::from(timeframe), filtered);
+        let mut filtered: Value = self.filter_by_since_limit(candles, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.create_ohlcv_object(Value::from(symbol), Value::from(timeframe), filtered);
         Value::Null
         }).await?))
     }
@@ -1240,12 +1240,12 @@ impl Blofin {
         }
         let mut orders: Value = self.watch_multiple_wrapper(Value::Bool(false), Value::from(channel), Value::Str("watchOrdersForSymbols".into()), &[symbols, paramsOmitted]).await;
         let mut first: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(0), &[]).into_dict();
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
-        let mut limitResolved: Value = limit.clone();
+        let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
+            limitResolved = orders.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(orders, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1432,8 +1432,8 @@ impl Blofin {
         //         ]
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut first: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut first: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

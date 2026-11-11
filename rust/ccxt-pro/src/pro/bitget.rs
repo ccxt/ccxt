@@ -777,8 +777,8 @@ impl Bitget {
         //     }
         //
         let mut arg: crate::value::Dict = message.get("arg").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut ticker: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut ticker: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -917,8 +917,8 @@ impl Bitget {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut arg: crate::value::Dict = message.get("arg").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut ticker: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut ticker: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -981,7 +981,7 @@ impl Bitget {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]);
+        let mut symbolValue: String = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[]).into_dict();
         let mut interval: Option<String> = self.safe_string(&timeframes, timeframe.clone(), &[]).as_str().map(str::to_owned);
         let mut messageHash: Option<String> = None;
@@ -1019,11 +1019,11 @@ impl Bitget {
             messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue));
         }
         let mut ohlcv: Value = self.watch_public(Value::Bool(isStockOrUta), messageHash.clone().map(Value::from).unwrap_or(Value::Null), Value::Map(args), &[paramsRequest]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue, limit);
+            limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1790,12 +1790,12 @@ impl Bitget {
         }
         let mut trades: Value = self.watch_public_multiple(uta.map_or(Value::Null, Value::Bool), Value::from(messageHashes), Value::from(topics), &[paramsRequest]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
-        let mut limitResolved: Value = limit.clone();
+        let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
+            limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        let mut result: Value = self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut result: Value = self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         if (match &(self.handle_option(Value::Str("watchTrades".into()), Value::Str("ignoreDuplicates".into()), &[Value::Bool(true)])) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
             Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut filtered: Value = self.remove_repeated_trades_from_array(result.clone());
@@ -2017,8 +2017,8 @@ impl Bitget {
         }
         let mut marketResolved: Value = self.safe_market(&[(if (market == Value::Null) { instId.map(Value::from).unwrap_or(Value::Null) } else { Value::Null }), market, Value::Null, defaultType.map(Value::from).unwrap_or(Value::Null)]);
         let mut timestamp: Option<i64> = self.safe_integer_n(trade.clone(), Value::from(vec![Value::Str("uTime".into()), Value::Str("cTime".into()), Value::Str("ts".into()), Value::Str("T".into()), Value::Str("execTime".into())]), &[]).as_i64();
-        let mut feeDetail: Value = self.safe_list_k(trade.clone(), "feeDetail", &[Value::from(vec![])]);
-        let mut first: Option<crate::value::Dict> = self.safe_dict(feeDetail, Value::Int(0), &[]).into_opt_dict();
+        let mut feeDetail: crate::value::List = self.safe_list_k(trade.clone(), "feeDetail", &[Value::from(vec![])]).into_list();
+        let mut first: Option<crate::value::Dict> = self.safe_dict(&feeDetail, Value::Int(0), &[]).into_opt_dict();
         let mut fee: Value = Value::Null;
         if (first.is_some()) {
             let mut feeCurrencyId: Option<String> = self.safe_string_k(&first, "feeCoin", &[]).as_str().map(str::to_owned);
@@ -2504,11 +2504,11 @@ impl Bitget {
             args.insert("instId".into(), instId);
         }
         let mut orders: Value = self.watch_private(uta.map_or(Value::Null, Value::Bool), Value::from(messageHash), Value::from(subscriptionHash), Value::Map(args), &[paramsRequest]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
+            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2610,7 +2610,7 @@ impl Bitget {
             marketType = Some("contract".to_string());
         }
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut first: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(0), &[Value::Map({
+        let mut first: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -2856,8 +2856,8 @@ impl Bitget {
         let mut timestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("cTime".into()), Value::Str("createdTime".into()), &[]).as_i64();
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut rawStatus: Option<String> = self.safe_string2(order.clone(), Value::Str("status".into()), Value::Str("orderStatus".into()), &[]).as_str().map(str::to_owned);
-        let mut orderFee: Value = self.safe_list_k(order.clone(), "feeDetail", &[Value::from(vec![])]);
-        let mut fee: crate::value::Dict = self.safe_dict(orderFee, Value::Int(0), &[]).into_dict();
+        let mut orderFee: crate::value::List = self.safe_list_k(order.clone(), "feeDetail", &[Value::from(vec![])]).into_list();
+        let mut fee: crate::value::Dict = self.safe_dict(&orderFee, Value::Int(0), &[]).into_dict();
         let mut feeAmount: Option<String> = self.safe_string_k(&fee, "fee", &[]).as_str().map(str::to_owned);
         let mut feeObject: Value = Value::Null;
         if (feeAmount.is_some()) {
@@ -3044,11 +3044,11 @@ impl Bitget {
             args.insert("instId".into(), Value::Str("default".into()));
         }
         let mut trades: Value = self.watch_private(uta.map_or(Value::Null, Value::Bool), Value::from(messageHash), Value::from(subscriptionHash), Value::Map(args), &[paramsRequest]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.clone(), limit);
+            limitResolved = trades.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3399,7 +3399,7 @@ impl Bitget {
                                         let mut j: i64 = 0;
                     let mut __for_first_124: bool = true;
                     while { if !__for_first_124 { j += 1; } __for_first_124 = false; j < (coins.len() as i64) } {
-                    let mut entry: crate::value::Dict = self.safe_dict(Value::Arr(coins.clone()), Value::Int(j), &[]).into_dict();
+                    let mut entry: crate::value::Dict = self.safe_dict(&coins, Value::Int(j), &[]).into_dict();
                     let mut currencyId: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
                     let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
                     let mut account: Value = self.account();
@@ -4047,7 +4047,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_126: bool = true;
             while { if !__for_first_126 { i += 1; } __for_first_126 = false; i < (argsList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let mut arg: Value = self.safe_dict(argsList.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]);
+            let mut arg: Value = self.safe_dict(&argsList, Value::Int(i), &[]);
             let mut channel: String = self.safe_string2(arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if channel.contains("books") {
                 // for now only unWatchOrderBook is supported

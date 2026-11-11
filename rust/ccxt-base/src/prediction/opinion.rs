@@ -1140,13 +1140,13 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut bids: Value = self.safe_list_k(&bookResult, "bids", &[Value::from(vec![])]);
-        let mut asks: Value = self.safe_list_k(&bookResult, "asks", &[Value::from(vec![])]);
-        let mut bestBid: crate::value::Dict = self.safe_dict(bids, Value::Int(0), &[Value::Map({
+        let mut bids: crate::value::List = self.safe_list_k(&bookResult, "bids", &[Value::from(vec![])]).into_list();
+        let mut asks: crate::value::List = self.safe_list_k(&bookResult, "asks", &[Value::from(vec![])]).into_list();
+        let mut bestBid: crate::value::Dict = self.safe_dict(&bids, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut bestAsk: crate::value::Dict = self.safe_dict(asks, Value::Int(0), &[Value::Map({
+        let mut bestAsk: crate::value::Dict = self.safe_dict(&asks, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -1381,7 +1381,7 @@ impl Opinion {
                         let mut i: i64 = 0;
             let mut __for_first_1395: bool = true;
             while { if !__for_first_1395 { i += 1; } __for_first_1395 = false; (i as f64) < historyLength } {
-            let mut point: crate::value::Dict = self.safe_dict(Value::Arr(history.clone()), Value::Int(i), &[]).into_dict();
+            let mut point: crate::value::Dict = self.safe_dict(&history, Value::Int(i), &[]).into_dict();
             let mut price: Option<f64> = self.safe_number_k(&point, "p", &[]).as_f64();
             let mut timestamp: Option<i64> = self.safe_timestamp_k(&point, "t", &[]).as_i64();
             if (price.is_some()) && (timestamp.is_some()) {
@@ -1428,11 +1428,11 @@ impl Opinion {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" loadQuoteToken() requires a quoteTokenAddress".into()))));
         }
         let mut cacheKey: String = quoteTokenAddress.as_str().map(str::to_lowercase).unwrap_or_default();
-        let mut cached: Value = self.safe_dict_k(self.options.clone(), "quoteTokens", &[Value::Map({
+        let mut cached: crate::value::Dict = self.safe_dict_k(self.options.clone(), "quoteTokens", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut existing: Value = self.safe_dict(cached, Value::from(cacheKey.clone()), &[]);
+})]).into_dict();
+        let mut existing: Value = self.safe_dict(&cached, Value::from(cacheKey.clone()), &[]);
         if (existing != Value::Null) {
             return existing;
         }
@@ -2303,7 +2303,7 @@ impl Opinion {
                         let mut i: i64 = 0;
             let mut __for_first_1400: bool = true;
             while { if !__for_first_1400 { i += 1; } __for_first_1400 = false; (i as f64) < balancesLength } {
-            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut code: String = self.safe_string_k(&balance, "symbol", &[Value::Str("USDT".into())]).as_str().unwrap_or("USDT").to_string();
             result.insert(code, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2733,9 +2733,9 @@ if _try_result.is_err() {
                 m
             })]).into_dict();
             if (self.safe_integer_k(&info, "marketId", &[]).as_f64() == marketId.as_f64()) {
-                let mut outcomes: Value = self.safe_list_k(&market, "outcomes", &[Value::from(vec![])]);
+                let mut outcomes: crate::value::List = self.safe_list_k(&market, "outcomes", &[Value::from(vec![])]).into_list();
                 let mut index: Value = (if (outcomeSide.as_f64() == Some(2.0)) { Value::Int(1) } else { Value::Int(0) });
-                return self.safe_dict(outcomes, index, &[]);
+                return self.safe_dict(&outcomes, index, &[]);
             }
         }
         }

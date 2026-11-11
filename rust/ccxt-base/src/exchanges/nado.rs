@@ -1984,10 +1984,10 @@ impl Nado {
             while { if !__for_first_982 { i += 1; } __for_first_982 = false; i < (matches.len() as i64) } {
             let mut match_val: Value = matches.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut submissionIdx: Option<String> = self.safe_string_k(match_val.clone(), "submission_idx", &[]).as_str().map(str::to_owned);
-            let mut tx: Value = self.safe_dict(txsBySubmission.clone(), submissionIdx.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut tx: crate::value::Dict = self.safe_dict(txsBySubmission.clone(), submissionIdx.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             trades.push(self.extend(tx, &[match_val]));
         }
         }
@@ -2519,8 +2519,8 @@ impl Nado {
                         let mut i: i64 = 0;
             let mut __for_first_990: bool = true;
             while { if !__for_first_990 { i += 1; } __for_first_990 = false; i < (symbols.len() as i64) } {
-            let mut market: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut id: Option<String> = self.safe_string_k(market.clone(), "product_id", &[]).as_str().map(str::to_owned);
+            let mut market: crate::value::Dict = symbols.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut id: Option<String> = self.safe_string_k(&market, "product_id", &[]).as_str().map(str::to_owned);
             let mut pair: Value = self.safe_dict(Value::Map(pairsById.clone()), id.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2529,7 +2529,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut rawType: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
+            let mut rawType: Option<String> = self.safe_string_k(&market, "type", &[]).as_str().map(str::to_owned);
             let mut type_var: Option<String> = rawType.clone();
             if (rawType.as_deref() == Some("perp")) {
                 type_var = Some("swap".to_string());
@@ -2539,7 +2539,7 @@ impl Nado {
             if (tickerId.is_none()) {
                 continue;
             }
-            let mut rawBaseId: Option<String> = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut rawBaseId: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
             let mut rawQuoteId: String = self.safe_string_k(pair.clone(), "quote", &[Value::Str("USDT0".into())]).as_str().unwrap_or("USDT0").to_string();
             let mut base: Option<String> = self.safe_currency_code(self.remove_market_suffix(rawBaseId.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut quote: Option<String> = self.safe_currency_code(Value::from(rawQuoteId.clone()), &[]).as_str().map(str::to_owned);
@@ -2556,11 +2556,11 @@ impl Nado {
             if contract {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
             }
-            let mut tradingStatus: Option<String> = self.safe_string_k(market.clone(), "trading_status", &[]).as_str().map(str::to_owned);
+            let mut tradingStatus: Option<String> = self.safe_string_k(&market, "trading_status", &[]).as_str().map(str::to_owned);
             let mut active: Value = (Value::Bool(tradingStatus.as_deref() != Some("not_tradable")));
-            let mut priceIncrement: Value = self.parse_x18(self.safe_string_k(market.clone(), "price_increment_x18", &[]));
-            let mut amountIncrement: Value = self.parse_x18(self.safe_string_k(market.clone(), "size_increment", &[]));
-            let mut minCost: Value = self.parse_x18(self.safe_string_k(market.clone(), "min_size", &[]));
+            let mut priceIncrement: Value = self.parse_x18(self.safe_string_k(&market, "price_increment_x18", &[]));
+            let mut amountIncrement: Value = self.parse_x18(self.safe_string_k(&market, "size_increment", &[]));
+            let mut minCost: Value = self.parse_x18(self.safe_string_k(&market, "min_size", &[]));
             markets.push(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -2582,8 +2582,8 @@ impl Nado {
         m.insert("contract".to_string(), Value::Bool(contract));
         m.insert("linear".to_string(), (if contract { Value::Bool(true) } else { Value::Null }));
         m.insert("inverse".to_string(), (if contract { Value::Bool(false) } else { Value::Null }));
-        m.insert("taker".to_string(), self.parse_x18(self.safe_string_k(market.clone(), "taker_fee_rate_x18", &[])));
-        m.insert("maker".to_string(), self.parse_x18(self.safe_string_k(market.clone(), "maker_fee_rate_x18", &[])));
+        m.insert("taker".to_string(), self.parse_x18(self.safe_string_k(&market, "taker_fee_rate_x18", &[])));
+        m.insert("maker".to_string(), self.parse_x18(self.safe_string_k(&market, "maker_fee_rate_x18", &[])));
         m.insert("contractSize".to_string(), (if contract { Value::Int(1) } else { Value::Null }));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
@@ -2625,7 +2625,7 @@ impl Nado {
 }));
         m.insert("created".to_string(), Value::Null);
         let __ws_arg_16 = self.safe_string_k(asset.clone(), "name", &[]);
-        m.insert("info".to_string(), self.extend(market, &[Value::Map({
+        m.insert("info".to_string(), self.extend(&market, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticker_id".to_string(), tickerId.map(Value::from).unwrap_or(Value::Null));
         m.insert("name".to_string(), __ws_arg_16);
@@ -3634,7 +3634,7 @@ impl Nado {
                         let mut i: i64 = 0;
             let mut __for_first_995: bool = true;
             while { if !__for_first_995 { i += 1; } __for_first_995 = false; i < (balances.len() as i64) } {
-            let mut rawBalance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
+            let mut rawBalance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&rawBalance, "product_id", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (code.as_str() == Some("0")) {

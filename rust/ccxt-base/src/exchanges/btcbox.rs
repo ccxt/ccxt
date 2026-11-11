@@ -466,10 +466,10 @@ impl Btcbox {
         let mut response1: Value = response1response2Variable.get(0).cloned().unwrap_or(Value::Null);
         let mut response2: Value = response1response2Variable.get(1).cloned().unwrap_or(Value::Null);
         //
-        let mut result2Data: Value = self.safe_dict_k(response2, "data", &[Value::Map({
+        let mut result2Data: crate::value::Dict = self.safe_dict_k(response2, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut marketIds: Vec<Value> = Value::Array(response1.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut markets: Vec<Value> = Vec::new();
         {
@@ -488,7 +488,7 @@ impl Btcbox {
 })]).as_map().cloned().unwrap_or_default();
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", baseCurr, Value::Str("/".into())).into()), quote);
             let mut fee: Value = (if (id == "BTC") { self.parse_number(Value::Str("0.0005".into()), &[]) } else { self.parse_number(Value::Str("0.0010".into()), &[]) });
-            let mut details: crate::value::Dict = self.safe_dict(result2Data.clone(), Value::from(id.clone()), &[Value::Map({
+            let mut details: crate::value::Dict = self.safe_dict(&result2Data, Value::from(id.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -999,8 +999,8 @@ impl Btcbox {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        let mut symbolResolved: Value = (if (symbol == Value::Null) { Value::Str("BTC/JPY".into()) } else { symbol });
-        let mut market: crate::types::Market = (match self.market(symbolResolved.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut symbolResolved: Option<String> = (if (symbol == Value::Null) { Some("BTC/JPY".to_string()) } else { symbol.as_str().map(str::to_owned) });
+        let mut market: crate::types::Market = (match self.market(symbolResolved.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
@@ -1119,14 +1119,14 @@ impl Btcbox {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        let mut symbolResolved: Value = (if (symbol == Value::Null) { Value::Str("BTC/JPY".into()) } else { symbol });
-        let mut market: crate::types::Market = (match self.market(symbolResolved.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: Value = self.extend(Value::Map({
+        let mut symbolResolved: Option<String> = (if (symbol == Value::Null) { Some("BTC/JPY".to_string()) } else { symbol.as_str().map(str::to_owned) });
+        let mut market: crate::types::Market = (match self.market(symbolResolved.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut request: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
                 m.insert("coin".to_string(), Value::from((market).base_id.clone()));
             m
-        }), &[params.clone()]);
+        }), &[params.clone()]).into_dict();
         let __ws_arg_5 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_trade_view(&[__ws_arg_5]).await;
         return self.parse_order(response, &[(market).raw.clone()]);

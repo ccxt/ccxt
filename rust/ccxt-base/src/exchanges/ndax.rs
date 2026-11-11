@@ -2870,8 +2870,8 @@ impl Ndax {
         //     ]
         //
         let mut grouped: crate::value::Dict = self.group_by(response, Value::Str("ChangeReason".into()), &[]).into_dict();
-        let mut trades: Value = self.safe_list_k(&grouped, "Trade", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&grouped, "Trade", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3176,7 +3176,7 @@ impl Ndax {
         let mut statuses: Value = (if (type_var == Value::Null) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) } else { self.safe_dict(Value::Map(statusesByType), type_var, &[Value::Map({
+}) } else { self.safe_dict(&statusesByType, type_var, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) });
@@ -3363,8 +3363,8 @@ impl Ndax {
         //         ]
         //     }
         //
-        let mut templateTypes: Value = self.safe_list_k(&withdrawTemplateTypesResponse, "TemplateTypes", &[Value::from(vec![])]);
-        let mut firstTemplateType: Option<crate::value::Dict> = self.safe_dict(templateTypes, Value::Int(0), &[]).into_opt_dict();
+        let mut templateTypes: crate::value::List = self.safe_list_k(&withdrawTemplateTypesResponse, "TemplateTypes", &[Value::from(vec![])]).into_list();
+        let mut firstTemplateType: Option<crate::value::Dict> = self.safe_dict(&templateTypes, Value::Int(0), &[]).into_opt_dict();
         if (firstTemplateType.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template type for ".into())).into()), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null))));
         }

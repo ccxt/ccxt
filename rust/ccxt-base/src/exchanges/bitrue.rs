@@ -1723,7 +1723,7 @@ impl Bitrue {
                         let mut i: i64 = 0;
             let mut __for_first_415: bool = true;
             while { if !__for_first_415 { i += 1; } __for_first_415 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string2(&balance, Value::Str("asset".into()), Value::Str("marginCoin".into()), &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -2348,7 +2348,7 @@ impl Bitrue {
                         let mut i: i64 = 0;
             let mut __for_first_416: bool = true;
             while { if !__for_first_416 { i += 1; } __for_first_416 = false; i < (data.len() as i64) } {
-            let mut ticker: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[Value::Map({
+            let mut ticker: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3305,8 +3305,8 @@ impl Bitrue {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(data, &[currency, since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&data, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3379,8 +3379,8 @@ impl Bitrue {
         //        ]
         //    }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(data, &[currency]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&data, &[currency]);
         Value::Null
         }).await?))
     }
@@ -3404,7 +3404,7 @@ impl Bitrue {
 }));
             m
         });
-        let mut statuses: crate::value::Dict = self.safe_dict(Value::Map(statusesByType), type_var, &[Value::Map({
+        let mut statuses: crate::value::Dict = self.safe_dict(&statusesByType, type_var, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -3666,7 +3666,7 @@ impl Bitrue {
                                 let mut i: i64 = 0;
                 let mut __for_first_417: bool = true;
                 while { if !__for_first_417 { i += 1; } __for_first_417 = false; (i as f64) < chainDetailLength } {
-                let mut chainDetail: crate::value::Dict = self.safe_dict(Value::Arr(chainDetails.clone()), Value::Int(i), &[]).into_dict();
+                let mut chainDetail: crate::value::Dict = self.safe_dict(&chainDetails, Value::Int(i), &[]).into_dict();
                 let mut networkId: Option<String> = self.safe_string_k(&chainDetail, "chain", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
                 let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), currencyCode.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
@@ -3849,8 +3849,8 @@ impl Bitrue {
         //         }]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_transfers(data, &[currency, since, limitResolved]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transfers(&data, &[currency, since, limitResolved]);
         Value::Null
         }).await?))
     }

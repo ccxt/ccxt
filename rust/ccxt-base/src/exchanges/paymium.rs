@@ -972,8 +972,8 @@ impl Paymium {
         let mut currencyId: Option<String> = self.safe_string_k(transfer.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut updatedAt: Option<String> = self.safe_string_k(transfer.clone(), "updated_at", &[]).as_str().map(str::to_owned);
         let mut timetstamp: Value = self.parse_date(updatedAt.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut accountOperations: Value = self.safe_list_k(transfer.clone(), "account_operations", &[]);
-        let mut firstOperation: crate::value::Dict = self.safe_dict(accountOperations, Value::Int(0), &[Value::Map({
+        let mut accountOperations: crate::value::List = self.safe_list_k(transfer.clone(), "account_operations", &[]).into_list();
+        let mut firstOperation: crate::value::Dict = self.safe_dict(&accountOperations, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

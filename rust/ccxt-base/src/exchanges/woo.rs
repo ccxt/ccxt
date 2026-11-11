@@ -1837,8 +1837,8 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
-        return self.parse_trades(rows, &[(market).raw.clone(), since, limit]);
+        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&rows, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3618,8 +3618,8 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_dict(rows, Value::Int(0), &[]);
+        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        let mut first: Value = self.safe_dict(&rows, Value::Int(0), &[]);
         if (first == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() could not find ticker data for ".into())).into()), symbol)));
         }
@@ -3865,8 +3865,8 @@ impl Woo {
         //       }
         //     ]
         // }
-        let mut trades: Value = self.safe_list_k(&response, "rows", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit, params]);
+        let mut trades: crate::value::List = self.safe_list_k(&response, "rows", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit, params]);
         Value::Null
         }).await?))
     }
@@ -3960,8 +3960,8 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market, since, limit, paramsOmitted]);
+        let mut trades: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[market, since, limit, paramsOmitted]);
         Value::Null
         }).await?))
     }
@@ -4129,7 +4129,7 @@ impl Woo {
                         let mut i: i64 = 0;
             let mut __for_first_1171: bool = true;
             while { if !__for_first_1171 { i += 1; } __for_first_1171 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "token", &[]), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&balance, "holding", &[]));
@@ -4190,10 +4190,10 @@ impl Woo {
         //         "timestamp": 1721300689532
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let __ws_arg_22 = self.extend(data, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("network".to_string(), self.safe_string_k(Value::Map(request), "network", &[]));
@@ -4211,15 +4211,12 @@ impl Woo {
         let networkCodeRawparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
         let mut networkCodeRaw: Value = networkCodeRawparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeRawparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut networks: Value = (match currency.get("networks") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut networks: crate::value::Dict = currency.get("networks").cloned().unwrap_or_default().into_dict();
         let mut currencyCode: String = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut networkCode: Option<String> = self.network_id_to_code(&[networkCodeRaw, Value::from(currencyCode)]).as_str().map(str::to_owned);
-        let mut networkEntry: Value = (if (networkCode.is_none()) { Value::Null } else { self.safe_dict(networks.clone(), networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
+        let mut networkEntry: Value = (if (networkCode.is_none()) { Value::Null } else { self.safe_dict(&networks, networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
         if (networkEntry == Value::Null) {
-            let mut supportedNetworks: Value = Value::Array(networks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+            let mut supportedNetworks: Value = Value::Array(networks.keys().cloned().map(Value::from).collect());
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str("  can not determine a network code, please provide unified \"network\" param, one from the following: ".into())).into()), json_stringify(&supportedNetworks))));
         }
         let mut currentyNetworkId: Option<String> = self.safe_string_k(networkEntry, "currencyNetworkId", &[]).as_str().map(str::to_owned);
@@ -4551,8 +4548,8 @@ impl Woo {
         let __ws_arg_26 = self.extend(Value::Map(request), &[params.clone()]);
         let mut currencyRows: Value = self.get_asset_history_rows(&[code, since.clone(), limit.clone(), __ws_arg_26]).await;
         let mut currency: Value = self.safe_value(currencyRows.clone(), Value::Int(0), &[]);
-        let mut rows: Value = self.safe_list(currencyRows, Value::Int(1), &[Value::from(vec![])]);
-        return self.parse_transactions(rows, &[currency, since, limit, self.omit(params, Value::Str("tokenSide".into()), &[])]);
+        let mut rows: crate::value::List = self.safe_list(currencyRows, Value::Int(1), &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&rows, &[currency, since, limit, self.omit(params, Value::Str("tokenSide".into()), &[])]);
         Value::Null
         }).await?))
     }
@@ -4791,8 +4788,8 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
-        return self.parse_transfers(rows, &[currency, since, limit, paramsOmitted]);
+        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        return self.parse_transfers(&rows, &[currency, since, limit, paramsOmitted]);
         Value::Null
         }).await?))
     }
@@ -4925,14 +4922,14 @@ impl Woo {
         //         "withdraw_id": "20200119145703654"
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let __ws_arg_30 = self.safe_string_k(data.clone(), "withdrawId", &[]);
+        })]).into_dict();
+        let __ws_arg_30 = self.safe_string_k(&data, "withdrawId", &[]);
         let __ws_arg_31 = self.safe_integer_k(&response, "timestamp", &[]);
         let __ws_arg_32 = self.safe_string(self.networkAliases.clone(), network.clone().map(Value::from).unwrap_or(Value::Null), &[network.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut transactionData: Value = self.extend(data, &[Value::Map({
+        let mut transactionData: Value = self.extend(&data, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), __ws_arg_30);
                 m.insert("timestamp".to_string(), __ws_arg_31);
@@ -5418,8 +5415,8 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_dict(rows, Value::Int(0), &[Value::Map({
+        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        let mut first: Value = self.safe_dict(&rows, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5532,7 +5529,7 @@ impl Woo {
             request.insert("startTime".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_36 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.v3_public_get_funding_rate_history(&[__ws_arg_36]).await.into_dict();
@@ -5693,7 +5690,7 @@ impl Woo {
                         let mut i: i64 = 0;
             let mut __for_first_1173: bool = true;
             while { if !__for_first_1173 { i += 1; } __for_first_1173 = false; i < (details.len() as i64) } {
-            let mut position: crate::value::Dict = self.safe_dict(Value::Arr(details.clone()), Value::Int(i), &[Value::Map({
+            let mut position: crate::value::Dict = self.safe_dict(&details, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -5923,8 +5920,8 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut positions: Value = self.safe_list_k(&result, "positions", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_dict(positions, Value::Int(0), &[Value::Map({
+        let mut positions: crate::value::List = self.safe_list_k(&result, "positions", &[Value::from(vec![])]).into_list();
+        let mut first: Value = self.safe_dict(&positions, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -6005,8 +6002,8 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut positions: Value = self.safe_list_k(&result, "positions", &[Value::from(vec![])]);
-        return self.parse_positions(positions, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        let mut positions: crate::value::List = self.safe_list_k(&result, "positions", &[Value::from(vec![])]).into_list();
+        return self.parse_positions(&positions, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -6352,7 +6349,7 @@ impl Woo {
             request.insert("size".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_47 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.v3_private_get_convert_trades(&[__ws_arg_47]).await.into_dict();
@@ -6380,8 +6377,8 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rows: Value = self.safe_list_k(&data, "tradeVos", &[Value::from(vec![])]);
-        return self.parse_conversions(rows, &[code, Value::Str("sellAsset".into()), Value::Str("buyAsset".into()), since, limit]);
+        let mut rows: crate::value::List = self.safe_list_k(&data, "tradeVos", &[Value::from(vec![])]).into_list();
+        return self.parse_conversions(&rows, &[code, Value::Str("sellAsset".into()), Value::Str("buyAsset".into()), since, limit]);
         Value::Null
         }).await?))
     }
@@ -6613,8 +6610,8 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut positions: Value = self.safe_list_k(&result, "positions", &[Value::from(vec![])]);
-        return self.parse_adl_ranks(positions, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        let mut positions: crate::value::List = self.safe_list_k(&result, "positions", &[Value::from(vec![])]).into_list();
+        return self.parse_adl_ranks(&positions, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }

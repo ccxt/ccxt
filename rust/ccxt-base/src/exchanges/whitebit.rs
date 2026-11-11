@@ -1571,14 +1571,14 @@ impl Whitebit {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut depositLimits: Value = self.safe_dict_k(&networkLimits, "deposit", &[Value::Map({
+        let mut depositLimits: crate::value::Dict = self.safe_dict_k(&networkLimits, "deposit", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut withdrawLimits: Value = self.safe_dict_k(&networkLimits, "withdraw", &[Value::Map({
+        })]).into_dict();
+        let mut withdrawLimits: crate::value::Dict = self.safe_dict_k(&networkLimits, "withdraw", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut allNetworks: crate::value::List = self.array_concat(depositsNetworks.clone(), withdrawsNetworks.clone()).into_list();
         {
                         let mut j: i64 = 0;
@@ -1586,11 +1586,11 @@ impl Whitebit {
             while { if !__for_first_1148 { j += 1; } __for_first_1148 = false; j < (allNetworks.len() as i64) } {
             let mut networkId: String = self.safe_string(&allNetworks, Value::Int(j), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut networkCode: Value = self.network_id_to_code(&[Value::from(networkId.clone()), code.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut networkDepositLimits: crate::value::Dict = self.safe_dict(depositLimits.clone(), Value::from(networkId.clone()), &[Value::Map({
+            let mut networkDepositLimits: crate::value::Dict = self.safe_dict(&depositLimits, Value::from(networkId.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut networkWithdrawLimits: crate::value::Dict = self.safe_dict(withdrawLimits.clone(), Value::from(networkId.clone()), &[Value::Map({
+            let mut networkWithdrawLimits: crate::value::Dict = self.safe_dict(&withdrawLimits, Value::from(networkId.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -2143,10 +2143,10 @@ impl Whitebit {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut feesData: Value = self.safe_dict(responses, Value::Int(1), &[Value::Map({
+        let mut feesData: crate::value::Dict = self.safe_dict(responses, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         //
         // Currencies response structure (from fetchCurrencies):
         //     {
@@ -2222,13 +2222,13 @@ impl Whitebit {
             }
             // Find corresponding fee data for this currency
             let mut feeData: Value = Value::Null;
-            let mut feeKeys: Vec<Value> = Value::Array(feesData.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut feeKeys: Vec<Value> = Value::Array(feesData.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1154: bool = true;
                 while { if !__for_first_1154 { j += 1; } __for_first_1154 = false; j < (feeKeys.len() as i64) } {
                 let mut feeKey: Value = feeKeys.get(j as usize).cloned().unwrap_or(Value::Null);
-                let mut fee: Value = self.safe_dict(feesData.clone(), feeKey, &[]);
+                let mut fee: Value = self.safe_dict(&feesData, feeKey, &[]);
                 if ((fee != Value::Null) && (fee != Value::Null)) && (self.safe_string_k(fee.clone(), "ticker", &[]).as_str() == code.as_str()) {
                     feeData = fee;
                     break;
@@ -2939,8 +2939,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 while { if !__for_first_1161 { i += 1; } __for_first_1161 = false; i < (keys.len() as i64) } {
                 let mut marketId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut marketNew: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".into())]);
-                let mut rawTrades: Value = self.safe_list(response.clone(), marketId, &[Value::from(vec![])]);
-                let mut parsed: Value = self.parse_trades(rawTrades, &[marketNew, since.clone(), limit.clone()]);
+                let mut rawTrades: crate::value::List = self.safe_list(response.clone(), marketId, &[Value::from(vec![])]).into_list();
+                let mut parsed: Value = self.parse_trades(&rawTrades, &[marketNew, since.clone(), limit.clone()]);
                 results = self.array_concat(results.clone(), parsed);
             }
             }
@@ -4103,8 +4103,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "limit": 100
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "records", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[market]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "records", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&data, &[market]);
         Value::Null
         }).await?))
     }
@@ -4238,8 +4238,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "offset": 0
         //     }
         //
-        let mut records: Value = self.safe_list_k(&response, "records", &[Value::from(vec![])]);
-        return self.parse_transactions(records, &[currency, since, limitResolved]);
+        let mut records: crate::value::List = self.safe_list_k(&response, "records", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&records, &[currency, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -4464,7 +4464,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_1165: bool = true;
             while { if !__for_first_1165 { i += 1; } __for_first_1165 = false; i < (subAccounts.len() as i64) } {
-            let mut subAccount: Value = self.safe_dict(Value::Arr(subAccounts.clone()), Value::Int(i), &[Value::Map({
+            let mut subAccount: Value = self.safe_dict(&subAccounts, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4826,8 +4826,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        let mut records: Value = self.safe_list_k(&response, "records", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_dict(records, Value::Int(0), &[Value::Map({
+        let mut records: crate::value::List = self.safe_list_k(&response, "records", &[Value::from(vec![])]).into_list();
+        let mut first: Value = self.safe_dict(&records, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5251,7 +5251,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endDate".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_35 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.v4_private_post_collateral_account_funding_history(&[__ws_arg_35]).await.into_dict();
@@ -5557,7 +5557,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("to".into()), Value::Map(request), params, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_39 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.v4_private_post_convert_history(&[__ws_arg_39]).await.into_dict();
@@ -5584,8 +5584,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "offset": 0
         //     }
         //
-        let mut rows: Value = self.safe_list_k(&response, "records", &[Value::from(vec![])]);
-        return self.parse_conversions(rows, &[code, Value::Str("fromCurrency".into()), Value::Str("toCurrency".into()), since, limit]);
+        let mut rows: crate::value::List = self.safe_list_k(&response, "records", &[Value::from(vec![])]).into_list();
+        return self.parse_conversions(&rows, &[code, Value::Str("fromCurrency".into()), Value::Str("toCurrency".into()), since, limit]);
         Value::Null
         }).await?))
     }
@@ -5630,8 +5630,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "rate": "0.00001193"
         //     }
         //
-        let mut path: Value = self.safe_list_k(conversion.clone(), "path", &[Value::from(vec![])]);
-        let mut first: crate::value::Dict = self.safe_dict(path, Value::Int(0), &[Value::Map({
+        let mut path: crate::value::List = self.safe_list_k(conversion.clone(), "path", &[Value::from(vec![])]).into_list();
+        let mut first: crate::value::Dict = self.safe_dict(&path, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -5701,7 +5701,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("limit".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endDate".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_40 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.v4_private_post_collateral_account_positions_history(&[__ws_arg_40]).await;
@@ -5971,10 +5971,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("startDate".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.round())).unwrap_or(Value::Null));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("until_timestamp".into()), Value::Map(request), &paramsPaginate, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone());
         }
         let __ws_arg_42 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.v4_public_get_funding_history_market(&[__ws_arg_42]).await;
@@ -6114,15 +6114,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if hasErrorStatus {
                     errorInfo = status.map(Value::from).unwrap_or(Value::Null);
                 }  else {
-                    let mut errorObject: Value = self.safe_dict_k(response.clone(), "errors", &[Value::Map({
+                    let mut errorObject: crate::value::Dict = self.safe_dict_k(response.clone(), "errors", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                    let mut errorKeys: Vec<Value> = Value::Array(errorObject.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+})]).into_dict();
+                    let mut errorKeys: Vec<Value> = Value::Array(errorObject.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                     let mut errorsLength: f64 = ((errorKeys.len() as i64) as f64);
                     if errorsLength > ((0i64) as f64) {
                         let mut errorKey: String = self.safe_string(&errorKeys, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                        let mut errorMessageArray: Value = self.safe_list(errorObject, Value::from(errorKey), &[Value::from(vec![])]);
+                        let mut errorMessageArray: Value = self.safe_list(&errorObject, Value::from(errorKey), &[Value::from(vec![])]);
                         errorInfo = self.safe_string(errorMessageArray.clone(), Value::Int(0), &[body.clone()]);
                     }
                 }
@@ -6133,16 +6133,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]).as_bool().unwrap_or(true);
             if !success {
-                let mut errMsg: Value = self.safe_dict_k(response, "message", &[Value::Map({
+                let mut errMsg: crate::value::Dict = self.safe_dict_k(response, "message", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                let mut errKeys: Vec<Value> = Value::Array(errMsg.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+})]).into_dict();
+                let mut errKeys: Vec<Value> = Value::Array(errMsg.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 let mut errKeysLength: f64 = ((errKeys.len() as i64) as f64);
                 let mut errorInfo: Value = body.clone();
                 if errKeysLength > ((0i64) as f64) {
                     let mut errorKey: String = self.safe_string(&errKeys, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                    let mut errorMessageArray: Value = self.safe_list(errMsg, Value::from(errorKey), &[Value::from(vec![])]);
+                    let mut errorMessageArray: Value = self.safe_list(&errMsg, Value::from(errorKey), &[Value::from(vec![])]);
                     errorInfo = self.safe_string(errorMessageArray, Value::Int(0), &[body.clone()]);
                 }
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());

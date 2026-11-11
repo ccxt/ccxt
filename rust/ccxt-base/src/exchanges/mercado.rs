@@ -603,10 +603,10 @@ impl Mercado {
         //     ]
         //
         let mut result: Vec<Value> = Vec::new();
-        let mut amountLimits: Value = self.safe_dict_k(self.options.clone(), "limits", &[Value::Map({
+        let mut amountLimits: crate::value::Dict = self.safe_dict_k(self.options.clone(), "limits", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut coins: crate::value::List = self.to_array(response).into_list();
         {
                         let mut i: i64 = 0;
@@ -662,7 +662,7 @@ impl Mercado {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number(amountLimits.clone(), Value::from(baseId), &[]));
+        m.insert("min".to_string(), self.safe_number(&amountLimits, Value::from(baseId), &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));

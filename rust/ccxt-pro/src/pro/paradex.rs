@@ -581,11 +581,11 @@ impl Paradex {
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut token: Value = self.parent.authenticate_rest(&[]).await;
-            let mut requestId: Value = self.request_id();
+            let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
-                    m.insert("id".to_string(), requestId.clone());
+                    m.insert("id".to_string(), Value::from(requestId));
                     m.insert("method".to_string(), Value::Str("auth".into()));
                     m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -596,7 +596,7 @@ impl Paradex {
             });
             let mut subscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), requestId);
+                    m.insert("id".to_string(), Value::from(requestId));
                 m
             });
             let __ws_arg_1 = self.deep_extend(Value::Map(request), &[params]);
@@ -705,11 +705,11 @@ impl Paradex {
         });
         let __ws_arg_2 = self.deep_extend(Value::Map(request), &[params]);
         let mut trades: Value = self.watch(url, &messageHash[..], &[__ws_arg_2, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbol, limit);
+            limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -759,12 +759,12 @@ impl Paradex {
         // handleTrade resolves the channel of each market
         let mut trades: Value = self.subscribe_channels(url, Value::Arr(channels.clone()), Value::Arr(channels), &[params]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
-        let mut limitResolved: Value = limit.clone();
+        let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
+            limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -801,11 +801,11 @@ impl Paradex {
         let mut messageHash: String = format!("{}{}", Value::Str("liquidations:".into()), Value::from((market).symbol.clone()));
         let mut url: Value = self.get_ws_url();
         let mut liquidations: Value = self.subscribe_channels(url, Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(channel)]), &[params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = liquidations.get_limit(Value::from((market).symbol.clone()), limit);
+            limitResolved = liquidations.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(liquidations, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(liquidations, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1068,15 +1068,15 @@ impl Paradex {
         //     }
         //
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut marketId: Option<String> = self.safe_string_k(data.clone(), "market", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut marketId: Option<String> = self.safe_string_k(&data, "market", &[]).as_str().map(str::to_owned);
         let mut market: crate::value::Dict = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).into_dict();
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "last_updated_at", &[]).as_i64();
-        let mut nonce: Value = self.safe_integer_k(data.clone(), "seq_no", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&data, "last_updated_at", &[]).as_i64();
+        let mut nonce: Value = self.safe_integer_k(&data, "seq_no", &[]);
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         // levels go into local arrays first: pushing into orderbookData['bids'] appends to a copy in go
         let mut bids: Vec<Value> = Vec::new();
@@ -1088,12 +1088,12 @@ impl Paradex {
             let mut __for_first_588: bool = true;
             while { if !__for_first_588 { k += 1; } __for_first_588 = false; k < (levelKeys.len() as i64) } {
             let mut isDelete: bool = levelKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(k as usize).cloned().unwrap_or(Value::Null).as_str() == Some("deletes");
-            let mut levels: crate::value::List = self.safe_list(data.clone(), levelKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(k as usize).cloned().unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
+            let mut levels: crate::value::List = self.safe_list(&data, levelKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(k as usize).cloned().unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_587: bool = true;
                 while { if !__for_first_587 { i += 1; } __for_first_587 = false; i < (levels.len() as i64) } {
-                let mut level: crate::value::Dict = self.safe_dict(Value::Arr(levels.clone()), Value::Int(i), &[]).into_dict();
+                let mut level: crate::value::Dict = self.safe_dict(&levels, Value::Int(i), &[]).into_dict();
                 let mut price: Option<String> = self.safe_string_k(&level, "price", &[]).as_str().map(str::to_owned);
                 let mut size: Option<String> = (if (isDelete) { Some("0".to_string()) } else { self.safe_string_k(&level, "size", &[]).as_str().map(str::to_owned) });
                 if (self.safe_string_k(&level, "side", &[]).as_str() == Some("BUY")) {
@@ -1105,7 +1105,7 @@ impl Paradex {
             }
         }
         }
-        if (self.safe_string_k(data, "update_type", &[]).as_str() == Some("d")) {
+        if (self.safe_string_k(&data, "update_type", &[]).as_str() == Some("d")) {
             let mut deltasChannel: Value = self.get_order_book_channel(marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Bool(true)]).map(Value::from).unwrap_or(Value::Null);
             let mut stored: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
             // a delta applies only to the book of the deltas feed
@@ -1599,11 +1599,11 @@ impl Paradex {
         self.authenticate(&[]).await;
         let mut messageHash: String = "orders".to_string();
         let mut channel: String = "orders.ALL".to_string();
-        let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { symbol.clone() });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             channel = format!("{}{}", Value::Str("orders.".into()), Value::from((market).id.clone()));
-            messageHash = format!("{}{}", Value::Str("orders:".into()), symbolResolved);
+            messageHash = format!("{}{}", Value::Str("orders:".into()), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut url: Value = self.get_ws_url();
         let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel.clone())).as_map().cloned().unwrap_or_default();
@@ -1615,11 +1615,11 @@ impl Paradex {
         });
         let __ws_arg_5 = self.deep_extend(Value::Map(request), &[params]);
         let mut orders: Value = self.watch(url, messageHash.as_str(), &[__ws_arg_5, Value::from(channel), Value::Map(subscription)]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
+            limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1704,11 +1704,11 @@ impl Paradex {
         self.authenticate(&[]).await;
         let mut messageHash: String = "myTrades".to_string();
         let mut channel: String = "fills.ALL".to_string();
-        let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { symbol.clone() });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             channel = format!("{}{}", Value::Str("fills.".into()), Value::from((market).id.clone()));
-            messageHash = format!("{}{}", Value::Str("myTrades:".into()), symbolResolved);
+            messageHash = format!("{}{}", Value::Str("myTrades:".into()), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut url: Value = self.get_ws_url();
         let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel.clone())).as_map().cloned().unwrap_or_default();
@@ -1720,11 +1720,11 @@ impl Paradex {
         });
         let __ws_arg_6 = self.deep_extend(Value::Map(request), &[params]);
         let mut trades: Value = self.watch(url, messageHash.as_str(), &[__ws_arg_6, Value::from(channel), Value::Map(subscription)]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.clone(), limit);
+            limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

@@ -610,7 +610,7 @@ impl Btcturk {
                         let mut j: i64 = 0;
             let mut __for_first_475: bool = true;
             while { if !__for_first_475 { j += 1; } __for_first_475 = false; j < (filters.len() as i64) } {
-            let mut filter: crate::value::Dict = self.safe_dict(Value::Arr(filters.clone()), Value::Int(j), &[]).into_dict();
+            let mut filter: crate::value::Dict = self.safe_dict(&filters, Value::Int(j), &[]).into_dict();
             let mut filterType: Option<String> = self.safe_string_k(&filter, "filterType", &[]).as_str().map(str::to_owned);
             if (filterType.as_deref() == Some("PRICE_FILTER")) {
                 minPrice = self.safe_number_k(&filter, "minPrice", &[]);
@@ -702,7 +702,7 @@ impl Btcturk {
                         let mut i: i64 = 0;
             let mut __for_first_476: bool = true;
             while { if !__for_first_476 { i += 1; } __for_first_476 = false; i < (data.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "asset", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -1154,11 +1154,11 @@ impl Btcturk {
         let mut tail = get_arg(optional_args, 4, Value::Bool(false));
         let mut results: Vec<Value> = Vec::new();
         let mut timestamp: crate::value::List = self.safe_list_k(ohlcvs.clone(), "t", &[Value::from(vec![])]).into_list();
-        let mut high: Value = self.safe_list_k(ohlcvs.clone(), "h", &[Value::from(vec![])]);
-        let mut open: Value = self.safe_list_k(ohlcvs.clone(), "o", &[Value::from(vec![])]);
-        let mut low: Value = self.safe_list_k(ohlcvs.clone(), "l", &[Value::from(vec![])]);
-        let mut close: Value = self.safe_list_k(ohlcvs.clone(), "c", &[Value::from(vec![])]);
-        let mut volume: Value = self.safe_list_k(ohlcvs, "v", &[Value::from(vec![])]);
+        let mut high: crate::value::List = self.safe_list_k(ohlcvs.clone(), "h", &[Value::from(vec![])]).into_list();
+        let mut open: crate::value::List = self.safe_list_k(ohlcvs.clone(), "o", &[Value::from(vec![])]).into_list();
+        let mut low: crate::value::List = self.safe_list_k(ohlcvs.clone(), "l", &[Value::from(vec![])]).into_list();
+        let mut close: crate::value::List = self.safe_list_k(ohlcvs.clone(), "c", &[Value::from(vec![])]).into_list();
+        let mut volume: crate::value::List = self.safe_list_k(ohlcvs, "v", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_477: bool = true;
@@ -1166,11 +1166,11 @@ impl Btcturk {
             let mut ohlcv: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), self.safe_integer(&timestamp, Value::Int(i), &[]));
-                    m.insert("high".to_string(), self.safe_number(high.clone(), Value::Int(i), &[]));
-                    m.insert("open".to_string(), self.safe_number(open.clone(), Value::Int(i), &[]));
-                    m.insert("low".to_string(), self.safe_number(low.clone(), Value::Int(i), &[]));
-                    m.insert("close".to_string(), self.safe_number(close.clone(), Value::Int(i), &[]));
-                    m.insert("volume".to_string(), self.safe_number(volume.clone(), Value::Int(i), &[]));
+                    m.insert("high".to_string(), self.safe_number(&high, Value::Int(i), &[]));
+                    m.insert("open".to_string(), self.safe_number(&open, Value::Int(i), &[]));
+                    m.insert("low".to_string(), self.safe_number(&low, Value::Int(i), &[]));
+                    m.insert("close".to_string(), self.safe_number(&close, Value::Int(i), &[]));
+                    m.insert("volume".to_string(), self.safe_number(&volume, Value::Int(i), &[]));
                 m
             });
             results.push(self.parse_ohlcv(Value::Map(ohlcv), &[market.clone()]));

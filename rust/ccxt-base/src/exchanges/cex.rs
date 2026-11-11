@@ -716,17 +716,17 @@ impl Cex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut rawNetworks: Value = self.safe_dict_k(rawCurrency.clone(), "blockchains", &[Value::Map({
+        let mut rawNetworks: crate::value::Dict = self.safe_dict_k(rawCurrency.clone(), "blockchains", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut keys: Vec<Value> = Value::Array(rawNetworks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+})]).into_dict();
+        let mut keys: Vec<Value> = Value::Array(rawNetworks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
             let mut __for_first_527: bool = true;
             while { if !__for_first_527 { j += 1; } __for_first_527 = false; j < (keys.len() as i64) } {
             let mut networkId: Value = keys.get(j as usize).cloned().unwrap_or(Value::Null);
-            let mut rawNetwork: Value = self.safe_dict(rawNetworks.clone(), networkId.clone(), &[]);
+            let mut rawNetwork: Value = self.safe_dict(&rawNetworks, networkId.clone(), &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut deposit: Value = Value::Bool(self.safe_string_k(rawNetwork.clone(), "deposit", &[]).as_str() == Some("enabled"));
             let mut withdraw: Value = Value::Bool(self.safe_string_k(rawNetwork.clone(), "withdrawal", &[]).as_str() == Some("enabled"));
@@ -1156,8 +1156,8 @@ impl Cex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Value = self.safe_list_k(&data, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&data, "trades", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1564,11 +1564,11 @@ impl Cex {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut balances: Value = self.safe_dict_k(&data, "balancesPerAccounts", &[Value::Map({
+            let mut balances: crate::value::Dict = self.safe_dict_k(&data, "balancesPerAccounts", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            accountBalance = self.safe_dict(balances, accountName, &[Value::Map({
+            })]).into_dict();
+            accountBalance = self.safe_dict(&balances, accountName, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2390,8 +2390,8 @@ impl Cex {
         //            },
         //            ...
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(data, &[currency, since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&data, &[currency, since, limit]);
         Value::Null
         }).await?))
     }

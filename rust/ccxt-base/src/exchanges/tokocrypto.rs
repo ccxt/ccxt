@@ -1610,8 +1610,8 @@ impl Tokocrypto {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut list: Value = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
-            return self.parse_trades(list, &[market.clone(), since.clone(), limit.clone()]);
+            let mut list: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
+            return self.parse_trades(&list, &[market.clone(), since.clone(), limit.clone()]);
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default = 500, maximum = 1000
@@ -2095,7 +2095,7 @@ impl Tokocrypto {
                         let mut i: i64 = 0;
             let mut __for_first_1127: bool = true;
             while { if !__for_first_1127 { i += 1; } __for_first_1127 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "asset", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -2363,17 +2363,17 @@ impl Tokocrypto {
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // only supported for spot/margin api
-        let mut typeResolved: Value = type_var.clone();
+        let mut typeResolved: String = type_var.as_str().unwrap_or_default().to_string();
         if postOnly {
-            typeResolved = Value::Str("LIMIT_MAKER".into());
+            typeResolved = "LIMIT_MAKER".to_string();
         }
         // post only is expressed by the order type here, not by a time force
         let mut timeInForceResolved: Value = requestedTimeInForce.map(Value::from).unwrap_or(Value::Null);
         if postOnly {
             timeInForceResolved = Value::Null;
         }
-        let mut initialUppercaseType: Value = (if let Some(__s) = typeResolved.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        let mut uppercaseType: Value = initialUppercaseType.clone();
+        let mut initialUppercaseType: String = typeResolved.to_uppercase();
+        let mut uppercaseType: String = initialUppercaseType.clone();
         let mut triggerPrice: Value = self.safe_value2(params, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut paramsRequest: Value = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("timeInForce".into())]), &[]);
         if (triggerPrice != Value::Null) {
@@ -2381,15 +2381,15 @@ impl Tokocrypto {
             if postOnly {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support post only trigger orders, the venue has no post only trigger order type".into()))));
             }
-            if (uppercaseType.as_str() == Some("MARKET")) {
-                uppercaseType = Value::Str("STOP_LOSS".into());
-            }  else if (uppercaseType.as_str() == Some("LIMIT")) {
-                uppercaseType = Value::Str("STOP_LOSS_LIMIT".into());
+            if (uppercaseType == "MARKET") {
+                uppercaseType = "STOP_LOSS".to_string();
+            }  else if (uppercaseType == "LIMIT") {
+                uppercaseType = "STOP_LOSS_LIMIT".to_string();
             }
         }
         let mut validOrderTypes: Value = self.safe_value(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("orderTypes".into()), &[]);
-        if !(self.in_array(uppercaseType.clone(), validOrderTypes).as_bool() == Some(true)) {
-            if (initialUppercaseType.as_str() != uppercaseType.as_str()) {
+        if !(self.in_array(Value::from(uppercaseType.clone()), validOrderTypes).as_bool() == Some(true)) {
+            if (initialUppercaseType != uppercaseType) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" triggerPrice parameter is not allowed for ".into())).into()), symbol).into()), Value::Str(" ".into())).into()), typeResolved).into()), Value::Str(" orders".into()))));
             }  else {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), typeResolved).into()), Value::Str(" is not a valid order type for the ".into())).into()), symbol).into()), Value::Str(" market".into()))));
@@ -2411,7 +2411,7 @@ impl Tokocrypto {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, Value::Str("_".into())).into()), quoteId).into()));
-                m.insert("type".to_string(), self.safe_string(&reverseOrderTypeMapping, uppercaseType.clone(), &[]));
+                m.insert("type".to_string(), self.safe_string(&reverseOrderTypeMapping, Value::from(uppercaseType.clone()), &[]));
             m
         });
         if (side.as_str() == Some("buy")) {
@@ -2446,7 +2446,7 @@ impl Tokocrypto {
         //     TAKE_PROFIT_LIMIT    timeInForce, quantity, price, stopPrice
         //     LIMIT_MAKER          quantity, price
         //
-        if (uppercaseType.as_str() == Some("MARKET")) {
+        if (uppercaseType == "MARKET") {
             if (side.as_str() == Some("buy")) {
                 let mut marketPrecision: indexmap::IndexMap<String, Value> = self.safe_dict_k(market.clone(), "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2476,22 +2476,22 @@ impl Tokocrypto {
             }  else {
                 quantityIsRequired = true;
             }
-        }  else if (uppercaseType.as_str() == Some("LIMIT")) {
+        }  else if (uppercaseType == "LIMIT") {
             priceIsRequired = true;
             quantityIsRequired = true;
             timeInForceIsRequired = true;
-        }  else if (uppercaseType.as_str() == Some("STOP_LOSS")) || (uppercaseType.as_str() == Some("TAKE_PROFIT")) {
+        }  else if (uppercaseType == "STOP_LOSS") || (uppercaseType == "TAKE_PROFIT") {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
             if matches!((self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)])), Value::Bool(true)) || matches!((self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) {
                 priceIsRequired = true;
             }
-        }  else if (uppercaseType.as_str() == Some("STOP_LOSS_LIMIT")) || (uppercaseType.as_str() == Some("TAKE_PROFIT_LIMIT")) {
+        }  else if (uppercaseType == "STOP_LOSS_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT") {
             quantityIsRequired = true;
             triggerPriceIsRequired = true;
             priceIsRequired = true;
             timeInForceIsRequired = true;
-        }  else if (uppercaseType.as_str() == Some("LIMIT_MAKER")) {
+        }  else if (uppercaseType == "LIMIT_MAKER") {
             priceIsRequired = true;
             quantityIsRequired = true;
         }
@@ -2643,8 +2643,8 @@ impl Tokocrypto {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut list: Value = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
-        let mut rawOrder: Value = self.safe_dict(list, Value::Int(0), &[Value::Map({
+        let mut list: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
+        let mut rawOrder: Value = self.safe_dict(&list, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2953,8 +2953,8 @@ impl Tokocrypto {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Value = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3119,8 +3119,8 @@ impl Tokocrypto {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut deposits: Value = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
-        return self.parse_transactions(deposits, &[currency, since, limit]);
+        let mut deposits: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&deposits, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3200,8 +3200,8 @@ impl Tokocrypto {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut withdrawals: Value = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
-        return self.parse_transactions(withdrawals, &[currency, since, limit]);
+        let mut withdrawals: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&withdrawals, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3229,7 +3229,7 @@ impl Tokocrypto {
 }));
             m
         });
-        let mut statuses: crate::value::Dict = self.safe_dict(Value::Map(statusesByType), type_var, &[Value::Map({
+        let mut statuses: crate::value::Dict = self.safe_dict(&statusesByType, type_var, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

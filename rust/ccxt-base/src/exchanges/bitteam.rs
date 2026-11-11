@@ -1013,10 +1013,10 @@ impl Bitteam {
     }
 
     pub fn parse_currency(&self, mut currency: Value) -> Value {
-        let mut statusesResponse: Value = self.safe_dict_k(self.options.clone(), "_temp_currencies_statuses", &[Value::Map({
+        let mut statusesResponse: crate::value::Dict = self.safe_dict_k(self.options.clone(), "_temp_currencies_statuses", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut id: Option<String> = self.safe_string_k(currency.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut numericId: Option<i64> = self.safe_integer_k(currency.clone(), "id", &[]).as_i64();
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -1049,7 +1049,7 @@ impl Bitteam {
                 m
             })]);
         }
-        let mut statuses: crate::value::Dict = self.safe_dict(statusesResponse, Value::from(numericId), &[Value::Map({
+        let mut statuses: crate::value::Dict = self.safe_dict(&statusesResponse, Value::from(numericId), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -2390,13 +2390,13 @@ impl Bitteam {
         let mut bids: Option<crate::value::List> = self.safe_list_k(ticker.clone(), "bids", &[]).into_opt_list();
         let mut asks: Option<crate::value::List> = self.safe_list_k(ticker.clone(), "asks", &[]).into_opt_list();
         if (bids.is_some()) && (asks.is_some()) {
-            let mut bestBid: crate::value::Dict = self.safe_dict(bids.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[Value::Map({
+            let mut bestBid: crate::value::Dict = self.safe_dict(&bids, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
             bestBidPrice = self.safe_string_k(&bestBid, "price", &[]).as_str().map(str::to_owned);
             bestBidVolume = self.safe_string_k(&bestBid, "quantity", &[]).as_str().map(str::to_owned);
-            let mut bestAsk: crate::value::Dict = self.safe_dict(asks.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[Value::Map({
+            let mut bestAsk: crate::value::Dict = self.safe_dict(&asks, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -2657,8 +2657,8 @@ impl Bitteam {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Value = self.safe_list_k(&result, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market, since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&result, "trades", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3024,8 +3024,8 @@ impl Bitteam {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut transactions: Value = self.safe_list_k(&result, "transactions", &[Value::from(vec![])]);
-        return self.parse_transactions(transactions, &[currency, since, limit]);
+        let mut transactions: crate::value::List = self.safe_list_k(&result, "transactions", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&transactions, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3088,8 +3088,8 @@ impl Bitteam {
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "timestamp", &[]).as_i64();
         let mut networkId: Option<String> = self.safe_string_k(transaction.clone(), "blockChain", &[]).as_str().map(str::to_owned);
         if (networkId.is_none()) {
-            let mut links: Value = self.safe_list_k(currencyObject.clone(), "links", &[Value::from(vec![])]);
-            let mut blockChain: crate::value::Dict = self.safe_dict(links, Value::Int(0), &[Value::Map({
+            let mut links: crate::value::List = self.safe_list_k(currencyObject.clone(), "links", &[Value::from(vec![])]).into_list();
+            let mut blockChain: crate::value::Dict = self.safe_dict(&links, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

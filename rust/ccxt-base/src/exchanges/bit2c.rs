@@ -901,11 +901,11 @@ impl Bit2c {
         //         }
         //     }
         //
-        let mut fees: Value = self.safe_dict_k(&response, "Fees", &[Value::Map({
+        let mut fees: crate::value::Dict = self.safe_dict_k(&response, "Fees", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut keys: Vec<Value> = Value::Array(fees.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut keys: Vec<Value> = Value::Array(fees.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -916,7 +916,7 @@ impl Bit2c {
             while { if !__for_first_334 { i += 1; } __for_first_334 = false; i < (keys.len() as i64) } {
             let mut marketId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
-            let mut fee: Value = self.safe_dict(fees.clone(), marketId, &[]);
+            let mut fee: Value = self.safe_dict(&fees, marketId, &[]);
             let mut makerString: Option<String> = self.safe_string_k(fee.clone(), "FeeMaker", &[]).as_str().map(str::to_owned);
             let mut takerString: Option<String> = self.safe_string_k(fee.clone(), "FeeTaker", &[]).as_str().map(str::to_owned);
             let mut maker: Value = self.parse_number(crate::precise::Precise::stringDiv(&makerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);

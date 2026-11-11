@@ -485,11 +485,11 @@ impl Independentreserve {
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)).into());
         let mut orderBook: crate::value::Dict = message.get("Data").cloned().unwrap_or_default().into_dict();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into()), Value::Str(":".into())).into()), depth).into());
-        let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({
+        let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut receivedSnapshot: bool = self.safe_bool_k(subscription.clone(), "receivedSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        })]).into_dict();
+        let mut receivedSnapshot: bool = self.safe_bool_k(&subscription, "receivedSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut timestamp: Option<i64> = (match message.get("Time") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {

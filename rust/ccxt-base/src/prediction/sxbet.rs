@@ -1261,11 +1261,11 @@ impl Sxbet {
         if (spender == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender".into()))));
         }
-        let mut chains: Value = self.safe_dict_k(self.options.clone(), "chains", &[Value::Map({
+        let mut chains: crate::value::Dict = self.safe_dict_k(self.options.clone(), "chains", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut chainConfig: crate::value::Dict = self.safe_dict(chains, self.number_to_string(Value::from(chainId)), &[Value::Map({
+})]).into_dict();
+        let mut chainConfig: crate::value::Dict = self.safe_dict(&chains, self.number_to_string(Value::from(chainId)), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -1567,8 +1567,8 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut results: Value = self.safe_list_k(&data, "orders", &[Value::from(vec![])]);
-        let mut first: crate::value::Dict = self.safe_dict(results, Value::Int(0), &[Value::Map({
+        let mut results: crate::value::List = self.safe_list_k(&data, "orders", &[Value::from(vec![])]).into_list();
+        let mut first: crate::value::Dict = self.safe_dict(&results, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -1649,14 +1649,14 @@ impl Sxbet {
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub fn parse_sxbet_cancel_response(&self, mut response: Value) -> Value {
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut result: Vec<Value> = Vec::new();
         // by-id cancels report 'cancelled'; the /all and /event paths submit asynchronously and
         // report 'cancelledSubmitted' instead - treat both like cancelled
-        let mut cancelled: crate::value::List = self.safe_list2(data.clone(), Value::Str("cancelled".into()), Value::Str("cancelledSubmitted".into()), &[Value::from(vec![])]).into_list();
+        let mut cancelled: crate::value::List = self.safe_list2(&data, Value::Str("cancelled".into()), Value::Str("cancelledSubmitted".into()), &[Value::from(vec![])]).into_list();
         let mut cancelledLength: f64 = ((cancelled.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
@@ -1671,7 +1671,7 @@ impl Sxbet {
 }), &[]));
         }
         }
-        let mut notCancelled: crate::value::List = self.safe_list_k(data.clone(), "notCancelled", &[Value::from(vec![])]).into_list();
+        let mut notCancelled: crate::value::List = self.safe_list_k(&data, "notCancelled", &[Value::from(vec![])]).into_list();
         let mut notCancelledLength: f64 = ((notCancelled.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
@@ -1687,7 +1687,7 @@ impl Sxbet {
 }), &[]));
         }
         }
-        let mut unconfirmed: crate::value::List = self.safe_list_k(data, "unconfirmed", &[Value::from(vec![])]).into_list();
+        let mut unconfirmed: crate::value::List = self.safe_list_k(&data, "unconfirmed", &[Value::from(vec![])]).into_list();
         let mut unconfirmedLength: f64 = ((unconfirmed.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
@@ -2389,7 +2389,7 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_1512: bool = true;
             while { if !__for_first_1512 { i += 1; } __for_first_1512 = false; (i as f64) < balancesLength } {
-            let mut row: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
+            let mut row: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut tokenAddress: String = self.safe_string_lower_k(&row, "tokenAddress", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // every sxbet market is denominated in the active base token, surfaced under 'USDC';
             // rows of any other token keep their contract address for the code
@@ -2810,13 +2810,13 @@ impl Sxbet {
         let __snapshot_empty = indexmap::IndexMap::new();
         let snapshot = snapshot.as_map().unwrap_or(&__snapshot_empty);
         // levels arrive sorted best-first; the best level's odds mirror the v2 best-odds fields
-        let mut oneLevels: Value = (match snapshot.get("outcomeOne") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut twoLevels: Value = (match snapshot.get("outcomeTwo") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut bestOne: crate::value::Dict = self.safe_dict(oneLevels, Value::Int(0), &[Value::Map({
+        let mut oneLevels: crate::value::List = snapshot.get("outcomeOne").cloned().unwrap_or_default().into_list();
+        let mut twoLevels: crate::value::List = snapshot.get("outcomeTwo").cloned().unwrap_or_default().into_list();
+        let mut bestOne: crate::value::Dict = self.safe_dict(&oneLevels, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut bestTwo: crate::value::Dict = self.safe_dict(twoLevels, Value::Int(0), &[Value::Map({
+        let mut bestTwo: crate::value::Dict = self.safe_dict(&twoLevels, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -3265,8 +3265,8 @@ impl Sxbet {
         if (connectSent == Value::Null) {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(false)); }
             let mut token: Value = self.fetch_sxbet_realtime_token().await;
-            let mut requestId: Value = self.request_id(url.clone());
-            self.register_sxbet_ws_request(requestId.clone(), Value::Str("centrifugoConnected".into()), Value::Str("connect".into()));
+            let mut requestId: i64 = self.request_id(url.clone()).as_i64().unwrap_or_default();
+            self.register_sxbet_ws_request(Value::from(requestId), Value::Str("centrifugoConnected".into()), Value::Str("connect".into()));
             let mut connectMsg: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("connect".to_string(), Value::Map({
@@ -3275,7 +3275,7 @@ impl Sxbet {
         m.insert("name".to_string(), Value::Str("ccxt".into()));
     m
 }));
-                    m.insert("id".to_string(), requestId);
+                    m.insert("id".to_string(), Value::from(requestId));
                 m
             });
             return self.watch(url, Value::Str("centrifugoConnected".into()), &[Value::Map(connectMsg), Value::Str("connect".into())]).await;
@@ -3300,8 +3300,8 @@ impl Sxbet {
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         // finish the connect handshake first so the subscribe frame follows the connect reply
         self.connect_sxbet_centrifugo(url.clone().map(Value::from).unwrap_or(Value::Null)).await;
-        let mut requestId: Value = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
-        self.register_sxbet_ws_request(requestId.clone(), messageHash.clone(), channel.clone());
+        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null)).as_i64().unwrap_or_default();
+        self.register_sxbet_ws_request(Value::from(requestId), messageHash.clone(), channel.clone());
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
@@ -3309,7 +3309,7 @@ impl Sxbet {
         m.insert("channel".to_string(), channel.clone());
     m
 }));
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
             m
         });
         return self.watch(url.as_deref(), messageHash, &[Value::Map(subscribeMsg), channel]).await;
@@ -3476,8 +3476,8 @@ impl Sxbet {
                 if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), emptyBook); }
             }
         }
-        let mut requestId: Value = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
-        self.register_sxbet_ws_request(requestId.clone(), Value::from(messageHash.clone()), Value::from(channel.clone()));
+        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null)).as_i64().unwrap_or_default();
+        self.register_sxbet_ws_request(Value::from(requestId), Value::from(messageHash.clone()), Value::from(channel.clone()));
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
@@ -3485,7 +3485,7 @@ impl Sxbet {
         m.insert("channel".to_string(), Value::from(channel.clone()));
     m
 }));
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
             m
         });
         let mut future: Value = self.watch(url.as_deref(), messageHash.as_str(), &[Value::Map(subscribeMsg), Value::from(channel)]).await;
@@ -3642,8 +3642,8 @@ impl Sxbet {
             self.set_ws_option(Value::Str("wsTickers".into()), Value::from(sym.clone()), ticker);
             hydrated = true;
         }
-        let mut requestId: Value = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
-        self.register_sxbet_ws_request(requestId.clone(), Value::from(messageHash.clone()), Value::from(channel.clone()));
+        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null)).as_i64().unwrap_or_default();
+        self.register_sxbet_ws_request(Value::from(requestId), Value::from(messageHash.clone()), Value::from(channel.clone()));
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
@@ -3651,7 +3651,7 @@ impl Sxbet {
         m.insert("channel".to_string(), Value::from(channel.clone()));
     m
 }));
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
             m
         });
         let mut future: Value = self.watch(url.as_deref(), messageHash.as_str(), &[Value::Map(subscribeMsg), Value::from(channel)]).await;

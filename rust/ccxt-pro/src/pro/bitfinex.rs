@@ -460,11 +460,11 @@ impl Bitfinex {
         // not using subscribe here because this message has a different format
         let __ws_arg_2 = self.deep_extend(Value::Map(request), &[params]);
         let mut ohlcv: Value = self.watch(url, &messageHash[..], &[__ws_arg_2, Value::from(messageHash.clone())]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue, limit);
+            limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -641,11 +641,11 @@ impl Bitfinex {
     m
 }));
         let mut trades: Value = self.subscribe(Value::Str("trades".into()), symbol.clone(), &[params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbol, limit);
+            limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -707,11 +707,11 @@ impl Bitfinex {
             messageHash = format!("{}{}", Value::Str("myTrade:".into()), marketId);
         }
         let mut trades: Value = self.subscribe_private(Value::from(messageHash)).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbol.clone(), limit);
+            limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbol, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbol, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -869,7 +869,7 @@ impl Bitfinex {
                     &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                 let mut parsed: Value = self.parse_ws_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("result".to_string(), self.safe_list(Value::Arr(trades.clone()), index, &[]));
+        m.insert("result".to_string(), self.safe_list(&trades, index, &[]));
     m
 }), &[market.clone()]);
                 stored.append(parsed.clone());
@@ -1209,7 +1209,7 @@ impl Bitfinex {
                                         let mut i: i64 = 0;
                     let mut __for_first_104: bool = true;
                     while { if !__for_first_104 { i += 1; } __for_first_104 = false; i < (deltas.len() as i64) } {
-                    let mut delta: Value = self.safe_list(Value::Arr(deltas.clone()), Value::Int(i), &[]);
+                    let mut delta: Value = self.safe_list(&deltas, Value::Int(i), &[]);
                     let mut deltaAmount: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
                     if (deltaAmount == Value::Null) {
                         continue;
@@ -1279,12 +1279,12 @@ impl Bitfinex {
             let mut bid: Option<crate::value::List> = self.safe_list(bids.clone(), Value::Int(i), &[]).into_opt_list();
             let mut ask: Option<crate::value::List> = self.safe_list(asks.clone(), Value::Int(i), &[]).into_opt_list();
             if (bid.is_some()) {
-                stringArray.push(self.number_to_string(self.safe_number(bid.clone().map_or(Value::Null, Value::Arr), Value::from(idToCheck), &[])));
-                stringArray.push(self.number_to_string(self.safe_number(bid.clone().map_or(Value::Null, Value::Arr), Value::Int(1), &[])));
+                stringArray.push(self.number_to_string(self.safe_number(&bid, Value::from(idToCheck), &[])));
+                stringArray.push(self.number_to_string(self.safe_number(&bid, Value::Int(1), &[])));
             }
             if (ask.is_some()) {
-                stringArray.push(self.number_to_string(self.safe_number(ask.clone().map_or(Value::Null, Value::Arr), Value::from(idToCheck), &[])));
-                let mut aski1: Value = self.safe_number(ask.clone().map_or(Value::Null, Value::Arr), Value::Int(1), &[]);
+                stringArray.push(self.number_to_string(self.safe_number(&ask, Value::from(idToCheck), &[])));
+                let mut aski1: Value = self.safe_number(&ask, Value::Int(1), &[]);
                 if (aski1 != Value::Null) {
                     stringArray.push(self.number_to_string((match &(aski1) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null })));
                 }
@@ -1644,11 +1644,11 @@ impl Bitfinex {
             messageHash = format!("{}{}", Value::Str("orders:".into()), marketId);
         }
         let mut orders: Value = self.subscribe_private(Value::from(messageHash)).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbol.clone(), limit);
+            limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbol, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

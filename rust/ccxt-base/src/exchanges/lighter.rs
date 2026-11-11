@@ -956,9 +956,9 @@ impl Lighter {
 }
 
     pub fn get_lighter_private_key(&self, mut strAccountIndex: Value, mut strApiKeyIndex: Value) -> Value {
-        let mut auths: Value = self.safe_dict_k(self.options.clone(), "auths", &[]);
-        let mut accountAuths: Value = self.safe_dict(auths, strAccountIndex, &[]);
-        let mut apiKeyAuths: crate::value::Dict = self.safe_dict(accountAuths, strApiKeyIndex, &[]).into_dict();
+        let mut auths: crate::value::Dict = self.safe_dict_k(self.options.clone(), "auths", &[]).into_dict();
+        let mut accountAuths: crate::value::Dict = self.safe_dict(&auths, strAccountIndex, &[]).into_dict();
+        let mut apiKeyAuths: crate::value::Dict = self.safe_dict(&accountAuths, strApiKeyIndex, &[]).into_dict();
         return self.safe_string_k(&apiKeyAuths, "lighterPrivateKey", &[]);
 
     Value::Null
@@ -1075,7 +1075,7 @@ impl Lighter {
             //
             let mut subAccounts: Option<crate::value::List> = self.safe_list_k(&res, "sub_accounts", &[]).into_opt_list();
             if (subAccounts.is_some()) {
-                let mut account: Option<crate::value::Dict> = self.safe_dict(subAccounts.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[]).into_opt_dict();
+                let mut account: Option<crate::value::Dict> = self.safe_dict(&subAccounts, Value::Int(0), &[]).into_opt_dict();
                 if (account.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName1).into()),
                         Value::Str("() requires an ".into())).into()), optionName1).into()), Value::Str(" or ".into())).into()), optionName2).into()), Value::Str(" parameter".into()))));
@@ -1148,9 +1148,9 @@ impl Lighter {
 }), Value::Str("createAuth".into()), Value::Str("accountIndex".into()), Value::Str("account_index".into()), &[]);
             accountIndex = self.safe_string(res, Value::Int(0), &[]).as_str().map(str::to_owned);
         }
-        let mut auths: Value = self.safe_dict_k(self.options.clone(), "auths", &[]);
-        let mut accountAuths: Value = self.safe_dict(auths, accountIndex.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut cachedAuth: crate::value::Dict = self.safe_dict(accountAuths, apiKeyIndex.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+        let mut auths: crate::value::Dict = self.safe_dict_k(self.options.clone(), "auths", &[]).into_dict();
+        let mut accountAuths: crate::value::Dict = self.safe_dict(&auths, accountIndex.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+        let mut cachedAuth: crate::value::Dict = self.safe_dict(&accountAuths, apiKeyIndex.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
         let mut cachedDeadline: Value = self.safe_integer_k(&cachedAuth, "deadline", &[]);
         let mut minimumRemaining: Value = self.safe_integer_k(self.options.clone(), "authDeadlineMinimumRemaining", &[Value::Int(60)]);
         if (cachedDeadline != Value::Null) && (minimumRemaining != Value::Null) && ((match (&(cachedDeadline), &(minimumRemaining)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
@@ -1493,10 +1493,10 @@ if _try_result.is_err() {
         let mut triggerPrice: Option<String> = self.safe_string2(paramsOrderExpiry.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
         let mut stopLossPrice: Option<String> = self.safe_string_k(paramsOrderExpiry.clone(), "stopLossPrice", &[triggerPrice.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut takeProfitPrice: Option<String> = self.safe_string_k(paramsOrderExpiry.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
-        let mut stopLoss: Value = self.safe_dict_k(paramsOrderExpiry.clone(), "stopLoss", &[]);
-        let mut takeProfit: Value = self.safe_dict_k(paramsOrderExpiry.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: bool = stopLoss != Value::Null;
-        let mut hasTakeProfit: bool = takeProfit != Value::Null;
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(paramsOrderExpiry.clone(), "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsOrderExpiry.clone(), "takeProfit", &[]).into_opt_dict();
+        let mut hasStopLoss: bool = stopLoss.is_some();
+        let mut hasTakeProfit: bool = takeProfit.is_some();
         let mut isConditional: bool = (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
         let mut isMarketOrder: Value = (Value::Bool(orderType.as_str() == Some("MARKET")));
         let mut timeInForce: Option<String> = self.safe_string_lower_k(paramsOrderExpiry.clone(), "timeInForce", &[Value::Str("gtt".into())]).as_str().map(str::to_owned);
@@ -1540,8 +1540,8 @@ if _try_result.is_err() {
         let mut triggerPriceStr: Option<String> = Some("0".to_string()); // default is 0
         let mut defaultClientOrderId: Value = self.rand_number(Value::Int(9)); // c# only support int32 2147483647.
         let mut clientOrderId: Value = self.safe_integer2(paramsOmitted.clone(), Value::Str("client_order_index".into()), Value::Str("clientOrderId".into()), &[defaultClientOrderId]);
-        let mut paramsRequest: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("nonce".into()), Value::Str("apiKeyIndex".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()),
-            Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("client_order_index".into()), Value::Str("clientOrderId".into())]), &[]);
+        let mut paramsRequest: crate::value::Dict = self.omit(paramsOmitted, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("nonce".into()), Value::Str("apiKeyIndex".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()),
+            Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("client_order_index".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
         if isConditional {
             amountStr = self.number_to_string(amount.clone());
             if (stopLossPrice.is_some()) {
@@ -1576,7 +1576,7 @@ if _try_result.is_err() {
             request.insert("integrator_maker_fee".into(), self.safe_integer_k(self.options.clone(), "integratorMakerFee", &[]));
         }
         let mut orders: Vec<Value> = Vec::new();
-        let mut firstOrder: Value = self.extend(Value::Map(request), &[paramsRequest.clone()]);
+        let mut firstOrder: Value = self.extend(Value::Map(request), &[&paramsRequest]);
         orders.push(firstOrder.clone());
         if hasStopLoss || hasTakeProfit {
             // group order
@@ -1587,15 +1587,15 @@ if _try_result.is_err() {
             }  else {
                 triggerOrderSide = "buy".to_string();
             }
-            let mut stopLossOrderTriggerPrice: Option<f64> = self.safe_number2(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
-            let mut stopLossOrderType: String = self.safe_string_k(stopLoss.clone(), "type", &[Value::Str("limit".into())]).as_str().unwrap_or("limit").to_string();
-            let mut stopLossOrderLimitPrice: Option<f64> = self.safe_number2(stopLoss.clone(), Value::Str("price".into()), Value::Str("stopLossPrice".into()), &[Value::from(stopLossOrderTriggerPrice)]).as_f64();
-            let mut takeProfitOrderTriggerPrice: Option<f64> = self.safe_number2(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
-            let mut takeProfitOrderType: String = self.safe_string_k(takeProfit.clone(), "type", &[Value::Str("limit".into())]).as_str().unwrap_or("limit").to_string();
-            let mut takeProfitOrderLimitPrice: Option<f64> = self.safe_number2(takeProfit.clone(), Value::Str("price".into()), Value::Str("takeProfitPrice".into()), &[Value::from(takeProfitOrderTriggerPrice)]).as_f64();
+            let mut stopLossOrderTriggerPrice: Option<f64> = self.safe_number2(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
+            let mut stopLossOrderType: String = self.safe_string_k(&stopLoss, "type", &[Value::Str("limit".into())]).as_str().unwrap_or("limit").to_string();
+            let mut stopLossOrderLimitPrice: Option<f64> = self.safe_number2(&stopLoss, Value::Str("price".into()), Value::Str("stopLossPrice".into()), &[Value::from(stopLossOrderTriggerPrice)]).as_f64();
+            let mut takeProfitOrderTriggerPrice: Option<f64> = self.safe_number2(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
+            let mut takeProfitOrderType: String = self.safe_string_k(&takeProfit, "type", &[Value::Str("limit".into())]).as_str().unwrap_or("limit").to_string();
+            let mut takeProfitOrderLimitPrice: Option<f64> = self.safe_number2(&takeProfit, Value::Str("price".into()), Value::Str("takeProfitPrice".into()), &[Value::from(takeProfitOrderTriggerPrice)]).as_f64();
             // amount should be 0 for child orders
-            if (stopLoss != Value::Null) {
-                let __ws_arg_9 = self.create_order_request(symbol.clone(), Value::from(stopLossOrderType), Value::from(triggerOrderSide.clone()), Value::Int(0), &[Value::from(stopLossOrderLimitPrice), self.extend(paramsRequest.clone(), &[Value::Map({
+            if (stopLoss.is_some()) {
+                let __ws_arg_9 = self.create_order_request(symbol.clone(), Value::from(stopLossOrderType), Value::from(triggerOrderSide.clone()), Value::Int(0), &[Value::from(stopLossOrderLimitPrice), self.extend(&paramsRequest, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stopLossPrice".to_string(), Value::from(stopLossOrderTriggerPrice));
         m.insert("reduceOnly".to_string(), Value::Bool(true));
@@ -1608,7 +1608,7 @@ if _try_result.is_err() {
                 if let Value::Dict(__d) = &mut orderObj { std::sync::Arc::make_mut(__d).insert("client_order_index".into(), Value::Int(0)); }
                 orders.push(orderObj.clone());
             }
-            if (takeProfit != Value::Null) {
+            if (takeProfit.is_some()) {
                 let __ws_arg_10 = self.create_order_request(symbol, Value::from(takeProfitOrderType), Value::from(triggerOrderSide), Value::Int(0), &[Value::from(takeProfitOrderLimitPrice), self.extend(paramsRequest, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("takeProfitPrice".to_string(), Value::from(takeProfitOrderTriggerPrice));
@@ -2847,14 +2847,14 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_934: bool = true;
             while { if !__for_first_934 { i += 1; } __for_first_934 = false; i < (accounts.len() as i64) } {
-            let mut account: crate::value::Dict = self.safe_dict(Value::Arr(accounts.clone()), Value::Int(i), &[]).into_dict();
+            let mut account: crate::value::Dict = self.safe_dict(&accounts, Value::Int(i), &[]).into_dict();
             if (type_var.as_deref() == Some("spot")) {
                 let mut assets: crate::value::List = self.safe_list_k(&account, "assets", &[Value::from(vec![])]).into_list();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_933: bool = true;
                     while { if !__for_first_933 { j += 1; } __for_first_933 = false; j < (assets.len() as i64) } {
-                    let mut asset: crate::value::Dict = self.safe_dict(Value::Arr(assets.clone()), Value::Int(j), &[]).into_dict();
+                    let mut asset: crate::value::Dict = self.safe_dict(&assets, Value::Int(j), &[]).into_dict();
                     let mut codeId: Option<String> = self.safe_string_k(&asset, "symbol", &[]).as_str().map(str::to_owned);
                     let mut code: Value = self.safe_currency_code(codeId.map(Value::from).unwrap_or(Value::Null), &[]);
                     let __ws_arg_17 = self.account();
@@ -3014,7 +3014,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_936: bool = true;
             while { if !__for_first_936 { i += 1; } __for_first_936 = false; i < (accounts.len() as i64) } {
-            let mut account: crate::value::Dict = self.safe_dict(Value::Arr(accounts.clone()), Value::Int(i), &[]).into_dict();
+            let mut account: crate::value::Dict = self.safe_dict(&accounts, Value::Int(i), &[]).into_dict();
             let mut positions: crate::value::List = self.safe_list_k(&account, "positions", &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
@@ -3176,8 +3176,8 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut accounts: Value = self.safe_list_k(&response, "accounts", &[Value::from(vec![])]);
-        return self.parse_accounts(accounts, &[paramsAccountIndex]);
+        let mut accounts: crate::value::List = self.safe_list_k(&response, "accounts", &[Value::from(vec![])]).into_list();
+        return self.parse_accounts(&accounts, &[paramsAccountIndex]);
         Value::Null
         }).await?))
     }
@@ -4215,8 +4215,8 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut trades: Value = self.safe_list_k(&response, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&response, "trades", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

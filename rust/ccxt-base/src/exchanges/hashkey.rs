@@ -1679,10 +1679,10 @@ impl Hashkey {
             amountMaxLimitString = crate::precise::Precise::stringDiv(&amountMaxLimitString.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut riskLimits: Option<crate::value::List> = self.safe_list_k(market.clone(), "riskLimits", &[]).into_opt_list();
             if (riskLimits.is_some()) {
-                let mut first: crate::value::Dict = self.safe_dict(riskLimits.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[]).into_dict();
+                let mut first: crate::value::Dict = self.safe_dict(&riskLimits, Value::Int(0), &[]).into_dict();
                 let mut arrayLength: Value = Value::Int(riskLimits.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64);
-                let mut last: crate::value::Dict = self.safe_dict(riskLimits.clone().map_or(Value::Null, Value::Arr), (match (&(arrayLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64),
-                    (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).into_dict();
+                let mut last: crate::value::Dict = self.safe_dict(&riskLimits, (match (&(arrayLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+                    Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).into_dict();
                 let mut minInitialMargin: Option<String> = self.safe_string_k(&first, "initialMargin", &[]).as_str().map(str::to_owned);
                 let mut maxInitialMargin: Option<String> = self.safe_string_k(&last, "initialMargin", &[]).as_str().map(str::to_owned);
                 if crate::precise::Precise::stringGt(&minInitialMargin.clone().map(Value::from).unwrap_or(Value::Null), &maxInitialMargin.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
@@ -2568,7 +2568,7 @@ impl Hashkey {
                         let mut i: i64 = 0;
             let mut __for_first_727: bool = true;
             while { if !__for_first_727 { i += 1; } __for_first_727 = false; i < (balances.len() as i64) } {
-            let mut balanceEntry: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
+            let mut balanceEntry: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balanceEntry, "asset", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3739,7 +3739,7 @@ impl Hashkey {
                         let mut i: i64 = 0;
             let mut __for_first_729: bool = true;
             while { if !__for_first_729 { i += 1; } __for_first_729 = false; i < (result.len() as i64) } {
-            let mut responseEntry: crate::value::Dict = self.safe_dict(Value::Arr(result.clone()), Value::Int(i), &[Value::Map({
+            let mut responseEntry: crate::value::Dict = self.safe_dict(&result, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -5430,7 +5430,7 @@ impl Hashkey {
                         let mut i: i64 = 0;
             let mut __for_first_732: bool = true;
             while { if !__for_first_732 { i += 1; } __for_first_732 = false; i < (data.len() as i64) } {
-            let mut fee: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[Value::Map({
+            let mut fee: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5592,7 +5592,7 @@ impl Hashkey {
                                 let mut i: i64 = 0;
                 let mut __for_first_733: bool = true;
                 while { if !__for_first_733 { i += 1; } __for_first_733 = false; i < (result.len() as i64) } {
-                let mut entry: crate::value::Dict = self.safe_dict(Value::Arr(result.clone()), Value::Int(i), &[]).into_dict();
+                let mut entry: crate::value::Dict = self.safe_dict(&result, Value::Int(i), &[]).into_dict();
                 let mut entryCodeInteger: Option<i64> = self.safe_integer_k(&entry, "code", &[]).as_i64();
                 if (entryCodeInteger != Some(0)) {
                     errorInArray = true;

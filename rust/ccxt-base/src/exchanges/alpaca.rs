@@ -1424,11 +1424,11 @@ impl Alpaca {
         //       }
         //   }
         //
-        let mut orderbooks: Value = self.safe_dict_k(&response, "orderbooks", &[Value::Map({
+        let mut orderbooks: crate::value::Dict = self.safe_dict_k(&response, "orderbooks", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut rawOrderbook: Value = self.safe_dict(orderbooks, id.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+        })]).into_dict();
+        let mut rawOrderbook: Value = self.safe_dict(&orderbooks, id.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1750,18 +1750,18 @@ impl Alpaca {
         //     }
         //
         let mut results: Vec<Value> = Vec::new();
-        let mut snapshots: Value = self.safe_dict_k(&response, "snapshots", &[Value::Map({
+        let mut snapshots: crate::value::Dict = self.safe_dict_k(&response, "snapshots", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut marketIds: Vec<Value> = Value::Array(snapshots.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut marketIds: Vec<Value> = Value::Array(snapshots.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_221: bool = true;
             while { if !__for_first_221 { i += 1; } __for_first_221 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
-            let mut entry: Value = self.safe_dict(snapshots.clone(), marketId, &[]);
+            let mut entry: Value = self.safe_dict(&snapshots, marketId, &[]);
             let mut dailyBar: crate::value::Dict = self.safe_dict_k(entry.clone(), "dailyBar", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2513,7 +2513,7 @@ impl Alpaca {
             request.insert("page_size".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("until".into()), Value::Map(request), &paramsOmitted, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_18 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.trader_private_get_v2_account_activities_activity_type(&[__ws_arg_18]).await;
@@ -3178,7 +3178,7 @@ impl Alpaca {
                         let mut i: i64 = 0;
             let mut __for_first_224: bool = true;
             while { if !__for_first_224 { i += 1; } __for_first_224 = false; i < (positions.len() as i64) } {
-            let mut position: crate::value::Dict = self.safe_dict(Value::Arr(positions.clone()), Value::Int(i), &[]).into_dict();
+            let mut position: crate::value::Dict = self.safe_dict(&positions, Value::Int(i), &[]).into_dict();
             let mut positionSymbol: Value = self.safe_string_k(&position, "symbol", &[Value::Str("".into())]);
             if (positionSymbol.as_str() == Some("")) {
                 continue;

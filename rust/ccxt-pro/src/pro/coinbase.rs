@@ -826,7 +826,7 @@ impl Coinbase {
                         let mut i: i64 = 0;
             let mut __for_first_226: bool = true;
             while { if !__for_first_226 { i += 1; } __for_first_226 = false; i < (events.len() as i64) } {
-            let mut tickersObj: crate::value::Dict = self.safe_dict(Value::Arr(events.clone()), Value::Int(i), &[]).into_dict();
+            let mut tickersObj: crate::value::Dict = self.safe_dict(&events, Value::Int(i), &[]).into_dict();
             let mut tickers: crate::value::List = self.safe_list_k(&tickersObj, "tickers", &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
@@ -939,14 +939,14 @@ impl Coinbase {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = self.symbol(symbol.clone());
+        let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
         let mut name: String = "candles".to_string();
-        let mut ohlcv: Value = self.subscribe(Value::from(name), &[Value::Bool(false), symbolValue.clone(), params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut ohlcv: Value = self.subscribe(Value::from(name), &[Value::Bool(false), symbolValue.clone().map(Value::from).unwrap_or(Value::Null), params]).await;
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue, limit);
+            limitResolved = ohlcv.get_limit(symbolValue.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1039,14 +1039,14 @@ impl Coinbase {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = self.symbol(symbol.clone());
+        let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
         let mut name: String = "market_trades".to_string();
-        let mut trades: Value = self.subscribe(Value::from(name), &[Value::Bool(false), symbolValue.clone(), params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut trades: Value = self.subscribe(Value::from(name), &[Value::Bool(false), symbolValue.clone().map(Value::from).unwrap_or(Value::Null), params]).await;
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue, limit);
+            limitResolved = trades.get_limit(symbolValue.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1110,12 +1110,12 @@ impl Coinbase {
         let mut name: String = "market_trades".to_string();
         let mut trades: Value = self.subscribe_multiple(Value::from(name), &[Value::Bool(false), symbols, params]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
-        let mut limitResolved: Value = limit.clone();
+        let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
+            limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1178,11 +1178,11 @@ impl Coinbase {
         }
         let mut name: String = "user".to_string();
         let mut orders: Value = self.subscribe(Value::from(name), &[Value::Bool(true), symbol.clone(), params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbol, limit);
+            limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(orders, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1342,9 +1342,9 @@ impl Coinbase {
         if (events.is_none()) {
             return;
         }
-        let mut event: crate::value::Dict = self.safe_dict(events.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[]).into_dict();
-        let mut trades: Value = self.safe_list_k(&event, "trades", &[]);
-        let mut trade: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut event: crate::value::Dict = self.safe_dict(&events, Value::Int(0), &[]).into_dict();
+        let mut trades: crate::value::List = self.safe_list_k(&event, "trades", &[]).into_list();
+        let mut trade: crate::value::Dict = self.safe_dict(&trades, Value::Int(0), &[]).into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&trade, "product_id", &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut messageHash: String = format!("{}{}", Value::Str("market_trades::".into()), symbol);
@@ -1358,7 +1358,7 @@ impl Coinbase {
                         let mut i: i64 = 0;
             let mut __for_first_230: bool = true;
             while { if !__for_first_230 { i += 1; } __for_first_230 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let mut currentEvent: crate::value::Dict = self.safe_dict(events.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]).into_dict();
+            let mut currentEvent: crate::value::Dict = self.safe_dict(&events, Value::Int(i), &[]).into_dict();
             let mut currentTrades: Value = self.safe_list_k(&currentEvent, "trades", &[]);
             if (currentTrades == Value::Null) {
                 continue;
@@ -1424,7 +1424,7 @@ impl Coinbase {
                         let mut i: i64 = 0;
             let mut __for_first_232: bool = true;
             while { if !__for_first_232 { i += 1; } __for_first_232 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let mut event: crate::value::Dict = self.safe_dict(events.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]).into_dict();
+            let mut event: crate::value::Dict = self.safe_dict(&events, Value::Int(i), &[]).into_dict();
             let mut responseOrders: Option<crate::value::List> = self.safe_list_k(&event, "orders", &[]).into_opt_list();
             if (responseOrders.is_none()) {
                 continue;
@@ -1576,7 +1576,7 @@ impl Coinbase {
                         let mut i: i64 = 0;
             let mut __for_first_235: bool = true;
             while { if !__for_first_235 { i += 1; } __for_first_235 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let mut event: crate::value::Dict = self.safe_dict(events.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]).into_dict();
+            let mut event: crate::value::Dict = self.safe_dict(&events, Value::Int(i), &[]).into_dict();
             let mut updates: Value = self.safe_list_k(&event, "updates", &[Value::from(vec![])]);
             let mut marketId: Option<String> = self.safe_string_k(&event, "product_id", &[]).as_str().map(str::to_owned);
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
@@ -1646,8 +1646,8 @@ impl Coinbase {
         //        events: [ { subscriptions: {} } ]
         //      }
         //
-        let mut events: Value = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-        let mut firstEvent: crate::value::Dict = self.safe_dict(events, Value::Int(0), &[Value::Map({
+        let mut events: crate::value::List = __pro_message.get("events").cloned().unwrap_or_default().into_list();
+        let mut firstEvent: crate::value::Dict = self.safe_dict(&events, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();

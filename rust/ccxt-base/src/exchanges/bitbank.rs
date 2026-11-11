@@ -902,8 +902,8 @@ impl Bitbank {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Value = self.safe_list_k(&data, "transactions", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&data, "transactions", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1071,8 +1071,8 @@ impl Bitbank {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut candlestick: Value = self.safe_list_k(&data, "candlestick", &[Value::from(vec![])]);
-        let mut first: crate::value::Dict = self.safe_dict(candlestick, Value::Int(0), &[Value::Map({
+        let mut candlestick: crate::value::List = self.safe_list_k(&data, "candlestick", &[Value::from(vec![])]).into_list();
+        let mut first: crate::value::Dict = self.safe_dict(&candlestick, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -1099,7 +1099,7 @@ impl Bitbank {
                         let mut i: i64 = 0;
             let mut __for_first_337: bool = true;
             while { if !__for_first_337 { i += 1; } __for_first_337 = false; i < (assets.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(assets.clone()), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&assets, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "asset", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -1474,8 +1474,8 @@ impl Bitbank {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Value = self.safe_list_k(&data, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market, since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&data, "trades", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1516,8 +1516,8 @@ impl Bitbank {
     m
 })]).into_dict();
         // Not sure about this if there could be more than one account...
-        let mut accounts: Value = self.safe_list_k(&data, "accounts", &[Value::from(vec![])]);
-        let mut firstAccount: crate::value::Dict = self.safe_dict(accounts, Value::Int(0), &[Value::Map({
+        let mut accounts: crate::value::List = self.safe_list_k(&data, "accounts", &[Value::from(vec![])]).into_list();
+        let mut firstAccount: crate::value::Dict = self.safe_dict(&accounts, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

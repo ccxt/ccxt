@@ -488,9 +488,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_716: bool = true;
             while { if !__for_first_716 { i += 1; } __for_first_716 = false; i < (obBids.len() as i64) } {
-            let mut bid: Value = self.safe_list(Value::Arr(obBids.clone()), Value::Int(i), &[]);
-            let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
-            let mut quantity: Value = self.safe_number(bid, Value::Int(1), &[]);
+            let mut bid: crate::value::List = self.safe_list(&obBids, Value::Int(i), &[]).into_list();
+            let mut price: Value = self.safe_number(&bid, Value::Int(0), &[]);
+            let mut quantity: Value = self.safe_number(&bid, Value::Int(1), &[]);
             bids.store(price.clone(), quantity.clone());
         }
         }
@@ -498,9 +498,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_717: bool = true;
             while { if !__for_first_717 { i += 1; } __for_first_717 = false; i < (obAsks.len() as i64) } {
-            let mut ask: Value = self.safe_list(Value::Arr(obAsks.clone()), Value::Int(i), &[]);
-            let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
-            let mut quantity: Value = self.safe_number(ask, Value::Int(1), &[]);
+            let mut ask: crate::value::List = self.safe_list(&obAsks, Value::Int(i), &[]).into_list();
+            let mut price: Value = self.safe_number(&ask, Value::Int(0), &[]);
+            let mut quantity: Value = self.safe_number(&ask, Value::Int(1), &[]);
             asks.store(price, quantity);
         }
         }
@@ -639,7 +639,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             tradeType = "contract".to_string();
         }
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), tradeType);
-        let mut request: Value = self.extend(Value::Map(unsubscribe), &[&paramsMarketType]);
+        let mut request: crate::value::Dict = self.extend(Value::Map(unsubscribe), &[&paramsMarketType]).into_dict();
         let mut tail: Value = access;
         if isContract {
             tail = (if privateAccess { Value::Str("user".into()) } else { Value::Str("market".into()) });
@@ -865,11 +865,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut ohlcv: Value = self.subscribe(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline@".into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into()), Value::Str(",".into())).into()), timeframe).into()), Value::Str("public".into()), Value::Str("watchOHLCV".into()), &[market, Value::Null, params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbol, limit);
+            limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -943,11 +943,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut trades: Value = self.subscribe(Value::Str(format!("{}{}", Value::Str("trade@".into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into()), Value::Str("public".into()), Value::Str("watchTrades".into()), &[market, Value::Null, params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbol, limit);
+            limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -1102,11 +1102,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut orders: Value = self.subscribe(Value::from(name), Value::Str("private".into()), Value::Str("watchOrders".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), Value::Null, params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbol, limit);
+            limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, &[since, limitResolved, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(orders, &[since, Value::from(limitResolved), Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -1145,11 +1145,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut trades: Value = self.subscribe(Value::from(name), Value::Str("private".into()), Value::Str("watchMyTrades".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), Value::Null, params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbol, limit);
+            limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -1605,7 +1605,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //    }
         //
         let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
-        let mut firstTicker: crate::value::Dict = self.safe_dict(Value::Arr(data.clone()), Value::Int(0), &[]).into_dict();
+        let mut firstTicker: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[]).into_dict();
         let mut spotTest: Option<String> = self.safe_string2(&firstTicker, Value::Str("cv".into()), Value::Str("aq".into()), &[]).as_str().map(str::to_owned);
         let mut tradeType: String = "contract".to_string();
         if (spotTest.is_some()) {
@@ -1893,9 +1893,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                         let mut i: i64 = 0;
                     let mut __for_first_722: bool = true;
                     while { if !__for_first_722 { i += 1; } __for_first_722 = false; i < (obAsks.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                    let mut ask: Value = self.safe_list(obAsks.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]);
-                    let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
-                    let mut quantity: Value = self.safe_number(ask, Value::Int(1), &[]);
+                    let mut ask: crate::value::List = self.safe_list(&obAsks, Value::Int(i), &[]).into_list();
+                    let mut price: Value = self.safe_number(&ask, Value::Int(0), &[]);
+                    let mut quantity: Value = self.safe_number(&ask, Value::Int(1), &[]);
                     asks.store(price.clone(), quantity.clone());
                 }
                 }
@@ -1906,9 +1906,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                         let mut i: i64 = 0;
                     let mut __for_first_723: bool = true;
                     while { if !__for_first_723 { i += 1; } __for_first_723 = false; i < (obBids.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                    let mut bid: Value = self.safe_list(obBids.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]);
-                    let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
-                    let mut quantity: Value = self.safe_number(bid, Value::Int(1), &[]);
+                    let mut bid: crate::value::List = self.safe_list(&obBids, Value::Int(i), &[]).into_list();
+                    let mut price: Value = self.safe_number(&bid, Value::Int(0), &[]);
+                    let mut quantity: Value = self.safe_number(&bid, Value::Int(1), &[]);
                     bids.store(price, quantity);
                 }
                 }

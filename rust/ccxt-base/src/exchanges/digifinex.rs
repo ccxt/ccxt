@@ -1620,7 +1620,7 @@ impl Digifinex {
                         let mut i: i64 = 0;
             let mut __for_first_641: bool = true;
             while { if !__for_first_641 { i += 1; } __for_first_641 = false; i < (rows.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(rows.clone()), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[]).into_dict();
             let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "currency", &[]), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut free: Option<String> = self.safe_string2(&balance, Value::Str("free".into()), Value::Str("avail_balance".into()), &[]).as_str().map(str::to_owned);
@@ -1863,13 +1863,13 @@ impl Digifinex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("swap")) {
             let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
-            response = self.public_swap_get_public_tickers(&[__ws_arg_2]).await;
+            response = self.public_swap_get_public_tickers(&[__ws_arg_2]).await.into_opt_dict();
         }  else {
             let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.public_spot_get_ticker(&[__ws_arg_3]).await;
+            response = self.public_spot_get_ticker(&[__ws_arg_3]).await.into_opt_dict();
         }
         //
         // spot
@@ -1923,8 +1923,8 @@ impl Digifinex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut tickers: crate::value::List = self.safe_list2(response.clone(), Value::Str("ticker".into()), Value::Str("data".into()), &[Value::from(vec![])]).into_list();
-        let mut date: Option<i64> = self.safe_integer_k(response, "date", &[]).as_i64();
+        let mut tickers: crate::value::List = self.safe_list2(&response, Value::Str("ticker".into()), Value::Str("data".into()), &[Value::from(vec![])]).into_list();
+        let mut date: Option<i64> = self.safe_integer_k(&response, "date", &[]).as_i64();
         {
                         let mut i: i64 = 0;
             let mut __for_first_642: bool = true;
@@ -2032,12 +2032,12 @@ impl Digifinex {
         //     }
         //
         let mut date: Option<i64> = self.safe_integer_k(&response, "date", &[]).as_i64();
-        let mut tickers: Value = self.safe_list_k(&response, "ticker", &[Value::from(vec![])]);
+        let mut tickers: crate::value::List = self.safe_list_k(&response, "ticker", &[Value::from(vec![])]).into_list();
         let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut firstTicker: Value = self.safe_dict(tickers, Value::Int(0), &[Value::Map({
+        let mut firstTicker: Value = self.safe_dict(&tickers, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2448,8 +2448,8 @@ impl Digifinex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&data, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3999,8 +3999,8 @@ impl Digifinex {
         if !isMargin && (marketType.as_deref() == Some("swap")) {
             responseRequest = "data".to_string();
         }
-        let mut data: Value = self.safe_list(response, Value::from(responseRequest), &[Value::from(vec![])]);
-        return self.parse_trades(data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
+        let mut data: crate::value::List = self.safe_list(response, Value::from(responseRequest), &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -4323,8 +4323,8 @@ impl Digifinex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(data, &[currency, since, limit, Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&data, &[currency, since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), type_var);
     m
@@ -4521,8 +4521,8 @@ impl Digifinex {
         //
         let mut fromAccount: Option<String> = None;
         let mut toAccount: Option<String> = None;
-        let mut data: Value = self.safe_dict_k(transfer.clone(), "data", &[transfer.clone()]);
-        let mut type_var: Option<i64> = self.safe_integer_k(data.clone(), "type", &[]).as_i64();
+        let mut data: crate::value::Dict = self.safe_dict_k(transfer.clone(), "data", &[transfer.clone()]).into_dict();
+        let mut type_var: Option<i64> = self.safe_integer_k(&data, "type", &[]).as_i64();
         if (type_var == Some(1)) {
             fromAccount = Some("spot".to_string());
             toAccount = Some("swap".to_string());
@@ -4537,8 +4537,8 @@ impl Digifinex {
         m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "transfer_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(data.clone(), "currency", &[]), &[currency]));
-        m.insert("amount".to_string(), self.safe_number2(data, Value::Str("amount".into()), Value::Str("transfer_amount".into()), &[]));
+        m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(&data, "currency", &[]), &[currency]));
+        m.insert("amount".to_string(), self.safe_number2(&data, Value::Str("amount".into()), Value::Str("transfer_amount".into()), &[]));
         m.insert("fromAccount".to_string(), fromAccount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("toAccount".to_string(), toAccount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(transfer, "code", &[])).map(Value::from).unwrap_or(Value::Null));
@@ -5754,8 +5754,8 @@ impl Digifinex {
         //         ]
         //     }
         //
-        let mut transfers: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_transfers(transfers, &[currency, since, limit]);
+        let mut transfers: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transfers(&transfers, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -5924,7 +5924,7 @@ impl Digifinex {
                         let mut i: i64 = 0;
             let mut __for_first_655: bool = true;
             while { if !__for_first_655 { i += 1; } __for_first_655 = false; i < (brackets.len() as i64) } {
-            let mut tier: Value = self.safe_dict(Value::Arr(brackets.clone()), Value::Int(i), &[]);
+            let mut tier: Value = self.safe_dict(&brackets, Value::Int(i), &[]);
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.sum(&[Value::Int(i), Value::Int(1)]));
@@ -6072,7 +6072,7 @@ impl Digifinex {
                         let mut i: i64 = 0;
             let mut __for_first_656: bool = true;
             while { if !__for_first_656 { i += 1; } __for_first_656 = false; i < (rows.len() as i64) } {
-            let mut entry: Value = self.safe_dict(Value::Arr(rows.clone()), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(&rows, Value::Int(i), &[]);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(entry.clone(), "currency", &[]), &[]);
             if (code != Value::Null) && ((codesValue == Value::Null) || self.in_array(code.clone(), codesValue.clone()).as_bool() == Some(true)) {
                 if !(matches!((&depositWithdrawFees, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -6305,18 +6305,18 @@ impl Digifinex {
             m
         });
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_timestamp".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("instrument_id".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("instrument_id".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone());
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), since.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("start_timestamp".into(), since.clone());
         }
         let __ws_arg_51 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_swap_get_account_funding_fee(&[__ws_arg_51]).await.into_dict();

@@ -818,12 +818,12 @@ impl Deribit {
         }
         let mut trades: Value = self.watch_multiple_wrapper(Value::Str("trades".into()), interval.map(Value::from).unwrap_or(Value::Null), &[symbols, paramsInterval]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
-        let mut limitResolved: Value = limit.clone();
+        let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
+            limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -969,13 +969,13 @@ impl Deribit {
         //
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
         let mut channel: String = self.safe_string_k(&params, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut trades: Value = self.safe_list_k(&params, "data", &[Value::from(vec![])]);
+        let mut trades: crate::value::List = self.safe_list_k(&params, "data", &[Value::from(vec![])]).into_list();
         let mut cachedTrades: Value = self.myTrades.clone();
         if (cachedTrades == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             cachedTrades = ArrayCacheBySymbolById::new(limit);
         }
-        let mut parsed: Value = self.parse_trades(trades, &[]);
+        let mut parsed: Value = self.parse_trades(&trades, &[]);
         let mut marketIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1166,7 +1166,7 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_293: bool = true;
             while { if !__for_first_293 { i += 1; } __for_first_293 = false; i < (bids.len() as i64) } {
-            let mut bid: crate::value::List = self.safe_list(Value::Arr(bids.clone()), Value::Int(i), &[Value::from(vec![])]).into_list();
+            let mut bid: crate::value::List = self.safe_list(&bids, Value::Int(i), &[Value::from(vec![])]).into_list();
             if let Value::Arr(__a) = &mut cleanedBids { std::sync::Arc::make_mut(__a).push(Value::from(vec![bid.get(1).cloned().unwrap_or(Value::Null), bid.get(2).cloned().unwrap_or(Value::Null)])); }
         }
         }
@@ -1175,7 +1175,7 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_294: bool = true;
             while { if !__for_first_294 { i += 1; } __for_first_294 = false; i < (asks.len() as i64) } {
-            let mut ask: crate::value::List = self.safe_list(Value::Arr(asks.clone()), Value::Int(i), &[Value::from(vec![])]).into_list();
+            let mut ask: crate::value::List = self.safe_list(&asks, Value::Int(i), &[Value::from(vec![])]).into_list();
             if let Value::Arr(__a) = &mut cleanedAsks { std::sync::Arc::make_mut(__a).push(Value::from(vec![ask.get(1).cloned().unwrap_or(Value::Null), ask.get(2).cloned().unwrap_or(Value::Null)])); }
         }
         }
@@ -1237,7 +1237,7 @@ impl Deribit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[params.clone()]).await;
-        let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { Value::Null });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { None });
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut currency: String = self.safe_string_k(params.clone(), "currency", &[Value::Str("any".into())]).as_str().unwrap_or("any").to_string();
         let mut interval: String = self.safe_string_k(params.clone(), "interval", &[Value::Str("raw".into())]).as_str().unwrap_or("raw").to_string();
@@ -1258,11 +1258,11 @@ impl Deribit {
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[&paramsOmitted]);
         let mut orders: Value = self.watch(url, &channel[..], &[request.clone(), Value::from(channel.clone()), request]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
+            limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1400,11 +1400,11 @@ impl Deribit {
         let mut symbol: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(1));
         let mut candles: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(2));
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = candles.get_limit(symbol.clone(), limit);
+            limitResolved = candles.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(candles, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(candles, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
         Value::Null
         }).await?))

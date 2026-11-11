@@ -497,11 +497,11 @@ if _try_result.is_err() {
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
         let mut ohlcv: Value = self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbol, limit);
+            limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -629,10 +629,10 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut records: Option<crate::value::List> = (match message.get("records") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }).into_opt_list();
+        let mut records: Option<crate::value::List> = message.get("records").cloned().unwrap_or_default().into_opt_list();
         if (records.is_some()) {
-            let mut rawOHLCV: Value = self.safe_list(records.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[Value::from(vec![])]);
-            let mut parsed: Value = Value::from(vec![self.safe_integer(rawOHLCV.clone(), Value::Int(0), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(1), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(2), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(3), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(4), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(5), &[])]);
+            let mut rawOHLCV: crate::value::List = self.safe_list(&records, Value::Int(0), &[Value::from(vec![])]).into_list();
+            let mut parsed: Value = Value::from(vec![self.safe_integer(&rawOHLCV, Value::Int(0), &[]), self.safe_number(&rawOHLCV, Value::Int(1), &[]), self.safe_number(&rawOHLCV, Value::Int(2), &[]), self.safe_number(&rawOHLCV, Value::Int(3), &[]), self.safe_number(&rawOHLCV, Value::Int(4), &[]), self.safe_number(&rawOHLCV, Value::Int(5), &[])]);
             let mut timeframeId: Value = (match message.get("kbar") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
             let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[timeframes.clone()]);
             let mut ohlcvsForSymbol: Value = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({

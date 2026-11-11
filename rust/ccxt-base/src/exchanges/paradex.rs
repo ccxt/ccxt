@@ -1701,8 +1701,8 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
+        let mut first: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1978,8 +1978,8 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
-        let mut ticker: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
+        let mut ticker: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2302,7 +2302,7 @@ impl Paradex {
             request.insert("start_at".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_6 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.public_get_trades(&[__ws_arg_6]).await.into_dict();
@@ -2466,8 +2466,8 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
-        let mut interest: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
+        let mut interest: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3289,18 +3289,18 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut responseOrders: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
-        let mut errors: Value = self.safe_list_k(&response, "errors", &[Value::from(vec![])]);
+        let mut responseOrders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
+        let mut errors: crate::value::List = self.safe_list_k(&response, "errors", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1059: bool = true;
             while { if !__for_first_1059 { i += 1; } __for_first_1059 = false; i < (orders.len() as i64) } {
-            let mut responseOrder: Value = self.safe_dict(responseOrders.clone(), Value::Int(i), &[]);
+            let mut responseOrder: Value = self.safe_dict(&responseOrders, Value::Int(i), &[]);
             if (responseOrder != Value::Null) {
                 result.push(self.parse_order(responseOrder, &[]));
             }  else {
-                let mut error: Value = self.safe_dict(errors.clone(), Value::Int(i), &[]);
+                let mut error: Value = self.safe_dict(&errors, Value::Int(i), &[]);
                 result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), error);
@@ -3613,7 +3613,7 @@ impl Paradex {
             request.insert("page_size".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_14 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_orders_history(&[__ws_arg_14]).await.into_dict();
@@ -3861,7 +3861,7 @@ impl Paradex {
             request.insert("start_at".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_16 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_fills(&[__ws_arg_16]).await.into_dict();
@@ -4132,7 +4132,7 @@ impl Paradex {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("to".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_17 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_liquidations(&[__ws_arg_17]).await.into_dict();
@@ -4211,10 +4211,10 @@ impl Paradex {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchDeposits".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
             // a page can hold no deposit at all, which would end the pagination early, so every row is paginated and filtered afterwards
-            let __ws_arg_18 = self.extend(paramsPaginate.clone(), &[Value::Map({
+            let __ws_arg_18 = self.extend(&paramsPaginate, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("allKinds".to_string(), Value::Bool(true));
     m
@@ -4223,8 +4223,8 @@ impl Paradex {
             let mut transactionsOfKind: Value = self.filter_transactions_by_kind(transactions, Value::Str("DEPOSIT".into()));
             return self.filter_by_since_limit(transactionsOfKind, &[since.clone(), limit.clone()]);
         }
-        let mut allKinds: bool = self.safe_bool_k(paramsPaginate.clone(), "allKinds", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsKinds: crate::value::Dict = self.omit(paramsPaginate, Value::Str("allKinds".into()), &[]).into_dict();
+        let mut allKinds: bool = self.safe_bool_k(&paramsPaginate, "allKinds", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut paramsKinds: crate::value::Dict = self.omit(&paramsPaginate, Value::Str("allKinds".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4236,7 +4236,7 @@ impl Paradex {
             request.insert("start_at".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), &paramsKinds, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_19 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_transfers(&[__ws_arg_19]).await.into_dict();
@@ -4319,10 +4319,10 @@ impl Paradex {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchWithdrawals".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
             // a page can hold no withdrawal at all, which would end the pagination early, so every row is paginated and filtered afterwards
-            let __ws_arg_20 = self.extend(paramsPaginate.clone(), &[Value::Map({
+            let __ws_arg_20 = self.extend(&paramsPaginate, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("allKinds".to_string(), Value::Bool(true));
     m
@@ -4331,8 +4331,8 @@ impl Paradex {
             let mut transactionsOfKind: Value = self.filter_transactions_by_kind(transactions, Value::Str("WITHDRAWAL".into()));
             return self.filter_by_since_limit(transactionsOfKind, &[since.clone(), limit.clone()]);
         }
-        let mut allKinds: bool = self.safe_bool_k(paramsPaginate.clone(), "allKinds", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsKinds: crate::value::Dict = self.omit(paramsPaginate, Value::Str("allKinds".into()), &[]).into_dict();
+        let mut allKinds: bool = self.safe_bool_k(&paramsPaginate, "allKinds", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut paramsKinds: crate::value::Dict = self.omit(&paramsPaginate, Value::Str("allKinds".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4344,7 +4344,7 @@ impl Paradex {
             request.insert("start_at".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), &paramsKinds, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_21 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_transfers(&[__ws_arg_21]).await.into_dict();
@@ -4446,7 +4446,7 @@ impl Paradex {
             request.insert("start_at".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_22 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_transfers(&[__ws_arg_22]).await.into_dict();
@@ -4666,8 +4666,8 @@ impl Paradex {
         //     ]
         // }
         //
-        let mut configs: Value = self.safe_list_k(&response, "configs", &[]);
-        return self.parse_margin_mode(self.safe_dict(configs, Value::Int(0), &[]), &[(market).raw.clone()]);
+        let mut configs: crate::value::List = self.safe_list_k(&response, "configs", &[]).into_list();
+        return self.parse_margin_mode(self.safe_dict(&configs, Value::Int(0), &[]), &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4786,8 +4786,8 @@ impl Paradex {
         //     ]
         // }
         //
-        let mut configs: Value = self.safe_list_k(&response, "configs", &[]);
-        return self.parse_leverage(self.safe_dict(configs, Value::Int(0), &[]), &[(market).raw.clone()]);
+        let mut configs: crate::value::List = self.safe_list_k(&response, "configs", &[]).into_list();
+        return self.parse_leverage(self.safe_dict(&configs, Value::Int(0), &[]), &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4930,8 +4930,8 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
-        let mut greeks: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
+        let mut greeks: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5135,7 +5135,7 @@ impl Paradex {
             request.insert("start_at".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_29 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_funding_payments(&[__ws_arg_29]).await.into_dict();

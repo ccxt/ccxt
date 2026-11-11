@@ -349,15 +349,15 @@ impl Derive {
 
     pub async fn watch_public(&mut self, mut messageHash: Value, mut message: Value, mut subscription: Value) -> Value {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut requestId: Value = self.request_id(url.clone());
+        let mut requestId: i64 = self.request_id(url.clone()).as_i64().unwrap_or_default();
         let mut request: Value = self.extend(message, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId));
             m
         })]);
         let mut subscriptionExtended: Value = self.extend(subscription, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
             m
         })]);
@@ -596,7 +596,7 @@ impl Derive {
         }
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut requestId: Value = self.request_id(url.clone());
+        let mut requestId: i64 = self.request_id(url.clone()).as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -605,12 +605,12 @@ impl Derive {
         m.insert("channels".to_string(), Value::from(topics));
     m
 }));
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId));
             m
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
             m
         });
@@ -802,15 +802,15 @@ impl Derive {
 
     pub async fn un_watch_public(&mut self, mut messageHash: Value, mut message: Value, mut subscription: Value) -> Value {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut requestId: Value = self.request_id(url.clone());
+        let mut requestId: i64 = self.request_id(url.clone()).as_i64().unwrap_or_default();
         let mut request: Value = self.extend(message, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId));
             m
         })]);
         let mut subscriptionExtended: Value = self.extend(subscription, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
             m
         })]);
@@ -962,11 +962,11 @@ impl Derive {
             m
         });
         let mut trades: Value = self.watch_public(Value::from(topic), Value::Map(request), Value::Map(subscription)).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(Value::from((market).symbol.clone()), limit);
+            limitResolved = trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbol, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbol, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1050,15 +1050,15 @@ impl Derive {
     pub async fn watch_private(&mut self, mut messageHash: Value, mut message: Value, mut subscription: Value) -> Value {
         self.authenticate(&[]).await;
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut requestId: Value = self.request_id(url.clone());
+        let mut requestId: i64 = self.request_id(url.clone()).as_i64().unwrap_or_default();
         let mut request: Value = self.extend(message, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId));
             m
         })]);
         let mut subscriptionExtended: Value = self.extend(subscription, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
             m
         })]);
@@ -1124,11 +1124,11 @@ impl Derive {
         });
         let mut message: Value = self.extend(Value::Map(request), &[paramsDeriveSubaccountId]);
         let mut orders: Value = self.watch_private(Value::from(messageHash), message, Value::Map(subscription)).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
+            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1194,11 +1194,11 @@ impl Derive {
                     self.orders = ArrayCacheBySymbolById::new(limit);
                 }
                 let mut cachedOrders: Value = self.orders.clone();
-                let mut orders: Value = self.safe_dict(cachedOrders.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+                let mut orders: crate::value::Dict = self.safe_dict(cachedOrders.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                let mut order: Value = (if (orderId.is_none()) { Value::Null } else { self.safe_dict(orders.clone(), orderId.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
+                })]).into_dict();
+                let mut order: Value = (if (orderId.is_none()) { Value::Null } else { self.safe_dict(&orders, orderId.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
                 if (order != Value::Null) {
                     let mut fee: Value = self.safe_dict_k(order.clone(), "fee", &[]);
                     if (fee != Value::Null) {
@@ -1331,11 +1331,11 @@ impl Derive {
         });
         let mut message: Value = self.extend(Value::Map(request), &[paramsDeriveSubaccountId]);
         let mut trades: Value = self.watch_private(Value::from(messageHash), message, Value::Map(subscription)).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.clone(), limit);
+            limitResolved = trades.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1615,13 +1615,13 @@ impl Derive {
         let mut side: String = (if isShort.as_bool() == Some(true) { "short".to_string() } else { "long".to_string() });
         let mut contracts: Value = crate::precise::Precise::stringAbs(&Value::from(newSize));
         let mut cache: Value = self.safe_value(self.positions.clone(), subaccountIdKey, &[]);
-        let mut symbolPositions: Value = self.safe_dict(cache.hashmap(), Value::from(symbol.clone()), &[Value::Map({
+        let mut symbolPositions: crate::value::Dict = self.safe_dict(cache.hashmap(), Value::from(symbol.clone()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         // a fill through zero flattens the opposite side first
         let mut oppositeSide: Value = (if isShort.as_bool() == Some(true) { Value::Str("long".into()) } else { Value::Str("short".into()) });
-        let mut opposite: Value = self.safe_dict(symbolPositions.clone(), oppositeSide, &[]);
+        let mut opposite: Value = self.safe_dict(&symbolPositions, oppositeSide, &[]);
         if (opposite != Value::Null) {
             let mut oppositeContracts: Option<String> = self.safe_string_k(opposite.clone(), "contracts", &[]).as_str().map(str::to_owned);
             if (oppositeContracts.is_some()) && (oppositeContracts.as_deref() != Some("0")) {
@@ -1630,7 +1630,7 @@ impl Derive {
                 cache.append(opposite);
             }
         }
-        let mut position: Value = self.safe_dict(symbolPositions, Value::from(side.clone()), &[]);
+        let mut position: Value = self.safe_dict(&symbolPositions, Value::from(side.clone()), &[]);
         if (position == Value::Null) {
             // the position is freshly opened by the current fill, so the local clock approximates the open time
             let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
@@ -1694,7 +1694,7 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_304: bool = true;
             while { if !__for_first_304 { i += 1; } __for_first_304 = false; i < (data.len() as i64) } {
-            let mut entry: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[Value::Map({
+            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);

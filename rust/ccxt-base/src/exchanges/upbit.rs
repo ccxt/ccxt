@@ -1052,10 +1052,10 @@ impl Upbit {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut tradingFeesByQuoteCurrency: Value = self.safe_dict_k(self.options.clone(), "tradingFeesByQuoteCurrency", &[Value::Map({
+        let mut tradingFeesByQuoteCurrency: crate::value::Dict = self.safe_dict_k(self.options.clone(), "tradingFeesByQuoteCurrency", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut tradingFees: crate::value::Dict = self.safe_dict_k(self.fees.clone(), "trading", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1080,8 +1080,8 @@ impl Upbit {
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
-        m.insert("taker".to_string(), self.safe_number(tradingFeesByQuoteCurrency.clone(), quote.clone().map(Value::from).unwrap_or(Value::Null), &[self.safe_number_k(&tradingFees, "taker", &[])]));
-        m.insert("maker".to_string(), self.safe_number(tradingFeesByQuoteCurrency, quote.clone().map(Value::from).unwrap_or(Value::Null), &[self.safe_number_k(&tradingFees, "maker", &[])]));
+        m.insert("taker".to_string(), self.safe_number(&tradingFeesByQuoteCurrency, quote.clone().map(Value::from).unwrap_or(Value::Null), &[self.safe_number_k(&tradingFees, "taker", &[])]));
+        m.insert("maker".to_string(), self.safe_number(&tradingFeesByQuoteCurrency, quote.clone().map(Value::from).unwrap_or(Value::Null), &[self.safe_number_k(&tradingFees, "maker", &[])]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
@@ -1267,7 +1267,7 @@ impl Upbit {
                         let mut i: i64 = 0;
             let mut __for_first_1138: bool = true;
             while { if !__for_first_1138 { i += 1; } __for_first_1138 = false; i < (orderbooks.len() as i64) } {
-            let mut orderbook: indexmap::IndexMap<String, Value> = self.safe_dict(Value::Arr(orderbooks.clone()), Value::Int(i), &[Value::Map({
+            let mut orderbook: indexmap::IndexMap<String, Value> = self.safe_dict(&orderbooks, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
@@ -2783,7 +2783,7 @@ impl Upbit {
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_18 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_orders_closed(&[__ws_arg_18]).await;
@@ -2838,7 +2838,7 @@ impl Upbit {
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_19 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_orders_closed(&[__ws_arg_19]).await;

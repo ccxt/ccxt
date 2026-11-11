@@ -1268,7 +1268,7 @@ impl Bitvavo {
             request.insert("start".into(), since.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_1 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.public_get_market_trades(&[__ws_arg_1]).await;
@@ -1595,7 +1595,7 @@ impl Bitvavo {
             request.insert("limit".into(), Value::Int(1440));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         return self.extend(requestUntil, &[&paramsUntil]);
 
@@ -1739,8 +1739,8 @@ impl Bitvavo {
         //         "maxItems": 0
         //     }
         //
-        let mut accounts: Value = self.safe_list_k(&response, "items", &[Value::from(vec![])]);
-        return self.parse_accounts(accounts, &[]);
+        let mut accounts: crate::value::List = self.safe_list_k(&response, "items", &[Value::from(vec![])]).into_list();
+        return self.parse_accounts(&accounts, &[]);
         Value::Null
         }).await?))
     }
@@ -1870,7 +1870,7 @@ impl Bitvavo {
             request.insert("limit".into(), limit.clone());
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_5 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_subaccounts_transfers(&[__ws_arg_5]).await.into_dict();
@@ -1893,8 +1893,8 @@ impl Bitvavo {
         //         "limit": 25
         //     }
         //
-        let mut items: Value = self.safe_list_k(&response, "items", &[Value::from(vec![])]);
-        return self.parse_transfers(items, &[currency, since, limit]);
+        let mut items: crate::value::List = self.safe_list_k(&response, "items", &[Value::from(vec![])]).into_list();
+        return self.parse_transfers(&items, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2495,7 +2495,7 @@ impl Bitvavo {
             request.insert("limit".into(), limit); // default 500, max 1000
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         return self.extend(requestUntil, &[&paramsUntil]);
 
@@ -2742,7 +2742,7 @@ impl Bitvavo {
             request.insert("limit".into(), limit); // default 500, max 1000
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         return self.extend(requestUntil, &[&paramsUntil]);
 
@@ -2839,7 +2839,7 @@ impl Bitvavo {
             request.insert("maxItems".into(), crate::runtime::Math::min(&limit, &Value::Int(100)));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("toDate".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_12 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_account_history(&[__ws_arg_12]).await.into_dict();

@@ -822,7 +822,7 @@ impl Polymarket {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
-        let mut symbolResolved: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbolResolved);
         let mut request: Value = self.send_subscription(Value::Str("sub".into()), Value::from(vec![Value::Str(format!("{}{}", Value::Str("trades::".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into())]), Value::from(vec![Value::from(messageHash.clone())]), Value::from(vec![Value::from(messageHash.clone())]), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -830,11 +830,11 @@ impl Polymarket {
 }), params]);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
-        let mut limitResolved: Value = limit;
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved, limitResolved.clone());
+            limitResolved = trades.get_limit(Some(symbolResolved.as_str()), limitResolved.clone());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1012,7 +1012,7 @@ impl Polymarket {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolResolved: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut wsTimeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "wsTimeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1029,11 +1029,11 @@ impl Polymarket {
 }), params]);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
-        let mut limitResolved: Value = limit;
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolResolved, limitResolved.clone());
+            limitResolved = ohlcv.get_limit(Some(symbolResolved.as_str()), limitResolved.clone());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1221,11 +1221,11 @@ impl Polymarket {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.authenticate(&[]).await;
         let mut messageHash: String = "orders".to_string();
-        let mut symbolResolved: Value = symbol.clone();
+        let mut symbolResolved: Option<String> = symbol.as_str().map(str::to_owned);
         if (symbol != Value::Null) {
             let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
             let mut resolvedSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            symbolResolved = Value::from(resolvedSymbol.clone());
+            symbolResolved = Some(resolvedSymbol.clone());
             messageHash = format!("{}{}", Value::Str("orders:".into()), resolvedSymbol);
         }
         let mut subscribeHashes: Value = Value::from(vec![Value::Str("orders".into())]);
@@ -1235,11 +1235,11 @@ impl Polymarket {
 }), params, subscribeHashes]);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut orders: Value = self.watch(url.as_deref(), messageHash.as_str(), &[request, Value::Str("orders".into())]).await;
-        let mut limitResolved: Value = limit;
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.clone(), limitResolved.clone());
+            limitResolved = orders.get_limit(symbolResolved.as_deref(), limitResolved.clone());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1344,11 +1344,11 @@ impl Polymarket {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.authenticate(&[]).await;
         let mut messageHash: String = "myTrades".to_string();
-        let mut symbolResolved: Value = symbol.clone();
+        let mut symbolResolved: Option<String> = symbol.as_str().map(str::to_owned);
         if (symbol != Value::Null) {
             let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
             let mut resolvedSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            symbolResolved = Value::from(resolvedSymbol.clone());
+            symbolResolved = Some(resolvedSymbol.clone());
             messageHash = format!("{}{}", Value::Str("myTrades:".into()), resolvedSymbol);
         }
         let mut subscribeHashes: Value = Value::from(vec![Value::Str("fills".into())]);
@@ -1358,11 +1358,11 @@ impl Polymarket {
 }), params, subscribeHashes]);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut trades: Value = self.watch(url.as_deref(), messageHash.as_str(), &[request, Value::Str("fills".into())]).await;
-        let mut limitResolved: Value = limit;
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.clone(), limitResolved.clone());
+            limitResolved = trades.get_limit(symbolResolved.as_deref(), limitResolved.clone());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1662,10 +1662,10 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_645: bool = true;
             while { if !__for_first_645 { i += 1; } __for_first_645 = false; i < (rows.len() as i64) } {
-            let mut row: Value = self.safe_dict(Value::Arr(rows.clone()), Value::Int(i), &[Value::Map({
+            let mut row: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
+            })]).into_dict();
             let mut extended: Value = self.extend(row, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), Value::from(timestamp));

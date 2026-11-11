@@ -383,11 +383,11 @@ impl P2b {
         let mut request: Value = Value::from(vec![Value::from((market).id.clone()), Value::from(channel)]);
         let mut messageHash: String = format!("{}{}", Value::Str("kline::".into()), Value::from((market).symbol.clone()));
         let mut ohlcv: Value = self.subscribe(Value::Str("kline.subscribe".into()), Value::from(messageHash), request, &[params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbol, limit);
+            limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -567,12 +567,12 @@ impl P2b {
         let mut query: Value = self.extend(Value::Map(subscribe), &[params]);
         let mut trades: Value = self.watch_multiple(url, messageHashes.clone(), &[query, messageHashes.clone()]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
-        let mut limitResolved: Value = limit.clone();
+        let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
+            limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -636,8 +636,8 @@ impl P2b {
         //        "id": null
         //    }
         //
-        let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null });
-        let mut data: Option<crate::value::List> = self.safe_list(params, Value::Int(0), &[]).into_opt_list();
+        let mut params: crate::value::List = __pro_message.get("params").cloned().unwrap_or_default().into_list();
+        let mut data: Option<crate::value::List> = self.safe_list(&params, Value::Int(0), &[]).into_opt_list();
         let mut method: Option<String> = match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
         let mut splitMethod: Value = Value::Array(if let Some(__s) = method.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut channel: Option<String> = self.safe_string(splitMethod, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -695,7 +695,7 @@ impl P2b {
         //    }
         //
         let mut data: crate::value::List = __pro_message.get("params").cloned().unwrap_or_default().into_list();
-        let mut trades: crate::value::List = self.safe_list(Value::Arr(data.clone()), Value::Int(1), &[Value::from(vec![])]).into_list();
+        let mut trades: crate::value::List = self.safe_list(&data, Value::Int(1), &[Value::from(vec![])]).into_list();
         let mut marketId: Option<String> = self.safe_string(&data, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
@@ -762,7 +762,7 @@ impl P2b {
         let mut method: Option<String> = match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
         let mut splitMethod: Value = Value::Array(if let Some(__s) = method.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut messageHashStart: Option<String> = self.safe_string(splitMethod, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut tickerData: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(1), &[]);
+        let mut tickerData: Value = self.safe_dict(&data, Value::Int(1), &[]);
         let mut ticker: Value = Value::Null;
         if (method.as_deref() == Some("price.update")) {
             let mut lastPrice: Option<String> = self.safe_string(&data, Value::Int(1), &[]).as_str().map(str::to_owned);
@@ -809,9 +809,9 @@ impl P2b {
         //        "id": null
         //    }
         //
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut isFullUpdate: bool = self.safe_bool(params.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut data: crate::value::Dict = self.safe_dict(params.clone(), Value::Int(1), &[]).into_dict();
+        let mut params: crate::value::List = message.get("params").cloned().unwrap_or_default().into_list();
+        let mut isFullUpdate: bool = self.safe_bool(&params, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut data: crate::value::Dict = self.safe_dict(&params, Value::Int(1), &[]).into_dict();
         let mut asks: Option<crate::value::List> = self.safe_list_k(&data, "asks", &[]).into_opt_list();
         let mut bids: Option<crate::value::List> = self.safe_list_k(&data, "bids", &[]).into_opt_list();
         let mut marketId: Option<String> = self.safe_string(&params, Value::Int(2), &[]).as_str().map(str::to_owned);
@@ -846,9 +846,9 @@ impl P2b {
                                 let mut i: i64 = 0;
                 let mut __for_first_572: bool = true;
                 while { if !__for_first_572 { i += 1; } __for_first_572 = false; i < (bids.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let mut bid: Value = self.safe_list(bids.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]);
-                let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
-                let mut amount: Value = self.safe_number(bid, Value::Int(1), &[]);
+                let mut bid: crate::value::List = self.safe_list(&bids, Value::Int(i), &[]).into_list();
+                let mut price: Value = self.safe_number(&bid, Value::Int(0), &[]);
+                let mut amount: Value = self.safe_number(&bid, Value::Int(1), &[]);
                 let mut bookSide: Value = crate::value::get_value_k(&orderbook, "bids");
                 bookSide.store(price.clone(), amount.clone());
             }
@@ -859,9 +859,9 @@ impl P2b {
                                 let mut i: i64 = 0;
                 let mut __for_first_573: bool = true;
                 while { if !__for_first_573 { i += 1; } __for_first_573 = false; i < (asks.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let mut ask: Value = self.safe_list(asks.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]);
-                let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
-                let mut amount: Value = self.safe_number(ask, Value::Int(1), &[]);
+                let mut ask: crate::value::List = self.safe_list(&asks, Value::Int(i), &[]).into_list();
+                let mut price: Value = self.safe_number(&ask, Value::Int(0), &[]);
+                let mut amount: Value = self.safe_number(&ask, Value::Int(1), &[]);
                 let mut bookside: Value = crate::value::get_value_k(&orderbook, "asks");
                 bookside.store(price, amount);
             }

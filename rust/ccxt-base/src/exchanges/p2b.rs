@@ -1017,8 +1017,8 @@ impl P2b {
         //        current_time: '1699255571.413828'
         //    }
         //
-        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_trades(result, &[(market).raw.clone(), since, limit]);
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&result, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1548,8 +1548,8 @@ impl P2b {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut records: Value = self.safe_list_k(&result, "records", &[Value::from(vec![])]);
-        return self.parse_trades(records, &[market, since, limit]);
+        let mut records: crate::value::List = self.safe_list_k(&result, "records", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&records, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1655,8 +1655,8 @@ impl P2b {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut deals: Value = self.safe_list_k(&result, "deals", &[Value::from(vec![])]);
-        return self.parse_trades(deals, &[(market).raw.clone(), sinceResolved, limit]);
+        let mut deals: crate::value::List = self.safe_list_k(&result, "deals", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&deals, &[(market).raw.clone(), sinceResolved, limit]);
         Value::Null
         }).await?))
     }

@@ -1894,8 +1894,8 @@ impl Bigone {
         //         ]
         //     }
         //
-        let mut trades: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2016,7 +2016,7 @@ impl Bigone {
                         let mut i: i64 = 0;
             let mut __for_first_267: bool = true;
             while { if !__for_first_267 { i += 1; } __for_first_267 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&balance, "asset_symbol", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(symbol.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -2648,8 +2648,8 @@ impl Bigone {
         //         "page_token":"dxfv"
         //     }
         //
-        let mut trades: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3053,8 +3053,8 @@ impl Bigone {
         //         ]
         //     }
         //
-        let mut deposits: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(deposits, &[currency, since, limit]);
+        let mut deposits: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&deposits, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3121,8 +3121,8 @@ impl Bigone {
         //         "page_token":"dxvf"
         //     }
         //
-        let mut withdrawals: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(withdrawals, &[currency, since, limit]);
+        let mut withdrawals: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&withdrawals, &[currency, since, limit]);
         Value::Null
         }).await?))
     }

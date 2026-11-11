@@ -1438,7 +1438,7 @@ impl Gemini {
         if (status == Value::Null) {
             return Value::Bool(true);
         }
-        return self.safe_bool(Value::Map(statuses), status, &[Value::Bool(true)]);
+        return self.safe_bool(&statuses, status, &[Value::Bool(true)]);
 
     Value::Null
 }

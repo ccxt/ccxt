@@ -1234,13 +1234,13 @@ impl Latoken {
         let mut accountType: Option<String> = self.safe_string(&types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
         let mut balancesByType: Value = self.group_by(response, Value::Str("type".into()), &[]);
         let mut balances: crate::value::List = self.safe_list(balancesByType, accountType.map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
-        let mut firstBalance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(0), &[]).into_dict();
+        let mut firstBalance: crate::value::Dict = self.safe_dict(&balances, Value::Int(0), &[]).into_dict();
         let mut maxTimestamp: Value = self.safe_integer_k(&firstBalance, "timestamp", &[]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_913: bool = true;
             while { if !__for_first_913 { i += 1; } __for_first_913 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(balances.clone()), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut timestamp: Value = self.safe_integer_k(&balance, "timestamp", &[]);
             if (timestamp != Value::Null) {
@@ -2347,8 +2347,8 @@ impl Latoken {
         if (code != Value::Null) {
             currency = self.currency(code);
         }
-        let mut content: Value = self.safe_list_k(&response, "content", &[Value::from(vec![])]);
-        return self.parse_transactions(content, &[currency, since, limit]);
+        let mut content: crate::value::List = self.safe_list_k(&response, "content", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&content, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2508,8 +2508,8 @@ impl Latoken {
         //         "hasContent": true
         //     }
         //
-        let mut transfers: Value = self.safe_list_k(&response, "content", &[Value::from(vec![])]);
-        return self.parse_transfers(transfers, &[currency, since, limit]);
+        let mut transfers: crate::value::List = self.safe_list_k(&response, "content", &[Value::from(vec![])]).into_list();
+        return self.parse_transfers(&transfers, &[currency, since, limit]);
         Value::Null
         }).await?))
     }

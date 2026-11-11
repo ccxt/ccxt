@@ -1687,7 +1687,7 @@ impl Btse {
                                         let mut j: i64 = 0;
                     let mut __for_first_479: bool = true;
                     while { if !__for_first_479 { j += 1; } __for_first_479 = false; j < (inUse.len() as i64) } {
-                    let mut usedRow: crate::value::Dict = self.safe_dict(Value::Arr(inUse.clone()), Value::Int(j), &[]).into_dict();
+                    let mut usedRow: crate::value::Dict = self.safe_dict(&inUse, Value::Int(j), &[]).into_dict();
                     let mut usedCode: Value = self.safe_currency_code(self.safe_string_k(&usedRow, "currency", &[]), &[]);
                     if (usedCode == Value::Null) {
                         continue;
@@ -1699,7 +1699,7 @@ impl Btse {
                                         let mut j: i64 = 0;
                     let mut __for_first_480: bool = true;
                     while { if !__for_first_480 { j += 1; } __for_first_480 = false; j < (assets.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                    let mut assetRow: crate::value::Dict = self.safe_dict(assets.clone().map_or(Value::Null, Value::Arr), Value::Int(j), &[]).into_dict();
+                    let mut assetRow: crate::value::Dict = self.safe_dict(&assets, Value::Int(j), &[]).into_dict();
                     let mut code: Value = self.safe_currency_code(self.safe_string_k(&assetRow, "currency", &[]), &[]);
                     if (code == Value::Null) {
                         continue;
@@ -1806,7 +1806,7 @@ impl Btse {
                         let mut i: i64 = 0;
             let mut __for_first_484: bool = true;
             while { if !__for_first_484 { i += 1; } __for_first_484 = false; i < (data.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1972,8 +1972,8 @@ impl Btse {
         //     }
         //
         // a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
-        let mut rows: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut data: Value = self.safe_dict_k(&response, "data", &[self.safe_dict(rows, Value::Int(0), &[Value::Map({
+        let mut rows: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut data: Value = self.safe_dict_k(&response, "data", &[self.safe_dict(&rows, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })])]);
@@ -2063,8 +2063,8 @@ impl Btse {
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_public_api_market_v1_ticker24hr(&[__ws_arg_6]).await.into_dict();
-        let mut rows: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut interest: Value = self.safe_dict_k(&response, "data", &[self.safe_dict(rows, Value::Int(0), &[Value::Map({
+        let mut rows: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut interest: Value = self.safe_dict_k(&response, "data", &[self.safe_dict(&rows, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })])]);
@@ -2168,8 +2168,8 @@ impl Btse {
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_public_api_market_v1_ticker24hr(&[__ws_arg_7]).await.into_dict();
-        let mut rows: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut data: Value = self.safe_dict_k(&response, "data", &[self.safe_dict(rows, Value::Int(0), &[Value::Map({
+        let mut rows: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut data: Value = self.safe_dict_k(&response, "data", &[self.safe_dict(&rows, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })])]);
@@ -2346,11 +2346,11 @@ impl Btse {
         //         "time": 1786605671650
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         if (until == Value::Null) {
-            return self.parse_trades(data.clone(), &[(market).raw.clone(), since.clone(), limit.clone()]);
+            return self.parse_trades(&data, &[(market).raw.clone(), since.clone(), limit.clone()]);
         }
-        let mut trades: Value = self.parse_trades(data, &[(market).raw.clone(), since, limit]);
+        let mut trades: Value = self.parse_trades(&data, &[(market).raw.clone(), since, limit]);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3811,7 +3811,7 @@ impl Btse {
                         let mut i: i64 = 0;
             let mut __for_first_488: bool = true;
             while { if !__for_first_488 { i += 1; } __for_first_488 = false; i < (responseList.len() as i64) } {
-            let mut feeInfo: Value = self.safe_dict(Value::Arr(responseList.clone()), Value::Int(i), &[Value::Map({
+            let mut feeInfo: Value = self.safe_dict(&responseList, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3911,7 +3911,7 @@ impl Btse {
         //         "success": true
         //     }
         //
-        let mut rawRows: Value = self.safe_list_k(response.clone(), "data", &[response.clone()]);
+        let mut rawRows: crate::value::List = self.safe_list_k(response.clone(), "data", &[response.clone()]).into_list();
         // the requested types are also filtered client side over both the legacy
         // and the unified enum vocabularies as the legacy endpoint ignored the
         // filter and returned the whole mixed ledger
@@ -3933,7 +3933,7 @@ impl Btse {
                         let mut i: i64 = 0;
             let mut __for_first_490: bool = true;
             while { if !__for_first_490 { i += 1; } __for_first_490 = false; i < (rawRows.len() as i64) } {
-            let mut entry: Value = self.safe_dict(rawRows.clone(), Value::Int(i), &[Value::Map({
+            let mut entry: Value = self.safe_dict(&rawRows, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4351,8 +4351,8 @@ impl Btse {
             let __ws_arg_31 = self.extend(Value::Map(request), &[params]);
             response = self.private_get_futures_api_v23_user_fees(&[__ws_arg_31]).await;
         }
-        let mut rows: Value = self.safe_list_k(response.clone(), "data", &[response.clone()]);
-        let mut feeInfo: Value = self.safe_dict(rows, Value::Int(0), &[Value::Map({
+        let mut rows: crate::value::List = self.safe_list_k(response.clone(), "data", &[response.clone()]).into_list();
+        let mut feeInfo: Value = self.safe_dict(&rows, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

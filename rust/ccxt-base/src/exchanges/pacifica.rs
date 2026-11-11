@@ -1545,7 +1545,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1043: bool = true;
             while { if !__for_first_1043 { i += 1; } __for_first_1043 = false; i < (spotBalances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(Value::Arr(spotBalances.clone()), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict(&spotBalances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "symbol", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -1905,11 +1905,11 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut levels: Value = self.safe_list_k(&data, "l", &[Value::from(vec![])]);
+        let mut levels: crate::value::List = self.safe_list_k(&data, "l", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("bids".to_string(), self.safe_list(levels.clone(), Value::Int(0), &[Value::from(vec![])]));
-                m.insert("asks".to_string(), self.safe_list(levels, Value::Int(1), &[Value::from(vec![])]));
+                m.insert("bids".to_string(), self.safe_list(&levels, Value::Int(0), &[Value::from(vec![])]));
+                m.insert("asks".to_string(), self.safe_list(&levels, Value::Int(1), &[Value::from(vec![])]));
             m
         });
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "t", &[]).as_i64();
@@ -2179,8 +2179,8 @@ if _try_result.is_err() {
         //   "last_order_id": 1557404170
         // }
         //
-        let mut recentTrades: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(recentTrades, &[(market).raw.clone(), since, limit]);
+        let mut recentTrades: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&recentTrades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2235,17 +2235,17 @@ if _try_result.is_err() {
             m
         });
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), &paramsOriginAndSingleAddress, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("account".into(), userAddress); }
+        std::sync::Arc::make_mut(&mut requestUntil).insert("account".into(), userAddress);
         if (symbol != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[])); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone());
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_time".into(), since.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("start_time".into(), since.clone());
         }
         let __ws_arg_7 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.public_get_trades_history(&[__ws_arg_7]).await;
@@ -4675,8 +4675,8 @@ if _try_result.is_err() {
         });
         let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsAddress]);
         let mut response: crate::value::Dict = self.public_get_account_balance_history(&[__ws_arg_28]).await.into_dict();
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut transactions: Value = self.parse_transactions(data, &[self.safe_currency(code, &[])]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut transactions: Value = self.parse_transactions(&data, &[self.safe_currency(code, &[])]);
         let mut deposits: Value = self.filter_by(transactions, Value::Str("type".into()), Value::Str("deposit".into()), &[]);
         return self.filter_by_since_limit(deposits, &[since, limit, Value::Str("timestamp".into())]);
         Value::Null
@@ -4721,8 +4721,8 @@ if _try_result.is_err() {
         });
         let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsAddress]);
         let mut response: crate::value::Dict = self.public_get_account_balance_history(&[__ws_arg_29]).await.into_dict();
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut transactions: Value = self.parse_transactions(data, &[self.safe_currency(code, &[])]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut transactions: Value = self.parse_transactions(&data, &[self.safe_currency(code, &[])]);
         let mut withdrawals: Value = self.filter_by(transactions, Value::Str("type".into()), Value::Str("withdrawal".into()), &[]);
         return self.filter_by_since_limit(withdrawals, &[since, limit, Value::Str("timestamp".into())]);
         Value::Null

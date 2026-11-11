@@ -318,11 +318,11 @@ impl Dydx {
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_0, Value::from(messageHash.clone())]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbol, limit);
+            limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -395,14 +395,14 @@ impl Dydx {
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut content: crate::value::Dict = message.get("contents").cloned().unwrap_or_default().into_dict();
-        let mut rawTrades: Value = self.safe_list_k(&content, "trades", &[Value::from(vec![])]);
+        let mut rawTrades: crate::value::List = self.safe_list_k(&content, "trades", &[Value::from(vec![])]).into_list();
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             stored = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
-        let mut parsedTrades: Value = self.parse_trades(rawTrades, &[market]);
+        let mut parsedTrades: Value = self.parse_trades(&rawTrades, &[market]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_306: bool = true;
@@ -628,11 +628,11 @@ impl Dydx {
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_4, Value::from(messageHash.clone())]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbol, limit);
+            limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -742,9 +742,9 @@ impl Dydx {
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut content: Value = (match message.get("contents") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
-        let mut candles: Value = self.safe_list_k(content.clone(), "candles", &[]);
+        let mut candles: crate::value::List = self.safe_list_k(content.clone(), "candles", &[]).into_list();
         let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbol);
-        let mut ohlcv: Value = self.safe_dict(candles, Value::Int(0), &[content]);
+        let mut ohlcv: Value = self.safe_dict(&candles, Value::Int(0), &[content]);
         let mut parsed: Value = self.parse_ohlcv(ohlcv, &[market]);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

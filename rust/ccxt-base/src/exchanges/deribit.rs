@@ -1702,8 +1702,8 @@ impl Deribit {
         //         "testnet": false
         //     }
         //
-        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_accounts(result, &[]);
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        return self.parse_accounts(&result, &[]);
         Value::Null
         }).await?))
     }
@@ -2819,8 +2819,8 @@ impl Deribit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Value = self.safe_list_k(&result, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&result, "trades", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3823,8 +3823,8 @@ impl Deribit {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_trades(result, &[Value::Null, since, limit]);
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&result, &[Value::Null, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3930,8 +3930,8 @@ impl Deribit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Value = self.safe_list_k(&result, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market, since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&result, "trades", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -4001,8 +4001,8 @@ impl Deribit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Value = self.safe_list_k(&result, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(data, &[currency, since, limit, params]);
+        let mut data: crate::value::List = self.safe_list_k(&result, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&data, &[currency, since, limit, params]);
         Value::Null
         }).await?))
     }
@@ -4076,8 +4076,8 @@ impl Deribit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Value = self.safe_list_k(&result, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(data, &[currency, since, limit, params]);
+        let mut data: crate::value::List = self.safe_list_k(&result, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&data, &[currency, since, limit, params]);
         Value::Null
         }).await?))
     }
@@ -4528,8 +4528,8 @@ impl Deribit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut transfers: Value = self.safe_list_k(&result, "data", &[Value::from(vec![])]);
-        return self.parse_transfers(transfers, &[currency, since, limit, params]);
+        let mut transfers: crate::value::List = self.safe_list_k(&result, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transfers(&transfers, &[currency, since, limit, params]);
         Value::Null
         }).await?))
     }
@@ -4938,7 +4938,7 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_628: bool = true;
             while { if !__for_first_628 { i += 1; } __for_first_628 = false; i < (result.len() as i64) } {
-            let mut fr: Value = self.safe_dict(Value::Arr(result.clone()), Value::Int(i), &[]);
+            let mut fr: Value = self.safe_dict(&result, Value::Int(i), &[]);
             let mut rate: Value = self.parse_funding_rate(fr, &[(market).raw.clone()]);
             rates.push(rate);
         }
@@ -5446,8 +5446,8 @@ impl Deribit {
         //         "testnet": false
         //     }
         //
-        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        let mut chain: Value = self.safe_dict(result, Value::Int(0), &[Value::Map({
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        let mut chain: Value = self.safe_dict(&result, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5648,8 +5648,8 @@ impl Deribit {
         //         "testnet": true
         //     }
         //
-        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        let mut data: Value = self.safe_dict(result, Value::Int(0), &[Value::Map({
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        let mut data: Value = self.safe_dict(&result, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

@@ -681,14 +681,14 @@ impl Onetrading {
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params.clone()]);
         let mut trades: Value = self.watch(url.as_deref(), messageHash.as_str(), &[request.clone(), Value::from(subscribeHash), request]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.clone(), limit);
+            limitResolved = trades.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        trades = self.filter_by_symbol_since_limit(trades.clone(), &[symbolResolved.clone(), since.clone(), limitResolved.clone()]);
+        trades = self.filter_by_symbol_since_limit(trades.clone(), &[symbolResolved.clone(), since.clone(), Value::from(limitResolved)]);
         let mut numTrades: Value = get_array_length(&trades);
         if (numTrades.as_f64() == Some(0.0)) {
-            return crate::types::IntoRaw::into_raw(Box::pin(self.watch_my_trades(symbolResolved.as_str(), since.as_i64(), limitResolved.as_i64(), params)).await);
+            return crate::types::IntoRaw::into_raw(Box::pin(self.watch_my_trades(symbolResolved.as_str(), since.as_i64(), limitResolved, params)).await);
         }
         return trades;
         Value::Null
@@ -887,14 +887,14 @@ impl Onetrading {
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params.clone()]);
         let mut orders: Value = self.watch(url.as_deref(), messageHash.as_str(), &[request.clone(), Value::from(subscribeHash), request]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
+            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        orders = self.filter_by_symbol_since_limit(orders.clone(), &[symbolResolved.clone(), since.clone(), limitResolved.clone()]);
+        orders = self.filter_by_symbol_since_limit(orders.clone(), &[symbolResolved.clone(), since.clone(), Value::from(limitResolved)]);
         let mut numOrders: Value = get_array_length(&orders);
         if (numOrders.as_f64() == Some(0.0)) {
-            return crate::types::IntoRaw::into_raw(Box::pin(self.watch_orders(symbolResolved.as_str(), since.as_i64(), limitResolved.as_i64(), params)).await);
+            return crate::types::IntoRaw::into_raw(Box::pin(self.watch_orders(symbolResolved.as_str(), since.as_i64(), limitResolved, params)).await);
         }
         return orders;
         Value::Null
@@ -1461,7 +1461,7 @@ impl Onetrading {
                         let mut i: i64 = 0;
             let mut __for_first_563: bool = true;
             while { if !__for_first_563 { i += 1; } __for_first_563 = false; i < (balanceKeys.len() as i64) } {
-            let mut newBalance: Value = self.safe_dict(Value::from(&update), balanceKeys.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
+            let mut newBalance: Value = self.safe_dict(&update, balanceKeys.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             if (newBalance != Value::Null) {
                 self.update_balance(newBalance);
             }
@@ -1540,14 +1540,14 @@ impl Onetrading {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
-        let mut symbolValue: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut marketId: Value = self.safe_string_k(&market, "id", &[Value::Str("".into())]);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timeframeId: Option<crate::value::Dict> = self.safe_dict(timeframes.clone(), timeframe.clone(), &[]).into_opt_dict();
+        })]).into_dict();
+        let mut timeframeId: Option<crate::value::Dict> = self.safe_dict(&timeframes, timeframe.clone(), &[]).into_opt_dict();
         if (timeframeId.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" this interval is not supported, please provide one of the supported timeframes".into()))));
         }
@@ -1563,11 +1563,11 @@ impl Onetrading {
         if (client != Value::Null) {
             subscription = self.safe_dict(__ch.subscriptions.clone(), subscriptionHash.clone(), &[]);
             if (subscription != Value::Null) {
-                let mut ohlcvMarket: Value = self.safe_dict(subscription.clone(), marketId.clone(), &[Value::Map({
+                let mut ohlcvMarket: crate::value::Dict = self.safe_dict(subscription.clone(), marketId.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                let mut marketSubscribed: bool = self.safe_bool(ohlcvMarket, timeframe.clone(), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                })]).into_dict();
+                let mut marketSubscribed: bool = self.safe_bool(&ohlcvMarket, timeframe.clone(), &[Value::Bool(false)]).as_bool().unwrap_or(false);
                 if !marketSubscribed {
                     type_var = "UPDATE_SUBSCRIPTION".to_string();
                     __ch.add_subscription(&subscriptionHash, Value::Null);
@@ -1606,7 +1606,7 @@ impl Onetrading {
                                 let mut ii: Value = Value::Int(0);
                 let mut __for_first_564: bool = true;
                 while { if !__for_first_564 { if let Value::Int(n) = &mut ii { *n += 1; } } __for_first_564 = false; ii.as_f64().unwrap_or(f64::NAN) < ((marketIdtimeframes.len() as i64) as f64) } {
-                let mut marketTimeframeId: indexmap::IndexMap<String, Value> = self.safe_dict(timeframes.clone(), timeframe.clone(), &[]).as_map().cloned().unwrap_or_default();
+                let mut marketTimeframeId: indexmap::IndexMap<String, Value> = self.safe_dict(&timeframes, timeframe.clone(), &[]).as_map().cloned().unwrap_or_default();
                 let mut property: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("instrument_code".to_string(), marketIds.get(i as usize).cloned().unwrap_or(Value::Null));
@@ -1631,11 +1631,11 @@ impl Onetrading {
         });
         let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
         let mut ohlcv: Value = self.watch(url.as_deref(), messageHash.as_str(), &[__ws_arg_0, subscriptionHash, subscription]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue, limit);
+            limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

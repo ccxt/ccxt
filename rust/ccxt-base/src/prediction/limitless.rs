@@ -2516,7 +2516,7 @@ impl Limitless {
                         let mut i: i64 = 0;
             let mut __for_first_1322: bool = true;
             while { if !__for_first_1322 { i += 1; } __for_first_1322 = false; i < (results.len() as i64) } {
-            let mut item: Value = self.safe_dict(Value::Arr(results.clone()), Value::Int(i), &[Value::Map({
+            let mut item: Value = self.safe_dict(&results, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3571,7 +3571,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1324: bool = true;
             while { if !__for_first_1324 { i += 1; } __for_first_1324 = false; i < (data.len() as i64) } {
-            let mut item: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]);
+            let mut item: Value = self.safe_dict(&data, Value::Int(i), &[]);
             let mut strategy: Option<String> = self.safe_string_lower_k(item.clone(), "strategy", &[]).as_str().map(str::to_owned);
             if (strategy.is_some()) {
                 let mut buyIndex: i64 = (if let (Some(__h), Some(__n)) = (strategy.as_deref(), Some("buy")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
@@ -3742,7 +3742,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1325: bool = true;
             while { if !__for_first_1325 { i += 1; } __for_first_1325 = false; i < (outcomes.len() as i64) } {
-            let mut outcome: Value = self.safe_dict(Value::Arr(outcomes.clone()), Value::Int(i), &[]);
+            let mut outcome: Value = self.safe_dict(&outcomes, Value::Int(i), &[]);
             let mut outcomeLabel: Option<String> = self.safe_string_k_opt(outcome.clone(), "label", &[]);
             if (outcomeLabel.as_deref() == label.as_str()) {
                 return outcome;
@@ -3871,7 +3871,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1327: bool = true;
             while { if !__for_first_1327 { i += 1; } __for_first_1327 = false; i < (clob.len() as i64) } {
-            let mut entry: Value = self.safe_dict(Value::Arr(clob.clone()), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(&clob, Value::Int(i), &[]);
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1326: bool = true;
@@ -3900,8 +3900,8 @@ if _try_result.is_err() {
         if (contracts.is_none()) {
             return Value::Null;
         }
-        let mut positions: Value = self.safe_dict_k(entry.clone(), "positions", &[]);
-        let mut position: Value = self.safe_dict(positions, label.clone(), &[Value::Map({
+        let mut positions: crate::value::Dict = self.safe_dict_k(entry.clone(), "positions", &[]).into_dict();
+        let mut position: Value = self.safe_dict(&positions, label.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3910,12 +3910,12 @@ if _try_result.is_err() {
         let mut outcomeObj: Value = self.get_outcome_by_slug_and_label(slug.map(Value::from).unwrap_or(Value::Null), label.clone(), &[]);
         let mut parsed: indexmap::IndexMap<String, Value> = self.parse_prediction_position(position, &[outcomeObj]).as_map().cloned().unwrap_or_default();
         parsed.insert("contracts".into(), self.parse_number(self.apply_scale(contracts.map(Value::from).unwrap_or(Value::Null), &[]), &[]));
-        let mut latestTrade: Value = self.safe_dict_k(entry.clone(), "latestTrade", &[]);
+        let mut latestTrade: crate::value::Dict = self.safe_dict_k(entry.clone(), "latestTrade", &[]).into_dict();
         let mut key: String = "latestYesPrice".to_string();
         if (label.as_str() == Some("no")) {
             key = "latestNoPrice".to_string();
         }
-        parsed.insert("markPrice".into(), self.safe_number(latestTrade, Value::from(key), &[]));
+        parsed.insert("markPrice".into(), self.safe_number(&latestTrade, Value::from(key), &[]));
         parsed.insert("info".into(), entry);
         return self.safe_prediction_position(Value::Map(parsed));
 

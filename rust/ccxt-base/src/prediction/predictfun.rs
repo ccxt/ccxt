@@ -1048,7 +1048,7 @@ impl Predictfun {
                                 let mut ci: i64 = 0;
                 let mut __for_first_1460: bool = true;
                 while { if !__for_first_1460 { ci += 1; } __for_first_1460 = false; (ci as f64) < categoriesLength } {
-                let mut category: Value = self.safe_dict(Value::Arr(categories.clone()), Value::Int(ci), &[]);
+                let mut category: Value = self.safe_dict(&categories, Value::Int(ci), &[]);
                 let mut categorySlug: Option<String> = self.safe_string_k_opt(category.clone(), "slug", &[]);
                 if (categorySlug.is_none()) {
                     // nothing to key a duplicate on, keep the row rather than drop it
@@ -1757,7 +1757,7 @@ impl Predictfun {
                                 let mut i: i64 = 0;
                 let mut __for_first_1467: bool = true;
                 while { if !__for_first_1467 { i += 1; } __for_first_1467 = false; i < (bids.len() as i64) } {
-                let mut bid: crate::value::List = self.safe_list(Value::Arr(bids.clone()), Value::Int(i), &[]).into_list();
+                let mut bid: crate::value::List = self.safe_list(&bids, Value::Int(i), &[]).into_list();
                 let mut bidPrice: Option<String> = self.safe_string(&bid, Value::Int(0), &[]).as_str().map(str::to_owned);
                 let mut bidSize: Value = self.parse_number(self.safe_string(&bid, Value::Int(1), &[]), &[]);
                 let mut complementPrice: Value = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &bidPrice.map(Value::from).unwrap_or(Value::Null)), &[]);
@@ -1768,7 +1768,7 @@ impl Predictfun {
                                 let mut i: i64 = 0;
                 let mut __for_first_1468: bool = true;
                 while { if !__for_first_1468 { i += 1; } __for_first_1468 = false; i < (asks.len() as i64) } {
-                let mut ask: crate::value::List = self.safe_list(Value::Arr(asks.clone()), Value::Int(i), &[]).into_list();
+                let mut ask: crate::value::List = self.safe_list(&asks, Value::Int(i), &[]).into_list();
                 let mut askPrice: Option<String> = self.safe_string(&ask, Value::Int(0), &[]).as_str().map(str::to_owned);
                 let mut askSize: Value = self.parse_number(self.safe_string(&ask, Value::Int(1), &[]), &[]);
                 let mut complementPrice: Value = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &askPrice.map(Value::from).unwrap_or(Value::Null)), &[]);
@@ -2036,12 +2036,12 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1471: bool = true;
             while { if !__for_first_1471 { i += 1; } __for_first_1471 = false; (i as f64) < dataLength } {
-            let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut taker: Value = self.safe_dict_k(entry.clone(), "taker", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-            let mut takerSigner: Option<String> = self.safe_string_lower_k_opt(taker.clone(), "signer", &[]);
+            let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut taker: crate::value::Dict = self.safe_dict_k(&entry, "taker", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
+            let mut takerSigner: Option<String> = self.safe_string_lower_k_opt(&taker, "signer", &[]);
             if (takerSigner.as_deref() == wallet.as_str()) {
                 let mut takerParty: Value = self.extend(taker, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -2050,20 +2050,20 @@ impl Predictfun {
                         m.insert("type".to_string(), Value::Str("market".into()));
                     m
                 })]);
-                flattenTrades.push(self.extend(entry.clone(), &[Value::Map({
+                flattenTrades.push(self.extend(&entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("partyToParse".to_string(), takerParty);
                     m
                 })]));
             }
-            let mut makers: crate::value::List = self.safe_list_k(entry.clone(), "makers", &[Value::from(vec![])]).into_list();
+            let mut makers: crate::value::List = self.safe_list_k(&entry, "makers", &[Value::from(vec![])]).into_list();
             let mut makersLength: f64 = ((makers.len() as i64) as f64);
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1470: bool = true;
                 while { if !__for_first_1470 { j += 1; } __for_first_1470 = false; (j as f64) < makersLength } {
-                let mut maker: Value = makers.get(j as usize).cloned().unwrap_or(Value::Null);
-                let mut makerSigner: Option<String> = self.safe_string_lower_k_opt(maker.clone(), "signer", &[]);
+                let mut maker: crate::value::Dict = makers.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut makerSigner: Option<String> = self.safe_string_lower_k_opt(&maker, "signer", &[]);
                 if (makerSigner.as_deref() == wallet.as_str()) {
                     let mut makerParty: Value = self.extend(maker, &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -2072,7 +2072,7 @@ impl Predictfun {
                             m.insert("type".to_string(), Value::Str("limit".into()));
                         m
                     })]);
-                    flattenTrades.push(self.extend(entry.clone(), &[Value::Map({
+                    flattenTrades.push(self.extend(&entry, &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("partyToParse".to_string(), makerParty);
                         m
@@ -2171,21 +2171,21 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1473: bool = true;
             while { if !__for_first_1473 { i += 1; } __for_first_1473 = false; (i as f64) < dataLength } {
-            let mut entry: Value = self.safe_dict(Value::Arr(data.clone()), Value::Int(i), &[]);
-            let mut taker: crate::value::Dict = self.safe_dict_k(entry.clone(), "taker", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
+            let mut taker: crate::value::Dict = self.safe_dict_k(&entry, "taker", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut takerOutcome: crate::value::Dict = self.safe_dict_k(&taker, "outcome", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
             let mut takerIndexSet: Option<i64> = self.safe_integer_k(&takerOutcome, "indexSet", &[]).as_i64();
             let mut outcomeIndexSet: Option<i64> = self.safe_integer_k(&info, "indexSet", &[]).as_i64();
-            let mut partyToParse: Value = self.safe_dict_k(entry.clone(), "taker", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut partyToParse: Value = self.safe_dict_k(&entry, "taker", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             if (takerIndexSet == outcomeIndexSet) {
                 // a public print carries no takerOrMaker: the unified fetchTrades contract allows
                 // only 'taker' or nothing there, and the leg that matches the requested outcome is
@@ -2198,13 +2198,13 @@ impl Predictfun {
                     m
                 });
                 partyToParse = self.extend(partyToParse.clone(), &[Value::Map(takerParty)]);
-                flattenTrades.push(self.extend(entry.clone(), &[Value::Map({
+                flattenTrades.push(self.extend(&entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("partyToParse".to_string(), partyToParse.clone());
                     m
                 })]));
             }  else {
-                let mut makers: crate::value::List = self.safe_list_k(entry.clone(), "makers", &[Value::from(vec![])]).into_list();
+                let mut makers: crate::value::List = self.safe_list_k(&entry, "makers", &[Value::from(vec![])]).into_list();
                 let mut makersLength: f64 = ((makers.len() as i64) as f64);
                 let mut makerParty: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -2225,7 +2225,7 @@ impl Predictfun {
                     if (makerIndexSet == outcomeIndexSet) {
                         partyToParse = maker;
                         partyToParse = self.extend(partyToParse.clone(), &[Value::Map(makerParty.clone())]);
-                        flattenTrades.push(self.extend(entry.clone(), &[Value::Map({
+                        flattenTrades.push(self.extend(&entry, &[Value::Map({
                             let mut m = indexmap::IndexMap::new();
                                 m.insert("partyToParse".to_string(), partyToParse.clone());
                             m
@@ -3137,7 +3137,7 @@ impl Predictfun {
         });
         // this only pulls the orders off the book, it does not cancel them on chain
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.predictfun_post_v1_orders_remove_by_hash(&[__ws_arg_12]).await;
+        let mut response: crate::value::Dict = self.predictfun_post_v1_orders_remove_by_hash(&[__ws_arg_12]).await.into_dict();
         //
         //     {
         //         "removed": [ "0xebf11bdff189b8609c9ae66bebb20b94742865a2d94970856f3fb6b0896f9ec0" ],
@@ -3146,22 +3146,22 @@ impl Predictfun {
         //         "success": true
         //     }
         //
-        let mut rejected: crate::value::List = self.safe_list_k(response.clone(), "rejected", &[Value::from(vec![])]).into_list();
+        let mut rejected: crate::value::List = self.safe_list_k(&response, "rejected", &[Value::from(vec![])]).into_list();
         let mut rejectedLength: f64 = ((rejected.len() as i64) as f64);
         if rejectedLength > ((0i64) as f64) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() was refused for ".into())).into()), json_stringify(&Value::Arr(rejected)))));
         }
         // the venue reports hashes only, so each one becomes a row the shared order parser can
         // read: it takes the hash off orderHash and the status through parseOrderStatus
-        let mut removed: crate::value::List = self.safe_list_k(response.clone(), "removed", &[Value::from(vec![])]).into_list();
-        let mut noop: crate::value::List = self.safe_list_k(response.clone(), "noop", &[Value::from(vec![])]).into_list();
+        let mut removed: crate::value::List = self.safe_list_k(&response, "removed", &[Value::from(vec![])]).into_list();
+        let mut noop: crate::value::List = self.safe_list_k(&response, "noop", &[Value::from(vec![])]).into_list();
         let mut rows: Vec<Value> = Vec::new();
         let mut removedLength: f64 = ((removed.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1476: bool = true;
             while { if !__for_first_1476 { i += 1; } __for_first_1476 = false; (i as f64) < removedLength } {
-            rows.push(self.extend(response.clone(), &[Value::Map({
+            rows.push(self.extend(&response, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("orderHash".to_string(), removed.get(i as usize).cloned().unwrap_or(Value::Null));
                     m.insert("status".to_string(), Value::Str("CANCELLED".into()));
@@ -3176,7 +3176,7 @@ impl Predictfun {
             while { if !__for_first_1477 { i += 1; } __for_first_1477 = false; (i as f64) < noopLength } {
             // accepted, but nothing was resting to pull: the order had already filled, expired,
             // was never booked, or had been removed before - so the status is left unknown
-            rows.push(self.extend(response.clone(), &[Value::Map({
+            rows.push(self.extend(&response, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("orderHash".to_string(), noop.get(i as usize).cloned().unwrap_or(Value::Null));
                 m
@@ -3610,11 +3610,11 @@ impl Predictfun {
  */
     pub fn exchange_address(&self, isNegRisk: bool, isYieldBearing: bool) -> Option<String> {
         let mut chainIdValue: i64 = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(56)]).as_i64().unwrap_or(56);
-        let mut exchanges: Value = self.safe_dict_k(self.options.clone(), "exchanges", &[Value::Map({
+        let mut exchanges: crate::value::Dict = self.safe_dict_k(self.options.clone(), "exchanges", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut byChain: crate::value::Dict = self.safe_dict(exchanges, self.number_to_string(Value::from(chainIdValue)), &[Value::Map({
+})]).into_dict();
+        let mut byChain: crate::value::Dict = self.safe_dict(&exchanges, self.number_to_string(Value::from(chainIdValue)), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -3640,11 +3640,11 @@ impl Predictfun {
  */
     pub fn conditional_tokens_address(&self, isNegRisk: bool, isYieldBearing: bool) -> Option<String> {
         let mut chainIdValue: i64 = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(56)]).as_i64().unwrap_or(56);
-        let mut tokens: Value = self.safe_dict_k(self.options.clone(), "conditionalTokens", &[Value::Map({
+        let mut tokens: crate::value::Dict = self.safe_dict_k(self.options.clone(), "conditionalTokens", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut byChain: crate::value::Dict = self.safe_dict(tokens, self.number_to_string(Value::from(chainIdValue)), &[Value::Map({
+})]).into_dict();
+        let mut byChain: crate::value::Dict = self.safe_dict(&tokens, self.number_to_string(Value::from(chainIdValue)), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -3669,11 +3669,11 @@ impl Predictfun {
  */
     pub fn adapter_address(&self, isYieldBearing: bool) -> Option<String> {
         let mut chainIdValue: i64 = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(56)]).as_i64().unwrap_or(56);
-        let mut adapters: Value = self.safe_dict_k(self.options.clone(), "adapters", &[Value::Map({
+        let mut adapters: crate::value::Dict = self.safe_dict_k(self.options.clone(), "adapters", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut byChain: crate::value::Dict = self.safe_dict(adapters, self.number_to_string(Value::from(chainIdValue)), &[Value::Map({
+})]).into_dict();
+        let mut byChain: crate::value::Dict = self.safe_dict(&adapters, self.number_to_string(Value::from(chainIdValue)), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -3885,11 +3885,11 @@ impl Predictfun {
         // complement - so a single subscription serves both outcomes and each waits on its own hash
         let mut topic: String = format!("{}{}", Value::Str("predictOrderbook/".into()), marketId.clone().map(Value::from).unwrap_or(Value::Null));
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), outcomeHandle);
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
-                m.insert("requestId".to_string(), requestId.clone());
+                m.insert("requestId".to_string(), Value::from(requestId));
                 m.insert("params".to_string(), Value::from(vec![Value::from(topic.clone())]));
             m
         });
@@ -3899,7 +3899,7 @@ impl Predictfun {
         // be able to release both of them
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), self.number_to_string(requestId));
+                m.insert("id".to_string(), self.number_to_string(Value::from(requestId)));
                 m.insert("topic".to_string(), Value::from(topic.clone()));
                 m.insert("subscribeHash".to_string(), Value::from(topic.clone()));
                 m.insert("messageHashes".to_string(), self.order_book_message_hashes(marketId.map(Value::from).unwrap_or(Value::Null)));
@@ -3961,11 +3961,11 @@ impl Predictfun {
             }
         }
         }
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
-                m.insert("requestId".to_string(), requestId.clone());
+                m.insert("requestId".to_string(), Value::from(requestId));
                 m.insert("params".to_string(), Value::from(vec![Value::from(topic.clone())]));
             m
         });
@@ -3974,7 +3974,7 @@ impl Predictfun {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
-                m.insert("id".to_string(), self.number_to_string(requestId));
+                m.insert("id".to_string(), self.number_to_string(Value::from(requestId)));
                 m.insert("topic".to_string(), Value::Str("orderbook".into()));
                 m.insert("symbols".to_string(), Value::from(handles));
                 m.insert("subMessageHashes".to_string(), Value::from(subMessageHashes));
@@ -4148,12 +4148,12 @@ impl Predictfun {
     m
 }));
         let mut messageHash: String = "orders".to_string();
-        let mut outcomeResolved: Value = outcome.clone();
+        let mut outcomeResolved: Option<String> = outcome.as_str().map(str::to_owned);
         if (outcome != Value::Null) {
-            self.load_outcome(outcomeResolved.clone(), &[]).await;
-            let mut outcomeObj: Value = self.outcome(outcomeResolved.clone());
-            outcomeResolved = self.safe_outcome_symbol(Value::Null, &[outcomeObj]);
-            messageHash = format!("{}{}", Value::Str("orders::".into()), outcomeResolved);
+            self.load_outcome(outcomeResolved.clone().map(Value::from).unwrap_or(Value::Null), &[]).await;
+            let mut outcomeObj: Value = self.outcome(outcomeResolved.clone().map(Value::from).unwrap_or(Value::Null));
+            outcomeResolved = self.safe_outcome_symbol(Value::Null, &[outcomeObj]).as_str().map(str::to_owned);
+            messageHash = format!("{}{}", Value::Str("orders::".into()), outcomeResolved.clone().map(Value::from).unwrap_or(Value::Null));
         }  else {
             // events arrive for whatever market the wallet traded, and the handler that resolves
             // them is synchronous - so the universe is warmed here, while there is still a place to
@@ -4163,11 +4163,11 @@ impl Predictfun {
             self.load_outcomes(&[]).await;
         }
         let mut orders: Value = self.watch_wallet_events(Value::from(messageHash), &[params]).await;
-        let mut limitResolved: Value = limit;
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(outcomeResolved.clone(), limitResolved.clone());
+            limitResolved = orders.get_limit(outcomeResolved.as_deref(), limitResolved.clone());
         }
-        return self.filter_by_outcome_since_limit(orders, &[outcomeResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_outcome_since_limit(orders, &[outcomeResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -4197,23 +4197,23 @@ impl Predictfun {
     m
 }));
         let mut messageHash: String = "myTrades".to_string();
-        let mut outcomeResolved: Value = outcome.clone();
+        let mut outcomeResolved: Option<String> = outcome.as_str().map(str::to_owned);
         if (outcome != Value::Null) {
-            self.load_outcome(outcomeResolved.clone(), &[]).await;
-            let mut outcomeObj: Value = self.outcome(outcomeResolved.clone());
-            outcomeResolved = self.safe_outcome_symbol(Value::Null, &[outcomeObj]);
-            messageHash = format!("{}{}", Value::Str("myTrades::".into()), outcomeResolved);
+            self.load_outcome(outcomeResolved.clone().map(Value::from).unwrap_or(Value::Null), &[]).await;
+            let mut outcomeObj: Value = self.outcome(outcomeResolved.clone().map(Value::from).unwrap_or(Value::Null));
+            outcomeResolved = self.safe_outcome_symbol(Value::Null, &[outcomeObj]).as_str().map(str::to_owned);
+            messageHash = format!("{}{}", Value::Str("myTrades::".into()), outcomeResolved.clone().map(Value::from).unwrap_or(Value::Null));
         }  else {
             // same as watchOrders (): the fills come from the one wallet topic and are resolved by
             // a synchronous handler, so the cache is warmed here rather than on the first event
             self.load_outcomes(&[]).await;
         }
         let mut trades: Value = self.watch_wallet_events(Value::from(messageHash), &[params]).await;
-        let mut limitResolved: Value = limit;
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(outcomeResolved.clone(), limitResolved.clone());
+            limitResolved = trades.get_limit(outcomeResolved.as_deref(), limitResolved.clone());
         }
-        return self.filter_by_outcome_since_limit(trades, &[outcomeResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_outcome_since_limit(trades, &[outcomeResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -4303,11 +4303,11 @@ impl Predictfun {
     m
 }));
         let mut topic: Value = self.wallet_events_topic().await;
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
-                m.insert("requestId".to_string(), requestId.clone());
+                m.insert("requestId".to_string(), Value::from(requestId));
                 m.insert("params".to_string(), Value::from(vec![topic]));
             m
         });
@@ -4315,7 +4315,7 @@ impl Predictfun {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), self.number_to_string(requestId));
+                m.insert("id".to_string(), self.number_to_string(Value::from(requestId)));
                 m.insert("topic".to_string(), Value::Str("walletEvents".into()));
                 m.insert("subscribeHash".to_string(), Value::Str("walletEvents".into()));
                 m.insert("messageHashes".to_string(), self.wallet_event_message_hashes(client.as_value(), &[messageHash.clone()]));
@@ -4379,18 +4379,18 @@ impl Predictfun {
     m
 }));
         let mut topic: Value = self.wallet_events_topic().await;
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
-                m.insert("requestId".to_string(), requestId.clone());
+                m.insert("requestId".to_string(), Value::from(requestId));
                 m.insert("params".to_string(), Value::from(vec![topic]));
             m
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
-                m.insert("id".to_string(), self.number_to_string(requestId));
+                m.insert("id".to_string(), self.number_to_string(Value::from(requestId)));
                 m.insert("topic".to_string(), Value::Str("walletEvents".into()));
                 m.insert("symbols".to_string(), Value::from(vec![]));
                 m.insert("subMessageHashes".to_string(), Value::from(vec![Value::Str("orders".into()), Value::Str("myTrades".into())]));
@@ -4563,7 +4563,7 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1486: bool = true;
             while { if !__for_first_1486 { i += 1; } __for_first_1486 = false; (i as f64) < bidsLength } {
-            let mut bid: crate::value::List = self.safe_list(Value::Arr(rawBids.clone()), Value::Int(i), &[]).into_list();
+            let mut bid: crate::value::List = self.safe_list(&rawBids, Value::Int(i), &[]).into_list();
             let mut bidPrice: Option<String> = self.safe_string(&bid, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut bidSize: Value = self.parse_number(self.safe_string(&bid, Value::Int(1), &[]), &[]);
             if let Value::Arr(__a) = &mut yesBids { std::sync::Arc::make_mut(__a).push(Value::from(vec![self.parse_number(bidPrice.clone().map(Value::from).unwrap_or(Value::Null), &[]), bidSize.clone()])); }
@@ -4576,7 +4576,7 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1487: bool = true;
             while { if !__for_first_1487 { i += 1; } __for_first_1487 = false; (i as f64) < asksLength } {
-            let mut ask: crate::value::List = self.safe_list(Value::Arr(rawAsks.clone()), Value::Int(i), &[]).into_list();
+            let mut ask: crate::value::List = self.safe_list(&rawAsks, Value::Int(i), &[]).into_list();
             let mut askPrice: Option<String> = self.safe_string(&ask, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut askSize: Value = self.parse_number(self.safe_string(&ask, Value::Int(1), &[]), &[]);
             if let Value::Arr(__a) = &mut yesAsks { std::sync::Arc::make_mut(__a).push(Value::from(vec![self.parse_number(askPrice.clone().map(Value::from).unwrap_or(Value::Null), &[]), askSize.clone()])); }
@@ -4589,7 +4589,7 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1488: bool = true;
             while { if !__for_first_1488 { i += 1; } __for_first_1488 = false; (i as f64) < outcomesLength } {
-            let mut outcomeObj: crate::value::Dict = self.safe_dict(outcomes.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut outcomeObj: crate::value::Dict = self.safe_dict(&outcomes, Value::Int(i), &[]).into_dict();
             let mut outcomeInfo: crate::value::Dict = self.safe_dict_k(&outcomeObj, "info", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

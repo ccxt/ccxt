@@ -1676,11 +1676,11 @@ impl Coinbaseinternational {
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut marketInfo: Value = self.safe_dict_k((market).raw.clone(), "info", &[Value::Map({
+        let mut marketInfo: crate::value::Dict = self.safe_dict_k((market).raw.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!(self.safe_bool2(marketInfo, Value::Str("is_cbe_routed".into()), Value::Str("is_csr".into()), &[Value::Bool(false)]), Value::Bool(true)) {
+})]).into_dict();
+        if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!(self.safe_bool2(&marketInfo, Value::Str("is_cbe_routed".into()), Value::Str("is_csr".into()), &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments".into()))));
         }
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -2055,15 +2055,15 @@ impl Coinbaseinternational {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
-        let mut stats: Value = self.safe_dict_k(ticker.clone(), "stats", &[Value::Map({
+        let mut stats: crate::value::Dict = self.safe_dict_k(ticker.clone(), "stats", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut last: Option<f64> = self.safe_number_k(ticker.clone(), "last_price", &[]).as_f64();
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
-        let mut quoteVolume: Option<f64> = self.safe_number_k(stats.clone(), "volume_notional", &[]).as_f64();
+        let mut quoteVolume: Option<f64> = self.safe_number_k(&stats, "volume_notional", &[]).as_f64();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            quoteVolume = self.safe_number2(stats.clone(), Value::Str("volume_notional".into()), Value::Str("volume_usd".into()), &[]).as_f64();
+            quoteVolume = self.safe_number2(&stats, Value::Str("volume_notional".into()), Value::Str("volume_usd".into()), &[]).as_f64();
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2075,8 +2075,8 @@ impl Coinbaseinternational {
         m.insert("bidVolume".to_string(), self.safe_number_k(ticker.clone(), "best_bid_amount", &[]));
         m.insert("ask".to_string(), self.safe_number_k(ticker.clone(), "best_ask_price", &[]));
         m.insert("askVolume".to_string(), self.safe_number_k(ticker.clone(), "best_ask_amount", &[]));
-        m.insert("high".to_string(), self.safe_number_k(stats.clone(), "high", &[]));
-        m.insert("low".to_string(), self.safe_number_k(stats.clone(), "low", &[]));
+        m.insert("high".to_string(), self.safe_number_k(&stats, "high", &[]));
+        m.insert("low".to_string(), self.safe_number_k(&stats, "low", &[]));
         m.insert("open".to_string(), Value::Null);
         m.insert("close".to_string(), Value::from(last));
         m.insert("last".to_string(), Value::from(last));
@@ -2084,7 +2084,7 @@ impl Coinbaseinternational {
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_number_k(stats, "volume", &[]));
+        m.insert("baseVolume".to_string(), self.safe_number_k(&stats, "volume", &[]));
         m.insert("quoteVolume".to_string(), Value::from(quoteVolume));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("markPrice".to_string(), self.safe_number_k(ticker.clone(), "mark_price", &[]));
@@ -2643,8 +2643,8 @@ impl Coinbaseinternational {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut transfers: Value = self.safe_list_k(&result, "logs", &[Value::from(vec![])]);
-        return self.parse_transfers(transfers, &[currency, since, limit]);
+        let mut transfers: crate::value::List = self.safe_list_k(&result, "logs", &[Value::from(vec![])]).into_list();
+        return self.parse_transfers(&transfers, &[currency, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2925,12 +2925,12 @@ impl Coinbaseinternational {
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
         if self.is_empty(symbols.clone()).as_bool() == Some(true) {
-            return self.parse_positions(result.clone(), &[]);
+            return self.parse_positions(&result, &[]);
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.parse_positions(result, &[symbolsNormalized]);
+        return self.parse_positions(&result, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }
@@ -4208,8 +4208,8 @@ impl Coinbaseinternational {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Value = self.safe_list_k(&result, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&result, "trades", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

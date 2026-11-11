@@ -778,8 +778,8 @@ impl Phemex {
             stored = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
-        let mut trades: Value = self.safe_list2(message, Value::Str("trades".into()), Value::Str("trades_p".into()), &[Value::from(vec![])]);
-        let mut parsed: Value = self.parse_trades(trades, &[market]);
+        let mut trades: crate::value::List = self.safe_list2(message, Value::Str("trades".into()), Value::Str("trades_p".into()), &[Value::from(vec![])]).into_list();
+        let mut parsed: Value = self.parse_trades(&trades, &[market]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_609: bool = true;
@@ -1026,11 +1026,11 @@ impl Phemex {
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
         let mut trades: Value = self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue, limit);
+            limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1143,11 +1143,11 @@ impl Phemex {
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
         let mut ohlcv: Value = self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue, limit);
+            limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1158,18 +1158,18 @@ impl Phemex {
     m
 }));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), method);
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("params".to_string(), marketParams);
             m
         });
         let mut unsubscription: Value = self.extend(subscription, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("subMessageHash".to_string(), subMessageHash);
                 m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
@@ -1452,7 +1452,7 @@ impl Phemex {
         }
         let mut market: Value = Value::Null;
         let mut messageHash: String = "trades:".to_string();
-        let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { symbol.clone() });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             messageHash = format!("{}{}", Value::Str("trades:".into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]));
@@ -1482,11 +1482,11 @@ impl Phemex {
             }
         }
         let mut trades: Value = self.subscribe_private(type_var, Value::from(messageHash), &[paramsType]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.clone(), limit);
+            limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1664,7 +1664,7 @@ impl Phemex {
         }
         let mut messageHash: String = "orders:".to_string();
         let mut market: Value = Value::Null;
-        let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { symbol.clone() });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             messageHash = format!("{}{}", Value::Str("orders:".into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]));
@@ -1694,11 +1694,11 @@ impl Phemex {
             }
         }
         let mut orders: Value = self.subscribe_private(type_var, Value::from(messageHash), &[paramsType]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
+            limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2335,7 +2335,7 @@ impl Phemex {
         self.check_required_credentials(&[]);
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut messageHash: Value = Value::Str("authenticated".into());
         let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
         if (future == Value::Null) {
@@ -2348,7 +2348,7 @@ impl Phemex {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("method".to_string(), Value::from(method));
                     m.insert("params".to_string(), Value::from(vec![Value::Str("API".into()), self.apiKey.clone(), signature, Value::from(expiration)]));
-                    m.insert("id".to_string(), requestId.clone());
+                    m.insert("id".to_string(), Value::from(requestId));
                 m
             });
             let mut subscriptionHash: Value = Value::Str(format!("{}", requestId).into());

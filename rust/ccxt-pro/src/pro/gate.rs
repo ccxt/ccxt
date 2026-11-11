@@ -927,7 +927,7 @@ impl Gate {
         let requestrequestParamsVariable: Vec<Value> = self.parent.prepare_orders_by_status_request(status, &[symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), since.clone(), limit.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut request: Value = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut newRequest: Value = self.omit(request, Value::from(vec![Value::Str("settle".into())]), &[]);
+        let mut newRequest: crate::value::Dict = self.omit(request, Value::from(vec![Value::Str("settle".into())]), &[]).into_dict();
         let mut messageType: Value = self.get_type_by_market(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default());
         let mut channel: String = format!("{}{}", messageType, Value::Str(".order_list".into()));
         let mut url: Value = self.get_url_by_market(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default());
@@ -1143,7 +1143,7 @@ impl Gate {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut full: bool = self.safe_bool_k(result.clone(), "full", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut full: bool = self.safe_bool_k(&result, "full", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut marketIdWithPrefix: Option<String> = self.safe_string_k(&result, "s", &[]).as_str().map(str::to_owned);
         if (marketIdWithPrefix.is_none()) {
             return;
@@ -1677,12 +1677,12 @@ impl Gate {
         let mut url: Value = self.get_url_by_market(market);
         let mut trades: Value = self.subscribe_public_multiple(url, Value::from(messageHashes), marketIds, Value::from(channel), &[params]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
-        let mut limitResolved: Value = limit.clone();
+        let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
+            limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1836,7 +1836,7 @@ impl Gate {
         }
         // todo add options support
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]);
+        let mut symbolValue: String = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut marketId: Value = Value::from((market).id.clone());
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut messageType: Value = self.get_type_by_market((market).raw.clone());
@@ -1845,11 +1845,11 @@ impl Gate {
         let mut url: Value = self.get_url_by_market((market).raw.clone());
         let mut payload: Value = Value::from(vec![interval, marketId]);
         let mut ohlcv: Value = self.subscribe_public(url, Value::from(messageHash), payload, Value::from(channel), &[params]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue, limit);
+            limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1890,10 +1890,10 @@ impl Gate {
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), interval).into()), Value::Str(":".into())).into()), symbolValue);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:candles:".into()), interval).into()), Value::Str(":".into())).into()), symbolValue);
         let mut url: Value = self.get_url_by_market((market).raw.clone());
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("time".to_string(), self.seconds());
                 m.insert("channel".to_string(), Value::from(channel));
                 m.insert("event".to_string(), Value::Str("unsubscribe".into()));
@@ -2075,11 +2075,11 @@ impl Gate {
         // uid required for non spot markets
         let mut requiresUid: Value = (Value::Bool(type_var.as_deref() != Some("spot")));
         let mut trades: Value = self.subscribe_private(url, Value::from(messageHash), payload, Value::from(channel), paramsSubType, &[requiresUid]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbol.clone(), limit);
+            limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbol, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbol, since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2608,11 +2608,11 @@ impl Gate {
         // uid required for non spot markets
         let mut requiresUid: Value = (Value::Bool(type_var.as_deref() != Some("spot")));
         let mut orders: Value = self.subscribe_private(url, Value::from(messageHash), payload, Value::from(channel), query, &[requiresUid]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved, limit);
+            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(orders, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3372,11 +3372,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut subscription = get_arg(optional_args, 1, Value::Null);
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut time: i64 = self.seconds().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("time".to_string(), Value::from(time));
                 m.insert("channel".to_string(), channel);
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
@@ -3423,11 +3423,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut time: i64 = self.seconds().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("time".to_string(), Value::from(time));
                 m.insert("channel".to_string(), channel);
                 m.insert("event".to_string(), Value::Str("unsubscribe".into()));
@@ -3542,10 +3542,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("SIGN".to_string(), signature);
             m
         });
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("time".to_string(), Value::from(time));
                 m.insert("channel".to_string(), channel);
                 m.insert("event".to_string(), Value::from(event));

@@ -1195,11 +1195,11 @@ impl Hitbtc {
         }
         let mut name: String = "trades".to_string();
         let mut trades: Value = self.subscribe_public(Value::from(name), Value::Str("trades".into()), &[Value::from(vec![symbol.clone()]), self.deep_extend(Value::Map(request), &[params])]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbol, limit);
+            limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -1312,7 +1312,8 @@ impl Hitbtc {
     Value::Null
 }
 
-    pub fn parse_ws_trades(&self, mut trades: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trades(&self, trades: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trades: Value = trades.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -1414,11 +1415,11 @@ impl Hitbtc {
             m
         });
         let mut ohlcv: Value = self.subscribe_public(Value::from(name.clone()), Value::from(name), &[Value::from(vec![symbol.clone()]), self.deep_extend(Value::Map(request), &[params])]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbol, limit);
+            limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0)]);
         Value::Null
         }).await?))
     }
@@ -1496,11 +1497,11 @@ impl Hitbtc {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict2(message.clone(), Value::Str("snapshot".into()), Value::Str("update".into()), &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict2(message.clone(), Value::Str("snapshot".into()), Value::Str("update".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut marketIds: Vec<Value> = Value::Array(data.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut marketIds: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut channel: String = (match __pro_message.get("ch").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut splitChannel: Value = Value::Array(channel.split("/").map(Value::from).collect());
         let mut period: Option<String> = self.safe_string(splitChannel, Value::Int(1), &[]).as_str().map(str::to_owned);
@@ -1526,7 +1527,7 @@ impl Hitbtc {
                 if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); } }
             }
             // parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
-            let mut rawOhlcvs: crate::value::List = self.safe_list(data.clone(), marketId, &[Value::from(vec![])]).into_list();
+            let mut rawOhlcvs: crate::value::List = self.safe_list(&data, marketId, &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_370: bool = true;
@@ -1596,11 +1597,11 @@ impl Hitbtc {
             m
         })]);
         let mut orders: Value = self.subscribe_private(name, &[symbol.clone(), paramsMarketType]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbol, limit);
+            limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, &[since, limitResolved, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(orders, &[since, Value::from(limitResolved), Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }

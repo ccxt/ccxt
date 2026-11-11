@@ -1764,8 +1764,8 @@ impl Bittrade {
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_order_orders_id_matchresults(&[__ws_arg_3]).await.into_dict();
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[Value::Null, since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&data, &[Value::Null, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1813,8 +1813,8 @@ impl Bittrade {
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_order_matchresults(&[__ws_arg_4]).await.into_dict();
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[market, since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&data, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2997,8 +2997,8 @@ impl Bittrade {
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_query_deposit_withdraw(&[__ws_arg_17]).await.into_dict();
         // return response
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(data, &[currency, since, Value::from(limitResolved)]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&data, &[currency, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -3047,8 +3047,8 @@ impl Bittrade {
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_query_deposit_withdraw(&[__ws_arg_18]).await.into_dict();
         // return response
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(data, &[currency, since, Value::from(limitResolved)]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&data, &[currency, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

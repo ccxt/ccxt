@@ -331,11 +331,11 @@ impl Luno {
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
         let mut trades: Value = self.watch(url.as_str(), messageHash.as_str(), &[request, Value::from(subscriptionHash), Value::Map(subscription)]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue, limit);
+            limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

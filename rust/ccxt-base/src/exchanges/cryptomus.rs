@@ -1520,9 +1520,9 @@ impl Cryptomus {
         let mut type_var: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_k(order.clone(), "direction", &[]).as_str().map(str::to_owned);
         let mut price: Option<f64> = self.safe_number_k(order.clone(), "price", &[]).as_f64();
-        let mut transaction: Value = self.safe_list_k(&deal, "transactions", &[Value::from(vec![])]);
+        let mut transaction: crate::value::List = self.safe_list_k(&deal, "transactions", &[Value::from(vec![])]).into_list();
         let mut fee: Value = Value::Null;
-        let mut firstTx: crate::value::Dict = self.safe_dict(transaction, Value::Int(0), &[]).into_dict();
+        let mut firstTx: crate::value::Dict = self.safe_dict(&transaction, Value::Int(0), &[]).into_dict();
         let mut feeCurrency: Option<String> = self.safe_string_k(&firstTx, "feeCurrency", &[]).as_str().map(str::to_owned);
         if (feeCurrency.is_some()) {
             fee = Value::Map({

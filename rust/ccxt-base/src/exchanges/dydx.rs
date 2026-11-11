@@ -1242,8 +1242,8 @@ impl Dydx {
         //     ]
         // }
         //
-        let mut rows: Value = self.safe_list_k(&response, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(rows, &[(market).raw.clone(), since, limit]);
+        let mut rows: crate::value::List = self.safe_list_k(&response, "trades", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&rows, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1854,8 +1854,8 @@ impl Dydx {
         //     ]
         // }
         //
-        let mut rows: Value = self.safe_list_k(&response, "positions", &[Value::from(vec![])]);
-        return self.parse_positions(rows, &[symbols]);
+        let mut rows: crate::value::List = self.safe_list_k(&response, "positions", &[Value::from(vec![])]).into_list();
+        return self.parse_positions(&rows, &[symbols]);
         Value::Null
         }).await?))
     }

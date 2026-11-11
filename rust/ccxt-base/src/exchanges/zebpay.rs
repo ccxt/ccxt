@@ -1062,8 +1062,8 @@ impl Zebpay {
             //     "customMessage": ["OK"]
             // }
             //
-            let mut responseData: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-            data = self.safe_dict(responseData, Value::Int(0), &[Value::Map({
+            let mut responseData: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+            data = self.safe_dict(&responseData, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1474,8 +1474,8 @@ impl Zebpay {
         //         }
         //     ]
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&data, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1524,8 +1524,8 @@ impl Zebpay {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut items: Value = self.safe_list_k(&data, "items", &[Value::from(vec![])]);
-        return self.parse_trades(items, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
+        let mut items: crate::value::List = self.safe_list_k(&data, "items", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&items, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2362,8 +2362,8 @@ impl Zebpay {
         //        ],
         //    }
         //
-        let mut positions: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut result: Value = self.parse_positions(positions, &[]);
+        let mut positions: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut result: Value = self.parse_positions(&positions, &[]);
         return self.filter_by_array_positions(result, Value::Str("symbol".into()), &[symbols]);
         Value::Null
         }).await?))
@@ -2712,7 +2712,7 @@ impl Zebpay {
                         let mut i: i64 = 0;
             let mut __for_first_1206: bool = true;
             while { if !__for_first_1206 { i += 1; } __for_first_1206 = false; i < (currencyList.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(Value::Arr(currencyList.clone()), Value::Int(i), &[]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict(&currencyList, Value::Int(i), &[]).into_dict();
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&entry, "total", &[]));
             account.insert("free".into(), self.safe_string_k(&entry, "free", &[]));

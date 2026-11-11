@@ -932,13 +932,13 @@ impl Apex {
                         let mut j: i64 = 0;
             let mut __for_first_226: bool = true;
             while { if !__for_first_226 { j += 1; } __for_first_226 = false; j < (chains.len() as i64) } {
-            let mut chain: Value = self.safe_dict(Value::Arr(chains.clone()), Value::Int(j), &[]);
+            let mut chain: Value = self.safe_dict(&chains, Value::Int(j), &[]);
             let mut tokens: crate::value::List = self.safe_list_k(chain.clone(), "tokens", &[Value::from(vec![])]).into_list();
             {
                                 let mut f: i64 = 0;
                 let mut __for_first_225: bool = true;
                 while { if !__for_first_225 { f += 1; } __for_first_225 = false; f < (tokens.len() as i64) } {
-                let mut token: crate::value::Dict = self.safe_dict(Value::Arr(tokens.clone()), Value::Int(f), &[]).into_dict();
+                let mut token: crate::value::Dict = self.safe_dict(&tokens, Value::Int(f), &[]).into_dict();
                 let mut tokenName: Option<String> = self.safe_string_k(&token, "token", &[]).as_str().map(str::to_owned);
                 if (tokenName == currencyId) {
                     let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "chainId", &[]).as_str().map(str::to_owned);
@@ -1232,8 +1232,8 @@ impl Apex {
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_v3_ticker(&[__ws_arg_0]).await.into_dict();
-        let mut tickers: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut rawTicker: Value = self.safe_dict(tickers, Value::Int(0), &[Value::Map({
+        let mut tickers: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut rawTicker: Value = self.safe_dict(&tickers, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1313,18 +1313,18 @@ impl Apex {
         let mut limitResolved: Option<i64> = (if ((limit == Value::Null) || limit.as_f64().unwrap_or(f64::NAN) > ((200i64) as f64)) { Some(200) } else { limit.as_i64() });
         request.insert("limit".into(), Value::from(limitResolved));
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), params, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null)); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("start".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null));
         }
         let __ws_arg_1 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.public_get_v3_klines(&[__ws_arg_1]).await.into_dict();
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut OHLCVs: Value = self.safe_list(data, self.safe_string_k(market.clone(), "id2", &[]), &[Value::from(vec![])]);
+        })]).into_dict();
+        let mut OHLCVs: Value = self.safe_list(&data, self.safe_string_k(market.clone(), "id2", &[]), &[Value::from(vec![])]);
         return self.parse_ohlc_vs(OHLCVs, &[market, timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
@@ -1469,8 +1469,8 @@ impl Apex {
         //  }
         //  ]
         //
-        let mut trades: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market, since, Value::from(limitResolved)]);
+        let mut trades: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[market, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -1550,8 +1550,8 @@ impl Apex {
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_v3_ticker(&[__ws_arg_4]).await.into_dict();
-        let mut tickers: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut rawTicker: Value = self.safe_dict(tickers, Value::Int(0), &[Value::Map({
+        let mut tickers: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut rawTicker: Value = self.safe_dict(&tickers, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2582,8 +2582,8 @@ impl Apex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut orders: Value = self.safe_list_k(&data, "orders", &[Value::from(vec![])]);
-        return self.parse_trades(orders, &[Value::Null, since, limit]);
+        let mut orders: crate::value::List = self.safe_list_k(&data, "orders", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&orders, &[Value::Null, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2645,8 +2645,8 @@ impl Apex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut orders: Value = self.safe_list_k(&data, "orders", &[Value::from(vec![])]);
-        return self.parse_trades(orders, &[market, since, limit]);
+        let mut orders: crate::value::List = self.safe_list_k(&data, "orders", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&orders, &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2825,8 +2825,8 @@ impl Apex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut positions: Value = self.safe_list_k(&data, "positions", &[Value::from(vec![])]);
-        return self.parse_positions(positions, &[symbols]);
+        let mut positions: crate::value::List = self.safe_list_k(&data, "positions", &[Value::from(vec![])]).into_list();
+        return self.parse_positions(&positions, &[symbols]);
         Value::Null
         }).await?))
     }

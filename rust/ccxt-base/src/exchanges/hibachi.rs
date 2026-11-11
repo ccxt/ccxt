@@ -2489,8 +2489,8 @@ impl Hibachi {
         //     ],
         //   }
         //
-        let mut data: Value = self.safe_list_k(&response, "positions", &[Value::from(vec![])]);
-        return self.parse_positions(data, &[symbolsNormalized]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "positions", &[Value::from(vec![])]).into_list();
+        return self.parse_positions(&data, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }
@@ -2980,8 +2980,8 @@ impl Hibachi {
         //         },
         //     ]
         // }
-        let mut transactions: Value = self.safe_list_k(&response, "transactions", &[Value::from(vec![])]);
-        return self.parse_transactions(transactions, &[currency, since, limit, params]);
+        let mut transactions: crate::value::List = self.safe_list_k(&response, "transactions", &[Value::from(vec![])]).into_list();
+        return self.parse_transactions(&transactions, &[currency, since, limit, params]);
         Value::Null
         }).await?))
     }

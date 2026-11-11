@@ -396,7 +396,7 @@ impl Ndax {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
-        let mut symbolValue: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut name: String = "SubscribeTrades".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId);
@@ -422,11 +422,11 @@ impl Ndax {
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue, limit);
+            limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -525,7 +525,7 @@ impl Ndax {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
-        let mut symbolValue: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut name: String = "SubscribeTicker".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), timeframe).into()), Value::Str(":".into())).into()), marketId);
@@ -552,11 +552,11 @@ impl Ndax {
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue, limit);
+            limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -597,7 +597,7 @@ impl Ndax {
                         let mut i: i64 = 0;
             let mut __for_first_522: bool = true;
             while { if !__for_first_522 { i += 1; } __for_first_522 = false; i < (payload.len() as i64) } {
-            let mut ohlcv: crate::value::List = self.safe_list(Value::Arr(payload.clone()), Value::Int(i), &[]).into_list();
+            let mut ohlcv: crate::value::List = self.safe_list(&payload, Value::Int(i), &[]).into_list();
             let mut marketId: Option<String> = self.safe_string_opt(&ohlcv, Value::Int(8), &[]);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
@@ -734,7 +734,7 @@ impl Ndax {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut limitValue: i64 = limit.as_i64().unwrap_or(100);
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -746,14 +746,14 @@ impl Ndax {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("m".to_string(), Value::Int(0));
-                m.insert("i".to_string(), requestId.clone());
+                m.insert("i".to_string(), Value::from(requestId));
                 m.insert("n".to_string(), Value::from(name.clone()));
                 m.insert("o".to_string(), json_stringify(&Value::Map(payload)));
             m
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
                 m.insert("name".to_string(), Value::from(name));
                 m.insert("symbol".to_string(), Value::from(symbolValue));
@@ -796,7 +796,7 @@ impl Ndax {
         //         0,   // 9 Side
         //     ],
         //
-        let mut firstBidAsk: crate::value::List = self.safe_list(Value::Arr(payload.clone()), Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut firstBidAsk: crate::value::List = self.safe_list(&payload, Value::Int(0), &[Value::from(vec![])]).into_list();
         let mut marketId: Option<String> = self.safe_string(&firstBidAsk, Value::Int(7), &[]).as_str().map(str::to_owned);
         if (marketId.is_none()) {
             return;
@@ -814,7 +814,7 @@ impl Ndax {
                         let mut i: i64 = 0;
             let mut __for_first_525: bool = true;
             while { if !__for_first_525 { i += 1; } __for_first_525 = false; i < (payload.len() as i64) } {
-            let mut bidask: crate::value::List = self.safe_list(Value::Arr(payload.clone()), Value::Int(i), &[]).into_list();
+            let mut bidask: crate::value::List = self.safe_list(&payload, Value::Int(i), &[]).into_list();
             if (timestamp == Value::Null) {
                 timestamp = self.safe_integer(&bidask, Value::Int(2), &[]);
             }  else {

@@ -934,17 +934,17 @@ impl Coinspot {
                                 let mut i: i64 = 0;
                 let mut __for_first_582: bool = true;
                 while { if !__for_first_582 { i += 1; } __for_first_582 = false; (i as f64) < numRows } {
-                let mut currencies: Value = self.safe_dict(Value::Arr(rows.clone()), Value::Int(i), &[Value::Map({
+                let mut currencies: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                let mut currencyIdsList: Vec<Value> = Value::Array(currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+})]).into_dict();
+                let mut currencyIdsList: Vec<Value> = Value::Array(currencies.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_581: bool = true;
                     while { if !__for_first_581 { j += 1; } __for_first_581 = false; j < (currencyIdsList.len() as i64) } {
                     let mut currencyId: Value = currencyIdsList.get(j as usize).cloned().unwrap_or(Value::Null);
-                    let mut balance: crate::value::Dict = self.safe_dict(currencies.clone(), currencyId.clone(), &[]).into_dict();
+                    let mut balance: crate::value::Dict = self.safe_dict(&currencies, currencyId.clone(), &[]).into_dict();
                     let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), &[]).as_str().map(str::to_owned);
                     let mut account: Value = self.account();
                     if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(&balance, "balance", &[])); }
@@ -1115,10 +1115,10 @@ impl Coinspot {
         let mut response: crate::value::Dict = self.public_get_latest(&[params]).await.into_dict();
         let mut id: String = self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         id = id.to_lowercase();
-        let mut prices: Value = self.safe_dict_k(&response, "prices", &[Value::Map({
+        let mut prices: crate::value::Dict = self.safe_dict_k(&response, "prices", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         //
         //     {
         //         "status":"ok",
@@ -1131,7 +1131,7 @@ impl Coinspot {
         //         }
         //     }
         //
-        let mut ticker: Value = self.safe_dict(prices, Value::from(id), &[Value::Map({
+        let mut ticker: Value = self.safe_dict(&prices, Value::from(id), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1251,8 +1251,8 @@ impl Coinspot {
         //         ],
         //     }
         //
-        let mut trades: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
+        let mut trades: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
+        return self.parse_trades(&trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

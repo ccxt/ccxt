@@ -557,8 +557,8 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut statuses: Value = self.safe_list_k(&dataObject, "statuses", &[Value::from(vec![])]);
-        let mut first: Value = self.safe_dict(statuses, Value::Int(0), &[Value::Map({
+        let mut statuses: crate::value::List = self.safe_list_k(&dataObject, "statuses", &[Value::from(vec![])]).into_list();
+        let mut first: Value = self.safe_dict(&statuses, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -792,11 +792,11 @@ impl Hyperliquid {
         let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.map(Value::from).unwrap_or(Value::Null));
         let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbol: Value = Value::from((market).symbol.clone());
-        let mut rawData: Value = self.safe_list_k(&entry, "levels", &[Value::from(vec![])]);
+        let mut rawData: crate::value::List = self.safe_list_k(&entry, "levels", &[Value::from(vec![])]).into_list();
         let mut data: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("bids".to_string(), self.safe_list(rawData.clone(), Value::Int(0), &[Value::from(vec![])]));
-                m.insert("asks".to_string(), self.safe_list(rawData, Value::Int(1), &[Value::from(vec![])]));
+                m.insert("bids".to_string(), self.safe_list(&rawData, Value::Int(0), &[Value::from(vec![])]));
+                m.insert("asks".to_string(), self.safe_list(&rawData, Value::Int(1), &[Value::from(vec![])]));
             m
         });
         let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "time", &[]).as_i64();
@@ -1046,9 +1046,9 @@ impl Hyperliquid {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "myTrades".to_string();
-        let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { symbol });
-        if (symbolResolved != Value::Null) {
-            messageHash = format!("{}{}", Value::Str("myTrades:".into()), symbolResolved);
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
+        if (symbolResolved.is_some()) {
+            messageHash = format!("{}{}", Value::Str("myTrades:".into()), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1070,11 +1070,11 @@ impl Hyperliquid {
         // unWatchMyTrades registers 'unsubscribe:myTrades', not the per-user dedup hash
         self.wait_for_pending_unsubscribe(url.clone(), Value::Str("myTrades".into())).await;
         let mut trades: Value = self.watch(url, messageHash.as_str(), &[message, Value::from(subscribeHash)]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.clone(), limit);
+            limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1420,13 +1420,13 @@ impl Hyperliquid {
     m
 }) });
         // every subscription starts with a snapshot, a resubscribe replays it
-        let mut isSnapshot: bool = self.safe_bool_k(entry.clone(), "isSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSnapshot: bool = self.safe_bool_k(&entry, "isSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if isSnapshot || (self.myLiquidations.clone() == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "myLiquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myLiquidations = ArrayCache::new(limit);
         }
         let mut user: Option<String> = self.safe_string_lower_k_opt(&entry, "user", &[]);
-        let mut fills: crate::value::List = self.safe_list_k(entry, "fills", &[Value::from(vec![])]).into_list();
+        let mut fills: crate::value::List = self.safe_list_k(&entry, "fills", &[Value::from(vec![])]).into_list();
         let mut newLiquidations: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
@@ -1502,7 +1502,7 @@ impl Hyperliquid {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
+        let mut symbolValue: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbolValue);
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1519,11 +1519,11 @@ impl Hyperliquid {
         let mut message: Value = self.extend(Value::Map(request), &[params]);
         self.wait_for_pending_unsubscribe(url.clone(), Value::from(messageHash.clone())).await;
         let mut trades: Value = self.watch(url, &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue, limit);
+            limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1597,7 +1597,7 @@ impl Hyperliquid {
         if (entryLength == 0.0) {
             return;
         }
-        let mut first: crate::value::Dict = self.safe_dict(Value::Arr(entry.clone()), Value::Int(0), &[Value::Map({
+        let mut first: crate::value::Dict = self.safe_dict(&entry, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -1615,7 +1615,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_406: bool = true;
             while { if !__for_first_406 { i += 1; } __for_first_406 = false; i < (entry.len() as i64) } {
-            let mut data: Value = self.safe_dict(Value::Arr(entry.clone()), Value::Int(i), &[Value::Map({
+            let mut data: Value = self.safe_dict(&entry, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1731,7 +1731,7 @@ impl Hyperliquid {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
+        let mut symbolValue: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1749,11 +1749,11 @@ impl Hyperliquid {
         let mut message: Value = self.extend(Value::Map(request), &[params]);
         self.wait_for_pending_unsubscribe(url.clone(), Value::from(messageHash.clone())).await;
         let mut ohlcv: Value = self.watch(url, &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue, limit);
+            limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2366,7 +2366,7 @@ impl Hyperliquid {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             messageHash = format!("{}{}", Value::Str("order:".into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
         }
-        let mut symbolResolved: Value = (if (market.is_some()) { self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]) } else { symbol });
+        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2393,11 +2393,11 @@ impl Hyperliquid {
         // unWatchOrders registers 'unsubscribe:order', not the per-user dedup hash
         self.wait_for_pending_unsubscribe(url.clone(), Value::Str("order".into())).await;
         let mut orders: Value = self.watch(url, messageHash.as_str(), &[message, Value::from(subscribeHash)]).await;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
+            limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2968,14 +2968,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn wrap_as_post_action(&mut self, mut request: Value) -> Value {
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("requestId".to_string(), requestId.clone());
+        m.insert("requestId".to_string(), Value::from(requestId));
         m.insert("request".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::Str("post".into()));
-        m.insert("id".to_string(), requestId);
+        m.insert("id".to_string(), Value::from(requestId));
         m.insert("request".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("action".into()));
