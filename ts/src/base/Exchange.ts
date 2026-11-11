@@ -1553,10 +1553,10 @@ export class BaseExchange {
         if ((reload && (this.reloadingMarkets !== true)) || (this.marketsLoading === undefined)) {
             this.reloadingMarkets = true;
             const promise = async () => {
-                await functions.initFileSystem();
+                await functions.initFileSystem ();
                 return await this.loadMarketsHelper (reload, params);
             };
-            this.marketsLoading = promise().then ((resolved) => {
+            this.marketsLoading = promise ().then ((resolved) => {
                 this.reloadingMarkets = false;
                 return resolved;
             }, (error) => {
