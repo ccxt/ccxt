@@ -424,10 +424,10 @@ export default class interactivebrokers extends Exchange {
                     'cryptoCoinbasePerpSymbols': {
                         // the -NANO / -MICRO suffix follows the IBKR contract name ("nano Bitcoin ...", "Micro ..."), the multiplier is the contract size
                         // perp style futures (nominal 2030-12-20 expiry)
-                        'BIP': 'BTC-NANO', // nano Bitcoin BTC Perpetual Futures, 0.01 BTC
-                        'ETP': 'ETH-NANO', // nano Ether ETH Perpetual Futures, 0.1 ETH
-                        'SLP': 'SOL-NANO', // Nano Solana Perp Style Futures, 5 SOL
-                        'XPP': 'XRP-NANO', // Nano XRP Perp Style Futures, 500 XRP
+                        'BIP': 'BTC.NANO', // nano Bitcoin BTC Perpetual Futures, 0.01 BTC
+                        'ETP': 'ETH.NANO', // nano Ether ETH Perpetual Futures, 0.1 ETH
+                        'SLP': 'SOL.NANO', // Nano Solana Perp Style Futures, 5 SOL
+                        'XPP': 'XRP.NANO', // Nano XRP Perp Style Futures, 500 XRP
                         'ADP': 'ADA', // Cardano Perp Style Futures, 1000 ADA
                         'AVP': 'AVAX', // Avalanche Perp Style Futures, 10 AVAX
                         'BCP': 'BCH', // Bitcoin Cash Perp Style Futures, 1 BCH
@@ -462,13 +462,13 @@ export default class interactivebrokers extends Exchange {
                         'XLM': 'XLM', // CME CF Stellar Lumens Dollar Reference Rate, 250000 XLM
                         'ADA': 'ADA', // CME CF Cardano Dollar Reference Rate, 100000 ADA
                         // CME micro futures
-                        'MBT': 'BTC-MICRO', // Micro Bitcoin, 0.1 BTC
-                        'MET': 'ETH-MICRO', // Micro Ether, 0.1 ETH
-                        'EEM': 'ETH-MICRO', // Micro Ether Euro, 0.1 ETH, quoted in EUR
-                        'MSL': 'SOL-MICRO', // Micro Solana, 25 SOL
-                        'MXP': 'XRP-MICRO', // Micro XRP, 2500 XRP
-                        'MLN': 'LINK-MICRO', // Micro Chainlink, 250 LINK
-                        'MXL': 'XLM-MICRO', // Micro Lumens, 12500 XLM
+                        'MBT': 'BTC.MICRO', // Micro Bitcoin, 0.1 BTC
+                        'MET': 'ETH.MICRO', // Micro Ether, 0.1 ETH
+                        'EEM': 'ETH.MICRO', // Micro Ether Euro, 0.1 ETH, quoted in EUR
+                        'MSL': 'SOL.MICRO', // Micro Solana, 25 SOL
+                        'MXP': 'XRP.MICRO', // Micro XRP, 2500 XRP
+                        'MLN': 'LINK.MICRO', // Micro Chainlink, 250 LINK
+                        'MXL': 'XLM.MICRO', // Micro Lumens, 12500 XLM
                         // CME other bitcoin and ether futures, kept under their IBKR ticker, BTC and ETH on CME are BRR and ETHUSDRR
                         // 'BFF' - CME CF Bitcoin Reference Rate New York (Bitcoin Friday Futures), 0.02 BTC
                         // 'QTF' -  Spot-Quoted Bitcoin (Cleared Future), 0.01 BTC
@@ -479,8 +479,8 @@ export default class interactivebrokers extends Exchange {
                         'PBT': 'BTC', // Cboe Kaiko Bitcoin Index, 0.01 BTC
                         'PET': 'ETH', // Cboe Kaiko Ether Index, 0.1 ETH
                         // coinbase derivatives dated (monthly) futures, listed after the CME contracts so those keep the plain symbol on collisions
-                        'BIT': 'BTC-NANO', // nano Bitcoin Futures, 0.01 BTC
-                        'ET': 'ETH-NANO', // nano Ether Futures, 0.1 ETH
+                        'BIT': 'BTC.NANO', // nano Bitcoin Futures, 0.01 BTC
+                        'ET': 'ETH.NANO', // nano Ether Futures, 0.1 ETH
                         'BTI': 'BTC', // Coinbase Bitcoin Futures, 1 BTC
                         'XRL': 'XRP', // XRP Futures Index, 10000 XRP
                         'AVA': 'AVAX', // Avalanche Futures Index, 10 AVAX
