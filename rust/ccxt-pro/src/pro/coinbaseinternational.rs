@@ -686,11 +686,11 @@ impl Coinbaseinternational {
     pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut data: Value = self.safe_dict_k(params, "data", &[Value::Map({
+}) }).into_dict();
+        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -787,12 +787,12 @@ impl Coinbaseinternational {
     pub fn handle_my_trades(&mut self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut channel: Option<String> = self.safe_string_k_opt(params.clone(), "channel", &[]);
-        let mut data: Value = self.safe_list_k(params, "data", &[Value::from(vec![])]);
+}) }).into_dict();
+        let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
+        let mut data: Value = self.safe_list_k(&params, "data", &[Value::from(vec![])]);
         if (self.myTrades.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCacheBySymbolById::new(limit);
@@ -960,12 +960,12 @@ impl Coinbaseinternational {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut channel: Option<String> = self.safe_string_k_opt(params.clone(), "channel", &[]);
-        let mut data: Value = self.safe_value_k(params, "data", &[Value::Map({
+}) }).into_dict();
+        let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
+        let mut data: Value = self.safe_value_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1105,16 +1105,16 @@ impl Coinbaseinternational {
         if (self.positions.clone() == Value::Null) {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut channel: Option<String> = self.safe_string_k_opt(params.clone(), "channel", &[]);
-        let mut data: Value = self.safe_dict_k(params, "data", &[Value::Map({
+}) }).into_dict();
+        let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
+        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut rawPositions: Value = self.safe_list_k(data, "positions", &[Value::from(vec![])]);
+        })]).into_dict();
+        let mut rawPositions: Value = self.safe_list_k(&data, "positions", &[Value::from(vec![])]);
         let mut positions: Value = self.parse_positions(rawPositions, &[]);
         let mut positionsLength: f64 = ((positions.len() as i64) as f64);
         {
@@ -1641,16 +1641,16 @@ impl Coinbaseinternational {
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut data: Value = self.safe_dict_k(params.clone(), "data", &[Value::Map({
+}) }).into_dict();
+        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut ticker: Value = self.parse_ticker(data, &[]);
-        let mut channel: Option<String> = self.safe_string_k_opt(params, "channel", &[]);
+        let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         client.resolve(&[ticker, channel.map(Value::from).unwrap_or(Value::Null)]);
@@ -1659,18 +1659,18 @@ impl Coinbaseinternational {
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut data: Value = self.safe_dict_k(params.clone(), "data", &[Value::Map({
+}) }).into_dict();
+        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut ticker: Value = self.parse_ws_bid_ask(data, &[]);
         let mut symbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
-        let mut channel: Option<String> = self.safe_string_k_opt(params, "channel", &[]);
+        let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
         client.resolve(&[ticker, channel.map(Value::from).unwrap_or(Value::Null)]);
 }
 
@@ -1875,21 +1875,21 @@ impl Coinbaseinternational {
     pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut messageHash: Value = self.safe_string_k(params.clone(), "channel", &[Value::Str("".into())]);
+}) }).into_dict();
+        let mut messageHash: Value = self.safe_string_k(&params, "channel", &[Value::Str("".into())]);
         let mut parts: Value = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string(parts.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut resolution: Option<String> = self.safe_string(parts, Value::Int(3), &[]).as_str().map(str::to_owned);
-        let mut wsOptions: Value = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
+        let mut wsOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timeframes: Value = self.safe_dict_k(wsOptions, "timeframes", &[Value::Map({
+        })]).into_dict();
+        let mut timeframes: Value = self.safe_dict_k(&wsOptions, "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1903,7 +1903,7 @@ impl Coinbaseinternational {
             if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), ArrayCacheByTimestamp::new(limit)); } }
         }
         let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-        let mut data: Value = self.safe_dict_k(params, "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2000,8 +2000,8 @@ impl Coinbaseinternational {
         let mut trades: Value = self.subscribe(channels.clone(), channels.clone(), &[isPrivate, paramsInterval]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
-            let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
-            let mut tradeSymbol: Option<String> = self.safe_string_k_opt(first, "symbol", &[]);
+            let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+            let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
             limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -2085,12 +2085,12 @@ impl Coinbaseinternational {
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) -> Value {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut params: crate::value::Dict = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[Value::Str("".into())]);
-        let mut data: Vec<Value> = self.safe_list_k(params, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+}) }).into_dict();
+        let mut channel: Value = self.safe_string_k(&params, "channel", &[Value::Str("".into())]);
+        let mut data: Vec<Value> = self.safe_list_k(&params, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut parts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -2302,11 +2302,11 @@ impl Coinbaseinternational {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut data: Value = self.safe_dict_k(params.clone(), "data", &[Value::Map({
+}) }).into_dict();
+        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2314,7 +2314,7 @@ impl Coinbaseinternational {
         let mut marketId: Option<String> = self.safe_string_k(data.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "timestamp", &[]).as_i64();
-        let mut channel: Option<String> = self.safe_string_k_opt(params, "channel", &[]);
+        let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
         let mut channelParts: Vec<Value> = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut channelPartsLength: f64 = ((channelParts.len() as i64) as f64);
         let mut isGrouped: bool = channelPartsLength == 5.0;
@@ -2329,15 +2329,15 @@ impl Coinbaseinternational {
 }), limit]) }); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
-        if !isGrouped && (type_var.as_deref() != Some("snapshot")) && (nonce == Value::Null) {
+        let mut nonce: Option<i64> = self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_i64();
+        if !isGrouped && (type_var.as_deref() != Some("snapshot")) && (nonce.is_none()) {
             return;
         }
         if isGrouped {
             orderbook.reset(self.parse_order_book(data.clone(), symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]));
         }  else {
-            let mut previousChangeId: Value = self.safe_integer_k(data.clone(), "prev_change_id", &[]);
-            if (type_var.as_deref() != Some("snapshot")) && (nonce != Value::Null) && (previousChangeId.as_f64() != nonce.as_f64()) {
+            let mut previousChangeId: Option<i64> = self.safe_integer_k(data.clone(), "prev_change_id", &[]).as_i64();
+            if (type_var.as_deref() != Some("snapshot")) && (nonce.is_some()) && (previousChangeId != nonce) {
                 // drop the stale book and reject only this channels future
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                 if (__ch.has_subscription(&channel.clone().map(Value::from).unwrap_or(Value::Null))) {
@@ -2432,9 +2432,9 @@ impl Coinbaseinternational {
             panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            let mut requestId: Value = self.safe_string_k(message, "id", &[]);
-            let mut authRequestId: Value = self.safe_string_k(self.options.clone(), "wsAuthRequestId", &[]);
-            let mut messageHash: Value = (if (requestId == authRequestId) { Value::Str("authenticated".into()) } else { requestId });
+            let mut requestId: Option<String> = self.safe_string_k(message, "id", &[]).as_str().map(str::to_owned);
+            let mut authRequestId: Option<String> = self.safe_string_k(self.options.clone(), "wsAuthRequestId", &[]).as_str().map(str::to_owned);
+            let mut messageHash: Value = (if (requestId == authRequestId) { Value::Str("authenticated".into()) } else { requestId.clone().map(Value::from).unwrap_or(Value::Null) });
             if (messageHash.as_str() == Some("authenticated")) && (__ch.has_subscription(&messageHash)) {
                 // allow the next authenticate () call to retry
                 __ch.remove_subscription(&messageHash);
@@ -2449,11 +2449,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub async fn handle_heartbeat(&mut self, mut client: Value, mut message: Value) -> Value {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut data: Option<String> = self.safe_string_k(params, "data", &[]).as_str().map(str::to_owned);
+}) }).into_dict();
+        let mut data: Option<String> = self.safe_string_k(&params, "data", &[]).as_str().map(str::to_owned);
         if (data.as_deref() == Some("test_request")) {
             client.send(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2482,8 +2482,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.spawn(&[Value::Str("handle_heartbeat".into()).clone(), client.clone(), message.clone()]);
             return;
         }
-        let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        let mut channel: Option<String> = self.safe_string_k_opt(params, "channel", &[]);
+        let mut params: crate::value::Dict = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
+        let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
         if (channel.is_some()) {
             let mut parts: Value = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
             let mut channelId: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -2516,8 +2516,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut requestId: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (requestId != Value::Null) {
-            let mut result: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-            if (self.safe_string_k(result, "version", &[]) != Value::Null) {
+            let mut result: crate::value::Dict = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
+            if (self.safe_string_k(&result, "version", &[]) != Value::Null) {
                 crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
             }
             let mut authRequestId: Value = self.safe_string_k(self.options.clone(), "wsAuthRequestId", &[]);
@@ -3264,8 +3264,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut paramsResolved: Value = self.parent.handle_route_and_params(Value::Str("setCancelOnDisconnect".into()), &[params]);
-        let mut method: String = (if (enabled.as_bool() == Some(true)) { "private/enable_cancel_on_disconnect".to_string() } else { "private/disable_cancel_on_disconnect".to_string() });
-        return self.request_ws(Value::from(method), &[paramsResolved, Value::Bool(true)]).await;
+        let mut method: Value = (if (enabled.as_bool() == Some(true)) { Value::Str("private/enable_cancel_on_disconnect".into()) } else { Value::Str("private/disable_cancel_on_disconnect".into()) });
+        return self.request_ws(method, &[paramsResolved, Value::Bool(true)]).await;
 
     Value::Null
 }
@@ -3314,8 +3314,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut paramsResolved: Value = self.parent.handle_route_and_params(Value::Str("unsubscribeAllWs".into()), &[params]);
-        let mut method: String = (if isPrivate.as_bool() == Some(true) { "private/unsubscribe_all".to_string() } else { "public/unsubscribe_all".to_string() });
-        return self.request_ws(Value::from(method), &[paramsResolved, isPrivate]).await;
+        let mut method: Value = (if isPrivate.as_bool() == Some(true) { Value::Str("private/unsubscribe_all".into()) } else { Value::Str("public/unsubscribe_all".into()) });
+        return self.request_ws(method, &[paramsResolved, isPrivate]).await;
 
     Value::Null
 }

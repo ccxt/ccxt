@@ -1021,8 +1021,8 @@ impl Cex {
     pub fn handle_transaction(&mut self, mut client: Value, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        let mut symbol2: Option<String> = self.safe_string_k(data, "symbol2", &[]).as_str().map(str::to_owned);
+        let mut data: crate::value::Dict = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
+        let mut symbol2: Option<String> = self.safe_string_k(&data, "symbol2", &[]).as_str().map(str::to_owned);
         if (symbol2.is_none()) {
             return;
         }
@@ -1368,9 +1368,9 @@ impl Cex {
         }
         let mut marketResolved: Value = self.safe_market(&[symbol.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut time: Option<i64> = self.safe_integer_k(order.clone(), "time", &[]).as_i64();
-        let mut timestamp: Value = Value::from(time);
+        let mut timestamp: Option<i64> = time;
         if isTransaction {
-            timestamp = self.parse8601(Value::from(time));
+            timestamp = self.parse8601(Value::from(time)).as_i64();
         }
         let mut canceled: bool = self.safe_bool_k(order.clone(), "cancel", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut status: String = "open".to_string();
@@ -1384,8 +1384,8 @@ impl Cex {
                 m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("id".into()), Value::Str("order".into()), &[]));
                 m.insert("clientOrderId".to_string(), Value::Null);
                 m.insert("info".to_string(), order.clone());
-                m.insert("timestamp".to_string(), timestamp.clone());
-                m.insert("datetime".to_string(), self.iso8601(timestamp));
+                m.insert("timestamp".to_string(), Value::from(timestamp));
+                m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
                 m.insert("lastTradeTimestamp".to_string(), Value::Null);
                 m.insert("status".to_string(), Value::from(status));
                 m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1619,12 +1619,12 @@ impl Cex {
         //         }
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut data: crate::value::Dict = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut incrementalId: Value = self.safe_integer_k(data.clone(), "id", &[]);
-        let mut pair: String = self.safe_string_k(data.clone(), "pair", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+}) }).into_dict();
+        let mut incrementalId: Value = self.safe_integer_k(&data, "id", &[]);
+        let mut pair: String = self.safe_string_k(&data, "pair", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut symbol: Value = self.pair_to_symbol(Value::from(pair));
         if (symbol.as_str() == Some("")) {
             return;
@@ -1638,9 +1638,9 @@ impl Cex {
             client.reject(&[Value::from(error), messageHash.clone()]);
             return;
         }
-        let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "time", &[]).as_i64();
-        let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
-        let mut bids: Value = self.safe_list_k(data, "bids", &[Value::from(vec![])]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&data, "time", &[]).as_i64();
+        let mut asks: Value = self.safe_list_k(&data, "asks", &[Value::from(vec![])]);
+        let mut bids: Value = self.safe_list_k(&data, "bids", &[Value::from(vec![])]);
         self.handle_deltas(storedOrderBook.as_map().and_then(|__m| __m.get("asks")).cloned().unwrap_or(Value::Null), asks);
         self.handle_deltas(storedOrderBook.as_map().and_then(|__m| __m.get("bids")).cloned().unwrap_or(Value::Null), bids);
         storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
@@ -1806,17 +1806,17 @@ impl Cex {
         //         }
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut data: crate::value::Dict = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut pair: Option<String> = self.safe_string_k(data.clone(), "pair", &[]).as_str().map(str::to_owned);
+}) }).into_dict();
+        let mut pair: Option<String> = self.safe_string_k(&data, "pair", &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.pair_to_symbol(pair.clone().map(Value::from).unwrap_or(Value::Null));
         if (symbol.as_str() == Some("")) {
             return;
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into());
-        let mut ohlcv: Value = Value::from(vec![self.safe_timestamp_k(data.clone(), "time", &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data, "v", &[])]);
+        let mut ohlcv: Value = Value::from(vec![self.safe_timestamp_k(&data, "time", &[]), self.safe_number_k(&data, "o", &[]), self.safe_number_k(&data, "h", &[]), self.safe_number_k(&data, "l", &[]), self.safe_number_k(&data, "c", &[]), self.safe_number_k(&data, "v", &[])]);
         let mut stored: Value = self.safe_value((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("unknown".into()), &[]);
         stored.append(ohlcv);
         client.resolve(&[stored, messageHash]);
@@ -2231,11 +2231,11 @@ impl Cex {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+            let mut data: crate::value::Dict = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-            let mut error: Option<String> = self.safe_string_k_opt(data.clone(), "error", &[]);
+}) }).into_dict();
+            let mut error: Option<String> = self.safe_string_k_opt(&data, "error", &[]);
             let mut event: String = (match message.get("e") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), event).into()), Value::Str(" ".into())).into()), error.clone().map(Value::from).unwrap_or(Value::Null));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
@@ -2329,14 +2329,14 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             self.check_required_credentials(&[]);
             let mut nonce: Value = Value::Str(format!("{}", self.seconds()).into());
             let mut auth: String = format!("{}{}", nonce, self.apiKey.clone());
-            let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("e".to_string(), Value::Str("auth".into()));
                     m.insert("auth".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("key".to_string(), self.apiKey.clone());
-        m.insert("signature".to_string(), (if let Some(__s) = signature.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
+        m.insert("signature".to_string(), signature.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), nonce);
     m
 }));

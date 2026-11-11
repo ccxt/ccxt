@@ -583,7 +583,7 @@ impl P2b {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_markets(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_markets(&[params]).await.into_dict();
         //
         //    {
         //        "success": true,
@@ -613,7 +613,7 @@ impl P2b {
         //        ]
         //    }
         //
-        let mut markets: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
+        let mut markets: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
         return self.parse_markets(markets);
         Value::Null
         }).await?))
@@ -628,9 +628,9 @@ impl P2b {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut limits: Value = self.safe_dict_k(market.clone(), "limits", &[]);
-        let mut maxAmount: Option<String> = self.safe_string_k(limits.clone(), "max_amount", &[]).as_str().map(str::to_owned);
-        let mut maxPrice: Option<String> = self.safe_string_k(limits.clone(), "max_price", &[]).as_str().map(str::to_owned);
+        let mut limits: crate::value::Dict = self.safe_dict_k(market.clone(), "limits", &[]).into_dict();
+        let mut maxAmount: Option<String> = self.safe_string_k(&limits, "max_amount", &[]).as_str().map(str::to_owned);
+        let mut maxPrice: Option<String> = self.safe_string_k(&limits, "max_price", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -658,8 +658,8 @@ impl P2b {
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), self.safe_number_k(limits.clone(), "step_size", &[]));
-        m.insert("price".to_string(), self.safe_number_k(limits.clone(), "tick_size", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(&limits, "step_size", &[]));
+        m.insert("price".to_string(), self.safe_number_k(&limits, "tick_size", &[]));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
@@ -672,19 +672,19 @@ impl P2b {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(limits.clone(), "min_amount", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&limits, "min_amount", &[]));
         m.insert("max".to_string(), self.parse_number(self.omit_zero(maxAmount.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(limits.clone(), "min_price", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&limits, "min_price", &[]));
         m.insert("max".to_string(), self.parse_number(self.omit_zero(maxPrice.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
     m
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(limits, "min_total", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&limits, "min_total", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -721,7 +721,7 @@ impl P2b {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.public_get_tickers(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_tickers(&[params]).await.into_dict();
         //
         //    {
         //        success: true,
@@ -747,10 +747,10 @@ impl P2b {
         //        current_time: '1699252644.487566'
         //    }
         //
-        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_tickers(result, &[symbols]);
         Value::Null
         }).await?))
@@ -786,7 +786,7 @@ impl P2b {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_ticker(&[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.public_get_ticker(&[__ws_arg_0]).await.into_dict();
         //
         //    {
         //        success: true,
@@ -807,10 +807,10 @@ impl P2b {
         //        current_time: '1699252958.859391'
         //    }
         //
-        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_ticker(result, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -997,7 +997,7 @@ impl P2b {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_history(&[__ws_arg_2]).await;
+        let mut response: crate::value::Dict = self.public_get_history(&[__ws_arg_2]).await.into_dict();
         //
         //    {
         //        success: true,
@@ -1017,7 +1017,7 @@ impl P2b {
         //        current_time: '1699255571.413828'
         //    }
         //
-        let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
+        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
         return self.parse_trades(result, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -1139,7 +1139,7 @@ impl P2b {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_market_kline(&[__ws_arg_3]).await;
+        let mut response: crate::value::Dict = self.public_get_market_kline(&[__ws_arg_3]).await.into_dict();
         //
         //    {
         //        success: true,
@@ -1162,7 +1162,7 @@ impl P2b {
         //        current_time: '1699256375.030494'
         //    }
         //
-        let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
+        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(result, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -1196,7 +1196,7 @@ impl P2b {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_post_account_balances(&[params]).await;
+        let mut response: crate::value::Dict = self.private_post_account_balances(&[params]).await.into_dict();
         //
         //    {
         //        "success": true,
@@ -1214,10 +1214,10 @@ impl P2b {
         //        }
         //    }
         //
-        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_balance(result);
         Value::Null
         }).await?))
@@ -1247,10 +1247,10 @@ impl P2b {
             let mut __for_first_1041: bool = true;
             while { if !__for_first_1041 { i += 1; } __for_first_1041 = false; i < (keys.len() as i64) } {
             let mut currencyId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut balance: Value = self.safe_dict(response.clone(), currencyId.clone(), &[]);
+            let mut balance: crate::value::Dict = self.safe_dict(response.clone(), currencyId.clone(), &[]).into_dict();
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
-            let mut used: Option<String> = self.safe_string_k(balance.clone(), "freeze", &[]).as_str().map(str::to_owned);
-            let mut available: Option<String> = self.safe_string_k(balance, "available", &[]).as_str().map(str::to_owned);
+            let mut used: Option<String> = self.safe_string_k(&balance, "freeze", &[]).as_str().map(str::to_owned);
+            let mut available: Option<String> = self.safe_string_k(&balance, "available", &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("free".to_string(), available.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1309,7 +1309,7 @@ impl P2b {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_order_new(&[__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.private_post_order_new(&[__ws_arg_4]).await.into_dict();
         //
         //    {
         //        "success": true,
@@ -1332,7 +1332,7 @@ impl P2b {
         //        }
         //    }
         //
-        let mut result: Value = self.safe_dict_k(response, "result", &[]);
+        let mut result: Value = self.safe_dict_k(&response, "result", &[]);
         return self.parse_order(result, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -1374,7 +1374,7 @@ impl P2b {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_order_cancel(&[__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.private_post_order_cancel(&[__ws_arg_5]).await.into_dict();
         //
         //    {
         //        "success": true,
@@ -1397,7 +1397,7 @@ impl P2b {
         //        }
         //    }
         //
-        let mut result: Value = self.safe_dict_k(response, "result", &[]);
+        let mut result: Value = self.safe_dict_k(&response, "result", &[]);
         return self.parse_order(result, &[]);
         Value::Null
         }).await?))
@@ -1446,7 +1446,7 @@ impl P2b {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_orders(&[__ws_arg_6]).await;
+        let mut response: crate::value::Dict = self.private_post_orders(&[__ws_arg_6]).await.into_dict();
         //
         //    {
         //        "success": true,
@@ -1472,7 +1472,7 @@ impl P2b {
         //        ]
         //    }
         //
-        let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
+        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
         return self.parse_orders(result, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -1520,7 +1520,7 @@ impl P2b {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_account_order(&[__ws_arg_7]).await;
+        let mut response: crate::value::Dict = self.private_post_account_order(&[__ws_arg_7]).await.into_dict();
         //
         //    {
         //        "success": true,
@@ -1544,11 +1544,11 @@ impl P2b {
         //        }
         //    }
         //
-        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut records: Value = self.safe_list_k(result, "records", &[Value::from(vec![])]);
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut records: Value = self.safe_list_k(&result, "records", &[Value::from(vec![])]);
         return self.parse_trades(records, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -1624,7 +1624,7 @@ impl P2b {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.private_post_account_market_deal_history(&[__ws_arg_8]).await;
+        let mut response: crate::value::Dict = self.private_post_account_market_deal_history(&[__ws_arg_8]).await.into_dict();
         //
         //    {
         //        "success": true,
@@ -1651,11 +1651,11 @@ impl P2b {
         //        }
         //    }
         //
-        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut deals: Value = self.safe_list_k(result, "deals", &[Value::from(vec![])]);
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut deals: Value = self.safe_list_k(&result, "deals", &[Value::from(vec![])]);
         return self.parse_trades(deals, &[(market).raw.clone(), sinceResolved, limit]);
         Value::Null
         }).await?))
@@ -1733,7 +1733,7 @@ impl P2b {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.private_post_account_order_history(&[__ws_arg_9]).await;
+        let mut response: crate::value::Dict = self.private_post_account_order_history(&[__ws_arg_9]).await.into_dict();
         //
         //    {
         //        "success": true,
@@ -1760,10 +1760,10 @@ impl P2b {
         //        }
         //    }
         //
-        let mut result: indexmap::IndexMap<String, Value> = self.safe_dict_k(response, "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+        let mut result: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
         let mut orders: Value = Value::from(vec![]);
         let mut keys: Vec<Value> = Value::Array(result.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
@@ -1871,12 +1871,12 @@ impl P2b {
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut baseUrl: Option<String> = baseApiUrl;
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
+        let mut baseUrl: Value = baseApiUrl.clone().map(Value::from).unwrap_or(Value::Null);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut paramsOmitted: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         if (method.as_str() == Some("GET")) {
             if ((Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])).into())).into());
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])));
             }
         }
         if (apiName.as_str() == Some("private")) {
@@ -1901,7 +1901,7 @@ impl P2b {
             let mut bodyJson: Value = json_stringify(&paramsOmitted);
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone());
+        m.insert("url".to_string(), Value::from(url.clone()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), bodyJson);
         m.insert("headers".to_string(), Value::Map(headersSigned));
@@ -1910,7 +1910,7 @@ impl P2b {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), Value::Null);
         m.insert("headers".to_string(), Value::Null);

@@ -1431,11 +1431,11 @@ impl Onetrading {
             let mut orderId: Option<String> = self.safe_string_k(update.clone(), "order_id", &[]).as_str().map(str::to_owned);
             let mut datetime: Option<String> = self.safe_string2(update.clone(), Value::Str("time".into()), Value::Str("timestamp".into()), &[]).as_str().map(str::to_owned);
             let mut previousOrderArray: Value = self.filter_by_array(self.orders.clone(), Value::Str("id".into()), &[orderId.clone().map(Value::from).unwrap_or(Value::Null), Value::Bool(false)]);
-            let mut previousOrder: Value = self.safe_dict(previousOrderArray, Value::Int(0), &[Value::Map({
+            let mut previousOrder: crate::value::Dict = self.safe_dict(previousOrderArray, Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            symbol = self.safe_string_k(previousOrder, "symbol", &[]);
+            })]).into_dict();
+            symbol = self.safe_string_k(&previousOrder, "symbol", &[]);
             let mut filled: Option<String> = self.safe_string_k(update.clone(), "filled_amount", &[]).as_str().map(str::to_owned);
             let mut status: Value = self.parse_ws_order_status(updateType.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
             if (updateType.as_deref() == Some("ORDER_CLOSED")) && crate::precise::Precise::stringEq(&filled.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {

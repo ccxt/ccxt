@@ -417,8 +417,8 @@ impl P2b {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut watchTickerOptions: Value = self.safe_dict_k(self.options.clone(), "watchTicker", &[]);
-        let mut name: String = self.safe_string_k(watchTickerOptions, "name", &[Value::Str("state".into())]).as_str().unwrap_or("state").to_string(); // or price
+        let mut watchTickerOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchTicker", &[]).into_dict();
+        let mut name: String = self.safe_string_k(&watchTickerOptions, "name", &[Value::Str("state".into())]).as_str().unwrap_or("state").to_string(); // or price
         let nameOptionparamsNameVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchTicker".into()), Value::Str("name".into()), &[Value::from(name)]).as_array().cloned().unwrap_or_default();
         let mut nameOption: Value = nameOptionparamsNameVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsName: Value = nameOptionparamsNameVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -457,8 +457,8 @@ impl P2b {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
-        let mut watchTickerOptions: Value = self.safe_dict_k(self.options.clone(), "watchTicker", &[]);
-        let mut name: String = self.safe_string_k(watchTickerOptions, "name", &[Value::Str("state".into())]).as_str().unwrap_or("state").to_string(); // or price
+        let mut watchTickerOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchTicker", &[]).into_dict();
+        let mut name: String = self.safe_string_k(&watchTickerOptions, "name", &[Value::Str("state".into())]).as_str().unwrap_or("state").to_string(); // or price
         let nameOptionparamsNameVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchTickers".into()), Value::Str("name".into()), &[Value::from(name)]).as_array().cloned().unwrap_or_default();
         let mut nameOption: Value = nameOptionparamsNameVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsName: Value = nameOptionparamsNameVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -566,8 +566,8 @@ impl P2b {
         });
         let mut query: Value = self.extend(Value::Map(subscribe), &[params]);
         let mut trades: Value = self.watch_multiple(url, messageHashes.clone(), &[query, messageHashes.clone()]).await;
-        let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(first, "symbol", &[]);
+        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
@@ -811,18 +811,18 @@ impl P2b {
         //
         let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut isFullUpdate: bool = self.safe_bool(params.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut data: Value = self.safe_dict(params.clone(), Value::Int(1), &[]);
-        let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[]);
-        let mut bids: Value = self.safe_list_k(data, "bids", &[]);
+        let mut data: crate::value::Dict = self.safe_dict(params.clone(), Value::Int(1), &[]).into_dict();
+        let mut asks: Value = self.safe_list_k(&data, "asks", &[]);
+        let mut bids: Value = self.safe_list_k(&data, "bids", &[]);
         let mut marketId: Option<String> = self.safe_string(params, Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into());
-        let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({
+        let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut limit: Value = self.safe_integer_k(subscription, "limit", &[]);
+        })]).into_dict();
+        let mut limit: Value = self.safe_integer_k(&subscription, "limit", &[]);
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         if (orderbook == Value::Null) {
             { let __be_tmp = self.order_book(&[Value::Map({

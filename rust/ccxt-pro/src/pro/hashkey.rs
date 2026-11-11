@@ -435,8 +435,8 @@ impl Hashkey {
         let mut marketId: Option<String> = self.safe_string_k(message, "symbol", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-        let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        let mut klineType: Option<String> = self.safe_string_k(params, "klineType", &[]).as_str().map(str::to_owned);
+        let mut params: crate::value::Dict = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
+        let mut klineType: Option<String> = self.safe_string_k(&params, "klineType", &[]).as_str().map(str::to_owned);
         let mut timeframe: Value = self.find_timeframe(klineType.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (timeframe == Value::Null) {
             return;
@@ -991,13 +991,13 @@ impl Hashkey {
         let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "m", &[]);
         let mut isPublicTrade: bool = self.safe_string_k(trade.clone(), "e", &[]) == Value::Null;
         let mut side: Value = Value::Null;
-        let mut takerOrMaker: Value = Value::Null;
+        let mut takerOrMaker: Option<String> = None;
         if (isBuyerMaker.is_some()) {
             if isPublicTrade {
-                takerOrMaker = Value::Str("taker".into());
+                takerOrMaker = Some("taker".to_string());
                 side = (if isBuyerMaker == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
             }  else {
-                takerOrMaker = (if isBuyerMaker == Some(true) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+                takerOrMaker = (if isBuyerMaker == Some(true) { Some("maker".to_string()) } else { Some("taker".to_string()) });
                 side = self.safe_string_lower_k(trade.clone(), "S", &[]);
             }
         }
@@ -1011,7 +1011,7 @@ impl Hashkey {
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "p", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "q", &[]));
         m.insert("cost".to_string(), Value::Null);
-        m.insert("takerOrMaker".to_string(), takerOrMaker);
+        m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "o", &[]));
         m.insert("fee".to_string(), Value::Null);
@@ -1196,8 +1196,8 @@ impl Hashkey {
         if (__ch.has_subscription(&subscribeHash)) {
             return;
         }
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
-        let mut snapshot: bool = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
+        let mut snapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if snapshot {
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":".into())).into()), Value::Str("fetchBalanceSnapshot".into())).into());
             if !(__ch.has_future(&messageHash)) {
@@ -1256,7 +1256,7 @@ impl Hashkey {
         //
         let mut event: Option<String> = (match __pro_message.get("e").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut data: Value = (match __pro_message.get("B").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-        let mut balanceUpdate: Value = self.safe_dict(data, Value::Int(0), &[]);
+        let mut balanceUpdate: crate::value::Dict = self.safe_dict(data, Value::Int(0), &[]).into_dict();
         let mut isSpot: bool = event.as_deref() == Some("outboundAccountInfo");
         let mut type_var: Value = Value::Str("swap".into());
         if isSpot {
@@ -1269,11 +1269,11 @@ impl Hashkey {
 })); }
         }
         if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&type_var)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message); } }
-        let mut currencyId: Option<String> = self.safe_string_k(balanceUpdate.clone(), "a", &[]).as_str().map(str::to_owned);
+        let mut currencyId: Option<String> = self.safe_string_k(&balanceUpdate, "a", &[]).as_str().map(str::to_owned);
         let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-        account.insert("free".into(), self.safe_string_k(balanceUpdate.clone(), "f", &[]));
-        account.insert("used".into(), self.safe_string_k(balanceUpdate, "l", &[]));
+        account.insert("free".into(), self.safe_string_k(&balanceUpdate, "f", &[]));
+        account.insert("used".into(), self.safe_string_k(&balanceUpdate, "l", &[]));
         if (code != Value::Null) {
             if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&type_var)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); } }
         }
@@ -1313,13 +1313,13 @@ impl Hashkey {
         // during the fetch below finds it and waits instead of re-leading
         let mut future: Value = client.reusable_future(messageHash.clone());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let mut response: Value = self.parent.private_post_api_v1_user_data_stream(&[params.clone()]).await;
+            let mut response: crate::value::Dict = self.parent.private_post_api_v1_user_data_stream(&[params.clone()]).await.into_dict();
             //
             //    {
             //        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
             //    }
             //
-            listenKey = self.safe_string_k(response, "listenKey", &[]);
+            listenKey = self.safe_string_k(&response, "listenKey", &[]);
             if (listenKey == Value::Null) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".into()))));
             }

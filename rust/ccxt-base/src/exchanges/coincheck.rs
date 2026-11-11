@@ -663,10 +663,10 @@ impl Coincheck {
                         let mut i: i64 = 0;
             let mut __for_first_564: bool = true;
             while { if !__for_first_564 { i += 1; } __for_first_564 = false; i < (exchangeStatuses.len() as i64) } {
-            let mut exchangeStatus: Value = self.safe_dict(exchangeStatuses.clone().into(), Value::Int(i), &[]);
-            let mut rawStatus: Option<String> = self.safe_string_k(exchangeStatus.clone(), "status", &[]).as_str().map(str::to_owned);
+            let mut exchangeStatus: crate::value::Dict = self.safe_dict(exchangeStatuses.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut rawStatus: Option<String> = self.safe_string_k(&exchangeStatus, "status", &[]).as_str().map(str::to_owned);
             if (updated.is_none()) {
-                updated = self.safe_timestamp_k(exchangeStatus, "timestamp", &[]).as_i64();
+                updated = self.safe_timestamp_k(&exchangeStatus, "timestamp", &[]).as_i64();
             }
             if (rawStatus.as_deref() != Some("available")) {
                 status = "maintenance".to_string();
@@ -745,8 +745,8 @@ impl Coincheck {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut response: Value = self.private_get_exchange_orders_opens(&[params]).await;
-        let mut rawOrders: Value = self.safe_list_k(response, "orders", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.private_get_exchange_orders_opens(&[params]).await.into_dict();
+        let mut rawOrders: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
         let mut parsedOrders: Value = self.parse_orders(rawOrders, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         let mut result: Value = Value::from(vec![]);
         {
@@ -1068,7 +1068,7 @@ impl Coincheck {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_exchange_orders_transactions_pagination(&[__ws_arg_2]).await;
+        let mut response: crate::value::Dict = self.private_get_exchange_orders_transactions_pagination(&[__ws_arg_2]).await.into_dict();
         //
         //      {
         //          "success": true,
@@ -1091,7 +1091,7 @@ impl Coincheck {
         //                  ]
         //      }
         //
-        let mut transactions: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut transactions: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_trades(transactions, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -1134,7 +1134,7 @@ impl Coincheck {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_trades(&[__ws_arg_3]).await;
+        let mut response: crate::value::Dict = self.public_get_trades(&[__ws_arg_3]).await.into_dict();
         //
         //      {
         //          "id": "206849494",
@@ -1145,7 +1145,7 @@ impl Coincheck {
         //          "created_at": "2021-12-08T14:10:33.000Z"
         //      }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -1172,7 +1172,7 @@ impl Coincheck {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_accounts(&[params]).await;
+        let mut response: crate::value::Dict = self.private_get_accounts(&[params]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -1192,10 +1192,10 @@ impl Coincheck {
         //         }
         //     }
         //
-        let mut fees: Value = self.safe_dict_k(response, "exchange_fees", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut fees: Value = self.safe_dict_k(&response, "exchange_fees", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1371,7 +1371,7 @@ impl Coincheck {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_deposit_money(&[__ws_arg_6]).await;
+        let mut response: crate::value::Dict = self.private_get_deposit_money(&[__ws_arg_6]).await.into_dict();
         // {
         //   "success": true,
         //   "deposits": [
@@ -1395,7 +1395,7 @@ impl Coincheck {
         //     }
         //   ]
         // }
-        let mut data: Value = self.safe_list_k(response, "deposits", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "deposits", &[Value::from(vec![])]);
         return self.parse_transactions(data, &[currency, since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("deposit".into()));
@@ -1444,7 +1444,7 @@ impl Coincheck {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_withdraws(&[__ws_arg_7]).await;
+        let mut response: crate::value::Dict = self.private_get_withdraws(&[__ws_arg_7]).await.into_dict();
         //  {
         //   "success": true,
         //   "pagination": {
@@ -1466,7 +1466,7 @@ impl Coincheck {
         //     }
         //   ]
         // }
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_transactions(data, &[currency, since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("withdrawal".into()));
@@ -1586,28 +1586,28 @@ impl Coincheck {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut hasQuery: bool = ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64);
         if (apiName.as_deref() == Some("public")) {
             if hasQuery {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
             }
         }  else {
             self.check_required_credentials(&[]);
             let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
-            let mut queryString: Value = Value::Str("".into());
+            let mut queryString: Option<String> = Some("".to_string());
             if (method.as_str() == Some("GET")) {
                 if hasQuery {
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(self.keysort(query.clone(), &[]), &[])).into())).into());
+                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(self.keysort(query.clone(), &[]), &[])));
                 }
             }  else {
                 if hasQuery {
-                    queryString = self.urlencode(self.keysort(query, &[]), &[]);
-                    bodySigned = queryString.clone();
+                    queryString = self.urlencode(self.keysort(query, &[]), &[]).as_str().map(str::to_owned);
+                    bodySigned = queryString.clone().map(Value::from).unwrap_or(Value::Null);
                 }
             }
-            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString);
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString.clone().map(Value::from).unwrap_or(Value::Null));
             headersSigned = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
@@ -1621,7 +1621,7 @@ impl Coincheck {
         let mut bodyResolved: Value = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResolved);
         m.insert("headers".to_string(), headersResolved);

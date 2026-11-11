@@ -391,12 +391,12 @@ impl Blockchaincom {
                         let mut i: i64 = 0;
             let mut __for_first_162: bool = true;
             while { if !__for_first_162 { i += 1; } __for_first_162 = false; i < (balances.len() as i64) } {
-            let mut entry: Value = self.safe_dict(balances.clone().into(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "currency", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&entry, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string_k(entry.clone(), "available", &[]));
-            account.insert("total".into(), self.safe_string_k(entry, "balance", &[]));
+            account.insert("free".into(), self.safe_string_k(&entry, "available", &[]));
+            account.insert("total".into(), self.safe_string_k(&entry, "balance", &[]));
             if (code != Value::Null) {
                 if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); }
             }
@@ -490,8 +490,8 @@ impl Blockchaincom {
             let mut marketId: Option<String> = self.safe_string_k(message.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("-".into())]);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into());
-            let mut request: Value = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[]);
-            let mut timeframeId: Option<String> = self.safe_string_k(request, "granularity", &[]).as_str().map(str::to_owned);
+            let mut request: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[]).into_dict();
+            let mut timeframeId: Option<String> = self.safe_string_k(&request, "granularity", &[]).as_str().map(str::to_owned);
             let mut timeframe: Value = self.find_timeframe(timeframeId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut ohlcv: Value = (match __pro_message.get("price").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
             { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({

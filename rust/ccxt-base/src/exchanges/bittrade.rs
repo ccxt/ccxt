@@ -1112,8 +1112,8 @@ impl Bittrade {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_common_timestamp(&[params]).await;
-        return self.safe_integer_k(response, "data", &[]);
+        let mut response: crate::value::Dict = self.public_get_common_timestamp(&[params]).await.into_dict();
+        return self.safe_integer_k(&response, "data", &[]);
         Value::Null
         }).await?))
     }
@@ -1162,8 +1162,8 @@ impl Bittrade {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_common_exchange(&[__ws_arg_0]).await;
-        return self.parse_trading_limits(self.safe_dict_k(response, "data", &[Value::Map({
+        let mut response: crate::value::Dict = self.public_get_common_exchange(&[__ws_arg_0]).await.into_dict();
+        return self.parse_trading_limits(self.safe_dict_k(&response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), &[]);
@@ -1556,7 +1556,7 @@ impl Bittrade {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.market_get_detail_merged(&[__ws_arg_2]).await;
+        let mut response: crate::value::Dict = self.market_get_detail_merged(&[__ws_arg_2]).await.into_dict();
         //
         //     {
         //         "status": "ok",
@@ -1577,12 +1577,12 @@ impl Bittrade {
         //         }
         //     }
         //
-        let mut tick: Value = self.safe_dict_k(response.clone(), "tick", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut tick: Value = self.safe_dict_k(&response, "tick", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(tick, &[(market).raw.clone()]).as_map().cloned().unwrap_or_default();
-        let mut timestamp: Option<i64> = self.safe_integer_k(response, "ts", &[]).as_i64();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "ts", &[]).as_i64();
         ticker.insert("timestamp".into(), Value::from(timestamp));
         ticker.insert("datetime".into(), self.iso8601(Value::from(timestamp)));
         return Value::Map(ticker);
@@ -1613,9 +1613,9 @@ impl Bittrade {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut response: Value = self.market_get_tickers(&[params]).await;
-        let mut tickers: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut timestamp: Option<i64> = self.safe_integer_k(response, "ts", &[]).as_i64();
+        let mut response: crate::value::Dict = self.market_get_tickers(&[params]).await.into_dict();
+        let mut tickers: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "ts", &[]).as_i64();
         let mut result: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
             m
@@ -1763,8 +1763,8 @@ impl Bittrade {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_order_orders_id_matchresults(&[__ws_arg_3]).await;
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.private_get_order_orders_id_matchresults(&[__ws_arg_3]).await.into_dict();
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_trades(data, &[Value::Null, since, limit]);
         Value::Null
         }).await?))
@@ -1812,8 +1812,8 @@ impl Bittrade {
             request.insert("start-time".into(), since.clone()); // a date within 120 days from today
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_order_matchresults(&[__ws_arg_4]).await;
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.private_get_order_matchresults(&[__ws_arg_4]).await.into_dict();
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_trades(data, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -1855,7 +1855,7 @@ impl Bittrade {
             request.insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(2000)));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.market_get_history_trade(&[__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.market_get_history_trade(&[__ws_arg_5]).await.into_dict();
         //
         //     {
         //         "status": "ok",
@@ -1880,7 +1880,7 @@ impl Bittrade {
         //         ]
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
@@ -1949,7 +1949,7 @@ impl Bittrade {
             request.insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(2000)));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.market_get_history_kline(&[__ws_arg_6]).await;
+        let mut response: crate::value::Dict = self.market_get_history_kline(&[__ws_arg_6]).await.into_dict();
         //
         //     {
         //         "status":"ok",
@@ -1962,7 +1962,7 @@ impl Bittrade {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -1988,8 +1988,8 @@ impl Bittrade {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_account_accounts(&[params]).await;
-        return self.to_array(self.safe_list_k(response, "data", &[Value::from(vec![])]));
+        let mut response: crate::value::Dict = self.private_get_account_accounts(&[params]).await.into_dict();
+        return self.to_array(self.safe_list_k(&response, "data", &[Value::from(vec![])]));
         Value::Null
         }).await?))
     }
@@ -2017,7 +2017,7 @@ impl Bittrade {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_settings_currencys(&[__ws_arg_7]).await;
+        let mut response: crate::value::Dict = self.public_get_settings_currencys(&[__ws_arg_7]).await.into_dict();
         //
         //     {
         //         "status":"ok",
@@ -2058,7 +2058,7 @@ impl Bittrade {
         //         ]
         //     }
         //
-        let mut currencies: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut currencies: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_currencies(currencies);
         Value::Null
         }).await?))
@@ -2117,11 +2117,11 @@ impl Bittrade {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut balances: Vec<Value> = self.safe_list_k(data, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+})]).into_dict();
+        let mut balances: Vec<Value> = self.safe_list_k(&data, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -2259,11 +2259,11 @@ impl Bittrade {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_order_orders_id(&[__ws_arg_11]).await;
-        let mut order: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut response: crate::value::Dict = self.private_get_order_orders_id(&[__ws_arg_11]).await.into_dict();
+        let mut order: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_order(order, &[]);
         Value::Null
         }).await?))
@@ -2417,7 +2417,7 @@ impl Bittrade {
         }
         let mut omitted: Value = self.omit(params, Value::Str("account-id".into()), &[]);
         let __ws_arg_12 = self.extend(Value::Map(request), &[omitted]);
-        let mut response: Value = self.private_get_order_open_orders(&[__ws_arg_12]).await;
+        let mut response: crate::value::Dict = self.private_get_order_open_orders(&[__ws_arg_12]).await.into_dict();
         //
         //     {
         //         "status":"ok",
@@ -2439,7 +2439,7 @@ impl Bittrade {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[market, since, limit]);
 
     Value::Null
@@ -2892,7 +2892,7 @@ impl Bittrade {
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_order_orders_batch_cancel_open_orders(&[__ws_arg_16]).await;
+        let mut response: crate::value::Dict = self.private_post_order_orders_batch_cancel_open_orders(&[__ws_arg_16]).await.into_dict();
         //
         //     {
         //         "code": 200,
@@ -2903,10 +2903,10 @@ impl Bittrade {
         //         }
         //     }
         //
-        let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+        let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map(data));
@@ -2937,8 +2937,8 @@ impl Bittrade {
     m
 })]);
         let mut networksById: Value = self.index_by(networks, Value::Str("id".into()));
-        let mut networkEntry: Value = self.safe_dict(networksById, networkId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut network: Option<String> = self.safe_string_k(networkEntry, "network", &[]).as_str().map(str::to_owned);
+        let mut networkEntry: crate::value::Dict = self.safe_dict(networksById, networkId.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+        let mut network: Option<String> = self.safe_string_k(&networkEntry, "network", &[]).as_str().map(str::to_owned);
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2995,9 +2995,9 @@ impl Bittrade {
         }
         request.insert("size".into(), limitResolved.clone()); // max 100
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_query_deposit_withdraw(&[__ws_arg_17]).await;
+        let mut response: crate::value::Dict = self.private_get_query_deposit_withdraw(&[__ws_arg_17]).await.into_dict();
         // return response
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_transactions(data, &[currency, since, limitResolved]);
         Value::Null
         }).await?))
@@ -3045,9 +3045,9 @@ impl Bittrade {
         }
         request.insert("size".into(), limitResolved.clone()); // max 100
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_query_deposit_withdraw(&[__ws_arg_18]).await;
+        let mut response: crate::value::Dict = self.private_get_query_deposit_withdraw(&[__ws_arg_18]).await.into_dict();
         // return response
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_transactions(data, &[currency, since, limitResolved]);
         Value::Null
         }).await?))

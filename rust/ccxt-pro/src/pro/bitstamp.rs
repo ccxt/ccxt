@@ -528,8 +528,8 @@ impl Bitstamp {
 
     pub fn get_cache_index(&self, mut orderbook: Value, mut deltas: Value) -> Value {
         // we will consider it a fail
-        let mut firstElement: Value = self.safe_dict(deltas.clone(), Value::Int(0), &[]);
-        let mut firstElementNonce: Value = self.safe_integer_k(firstElement, "microtimestamp", &[]);
+        let mut firstElement: crate::value::Dict = self.safe_dict(deltas.clone(), Value::Int(0), &[]).into_dict();
+        let mut firstElementNonce: Value = self.safe_integer_k(&firstElement, "microtimestamp", &[]);
         if (firstElementNonce == Value::Null) {
             return Value::Int(-1);
         }
@@ -541,8 +541,8 @@ impl Bitstamp {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_139: bool = true;
             while { if !__for_first_139 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_139 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
-            let mut delta: Value = self.safe_dict(deltas.clone(), i.clone(), &[]);
-            let mut deltaNonce: Value = self.safe_integer_k(delta, "microtimestamp", &[]);
+            let mut delta: crate::value::Dict = self.safe_dict(deltas.clone(), i.clone(), &[]).into_dict();
+            let mut deltaNonce: Value = self.safe_integer_k(&delta, "microtimestamp", &[]);
             if (deltaNonce.as_f64() == nonce.as_f64()) {
                 return (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             }
@@ -652,9 +652,9 @@ impl Bitstamp {
         //         "price": 6294.77
         //     }
         //
-        let mut microtimestamp: Value = self.safe_integer_k(trade.clone(), "microtimestamp", &[Value::Int(0)]);
+        let mut microtimestamp: i64 = self.safe_integer_k(trade.clone(), "microtimestamp", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Value = self.parse_to_int((match ((microtimestamp).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        let mut timestamp: Value = self.parse_to_int(Value::Float(((microtimestamp as f64) / 1000.0)));
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
@@ -1013,7 +1013,7 @@ impl Bitstamp {
     m
 }) });
         let mut subscription: Value = (if (channel == Value::Null) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone(), &[]) });
-        let mut symbol: Option<String> = self.safe_string_k_opt(subscription.clone(), "symbol", &[]);
+        let mut symbol: Option<String> = self.safe_string_k(subscription.clone(), "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
         }
@@ -1046,8 +1046,8 @@ impl Bitstamp {
         // position_id, is_liquidation and trade_type, which the live feed
         // omits for plain spot orderbook fills
         //
-        let mut microtimestamp: Value = self.safe_integer_k(trade.clone(), "microtimestamp", &[Value::Int(0)]);
-        let mut timestamp: Value = self.parse_to_int((match ((microtimestamp).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        let mut microtimestamp: i64 = self.safe_integer_k(trade.clone(), "microtimestamp", &[Value::Int(0)]).as_i64().unwrap_or(0);
+        let mut timestamp: Value = self.parse_to_int(Value::Float(((microtimestamp as f64) / 1000.0)));
         let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
         let mut symbol: String = self.safe_string_k(marketResolved.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut feeCost: Option<String> = self.safe_string_k(trade.clone(), "fee", &[]).as_str().map(str::to_owned);
@@ -1117,7 +1117,7 @@ impl Bitstamp {
     m
 }) }).as_map().cloned().unwrap_or_default();
         let mut subscription: Value = (if (channel == Value::Null) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone(), &[]) });
-        let mut symbol: Option<String> = self.safe_string_k_opt(subscription.clone(), "symbol", &[]);
+        let mut symbol: Option<String> = self.safe_string_k(subscription.clone(), "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
         }
@@ -1185,16 +1185,16 @@ impl Bitstamp {
         // amount_str carries the amount left to be executed, while
         // amount_at_create is the original order amount - older messages
         // do not carry amount_at_create, so fall back to the old behaviour
-        let mut amount: Value = amountLeft.clone().map(Value::from).unwrap_or(Value::Null);
+        let mut amount: Option<String> = amountLeft.clone();
         let mut remaining: Value = Value::Null;
         if (amountAtCreate.is_some()) {
-            amount = amountAtCreate.clone().map(Value::from).unwrap_or(Value::Null);
+            amount = amountAtCreate;
             remaining = amountLeft.clone().map(Value::from).unwrap_or(Value::Null);
         }
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "amount_traded", &[]).as_str().map(str::to_owned);
         let mut event: Option<String> = self.safe_string_k(order.clone(), "event", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = None;
-        if crate::precise::Precise::stringEq(&filled.clone().map(Value::from).unwrap_or(Value::Null), &amount).as_bool() == Some(true) {
+        if crate::precise::Precise::stringEq(&filled.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
             status = Some("closed".to_string());
         }  else if (event.as_deref() == Some("order_deleted")) {
             status = Some("canceled".to_string());
@@ -1219,7 +1219,7 @@ impl Bitstamp {
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("stopPrice".to_string(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
         m.insert("filled".to_string(), filled.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1266,11 +1266,11 @@ impl Bitstamp {
         //         "data": {}
         //     }
         //
-        let mut channel: Option<String> = match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+        let mut channel: Option<String> = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (channel.is_none()) {
             return;
         }
-        if channel.as_deref().unwrap_or("").contains("order_book") {
+        if channel.as_deref().unwrap_or_default().contains("order_book") {
             self.handle_order_book_subscription(client, message);
         }
 }
@@ -1421,11 +1421,11 @@ impl Bitstamp {
         let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (event.as_deref() == Some("bts:error")) {
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message));
-            let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+            let mut data: crate::value::Dict = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-            let mut code: Option<String> = self.safe_string_k(data, "code", &[]).as_str().map(str::to_owned);
+}) }).into_dict();
+            let mut code: Option<String> = self.safe_string_k(&data, "code", &[]).as_str().map(str::to_owned);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback));
         }
         return Value::Bool(true);

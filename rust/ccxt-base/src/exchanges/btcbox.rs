@@ -478,33 +478,33 @@ impl Btcbox {
             while { if !__for_first_471 { i += 1; } __for_first_471 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symbolParts: Value = Value::Array(if let Some(__s) = marketId.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-            let mut baseCurr: Value = self.safe_string(symbolParts.clone(), Value::Int(0), &[Value::Str("".into())]);
-            let mut quote: Value = self.safe_string(symbolParts, Value::Int(1), &[Value::Str("".into())]);
-            let mut quoteId: String = quote.as_str().map(str::to_lowercase).unwrap_or_default();
-            let mut id: Value = (if let Some(__s) = baseCurr.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+            let mut baseCurr: String = self.safe_string(symbolParts.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut quote: String = self.safe_string(symbolParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut quoteId: Value = Value::from(quote.to_lowercase());
+            let mut id: String = baseCurr.to_lowercase();
             let mut res: indexmap::IndexMap<String, Value> = self.safe_dict(response1.clone(), marketId, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", baseCurr, Value::Str("/".into())).into()), quote);
-            let mut fee: Value = (if (id.as_str() == Some("BTC")) { self.parse_number(Value::Str("0.0005".into()), &[]) } else { self.parse_number(Value::Str("0.0010".into()), &[]) });
-            let mut details: Value = self.safe_dict(result2Data.clone(), id.clone(), &[Value::Map({
+            let mut fee: Value = (if (id == "BTC") { self.parse_number(Value::Str("0.0005".into()), &[]) } else { self.parse_number(Value::Str("0.0010".into()), &[]) });
+            let mut details: crate::value::Dict = self.safe_dict(result2Data.clone(), Value::from(id.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut tradeDetails: Value = self.safe_dict_k(details, "trade", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+})]).into_dict();
+            let mut tradeDetails: crate::value::Dict = self.safe_dict_k(&details, "trade", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             markets.push(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id.clone());
+        m.insert("id".to_string(), Value::from(id.clone()));
         m.insert("uppercaseId".to_string(), Value::Null);
         m.insert("symbol".to_string(), Value::from(symbol));
-        m.insert("base".to_string(), baseCurr);
-        m.insert("baseId".to_string(), id);
-        m.insert("quote".to_string(), quote);
-        m.insert("quoteId".to_string(), Value::from(quoteId));
+        m.insert("base".to_string(), Value::from(baseCurr));
+        m.insert("baseId".to_string(), Value::from(id));
+        m.insert("quote".to_string(), Value::from(quote));
+        m.insert("quoteId".to_string(), quoteId);
         m.insert("settle".to_string(), Value::Null);
         m.insert("settleId".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("spot".into()));
@@ -553,11 +553,11 @@ impl Btcbox {
 }));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("price".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(tradeDetails.clone(), "pricedecimal", &[])]), &[]));
+        m.insert("price".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&tradeDetails, "pricedecimal", &[])]), &[]));
         m.insert("amount".to_string(), Value::Null);
     m
 }));
-        m.insert("active".to_string(), Value::Bool(self.safe_string_k(tradeDetails, "enable", &[]).as_str() == Some("1")));
+        m.insert("active".to_string(), Value::Bool(self.safe_string_k(&tradeDetails, "enable", &[]).as_str() == Some("1")));
         m.insert("created".to_string(), Value::Null);
         m.insert("info".to_string(), Value::Map(res));
     m

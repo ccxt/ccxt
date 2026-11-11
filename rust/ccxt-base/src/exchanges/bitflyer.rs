@@ -780,12 +780,12 @@ impl Bitflyer {
                         let mut i: i64 = 0;
             let mut __for_first_364: bool = true;
             while { if !__for_first_364 { i += 1; } __for_first_364 = false; i < (response.len() as i64) } {
-            let mut balance: Value = self.safe_dict(response.clone(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency_code", &[]).as_str().map(str::to_owned);
+            let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency_code", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("total".into(), self.safe_string_k(balance.clone(), "amount", &[]));
-            account.insert("free".into(), self.safe_string_k(balance, "available", &[]));
+            account.insert("total".into(), self.safe_string_k(&balance, "amount", &[]));
+            account.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
@@ -958,15 +958,15 @@ impl Bitflyer {
         //          "commission": 0,
         //      },
         //
-        let mut side: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
-        if (side != Value::Null) {
-            if ((side.len() as i64) as f64) < ((1i64) as f64) {
-                side = Value::Null;
+        let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
+        if (side.is_some()) {
+            if ((side.as_deref().unwrap_or_default().chars().count() as i64)) < 1 {
+                side = None.clone();
             }
         }
         let mut order: Option<String> = None;
-        if (side != Value::Null) {
-            order = self.safe_string(trade.clone(), Value::Str(format!("{}{}", side, Value::Str("_child_order_acceptance_id".into())).into()), &[]).as_str().map(str::to_owned);
+        if (side.is_some()) {
+            order = self.safe_string(trade.clone(), Value::Str(format!("{}{}", side.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("_child_order_acceptance_id".into())).into()), &[]).as_str().map(str::to_owned);
         }
         if (order.is_none()) {
             order = self.safe_string_k(trade.clone(), "child_order_acceptance_id", &[]).as_str().map(str::to_owned);
@@ -985,7 +985,7 @@ impl Bitflyer {
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("order".to_string(), order.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), priceString.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1830,9 +1830,9 @@ impl Bitflyer {
         }
         request = Value::Str(format!("{}{}", request, path).into());
         if (method.as_str() == Some("GET")) {
-            let mut query: Value = self.urlencode(params.clone(), &[]);
-            if (query.as_str() != Some("")) {
-                request = Value::Str(format!("{}{}", request, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
+            let mut query: Option<String> = self.urlencode(params.clone(), &[]).as_str().map(str::to_owned);
+            if (query.as_deref() != Some("")) {
+                request = Value::Str(format!("{}{}", request, Value::Str(format!("{}{}", Value::Str("?".into()), query.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
             }
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);

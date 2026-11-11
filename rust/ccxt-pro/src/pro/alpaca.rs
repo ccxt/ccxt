@@ -864,11 +864,11 @@ impl Alpaca {
         //        }
         //      }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut data: crate::value::Dict = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut rawOrder: Value = self.safe_dict_k(data, "order", &[Value::Map({
+}) }).into_dict();
+        let mut rawOrder: Value = self.safe_dict_k(&data, "order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -934,15 +934,15 @@ impl Alpaca {
         //        }
         //      }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut data: crate::value::Dict = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut event: Option<String> = self.safe_string_k(data.clone(), "event", &[]).as_str().map(str::to_owned);
+}) }).into_dict();
+        let mut event: Option<String> = self.safe_string_k(&data, "event", &[]).as_str().map(str::to_owned);
         if (event.as_deref() != Some("fill")) && (event.as_deref() != Some("partial_fill")) {
             return;
         }
-        let mut rawOrder: Value = self.safe_dict_k(data, "order", &[Value::Map({
+        let mut rawOrder: Value = self.safe_dict_k(&data, "order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1004,13 +1004,13 @@ impl Alpaca {
         //
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut datetime: Option<String> = self.safe_string_k(trade.clone(), "filled_at", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = self.safe_string_k(trade.clone(), "type", &[]);
-        if (type_var == Value::Null) {
+        let mut type_var: Option<String> = self.safe_string_k(trade.clone(), "type", &[]).as_str().map(str::to_owned);
+        if (type_var.is_none()) {
             return Value::Null;
         }
-        if type_var.as_str().unwrap_or("").contains("limit") {
+        if type_var.as_deref().unwrap_or_default().contains("limit") {
             // might be limit or stop-limit
-            type_var = Value::Str("limit".into());
+            type_var = Some("limit".to_string());
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1020,9 +1020,9 @@ impl Alpaca {
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("/".into())]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "id", &[]));
-        m.insert("type".to_string(), type_var.clone());
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), self.safe_string_k(trade.clone(), "side", &[]));
-        m.insert("takerOrMaker".to_string(), (if (type_var.as_str() == Some("market")) { Value::Str("taker".into()) } else { Value::Str("maker".into()) }));
+        m.insert("takerOrMaker".to_string(), (if (type_var.as_deref() == Some("market")) { Value::Str("taker".into()) } else { Value::Str("maker".into()) }));
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "filled_avg_price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade, "filled_qty", &[]));
         m.insert("cost".to_string(), Value::Null);
@@ -1195,11 +1195,11 @@ impl Alpaca {
         //    }
         //
         let mut T: Option<String> = (match __pro_message.get("T").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut data: crate::value::Dict = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut status: Option<String> = self.safe_string_k(data, "status", &[]).as_str().map(str::to_owned);
+}) }).into_dict();
+        let mut status: Option<String> = self.safe_string_k(&data, "status", &[]).as_str().map(str::to_owned);
         if (T.as_deref() == Some("success")) || (status.as_deref() == Some("authorized")) {
             let mut promise: Value = __ch.futures.clone().as_map().and_then(|__m| __m.get("authenticated")).cloned().unwrap_or(Value::Null);
             promise.resolve(&[message]);

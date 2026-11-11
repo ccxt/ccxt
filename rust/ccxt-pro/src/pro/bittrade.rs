@@ -330,11 +330,11 @@ impl Bittrade {
         let mut marketId: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("market.".into()), marketId).into()), Value::Str(".detail".into()));
         let mut api: String = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]).as_str().unwrap_or("api").to_string();
-        let mut apiUrls: Value = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: Value = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -445,11 +445,11 @@ impl Bittrade {
         let mut marketId: String = self.safe_string_k(market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("market.".into()), marketId).into()), Value::Str(".trade.detail".into()));
         let mut api: String = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]).as_str().unwrap_or("api").to_string();
-        let mut apiUrls: Value = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: Value = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -512,11 +512,11 @@ impl Bittrade {
         //         }
         //     }
         //
-        let mut tick: Value = (match __pro_message.get("tick").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        let mut tick: crate::value::Dict = (match __pro_message.get("tick").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut data: Vec<Value> = self.safe_list_k(tick, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+}) }).into_dict();
+        let mut data: Vec<Value> = self.safe_list_k(&tick, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut ch: Option<String> = match __pro_message.get("ch").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
         if (ch.is_none()) {
             return message;
@@ -579,11 +579,11 @@ impl Bittrade {
         let mut marketId: String = self.safe_string_k(market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market.".into()), marketId).into()), Value::Str(".kline.".into())).into()), interval);
         let mut api: String = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]).as_str().unwrap_or("api").to_string();
-        let mut apiUrls: Value = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: Value = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -703,11 +703,11 @@ impl Bittrade {
         let mut marketId: String = self.safe_string_k(market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("market.".into()), marketId).into()), Value::Str(".mbp.150".into()));
         let mut api: String = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]).as_str().unwrap_or("api").to_string();
-        let mut apiUrls: Value = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: Value = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -803,11 +803,11 @@ impl Bittrade {
             let mut limit: Option<i64> = self.safe_integer_k(subscription.clone(), "limit", &[]).as_i64();
             let mut params: indexmap::IndexMap<String, Value> = self.safe_dict_k(subscription, "params", &[]).as_map().cloned().unwrap_or_default();
             let mut api: String = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]).as_str().unwrap_or("api").to_string();
-            let mut apiUrls: Value = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+            let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+            })]).into_dict();
+            let mut wsUrls: Value = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -881,19 +881,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         }
         //     }
         //
-        let mut tick: Value = (match message.get("tick") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut tick: crate::value::Dict = (match message.get("tick") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut seqNum: Value = self.safe_integer_k(tick.clone(), "seqNum", &[]);
-        let mut prevSeqNum: Value = self.safe_integer_k(tick.clone(), "prevSeqNum", &[]);
+}) }).into_dict();
+        let mut seqNum: Value = self.safe_integer_k(&tick, "seqNum", &[]);
+        let mut prevSeqNum: Value = self.safe_integer_k(&tick, "prevSeqNum", &[]);
         if (prevSeqNum == Value::Null) || (seqNum == Value::Null) {
             return orderbook;
         }
         let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
         if (nonce != Value::Null) && (prevSeqNum.as_f64().unwrap_or(f64::NAN) <= nonce.as_f64().unwrap_or(f64::NAN)) && (seqNum.as_f64().unwrap_or(f64::NAN) > nonce.as_f64().unwrap_or(f64::NAN)) {
-            let mut asks: Value = self.safe_list_k(tick.clone(), "asks", &[Value::from(vec![])]);
-            let mut bids: Value = self.safe_list_k(tick, "bids", &[Value::from(vec![])]);
+            let mut asks: Value = self.safe_list_k(&tick, "asks", &[Value::from(vec![])]);
+            let mut bids: Value = self.safe_list_k(&tick, "bids", &[Value::from(vec![])]);
             self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), asks);
             self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), bids);
             add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), seqNum);

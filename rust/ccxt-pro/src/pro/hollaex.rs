@@ -575,7 +575,7 @@ impl Hollaex {
             let mut trade: Value = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_trade(trade.clone(), &[]);
             stored.append(parsed);
-            let mut symbol: Option<String> = self.safe_string_k_opt(trade, "symbol", &[]);
+            let mut symbol: Option<String> = self.safe_string_k(trade, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
             let mut marketId: Option<String> = self.safe_string_k_opt(market, "id", &[]);
             if (marketId.is_some()) {
@@ -731,7 +731,7 @@ impl Hollaex {
             let mut order: Value = self.safe_value(rawOrders.clone(), Value::Int(i), &[]);
             let mut parsed: Value = self.parse_order(order.clone(), &[]);
             stored.append(parsed);
-            let mut symbol: Option<String> = self.safe_string_k_opt(order, "symbol", &[]);
+            let mut symbol: Option<String> = self.safe_string_k(order, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
             let mut marketId: Option<String> = self.safe_string_k_opt(market, "id", &[]);
             if (marketId.is_some()) {

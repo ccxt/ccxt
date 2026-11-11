@@ -687,7 +687,7 @@ impl Bitso {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_ledger(&[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.private_get_ledger(&[__ws_arg_0]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -711,7 +711,7 @@ impl Bitso {
         //         }]
         //     }
         //
-        let mut payload: Value = self.safe_list_k(response, "payload", &[Value::from(vec![])]);
+        let mut payload: Value = self.safe_list_k(&response, "payload", &[Value::from(vec![])]);
         let mut currency: Value = self.safe_currency(code, &[]);
         return self.parse_ledger(payload, &[currency, since, limit]);
         Value::Null
@@ -789,14 +789,14 @@ impl Bitso {
         let mut operation: Option<String> = self.safe_string_k(item.clone(), "operation", &[]).as_str().map(str::to_owned);
         let mut type_var: Value = self.parse_ledger_entry_type(operation.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         let mut balanceUpdates: Value = self.safe_list_k(item.clone(), "balance_updates", &[Value::from(vec![])]);
-        let mut firstBalance: Value = self.safe_dict(balanceUpdates, Value::Int(0), &[Value::Map({
+        let mut firstBalance: crate::value::Dict = self.safe_dict(balanceUpdates, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut direction: Option<String> = None;
         let mut fee: Value = Value::Null;
-        let mut amount: Option<String> = self.safe_string_k(firstBalance.clone(), "amount", &[]).as_str().map(str::to_owned);
-        let mut currencyId: Option<String> = self.safe_string_k(firstBalance, "currency", &[]).as_str().map(str::to_owned);
+        let mut amount: Option<String> = self.safe_string_k(&firstBalance, "amount", &[]).as_str().map(str::to_owned);
+        let mut currencyId: Option<String> = self.safe_string_k(&firstBalance, "currency", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency.clone()]).as_str().map(str::to_owned);
         let mut currencyResolved: Value = self.safe_currency(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut details: Value = self.safe_dict_k(item.clone(), "details", &[Value::Map({
@@ -815,10 +815,10 @@ impl Bitso {
             direction = None.clone();
         }  else if (operation.as_deref() == Some("fee")) {
             direction = Some("out".to_string());
-            let mut cost: Option<String> = crate::precise::Precise::stringAbs(&amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut cost: Value = crate::precise::Precise::stringAbs(&amount.clone().map(Value::from).unwrap_or(Value::Null));
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), cost.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("cost".to_string(), cost);
                     m.insert("currency".to_string(), currencyResolved.clone());
                 m
             });
@@ -865,7 +865,7 @@ impl Bitso {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_available_books(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_available_books(&[params]).await.into_dict();
         //
         //     {
         //         "success":true,
@@ -898,7 +898,7 @@ impl Bitso {
         //             },
         //         ]
         //     }
-        let mut markets: Vec<Value> = self.safe_list_k(response, "payload", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut markets: Vec<Value> = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut currencies: Value = self.safe_dict_k(self.options.clone(), "cachedCurrencies", &[]);
         let mut result: Vec<Value> = Vec::new();
         {
@@ -908,26 +908,26 @@ impl Bitso {
             let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "book", &[]);
             let mut parts: Value = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-            let mut baseId: Value = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".into())]);
-            let mut quoteId: Value = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]);
-            let mut base: Option<String> = self.safe_currency_code((if let Some(__s) = baseId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), &[]).as_str().map(str::to_owned);
-            let mut quote: Option<String> = self.safe_currency_code((if let Some(__s) = quoteId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), &[]).as_str().map(str::to_owned);
+            let mut baseId: String = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut quoteId: String = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut base: Option<String> = self.safe_currency_code(Value::from(baseId.to_uppercase()), &[]).as_str().map(str::to_owned);
+            let mut quote: Option<String> = self.safe_currency_code(Value::from(quoteId.to_uppercase()), &[]).as_str().map(str::to_owned);
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut fees: Value = self.safe_dict_k(market.clone(), "fees", &[Value::Map({
+            let mut fees: crate::value::Dict = self.safe_dict_k(market.clone(), "fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut flatRate: Value = self.safe_dict_k(fees.clone(), "flat_rate", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-            let mut takerString: Option<String> = self.safe_string_k(flatRate.clone(), "taker", &[]).as_str().map(str::to_owned);
-            let mut makerString: Option<String> = self.safe_string_k(flatRate, "maker", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut flatRate: crate::value::Dict = self.safe_dict_k(&fees, "flat_rate", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
+            let mut takerString: Option<String> = self.safe_string_k(&flatRate, "taker", &[]).as_str().map(str::to_owned);
+            let mut makerString: Option<String> = self.safe_string_k(&flatRate, "maker", &[]).as_str().map(str::to_owned);
             let mut taker: Value = self.parse_number(crate::precise::Precise::stringDiv(&takerString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
             let mut maker: Value = self.parse_number(crate::precise::Precise::stringDiv(&makerString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
-            let mut feeTiers: Vec<Value> = self.safe_list_k(fees, "structure", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut feeTiers: Vec<Value> = self.safe_list_k(&fees, "structure", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut fee: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("taker".to_string(), taker.clone());
@@ -942,10 +942,10 @@ impl Bitso {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_419: bool = true;
                 while { if !__for_first_419 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_419 = false; j.as_f64().unwrap_or(f64::NAN) < ((feeTiers.len() as i64) as f64) } {
-                let mut tier: Value = self.safe_dict(feeTiers.clone().into(), j.clone(), &[]);
-                let mut volume: Option<f64> = self.safe_number_k(tier.clone(), "volume", &[]).as_f64();
-                let mut takerFee: Option<f64> = self.safe_number_k(tier.clone(), "taker", &[]).as_f64();
-                let mut makerFee: Option<f64> = self.safe_number_k(tier, "maker", &[]).as_f64();
+                let mut tier: crate::value::Dict = self.safe_dict(feeTiers.clone().into(), j.clone(), &[]).into_dict();
+                let mut volume: Option<f64> = self.safe_number_k(&tier, "volume", &[]).as_f64();
+                let mut takerFee: Option<f64> = self.safe_number_k(&tier, "taker", &[]).as_f64();
+                let mut makerFee: Option<f64> = self.safe_number_k(&tier, "maker", &[]).as_f64();
                 takerFees.push(Value::from(vec![Value::from(volume), Value::from(takerFee)]));
                 makerFees.push(Value::from(vec![Value::from(volume), Value::from(makerFee)]));
                 if (j.as_f64() == Some(0.0)) {
@@ -961,7 +961,7 @@ impl Bitso {
                 m
             });
             fee.insert("tiers".into(), Value::Map(tiers));
-            let mut baseCurrency: Value = self.safe_dict(currencies.clone(), base.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut baseCurrency: crate::value::Dict = self.safe_dict(currencies.clone(), base.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
             let __ws_arg_1 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
@@ -969,8 +969,8 @@ impl Bitso {
         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), Value::Null);
-        m.insert("baseId".to_string(), baseId);
-        m.insert("quoteId".to_string(), quoteId);
+        m.insert("baseId".to_string(), Value::from(baseId));
+        m.insert("quoteId".to_string(), Value::from(quoteId));
         m.insert("settleId".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
@@ -991,7 +991,7 @@ impl Bitso {
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), self.safe_number_k(baseCurrency, "precision", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(&baseCurrency, "precision", &[]));
         m.insert("price".to_string(), self.safe_number_k(market.clone(), "tick_size", &[]));
     m
 }));
@@ -1053,7 +1053,7 @@ impl Bitso {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut catalogues: Value = self.public_get_catalogues(&[params]).await;
+        let mut catalogues: crate::value::Dict = self.public_get_catalogues(&[params]).await.into_dict();
         //
         //     {
         //         "payload": {
@@ -1076,9 +1076,9 @@ impl Bitso {
         //                         "type": "crypto"
         //                     }, ...
         //
-        let mut payload: Value = self.safe_dict_k(catalogues, "payload", &[]);
-        let mut currencies: Value = self.safe_dict_k(payload, "currencies", &[]);
-        let mut metadata: Value = self.safe_list_k(currencies, "metadata", &[Value::from(vec![])]);
+        let mut payload: crate::value::Dict = self.safe_dict_k(&catalogues, "payload", &[]).into_dict();
+        let mut currencies: crate::value::Dict = self.safe_dict_k(&payload, "currencies", &[]).into_dict();
+        let mut metadata: Value = self.safe_list_k(&currencies, "metadata", &[Value::from(vec![])]);
         return self.parse_currencies(metadata);
         Value::Null
         }).await?))
@@ -1130,11 +1130,11 @@ impl Bitso {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut payload: Value = self.safe_dict_k(response.clone(), "payload", &[Value::Map({
+        let mut payload: crate::value::Dict = self.safe_dict_k(response.clone(), "payload", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut balances: Vec<Value> = self.safe_list_k(payload, "balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+})]).into_dict();
+        let mut balances: Vec<Value> = self.safe_list_k(&payload, "balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -1146,13 +1146,13 @@ impl Bitso {
                         let mut i: i64 = 0;
             let mut __for_first_421: bool = true;
             while { if !__for_first_421 { i += 1; } __for_first_421 = false; i < (balances.len() as i64) } {
-            let mut balance: Value = self.safe_dict(balances.clone().into(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
+            let mut balance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string_k(balance.clone(), "available", &[]));
-            account.insert("used".into(), self.safe_string_k(balance.clone(), "locked", &[]));
-            account.insert("total".into(), self.safe_string_k(balance, "total", &[]));
+            account.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
+            account.insert("used".into(), self.safe_string_k(&balance, "locked", &[]));
+            account.insert("total".into(), self.safe_string_k(&balance, "total", &[]));
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
@@ -1222,8 +1222,8 @@ impl Bitso {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_order_book(&[__ws_arg_2]).await;
-        let mut orderbook: Value = self.safe_dict_k(response, "payload", &[]);
+        let mut response: crate::value::Dict = self.public_get_order_book(&[__ws_arg_2]).await.into_dict();
+        let mut orderbook: Value = self.safe_dict_k(&response, "payload", &[]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(orderbook.clone(), "updated_at", &[]));
         return self.parse_order_book(orderbook, Value::from((market).symbol.clone()), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
         Value::Null
@@ -1310,8 +1310,8 @@ impl Bitso {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_ticker(&[__ws_arg_3]).await;
-        let mut ticker: Value = self.safe_dict_k(response, "payload", &[]);
+        let mut response: crate::value::Dict = self.public_get_ticker(&[__ws_arg_3]).await.into_dict();
+        let mut ticker: Value = self.safe_dict_k(&response, "payload", &[]);
         return self.parse_ticker(ticker, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -1369,7 +1369,7 @@ impl Bitso {
             }
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_ohlc(&[__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.public_get_ohlc(&[__ws_arg_4]).await.into_dict();
         //
         //     {
         //         "success":true,
@@ -1389,7 +1389,7 @@ impl Bitso {
         //         ]
         //     }
         //
-        let mut payload: Value = self.safe_list_k(response, "payload", &[Value::from(vec![])]);
+        let mut payload: Value = self.safe_list_k(&response, "payload", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(payload, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -1455,20 +1455,20 @@ impl Bitso {
         let mut timestamp: Value = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[]));
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "book", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("_".into())]).as_str().map(str::to_owned);
-        let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
-        let mut makerSide: Option<String> = self.safe_string_k_opt(trade.clone(), "maker_side", &[]);
+        let mut side: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
+        let mut makerSide: Option<String> = self.safe_string_k(trade.clone(), "maker_side", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Option<String> = None;
-        if (side != Value::Null) {
-            if (side.as_str() == makerSide.as_deref()) {
+        if (side.is_some()) {
+            if (side == makerSide) {
                 takerOrMaker = Some("maker".to_string());
             }  else {
                 takerOrMaker = Some("taker".to_string());
             }
         }  else {
             if (makerSide.as_deref() == Some("buy")) {
-                side = Value::Str("sell".into());
+                side = Some("sell".to_string());
             }  else {
-                side = Value::Str("buy".into());
+                side = Some("buy".to_string());
             }
         }
         let mut amount: Option<String> = self.safe_string2(trade.clone(), Value::Str("amount".into()), Value::Str("major".into()), &[]).as_str().map(str::to_owned);
@@ -1503,7 +1503,7 @@ impl Bitso {
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1549,8 +1549,8 @@ impl Bitso {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_trades(&[__ws_arg_5]).await;
-        let mut payload: Value = self.safe_list_k(response, "payload", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.public_get_trades(&[__ws_arg_5]).await.into_dict();
+        let mut payload: Value = self.safe_list_k(&response, "payload", &[Value::from(vec![])]);
         return self.parse_trades(payload, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -1577,7 +1577,7 @@ impl Bitso {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_fees(&[params]).await;
+        let mut response: crate::value::Dict = self.private_get_fees(&[params]).await.into_dict();
         //
         //    {
         //        "success": true,
@@ -1621,11 +1621,11 @@ impl Bitso {
         //        }
         //    }
         //
-        let mut payload: Value = self.safe_dict_k(response, "payload", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut fees: Vec<Value> = self.safe_list_k(payload, "fees", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut payload: crate::value::Dict = self.safe_dict_k(&response, "payload", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut fees: Vec<Value> = self.safe_list_k(&payload, "fees", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1708,8 +1708,8 @@ impl Bitso {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[paramsMarker]);
-        let mut response: Value = self.private_get_user_trades(&[__ws_arg_7]).await;
-        let mut payload: Value = self.safe_list_k(response, "payload", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.private_get_user_trades(&[__ws_arg_7]).await.into_dict();
+        let mut payload: Value = self.safe_list_k(&response, "payload", &[Value::from(vec![])]);
         return self.parse_trades(payload, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -1760,11 +1760,11 @@ impl Bitso {
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_orders(&[__ws_arg_8]).await;
-        let mut payload: Value = self.safe_dict_k(response.clone(), "payload", &[Value::Map({
+        let mut payload: crate::value::Dict = self.safe_dict_k(response.clone(), "payload", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut id: Option<String> = self.safe_string_k(payload, "oid", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut id: Option<String> = self.safe_string_k(&payload, "oid", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
@@ -1861,14 +1861,14 @@ impl Bitso {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_delete_orders(&[__ws_arg_10]).await;
+        let mut response: crate::value::Dict = self.private_delete_orders(&[__ws_arg_10]).await.into_dict();
         //
         //     {
         //         "success": true,
         //         "payload": ["yWTQGxDMZ0VimZgZ"]
         //     }
         //
-        let mut payload: Vec<Value> = self.safe_list_k(response, "payload", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut payload: Vec<Value> = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1906,14 +1906,14 @@ impl Bitso {
         if (symbol != Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.".into()))));
         }
-        let mut response: Value = self.private_delete_orders_all(&[params]).await;
+        let mut response: crate::value::Dict = self.private_delete_orders_all(&[params]).await.into_dict();
         //
         //     {
         //         "success": true,
         //         "payload": ["NWUZUYNT12ljwzDT", "kZUkZmQ2TTjkkYTY"]
         //     }
         //
-        let mut payload: Vec<Value> = self.safe_list_k(response, "payload", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut payload: Vec<Value> = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut canceledOrders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2046,8 +2046,8 @@ impl Bitso {
             m
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[paramsMarker]);
-        let mut response: Value = self.private_get_open_orders(&[__ws_arg_12]).await;
-        let mut payload: Value = self.safe_list_k(response, "payload", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.private_get_open_orders(&[__ws_arg_12]).await.into_dict();
+        let mut payload: Value = self.safe_list_k(&response, "payload", &[Value::from(vec![])]);
         return self.parse_orders(payload, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -2078,12 +2078,12 @@ impl Bitso {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_orders_oid(&[Value::Map({
+        let mut response: crate::value::Dict = self.private_get_orders_oid(&[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("oid".to_string(), id.clone());
             m
-        })]).await;
-        let mut payload: Vec<Value> = self.safe_list_k(response, "payload", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        })]).await.into_dict();
+        let mut payload: Vec<Value> = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut numOrders: f64 = ((payload.len() as i64) as f64);
         if (numOrders == 1.0) {
             return self.parse_order(payload.get(0).cloned().unwrap_or(Value::Null), &[]);
@@ -2129,8 +2129,8 @@ impl Bitso {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_order_trades_oid(&[__ws_arg_13]).await;
-        let mut payload: Value = self.safe_list_k(response, "payload", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.private_get_order_trades_oid(&[__ws_arg_13]).await.into_dict();
+        let mut payload: Value = self.safe_list_k(&response, "payload", &[Value::from(vec![])]);
         return self.parse_trades(payload, &[market]);
         Value::Null
         }).await?))
@@ -2161,7 +2161,7 @@ impl Bitso {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_fundings_fid(&[__ws_arg_14]).await;
+        let mut response: crate::value::Dict = self.private_get_fundings_fid(&[__ws_arg_14]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -2185,7 +2185,7 @@ impl Bitso {
         //         }]
         //     }
         //
-        let mut transactions: Value = self.safe_list_k(response, "payload", &[Value::from(vec![])]);
+        let mut transactions: Value = self.safe_list_k(&response, "payload", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(transactions, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2226,7 +2226,7 @@ impl Bitso {
         if (code != Value::Null) {
             currency = self.currency(code);
         }
-        let mut response: Value = self.private_get_fundings(&[params.clone()]).await;
+        let mut response: crate::value::Dict = self.private_get_fundings(&[params.clone()]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -2250,7 +2250,7 @@ impl Bitso {
         //         }]
         //     }
         //
-        let mut transactions: Value = self.safe_list_k(response, "payload", &[Value::from(vec![])]);
+        let mut transactions: Value = self.safe_list_k(&response, "payload", &[Value::from(vec![])]);
         return self.parse_transactions(transactions, &[currency, since, limit, params]);
         Value::Null
         }).await?))
@@ -2286,11 +2286,11 @@ impl Bitso {
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_funding_destination(&[__ws_arg_15]).await;
-        let mut payload: Value = self.safe_dict_k(response.clone(), "payload", &[Value::Map({
+        let mut payload: crate::value::Dict = self.safe_dict_k(response.clone(), "payload", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut address: Option<String> = self.safe_string_k_opt(payload, "account_identifier", &[]);
+})]).into_dict();
+        let mut address: Option<String> = self.safe_string_k_opt(&payload, "account_identifier", &[]);
         let mut tag: Option<String> = None;
         if address.as_deref().unwrap_or("").contains("?dt=") {
             let mut parts: Value = Value::Array(if let Some(__s) = address.as_deref() { __s.split("?dt=").map(Value::from).collect() } else { Vec::new() });
@@ -2330,7 +2330,7 @@ impl Bitso {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_fees(&[params]).await;
+        let mut response: crate::value::Dict = self.private_get_fees(&[params]).await.into_dict();
         //
         //    {
         //        "success": true,
@@ -2378,11 +2378,11 @@ impl Bitso {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut payload: Value = self.safe_dict_k(response, "payload", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut depositFees: Vec<Value> = self.safe_list_k(payload.clone(), "deposit_fees", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut payload: crate::value::Dict = self.safe_dict_k(&response, "payload", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut depositFees: Vec<Value> = self.safe_list_k(&payload, "deposit_fees", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_425: bool = true;
@@ -2409,10 +2409,10 @@ impl Bitso {
             }
         }
         }
-        let mut withdrawalFees: Value = self.safe_dict_k(payload, "withdrawal_fees", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut withdrawalFees: Value = self.safe_dict_k(&payload, "withdrawal_fees", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut currencyIds: Vec<Value> = Value::Array(withdrawalFees.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -2467,7 +2467,7 @@ impl Bitso {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_fees(&[params]).await;
+        let mut response: crate::value::Dict = self.private_get_fees(&[params]).await.into_dict();
         //
         //    {
         //        "success": true,
@@ -2511,7 +2511,7 @@ impl Bitso {
         //        }
         //    }
         //
-        let mut payload: Value = self.safe_list_k(response, "payload", &[Value::from(vec![])]);
+        let mut payload: Value = self.safe_list_k(&response, "payload", &[Value::from(vec![])]);
         return self.parse_deposit_withdraw_fees(payload, &[codes]);
         Value::Null
         }).await?))
@@ -2750,22 +2750,22 @@ impl Bitso {
         //
         let mut currencyId: Option<String> = self.safe_string2(transaction.clone(), Value::Str("currency".into()), Value::Str("asset".into()), &[]).as_str().map(str::to_owned);
         let mut currencyResolved: Value = self.safe_currency(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]);
-        let mut details: Value = self.safe_dict_k(transaction.clone(), "details", &[Value::Map({
+        let mut details: crate::value::Dict = self.safe_dict_k(transaction.clone(), "details", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut datetime: Option<String> = self.safe_string_k(transaction.clone(), "created_at", &[]).as_str().map(str::to_owned);
-        let mut withdrawalAddress: Option<String> = self.safe_string_k(details.clone(), "withdrawal_address", &[]).as_str().map(str::to_owned);
-        let mut receivingAddress: Option<String> = self.safe_string_k(details.clone(), "receiving_address", &[]).as_str().map(str::to_owned);
+        let mut withdrawalAddress: Option<String> = self.safe_string_k(&details, "withdrawal_address", &[]).as_str().map(str::to_owned);
+        let mut receivingAddress: Option<String> = self.safe_string_k(&details, "receiving_address", &[]).as_str().map(str::to_owned);
         let mut networkId: Option<String> = self.safe_string2(transaction.clone(), Value::Str("network".into()), Value::Str("method".into()), &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.safe_string_k(transaction.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut withdrawId: Option<String> = self.safe_string_k(transaction.clone(), "wid", &[]).as_str().map(str::to_owned);
-        let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), self.safe_string_k(currencyResolved.clone(), "code", &[])]);
-        let mut networkCodeUpper: Value = (if (networkCode != Value::Null) { (if let Some(__s) = networkCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }) } else { Value::Null });
+        let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), self.safe_string_k(currencyResolved.clone(), "code", &[])]).as_str().map(str::to_owned);
+        let mut networkCodeUpper: Value = (if (networkCode.is_some()) { networkCode.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null) } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(transaction.clone(), Value::Str("wid".into()), Value::Str("fid".into()), &[]));
-        m.insert("txid".to_string(), self.safe_string_k(details, "tx_hash", &[]));
+        m.insert("txid".to_string(), self.safe_string_k(&details, "tx_hash", &[]));
         m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), networkCodeUpper);
@@ -2819,11 +2819,11 @@ impl Bitso {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Value = Value::Null;
-        let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
+        let mut endpoint: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                endpoint = Value::Str(format!("{}{}", endpoint, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+                endpoint.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
             }
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
@@ -2835,7 +2835,7 @@ impl Bitso {
             self.check_required_credentials(&[]);
             // bitso rejects a nonce that is not higher than the previous one (error 104)
             let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
-            endpoint = Value::Str(format!("{}{}", Value::Str("/api".into()), endpoint).into());
+            endpoint = format!("{}{}", Value::Str("/api".into()), endpoint);
             let mut request: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", nonce, method).into()), endpoint).into());
             if (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE")) {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {

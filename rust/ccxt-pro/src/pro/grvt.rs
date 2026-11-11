@@ -490,8 +490,8 @@ impl Grvt {
                         let mut i: i64 = 0;
             let mut __for_first_353: bool = true;
             while { if !__for_first_353 { i += 1; } __for_first_353 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut symbol: Option<String> = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]), Value::Str("@".into())).into()), Value::Str(format!("{}", intervalOption).into())).into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("ticker::".into()), Value::from((market).symbol.clone())).into()));
         }
@@ -684,8 +684,8 @@ impl Grvt {
                         let mut i: i64 = 0;
             let mut __for_first_354: bool = true;
             while { if !__for_first_354 { i += 1; } __for_first_354 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut symbol: Option<String> = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut limitRaw: Value = self.safe_integer_k(params.clone(), "limit", &[Value::Int(50)]); // 50, 200, 500, 1000
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]), Value::Str("@".into())).into()), Value::Str(format!("{}", limitRaw).into())).into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("trade::".into()), Value::from((market).symbol.clone())).into()));
@@ -699,8 +699,8 @@ impl Grvt {
         });
         let __ws_arg_3 = self.extend(params, &[Value::Map(request)]);
         let mut trades: Value = self.subscribe_multiple(Value::from(messageHashes), __ws_arg_3, Value::from(rawHashes), &[]).await;
-        let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(first, "symbol", &[]);
+        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
@@ -832,7 +832,7 @@ impl Grvt {
             let mut __for_first_355: bool = true;
             while { if !__for_first_355 { i += 1; } __for_first_355 = false; i < (symbolsAndTimeframes.len() as i64) } {
             let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]);
-            let mut symbolString: Option<String> = self.safe_string_opt(data.clone(), Value::Int(0), &[]);
+            let mut symbolString: Option<String> = self.safe_string(data.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbolString.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut unfiedTimeframe: String = self.safe_string(data, Value::Int(1), &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
             let mut timeframeId: Value = self.safe_string(self.timeframes.clone(), Value::from(unfiedTimeframe.clone()), &[Value::from(unfiedTimeframe.clone())]);
@@ -893,8 +893,8 @@ impl Grvt {
         let mut marketId: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-        let mut secondPart: Value = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]);
-        let mut timeframeId: Value = secondPart.as_str().map(|__s| Value::Str(__s.replace("-TRADE", "").into())).unwrap_or_else(|| secondPart.clone());
+        let mut secondPart: String = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut timeframeId: Value = Value::from(secondPart.replace("-TRADE", ""));
         let mut timeframe: Value = self.find_timeframe(timeframeId, &[]);
         if (timeframe == Value::Null) {
             return;
@@ -1013,8 +1013,8 @@ impl Grvt {
                         let mut i: i64 = 0;
             let mut __for_first_356: bool = true;
             while { if !__for_first_356 { i += 1; } __for_first_356 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut symbol: Option<String> = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]), Value::Str("@".into())).into()), extraPart).into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), Value::from((market).symbol.clone())).into()));
         }
@@ -1111,11 +1111,11 @@ impl Grvt {
 }));
         self.check_required_credentials(&[]);
         self.sign_in(&[]).await;
-        let mut wsOptions: Value = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
+        let mut wsOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut authenticated: Option<String> = self.safe_string_k(wsOptions, "token", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut authenticated: Option<String> = self.safe_string_k(&wsOptions, "token", &[]).as_str().map(str::to_owned);
         if (authenticated.is_none()) {
             let mut accountId: Option<String> = self.safe_string_k(self.options.clone(), "AuthAccountId", &[]).as_str().map(str::to_owned);
             let mut cookieValue: Option<String> = self.safe_string_k(self.options.clone(), "AuthCookieValue", &[]).as_str().map(str::to_owned);
@@ -1301,8 +1301,8 @@ impl Grvt {
                                 let mut i: i64 = 0;
                 let mut __for_first_357: bool = true;
                 while { if !__for_first_357 { i += 1; } __for_first_357 = false; i < (symbolsNormalized.len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                let mut symbol: Option<String> = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, Value::Str("-".into())).into()), Value::from((market).id.clone())).into()));
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str("positions::".into()), Value::from((market).symbol.clone())).into()));
             }
@@ -1532,12 +1532,12 @@ impl Grvt {
         //        "method": "subscribe"
         //    }
         //
-        let mut error: Value = (match __pro_message.get("error").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        let mut errorCode: Option<String> = self.safe_string_k(error.clone(), "code", &[]).as_str().map(str::to_owned);
+        let mut error: crate::value::Dict = (match __pro_message.get("error").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
+        let mut errorCode: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);
         if (errorCode.is_some()) {
             let mut body: Value = json_stringify(&response);
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
-            let mut message: Option<String> = self.safe_string_k(error, "message", &[]).as_str().map(str::to_owned);
+            let mut message: Option<String> = self.safe_string_k(&error, "message", &[]).as_str().map(str::to_owned);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback));

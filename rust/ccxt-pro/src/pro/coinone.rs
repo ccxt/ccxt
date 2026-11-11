@@ -367,19 +367,19 @@ impl Coinone {
         //         }
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut data: crate::value::Dict = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut baseId: Option<String> = self.safe_string_upper_k(data.clone(), "target_currency", &[]).as_str().map(str::to_owned);
-        let mut quoteId: Option<String> = self.safe_string_upper_k(data.clone(), "quote_currency", &[]).as_str().map(str::to_owned);
+}) }).into_dict();
+        let mut baseId: Option<String> = self.safe_string_upper_k(&data, "target_currency", &[]).as_str().map(str::to_owned);
+        let mut quoteId: Option<String> = self.safe_string_upper_k(&data, "quote_currency", &[]).as_str().map(str::to_owned);
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (base.is_none()) || (quote.is_none()) {
             return;
         }
         let mut symbol: Value = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()));
-        let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "timestamp", &[]).as_i64();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         if (orderbook == Value::Null) {
             orderbook = self.order_book(&[]);
@@ -387,8 +387,8 @@ impl Coinone {
             orderbook.reset0();
         }
         orderbook.set_book_meta("symbol", symbol.clone());
-        let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
-        let mut bids: Value = self.safe_list_k(data, "bids", &[Value::from(vec![])]);
+        let mut asks: Value = self.safe_list_k(&data, "asks", &[Value::from(vec![])]);
+        let mut bids: Value = self.safe_list_k(&data, "bids", &[Value::from(vec![])]);
         self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), asks);
         self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), bids);
         orderbook.set_book_meta("timestamp", Value::from(timestamp));

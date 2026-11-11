@@ -650,7 +650,7 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_constants(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_constants(&[params]).await.into_dict();
         //
         //     {
         //         "coins": {
@@ -695,10 +695,10 @@ impl Hollaex {
         //         "status": true
         //     }
         //
-        let mut pairs: Value = self.safe_dict_k(response, "pairs", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut pairs: Value = self.safe_dict_k(&response, "pairs", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut keys: Vec<Value> = Value::Array(pairs.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
@@ -799,7 +799,7 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_constants(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_constants(&[params]).await.into_dict();
         //
         //    {
         //        "coins": {
@@ -866,10 +866,10 @@ impl Hollaex {
         //         "network":"https://api.hollaex.network"
         //     }
         //
-        let mut coins: indexmap::IndexMap<String, Value> = self.safe_dict_k(response, "coins", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+        let mut coins: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "coins", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
         let mut values: Value = Value::Array(coins.values().cloned().collect());
         return self.parse_currencies(values);
         Value::Null
@@ -1368,7 +1368,7 @@ impl Hollaex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.public_get_tiers(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_tiers(&[params]).await.into_dict();
         //
         //     {
         //         "1": {
@@ -1397,14 +1397,14 @@ impl Hollaex {
         //         ...
         //     }
         //
-        let mut firstTier: Value = self.safe_dict_k(response, "1", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut fees: Value = self.safe_dict_k(firstTier, "fees", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut firstTier: crate::value::Dict = self.safe_dict_k(&response, "1", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut fees: Value = self.safe_dict_k(&firstTier, "fees", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut makerFees: Value = self.safe_dict_k(fees.clone(), "maker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1787,7 +1787,7 @@ impl Hollaex {
             request.insert("limit".into(), limit.clone()); // default 50, max 100
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_orders(&[__ws_arg_9]).await;
+        let mut response: crate::value::Dict = self.private_get_orders(&[__ws_arg_9]).await.into_dict();
         //
         //     {
         //         "count": 1,
@@ -1817,7 +1817,7 @@ impl Hollaex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -1875,11 +1875,11 @@ impl Hollaex {
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "filled", &[]).as_str().map(str::to_owned);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
-        let mut meta: Value = self.safe_dict_k(order.clone(), "meta", &[Value::Map({
+        let mut meta: crate::value::Dict = self.safe_dict_k(order.clone(), "meta", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut postOnly: bool = self.safe_bool_k(meta, "post_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+})]).into_dict();
+        let mut postOnly: bool = self.safe_bool_k(&meta, "post_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1952,11 +1952,11 @@ impl Hollaex {
             m
         });
         let mut triggerPrice: Option<f64> = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop".into())]), &[]).as_f64();
-        let mut meta: Value = self.safe_dict_k(params.clone(), "meta", &[Value::Map({
+        let mut meta: crate::value::Dict = self.safe_dict_k(params.clone(), "meta", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut exchangeSpecificParam: bool = self.safe_bool_k(meta, "post_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+})]).into_dict();
+        let mut exchangeSpecificParam: bool = self.safe_bool_k(&meta, "post_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isMarketOrder: bool = type_var.as_str() == Some("market");
         let mut postOnly: Value = self.is_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(exchangeSpecificParam), &[params.clone()]);
         if !(isMarketOrder) {
@@ -2100,7 +2100,7 @@ impl Hollaex {
             request.insert("start_date".into(), self.iso8601(since.clone()));
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_user_trades(&[__ws_arg_13]).await;
+        let mut response: crate::value::Dict = self.private_get_user_trades(&[__ws_arg_13]).await.into_dict();
         //
         //     {
         //         "count": 1,
@@ -2116,7 +2116,7 @@ impl Hollaex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_trades(data, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -2183,7 +2183,7 @@ impl Hollaex {
         }
         let mut network: Option<String> = self.safe_string_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("network".into()), &[]);
-        let mut response: Value = self.private_get_user(&[paramsOmitted]).await;
+        let mut response: crate::value::Dict = self.private_get_user(&[paramsOmitted]).await.into_dict();
         //
         //     {
         //         "id":620,
@@ -2229,7 +2229,7 @@ impl Hollaex {
         //         ]
         //     }
         //
-        let mut wallet: Value = self.safe_list_k(response, "wallet", &[Value::from(vec![])]);
+        let mut wallet: Value = self.safe_list_k(&response, "wallet", &[Value::from(vec![])]);
         let mut addresses: Value = Value::Null;
         if (network.is_none()) {
             addresses = wallet.clone();
@@ -2284,7 +2284,7 @@ impl Hollaex {
             request.insert("start_date".into(), self.iso8601(since.clone()));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_user_deposits(&[__ws_arg_14]).await;
+        let mut response: crate::value::Dict = self.private_get_user_deposits(&[__ws_arg_14]).await.into_dict();
         //
         //     {
         //         "count": 1,
@@ -2308,7 +2308,7 @@ impl Hollaex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_transactions(data, &[currency, since, limit]);
         Value::Null
         }).await?))
@@ -2344,7 +2344,7 @@ impl Hollaex {
             request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_user_withdrawals(&[__ws_arg_15]).await;
+        let mut response: crate::value::Dict = self.private_get_user_withdrawals(&[__ws_arg_15]).await.into_dict();
         //
         //     {
         //         "count": 1,
@@ -2368,7 +2368,7 @@ impl Hollaex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         let mut transaction: Value = self.safe_dict(data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2421,7 +2421,7 @@ impl Hollaex {
             request.insert("start_date".into(), self.iso8601(since.clone()));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_user_withdrawals(&[__ws_arg_16]).await;
+        let mut response: crate::value::Dict = self.private_get_user_withdrawals(&[__ws_arg_16]).await.into_dict();
         //
         //     {
         //         "count": 1,
@@ -2445,7 +2445,7 @@ impl Hollaex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_transactions(data, &[currency, since, limit]);
         Value::Null
         }).await?))
@@ -2685,15 +2685,15 @@ impl Hollaex {
                 let mut __for_first_765: bool = true;
                 while { if !__for_first_765 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_765 = false; i.as_f64().unwrap_or(f64::NAN) < keysLength } {
                 let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                let mut value: Value = self.safe_dict(withdrawalFees.clone(), key.clone(), &[]);
-                let mut currencyId: Option<String> = self.safe_string_k(value.clone(), "symbol", &[]).as_str().map(str::to_owned);
+                let mut value: crate::value::Dict = self.safe_dict(withdrawalFees.clone(), key.clone(), &[]).into_dict();
+                let mut currencyId: Option<String> = self.safe_string_k(&value, "symbol", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-                let mut networkCode: Value = self.network_id_to_code(&[key, currencyCode.clone().map(Value::from).unwrap_or(Value::Null)]);
-                if (networkCode == Value::Null) {
+                let mut networkCode: Option<String> = self.network_id_to_code(&[key, currencyCode.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+                if (networkCode.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a networkCode argument".into()))));
                 }
-                let mut networkCodeUpper: Value = (if let Some(__s) = networkCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }); // default to the upper case network code
-                let mut withdrawalFee: Option<f64> = self.safe_number_k(value, "value", &[]).as_f64();
+                let mut networkCodeUpper: Value = networkCode.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null); // default to the upper case network code
+                let mut withdrawalFee: Option<f64> = self.safe_number_k(&value, "value", &[]).as_f64();
                 networks.insert(crate::runtime::stringify_param(&networkCodeUpper), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Null);
@@ -2729,7 +2729,7 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_constants(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_constants(&[params]).await.into_dict();
         //
         //     {
         //         "coins":{
@@ -2765,10 +2765,10 @@ impl Hollaex {
         //         "network":"https://api.hollaex.network"
         //     }
         //
-        let mut coins: Value = self.safe_dict_k(response, "coins", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut coins: Value = self.safe_dict_k(&response, "coins", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_deposit_withdraw_fees(coins, &[codes, Value::Str("symbol".into())]);
         Value::Null
         }).await?))
@@ -2784,10 +2784,10 @@ impl Hollaex {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        let mut requestPath: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path, params)).into());
+        let mut requestPath: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path, params));
         if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                requestPath = Value::Str(format!("{}{}", requestPath, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+                requestPath.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
             }
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);

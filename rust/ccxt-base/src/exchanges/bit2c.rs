@@ -602,11 +602,11 @@ impl Bit2c {
             let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut currency: Value = self.currency(code.clone());
-            let mut currencyId: Value = self.safe_string_k(currency, "id", &[Value::Str("".into())]);
-            let mut uppercase: Value = (if let Some(__s) = currencyId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-            if (self.safe_string(response.clone(), uppercase.clone(), &[]) != Value::Null) {
+            let mut currencyId: String = self.safe_string_k(currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut uppercase: String = currencyId.to_uppercase();
+            if (self.safe_string(response.clone(), Value::from(uppercase.clone()), &[]) != Value::Null) {
                 account.insert("free".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", Value::Str("AVAILABLE_".into()), uppercase).into()), &[]));
-                account.insert("total".into(), self.safe_string(response.clone(), uppercase, &[]));
+                account.insert("total".into(), self.safe_string(response.clone(), Value::from(uppercase), &[]));
             }
             result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
         }
@@ -675,7 +675,7 @@ impl Bit2c {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: Value = self.public_get_exchanges_pair_orderbook(&[__ws_arg_0]).await;
+        let mut orderbook: crate::value::Dict = self.public_get_exchanges_pair_orderbook(&[__ws_arg_0]).await.into_dict();
         // the full orderbook.json snapshot can contain dead orders - rows
         // published with a zero amount at their limit price, hours-stable and
         // sometimes crossing the real market. per the api docs the endpoint
@@ -683,8 +683,8 @@ impl Bit2c {
         // feed filters these rows out, so a non-positive amount is a dead order
         // their full snapshot failed to purge - it is removed here, which also
         // uncrosses the book. rows are positional price and amount pairs
-        let mut rawBids: Vec<Value> = self.safe_list_k(orderbook.clone(), "bids", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut rawAsks: Vec<Value> = self.safe_list_k(orderbook, "asks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawBids: Vec<Value> = self.safe_list_k(&orderbook, "bids", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawAsks: Vec<Value> = self.safe_list_k(&orderbook, "asks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut bids: Vec<Value> = Vec::new();
         let mut asks: Vec<Value> = Vec::new();
         {
@@ -884,7 +884,7 @@ impl Bit2c {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_account_balance(&[params]).await;
+        let mut response: crate::value::Dict = self.private_get_account_balance(&[params]).await.into_dict();
         //
         //     {
         //         "AVAILABLE_NIS": 0.0,
@@ -901,10 +901,10 @@ impl Bit2c {
         //         }
         //     }
         //
-        let mut fees: Value = self.safe_dict_k(response, "Fees", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut fees: Value = self.safe_dict_k(&response, "Fees", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut keys: Vec<Value> = Value::Array(fees.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1071,12 +1071,12 @@ impl Bit2c {
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_order_my_orders(&[__ws_arg_8]).await;
-        let mut orders: Value = self.safe_dict(response, Value::from((market).id.clone()), &[Value::Map({
+        let mut orders: crate::value::Dict = self.safe_dict(response, Value::from((market).id.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut asks: Value = self.safe_list_k(orders.clone(), "ask", &[Value::from(vec![])]);
-        let mut bids: Value = self.safe_list_k(orders, "bid", &[Value::from(vec![])]);
+})]).into_dict();
+        let mut asks: Value = self.safe_list_k(&orders, "ask", &[Value::from(vec![])]);
+        let mut bids: Value = self.safe_list_k(&orders, "bid", &[Value::from(vec![])]);
         return self.parse_orders(self.array_concat(asks, bids), &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -1539,11 +1539,11 @@ impl Bit2c {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.implode_params(path, params.clone())).into());
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.implode_params(path, params.clone()));
         let mut requestBody: Value = Value::Null;
         let mut requestHeaders: Value = Value::Null;
         if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("public")) {
-            url = Value::Str(format!("{}{}", url, Value::Str(".json".into())).into());
+            url.push_str(".json");
         }  else {
             self.check_required_credentials(&[]);
             // bit2c requires an increasing nonce per key
@@ -1556,7 +1556,7 @@ impl Bit2c {
             let mut auth: Value = self.urlencode(query.clone(), &[]);
             if (method.as_str() == Some("GET")) {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), auth).into())).into());
+                    url.push_str(&format!("{}{}", Value::Str("?".into()), auth));
                 }
             }  else {
                 requestBody = auth.clone();
@@ -1574,7 +1574,7 @@ impl Bit2c {
         let mut headersResult: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResult);
         m.insert("headers".to_string(), headersResult);

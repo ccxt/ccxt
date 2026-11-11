@@ -657,7 +657,7 @@ impl Bitopro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_provisioning_currencies(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_provisioning_currencies(&[params]).await.into_dict();
         //
         //     {
         //         "data":[
@@ -674,7 +674,7 @@ impl Bitopro {
         //         ]
         //     }
         //
-        let mut currencies: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut currencies: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_currencies(currencies);
         Value::Null
         }).await?))
@@ -740,8 +740,8 @@ impl Bitopro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_provisioning_trading_pairs(&[]).await;
-        let mut markets: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.public_get_provisioning_trading_pairs(&[]).await.into_dict();
+        let mut markets: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_markets(markets);
         Value::Null
         }).await?))
@@ -749,11 +749,11 @@ impl Bitopro {
 
     pub fn parse_market(&self, mut market: Value) -> Value {
         let mut active: Value = Value::Bool(!(self.safe_bool_k(market.clone(), "maintain", &[Value::Bool(false)]).as_bool() == Some(true)));
-        let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "pair", &[]);
+        let mut id: Option<String> = self.safe_string_k(market.clone(), "pair", &[]).as_str().map(str::to_owned);
         if (id.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing id".into()))));
         }
-        let mut uppercaseId: String = id.as_deref().map(str::to_uppercase).unwrap_or_default();
+        let mut uppercaseId: Value = id.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null);
         let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "quote", &[]).as_str().map(str::to_owned);
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -792,8 +792,8 @@ impl Bitopro {
         });
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("uppercaseId".to_string(), Value::from(uppercaseId));
+        m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("uppercaseId".to_string(), uppercaseId);
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
@@ -905,11 +905,11 @@ impl Bitopro {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_tickers_pair(&[__ws_arg_0]).await;
-        let mut ticker: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut response: crate::value::Dict = self.public_get_tickers_pair(&[__ws_arg_0]).await.into_dict();
+        let mut ticker: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_ticker(ticker, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -938,8 +938,8 @@ impl Bitopro {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.public_get_tickers(&[]).await;
-        let mut tickers: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.public_get_tickers(&[]).await.into_dict();
+        let mut tickers: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_tickers(tickers, &[symbols]);
         Value::Null
         }).await?))
@@ -1114,8 +1114,8 @@ impl Bitopro {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_trades_pair(&[__ws_arg_2]).await;
-        let mut trades: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.public_get_trades_pair(&[__ws_arg_2]).await.into_dict();
+        let mut trades: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -1142,11 +1142,11 @@ impl Bitopro {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.public_get_provisioning_limitations_and_fees(&[params]).await;
-        let mut tradingFeeRate: Value = self.safe_dict_k(response, "tradingFeeRate", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut response: crate::value::Dict = self.public_get_provisioning_limitations_and_fees(&[params]).await.into_dict();
+        let mut tradingFeeRate: Value = self.safe_dict_k(&response, "tradingFeeRate", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut first: Value = self.safe_dict(tradingFeeRate, Value::Int(0), &[]);
         //
         //     {
@@ -1301,8 +1301,8 @@ impl Bitopro {
             request.insert("to".into(), self.sum(&[fromSeconds, (match (&(limitResolved), &(timeframeInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_trading_history_pair(&[__ws_arg_3]).await;
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.public_get_trading_history_pair(&[__ws_arg_3]).await.into_dict();
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         //
         //     {
         //         "data":[
@@ -1381,11 +1381,11 @@ impl Bitopro {
                         let mut i: i64 = 0;
             let mut __for_first_410: bool = true;
             while { if !__for_first_410 { i += 1; } __for_first_410 = false; i < (rows.len() as i64) } {
-            let mut balance: Value = self.safe_dict(rows.clone(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
+            let mut balance: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut amount: Option<String> = self.safe_string_k(balance.clone(), "amount", &[]).as_str().map(str::to_owned);
-            let mut available: Option<String> = self.safe_string_k(balance, "available", &[]).as_str().map(str::to_owned);
+            let mut amount: Option<String> = self.safe_string_k(&balance, "amount", &[]).as_str().map(str::to_owned);
+            let mut available: Option<String> = self.safe_string_k(&balance, "available", &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("free".to_string(), available.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1423,8 +1423,8 @@ impl Bitopro {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_accounts_balance(&[params]).await;
-        let mut balances: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.private_get_accounts_balance(&[params]).await.into_dict();
+        let mut balances: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_balance_list(balances);
         Value::Null
         }).await?))
@@ -1483,11 +1483,11 @@ impl Bitopro {
         //
         let mut id: Option<String> = self.safe_string2(order.clone(), Value::Str("id".into()), Value::Str("orderId".into()), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("timestamp".into()), Value::Str("createdTimestamp".into()), &[]).as_i64();
-        let mut side: Value = self.safe_string_k(order.clone(), "action", &[]);
-        if (side == Value::Null) {
+        let mut side: Option<String> = self.safe_string_k(order.clone(), "action", &[]).as_str().map(str::to_owned);
+        if (side.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseOrder() returned no side".into()))));
         }
-        side = (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+        side = side.as_deref().map(str::to_lowercase);
         let mut amount: Option<String> = self.safe_string2(order.clone(), Value::Str("amount".into()), Value::Str("originalAmount".into()), &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "pair", &[]).as_str().map(str::to_owned);
@@ -1526,7 +1526,7 @@ impl Bitopro {
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), postOnly.map(Value::from).unwrap_or(Value::Null));
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1726,7 +1726,7 @@ impl Bitopro {
             request.insert(id.as_deref().unwrap_or("null").to_string(), ids);
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_put_orders(&[__ws_arg_6]).await;
+        let mut response: crate::value::Dict = self.private_put_orders(&[__ws_arg_6]).await.into_dict();
         //
         //     {
         //         "data":{
@@ -1737,10 +1737,10 @@ impl Bitopro {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_cancel_orders(data);
         Value::Null
         }).await?))
@@ -1877,8 +1877,8 @@ impl Bitopro {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_orders_all_pair(&[__ws_arg_10]).await;
-        let mut orders: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.private_get_orders_all_pair(&[__ws_arg_10]).await.into_dict();
+        let mut orders: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         if (orders == Value::Null) {
             orders = Value::from(vec![]);
         }
@@ -1924,8 +1924,8 @@ impl Bitopro {
             request.insert("pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_orders_open(&[__ws_arg_11]).await;
-        let mut orders: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.private_get_orders_open(&[__ws_arg_11]).await.into_dict();
+        let mut orders: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_orders(orders, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -2003,8 +2003,8 @@ impl Bitopro {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_orders_trades_pair(&[__ws_arg_13]).await;
-        let mut trades: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.private_get_orders_trades_pair(&[__ws_arg_13]).await.into_dict();
+        let mut trades: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -2074,13 +2074,13 @@ impl Bitopro {
         //    }
         //
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "coin", &[]).as_str().map(str::to_owned);
-        let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "timestamp", &[]).as_i64();
         let mut address: Option<String> = self.safe_string_k(transaction.clone(), "address", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = self.safe_string_k(transaction.clone(), "message", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.safe_string_k(transaction.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut networkId: Value = self.safe_string_k(transaction.clone(), "protocol", &[]);
-        if (networkId.as_str() == Some("MAIN")) {
+        let mut networkId: Option<String> = self.safe_string_k(transaction.clone(), "protocol", &[]).as_str().map(str::to_owned);
+        if (networkId.as_deref() == Some("MAIN")) {
             networkId = code.clone();
         }
         return Value::Map({
@@ -2089,8 +2089,8 @@ impl Bitopro {
         m.insert("id".to_string(), self.safe_string_k(transaction.clone(), "serial", &[]));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txid", &[]));
         m.insert("type".to_string(), Value::Null);
-        m.insert("currency".to_string(), code.clone());
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId, code.clone()]));
+        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("network".to_string(), self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "total", &[]));
         m.insert("status".to_string(), self.parse_transaction_status(status.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -2106,7 +2106,7 @@ impl Bitopro {
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code);
+        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), self.safe_number_k(transaction, "fee", &[]));
         m.insert("rate".to_string(), Value::Null);
     m
@@ -2160,8 +2160,8 @@ impl Bitopro {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_wallet_deposit_history_currency(&[__ws_arg_14]).await;
-        let mut result: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.private_get_wallet_deposit_history_currency(&[__ws_arg_14]).await.into_dict();
+        let mut result: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_transactions(result, &[currency, since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("deposit".into()));
@@ -2214,8 +2214,8 @@ impl Bitopro {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_wallet_withdraw_history_currency(&[__ws_arg_15]).await;
-        let mut result: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.private_get_wallet_withdraw_history_currency(&[__ws_arg_15]).await.into_dict();
+        let mut result: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_transactions(result, &[currency, since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("withdrawal".into()));
@@ -2255,11 +2255,11 @@ impl Bitopro {
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_wallet_withdraw_currency_serial(&[__ws_arg_16]).await;
-        let mut result: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut response: crate::value::Dict = self.private_get_wallet_withdraw_currency_serial(&[__ws_arg_16]).await.into_dict();
+        let mut result: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_transaction(result, &[currency]);
 
     Value::Null
@@ -2326,11 +2326,11 @@ impl Bitopro {
             request.insert("message".into(), tagWithdrawTag);
         }
         let __ws_arg_17 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.private_post_wallet_withdraw_currency(&[__ws_arg_17]).await;
-        let mut result: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut response: crate::value::Dict = self.private_post_wallet_withdraw_currency(&[__ws_arg_17]).await.into_dict();
+        let mut result: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_transaction(result, &[currency]);
         Value::Null
         }).await?))
@@ -2386,7 +2386,7 @@ impl Bitopro {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.public_get_provisioning_currencies(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_provisioning_currencies(&[params]).await.into_dict();
         //
         //     {
         //         "data":[
@@ -2403,7 +2403,7 @@ impl Bitopro {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_deposit_withdraw_fees(data, &[codes, Value::Str("currency".into())]);
         Value::Null
         }).await?))
@@ -2419,7 +2419,7 @@ impl Bitopro {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
+        let mut url: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
         // keep `Object.keys (x).length` in one expression: the PHP transpiler rewrites that exact shape into
         // count(x), while a hoisted key list is printed as an array and `.length` then becomes strlen(array)
@@ -2445,7 +2445,7 @@ impl Bitopro {
                 requestHeaders.insert("X-BITOPRO-SIGNATURE".into(), signature.clone());
             }  else if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
                 if queryLength > ((0i64) as f64) {
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
                 }
                 let mut nonce: Option<i64> = self.milliseconds().as_i64();
                 let mut rawData: indexmap::IndexMap<String, Value> = ({
@@ -2462,7 +2462,7 @@ impl Bitopro {
             }
         }  else if (apiName.as_deref() == Some("public")) && (method.as_str() == Some("GET")) {
             if queryLength > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])).into())).into());
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])));
             }
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);

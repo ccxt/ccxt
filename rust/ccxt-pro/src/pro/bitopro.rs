@@ -336,13 +336,13 @@ impl Bitopro {
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("ORDER_BOOK".into()), Value::Str(":".into())).into()), symbolValue);
         let mut marketIdValue: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut endPart: Value = Value::Null;
+        let mut endPart: Option<String> = None;
         if (limit == Value::Null) {
-            endPart = Value::from(marketIdValue.clone());
+            endPart = Some(marketIdValue.clone());
         }  else {
-            endPart = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketIdValue, Value::Str(":".into())).into()), self.number_to_string(limit.clone())).into());
+            endPart = Some(format!("{}{}", Value::Str(format!("{}{}", marketIdValue, Value::Str(":".into())).into()), self.number_to_string(limit.clone())));
         }
-        let mut orderbook: Value = self.watch_public(Value::Str("order-books".into()), Value::from(messageHash), endPart).await;
+        let mut orderbook: Value = self.watch_public(Value::Str("order-books".into()), Value::from(messageHash), endPart.clone().map(Value::from).unwrap_or(Value::Null)).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -771,11 +771,11 @@ impl Bitopro {
         });
         // this.options = this.extend (defaultOptions, this.options);
         self.extend_exchange_options(&[Value::Map(defaultOptions)]);
-        let mut wsOptions: Value = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
+        let mut wsOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsInnerOptions: indexmap::IndexMap<String, Value> = self.safe_dict_k(wsOptions, "options", &[Value::Map({
+        })]).into_dict();
+        let mut wsInnerOptions: indexmap::IndexMap<String, Value> = self.safe_dict_k(&wsOptions, "options", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
@@ -875,15 +875,15 @@ impl Bitopro {
             let mut __for_first_133: bool = true;
             while { if !__for_first_133 { i += 1; } __for_first_133 = false; i < (currencies.len() as i64) } {
             let mut currency: Option<String> = self.safe_string(currencies.clone().into(), Value::Int(i), &[]).as_str().map(str::to_owned);
-            let mut balance: Value = self.safe_dict(data.clone(), currency.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut balance: crate::value::Dict = self.safe_dict(data.clone(), currency.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
+            })]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string_k(balance.clone(), "available", &[]));
-            account.insert("total".into(), self.safe_string_k(balance.clone(), "amount", &[]));
+            account.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
+            account.insert("total".into(), self.safe_string_k(&balance, "amount", &[]));
             if (code != Value::Null) {
                 if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); }
             }

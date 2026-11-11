@@ -781,8 +781,8 @@ impl Coinmate {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_system_time(&[params]).await;
-        return self.safe_integer_k(response, "serverTime", &[]);
+        let mut response: crate::value::Dict = self.public_get_system_time(&[params]).await.into_dict();
+        return self.safe_integer_k(&response, "serverTime", &[]);
         Value::Null
         }).await?))
     }
@@ -805,7 +805,7 @@ impl Coinmate {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_trading_pairs(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_trading_pairs(&[params]).await.into_dict();
         //
         //     {
         //         "error":false,
@@ -825,7 +825,7 @@ impl Coinmate {
         //         ]
         //     }
         //
-        let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -928,11 +928,11 @@ impl Coinmate {
             while { if !__for_first_568 { i += 1; } __for_first_568 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut balance: Value = self.safe_dict(balances.clone(), currencyId, &[]);
+            let mut balance: crate::value::Dict = self.safe_dict(balances.clone(), currencyId, &[]).into_dict();
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string_k(balance.clone(), "available", &[]));
-            account.insert("used".into(), self.safe_string_k(balance.clone(), "reserved", &[]));
-            account.insert("total".into(), self.safe_string_k(balance, "balance", &[]));
+            account.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
+            account.insert("used".into(), self.safe_string_k(&balance, "reserved", &[]));
+            account.insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
             result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
         }
         }
@@ -1001,11 +1001,11 @@ impl Coinmate {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_order_book(&[__ws_arg_0]).await;
-        let mut orderbook: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut response: crate::value::Dict = self.public_get_order_book(&[__ws_arg_0]).await.into_dict();
+        let mut orderbook: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(orderbook.clone(), "timestamp", &[]).as_i64();
         return self.parse_order_book(orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
         Value::Null
@@ -1042,7 +1042,7 @@ impl Coinmate {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_ticker(&[__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.public_get_ticker(&[__ws_arg_1]).await.into_dict();
         //
         //     {
         //         "error": false,
@@ -1060,7 +1060,7 @@ impl Coinmate {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[]);
         return self.parse_ticker(data, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -1090,7 +1090,7 @@ impl Coinmate {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut response: Value = self.public_get_ticker_all(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_ticker_all(&[params]).await.into_dict();
         //
         //     {
         //         "error": false,
@@ -1110,10 +1110,10 @@ impl Coinmate {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut keys: Vec<Value> = Value::Array(data.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1221,8 +1221,8 @@ impl Coinmate {
             request.insert("currency".into(), currency.get("id").cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_transfer_history(&[__ws_arg_2]).await;
-        let mut items: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.private_post_transfer_history(&[__ws_arg_2]).await.into_dict();
+        let mut items: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_transactions(items, &[Value::Null, since, limit]);
         Value::Null
         }).await?))
@@ -1360,14 +1360,14 @@ impl Coinmate {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut withdrawOptions: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
+        let mut withdrawOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut methods: Value = self.safe_dict_k(withdrawOptions.clone(), "methods", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+})]).into_dict();
+        let mut methods: Value = self.safe_dict_k(&withdrawOptions, "methods", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut method: Option<String> = self.safe_string(methods.clone(), code.clone(), &[]).as_str().map(str::to_owned);
         if (method.is_none()) {
             let mut allowedCurrencies: Value = Value::Array(methods.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
@@ -1419,7 +1419,7 @@ impl Coinmate {
     m
 })]);
         let mut transaction: indexmap::IndexMap<String, Value> = self.parse_transaction(data, &[currency]).as_map().cloned().unwrap_or_default();
-        let mut fillResponseFromRequest: bool = self.safe_bool_k(withdrawOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut fillResponseFromRequest: bool = self.safe_bool_k(&withdrawOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if fillResponseFromRequest {
             transaction.insert("amount".into(), amount);
             transaction.insert("currency".into(), code);
@@ -1474,8 +1474,8 @@ impl Coinmate {
             request.insert("timestampFrom".into(), since.clone());
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_trade_history(&[__ws_arg_3]).await;
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.private_post_trade_history(&[__ws_arg_3]).await.into_dict();
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_trades(data, &[Value::Null, since, limitResolved]);
         Value::Null
         }).await?))
@@ -1587,7 +1587,7 @@ impl Coinmate {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_transactions(&[__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.public_get_transactions(&[__ws_arg_4]).await.into_dict();
         //
         //     {
         //         "error":false,
@@ -1604,7 +1604,7 @@ impl Coinmate {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -1640,7 +1640,7 @@ impl Coinmate {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_trader_fees(&[__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.private_post_trader_fees(&[__ws_arg_5]).await.into_dict();
         //
         //     {
         //         "error": false,
@@ -1648,10 +1648,10 @@ impl Coinmate {
         //         "data": { maker: '0.3', taker: "0.35", timestamp: "1646253217815" }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut makerString: Option<String> = self.safe_string_k(data.clone(), "maker", &[]).as_str().map(str::to_owned);
         let mut takerString: Option<String> = self.safe_string_k(data.clone(), "taker", &[]).as_str().map(str::to_owned);
         let mut maker: Value = self.parse_number(crate::precise::Precise::stringDiv(&makerString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
@@ -1698,13 +1698,13 @@ impl Coinmate {
             let mut m = indexmap::IndexMap::new();
             m
         }), &[params]);
-        let mut response: Value = self.private_post_open_orders(&[__ws_arg_6]).await;
+        let mut response: crate::value::Dict = self.private_post_open_orders(&[__ws_arg_6]).await.into_dict();
         let mut extension: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("open".into()));
             m
         });
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[Value::Null, since, limit, Value::Map(extension)]);
         Value::Null
         }).await?))
@@ -1751,8 +1751,8 @@ impl Coinmate {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_order_history(&[__ws_arg_7]).await;
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.private_post_order_history(&[__ws_arg_7]).await.into_dict();
+        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -1985,8 +1985,8 @@ impl Coinmate {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_order_by_id(&[__ws_arg_8]).await;
-        let mut data: Value = self.safe_dict_k(response, "data", &[]);
+        let mut response: crate::value::Dict = self.private_post_order_by_id(&[__ws_arg_8]).await.into_dict();
+        let mut data: Value = self.safe_dict_k(&response, "data", &[]);
         return self.parse_order(data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         Value::Null
         }).await?))
@@ -2021,7 +2021,7 @@ impl Coinmate {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_cancel_order_with_info(&[__ws_arg_9]).await;
+        let mut response: crate::value::Dict = self.private_post_cancel_order_with_info(&[__ws_arg_9]).await.into_dict();
         //
         //    {
         //        "error": false,
@@ -2032,7 +2032,7 @@ impl Coinmate {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[]);
         return self.parse_order(data, &[]);
         Value::Null
         }).await?))
@@ -2060,27 +2060,27 @@ impl Coinmate {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), path).into());
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), path);
         if (apiName.as_deref() == Some("public")) {
             let mut publicQuery: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             }), &[params.clone()]);
             if ((Value::Array(publicQuery.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(publicQuery, &[])).into())).into());
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(publicQuery, &[])));
             }
         }  else {
             self.check_required_credentials(&[]);
             // coinmate requires each nonce to be greater than the previous one for the key
             let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, self.uid.clone()).into()), self.apiKey.clone());
-            let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
             let __ws_arg_10 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("clientId".to_string(), self.uid.clone());
                     m.insert("nonce".to_string(), nonce);
                     m.insert("publicKey".to_string(), self.apiKey.clone());
-                    m.insert("signature".to_string(), (if let Some(__s) = signature.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
+                    m.insert("signature".to_string(), signature.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
                 m
             }), &[params]);
             bodySigned = self.urlencode(__ws_arg_10, &[]);
@@ -2094,7 +2094,7 @@ impl Coinmate {
         let mut bodyResolved: Value = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResolved);
         m.insert("headers".to_string(), headersResolved);

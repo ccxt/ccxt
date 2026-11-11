@@ -627,16 +627,16 @@ impl Blockchaincom {
             let mut minOrderSizeString: Option<String> = self.safe_string_k(market.clone(), "min_order_size", &[]).as_str().map(str::to_owned);
             let mut minOrderSizeScaleString: Option<String> = self.safe_string_k(market.clone(), "min_order_size_scale", &[]).as_str().map(str::to_owned);
             let mut minOrderSizeScalePrecisionString: Value = self.parse_precision(&[minOrderSizeScaleString.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut minOrderSizePreciseString: Option<String> = crate::precise::Precise::stringMul(&minOrderSizeString.clone().map(Value::from).unwrap_or(Value::Null), &minOrderSizeScalePrecisionString).as_str().map(str::to_owned);
-            let mut minOrderSize: Value = self.parse_number(minOrderSizePreciseString.map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut minOrderSizePreciseString: Value = crate::precise::Precise::stringMul(&minOrderSizeString.clone().map(Value::from).unwrap_or(Value::Null), &minOrderSizeScalePrecisionString);
+            let mut minOrderSize: Value = self.parse_number(minOrderSizePreciseString, &[]);
             // maximum order size
             let mut maxOrderSize: Value = Value::Null;
             let mut maxOrderSizeRaw: Option<String> = self.safe_string_k(market.clone(), "max_order_size", &[]).as_str().map(str::to_owned);
             if (maxOrderSizeRaw.as_deref() != Some("0")) {
                 let mut maxOrderSizeScaleString: Option<String> = self.safe_string_k(market.clone(), "max_order_size_scale", &[]).as_str().map(str::to_owned);
                 let mut maxOrderSizeScalePrecisionString: Value = self.parse_precision(&[maxOrderSizeScaleString.clone().map(Value::from).unwrap_or(Value::Null)]);
-                let mut maxOrderSizeValueString: Option<String> = crate::precise::Precise::stringMul(&maxOrderSizeRaw.clone().map(Value::from).unwrap_or(Value::Null), &maxOrderSizeScalePrecisionString).as_str().map(str::to_owned);
-                maxOrderSize = self.parse_number(maxOrderSizeValueString.map(Value::from).unwrap_or(Value::Null), &[]);
+                let mut maxOrderSizeValueString: Value = crate::precise::Precise::stringMul(&maxOrderSizeRaw.clone().map(Value::from).unwrap_or(Value::Null), &maxOrderSizeScalePrecisionString);
+                maxOrderSize = self.parse_number(maxOrderSizeValueString, &[]);
             }
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1523,7 +1523,7 @@ impl Blockchaincom {
         //     }
         //
         let mut type_var: Option<String> = None;
-        let mut id: Value = Value::Null;
+        let mut id: Option<String> = None;
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "timestamp", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "currency", &[]).as_str().map(str::to_owned);
@@ -1533,10 +1533,10 @@ impl Blockchaincom {
         let mut withdrawalId: Option<String> = self.safe_string_k(transaction.clone(), "withdrawalId", &[]).as_str().map(str::to_owned);
         if (depositId.is_some()) {
             type_var = Some("deposit".to_string());
-            id = depositId.clone().map(Value::from).unwrap_or(Value::Null);
+            id = depositId;
         }  else if (withdrawalId.is_some()) {
             type_var = Some("withdrawal".to_string());
-            id = withdrawalId.clone().map(Value::from).unwrap_or(Value::Null);
+            id = withdrawalId;
         }
         let mut feeCost: Option<f64> = (if (type_var.as_deref() == Some("withdrawal")) { self.safe_number_k(transaction.clone(), "fee", &[]).as_f64() } else { None });
         let mut fee: Value = Value::Null;
@@ -1553,7 +1553,7 @@ impl Blockchaincom {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction);
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
@@ -1833,12 +1833,12 @@ impl Blockchaincom {
                         let mut i: i64 = 0;
             let mut __for_first_459: bool = true;
             while { if !__for_first_459 { i += 1; } __for_first_459 = false; i < (balances.len() as i64) } {
-            let mut entry: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "currency", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = self.safe_dict(balances.clone(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&entry, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string_k(entry.clone(), "available", &[]));
-            account.insert("total".into(), self.safe_string_k(entry, "balance", &[]));
+            account.insert("free".into(), self.safe_string_k(&entry, "available", &[]));
+            account.insert("total".into(), self.safe_string_k(&entry, "balance", &[]));
             result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
         }
         }
@@ -1901,7 +1901,7 @@ impl Blockchaincom {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), requestPath).into());
+        let mut url: String = format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), requestPath);
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut isPrivate: bool = apiName.as_str() == Some("private");
         let mut privateHeaders: Value = Value::Map({
@@ -1920,13 +1920,13 @@ impl Blockchaincom {
         }
         if (apiName.as_str() == Some("public")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
             }
         }  else if isPrivate {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("GET")) {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])).into())).into());
+                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])));
                 }
             }  else {
                 if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
@@ -1934,7 +1934,7 @@ impl Blockchaincom {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody);
         m.insert("headers".to_string(), requestHeaders);

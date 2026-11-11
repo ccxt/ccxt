@@ -761,7 +761,7 @@ impl Kalshi {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut cursor: Value = Value::Null;
+        let mut cursor: Option<String> = None;
         // don't request a full 1000-market page (3+ MB) when the caller wants fewer
         let mut pageLimit: Value = self.safe_integer_k(self.options.clone(), "marketsPageLimit", &[Value::Int(1000)]);
         let mut limit: Value = pageLimit.clone();
@@ -779,12 +779,12 @@ impl Kalshi {
                     m.insert("status".to_string(), Value::from(status.clone()));
                 m
             });
-            if (cursor != Value::Null) {
-                request.insert("cursor".into(), cursor.clone());
+            if (cursor.is_some()) {
+                request.insert("cursor".into(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
             }
             let __ws_arg_0 = self.extend(Value::Map(request), &[rest.clone()]);
-            let mut response: Value = self.kalshi_public_get_markets(&[__ws_arg_0]).await;
-            let mut rawMarkets: Vec<Value> = self.safe_list_k(response.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut response: crate::value::Dict = self.kalshi_public_get_markets(&[__ws_arg_0]).await.into_dict();
+            let mut rawMarkets: Vec<Value> = self.safe_list_k(&response, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
             {
                                 let mut i: i64 = 0;
@@ -825,9 +825,9 @@ impl Kalshi {
                 }
             }
             }
-            cursor = self.safe_string_k(response, "cursor", &[]);
+            cursor = self.safe_string_k(&response, "cursor", &[]).as_str().map(str::to_owned);
             let mut collectedLength: f64 = ((flatMarkets.len() as i64) as f64);
-            if ((cursor == Value::Null) || (cursor.as_str() == Some(""))) || rawMarketsLength < limit.as_f64().unwrap_or(f64::NAN) || collectedLength >= maxMarkets.as_f64().unwrap_or(f64::NAN) {
+            if ((cursor.is_none()) || (cursor.as_deref() == Some(""))) || rawMarketsLength < limit.as_f64().unwrap_or(f64::NAN) || collectedLength >= maxMarkets.as_f64().unwrap_or(f64::NAN) {
                 break;
             }
         }
@@ -995,8 +995,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             chunk = Value::from(vec![]);
-            let mut response: Value = self.kalshi_public_get_markets(&[Value::Map(request)]).await;
-            let mut rawMarkets: Vec<Value> = self.safe_list_k(response, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut response: crate::value::Dict = self.kalshi_public_get_markets(&[Value::Map(request)]).await.into_dict();
+            let mut rawMarkets: Vec<Value> = self.safe_list_k(&response, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1263: bool = true;
@@ -1062,10 +1062,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // coefficient; compute the real per-contract formula here so fee estimates are accurate
         let mut priceStr: Option<String> = self.number_to_string(price).as_str().map(str::to_owned);
         let mut amountStr: Option<String> = self.number_to_string(amount).as_str().map(str::to_owned);
-        let mut oneMinusP: Option<String> = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut oneMinusP: Value = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr.clone().map(Value::from).unwrap_or(Value::Null));
         let mut feeCost: Option<String> = crate::precise::Precise::stringMul(&Value::Str("0.07".into()), &amountStr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         feeCost = crate::precise::Precise::stringMul(&feeCost.clone().map(Value::from).unwrap_or(Value::Null), &priceStr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        feeCost = crate::precise::Precise::stringMul(&feeCost.clone().map(Value::from).unwrap_or(Value::Null), &oneMinusP.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        feeCost = crate::precise::Precise::stringMul(&feeCost.clone().map(Value::from).unwrap_or(Value::Null), &oneMinusP).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), takerOrMaker);
@@ -1129,14 +1129,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //    "yes_bid_size_fp":"",
         //    "yes_sub_title":"During Trump's term"
         // }
-        let mut ticker: Option<String> = self.safe_string_k_opt(raw.clone(), "ticker", &[]);
+        let mut ticker: Option<String> = self.safe_string_k(raw.clone(), "ticker", &[]).as_str().map(str::to_owned);
         let mut eventTicker: Option<String> = self.safe_string_k_opt(raw.clone(), "event_ticker", &[]);
         let mut subtitle: Value = self.safe_string_k(raw.clone(), "subtitle", &[self.safe_string(raw.clone(), Value::Str("title".into()), &[])]);
         // markets use status 'active' while events use 'open'
         let mut status: Option<String> = self.safe_string_k(raw.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: Value = Value::Bool((status.as_deref() == Some("active")) || (status.as_deref() == Some("open")));
         // resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
-        let mut result: Option<String> = self.safe_string_lower_k_opt(raw.clone(), "result", &[]);
+        let mut result: Option<String> = self.safe_string_lower_k(raw.clone(), "result", &[]).as_str().map(str::to_owned);
         let mut resolved: bool = (status.as_deref() == Some("settled")) || ((result.is_some()) && (result.as_deref() != Some("")));
         let mut endDate: Option<String> = self.safe_string_k(raw.clone(), "expiration_time", &[]).as_str().map(str::to_owned);
         let mut volume: Option<f64> = self.safe_number2(raw.clone(), Value::Str("volume_fp".into()), Value::Str("volume".into()), &[]).as_f64();
@@ -1163,11 +1163,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
         // used tick_size (in cents). amount is a whole number of contracts
         let mut priceRanges: Value = self.safe_list_k(raw.clone(), "price_ranges", &[Value::from(vec![])]);
-        let mut firstRange: Value = self.safe_dict(priceRanges, Value::Int(0), &[Value::Map({
+        let mut firstRange: crate::value::Dict = self.safe_dict(priceRanges, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut stepDollars: Option<String> = self.safe_string_k(firstRange, "step", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut stepDollars: Option<String> = self.safe_string_k(&firstRange, "step", &[]).as_str().map(str::to_owned);
         let mut pricePrecision: Value = self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(raw.clone(), "tick_size", &[Value::Str("1".into())]), &Value::Str("100".into())), &[]);
         if (stepDollars.is_some()) {
             pricePrecision = self.parse_number(stepDollars.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1187,12 +1187,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut oi: i64 = 0;
             let mut __for_first_1266: bool = true;
             while { if !__for_first_1266 { oi += 1; } __for_first_1266 = false; oi < (outcomeLabels.len() as i64) } {
-            let mut label: Value = outcomeLabels.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null);
-            let mut outcomeHandle: Value = self.slug_to_outcome_symbol(eventTicker.clone().map(Value::from).unwrap_or(Value::Null), subtitleOrTicker.clone(), label.clone());
+            let mut label: Option<String> = outcomeLabels.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut outcomeHandle: Value = self.slug_to_outcome_symbol(eventTicker.clone().map(Value::from).unwrap_or(Value::Null), subtitleOrTicker.clone(), label.clone().map(Value::from).unwrap_or(Value::Null));
             let mut winnerRaw: Value = Value::Null;
             let mut settleFractionRaw: Value = Value::Null;
             if resolved && (result.is_some()) && (result.as_deref() != Some("")) {
-                winnerRaw = (Value::Bool((if let Some(__s) = label.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str() == result.as_deref()));
+                winnerRaw = (Value::Bool((label.as_deref().map(str::to_lowercase)) == result));
                 settleFractionRaw = (if (winnerRaw).as_bool() == Some(true) { Value::Int(1) } else { Value::Int(0) });
                 if winnerRaw.as_bool() == Some(true) {
                     resolvedOutcome = outcomeHandle.clone();
@@ -1208,7 +1208,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("outcomeId".to_string(), outcomeIds.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null));
                     m.insert("outcome".to_string(), outcomeHandle);
                     m.insert("market".to_string(), marketSymbol.clone());
-                    m.insert("label".to_string(), label.clone());
+                    m.insert("label".to_string(), label.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("active".to_string(), active.clone());
                     m.insert("winner".to_string(), winner);
                     m.insert("settleFraction".to_string(), settleFraction);
@@ -1219,7 +1219,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("eventTicker".to_string(), eventTicker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("seriesTicker".to_string(), seriesTicker.clone());
         m.insert("subtitle".to_string(), subtitle.clone());
-        m.insert("outcomeLabel".to_string(), label);
+        m.insert("outcomeLabel".to_string(), label.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("volume".to_string(), Value::from(volume));
         m.insert("liquidity".to_string(), Value::from(liquidity));
         m.insert("openInterest".to_string(), Value::from(openInt));
@@ -1575,21 +1575,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isNo: bool = outcomeLabel.as_str() == Some("NO");
         let mut timestamp: Value = self.parse8601(self.safe_string_k(raw.clone(), "updated_time", &[]));
         let mut outcome: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcome", &[]).as_str().map(str::to_owned);
-        let mut yesAsk: Option<f64> = self.safe_number_k(raw.clone(), "yes_ask_dollars", &[]).as_f64();
-        let mut yesBid: Option<f64> = self.safe_number_k(raw.clone(), "yes_bid_dollars", &[]).as_f64();
-        let mut noAsk: Option<f64> = self.safe_number_k(raw.clone(), "no_ask_dollars", &[]).as_f64();
-        let mut noBid: Option<f64> = self.safe_number_k(raw.clone(), "no_bid_dollars", &[]).as_f64();
+        let mut yesAsk: Value = self.safe_number_k(raw.clone(), "yes_ask_dollars", &[]);
+        let mut yesBid: Value = self.safe_number_k(raw.clone(), "yes_bid_dollars", &[]);
+        let mut noAsk: Value = self.safe_number_k(raw.clone(), "no_ask_dollars", &[]);
+        let mut noBid: Value = self.safe_number_k(raw.clone(), "no_bid_dollars", &[]);
         let mut last: Option<f64> = self.safe_number_k(raw.clone(), "last_price_dollars", &[]).as_f64();
         let mut bid: Value = Value::Null;
         let mut ask: Value = Value::Null;
         let mut close: Value = Value::Null;
         if isNo {
-            bid = Value::from(noBid);
-            ask = Value::from(noAsk);
+            bid = noBid;
+            ask = noAsk;
             close = (if (last.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &self.number_to_string(Value::from(last))), &[]) } else { Value::Null });
         }  else {
-            bid = Value::from(yesBid);
-            ask = Value::from(yesAsk);
+            bid = yesBid;
+            ask = yesAsk;
             close = Value::from(last);
         }
         // the book is quoted in the yes token, the no side mirrors with sizes swapped
@@ -1725,8 +1725,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             chunk = Value::from(vec![]);
             let __ws_arg_3 = self.extend(Value::Map(request), &[params.clone()]);
-            let mut response: Value = self.kalshi_public_get_markets(&[__ws_arg_3]).await;
-            let mut rawMarkets: Vec<Value> = self.safe_list_k(response, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut response: crate::value::Dict = self.kalshi_public_get_markets(&[__ws_arg_3]).await.into_dict();
+            let mut rawMarkets: Vec<Value> = self.safe_list_k(&response, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1269: bool = true;
@@ -1802,10 +1802,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     }
         //
-        let mut book: Value = self.safe_dict_k(response.clone(), "orderbook_fp", &[response.clone()]);
+        let mut book: crate::value::Dict = self.safe_dict_k(response.clone(), "orderbook_fp", &[response.clone()]).into_dict();
         // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
-        let mut rawYes: Vec<Value> = self.safe_list_k(book.clone(), "yes_dollars", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut rawNo: Vec<Value> = self.safe_list_k(book, "no_dollars", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawYes: Vec<Value> = self.safe_list_k(&book, "yes_dollars", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawNo: Vec<Value> = self.safe_list_k(&book, "no_dollars", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         // Convert [price_cents, size] → [price, size]
         let mut bids: Vec<Value> = Vec::new();
         let mut asks: Vec<Value> = Vec::new();
@@ -1938,8 +1938,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 request.insert("end_ts".into(), now.clone());
             }
         }  else {
-            let mut defaultLimit: i64 = self.safe_integer_k(self.options.clone(), "defaultFetchOHLCVLimit", &[Value::Int(200)]).as_i64().unwrap_or(200);
-            let mut candlesCount: Value = Value::from(defaultLimit);
+            let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "defaultFetchOHLCVLimit", &[Value::Int(200)]);
+            let mut candlesCount: Value = defaultLimit;
             if (limit != Value::Null) {
                 candlesCount = limit.clone();
             }
@@ -1948,7 +1948,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.kalshi_public_get_series_series_ticker_markets_ticker_candlesticks(&[__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.kalshi_public_get_series_series_ticker_markets_ticker_candlesticks(&[__ws_arg_5]).await.into_dict();
         //
         //     {
         //         "candlesticks": [
@@ -1983,19 +1983,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "ticker": "KXGDPSHAREMANU-29"
         //     }
         //
-        let mut candles: Vec<Value> = self.safe_list_k(response, "candlesticks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut candles: Vec<Value> = self.safe_list_k(&response, "candlesticks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut usableCandles: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1275: bool = true;
             while { if !__for_first_1275 { i += 1; } __for_first_1275 = false; i < (candles.len() as i64) } {
             let mut candle: Value = candles.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut priceObj: Value = self.safe_dict_k(candle.clone(), "price", &[Value::Map({
+            let mut priceObj: crate::value::Dict = self.safe_dict_k(candle.clone(), "price", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut openPrice: Option<f64> = self.safe_number_k(priceObj.clone(), "open_dollars", &[]).as_f64();
-            let mut previousPrice: Option<f64> = self.safe_number_k(priceObj, "previous_dollars", &[]).as_f64();
+})]).into_dict();
+            let mut openPrice: Option<f64> = self.safe_number_k(&priceObj, "open_dollars", &[]).as_f64();
+            let mut previousPrice: Option<f64> = self.safe_number_k(&priceObj, "previous_dollars", &[]).as_f64();
             if (openPrice.is_some()) || (previousPrice.is_some()) {
                 usableCandles.push(candle);
             }
@@ -2049,23 +2049,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     }
         //
-        let mut price: Value = self.safe_dict_k(ohlcv.clone(), "price", &[Value::Map({
+        let mut price: crate::value::Dict = self.safe_dict_k(ohlcv.clone(), "price", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         // no-trade periods carry only previous_dollars (last trade price) → flat candle
-        let mut previous: Option<f64> = self.safe_number_k(price.clone(), "previous_dollars", &[]).as_f64();
+        let mut previous: Option<f64> = self.safe_number_k(&price, "previous_dollars", &[]).as_f64();
         // the raw candle exposes only the period END (`end_period_ts`); subtract the candle duration
         // threaded in from fetchOHLCV to stamp the candle at its OPEN (CCXT convention)
         let mut endTimestamp: Value = self.safe_timestamp_k(ohlcv.clone(), "end_period_ts", &[]);
-        let mut durationSeconds: Value = self.safe_integer_k(self.options.clone(), "ohlcvCandleDurationSeconds", &[Value::Int(0)]);
+        let mut durationSeconds: i64 = self.safe_integer_k(self.options.clone(), "ohlcvCandleDurationSeconds", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut timestamp: Value = endTimestamp.clone();
         if (endTimestamp != Value::Null) {
-            timestamp = (match (&(endTimestamp), &((match (&(durationSeconds), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            timestamp = (match (&(endTimestamp), &(Value::Int((durationSeconds * 1000)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }
-        return Value::from(vec![timestamp, self.safe_number_k(price.clone(), "open_dollars", &[Value::from(previous)]), self.safe_number_k(price.clone(), "high_dollars", &[Value::from(previous)]), self.safe_number_k(price.clone(), "low_dollars", &[Value::from(previous)]), self.safe_number_k(price, "close_dollars", &[Value::from(previous)]),
-            self.safe_number_k(ohlcv, "volume_fp", &[Value::Int(0)])]);
+        return Value::from(vec![timestamp, self.safe_number_k(&price, "open_dollars", &[Value::from(previous)]), self.safe_number_k(&price, "high_dollars", &[Value::from(previous)]), self.safe_number_k(&price, "low_dollars", &[Value::from(previous)]), self.safe_number_k(&price, "close_dollars", &[Value::from(previous)]), self.safe_number_k(ohlcv, "volume_fp", &[Value::Int(0)])]);
 
     Value::Null
 }
@@ -2096,26 +2094,26 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         self.load_outcome(outcome.clone(), &[]).await;
         let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut ticker: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("ticker".into()), &[]);
+        let mut ticker: Option<String> = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("ticker".into()), &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("ticker".to_string(), ticker.clone());
+                m.insert("ticker".to_string(), ticker.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.kalshi_public_get_markets_trades(&[__ws_arg_6]).await;
-        let mut trades: Vec<Value> = self.safe_list_k(response, "trades", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut response: crate::value::Dict = self.kalshi_public_get_markets_trades(&[__ws_arg_6]).await.into_dict();
+        let mut trades: Vec<Value> = self.safe_list_k(&response, "trades", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut filteredTrades: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1276: bool = true;
             while { if !__for_first_1276 { i += 1; } __for_first_1276 = false; i < (trades.len() as i64) } {
             let mut trade: Value = trades.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut tradeTicker: Value = self.safe_string2(trade.clone(), Value::Str("ticker".into()), Value::Str("market_ticker".into()), &[]);
-            if (tradeTicker == Value::Null) || (tradeTicker == ticker) {
+            let mut tradeTicker: Option<String> = self.safe_string2(trade.clone(), Value::Str("ticker".into()), Value::Str("market_ticker".into()), &[]).as_str().map(str::to_owned);
+            if (tradeTicker.is_none()) || (tradeTicker == ticker) {
                 filteredTrades.push(trade);
             }
         }
@@ -2149,19 +2147,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rawSide: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "taker_side", &[]);
         let mut marketAny: Value = market.clone();
         let mut outcomeObj: Value = self.safe_outcome(self.safe_string_k(marketAny.clone(), "outcome", &[]), &[marketAny]);
-        let mut marketInfo: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+        let mut marketInfo: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut requestedOutcomeLabel: Value = self.safe_string_lower_k(outcomeObj.clone(), "label", &[self.safe_string_lower(marketInfo, Value::Str("outcomeLabel".into()), &[])]);
+})]).into_dict();
+        let mut requestedOutcomeLabel: Value = self.safe_string_lower_k(outcomeObj.clone(), "label", &[self.safe_string_lower_k(&marketInfo, "outcomeLabel", &[])]);
         let mut outcomeSymbol: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcome", &[]).as_str().map(str::to_owned);
         let mut outcomeId: Option<String> = self.safe_string2(outcomeObj.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]).as_str().map(str::to_owned);
-        let mut side: Value = Value::Null;
+        let mut side: Option<String> = None;
         if (rawSide.as_deref() == Some("yes")) || (rawSide.as_deref() == Some("no")) {
             if (requestedOutcomeLabel.as_str() == Some("yes")) || (requestedOutcomeLabel.as_str() == Some("no")) {
-                side = (if (rawSide.as_deref() == requestedOutcomeLabel.as_str()) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+                side = (if (rawSide.as_deref() == requestedOutcomeLabel.as_str()) { Some("buy".to_string()) } else { Some("sell".to_string()) });
             }  else {
-                side = (if (rawSide.as_deref() == Some("yes")) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+                side = (if (rawSide.as_deref() == Some("yes")) { Some("buy".to_string()) } else { Some("sell".to_string()) });
             }
         }
         let mut cost: Value = Value::Null;
@@ -2180,7 +2178,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("market".to_string(), self.safe_string2(outcomeObj, Value::Str("market".into()), Value::Str("outcome".into()), &[]));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Str("taker".into()));
         m.insert("price".to_string(), price);
         m.insert("amount".to_string(), amount);
@@ -2237,8 +2235,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.kalshi_private_get_portfolio_fills(&[__ws_arg_7]).await;
-        let mut fills: Vec<Value> = self.safe_list_k(response, "fills", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut response: crate::value::Dict = self.kalshi_private_get_portfolio_fills(&[__ws_arg_7]).await.into_dict();
+        let mut fills: Vec<Value> = self.safe_list_k(&response, "fills", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut fillsLength: f64 = ((fills.len() as i64) as f64);
         let mut trades: Vec<Value> = Vec::new();
         {
@@ -2285,11 +2283,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut ticker: Option<String> = self.safe_string2(fill.clone(), Value::Str("ticker".into()), Value::Str("market_ticker".into()), &[]).as_str().map(str::to_owned);
         // the leg the fill executed on ('yes' | 'no'); NO is addressed as <ticker>-NO
         let mut sideLeg: Option<String> = self.safe_string_lower_k(fill.clone(), "side", &[]).as_str().map(str::to_owned);
-        let mut outcomeKey: Value = ticker.clone().map(Value::from).unwrap_or(Value::Null);
+        let mut outcomeKey: Option<String> = ticker.clone();
         if (sideLeg.as_deref() == Some("no")) && (ticker.is_some()) {
-            outcomeKey = Value::Str(format!("{}{}", ticker.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("-NO".into())).into());
+            outcomeKey = Some(format!("{}{}", ticker.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("-NO".into())));
         }
-        let mut mkt: Value = self.safe_outcome(outcomeKey.clone(), &[market.clone()]);
+        let mut mkt: Value = self.safe_outcome(outcomeKey.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
         let mut ts: Value = self.parse8601(self.safe_string_k(fill.clone(), "created_time", &[]));
         // action is the order side (buy/sell) of the held leg
         let mut action: Option<String> = self.safe_string_lower_k(fill.clone(), "action", &[]).as_str().map(str::to_owned);
@@ -2336,7 +2334,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("info".to_string(), fill);
         m.insert("timestamp".to_string(), ts.clone());
         m.insert("datetime".to_string(), self.iso8601(ts));
-        m.insert("outcome".to_string(), self.safe_string_k(mkt.clone(), "outcome", &[outcomeKey]));
+        m.insert("outcome".to_string(), self.safe_string_k(mkt.clone(), "outcome", &[outcomeKey.clone().map(Value::from).unwrap_or(Value::Null)]));
         m.insert("outcomeId".to_string(), self.safe_string2(mkt.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
         m.insert("label".to_string(), self.safe_string_k(mkt.clone(), "label", &[]));
         m.insert("market".to_string(), self.safe_string2(mkt, Value::Str("market".into()), Value::Str("outcome".into()), &[]));
@@ -2439,8 +2437,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
         // labels resolve cache-only via safeOutcome (raw tickers when the cache is cold)
-        let mut response: Value = self.kalshi_private_get_portfolio_positions(&[params]).await;
-        let mut positions: Value = self.safe_list_k(response, "market_positions", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.kalshi_private_get_portfolio_positions(&[params]).await.into_dict();
+        let mut positions: Value = self.safe_list_k(&response, "market_positions", &[Value::from(vec![])]);
         // filter by the requested outcomes' market tickers — a kalshi position is per market
         // ticker and covers both the YES and the NO leg
         if (((outcomesLength as f64) == 0.0)) {
@@ -2459,11 +2457,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1279: bool = true;
             while { if !__for_first_1279 { i += 1; } __for_first_1279 = false; i < (outcomes.len() as i64) } {
             let mut outcomeObj: Value = self.outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
-            let mut outcomeInfo: Value = self.safe_dict_k(outcomeObj, "info", &[Value::Map({
+            let mut outcomeInfo: crate::value::Dict = self.safe_dict_k(outcomeObj, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut marketTicker: Option<String> = self.safe_string_k_opt(outcomeInfo, "ticker", &[]);
+})]).into_dict();
+            let mut marketTicker: Option<String> = self.safe_string_k_opt(&outcomeInfo, "ticker", &[]);
             if (marketTicker.is_some()) {
                 if let Value::Dict(__d) = &mut wantedTickers { std::sync::Arc::make_mut(__d).insert(marketTicker.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
             }
@@ -2475,11 +2473,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1280: bool = true;
             while { if !__for_first_1280 { i += 1; } __for_first_1280 = false; i < (parsed.len() as i64) } {
             let mut position: Value = parsed.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut positionInfo: Value = self.safe_dict_k(position.clone(), "info", &[Value::Map({
+            let mut positionInfo: crate::value::Dict = self.safe_dict_k(position.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut positionTicker: Option<String> = self.safe_string_k_opt(positionInfo, "ticker", &[]);
+})]).into_dict();
+            let mut positionTicker: Option<String> = self.safe_string_k_opt(&positionInfo, "ticker", &[]);
             if (positionTicker.is_some()) && (matches!((&wantedTickers, &positionTicker.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(position); }
             }
@@ -2525,8 +2523,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.kalshi_private_get_portfolio_settlements(&[__ws_arg_8]).await;
-        let mut rawSettlements: Vec<Value> = self.safe_list_k(response, "settlements", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut response: crate::value::Dict = self.kalshi_private_get_portfolio_settlements(&[__ws_arg_8]).await.into_dict();
+        let mut rawSettlements: Vec<Value> = self.safe_list_k(&response, "settlements", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rawSettlementsLength: f64 = ((rawSettlements.len() as i64) as f64);
         let mut parsed: Vec<Value> = Vec::new();
         {
@@ -2568,7 +2566,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  */
     pub fn parse_settlement(&self, mut settlement: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut ticker: Option<String> = self.safe_string_k_opt(settlement.clone(), "ticker", &[]);
+        let mut ticker: Option<String> = self.safe_string_k(settlement.clone(), "ticker", &[]).as_str().map(str::to_owned);
         // the leg the user actually held (kalshi reports separate yes/no counts + costs)
         let mut yesCount: Value = self.safe_number2(settlement.clone(), Value::Str("yes_count_fp".into()), Value::Str("yes_count".into()), &[Value::Int(0)]);
         let mut noCount: Value = self.safe_number2(settlement.clone(), Value::Str("no_count_fp".into()), Value::Str("no_count".into()), &[Value::Int(0)]);
@@ -2579,16 +2577,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut tickerMissing: bool = ticker.is_none();
         let mut useHeldYesTicker: bool = matches!(&heldYes, Value::Bool(true)) || tickerMissing;
-        let mut heldTicker: Value = Value::Null;
+        let mut heldTicker: Option<String> = None;
         if useHeldYesTicker {
-            heldTicker = ticker.clone().map(Value::from).unwrap_or(Value::Null);
+            heldTicker = ticker.clone();
         }  else {
-            heldTicker = (Value::Str(format!("{}{}", ticker.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("-NO".into())).into()));
+            heldTicker = Some(format!("{}{}", ticker.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("-NO".into())));
         }
-        let mut mkt: Value = self.safe_outcome(heldTicker.clone(), &[market]);
+        let mut mkt: Value = self.safe_outcome(heldTicker.clone().map(Value::from).unwrap_or(Value::Null), &[market]);
         // which leg won; market_result is yes or no
-        let mut marketResult: Option<String> = self.safe_string_upper_k_opt(settlement.clone(), "market_result", &[]);
-        let mut won: Value = (Value::Bool(marketResult.as_deref() == Some(heldLabel.as_str())));
+        let mut marketResult: Option<String> = self.safe_string_upper_k(settlement.clone(), "market_result", &[]).as_str().map(str::to_owned);
+        let mut won: bool = marketResult.as_deref() == Some(heldLabel.as_str());
         // kalshi reports money as dollar keys on V2, else cents
         let mut revenueCents: Value = self.safe_number_k(settlement.clone(), "revenue", &[]);
         let mut centsPayout: Value = Value::Null;
@@ -2618,17 +2616,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), settlement);
-        m.insert("id".to_string(), ticker.map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), ticker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), ts.clone());
         m.insert("datetime".to_string(), self.iso8601(ts));
-        m.insert("outcome".to_string(), self.safe_string_k(mkt.clone(), "outcome", &[heldTicker.clone()]));
-        m.insert("outcomeId".to_string(), self.safe_string2(mkt.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[heldTicker]));
+        m.insert("outcome".to_string(), self.safe_string_k(mkt.clone(), "outcome", &[heldTicker.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("outcomeId".to_string(), self.safe_string2(mkt.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[heldTicker.clone().map(Value::from).unwrap_or(Value::Null)]));
         m.insert("market".to_string(), self.safe_string2(mkt, Value::Str("market".into()), Value::Str("outcome".into()), &[]));
         m.insert("event".to_string(), Value::Null);
-        m.insert("result".to_string(), marketResult.map(Value::from).unwrap_or(Value::Null));
-        m.insert("won".to_string(), won.clone());
+        m.insert("result".to_string(), marketResult.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("won".to_string(), Value::Bool(won));
         m.insert("amount".to_string(), (if (heldYes).as_bool() == Some(true) { yesCount } else { noCount }));
-        m.insert("price".to_string(), (if (won).as_bool() == Some(true) { Value::Int(1) } else { Value::Int(0) }));
+        m.insert("price".to_string(), (if won { Value::Int(1) } else { Value::Int(0) }));
         m.insert("cost".to_string(), cost);
         m.insert("payout".to_string(), payout);
         m.insert("pnl".to_string(), pnl);
@@ -2735,8 +2733,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("ticker".into(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("ticker".into()), &[]));
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.kalshi_private_get_portfolio_orders(&[__ws_arg_9]).await;
-        let mut orders: Value = self.safe_list_k(response, "orders", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.kalshi_private_get_portfolio_orders(&[__ws_arg_9]).await.into_dict();
+        let mut orders: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
         return self.parse_prediction_orders(orders, &[outcomeObj, since, limit]);
         Value::Null
         }).await?))
@@ -2783,8 +2781,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("ticker".into(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("ticker".into()), &[]));
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.kalshi_private_get_portfolio_orders(&[__ws_arg_10]).await;
-        let mut orders: Value = self.safe_list_k(response, "orders", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.kalshi_private_get_portfolio_orders(&[__ws_arg_10]).await.into_dict();
+        let mut orders: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
         return self.parse_prediction_orders(orders, &[outcomeObj, since, limit]);
         Value::Null
         }).await?))
@@ -3229,8 +3227,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut outcomeObj: Value = self.outcome(outcome.clone());
             request.insert("ticker".into(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("ticker".into()), &[]));
         }
-        let mut restingResponse: Value = self.kalshi_private_get_portfolio_orders(&[Value::Map(request)]).await;
-        let mut restingOrders: Vec<Value> = self.safe_list_k(restingResponse, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut restingResponse: crate::value::Dict = self.kalshi_private_get_portfolio_orders(&[Value::Map(request)]).await.into_dict();
+        let mut restingOrders: Vec<Value> = self.safe_list_k(&restingResponse, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut restingOrdersLength: f64 = ((restingOrders.len() as i64) as f64);
         let mut canceledOrders: Vec<Value> = Vec::new();
         {
@@ -3293,9 +3291,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut userLimit: Option<i64> = self.safe_integer_k(paramsOmitted.clone(), "limit", &[]).as_i64();
         // bound how many events are actually FETCHED (not just returned) so a broad scope like
         // category='Crypto' (hundreds of series) doesn't page every one of them
-        let mut fetchCap: Value = self.safe_integer_k(self.options.clone(), "maxFetchEventsResults", &[Value::Int(100)]);
+        let mut fetchCap: Option<i64> = self.safe_integer_k(self.options.clone(), "maxFetchEventsResults", &[Value::Int(100)]).as_i64();
         if (userLimit.is_some()) {
-            fetchCap = Value::from(userLimit);
+            fetchCap = userLimit;
         }
         // map the unified status onto the kalshi event status pushed server-side. 'settled'/'resolved'
         // map to kalshi's 'settled' (so resolved events ARE discoverable — previously they were
@@ -3318,7 +3316,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rawEvents: Value = Value::from(vec![]);
         if queriesLength > ((0i64) as f64) {
             // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
-            rawEvents = self.fetch_events_by_query(queries, fetchCap.clone(), &[rest.clone()]).await;
+            rawEvents = self.fetch_events_by_query(queries, Value::from(fetchCap), &[rest.clone()]).await;
         }  else if (eventId.is_some()) {
             // kalshi's event id (and slug) is the event_ticker — fetch it directly
             let mut fullEvent: Value = self.fetch_raw_event_by_ticker(eventId.clone().map(Value::from).unwrap_or(Value::Null), &[rest.clone()]).await;
@@ -3330,7 +3328,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (seriesTickersLength == 0.0) {
                 self.require_event_query(&[paramsOmitted.clone()]);
             }
-            rawEvents = self.fetch_series_events(seriesTickers, status.clone().map(Value::from).unwrap_or(Value::Null), fetchCap, &[rest]).await;
+            rawEvents = self.fetch_series_events(seriesTickers, status.clone().map(Value::from).unwrap_or(Value::Null), Value::from(fetchCap), &[rest]).await;
         }
         let mut rawEventsLength: f64 = ((rawEvents.len() as i64) as f64);
         let mut result: Vec<Value> = Vec::new();
@@ -3392,14 +3390,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut qi: Value = Value::Int(0);
             let mut __for_first_1288: bool = true;
             while { if !__for_first_1288 { if let Value::Int(n) = &mut qi { *n += 1; } } __for_first_1288 = false; qi.as_f64().unwrap_or(f64::NAN) < queriesLength } {
-            let mut searchResponse: Value = self.elections_public_get_search_series(&[Value::Map({
+            let mut searchResponse: crate::value::Dict = self.elections_public_get_search_series(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("query".to_string(), queries.get((qi).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
                     m.insert("order_by".to_string(), Value::Str("querymatch".into()));
                     m.insert("page_size".to_string(), pageSize.clone());
                 m
-            })]).await;
-            let mut page: Vec<Value> = self.safe_list_k(searchResponse, "current_page", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            })]).await.into_dict();
+            let mut page: Vec<Value> = self.safe_list_k(&searchResponse, "current_page", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut pageLength: f64 = ((page.len() as i64) as f64);
             {
                                 let mut pi: Value = Value::Int(0);
@@ -3615,7 +3613,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if hasLimit && (collectedLength >= limitValue.as_f64().unwrap_or(f64::NAN)) {
                 break;
             }
-            let mut cursor: Value = Value::Null;
+            let mut cursor: Option<String> = None;
             {
                                 let mut page: Value = Value::Int(0);
                 let mut __for_first_1296: bool = true;
@@ -3639,12 +3637,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         m.insert("limit".to_string(), reqLimit.clone());
                     m
                 });
-                if (cursor != Value::Null) {
-                    request.insert("cursor".into(), cursor.clone());
+                if (cursor.is_some()) {
+                    request.insert("cursor".into(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
                 }
                 let __ws_arg_17 = self.extend(Value::Map(request), &[rest.clone()]);
-                let mut response: Value = self.kalshi_public_get_events(&[__ws_arg_17]).await;
-                let mut pageEvents: Vec<Value> = self.safe_list_k(response.clone(), "events", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut response: crate::value::Dict = self.kalshi_public_get_events(&[__ws_arg_17]).await.into_dict();
+                let mut pageEvents: Vec<Value> = self.safe_list_k(&response, "events", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 let mut pageEventsLength: f64 = ((pageEvents.len() as i64) as f64);
                 {
                                         let mut ei: Value = Value::Int(0);
@@ -3653,12 +3651,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     rawEvents.push(pageEvents.get(ei.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
-                cursor = self.safe_string_k(response, "cursor", &[]);
+                cursor = self.safe_string_k(&response, "cursor", &[]).as_str().map(str::to_owned);
                 let mut collectedAfterPage: f64 = ((rawEvents.len() as i64) as f64);
                 if hasLimit && (collectedAfterPage >= limitValue.as_f64().unwrap_or(f64::NAN)) {
                     break;
                 }
-                if (cursor == Value::Null) || (cursor.as_str() == Some("")) || (pageEventsLength < reqLimit.as_f64().unwrap_or(f64::NAN)) {
+                if (cursor.is_none()) || (cursor.as_deref() == Some("")) || (pageEventsLength < reqLimit.as_f64().unwrap_or(f64::NAN)) {
                     break;
                 }
             }
@@ -3779,14 +3777,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut totalVolume: Value = Value::Int(0);
         let mut totalLiquidity: Value = Value::Int(0);
         // seeded from the first market, which the loop re-reads, so the min/max stays the same
-        let mut firstMarket: Value = self.safe_dict(rawMarkets.clone().into(), Value::Int(0), &[Value::Map({
+        let mut firstMarket: crate::value::Dict = self.safe_dict(rawMarkets.clone().into(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut earliestCreated: Value = self.parse8601(self.safe_string_k(firstMarket.clone(), "open_time", &[]));
+})]).into_dict();
+        let mut earliestCreated: Value = self.parse8601(self.safe_string_k(&firstMarket, "open_time", &[]));
         let mut anyActive: bool = false;
         let mut allResolved: bool = true;
-        let mut latestClose: Value = self.parse8601(self.safe_string_k(firstMarket, "close_time", &[]));
+        let mut latestClose: Value = self.parse8601(self.safe_string_k(&firstMarket, "close_time", &[]));
         {
                         let mut i: i64 = 0;
             let mut __for_first_1298: bool = true;
@@ -3901,11 +3899,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
         let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup, &[self.safe_string_k(baseUrls.clone(), "kalshi", &[Value::Str("".into())])]);
         let mut implodedPath: Value = self.implode_params(path.clone(), params.clone());
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), implodedPath).into());
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), implodedPath);
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut querystring: Value = self.urlencode(query.clone(), &[]);
-        if (method.as_str() == Some("GET")) && (querystring.as_str() != Some("")) {
-            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), querystring).into())).into());
+        let mut querystring: Option<String> = self.urlencode(query.clone(), &[]).as_str().map(str::to_owned);
+        if (method.as_str() == Some("GET")) && (querystring.as_deref() != Some("")) {
+            url.push_str(&format!("{}{}", Value::Str("?".into()), querystring.clone().map(Value::from).unwrap_or(Value::Null)));
         }
         let mut existingHeaders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3942,14 +3940,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("KALSHI-ACCESS-TIMESTAMP".to_string(), timestamp);
                 m
             })]);
-            if (method.as_str() != Some("GET")) && (querystring.as_str() != Some("")) {
+            if (method.as_str() != Some("GET")) && (querystring.as_deref() != Some("")) {
                 // kalshi expects a JSON body; the signature covers only timestamp+method+path
                 bodyValue = json_stringify(&query);
             }
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyValue);
         m.insert("headers".to_string(), headersValue);

@@ -443,15 +443,15 @@ impl Pacifica {
         if isTestnet.as_bool() == Some(true) {
             urlKey = "test".to_string();
         }
-        let mut apiUrls: Value = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: Option<String> = self.safe_string_k(wsUrls, "public", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -501,12 +501,12 @@ impl Pacifica {
         }  else {
             status = Some("open".to_string());
         }
-        let mut order: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut order: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut orderId: Option<String> = self.safe_string_k(order.clone(), "i", &[]).as_str().map(str::to_owned);
-        let mut clientOrderId: Option<String> = self.safe_string_k(order, "I", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut orderId: Option<String> = self.safe_string_k(&order, "i", &[]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string_k(&order, "I", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -565,15 +565,15 @@ impl Pacifica {
         if isTestnet.as_bool() == Some(true) {
             urlKey = "test".to_string();
         }
-        let mut apiUrls: Value = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: Option<String> = self.safe_string_k(wsUrls, "public", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -602,12 +602,12 @@ impl Pacifica {
         }  else {
             status = Some("open".to_string());
         }
-        let mut order: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut order: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut orderId: Option<String> = self.safe_string_k(order.clone(), "i", &[]).as_str().map(str::to_owned);
-        let mut clientOrderId: Option<String> = self.safe_string_k(order, "I", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut orderId: Option<String> = self.safe_string_k(&order, "i", &[]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string_k(&order, "I", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -661,15 +661,15 @@ impl Pacifica {
         if isTestnet.as_bool() == Some(true) {
             urlKey = "test".to_string();
         }
-        let mut apiUrls: Value = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: Option<String> = self.safe_string_k(wsUrls, "public", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -699,23 +699,23 @@ impl Pacifica {
         //   "type": "batch_orders"
         // }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut results: Vec<Value> = self.safe_list_k(data, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut results: Vec<Value> = self.safe_list_k(&data, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut ordersToReturn: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_574: bool = true;
             while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (results.len() as i64) } {
-            let mut order: Value = self.safe_dict(results.clone().into(), Value::Int(i), &[]);
-            let mut error: Option<String> = self.safe_string_k(order.clone(), "error", &[]).as_str().map(str::to_owned);
-            let mut success: bool = self.safe_bool_k(order.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut order: crate::value::Dict = self.safe_dict(results.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut error: Option<String> = self.safe_string_k(&order, "error", &[]).as_str().map(str::to_owned);
+            let mut success: bool = self.safe_bool_k(&order, "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut marketId: Option<String> = self.safe_string_k(&order, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut orderId: Option<String> = self.safe_string_k(order.clone(), "i", &[]).as_str().map(str::to_owned);
-            let mut clientOrderId: Option<String> = self.safe_string_k(order, "I", &[]).as_str().map(str::to_owned);
+            let mut orderId: Option<String> = self.safe_string_k(&order, "i", &[]).as_str().map(str::to_owned);
+            let mut clientOrderId: Option<String> = self.safe_string_k(&order, "I", &[]).as_str().map(str::to_owned);
             let mut status: Option<String> = None;
             if (error.is_some()) || (!success) {
                 status = Some("closed".to_string());
@@ -778,15 +778,15 @@ impl Pacifica {
         if isTestnet.as_bool() == Some(true) {
             urlKey = "test".to_string();
         }
-        let mut apiUrls: Value = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: Option<String> = self.safe_string_k(wsUrls, "public", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -817,12 +817,12 @@ impl Pacifica {
         }  else {
             status = Some("open".to_string());
         }
-        let mut order: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut order: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut orderId: Option<String> = self.safe_string_k(order.clone(), "i", &[]).as_str().map(str::to_owned);
-        let mut clientOrderId: Option<String> = self.safe_string_k(order, "I", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut orderId: Option<String> = self.safe_string_k(&order, "i", &[]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string_k(&order, "I", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -870,15 +870,15 @@ impl Pacifica {
         if isTestnet.as_bool() == Some(true) {
             urlKey = "test".to_string();
         }
-        let mut apiUrls: Value = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: Option<String> = self.safe_string_k(wsUrls, "public", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -931,15 +931,15 @@ impl Pacifica {
         if isTestnet.as_bool() == Some(true) {
             urlKey = "test".to_string();
         }
-        let mut apiUrls: Value = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: Option<String> = self.safe_string_k(wsUrls, "public", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -997,15 +997,15 @@ impl Pacifica {
         if isTestnet.as_bool() == Some(true) {
             urlKey = "test".to_string();
         }
-        let mut apiUrls: Value = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: Option<String> = self.safe_string_k(wsUrls, "public", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -1063,23 +1063,23 @@ impl Pacifica {
         //   }
         // }
         //
-        let mut entry: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut entry: crate::value::Dict = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "s", &[]).as_str().map(str::to_owned);
+}) }).into_dict();
+        let mut marketId: Option<String> = self.safe_string_k(&entry, "s", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut levels: Value = self.safe_list_k(entry.clone(), "l", &[Value::from(vec![])]);
+        let mut levels: Value = self.safe_list_k(&entry, "l", &[Value::from(vec![])]);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("bids".to_string(), self.safe_list(levels.clone(), Value::Int(0), &[Value::from(vec![])]));
                 m.insert("asks".to_string(), self.safe_list(levels, Value::Int(1), &[Value::from(vec![])]));
             m
         });
-        let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "t", &[]).as_i64();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "t", &[]).as_i64();
         let mut snapshot: Value = self.parse_order_book(Value::Map(result), symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]);
-        let mut nonce: Option<i64> = self.safe_integer_k(entry, "li", &[]).as_i64();
+        let mut nonce: Option<i64> = self.safe_integer_k(&entry, "li", &[]).as_i64();
         if (nonce.is_some()) && (nonce != Some(0)) {
             snapshot.set_book_meta("nonce", Value::from(nonce));
         }
@@ -1150,15 +1150,15 @@ impl Pacifica {
         if isTestnet.as_bool() == Some(true) {
             urlKey = "test".to_string();
         }
-        let mut apiUrls: Value = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: Option<String> = self.safe_string_k(wsUrls, "public", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -1213,15 +1213,15 @@ impl Pacifica {
         if isTestnet.as_bool() == Some(true) {
             urlKey = "test".to_string();
         }
-        let mut apiUrls: Value = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: Option<String> = self.safe_string_k(wsUrls, "public", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -1283,15 +1283,15 @@ impl Pacifica {
         if isTestnet.as_bool() == Some(true) {
             urlKey = "test".to_string();
         }
-        let mut apiUrls: Value = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: Option<String> = self.safe_string_k(wsUrls, "public", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -1353,15 +1353,15 @@ impl Pacifica {
         if isTestnet.as_bool() == Some(true) {
             urlKey = "test".to_string();
         }
-        let mut apiUrls: Value = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: Option<String> = self.safe_string_k(wsUrls, "public", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -1537,15 +1537,15 @@ impl Pacifica {
         if isTestnet.as_bool() == Some(true) {
             urlKey = "test".to_string();
         }
-        let mut apiUrls: Value = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: Option<String> = self.safe_string_k(wsUrls, "public", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -1603,15 +1603,15 @@ impl Pacifica {
         if isTestnet.as_bool() == Some(true) {
             urlKey = "test".to_string();
         }
-        let mut apiUrls: Value = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: Option<String> = self.safe_string_k(wsUrls, "public", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -1653,11 +1653,11 @@ impl Pacifica {
         // }
         //
         let mut entry: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
-        let mut first: Value = self.safe_dict(entry.clone().into(), Value::Int(0), &[Value::Map({
+        let mut first: crate::value::Dict = self.safe_dict(entry.clone().into(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut marketId: Option<String> = self.safe_string_k(first, "s", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut marketId: Option<String> = self.safe_string_k(&first, "s", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
@@ -1737,14 +1737,14 @@ impl Pacifica {
             side = Some("buy".to_string());
         }
         let mut eventType: Option<String> = self.safe_string_k(trade.clone(), "te", &[]).as_str().map(str::to_owned);
-        let mut takerOrMaker: Value = Value::Null;
+        let mut takerOrMaker: Option<String> = None;
         if (eventType.is_some()) {
-            takerOrMaker = (if (eventType.as_deref() == Some("fulfill_maker")) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+            takerOrMaker = (if (eventType.as_deref() == Some("fulfill_maker")) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
         let mut orderId: Option<String> = self.safe_string_k(trade.clone(), "i", &[]).as_str().map(str::to_owned);
         // public trades have no orderId
         if (orderId.is_none()) {
-            takerOrMaker = Value::Null;
+            takerOrMaker = None.clone();
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1756,7 +1756,7 @@ impl Pacifica {
         m.insert("order".to_string(), self.safe_string_k(trade, "i", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("takerOrMaker".to_string(), takerOrMaker);
+        m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
@@ -1809,15 +1809,15 @@ impl Pacifica {
         if isTestnet.as_bool() == Some(true) {
             urlKey = "test".to_string();
         }
-        let mut apiUrls: Value = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: Option<String> = self.safe_string_k(wsUrls, "public", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -1877,15 +1877,15 @@ impl Pacifica {
         if isTestnet.as_bool() == Some(true) {
             urlKey = "test".to_string();
         }
-        let mut apiUrls: Value = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: Option<String> = self.safe_string_k(wsUrls, "public", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -2006,15 +2006,15 @@ impl Pacifica {
         if isTestnet.as_bool() == Some(true) {
             urlKey = "test".to_string();
         }
-        let mut apiUrls: Value = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: Option<String> = self.safe_string_k(wsUrls, "public", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -2073,15 +2073,15 @@ impl Pacifica {
         if isTestnet.as_bool() == Some(true) {
             urlKey = "test".to_string();
         }
-        let mut apiUrls: Value = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
+        let mut apiUrls: crate::value::Dict = self.safe_dict(self.urls.clone(), Value::from(urlKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsUrls: Value = self.safe_dict_k(apiUrls, "ws", &[Value::Map({
+        })]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: Option<String> = self.safe_string_k(wsUrls, "public", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -2193,15 +2193,15 @@ impl Pacifica {
         if (id == Value::Null) {
             id = self.safe_string_k(data.clone(), "id", &[]);
         }
-        let mut wsOptions: Value = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
+        let mut wsOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsHeaders: Value = self.safe_dict_k(wsOptions, "options", &[Value::Map({
+        })]).into_dict();
+        let mut wsHeaders: crate::value::Dict = self.safe_dict_k(&wsOptions, "options", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut wsHeadersFinal: Value = self.safe_dict_k(wsHeaders, "headers", &[Value::Map({
+        })]).into_dict();
+        let mut wsHeadersFinal: Value = self.safe_dict_k(&wsHeaders, "headers", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2324,13 +2324,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //      }
         //  }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut data: crate::value::Dict = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
+}) }).into_dict();
         let mut method: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (method.as_deref() == Some("unsubscribe")) {
-            let mut subscription: Value = self.safe_dict_k(data.clone(), "data", &[Value::Map({
+            let mut subscription: Value = self.safe_dict_k(&data, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);

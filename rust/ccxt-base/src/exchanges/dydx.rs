@@ -954,8 +954,8 @@ impl Dydx {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.indexer_get_time(&[params]).await;
-        return self.safe_integer_k(response, "epoch", &[]);
+        let mut response: crate::value::Dict = self.indexer_get_time(&[params]).await.into_dict();
+        return self.safe_integer_k(&response, "epoch", &[]);
         Value::Null
         }).await?))
     }
@@ -1108,7 +1108,7 @@ impl Dydx {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.indexer_get_perpetual_markets(&[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.indexer_get_perpetual_markets(&[__ws_arg_0]).await.into_dict();
         //
         // {
         //     "markets": {
@@ -1139,10 +1139,10 @@ impl Dydx {
         //     }
         // }
         //
-        let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(response, "markets", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+        let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "markets", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
         let mut markets: Value = Value::Array(data.values().cloned().collect());
         return self.parse_markets(markets);
         Value::Null
@@ -1226,7 +1226,7 @@ impl Dydx {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.indexer_get_trades_perpetual_market_market(&[__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.indexer_get_trades_perpetual_market_market(&[__ws_arg_1]).await.into_dict();
         //
         // {
         //     "trades": [
@@ -1242,7 +1242,7 @@ impl Dydx {
         //     ]
         // }
         //
-        let mut rows: Value = self.safe_list_k(response, "trades", &[Value::from(vec![])]);
+        let mut rows: Value = self.safe_list_k(&response, "trades", &[Value::from(vec![])]);
         return self.parse_trades(rows, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -1304,7 +1304,7 @@ impl Dydx {
             request.insert("toIso".into(), self.iso8601(Value::from(until)));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.indexer_get_candles_perpetual_markets_market(&[__ws_arg_2]).await;
+        let mut response: crate::value::Dict = self.indexer_get_candles_perpetual_markets_market(&[__ws_arg_2]).await.into_dict();
         //
         // {
         //     "candles": [
@@ -1326,7 +1326,7 @@ impl Dydx {
         //     ]
         // }
         //
-        let mut rows: Value = self.safe_list_k(response, "candles", &[Value::from(vec![])]);
+        let mut rows: Value = self.safe_list_k(&response, "candles", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(rows, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -1377,7 +1377,7 @@ impl Dydx {
             request.insert("effectiveBeforeOrAt".into(), self.iso8601(Value::from(until)));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.indexer_get_historical_funding_market(&[__ws_arg_3]).await;
+        let mut response: crate::value::Dict = self.indexer_get_historical_funding_market(&[__ws_arg_3]).await.into_dict();
         //
         // {
         //     "historicalFunding": [
@@ -1392,7 +1392,7 @@ impl Dydx {
         // }
         //
         let mut rates: Vec<Value> = Vec::new();
-        let mut rows: Vec<Value> = self.safe_list_k(response, "historicalFunding", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rows: Vec<Value> = self.safe_list_k(&response, "historicalFunding", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_658: bool = true;
@@ -1829,7 +1829,7 @@ impl Dydx {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[paramsSubAccountNumber]);
-        let mut response: Value = self.indexer_get_perpetual_positions(&[__ws_arg_8]).await;
+        let mut response: crate::value::Dict = self.indexer_get_perpetual_positions(&[__ws_arg_8]).await.into_dict();
         //
         // {
         //     "positions": [
@@ -1854,7 +1854,7 @@ impl Dydx {
         //     ]
         // }
         //
-        let mut rows: Value = self.safe_list_k(response, "positions", &[Value::from(vec![])]);
+        let mut rows: Value = self.safe_list_k(&response, "positions", &[Value::from(vec![])]);
         return self.parse_positions(rows, &[symbols]);
         Value::Null
         }).await?))
@@ -1999,11 +1999,11 @@ impl Dydx {
         //     }
         // }
         //
-        let mut response: Value = self.node_rest_get_cosmos_auth_v1beta1_account_info_dydx_address(&[Value::Map(request)]).await;
-        let mut account: indexmap::IndexMap<String, Value> = self.safe_dict_k(response, "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+        let mut response: crate::value::Dict = self.node_rest_get_cosmos_auth_v1beta1_account_info_dydx_address(&[Value::Map(request)]).await.into_dict();
+        let mut account: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "info", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
         let mut pubKey: indexmap::IndexMap<String, Value> = self.safe_dict(Value::Map(account.clone()), Value::Str("pub_key".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2081,15 +2081,15 @@ impl Dydx {
         let mut subticks: Value = crate::precise::Precise::stringMul(&priceStr, &priceScale);
         let mut clientMetadata: i64 = 0;
         let mut conditionalType: i64 = 0;
-        let mut conditionalOrderTriggerSubticks: Value = Value::Str("0".into());
-        let mut orderFlag: Value = Value::Null;
+        let mut conditionalOrderTriggerSubticks: Option<String> = Some("0".to_string());
+        let mut orderFlag: Option<i64> = None;
         let mut timeInForceNumber: Option<i64> = None;
         if (timeInForce.as_deref() == Some("FOK")) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" timeInForce fok has been deprecated".into()))));
         }
         if (orderType.as_str() == Some("MARKET")) {
             // short-term
-            orderFlag = Value::Int(0);
+            orderFlag = Some(0);
             clientMetadata = 1; // STOP_MARKET / TAKE_PROFIT_MARKET
             if (timeInForce.is_some()) {
                 // default is ioc
@@ -2098,14 +2098,14 @@ impl Dydx {
         }  else if (orderType.as_str() == Some("LIMIT")) {
             if (timeInForce.as_deref() == Some("GTT")) {
                 // long-term
-                orderFlag = Value::Int(64);
+                orderFlag = Some(64);
                 if postOnly.as_bool() == Some(true) {
                     timeInForceNumber = Some(2);
                 }  else {
                     timeInForceNumber = Some(0);
                 }
             }  else {
-                orderFlag = Value::Int(0);
+                orderFlag = Some(0);
                 if (timeInForce.as_deref() == Some("IOC")) {
                     timeInForceNumber = Some(1);
                 }  else {
@@ -2115,15 +2115,15 @@ impl Dydx {
         }
         if isConditional {
             // conditional
-            orderFlag = Value::Int(32);
+            orderFlag = Some(32);
             if (stopLossPrice != Value::Null) {
                 conditionalType = 1;
-                conditionalOrderTriggerSubticks = self.price_to_precision(symbol.clone(), stopLossPrice);
+                conditionalOrderTriggerSubticks = self.price_to_precision(symbol.clone(), stopLossPrice).as_str().map(str::to_owned);
             }  else if (takeProfitPrice.is_some()) {
                 conditionalType = 2;
-                conditionalOrderTriggerSubticks = self.price_to_precision(symbol, takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null));
+                conditionalOrderTriggerSubticks = self.price_to_precision(symbol, takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
-            conditionalOrderTriggerSubticks = crate::precise::Precise::stringMul(&conditionalOrderTriggerSubticks, &priceScale);
+            conditionalOrderTriggerSubticks = crate::precise::Precise::stringMul(&conditionalOrderTriggerSubticks.clone().map(Value::from).unwrap_or(Value::Null), &priceScale).as_str().map(str::to_owned);
         }
         let mut latestBlockHeight: Value = self.safe_integer_k(paramsSubAccountId.clone(), "latestBlockHeight", &[]);
         let mut goodTillBlock: Value = self.safe_integer_k(paramsSubAccountId.clone(), "goodTillBlock", &[]);
@@ -2133,7 +2133,7 @@ impl Dydx {
         let goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable: Vec<Value> = self.handle_option_integer_and_params(paramsSubAccountId, Value::Str("createOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[Value::from(goodTillBlockTimeInSeconds)]).as_array().cloned().unwrap_or_default();
         let mut goodTillBlockTimeInSecondsOption: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsGoodTillBlockTimeInSeconds: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (orderFlag.as_f64() == Some(0.0)) {
+        if (orderFlag == Some(0)) {
             if (goodTillBlock == Value::Null) {
                 // short term order
                 if (latestBlockHeight == Value::Null) {
@@ -2163,7 +2163,7 @@ impl Dydx {
     m
 }));
         m.insert("clientId".to_string(), clientOrderId.clone());
-        m.insert("orderFlags".to_string(), orderFlag.clone());
+        m.insert("orderFlags".to_string(), Value::from(orderFlag));
         m.insert("clobPairId".to_string(), marketInfo.get("clobPairId").cloned().unwrap_or(Value::Null));
     m
 }));
@@ -2176,7 +2176,7 @@ impl Dydx {
         m.insert("reduceOnly".to_string(), Value::Bool(reduceOnly));
         m.insert("clientMetadata".to_string(), Value::from(clientMetadata));
         m.insert("conditionType".to_string(), Value::from(conditionalType));
-        m.insert("conditionalOrderTriggerSubticks".to_string(), self.to_dydx_long(conditionalOrderTriggerSubticks));
+        m.insert("conditionalOrderTriggerSubticks".to_string(), self.to_dydx_long(conditionalOrderTriggerSubticks.clone().map(Value::from).unwrap_or(Value::Null)));
         m.insert("orderRouterAddress".to_string(), self.safe_string_k(self.options.clone(), "routerAddress", &[Value::Str("dydx165sfn2k3vucvq7gklauy2r3agyjw4c3m60ascn".into())]));
     m
 }));
@@ -2194,7 +2194,7 @@ impl Dydx {
         let mut clobPairId: Value = self.safe_integer_k(Value::Map(marketInfo), "clobPairId", &[Value::Int(0)]);
         let mut subaccountIdValue: Value = (if (subaccountIdOption == Value::Null) { Value::Int(0) } else { subaccountIdOption });
         let mut clientOrderIdValue: Value = (if (clientOrderId == Value::Null) { Value::Int(0) } else { clientOrderId });
-        let mut orderFlagValue: Value = (if (orderFlag == Value::Null) { Value::Int(0) } else { orderFlag });
+        let mut orderFlagValue: Value = (if (orderFlag.is_none()) { Value::Int(0) } else { Value::from(orderFlag) });
         let mut clobPairIdValue: Value = (if (clobPairId == Value::Null) { Value::Int(0) } else { clobPairId });
         let mut orderId: Value = self.create_order_id_from_parts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue).map(Value::from).unwrap_or(Value::Null);
         return Value::from(vec![orderId, self.extend(Value::Map(signingPayload), &[paramsOmitted])]);
@@ -2217,7 +2217,7 @@ impl Dydx {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.node_rpc_get_abci_info(&[params]).await;
+        let mut response: crate::value::Dict = self.node_rpc_get_abci_info(&[params]).await.into_dict();
         //
         // {
         //     "jsonrpc": "2.0",
@@ -2232,9 +2232,9 @@ impl Dydx {
         //     }
         // }
         //
-        let mut result: Value = self.safe_dict_k(response, "result", &[]);
-        let mut info: Value = self.safe_dict_k(result, "response", &[]);
-        let mut height: Option<i64> = self.safe_integer_k(info, "last_block_height", &[]).as_i64();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[]).into_dict();
+        let mut info: crate::value::Dict = self.safe_dict_k(&result, "response", &[]).into_dict();
+        let mut height: Option<i64> = self.safe_integer_k(&info, "last_block_height", &[]).as_i64();
         if (height.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchLatestBlockHeight() could not parse last_block_height".into()))));
         }
@@ -2303,7 +2303,7 @@ impl Dydx {
             m
         });
         // nodeRpcGetBroadcastTxAsync
-        let mut response: Value = self.node_rpc_get_broadcast_tx_sync(&[Value::Map(request)]).await;
+        let mut response: crate::value::Dict = self.node_rpc_get_broadcast_tx_sync(&[Value::Map(request)]).await.into_dict();
         //
         // {
         //     "jsonrpc": "2.0",
@@ -2317,24 +2317,24 @@ impl Dydx {
         //     }
         // }
         //
-        let mut result: indexmap::IndexMap<String, Value> = self.safe_dict_k(response, "result", &[]).as_map().cloned().unwrap_or_default();
-        let mut requestValue: Value = self.safe_dict_k(orderRequest, "value", &[Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "result", &[]).as_map().cloned().unwrap_or_default();
+        let mut requestValue: crate::value::Dict = self.safe_dict_k(orderRequest, "value", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut requestOrder: Value = self.safe_dict_k(requestValue, "order", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut requestOrderId: Value = self.safe_dict_k(requestOrder, "orderId", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+})]).into_dict();
+        let mut requestOrder: crate::value::Dict = self.safe_dict_k(&requestValue, "order", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut requestOrderId: crate::value::Dict = self.safe_dict_k(&requestOrder, "orderId", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map(result));
         m.insert("id".to_string(), orderId);
-        m.insert("clientOrderId".to_string(), self.safe_string_k(requestOrderId, "clientId", &[]));
+        m.insert("clientOrderId".to_string(), self.safe_string_k(&requestOrderId, "clientId", &[]));
     m
 }), &[]);
         Value::Null
@@ -2382,20 +2382,20 @@ impl Dydx {
         if (clientOrderId == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.".into()))));
         }
-        let mut idString: Value = self.number_to_string(id.clone());
-        if idString.as_str().unwrap_or("").contains("-") {
+        let mut idString: Option<String> = self.number_to_string(id.clone()).as_str().map(str::to_owned);
+        if idString.as_deref().unwrap_or_default().contains("-") {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.".into()))));
         }
-        let mut goodTillBlockOption: Value = self.safe_integer_k(paramsOmitted.clone(), "goodTillBlock", &[]);
-        let mut goodTillBlock: Value = goodTillBlockOption.clone();
+        let mut goodTillBlockOption: Option<i64> = self.safe_integer_k(paramsOmitted.clone(), "goodTillBlock", &[]).as_i64();
+        let mut goodTillBlock: Value = Value::from(goodTillBlockOption);
         let mut goodTillBlockTimeInSeconds: i64 = 2592000;
         // default is 30 days
         let goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable: Vec<Value> = self.handle_option_integer_and_params(paramsOmitted, Value::Str("cancelOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[Value::from(goodTillBlockTimeInSeconds)]).as_array().cloned().unwrap_or_default();
         let mut goodTillBlockTimeInSecondsOption: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsGoodTillBlockTimeInSeconds: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut goodTillBlockTime: Value = Value::Null;
-        let mut defaultOrderFlags: i64 = (if isTrigger { 32 } else { 64 });
-        let mut orderFlags: Value = self.safe_integer_k(paramsGoodTillBlockTimeInSeconds.clone(), "orderFlags", &[Value::from(defaultOrderFlags)]);
+        let mut defaultOrderFlags: Value = (if isTrigger { Value::Int(32) } else { Value::Int(64) });
+        let mut orderFlags: Value = self.safe_integer_k(paramsGoodTillBlockTimeInSeconds.clone(), "orderFlags", &[defaultOrderFlags]);
         let mut subAccountId: i64 = 0;
         let subAccountIdOptionVariable: Vec<Value> = self.handle_option_integer_and_params(paramsGoodTillBlockTimeInSeconds, Value::Str("cancelOrder".into()), Value::Str("subAccountId".into()), &[Value::from(subAccountId)]).as_array().cloned().unwrap_or_default();
         let mut subAccountIdOption: Value = subAccountIdOptionVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -2406,7 +2406,7 @@ impl Dydx {
             if (goodTillBlockTimeInSecondsOption == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" goodTillBlockTimeInSeconds is required in params for long term or conditional order.".into()))));
             }
-            if (goodTillBlockOption != Value::Null) && goodTillBlockOption.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+            if (goodTillBlockOption.is_some()) && goodTillBlockOption > Some(0) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" goodTillBlock should be 0 for long term or conditional order.".into()))));
             }
             goodTillBlockTime = (match (&(self.seconds()), &(goodTillBlockTimeInSecondsOption)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
@@ -2455,7 +2455,7 @@ impl Dydx {
             m
         });
         // nodeRpcGetBroadcastTxAsync
-        let mut response: Value = self.node_rpc_get_broadcast_tx_sync(&[Value::Map(request)]).await;
+        let mut response: crate::value::Dict = self.node_rpc_get_broadcast_tx_sync(&[Value::Map(request)]).await.into_dict();
         //
         // {
         //     "jsonrpc": "2.0",
@@ -2469,7 +2469,7 @@ impl Dydx {
         //     }
         // }
         //
-        let mut result: indexmap::IndexMap<String, Value> = self.safe_dict_k(response, "result", &[]).as_map().cloned().unwrap_or_default();
+        let mut result: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "result", &[]).as_map().cloned().unwrap_or_default();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map(result));
@@ -2557,7 +2557,7 @@ impl Dydx {
             m
         });
         // nodeRpcGetBroadcastTxAsync
-        let mut response: Value = self.node_rpc_get_broadcast_tx_sync(&[Value::Map(request)]).await;
+        let mut response: crate::value::Dict = self.node_rpc_get_broadcast_tx_sync(&[Value::Map(request)]).await.into_dict();
         //
         // {
         //     "jsonrpc": "2.0",
@@ -2571,7 +2571,7 @@ impl Dydx {
         //     }
         // }
         //
-        let mut result: indexmap::IndexMap<String, Value> = self.safe_dict_k(response, "result", &[]).as_map().cloned().unwrap_or_default();
+        let mut result: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "result", &[]).as_map().cloned().unwrap_or_default();
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map(result));
@@ -2654,15 +2654,15 @@ impl Dydx {
         }
         let mut amount: Option<String> = self.safe_string_k(item.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(item.clone(), "createdAt", &[]));
-        let mut sender: Value = self.safe_dict_k(item.clone(), "sender", &[]);
-        let mut recipient: Value = self.safe_dict_k(item.clone(), "recipient", &[]);
+        let mut sender: crate::value::Dict = self.safe_dict_k(item.clone(), "sender", &[]).into_dict();
+        let mut recipient: crate::value::Dict = self.safe_dict_k(item.clone(), "recipient", &[]).into_dict();
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(item.clone(), "id", &[]));
         m.insert("direction".to_string(), direction.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("account".to_string(), self.safe_string_k(sender, "address", &[]));
-        m.insert("referenceAccount".to_string(), self.safe_string_k(recipient, "address", &[]));
+        m.insert("account".to_string(), self.safe_string_k(&sender, "address", &[]));
+        m.insert("referenceAccount".to_string(), self.safe_string_k(&recipient, "address", &[]));
         m.insert("referenceId".to_string(), self.safe_string_k(item, "transactionHash", &[]));
         m.insert("type".to_string(), self.parse_ledger_entry_type(type_var.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2743,7 +2743,7 @@ impl Dydx {
                 m.insert("txBytes".to_string(), txBytes);
             m
         });
-        let mut response: Value = self.node_rest_post_cosmos_tx_v1beta1_simulate(&[Value::Map(request)]).await;
+        let mut response: crate::value::Dict = self.node_rest_post_cosmos_tx_v1beta1_simulate(&[Value::Map(request)]).await.into_dict();
         //
         // {
         //     gas_info: { gas_wanted: '18446744073709551615', gas_used: '86055' },
@@ -2752,7 +2752,7 @@ impl Dydx {
         //     }
         // }
         //
-        let mut gasInfo: Value = self.safe_dict_k(response, "gas_info", &[]);
+        let mut gasInfo: Value = self.safe_dict_k(&response, "gas_info", &[]);
         if (gasInfo == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" failed to simulate transaction.".into()))));
         }
@@ -2762,30 +2762,30 @@ impl Dydx {
         }
         let mut defaultFeeDenom: Option<String> = self.safe_string_k(self.options.clone(), "defaultFeeDenom", &[]).as_str().map(str::to_owned);
         let mut defaultFeeMultiplier: Option<String> = self.safe_string_k(self.options.clone(), "defaultFeeMultiplier", &[]).as_str().map(str::to_owned);
-        let mut feeDenom: Value = self.safe_dict_k(self.options.clone(), "feeDenom", &[Value::Map({
+        let mut feeDenom: crate::value::Dict = self.safe_dict_k(self.options.clone(), "feeDenom", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut gasPrice: Option<String> = None;
         let mut denom: Option<String> = None;
         if (defaultFeeDenom.as_deref() == Some("uusdc")) {
-            gasPrice = self.safe_string_k(feeDenom.clone(), "USDC_GAS_PRICE", &[]).as_str().map(str::to_owned);
-            denom = self.safe_string_k(feeDenom.clone(), "USDC_DENOM", &[]).as_str().map(str::to_owned);
+            gasPrice = self.safe_string_k(&feeDenom, "USDC_GAS_PRICE", &[]).as_str().map(str::to_owned);
+            denom = self.safe_string_k(&feeDenom, "USDC_DENOM", &[]).as_str().map(str::to_owned);
         }  else {
-            gasPrice = self.safe_string_k(feeDenom.clone(), "CHAINTOKEN_GAS_PRICE", &[]).as_str().map(str::to_owned);
-            denom = self.safe_string_k(feeDenom, "CHAINTOKEN_DENOM", &[]).as_str().map(str::to_owned);
+            gasPrice = self.safe_string_k(&feeDenom, "CHAINTOKEN_GAS_PRICE", &[]).as_str().map(str::to_owned);
+            denom = self.safe_string_k(&feeDenom, "CHAINTOKEN_DENOM", &[]).as_str().map(str::to_owned);
         }
         let mut gasLimit: Value = (self.parse_to_numeric(crate::precise::Precise::stringMul(&gasUsed.clone().map(Value::from).unwrap_or(Value::Null), &defaultFeeMultiplier.clone().map(Value::from).unwrap_or(Value::Null)))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
-        let mut feeAmount: Value = crate::precise::Precise::stringMul(&self.number_to_string(gasLimit.clone()), &gasPrice.clone().map(Value::from).unwrap_or(Value::Null));
-        if (feeAmount == Value::Null) {
+        let mut feeAmount: Option<String> = crate::precise::Precise::stringMul(&self.number_to_string(gasLimit.clone()), &gasPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        if (feeAmount.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" estimateTxFee() missing feeAmount".into()))));
         }
-        if feeAmount.as_str().unwrap_or("").contains(".") {
-            feeAmount = self.number_to_string((self.parse_to_numeric(feeAmount.clone())).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null));
+        if feeAmount.as_deref().unwrap_or_default().contains(".") {
+            feeAmount = self.number_to_string((self.parse_to_numeric(feeAmount.clone().map(Value::from).unwrap_or(Value::Null))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut feeObj: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("amount".to_string(), feeAmount);
+                m.insert("amount".to_string(), feeAmount.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("denom".to_string(), denom.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
@@ -2945,10 +2945,10 @@ impl Dydx {
         let mut currencyId: Option<String> = self.safe_string_k(transfer.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
         let mut amount: Option<f64> = self.safe_number_k(transfer.clone(), "size", &[]).as_f64();
-        let mut sender: Value = self.safe_dict_k(transfer.clone(), "sender", &[]);
-        let mut recipient: Value = self.safe_dict_k(transfer.clone(), "recipient", &[]);
-        let mut fromAccount: Option<String> = self.safe_string_k(sender, "address", &[]).as_str().map(str::to_owned);
-        let mut toAccount: Option<String> = self.safe_string_k(recipient, "address", &[]).as_str().map(str::to_owned);
+        let mut sender: crate::value::Dict = self.safe_dict_k(transfer.clone(), "sender", &[]).into_dict();
+        let mut recipient: crate::value::Dict = self.safe_dict_k(transfer.clone(), "recipient", &[]).into_dict();
+        let mut fromAccount: Option<String> = self.safe_string_k(&sender, "address", &[]).as_str().map(str::to_owned);
+        let mut toAccount: Option<String> = self.safe_string_k(&recipient, "address", &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(transfer.clone(), "createdAt", &[]));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3031,10 +3031,10 @@ impl Dydx {
         // }
         //
         let mut id: Option<String> = self.safe_string_k(transaction.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut sender: Value = self.safe_dict_k(transaction.clone(), "sender", &[]);
-        let mut recipient: Value = self.safe_dict_k(transaction.clone(), "recipient", &[]);
-        let mut addressTo: Option<String> = self.safe_string_k(recipient, "address", &[]).as_str().map(str::to_owned);
-        let mut addressFrom: Option<String> = self.safe_string_k(sender, "address", &[]).as_str().map(str::to_owned);
+        let mut sender: crate::value::Dict = self.safe_dict_k(transaction.clone(), "sender", &[]).into_dict();
+        let mut recipient: crate::value::Dict = self.safe_dict_k(transaction.clone(), "recipient", &[]).into_dict();
+        let mut addressTo: Option<String> = self.safe_string_k(&recipient, "address", &[]).as_str().map(str::to_owned);
+        let mut addressFrom: Option<String> = self.safe_string_k(&sender, "address", &[]).as_str().map(str::to_owned);
         let mut txid: Option<String> = self.safe_string_k(transaction.clone(), "transactionHash", &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
@@ -3138,7 +3138,7 @@ impl Dydx {
             m
         });
         // nodeRpcGetBroadcastTxAsync
-        let mut response: Value = self.node_rpc_get_broadcast_tx_sync(&[Value::Map(request)]).await;
+        let mut response: crate::value::Dict = self.node_rpc_get_broadcast_tx_sync(&[Value::Map(request)]).await.into_dict();
         //
         // {
         //     "jsonrpc": "2.0",
@@ -3152,10 +3152,10 @@ impl Dydx {
         //     }
         // }
         //
-        let mut data: Value = self.safe_dict_k(response, "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_transaction(data, &[currency]);
         Value::Null
         }).await?))
@@ -3304,7 +3304,7 @@ impl Dydx {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[paramsSubAccountNumber]);
-        let mut response: Value = self.indexer_get_transfers(&[__ws_arg_10]).await;
+        let mut response: crate::value::Dict = self.indexer_get_transfers(&[__ws_arg_10]).await.into_dict();
         //
         // {
         //     "transfers": [
@@ -3328,7 +3328,7 @@ impl Dydx {
         //     ]
         // }
         //
-        let mut transfers: Value = self.safe_list_k(response, "transfers", &[Value::from(vec![])]);
+        let mut transfers: Value = self.safe_list_k(&response, "transfers", &[Value::from(vec![])]);
         return transfers;
 
     Value::Null
@@ -3362,7 +3362,7 @@ impl Dydx {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[paramsPublicAddress]);
-        let mut response: Value = self.indexer_get_addresses_address(&[__ws_arg_11]).await;
+        let mut response: crate::value::Dict = self.indexer_get_addresses_address(&[__ws_arg_11]).await.into_dict();
         //
         // {
         //     "subaccounts": [
@@ -3407,7 +3407,7 @@ impl Dydx {
         //     ]
         // }
         //
-        let mut rows: Vec<Value> = self.safe_list_k(response, "subaccounts", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rows: Vec<Value> = self.safe_list_k(&response, "subaccounts", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3465,7 +3465,7 @@ impl Dydx {
             m
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[paramsSubaccountNumber]);
-        let mut response: Value = self.indexer_get_addresses_address_subaccount_number_subaccount_number(&[__ws_arg_12]).await;
+        let mut response: crate::value::Dict = self.indexer_get_addresses_address_subaccount_number_subaccount_number(&[__ws_arg_12]).await.into_dict();
         //
         // {
         //     "subaccount": {
@@ -3526,10 +3526,10 @@ impl Dydx {
         //     }
         // }
         //
-        let mut data: Value = self.safe_dict_k(response, "subaccount", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "subaccount", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_balance(data);
         Value::Null
         }).await?))
@@ -3632,8 +3632,8 @@ impl Dydx {
         // rest response
         // { "code": 123 }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[]);
-        let mut errorCode: Option<String> = self.safe_string_k(result, "code", &[]).as_str().map(str::to_owned);
+        let mut result: crate::value::Dict = self.safe_dict_k(response.clone(), "result", &[]).into_dict();
+        let mut errorCode: Option<String> = self.safe_string_k(&result, "code", &[]).as_str().map(str::to_owned);
         if (errorCode.is_none()) || (errorCode.as_deref() == Some("")) {
             errorCode = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
         }

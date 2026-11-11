@@ -469,14 +469,14 @@ impl Bitrue {
                         let mut i: i64 = 0;
             let mut __for_first_134: bool = true;
             while { if !__for_first_134 { i += 1; } __for_first_134 = false; i < (balances.len() as i64) } {
-            let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "a", &[]).as_str().map(str::to_owned);
+            let mut balance: crate::value::Dict = self.safe_dict(balances.clone(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&balance, "a", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            let mut free: Option<String> = self.safe_string_k(balance.clone(), "F", &[]).as_str().map(str::to_owned);
-            let mut used: Option<String> = self.safe_string_k(balance.clone(), "L", &[]).as_str().map(str::to_owned);
-            let mut balanceUpdateTime: i64 = self.safe_integer_k(balance.clone(), "T", &[Value::Int(0)]).as_i64().unwrap_or(0);
-            let mut lockBalanceUpdateTime: i64 = self.safe_integer_k(balance.clone(), "t", &[Value::Int(0)]).as_i64().unwrap_or(0);
+            let mut free: Option<String> = self.safe_string_k(&balance, "F", &[]).as_str().map(str::to_owned);
+            let mut used: Option<String> = self.safe_string_k(&balance, "L", &[]).as_str().map(str::to_owned);
+            let mut balanceUpdateTime: i64 = self.safe_integer_k(&balance, "T", &[Value::Int(0)]).as_i64().unwrap_or(0);
+            let mut lockBalanceUpdateTime: i64 = self.safe_integer_k(&balance, "t", &[Value::Int(0)]).as_i64().unwrap_or(0);
             let mut updateFree: bool = balanceUpdateTime != 0;
             let mut updateUsed: bool = lockBalanceUpdateTime != 0;
             if updateFree || updateUsed {
@@ -678,18 +678,18 @@ impl Bitrue {
         })]).as_map().cloned().unwrap_or_default();
         let mut url: Value = Value::Null;
         let mut channel: Option<String> = None;
-        let mut cbId: Value = Value::Null;
+        let mut cbId: Option<String> = None;
         if (market).swap {
             let mut baseIdLower: String = self.safe_string_lower_k((market).raw.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut quoteIdLower: String = self.safe_string_lower_k((market).raw.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut wsId: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower);
             channel = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_depth_step0".into())));
-            cbId = Value::from(wsId);
+            cbId = Some(wsId);
             url = wsUrls.get("futurePublic").cloned().unwrap_or(Value::Null);
         }  else {
             let mut marketIdLowercase: String = self.safe_string_lower_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             channel = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), marketIdLowercase).into()), Value::Str("_simple_depth_step0".into())));
-            cbId = Value::from(marketIdLowercase);
+            cbId = Some(marketIdLowercase);
             url = wsUrls.get("public").cloned().unwrap_or(Value::Null);
         }
         let mut message: indexmap::IndexMap<String, Value> = ({
@@ -697,7 +697,7 @@ impl Bitrue {
                 m.insert("event".to_string(), Value::Str("sub".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cb_id".to_string(), cbId);
+        m.insert("cb_id".to_string(), cbId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("channel".to_string(), channel.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }));
@@ -946,11 +946,11 @@ impl Bitrue {
         if (symbol.is_none()) {
             return;
         }
-        let mut tick: Value = (match message.get("tick") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut tick: crate::value::Dict = (match message.get("tick") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut data: Vec<Value> = self.safe_list_k(tick, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+}) }).into_dict();
+        let mut data: Vec<Value> = self.safe_list_k(&tick, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut appended: bool = false;
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         {
@@ -1386,7 +1386,7 @@ impl Bitrue {
             // authenticate () while this one is inside the fetch sees the flight
             let mut future: Value = client.reusable_future(messageHash.clone());
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                let mut response: Value = self.parent.open_v1_private_post_poseidon_api_v1_listen_key(&[params]).await;
+                let mut response: crate::value::Dict = self.parent.open_v1_private_post_poseidon_api_v1_listen_key(&[params]).await.into_dict();
                 //
                 //     {
                 //         "msg": "succ",
@@ -1396,20 +1396,20 @@ impl Bitrue {
                 //         }
                 //     }
                 //
-                let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+                let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                let mut key: Option<String> = self.safe_string_k_opt(data, "listenKey", &[]);
+                })]).into_dict();
+                let mut key: Option<String> = self.safe_string_k_opt(&data, "listenKey", &[]);
                 if (key.is_none()) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".into()))));
                 }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), key.clone().map(Value::from).unwrap_or(Value::Null)); }
-                let mut wsUrls: Value = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Map({
+                let mut wsUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                let mut wsUrl: Option<String> = self.safe_string_k_opt(wsUrls, "private", &[]);
+                })]).into_dict();
+                let mut wsUrl: Option<String> = self.safe_string_k_opt(&wsUrls, "private", &[]);
                 if (wsUrl.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() has no private websocket url".into()))));
                 }

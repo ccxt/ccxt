@@ -465,8 +465,8 @@ impl Upbit {
     m
 }));
         let mut trades: Value = self.watch_public_multiple(symbols, Value::Str("trade".into()), &[]).await;
-        let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(first, "symbol", &[]);
+        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
@@ -611,11 +611,11 @@ impl Upbit {
         let mut marketId: Option<String> = (match __pro_message.get("code").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("-".into())]);
         let mut type_var: Option<String> = (match __pro_message.get("stream_type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut limit: Value = self.safe_integer_k(options, "limit", &[Value::Int(15)]);
+        })]).into_dict();
+        let mut limit: Value = self.safe_integer_k(&options, "limit", &[Value::Int(15)]);
         if (type_var.as_deref() == Some("SNAPSHOT")) && !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -635,11 +635,11 @@ impl Upbit {
                         let mut i: i64 = 0;
             let mut __for_first_665: bool = true;
             while { if !__for_first_665 { i += 1; } __for_first_665 = false; i < (data.len() as i64) } {
-            let mut entry: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
-            let mut bidPrice: Option<f64> = self.safe_number_k(entry.clone(), "bid_price", &[]).as_f64();
-            let mut bidSize: Option<f64> = self.safe_number_k(entry.clone(), "bid_size", &[]).as_f64();
-            let mut askPrice: Option<f64> = self.safe_number_k(entry.clone(), "ask_price", &[]).as_f64();
-            let mut askSize: Option<f64> = self.safe_number_k(entry, "ask_size", &[]).as_f64();
+            let mut entry: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut bidPrice: Option<f64> = self.safe_number_k(&entry, "bid_price", &[]).as_f64();
+            let mut bidSize: Option<f64> = self.safe_number_k(&entry, "bid_size", &[]).as_f64();
+            let mut askPrice: Option<f64> = self.safe_number_k(&entry, "ask_price", &[]).as_f64();
+            let mut askSize: Option<f64> = self.safe_number_k(&entry, "ask_size", &[]).as_f64();
             if (bidPrice.is_some()) && (bidSize.is_some()) {
                 bidsSnapshot.push(Value::from(vec![Value::from(bidPrice), Value::from(bidSize)]));
             }
@@ -1191,11 +1191,11 @@ impl Upbit {
                         let mut i: i64 = 0;
             let mut __for_first_667: bool = true;
             while { if !__for_first_667 { i += 1; } __for_first_667 = false; i < (data.len() as i64) } {
-            let mut balance: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
+            let mut balance: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut available: Option<String> = self.safe_string_k(balance.clone(), "balance", &[]).as_str().map(str::to_owned);
-            let mut frozen: Option<String> = self.safe_string_k(balance.clone(), "locked", &[]).as_str().map(str::to_owned);
+            let mut available: Option<String> = self.safe_string_k(&balance, "balance", &[]).as_str().map(str::to_owned);
+            let mut frozen: Option<String> = self.safe_string_k(&balance, "locked", &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), available.clone().map(Value::from).unwrap_or(Value::Null));
             account.insert("used".into(), frozen.clone().map(Value::from).unwrap_or(Value::Null));

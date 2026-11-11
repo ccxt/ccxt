@@ -354,14 +354,14 @@ impl Bithumb {
         let mut generation: Value = generationparamsGenerationVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsGeneration: Value = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isGenerationTwo: bool = generation.as_f64() == Some(2.0);
-        let mut wsUrls: Value = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]), Value::Str("ws".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: String = (if isGenerationTwo { self.safe_string_k(wsUrls.clone(), "publicGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() } else { self.safe_string_k(wsUrls, "public", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() });
+        })]).into_dict();
+        let mut url: String = (if isGenerationTwo { self.safe_string_k(&wsUrls, "publicGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() } else { self.safe_string_k(&wsUrls, "public", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() });
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.clone()));
         let mut tickTypes: String = self.safe_string_k(paramsGeneration.clone(), "tickTypes", &[Value::Str("24H".into())]).as_str().unwrap_or("24H").to_string();
@@ -374,7 +374,7 @@ impl Bithumb {
             m
         });
         if isGenerationTwo {
-            let mut marketIdRequest: Value = self.parent.get_gen2_market_id((market).raw.clone()).map(Value::from).unwrap_or(Value::Null);
+            let mut marketIdRequest: Value = self.parent.get_gen2_market_id((market).raw.clone());
             request = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), self.uuid(&[]));
@@ -433,25 +433,25 @@ impl Bithumb {
             symbolsResolved = symbolsNormalized;
         }
         let mut symbolsLengthDefined: f64 = ((symbolsResolved.len() as i64) as f64);
-        let mut wsUrls: Value = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]), Value::Str("ws".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: String = (if isGenerationTwo { self.safe_string_k(wsUrls.clone(), "publicGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() } else { self.safe_string_k(wsUrls, "public", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() });
+        })]).into_dict();
+        let mut url: Value = (if isGenerationTwo { self.safe_string_k(&wsUrls, "publicGen2", &[Value::Str("".into())]) } else { self.safe_string_k(&wsUrls, "public", &[Value::Str("".into())]) });
         let mut streamMarketIds: Vec<Value> = Vec::new();
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_127: bool = true;
             while { if !__for_first_127 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_127 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLengthDefined } {
-            let mut symbol: Value = symbolsResolved.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut symbol: Option<String> = symbolsResolved.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).and_then(Value::as_str).map(str::to_owned);
+            let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut streamMarketId: Value = Value::Null;
             if isGenerationTwo {
-                streamMarketId = self.parent.get_gen2_market_id((market).raw.clone()).map(Value::from).unwrap_or(Value::Null);
+                streamMarketId = self.parent.get_gen2_market_id((market).raw.clone());
             }  else {
                 streamMarketId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k((market).raw.clone(), "base", &[Value::Str("".into())]), Value::Str("_".into())).into()), self.safe_string_k((market).raw.clone(), "quote", &[Value::Str("".into())])).into());
             }
@@ -482,7 +482,7 @@ impl Bithumb {
         }  else {
             message = self.extend(message.clone(), &[paramsOmitted]);
         }
-        let mut newTicker: Value = self.watch_multiple(Value::from(url), messageHashes.clone(), &[message, messageHashes.clone()]).await;
+        let mut newTicker: Value = self.watch_multiple(url, messageHashes.clone(), &[message, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -732,14 +732,14 @@ impl Bithumb {
         let mut generation: Value = generationparamsGenerationVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsGeneration: Value = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isGenerationTwo: bool = generation.as_f64() == Some(2.0);
-        let mut wsUrls: Value = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]), Value::Str("ws".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: String = (if isGenerationTwo { self.safe_string_k(wsUrls.clone(), "publicGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() } else { self.safe_string_k(wsUrls, "public", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() });
+        })]).into_dict();
+        let mut url: Value = (if isGenerationTwo { self.safe_string_k(&wsUrls, "publicGen2", &[Value::Str("".into())]) } else { self.safe_string_k(&wsUrls, "public", &[Value::Str("".into())]) });
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbolValue);
@@ -750,7 +750,7 @@ impl Bithumb {
             m
         });
         if isGenerationTwo {
-            let mut marketIdRequest: Value = self.parent.get_gen2_market_id((market).raw.clone()).map(Value::from).unwrap_or(Value::Null);
+            let mut marketIdRequest: Value = self.parent.get_gen2_market_id((market).raw.clone());
             request = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), self.uuid(&[]));
@@ -764,7 +764,7 @@ impl Bithumb {
         }  else {
             request = self.extend(request.clone(), &[paramsGeneration]);
         }
-        let mut orderbook: Value = self.watch(Value::from(url), Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        let mut orderbook: Value = self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -821,11 +821,11 @@ impl Bithumb {
         let mut content: Value = (match __pro_message.get("content").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         if (content != Value::Null) {
             let mut list: Value = self.safe_list_k(content.clone(), "list", &[Value::from(vec![])]);
-            let mut first: Value = self.safe_dict(list.clone(), Value::Int(0), &[Value::Map({
+            let mut first: crate::value::Dict = self.safe_dict(list.clone(), Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut legacyMarketId: Option<String> = self.safe_string_k(first, "symbol", &[]).as_str().map(str::to_owned);
+            })]).into_dict();
+            let mut legacyMarketId: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
             if (legacyMarketId.is_none()) {
                 return;
             }
@@ -853,11 +853,11 @@ impl Bithumb {
         if (symbol == Value::Null) {
             return;
         }
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut obLimit: Value = self.safe_integer_k(options, "limit", &[Value::Int(1000)]);
+        })]).into_dict();
+        let mut obLimit: Value = self.safe_integer_k(&options, "limit", &[Value::Int(1000)]);
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -877,11 +877,11 @@ impl Bithumb {
                         let mut i: i64 = 0;
             let mut __for_first_128: bool = true;
             while { if !__for_first_128 { i += 1; } __for_first_128 = false; i < (units.len() as i64) } {
-            let mut entry: Value = self.safe_dict(units.clone().into(), Value::Int(i), &[]);
-            let mut bidPrice: Option<f64> = self.safe_number_k(entry.clone(), "bid_price", &[]).as_f64();
-            let mut bidSize: Option<f64> = self.safe_number_k(entry.clone(), "bid_size", &[]).as_f64();
-            let mut askPrice: Option<f64> = self.safe_number_k(entry.clone(), "ask_price", &[]).as_f64();
-            let mut askSize: Option<f64> = self.safe_number_k(entry, "ask_size", &[]).as_f64();
+            let mut entry: crate::value::Dict = self.safe_dict(units.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut bidPrice: Option<f64> = self.safe_number_k(&entry, "bid_price", &[]).as_f64();
+            let mut bidSize: Option<f64> = self.safe_number_k(&entry, "bid_size", &[]).as_f64();
+            let mut askPrice: Option<f64> = self.safe_number_k(&entry, "ask_price", &[]).as_f64();
+            let mut askSize: Option<f64> = self.safe_number_k(&entry, "ask_size", &[]).as_f64();
             if (bidPrice.is_some()) && (bidSize.is_some()) {
                 bidsSnapshot.push(Value::from(vec![Value::from(bidPrice), Value::from(bidSize)]));
             }
@@ -954,14 +954,14 @@ impl Bithumb {
         let mut generation: Value = generationparamsGenerationVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsGeneration: Value = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isGenerationTwo: bool = generation.as_f64() == Some(2.0);
-        let mut wsUrls: Value = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]), Value::Str("ws".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: String = (if isGenerationTwo { self.safe_string_k(wsUrls.clone(), "publicGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() } else { self.safe_string_k(wsUrls, "public", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() });
+        })]).into_dict();
+        let mut url: Value = (if isGenerationTwo { self.safe_string_k(&wsUrls, "publicGen2", &[Value::Str("".into())]) } else { self.safe_string_k(&wsUrls, "public", &[Value::Str("".into())]) });
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbolValue);
@@ -972,7 +972,7 @@ impl Bithumb {
             m
         });
         if isGenerationTwo {
-            let mut marketIdRequest: Value = self.parent.get_gen2_market_id((market).raw.clone()).map(Value::from).unwrap_or(Value::Null);
+            let mut marketIdRequest: Value = self.parent.get_gen2_market_id((market).raw.clone());
             request = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), self.uuid(&[]));
@@ -986,7 +986,7 @@ impl Bithumb {
         }  else {
             request = self.extend(request.clone(), &[paramsGeneration]);
         }
-        let mut trades: Value = self.watch(Value::from(url), Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
+        let mut trades: Value = self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue, limit);
@@ -1038,8 +1038,8 @@ impl Bithumb {
         //         "stream_type": "REALTIME"
         //     }
         //
-        let mut content: Value = (match __pro_message.get("content").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        let mut rawTrades: Vec<Value> = self.safe_list_k(content, "list", &[Value::from(vec![message])]).as_array().cloned().unwrap_or_default();
+        let mut content: crate::value::Dict = (match __pro_message.get("content").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
+        let mut rawTrades: Vec<Value> = self.safe_list_k(&content, "list", &[Value::from(vec![message])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_129: bool = true;
@@ -1159,9 +1159,9 @@ impl Bithumb {
         let mut error: Value = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         if (error != Value::Null) {
             let mut errorName: String = self.safe_string_k(error.clone(), "name", &[Value::Str("Error".into())]).as_str().unwrap_or("Error").to_string();
-            let mut errorMessage: Value = self.safe_string_k(error, "message", &[Value::Str("".into())]);
+            let mut errorMessage: String = self.safe_string_k(error, "message", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut addedMessage: Value = Value::Null;
-            if (((errorMessage.len() as i64) as f64) > ((0i64) as f64)) {
+            if (((errorMessage.chars().count() as i64)) > 0) {
                 addedMessage = (Value::Str(format!("{}{}", Value::Str(" ".into()), errorMessage).into()));
             }  else {
                 addedMessage = Value::Str("".into());
@@ -1219,14 +1219,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() is only supported for the generation 2 API".into()))));
         }
         self.authenticate(&[]).await;
-        let mut wsUrls: Value = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]), Value::Str("ws".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: String = self.safe_string_k(wsUrls, "privateGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        })]).into_dict();
+        let mut url: String = self.safe_string_k(&wsUrls, "privateGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = "myAsset".to_string();
         let mut request: Value = self.build_gen2_subscription_request(Value::from(messageHash.clone()), Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1269,12 +1269,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_130: bool = true;
             while { if !__for_first_130 { i += 1; } __for_first_130 = false; i < (assets.len() as i64) } {
-            let mut asset: Value = self.safe_dict(assets.clone().into(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(asset.clone(), "currency", &[]).as_str().map(str::to_owned);
+            let mut asset: crate::value::Dict = self.safe_dict(assets.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&asset, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string_k(asset.clone(), "balance", &[]));
-            account.insert("used".into(), self.safe_string_k(asset, "locked", &[]));
+            account.insert("free".into(), self.safe_string_k(&asset, "balance", &[]));
+            account.insert("used".into(), self.safe_string_k(&asset, "locked", &[]));
             if (code != Value::Null) {
                 if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); }
             }
@@ -1362,14 +1362,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws".into(), Value::Map(wsOptions)); }
         }
-        let mut wsUrls: Value = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]), Value::Str("ws".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: String = self.safe_string_k(wsUrls, "privateGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        })]).into_dict();
+        let mut url: String = self.safe_string_k(&wsUrls, "privateGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut client: Value = self.client(&[Value::from(url)]);
         return client;
 
@@ -1411,14 +1411,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchOrders() is only supported for the generation 2 API".into()))));
         }
         self.authenticate(&[]).await;
-        let mut wsUrls: Value = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]), Value::Str("ws".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut url: String = self.safe_string_k(wsUrls, "privateGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        })]).into_dict();
+        let mut url: String = self.safe_string_k(&wsUrls, "privateGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = "myOrder".to_string();
         let mut codes: Value = self.safe_list_k(params, "codes", &[Value::from(vec![])]);
         let mut request: Value = self.build_gen2_subscription_request(Value::from(messageHash.clone()), Value::Map({

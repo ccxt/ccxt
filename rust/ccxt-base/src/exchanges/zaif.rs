@@ -651,11 +651,11 @@ impl Zaif {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut balances: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+        let mut balances: crate::value::Dict = self.safe_dict_k(response.clone(), "return", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut deposit: Value = self.safe_dict_k(balances.clone(), "deposit", &[]);
+})]).into_dict();
+        let mut deposit: Value = self.safe_dict_k(&balances, "deposit", &[]);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -663,10 +663,10 @@ impl Zaif {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut funds: Value = self.safe_dict_k(balances, "funds", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut funds: Value = self.safe_dict_k(&balances, "funds", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut currencyIds: Vec<Value> = Value::Array(funds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -1033,7 +1033,7 @@ impl Zaif {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_cancel_order(&[__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.private_post_cancel_order(&[__ws_arg_4]).await.into_dict();
         //
         //    {
         //        "success": 1,
@@ -1048,10 +1048,10 @@ impl Zaif {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response, "return", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "return", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_order(data, &[]);
         Value::Null
         }).await?))
@@ -1155,11 +1155,11 @@ impl Zaif {
             request.insert("currency_pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_active_orders(&[__ws_arg_5]).await;
-        let mut data: Value = self.safe_dict_k(response, "return", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut response: crate::value::Dict = self.private_post_active_orders(&[__ws_arg_5]).await.into_dict();
+        let mut data: Value = self.safe_dict_k(&response, "return", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_orders(data, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -1208,11 +1208,11 @@ impl Zaif {
             request.insert("count".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_trade_history(&[__ws_arg_6]).await;
-        let mut data: Value = self.safe_dict_k(response, "return", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut response: crate::value::Dict = self.private_post_trade_history(&[__ws_arg_6]).await.into_dict();
+        let mut data: Value = self.safe_dict_k(&response, "return", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_orders(data, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -1265,7 +1265,7 @@ impl Zaif {
             request.insert("message".into(), tagWithdrawTag);
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[paramsWithdrawTag]);
-        let mut result: Value = self.private_post_withdraw(&[__ws_arg_7]).await;
+        let mut result: crate::value::Dict = self.private_post_withdraw(&[__ws_arg_7]).await.into_dict();
         //
         //     {
         //         "success": 1,
@@ -1282,10 +1282,10 @@ impl Zaif {
         //         }
         //     }
         //
-        let mut returnData: Value = self.safe_dict_k(result, "return", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut returnData: Value = self.safe_dict_k(&result, "return", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_transaction(returnData, &[currency]);
         Value::Null
         }).await?))
@@ -1364,20 +1364,20 @@ impl Zaif {
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut baseUrl: Option<String> = baseApiUrl;
-        let mut url: Value = Value::Str(format!("{}{}", baseUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into());
+        let mut baseUrl: Value = baseApiUrl.clone().map(Value::from).unwrap_or(Value::Null);
+        let mut url: String = format!("{}{}", baseUrl, Value::Str("/".into()));
         if (apiName.as_deref() == Some("public")) {
-            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("api/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into())).into());
+            url.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("api/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())));
         }  else if (apiName.as_deref() == Some("fapi")) {
-            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("fapi/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into())).into());
+            url.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("fapi/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())));
         }  else {
             self.check_required_credentials(&[]);
             if (apiName.as_deref() == Some("ecapi")) {
-                url = Value::Str(format!("{}{}", url, Value::Str("ecapi".into())).into());
+                url.push_str("ecapi");
             }  else if (apiName.as_deref() == Some("tlapi")) {
-                url = Value::Str(format!("{}{}", url, Value::Str("tlapi".into())).into());
+                url.push_str("tlapi");
             }  else {
-                url = Value::Str(format!("{}{}", url, Value::Str("tapi".into())).into());
+                url.push_str("tapi");
             }
             let mut nonce: Value = self.custom_nonce().map(Value::from).unwrap_or(Value::Null);
             let __ws_arg_8 = self.extend(Value::Map({
@@ -1396,7 +1396,7 @@ impl Zaif {
             });
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone());
+        m.insert("url".to_string(), Value::from(url.clone()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), bodyEncoded);
         m.insert("headers".to_string(), Value::Map(headersSigned));
@@ -1405,7 +1405,7 @@ impl Zaif {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), Value::Null);
         m.insert("headers".to_string(), Value::Null);

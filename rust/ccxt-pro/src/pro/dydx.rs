@@ -394,8 +394,8 @@ impl Dydx {
         let mut marketId: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-        let mut content: Value = (match message.get("contents") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
-        let mut rawTrades: Value = self.safe_list_k(content, "trades", &[Value::from(vec![])]);
+        let mut content: crate::value::Dict = (match message.get("contents") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
+        let mut rawTrades: Value = self.safe_list_k(&content, "trades", &[Value::from(vec![])]);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -559,14 +559,14 @@ impl Dydx {
         let mut marketId: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
-        let mut content: Value = (match message.get("contents") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
+        let mut content: crate::value::Dict = (match message.get("contents") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         if (orderbook == Value::Null) {
             orderbook = self.order_book(&[]);
         }
         orderbook.set_book_meta("symbol", symbol.clone());
-        let mut asks: Value = self.safe_list_k(content.clone(), "asks", &[Value::from(vec![])]);
-        let mut bids: Value = self.safe_list_k(content, "bids", &[Value::from(vec![])]);
+        let mut asks: Value = self.safe_list_k(&content, "asks", &[Value::from(vec![])]);
+        let mut bids: Value = self.safe_list_k(&content, "bids", &[Value::from(vec![])]);
         self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), asks);
         self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), bids);
         orderbook.set_book_meta("nonce", (match message.get("message_id") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }));

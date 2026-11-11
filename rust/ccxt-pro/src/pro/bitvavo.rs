@@ -769,8 +769,8 @@ impl Bitvavo {
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.watch_multiple(url.clone().map(Value::from).unwrap_or(Value::Null), messageHashes.clone(), &[message, messageHashes.clone()]).await;
-        let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(first, "symbol", &[]);
+        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
@@ -1466,11 +1466,11 @@ impl Bitvavo {
             if (watchingOrderBookSnapshot.is_none()) {
                 add_element_to_object(&mut subscription, &flagKey, Value::Bool(true));
                 __ch.add_subscription(&messageHash, subscription.clone());
-                let mut options: Value = self.safe_dict_k(self.options.clone(), "watchOrderBookSnapshot", &[Value::Map({
+                let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchOrderBookSnapshot", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                let mut delay: Value = self.safe_integer_k(options, "delay", &[self.rateLimit.clone()]);
+                })]).into_dict();
+                let mut delay: Value = self.safe_integer_k(&options, "delay", &[self.rateLimit.clone()]);
                 // fetch the snapshot in a separate async call after a warmup delay
                 self.delay(delay.clone(), &[Value::Str("watch_order_book_snapshot".into()).clone(), client.clone(), message.clone(), subscription]).await;
             }

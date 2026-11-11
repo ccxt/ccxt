@@ -919,11 +919,11 @@ impl Polymarket {
         if (rowsLength == 0.0) {
             return;
         }
-        let mut first: Value = self.safe_dict(rows.clone(), Value::Int(0), &[Value::Map({
+        let mut first: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut marketId: Option<String> = self.safe_string_k(first, "iid", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut marketId: Option<String> = self.safe_string_k(&first, "iid", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         if !(matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -1688,10 +1688,10 @@ impl Polymarket {
         }
         }
         client.resolve(&[Value::Array(newPositions), Value::Str("positions".into())]);
-        let mut margin: Value = self.safe_dict_k(data.clone(), "margin", &[Value::Map({
+        let mut margin: crate::value::Dict = self.safe_dict_k(data.clone(), "margin", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), data);
@@ -1700,9 +1700,9 @@ impl Polymarket {
             m
         });
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-        account.insert("total".into(), self.safe_string_k(margin.clone(), "total_account_value", &[]));
-        account.insert("free".into(), self.safe_string_k(margin.clone(), "available_order_margin", &[]));
-        account.insert("used".into(), self.safe_string_k(margin, "total_initial_margin", &[]));
+        account.insert("total".into(), self.safe_string_k(&margin, "total_account_value", &[]));
+        account.insert("free".into(), self.safe_string_k(&margin, "available_order_margin", &[]));
+        account.insert("used".into(), self.safe_string_k(&margin, "total_initial_margin", &[]));
         // pUSD is the only collateral asset on the venue
         result.insert("PUSD".into(), Value::Map(account));
         { let __t = self.safe_balance(Value::Map(result)); self.balance = __t; }
@@ -1773,13 +1773,13 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_646: bool = true;
             while { if !__for_first_646 { i += 1; } __for_first_646 = false; i < (data.len() as i64) } {
-            let mut entry: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut status: Option<String> = self.safe_string_k(entry.clone(), "status", &[]).as_str().map(str::to_owned);
+            })]).into_dict();
+            let mut status: Option<String> = self.safe_string_k(&entry, "status", &[]).as_str().map(str::to_owned);
             if (status.as_deref() == Some("err")) {
-                errorMessage = self.safe_string_k(entry, "error", &[]);
+                errorMessage = self.safe_string_k(&entry, "error", &[]);
             }
         }
         }

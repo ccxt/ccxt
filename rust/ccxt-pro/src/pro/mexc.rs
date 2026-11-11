@@ -544,7 +544,7 @@ impl Mexc {
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null]);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut firstSymbol: Option<String> = self.safe_string_opt(symbolsNormalized.clone(), Value::Int(0), &[]);
+        let mut firstSymbol: Option<String> = self.safe_string(symbolsNormalized.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut market: Option<crate::types::Market> = None;
         if (firstSymbol.is_some()) {
             market = Some(match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -651,16 +651,16 @@ impl Mexc {
         //     }
         //
         let mut data: Value = self.safe_list2(message, Value::Str("data".into()), Value::Str("d".into()), &[Value::from(vec![])]);
-        let mut channel: Value = (match __pro_message.get("c").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
+        let mut channel: String = (match __pro_message.get("c").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut marketId: Option<String> = (match __pro_message.get("s").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut channelStartsWithSpot: Value = Value::Bool(channel.as_str().unwrap_or("").starts_with("spot"));
+        let mut channelStartsWithSpot: Value = Value::Bool(channel.starts_with("spot"));
         let mut marketIdIsUndefined: bool = marketId.is_none();
         let mut isSpot: Value = (if marketIdIsUndefined { channelStartsWithSpot } else { market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null) });
         let mut spotPrefix: String = "spot:".to_string();
-        let mut messageHashPrefix: Value = Value::Str("".into());
+        let mut messageHashPrefix: String = "".to_string();
         if (isSpot.as_bool() == Some(true)) {
-            messageHashPrefix = Value::from(spotPrefix);
+            messageHashPrefix = spotPrefix;
         }
         let mut topic: Value = Value::Str(format!("{}{}", messageHashPrefix, Value::Str("ticker".into())).into());
         let mut result: Vec<Value> = vec![];
@@ -1401,8 +1401,8 @@ impl Mexc {
         let mut marketId: Option<String> = self.safe_string2(message.clone(), Value::Str("s".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
-        let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[]);
-        let mut limit: Option<i64> = self.safe_integer_k(subscription, "limit", &[]).as_i64();
+        let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[]).into_dict();
+        let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
@@ -2430,7 +2430,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null]);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut firstSymbol: Option<String> = self.safe_string_opt(symbolsNormalized, Value::Int(0), &[]);
+        let mut firstSymbol: Option<String> = self.safe_string(symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut market: Option<crate::types::Market> = None;
         if (firstSymbol.is_some()) {
             market = Some(match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });

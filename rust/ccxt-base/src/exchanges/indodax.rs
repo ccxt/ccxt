@@ -599,8 +599,8 @@ impl Indodax {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_api_server_time(&[params]).await;
-        return self.safe_integer_k(response, "server_time", &[]);
+        let mut response: crate::value::Dict = self.public_get_api_server_time(&[params]).await.into_dict();
+        return self.safe_integer_k(&response, "server_time", &[]);
         Value::Null
         }).await?))
     }
@@ -741,19 +741,19 @@ impl Indodax {
     }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut balances: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+        let mut balances: crate::value::Dict = self.safe_dict_k(response.clone(), "return", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut free: Value = self.safe_dict_k(balances.clone(), "balance", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut used: Value = self.safe_dict_k(balances.clone(), "balance_hold", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut timestamp: Option<i64> = self.safe_timestamp_k(balances, "server_time", &[]).as_i64();
+})]).into_dict();
+        let mut free: Value = self.safe_dict_k(&balances, "balance", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut used: Value = self.safe_dict_k(&balances, "balance_hold", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut timestamp: Option<i64> = self.safe_timestamp_k(&balances, "server_time", &[]).as_i64();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -925,7 +925,7 @@ impl Indodax {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_api_ticker_pair(&[__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.public_get_api_ticker_pair(&[__ws_arg_1]).await.into_dict();
         //
         //     {
         //         "ticker": {
@@ -940,10 +940,10 @@ impl Indodax {
         //         }
         //     }
         //
-        let mut ticker: Value = self.safe_dict_k(response, "ticker", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut ticker: Value = self.safe_dict_k(&response, "ticker", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_ticker(ticker, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -988,11 +988,11 @@ impl Indodax {
         //     }
         // }
         //
-        let mut response: Value = self.public_get_api_ticker_all(&[params]).await;
-        let mut tickers: indexmap::IndexMap<String, Value> = self.safe_dict_k(response, "tickers", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+        let mut response: crate::value::Dict = self.public_get_api_ticker_all(&[params]).await.into_dict();
+        let mut tickers: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "tickers", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
         let mut keys: Vec<Value> = Value::Array(tickers.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         let mut parsedTickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1352,11 +1352,11 @@ impl Indodax {
             request.insert("pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_open_orders(&[__ws_arg_6]).await;
-        let mut openOrdersResult: indexmap::IndexMap<String, Value> = self.safe_dict_k(response, "return", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+        let mut response: crate::value::Dict = self.private_post_open_orders(&[__ws_arg_6]).await.into_dict();
+        let mut openOrdersResult: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "return", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
         let mut rawOrders: Value = openOrdersResult.get("orders").cloned().unwrap_or(Value::Null);
         // { success: 1, return: { orders: null }} if no orders
         if (rawOrders == Value::Null) || (rawOrders == Value::Null) {
@@ -1426,11 +1426,11 @@ impl Indodax {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_order_history(&[__ws_arg_7]).await;
-        let mut historyResult: indexmap::IndexMap<String, Value> = self.safe_dict_k(response, "return", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+        let mut response: crate::value::Dict = self.private_post_order_history(&[__ws_arg_7]).await.into_dict();
+        let mut historyResult: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "return", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
         let mut orders: Value = self.parse_orders(historyResult.get("orders").cloned().unwrap_or(Value::Null), &[(market).raw.clone()]);
         orders = self.filter_by(orders.clone(), Value::Str("status".into()), Value::Str("closed".into()), &[]);
         return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit]);
@@ -1496,8 +1496,8 @@ impl Indodax {
                     }
                     let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
                     let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
-                    let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.clone().map(Value::from).unwrap_or(Value::Null));
+                    let mut costRequest: Value = crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null));
+                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest);
                 }
                 request.insert(crate::runtime::stringify_param(&(Value::from((market).quote_id.clone()))), quoteAmount);
             }  else {
@@ -1521,11 +1521,11 @@ impl Indodax {
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut result: Value = self.private_post_trade(&[__ws_arg_8]).await;
-        let mut data: Value = self.safe_dict_k(result.clone(), "return", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(result.clone(), "return", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut id: Option<String> = self.safe_string_k(data, "order_id", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut id: Option<String> = self.safe_string_k(&data, "order_id", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), result);
@@ -1577,7 +1577,7 @@ impl Indodax {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_cancel_order(&[__ws_arg_9]).await;
+        let mut response: crate::value::Dict = self.private_post_cancel_order(&[__ws_arg_9]).await.into_dict();
         //
         //    {
         //        "success": 1,
@@ -1597,7 +1597,7 @@ impl Indodax {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response, "return", &[]);
+        let mut data: Value = self.safe_dict_k(&response, "return", &[]);
         return self.parse_order(data, &[]);
         Value::Null
         }).await?))
@@ -1638,15 +1638,15 @@ impl Indodax {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "return", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut currencyId: Option<String> = self.safe_string_k(data.clone(), "currency", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut currencyId: Option<String> = self.safe_string_k(&data, "currency", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
-        m.insert("rate".to_string(), self.safe_number_k(data, "withdraw_fee", &[]));
+        m.insert("rate".to_string(), self.safe_number_k(&data, "withdraw_fee", &[]));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]));
     m
 });
@@ -1693,14 +1693,14 @@ impl Indodax {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "return", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(response).as_map().cloned().unwrap_or_default();
         result.insert("withdraw".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("fee".to_string(), self.safe_number_k(data, "withdraw_fee", &[]));
+        m.insert("fee".to_string(), self.safe_number_k(&data, "withdraw_fee", &[]));
         m.insert("percentage".to_string(), Value::Bool(false));
     m
 }));
@@ -1752,7 +1752,7 @@ impl Indodax {
             request.insert("end".into(), self.yyyymmdd(self.milliseconds(), &[]));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_trans_history(&[__ws_arg_12]).await;
+        let mut response: crate::value::Dict = self.private_post_trans_history(&[__ws_arg_12]).await.into_dict();
         //
         //     {
         //         "success": 1,
@@ -1810,18 +1810,18 @@ impl Indodax {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "return", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut withdraw: indexmap::IndexMap<String, Value> = self.safe_dict_k(data.clone(), "withdraw", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
-        let mut deposit: indexmap::IndexMap<String, Value> = self.safe_dict_k(data, "deposit", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "return", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut withdraw: indexmap::IndexMap<String, Value> = self.safe_dict_k(&data, "withdraw", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
+        let mut deposit: indexmap::IndexMap<String, Value> = self.safe_dict_k(&data, "deposit", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
         let mut transactions: Value = Value::from(vec![]);
         let mut currency: Value = Value::Null;
         if (code == Value::Null) {
@@ -2029,7 +2029,7 @@ impl Indodax {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_post_get_info(&[params]).await;
+        let mut response: crate::value::Dict = self.private_post_get_info(&[params]).await.into_dict();
         //
         //    {
         //        success: '1',
@@ -2065,15 +2065,15 @@ impl Indodax {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response, "return", &[]);
-        let mut addresses: Value = self.safe_dict_k(data.clone(), "address", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut networks: Value = self.safe_dict_k(data, "network", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "return", &[]).into_dict();
+        let mut addresses: Value = self.safe_dict_k(&data, "address", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut networks: Value = self.safe_dict_k(&data, "network", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut addressKeys: Vec<Value> = Value::Array(addresses.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {

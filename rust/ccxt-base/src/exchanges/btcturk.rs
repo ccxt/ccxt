@@ -537,7 +537,7 @@ impl Btcturk {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_server_exchangeinfo(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_server_exchangeinfo(&[params]).await.into_dict();
         //
         //    {
         //        "data": {
@@ -581,11 +581,11 @@ impl Btcturk {
         //        ],
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut markets: Value = self.safe_list_k(data, "symbols", &[Value::from(vec![])]);
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut markets: Value = self.safe_list_k(&data, "symbols", &[Value::from(vec![])]);
         return self.parse_markets(markets);
         Value::Null
         }).await?))
@@ -610,14 +610,14 @@ impl Btcturk {
                         let mut j: i64 = 0;
             let mut __for_first_475: bool = true;
             while { if !__for_first_475 { j += 1; } __for_first_475 = false; j < (filters.len() as i64) } {
-            let mut filter: Value = self.safe_dict(filters.clone().into(), Value::Int(j), &[]);
-            let mut filterType: Option<String> = self.safe_string_k(filter.clone(), "filterType", &[]).as_str().map(str::to_owned);
+            let mut filter: crate::value::Dict = self.safe_dict(filters.clone().into(), Value::Int(j), &[]).into_dict();
+            let mut filterType: Option<String> = self.safe_string_k(&filter, "filterType", &[]).as_str().map(str::to_owned);
             if (filterType.as_deref() == Some("PRICE_FILTER")) {
-                minPrice = self.safe_number_k(filter.clone(), "minPrice", &[]);
-                maxPrice = self.safe_number_k(filter.clone(), "maxPrice", &[]);
-                minAmount = self.safe_number_k(filter.clone(), "minAmount", &[]);
-                maxAmount = self.safe_number_k(filter.clone(), "maxAmount", &[]);
-                minCost = self.safe_number_k(filter, "minExchangeValue", &[]);
+                minPrice = self.safe_number_k(&filter, "minPrice", &[]);
+                maxPrice = self.safe_number_k(&filter, "maxPrice", &[]);
+                minAmount = self.safe_number_k(&filter, "minAmount", &[]);
+                maxAmount = self.safe_number_k(&filter, "maxAmount", &[]);
+                minCost = self.safe_number_k(&filter, "minExchangeValue", &[]);
             }
         }
         }
@@ -702,13 +702,13 @@ impl Btcturk {
                         let mut i: i64 = 0;
             let mut __for_first_476: bool = true;
             while { if !__for_first_476 { i += 1; } __for_first_476 = false; i < (data.len() as i64) } {
-            let mut entry: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "asset", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&entry, "asset", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("total".into(), self.safe_string_k(entry.clone(), "balance", &[]));
-            account.insert("free".into(), self.safe_string_k(entry.clone(), "free", &[]));
-            account.insert("used".into(), self.safe_string_k(entry, "locked", &[]));
+            account.insert("total".into(), self.safe_string_k(&entry, "balance", &[]));
+            account.insert("free".into(), self.safe_string_k(&entry, "free", &[]));
+            account.insert("used".into(), self.safe_string_k(&entry, "locked", &[]));
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
@@ -778,7 +778,7 @@ impl Btcturk {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_orderbook(&[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.public_get_orderbook(&[__ws_arg_0]).await.into_dict();
         //     {
         //       "data": {
         //         "timestamp": 1618827901241,
@@ -790,10 +790,10 @@ impl Btcturk {
         //         ]
         //       }
         //     }
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "timestamp", &[]).as_i64();
         return self.parse_order_book(data, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
         Value::Null
@@ -889,8 +889,8 @@ impl Btcturk {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.public_get_ticker(&[params]).await;
-        let mut tickers: Value = self.safe_list_k(response, "data", &[]);
+        let mut response: crate::value::Dict = self.public_get_ticker(&[params]).await.into_dict();
+        let mut tickers: Value = self.safe_list_k(&response, "data", &[]);
         return self.parse_tickers(tickers, &[symbols]);
         Value::Null
         }).await?))
@@ -1034,7 +1034,7 @@ impl Btcturk {
             request.insert("last".into(), limit.clone());
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_trades(&[__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.public_get_trades(&[__ws_arg_1]).await.into_dict();
         //
         //     {
         //       "data": [
@@ -1052,7 +1052,7 @@ impl Btcturk {
         //       ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[]);
         let mut dataList: Value = Value::from(vec![]);
         if (data != Value::Null) {
             dataList = data;
@@ -1231,11 +1231,11 @@ impl Btcturk {
             request.insert("newClientOrderId".into(), self.uuid(&[]));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_order(&[__ws_arg_3]).await;
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut response: crate::value::Dict = self.private_post_order(&[__ws_arg_3]).await.into_dict();
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         return self.parse_order(data, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -1316,13 +1316,13 @@ impl Btcturk {
             request.insert("pairSymbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_open_orders(&[__ws_arg_5]).await;
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut bids: Value = self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]);
-        let mut asks: Value = self.safe_list_k(data, "asks", &[Value::from(vec![])]);
+        let mut response: crate::value::Dict = self.private_get_open_orders(&[__ws_arg_5]).await.into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut bids: Value = self.safe_list_k(&data, "bids", &[Value::from(vec![])]);
+        let mut asks: Value = self.safe_list_k(&data, "asks", &[Value::from(vec![])]);
         return self.parse_orders(self.array_concat(bids, asks), &[market, since, limit]);
         Value::Null
         }).await?))
@@ -1369,7 +1369,7 @@ impl Btcturk {
             request.insert("startTime".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_all_orders(&[__ws_arg_6]).await;
+        let mut response: crate::value::Dict = self.private_get_all_orders(&[__ws_arg_6]).await.into_dict();
         // {
         //   "data": [
         //     {
@@ -1390,7 +1390,7 @@ impl Btcturk {
         //     }
         //   ]
         // }
-        let mut data: Value = self.safe_list_k(response, "data", &[]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[]);
         return self.parse_orders(data, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -1511,7 +1511,7 @@ impl Btcturk {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut response: Value = self.private_get_users_transactions_trade(&[]).await;
+        let mut response: crate::value::Dict = self.private_get_users_transactions_trade(&[]).await.into_dict();
         //
         //     {
         //       "data": [
@@ -1533,7 +1533,7 @@ impl Btcturk {
         //       "code": "0"
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[]);
+        let mut data: Value = self.safe_list_k(&response, "data", &[]);
         let mut dataList: Value = Value::from(vec![]);
         if (data != Value::Null) {
             dataList = data;
@@ -1566,12 +1566,12 @@ impl Btcturk {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), path).into());
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), path);
         let mut isQueryMethod: bool = (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"));
         if isQueryMethod {
-            let mut query: Value = self.urlencode(params.clone(), &[]);
-            if ((query.len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
+            let mut query: Option<String> = self.urlencode(params.clone(), &[]).as_str().map(str::to_owned);
+            if ((query.as_deref().unwrap_or_default().chars().count() as i64)) > 0 {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), query.clone().map(Value::from).unwrap_or(Value::Null)));
             }
         }
         let mut requestBody: Value = Value::Null;
@@ -1597,7 +1597,7 @@ impl Btcturk {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody);
         m.insert("headers".to_string(), privateHeaders);

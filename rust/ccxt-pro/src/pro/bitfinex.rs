@@ -952,16 +952,16 @@ impl Bitfinex {
             marketId = self.safe_string(trade.clone().into(), Value::Int(1), &[]);
         }
         let mut marketResolved: Value = self.safe_market(&[marketId.clone(), market]);
-        let mut createdKey: i64 = (if isPublic { 1 } else { 2 });
-        let mut priceKey: i64 = (if isPublic { 3 } else { 5 });
-        let mut amountKey: i64 = (if isPublic { 2 } else { 4 });
+        let mut createdKey: Value = (if isPublic { Value::Int(1) } else { Value::Int(2) });
+        let mut priceKey: Value = (if isPublic { Value::Int(3) } else { Value::Int(5) });
+        let mut amountKey: Value = (if isPublic { Value::Int(2) } else { Value::Int(4) });
         marketId = marketResolved.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-        let mut type_var: Value = self.safe_string(trade.clone().into(), Value::Int(6), &[]);
-        if (type_var != Value::Null) {
-            if type_var.as_str().unwrap_or("").contains("LIMIT") {
-                type_var = Value::Str("limit".into());
-            }  else if type_var.as_str().unwrap_or("").contains("MARKET") {
-                type_var = Value::Str("market".into());
+        let mut type_var: Option<String> = self.safe_string(trade.clone().into(), Value::Int(6), &[]).as_str().map(str::to_owned);
+        if (type_var.is_some()) {
+            if type_var.as_deref().unwrap_or_default().contains("LIMIT") {
+                type_var = Some("limit".to_string());
+            }  else if type_var.as_deref().unwrap_or_default().contains("MARKET") {
+                type_var = Some("market".to_string());
             }
         }
         let mut orderId: Option<String> = None;
@@ -969,9 +969,9 @@ impl Bitfinex {
             orderId = self.safe_string(trade.clone().into(), Value::Int(3), &[]).as_str().map(str::to_owned);
         }
         let mut id: Option<String> = self.safe_string(trade.clone().into(), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.safe_integer(trade.clone().into(), Value::from(createdKey), &[]).as_i64();
-        let mut price: Option<String> = self.safe_string(trade.clone().into(), Value::from(priceKey), &[]).as_str().map(str::to_owned);
-        let mut amountString: Option<String> = self.safe_string(trade.clone().into(), Value::from(amountKey), &[]).as_str().map(str::to_owned);
+        let mut timestamp: Option<i64> = self.safe_integer(trade.clone().into(), createdKey, &[]).as_i64();
+        let mut price: Option<String> = self.safe_string(trade.clone().into(), priceKey, &[]).as_str().map(str::to_owned);
+        let mut amountString: Option<String> = self.safe_string(trade.clone().into(), amountKey, &[]).as_str().map(str::to_owned);
         let mut amount: Value = self.parse_number(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
         let mut side: Value = Value::Null;
         if (amount != Value::Null) {
@@ -1003,7 +1003,7 @@ impl Bitfinex {
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1119,12 +1119,12 @@ impl Bitfinex {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook limit argument must be undefined, 25 or 100".into()))));
             }
         }
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut prec: String = self.safe_string_k(options.clone(), "prec", &[Value::Str("P0".into())]).as_str().unwrap_or("P0").to_string();
-        let mut freq: String = self.safe_string_k(options, "freq", &[Value::Str("F0".into())]).as_str().unwrap_or("F0").to_string();
+        })]).into_dict();
+        let mut prec: String = self.safe_string_k(&options, "prec", &[Value::Str("P0".into())]).as_str().unwrap_or("P0").to_string();
+        let mut freq: String = self.safe_string_k(&options, "freq", &[Value::Str("F0".into())]).as_str().unwrap_or("F0").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("prec".to_string(), Value::from(prec));
@@ -1809,11 +1809,11 @@ impl Bitfinex {
             side = "sell".to_string();
         }
         let mut remaining: Value = crate::precise::Precise::stringAbs(&self.safe_string(order.clone(), Value::Int(6), &[]));
-        let mut type_var: Value = self.safe_string(order.clone(), Value::Int(8), &[Value::Str("".into())]);
-        if type_var.as_str().unwrap_or("").contains("LIMIT") {
-            type_var = Value::Str("limit".into());
-        }  else if type_var.as_str().unwrap_or("").contains("MARKET") {
-            type_var = Value::Str("market".into());
+        let mut type_var: String = self.safe_string(order.clone(), Value::Int(8), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if type_var.contains("LIMIT") {
+            type_var = "limit".to_string();
+        }  else if type_var.contains("MARKET") {
+            type_var = "market".to_string();
         }
         let mut rawState: Value = self.safe_string(order.clone(), Value::Int(13), &[Value::Str("".into())]);
         let mut stateParts: Value = Value::Array(if let Some(__s) = rawState.as_str() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
@@ -1832,7 +1832,7 @@ impl Bitfinex {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("side".to_string(), Value::from(side));
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("stopPrice".to_string(), stopPrice.clone());

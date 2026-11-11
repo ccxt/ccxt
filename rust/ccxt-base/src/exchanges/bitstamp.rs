@@ -1997,13 +1997,13 @@ impl Bitstamp {
             while { if !__for_first_429 { i += 1; } __for_first_429 = false; i < (response.len() as i64) } {
             let mut market: Value = self.safe_dict(response.clone(), Value::Int(i), &[]);
             let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base_currency", &[]).as_str().map(str::to_owned);
-            let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "counter_currency", &[]);
+            let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "counter_currency", &[]).as_str().map(str::to_owned);
             let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut settleId: Value = Value::Null;
+            let mut settleId: Option<String> = None;
             let mut marketTypeRaw: Option<String> = self.safe_string_k(market.clone(), "market_type", &[]).as_str().map(str::to_owned);
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
             let mut type_var: Option<String> = None;
@@ -2012,7 +2012,7 @@ impl Bitstamp {
                 type_var = Some("spot".to_string());
             }  else if (marketTypeRaw.as_deref() == Some("PERPETUAL")) {
                 type_var = Some("swap".to_string());
-                settleId = quoteId.clone().map(Value::from).unwrap_or(Value::Null);
+                settleId = quoteId.clone();
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), self.safe_string_k(market.clone(), "counter_currency", &[Value::Str("".into())]));
                 let mut payoffType: Option<String> = self.safe_string_k(market.clone(), "payoff_type", &[]).as_str().map(str::to_owned);
                 if (payoffType.as_deref() == Some("Linear")) {
@@ -2022,7 +2022,7 @@ impl Bitstamp {
                 }
             }
             let mut isSpot: Value = (Value::Bool(type_var.as_deref() == Some("spot")));
-            let mut settle: Value = (if ((settleId != Value::Null) && (settleId.as_str() != Some(""))) { self.safe_currency_code(settleId.clone(), &[]) } else { Value::Null });
+            let mut settle: Value = (if ((settleId.is_some()) && (settleId.as_deref() != Some(""))) { self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]) } else { Value::Null });
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), self.safe_string_k(market.clone(), "market_symbol", &[]));
@@ -2031,8 +2031,8 @@ impl Bitstamp {
                     m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), settle);
                     m.insert("baseId".to_string(), baseId.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("settleId".to_string(), settleId);
+                    m.insert("quoteId".to_string(), quoteId.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("settleId".to_string(), settleId.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("subType".to_string(), subType.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("spot".to_string(), isSpot.clone());
@@ -2097,15 +2097,15 @@ impl Bitstamp {
     pub fn construct_currency_object(&self, mut id: Value, mut code: Value, mut name: Value, mut precision: Value, mut minCost: Value, mut originalPayload: Value) -> Value {
         let mut currencyType: String = "crypto".to_string();
         let mut description: Value = self.describe();
-        let mut fees: Value = self.safe_dict_k(description, "fees", &[Value::Map({
+        let mut fees: crate::value::Dict = self.safe_dict_k(description, "fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut fundingFees: Value = self.safe_dict_k(fees, "funding", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut withdrawFee: Option<f64> = self.safe_number_k(fundingFees, "withdraw", &[]).as_f64();
+})]).into_dict();
+        let mut fundingFees: crate::value::Dict = self.safe_dict_k(&fees, "funding", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut withdrawFee: Option<f64> = self.safe_number_k(&fundingFees, "withdraw", &[]).as_f64();
         if self.is_fiat(code.clone()).as_bool() == Some(true) {
             currencyType = "fiat".to_string();
         }
@@ -2201,11 +2201,11 @@ impl Bitstamp {
     m
 })]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("fetchMarkets".into(), __be_tmp); } }
         }
-        let mut cache: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[Value::Map({
+        let mut cache: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut markets: Value = self.safe_list_k(cache, "response", &[Value::from(vec![])]);
+})]).into_dict();
+        let mut markets: Value = self.safe_list_k(&cache, "response", &[Value::from(vec![])]);
         return markets;
 
     Value::Null
@@ -2489,11 +2489,11 @@ impl Bitstamp {
                         let mut i: i64 = 0;
             let mut __for_first_431: bool = true;
             while { if !__for_first_431 { i += 1; } __for_first_431 = false; i < (ids.len() as i64) } {
-            let mut id: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
-            if !id.as_str().unwrap_or("").contains("_") {
-                let mut value: Option<i64> = self.safe_integer(transactionOmitted.clone(), id.clone(), &[]).as_i64();
+            let mut id: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if !id.as_deref().unwrap_or_default().contains("_") {
+                let mut value: Option<i64> = self.safe_integer(transactionOmitted.clone(), id.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_i64();
                 if (value.is_some()) && (value != Some(0)) {
-                    return id;
+                    return id.map(Value::from).unwrap_or(Value::Null);
                 }
             }
         }
@@ -2575,7 +2575,7 @@ impl Bitstamp {
         let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
         let mut type_var: Value = Value::Null;
         let mut costString: Value = self.safe_string_k(trade.clone(), "cost", &[]);
-        let mut rawMarketId: Value = Value::Null;
+        let mut rawMarketId: Option<String> = None;
         // resolved in the key scan below, falling back to the passed market
         let mut marketResolved: Value = market.clone();
         if (market == Value::Null) {
@@ -2584,10 +2584,10 @@ impl Bitstamp {
                                 let mut i: i64 = 0;
                 let mut __for_first_432: bool = true;
                 while { if !__for_first_432 { i += 1; } __for_first_432 = false; i < (keys.len() as i64) } {
-                let mut currentKey: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-                if (currentKey.as_str() != Some("order_id")) && currentKey.as_str().unwrap_or("").contains("_") {
+                let mut currentKey: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                if (currentKey.as_deref() != Some("order_id")) && currentKey.as_deref().unwrap_or_default().contains("_") {
                     rawMarketId = currentKey.clone();
-                    marketResolved = self.safe_market(&[rawMarketId.clone(), marketResolved.clone(), Value::Str("_".into())]);
+                    marketResolved = self.safe_market(&[rawMarketId.clone().map(Value::from).unwrap_or(Value::Null), marketResolved.clone(), Value::Str("_".into())]);
                 }
             }
             }
@@ -2600,8 +2600,8 @@ impl Bitstamp {
         let mut feeCostString: Option<String> = self.safe_string_k(trade.clone(), "fee", &[]).as_str().map(str::to_owned);
         let mut feeCurrency: Option<String> = self.safe_string_k(marketResolved.clone(), "quote", &[]).as_str().map(str::to_owned);
         let mut priceId: Value = Value::Null;
-        if (rawMarketId != Value::Null) {
-            priceId = rawMarketId;
+        if (rawMarketId.is_some()) {
+            priceId = rawMarketId.clone().map(Value::from).unwrap_or(Value::Null);
         }  else {
             priceId = self.safe_string_k(marketResolved.clone(), "id", &[]);
         }
@@ -2622,15 +2622,15 @@ impl Bitstamp {
             costString = self.safe_string(trade.clone(), Value::from(quoteIdLower), &[]);
         }
         symbol = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut datetimeString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("date".into()), Value::Str("datetime".into()), &[]);
+        let mut datetimeString: Option<String> = self.safe_string2(trade.clone(), Value::Str("date".into()), Value::Str("datetime".into()), &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = Value::Null;
         if (datetimeString.is_some()) {
-            if datetimeString.as_deref().unwrap_or("").contains(" ") {
+            if datetimeString.as_deref().unwrap_or_default().contains(" ") {
                 // iso8601
                 timestamp = self.parse8601(datetimeString.clone().map(Value::from).unwrap_or(Value::Null));
             }  else {
                 // string unix epoch in seconds
-                let mut seconds: Value = self.parse_to_int(datetimeString.map(Value::from).unwrap_or(Value::Null));
+                let mut seconds: Value = self.parse_to_int(datetimeString.clone().map(Value::from).unwrap_or(Value::Null));
                 timestamp = (match (&(seconds), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             }
         }
@@ -2825,7 +2825,7 @@ impl Bitstamp {
         }
         let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
         let __ws_arg_3 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.public_get_ohlc_pair(&[__ws_arg_3]).await;
+        let mut response: crate::value::Dict = self.public_get_ohlc_pair(&[__ws_arg_3]).await.into_dict();
         //
         //     {
         //         "data": {
@@ -2838,11 +2838,11 @@ impl Bitstamp {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut ohlc: Value = self.safe_list_k(data, "ohlc", &[Value::from(vec![])]);
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut ohlc: Value = self.safe_list_k(&data, "ohlc", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(ohlc, &[(market).raw.clone(), timeframe, since, limitResolved]);
         Value::Null
         }).await?))
@@ -2862,13 +2862,13 @@ impl Bitstamp {
                         let mut i: i64 = 0;
             let mut __for_first_433: bool = true;
             while { if !__for_first_433 { i += 1; } __for_first_433 = false; i < (responseEntries.len() as i64) } {
-            let mut currencyBalance: Value = self.safe_dict(responseEntries.clone(), Value::Int(i), &[]);
-            let mut currencyId: Option<String> = self.safe_string_k(currencyBalance.clone(), "currency", &[]).as_str().map(str::to_owned);
+            let mut currencyBalance: crate::value::Dict = self.safe_dict(responseEntries.clone(), Value::Int(i), &[]).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&currencyBalance, "currency", &[]).as_str().map(str::to_owned);
             let mut currencyCode: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string_k(currencyBalance.clone(), "available", &[]));
-            account.insert("used".into(), self.safe_string_k(currencyBalance.clone(), "reserved", &[]));
-            account.insert("total".into(), self.safe_string_k(currencyBalance, "total", &[]));
+            account.insert("free".into(), self.safe_string_k(&currencyBalance, "available", &[]));
+            account.insert("used".into(), self.safe_string_k(&currencyBalance, "reserved", &[]));
+            account.insert("total".into(), self.safe_string_k(&currencyBalance, "total", &[]));
             if (currencyCode != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&currencyCode), Value::Map(account));
             }
@@ -2967,16 +2967,16 @@ impl Bitstamp {
     pub fn parse_trading_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Option<String> = self.safe_string_k(fee.clone(), "market", &[]).as_str().map(str::to_owned);
-        let mut fees: Value = self.safe_dict_k(fee.clone(), "fees", &[Value::Map({
+        let mut fees: crate::value::Dict = self.safe_dict_k(fee.clone(), "fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee);
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market]));
-        m.insert("maker".to_string(), self.safe_number_k(fees.clone(), "maker", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(fees, "taker", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(&fees, "maker", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(&fees, "taker", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
@@ -3073,10 +3073,10 @@ impl Bitstamp {
             let mut __for_first_435: bool = true;
             while { if !__for_first_435 { i += 1; } __for_first_435 = false; i < (ids.len() as i64) } {
             let mut id: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut fees: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
+            let mut fees: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
             if (codes != Value::Null) && !(self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
                 continue;
@@ -3084,7 +3084,7 @@ impl Bitstamp {
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("withdraw_fee".to_string(), self.safe_number_k(fees, "fee", &[]));
+        m.insert("withdraw_fee".to_string(), self.safe_number_k(&fees, "fee", &[]));
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3151,9 +3151,9 @@ impl Bitstamp {
                         let mut j: i64 = 0;
             let mut __for_first_436: bool = true;
             while { if !__for_first_436 { j += 1; } __for_first_436 = false; j < (feeEntries.len() as i64) } {
-            let mut networkEntry: Value = self.safe_dict(feeEntries.clone(), Value::Int(j), &[]);
-            let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(networkEntry.clone(), "network", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut withdrawFee: Value = self.safe_number_k(networkEntry, "fee", &[]);
+            let mut networkEntry: crate::value::Dict = self.safe_dict(feeEntries.clone(), Value::Int(j), &[]).into_dict();
+            let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(&networkEntry, "network", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut withdrawFee: Value = self.safe_number_k(&networkEntry, "fee", &[]);
             result.insert("withdraw".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), withdrawFee.clone());
@@ -3234,9 +3234,9 @@ impl Bitstamp {
         }
         let mut paramsOmitted: Value = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]) } else { params });
         let mut response: Value = Value::Null;
-        let mut capitalizedSide: Value = self.capitalize(side);
+        let mut capitalizedSide: Option<String> = self.capitalize(side).as_str().map(str::to_owned);
         if (type_var.as_str() == Some("market")) {
-            if (capitalizedSide.as_str() == Some("Buy")) {
+            if (capitalizedSide.as_deref() == Some("Buy")) {
                 let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.private_post_buy_market_pair(&[__ws_arg_5]).await;
             }  else {
@@ -3244,7 +3244,7 @@ impl Bitstamp {
                 response = self.private_post_sell_market_pair(&[__ws_arg_6]).await;
             }
         }  else if (type_var.as_str() == Some("instant")) {
-            if (capitalizedSide.as_str() == Some("Buy")) {
+            if (capitalizedSide.as_deref() == Some("Buy")) {
                 let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.private_post_buy_instant_pair(&[__ws_arg_7]).await;
             }  else {
@@ -3253,7 +3253,7 @@ impl Bitstamp {
             }
         }  else {
             request.insert("price".into(), self.price_to_precision(symbol, price));
-            if (capitalizedSide.as_str() == Some("Buy")) {
+            if (capitalizedSide.as_deref() == Some("Buy")) {
                 let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
                 response = self.private_post_buy_pair(&[__ws_arg_9]).await;
             }  else {
@@ -3468,8 +3468,8 @@ impl Bitstamp {
         }
         let mut paramsOmitted: Value = (if (clientOrderId != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into())]), &[]) } else { params });
         let __ws_arg_15 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.private_post_order_status(&[__ws_arg_15]).await;
-        return self.parse_order_status(self.safe_string_k(response, "status", &[])).map(Value::from).unwrap_or(Value::Null);
+        let mut response: crate::value::Dict = self.private_post_order_status(&[__ws_arg_15]).await.into_dict();
+        return self.parse_order_status(self.safe_string_k(&response, "status", &[])).map(Value::from).unwrap_or(Value::Null);
         Value::Null
         }).await?))
     }
@@ -3630,7 +3630,7 @@ impl Bitstamp {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
         let __ws_arg_19 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.public_get_funding_rate_history_pair(&[__ws_arg_19]).await;
+        let mut response: crate::value::Dict = self.public_get_funding_rate_history_pair(&[__ws_arg_19]).await.into_dict();
         //
         //     {
         //         "market": "BTC/USD-PERP",
@@ -3642,7 +3642,7 @@ impl Bitstamp {
         //         ]
         //     }
         //
-        let mut values: Value = self.safe_list_k(response, "funding_rate_history", &[Value::from(vec![])]);
+        let mut values: Value = self.safe_list_k(&response, "funding_rate_history", &[Value::from(vec![])]);
         return self.parse_funding_rate_histories(values, &[market, since, limit]);
         Value::Null
         }).await?))
@@ -3828,7 +3828,7 @@ impl Bitstamp {
         //
         let mut timestamp: Value = self.parse8601(self.safe_string_k(transaction.clone(), "datetime", &[]));
         let mut currencyId: Value = self.get_currency_id_from_transaction(transaction.clone());
-        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), &[currency.clone()]).as_str().map(str::to_owned);
         let mut feeCost: Option<String> = self.safe_string_k(transaction.clone(), "fee", &[]).as_str().map(str::to_owned);
         let mut feeCurrency: Value = Value::Null;
         let mut amount: Option<String> = None;
@@ -3837,9 +3837,9 @@ impl Bitstamp {
         }  else if (currency != Value::Null) {
             amount = self.safe_string(transaction.clone(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             feeCurrency = currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
-        }  else if (code != Value::Null) && (currencyId != Value::Null) {
+        }  else if (code.is_some()) && (currencyId != Value::Null) {
             amount = self.safe_string(transaction.clone(), currencyId, &[]).as_str().map(str::to_owned);
-            feeCurrency = code.clone();
+            feeCurrency = code.clone().map(Value::from).unwrap_or(Value::Null);
         }
         if (amount.is_some()) {
             // withdrawals have a negative amount
@@ -3895,7 +3895,7 @@ impl Bitstamp {
         m.insert("id".to_string(), self.safe_string_k(transaction.clone(), "id", &[]));
         m.insert("txid".to_string(), self.safe_string_k(transaction, "transaction_id", &[]));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), code);
+        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::Null);
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("status".to_string(), status);
@@ -4575,26 +4575,26 @@ impl Bitstamp {
         let mut isPrivatePost: bool = (apiName.as_str() != Some("public")) && (method.as_str() == Some("POST"));
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
-        let mut queryString: Value = self.urlencode(query, &[]);
-        let mut postBody: Value = self.urlencode(Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("foo".to_string(), Value::Str("bar".into()));
-            m
-        }), &[]);
-        if (queryString.as_str() != Some("")) {
+        let mut queryString: Option<String> = self.urlencode(query, &[]).as_str().map(str::to_owned);
+        let mut postBody: Option<String> = self.urlencode(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("foo".to_string(), Value::Str("bar".into()));
+    m
+}), &[]).as_str().map(str::to_owned);
+        if (queryString.as_deref() != Some("")) {
             postBody = queryString.clone();
         }
         let mut requestBody: Value = Value::Null;
         if isPrivatePost {
-            requestBody = postBody.clone();
+            requestBody = postBody.clone().map(Value::from).unwrap_or(Value::Null);
         }
         let mut privateHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (apiName.as_str() == Some("public")) {
-            if (queryString.as_str() != Some("")) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into())).into());
+            if (queryString.as_deref() != Some("")) {
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
             }
         }  else {
             self.check_required_credentials(&[]);
@@ -4615,12 +4615,12 @@ impl Bitstamp {
                 contentType = "application/x-www-form-urlencoded".to_string();
                 if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::from(contentType.clone())); }
             }
-            let mut authBody: Value = Value::Str("".into());
-            if isPrivatePost && (postBody.as_str() != Some("")) {
+            let mut authBody: Option<String> = Some("".to_string());
+            if isPrivatePost && (postBody.as_deref() != Some("")) {
                 authBody = postBody;
             }
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", xAuth, method).into()), url.as_str().map(|__s| Value::Str(__s.replace("https://", "").into())).unwrap_or_else(|| url.clone())).into()),
-                contentType).into()), xAuthNonce).into()), xAuthTimestamp).into()), xAuthVersion).into()), authBody);
+                contentType).into()), xAuthNonce).into()), xAuthTimestamp).into()), xAuthVersion).into()), authBody.clone().map(Value::from).unwrap_or(Value::Null));
             let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("X-Auth-Signature".into(), signature); }
         }
