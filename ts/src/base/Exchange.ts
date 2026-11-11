@@ -1550,15 +1550,17 @@ export class BaseExchange {
     async loadMarkets (reload: boolean = false, params: object = {}): Promise<Dictionary<Market>> {
         if ((reload && (this.reloadingMarkets !== true)) || (this.marketsLoading === undefined)) {
             this.reloadingMarkets = true;
-            this.marketsLoading = (async () => {
-                try {
-                    await functions.initFileSystem();
-                    return await this.loadMarketsHelper(reload, params);
-                } finally {
-                    // This ensures the flag is reset whether it resolves successfully or throws an error
-                    this.reloadingMarkets = false;
-                }
-            })();
+            const promise = async () => {
+                await functions.initFileSystem();
+                return await this.loadMarketsHelper (reload, params);
+            };
+            this.marketsLoading = promise().then ((resolved) => {
+                this.reloadingMarkets = false;
+                return resolved;
+            }, (error) => {
+                this.reloadingMarkets = false;
+                throw error;
+            });
         }
         return this.marketsLoading;
     }
