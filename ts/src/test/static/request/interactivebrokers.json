@@ -47,7 +47,7 @@
                 "input": [
                     [
                         "ETH.COINDERIV/USD:USD",
-                        "BTC.COINDERIV/USD:USD"
+                        "BTC.NANO.COINDERIV/USD:USD"
                     ]
                 ],
                 "output": null

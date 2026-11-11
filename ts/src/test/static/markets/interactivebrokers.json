@@ -439,10 +439,10 @@
         "feeSide": "get",
         "underlyingSymbol": "ETH/USD"
     },
-    "BTC.COINDERIV/USD:USD": {
+    "BTC.NANO.COINDERIV/USD:USD": {
         "id": "805366677",
         "lowercaseId": null,
-        "symbol": "BTC.COINDERIV/USD:USD",
+        "symbol": "BTC.NANO.COINDERIV/USD:USD",
         "base": "BTC",
         "quote": "USD",
         "settle": "USD",
