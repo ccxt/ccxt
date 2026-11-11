@@ -53,7 +53,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('v1/trading/order/{id}/trades', [ 'private' ], 'GET', params, { 'cost': 1 });
     }
 
-    privateGetV1TradingTrade (params = {}): Promise<List> {
+    privateGetV1TradingTrade (params = {}): Promise<Dict> {
         return this.request ('v1/trading/trade', [ 'private' ], 'GET', params, { 'cost': 1 });
     }
 
@@ -69,7 +69,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('v1/trading/movement', [ 'private' ], 'GET', params, { 'cost': 1 });
     }
 
-    privatePostV1TradingOrder (params = {}): Promise<Dict> {
+    privatePostV1TradingOrder (params = {}): Promise<Dict | List> {
         return this.request ('v1/trading/order', [ 'private' ], 'POST', params, { 'cost': 1 });
     }
 
