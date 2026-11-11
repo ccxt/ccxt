@@ -104,7 +104,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // accepts either `query` (a single search string) or `queries` (a list of strings)
         let mut singleQuery: Option<String> = (match params.get("query") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (singleQuery.is_some()) {
-            return Value::from(vec![singleQuery.clone().map(Value::from).unwrap_or(Value::Null)]);
+            return Value::from(vec![singleQuery.map(Value::from).unwrap_or(Value::Null)]);
         }
         return (match params.get("queries") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
 
@@ -121,8 +121,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // venue-specific scope params an exchange declares in options['eventScopeParams'],
         // e.g. kalshi's category / series_ticker
         let mut query: Option<String> = self.safe_string_k(params.clone(), "query", &[]).as_str().map(str::to_owned);
-        let mut queries: Vec<Value> = self.safe_list_k(params.clone(), "queries", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut tags: Vec<Value> = self.safe_list_k(params.clone(), "tags", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut queries: crate::value::List = self.safe_list_k(params.clone(), "queries", &[Value::from(vec![])]).into_list();
+        let mut tags: crate::value::List = self.safe_list_k(params.clone(), "tags", &[Value::from(vec![])]).into_list();
         let mut eventId: Option<String> = self.safe_string_k(params.clone(), "eventId", &[]).as_str().map(str::to_owned);
         let mut slug: Option<String> = self.safe_string_k(params.clone(), "slug", &[]).as_str().map(str::to_owned);
         let mut queriesLength: f64 = ((queries.len() as i64) as f64);
@@ -130,7 +130,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (query.is_some()) || (queriesLength > ((0i64) as f64)) || (tagsLength > ((0i64) as f64)) || (eventId.is_some()) || (slug.is_some()) {
             return Value::Null;
         }
-        let mut extraScopeParams: Vec<Value> = self.safe_list_k(self.options.clone(), "eventScopeParams", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut extraScopeParams: crate::value::List = self.safe_list_k(self.options.clone(), "eventScopeParams", &[Value::from(vec![])]).into_list();
         let mut extraScopeParamsLength: f64 = ((extraScopeParams.len() as i64) as f64);
         let mut extraNames: String = "".to_string();
         {
@@ -358,7 +358,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut wantedKey: Option<String> = self.normalize_tag_key(self.safe_string(tags.clone(), Value::Int(i), &[Value::Str("".into())])).as_str().map(str::to_owned);
             if (wantedKey.as_deref() != Some("")) {
                 // an empty normalized key would substring-match every tag
-                wanted.push(wantedKey.clone().map(Value::from).unwrap_or(Value::Null));
+                wanted.push(wantedKey.map(Value::from).unwrap_or(Value::Null));
             }
         }
         }
@@ -368,7 +368,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_197: bool = true;
             while { if !__for_first_197 { i += 1; } __for_first_197 = false; i < (events.len() as i64) } {
             let mut event: Value = self.safe_value(events.clone(), Value::Int(i), &[]);
-            let mut eventTags: Vec<Value> = self.safe_list_k(event.clone(), "tags", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut eventTags: crate::value::List = self.safe_list_k(event.clone(), "tags", &[Value::from(vec![])]).into_list();
             let mut matched: bool = false;
             {
                                 let mut ti: i64 = 0;
@@ -711,7 +711,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             while { if !__for_first_202 { i += 1; } __for_first_202 = false; i < (rawParts.len() as i64) } {
             let mut w: Option<String> = rawParts.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if ((w.as_deref().unwrap_or_default().chars().count() as i64)) > 0 && !(self.in_array(w.clone().map(Value::from).unwrap_or(Value::Null), stopWords.clone()).as_bool() == Some(true)) {
-                parts.push(w.clone().map(Value::from).unwrap_or(Value::Null));
+                parts.push(w.map(Value::from).unwrap_or(Value::Null));
             }
         }
         }
@@ -736,7 +736,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (eventPart.is_none()) || (eventPart.as_deref() == Some("")) || (eventPart == marketPart) {
             return marketPart.map(Value::from).unwrap_or(Value::Null);
         }
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", eventPart.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("_".into())).into()), marketPart.clone().map(Value::from).unwrap_or(Value::Null)).into());
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", eventPart.map(Value::from).unwrap_or(Value::Null), Value::Str("_".into())).into()), marketPart.map(Value::from).unwrap_or(Value::Null)).into());
 
     Value::Null
 }
@@ -839,7 +839,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 m
             });
         }
-        let mut outcomesList: Vec<Value> = self.safe_list_k(market, "outcomes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut outcomesList: crate::value::List = self.safe_list_k(market, "outcomes", &[Value::from(vec![])]).into_list();
         {
                         let mut j: i64 = 0;
             let mut __for_first_206: bool = true;
@@ -920,7 +920,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (self.markets.clone() == Value::Null) {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
-        let mut markets: Vec<Value> = self.safe_list_k(event, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut markets: crate::value::List = self.safe_list_k(event, "markets", &[Value::from(vec![])]).into_list();
         let mut marketsLength: f64 = ((markets.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
@@ -1123,7 +1123,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             if !wordHasLetters {
                 continue;
             }
-            words.push(word.clone().map(Value::from).unwrap_or(Value::Null));
+            words.push(word.map(Value::from).unwrap_or(Value::Null));
             hasLetters = true;
         }
         }
@@ -1153,7 +1153,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 if let Err(__e) = self.fetch_events(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("query".to_string(), searchQuery.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("query".to_string(), searchQuery.map(Value::from).unwrap_or(Value::Null));
         m.insert("limit".to_string(), Value::from(searchLimit));
     m
 })).await { panic!("{}", __e) }
@@ -2029,11 +2029,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut tradeAmount: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
                 if (tradeAmount.is_some()) {
-                    filled = crate::precise::Precise::stringAdd(&filled.clone().map(Value::from).unwrap_or(Value::Null), &tradeAmount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    filled = crate::precise::Precise::stringAdd(&filled.clone().map(Value::from).unwrap_or(Value::Null), &tradeAmount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }
                 let mut tradeCost: Option<String> = self.safe_string_k(trade.clone(), "cost", &[]).as_str().map(str::to_owned);
                 if (tradeCost.is_some()) {
-                    cost = crate::precise::Precise::stringAdd(&cost.clone().map(Value::from).unwrap_or(Value::Null), &tradeCost.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    cost = crate::precise::Precise::stringAdd(&cost.clone().map(Value::from).unwrap_or(Value::Null), &tradeCost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }
                 if (side.is_none()) {
                     side = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
@@ -2105,19 +2105,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("id".to_string(), self.safe_string_k(outcomeOrder.clone(), "id", &[]));
                 m.insert("clientOrderId".to_string(), self.safe_string_k(outcomeOrder.clone(), "clientOrderId", &[]));
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
                 m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
                 m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(outcomeOrder.clone(), "lastUpdateTimestamp", &[]));
-                m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("type".to_string(), orderType.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
+                m.insert("type".to_string(), orderType.map(Value::from).unwrap_or(Value::Null));
+                m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
+                m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
                 m.insert("price".to_string(), self.parse_number(price, &[]));
-                m.insert("average".to_string(), self.parse_number(average.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-                m.insert("amount".to_string(), self.parse_number(amount.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-                m.insert("filled".to_string(), self.parse_number(filled.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-                m.insert("remaining".to_string(), self.parse_number(remaining.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-                m.insert("cost".to_string(), self.parse_number(cost.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+                m.insert("average".to_string(), self.parse_number(average.map(Value::from).unwrap_or(Value::Null), &[]));
+                m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
+                m.insert("filled".to_string(), self.parse_number(filled.map(Value::from).unwrap_or(Value::Null), &[]));
+                m.insert("remaining".to_string(), self.parse_number(remaining.map(Value::from).unwrap_or(Value::Null), &[]));
+                m.insert("cost".to_string(), self.parse_number(cost.map(Value::from).unwrap_or(Value::Null), &[]));
                 m.insert("fee".to_string(), fee);
                 m.insert("reduceOnly".to_string(), self.safe_bool_k(outcomeOrder.clone(), "reduceOnly", &[]));
                 m.insert("postOnly".to_string(), (if (postOnlyValue.is_some()) { postOnlyValue.map_or(Value::Null, Value::Bool) } else { derivedPostOnly }));
@@ -2154,7 +2154,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("id".to_string(), self.safe_string_k(trade.clone(), "id", &[]));
                 m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order", &[]));
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
                 m.insert("type".to_string(), self.safe_string_k(trade.clone(), "type", &[]));
                 m.insert("side".to_string(), self.safe_string_k(trade.clone(), "side", &[]));
                 m.insert("takerOrMaker".to_string(), self.safe_string_k(trade.clone(), "takerOrMaker", &[]));
@@ -2203,7 +2203,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
                 m.insert("high".to_string(), self.safe_number_k(ticker.clone(), "high", &[]));
                 m.insert("low".to_string(), self.safe_number_k(ticker.clone(), "low", &[]));
                 m.insert("bid".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(ticker.clone(), "bid", &[])), &[]));
@@ -2244,7 +2244,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.safe_string_k(position.clone(), "id", &[]));
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
                 m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "contracts", &[]));
                 m.insert("contractSize".to_string(), self.safe_number_k(position.clone(), "contractSize", &[]));
                 m.insert("side".to_string(), self.safe_string_k(position.clone(), "side", &[]));
@@ -2373,7 +2373,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         results = self.sort_by2(results.clone(), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
         let mut outcomeHandle: Option<String> = self.safe_string_k(outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
-        return self.filter_by_value_since_limit(results, Value::Str("outcome".into()), &[outcomeHandle.clone().map(Value::from).unwrap_or(Value::Null), since, limit, Value::Str("timestamp".into()), Value::Bool(false)]);
+        return self.filter_by_value_since_limit(results, Value::Str("outcome".into()), &[outcomeHandle.map(Value::from).unwrap_or(Value::Null), since, limit, Value::Str("timestamp".into()), Value::Bool(false)]);
 
     Value::Null
 }
@@ -2412,7 +2412,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         results = self.sort_by(results.clone(), Value::Str("timestamp".into()), &[]);
         let mut outcomeHandle: Option<String> = self.safe_string_k(outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
-        return self.filter_by_outcome_since_limit(results, &[outcomeHandle.clone().map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_outcome_since_limit(results, &[outcomeHandle.map(Value::from).unwrap_or(Value::Null), since, limit]);
 
     Value::Null
 }
@@ -2475,7 +2475,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     fn amount_to_prediction_precision(&self, mut outcome: Value, mut amount: Value) -> Value {
         let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
         let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "market", &[]).as_str().map(str::to_owned);
-        return self.amount_to_precision(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), amount);
+        return self.amount_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), amount);
 
     Value::Null
 }
@@ -2483,7 +2483,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     fn price_to_prediction_precision(&self, mut outcome: Value, mut price: Value) -> Value {
         let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
         let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "market", &[]).as_str().map(str::to_owned);
-        return self.price_to_precision(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), price);
+        return self.price_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), price);
 
     Value::Null
 }
@@ -2491,7 +2491,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     fn cost_to_prediction_precision(&self, mut outcome: Value, mut cost: Value) -> Value {
         let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
         let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "market", &[]).as_str().map(str::to_owned);
-        return self.cost_to_precision(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), cost);
+        return self.cost_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), cost);
 
     Value::Null
 }
@@ -2547,7 +2547,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         lengthHex = self.pad_hex_to_even(lengthHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut lengthOfLength: Value = self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0)));
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16((match (&(Value::Int(183)), &(lengthOfLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[]), lengthHex.clone().map(Value::from).unwrap_or(Value::Null)).into()), hex).into());
+            Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[]), lengthHex.map(Value::from).unwrap_or(Value::Null)).into()), hex).into());
 
     Value::Null
 }
@@ -2570,7 +2570,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         lengthHex = self.pad_hex_to_even(lengthHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut lengthOfLength: Value = self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0)));
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16((match (&(Value::Int(247)), &(lengthOfLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[]), lengthHex.clone().map(Value::from).unwrap_or(Value::Null)).into()), concatenated).into());
+            Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[]), lengthHex.map(Value::from).unwrap_or(Value::Null)).into()), concatenated).into());
 
     Value::Null
 }
