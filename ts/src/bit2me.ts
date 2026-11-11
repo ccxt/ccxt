@@ -23,7 +23,7 @@ export default class bit2me extends Exchange {
             'rateLimit': 100, // 600 requests per minute on the starter tier
             'version': 'v1',
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
