@@ -1842,8 +1842,14 @@ func (this *BaseExchange) ParseToInt(number any) int64 {
 	// the cast is erased at transpile-time, so output matches every target language, rather than
 	// branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
 	var stringifiedNumber *string = this.NumberToString(number)
-	var convertedNumber any = ParseFloat(stringifiedNumber)
-	return ParseInt(convertedNumber)
+	if stringifiedNumber == nil {
+		return math.MinInt64
+	}
+	if strings.Contains(*stringifiedNumber, ".") {
+		var convertedNumber any = ParseFloat(stringifiedNumber)
+		return ParseInt(convertedNumber)
+	}
+	return ParseInt(*stringifiedNumber)
 }
 func (this *BaseExchange) ParseToNumeric(number any) any {
 	var stringVersion *string = this.NumberToString(number) // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"

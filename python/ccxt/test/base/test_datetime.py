@@ -206,7 +206,27 @@ def test_ymdhms():
     assert value == '2025-06-17_01:24:16' or value == '2025-06-17_01:24:17'  # todo: php/py rounds up to 17
 
 
+def test_parse_to_int():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    # exact integer values and integer strings above 2^53 (issue #31126)
+    assert exchange.parse_to_int('30000000000000002') == 30000000000000002
+    assert exchange.parse_to_int(2**53 + 1) == 2**53 + 1
+    assert exchange.parse_to_int('123.45') == 123
+    assert exchange.parse_to_int(123.45) == 123
+    assert exchange.parse_to_int('123') == 123
+    assert exchange.parse_to_int(123) == 123
+    assert exchange.parse_to_int('0') == 0
+    assert exchange.parse_to_int(0) == 0
+    assert exchange.parse_to_int('-42') == -42
+    assert exchange.parse_to_int(-42) == -42
+    assert exchange.parse_to_int('-42.8') == -42
+    assert exchange.parse_to_int(-42.8) == -42
+
+
 def test_datetime():
+    test_parse_to_int()
     test_iso8601()
     test_parse8601()
     test_parse_date()

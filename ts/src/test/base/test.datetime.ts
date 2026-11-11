@@ -211,7 +211,25 @@ function testYmdhms () {
     assert (value === '2025-06-17_01:24:16' || value === '2025-06-17_01:24:17'); // todo: php/py rounds up to 17
 }
 
+function testParseToInt () {
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+    });
+
+    assert (exchange.parseToInt ('123.45') === 123);
+    assert (exchange.parseToInt (123.45) === 123);
+    assert (exchange.parseToInt ('123') === 123);
+    assert (exchange.parseToInt (123) === 123);
+    assert (exchange.parseToInt ('0') === 0);
+    assert (exchange.parseToInt (0) === 0);
+    assert (exchange.parseToInt ('-42') === -42);
+    assert (exchange.parseToInt (-42) === -42);
+    assert (exchange.parseToInt ('-42.8') === -42);
+    assert (exchange.parseToInt (-42.8) === -42);
+}
+
 function testDatetime () {
+    testParseToInt ();
     testIso8601 ();
     testParse8601 ();
     testParseDate ();

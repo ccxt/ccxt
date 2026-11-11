@@ -1519,8 +1519,16 @@ public partial class BaseExchange
         // the cast is erased at transpile-time, so output matches every target language, rather than
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
         string stringifiedNumber = this.numberToString(number);
-        object convertedNumber = JsParse.parseFloat(stringifiedNumber);
-        return ((Int64?)((object)(parseInt(((object)convertedNumber)))));
+        if (stringifiedNumber == null)
+        {
+            return null;
+        }
+        if (stringifiedNumber.IndexOf(".", StringComparison.Ordinal) >= 0)
+        {
+            object convertedNumber = JsParse.parseFloat(stringifiedNumber);
+            return ((Int64?)((object)(parseInt(((object)convertedNumber)))));
+        }
+        return JsParse.parseInt(stringifiedNumber);
     }
 
     public virtual object parseToNumeric(object number)

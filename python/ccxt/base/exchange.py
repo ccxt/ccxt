@@ -3797,8 +3797,10 @@ class BaseExchange(object):
         # the cast is erased at transpile-time, so output matches every target language, rather than
         # branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
         stringifiedNumber = self.number_to_string(number)
-        convertedNumber = float(stringifiedNumber)
-        return int(convertedNumber)
+        if stringifiedNumber.find('.') >= 0:
+            convertedNumber = float(stringifiedNumber)
+            return int(convertedNumber)
+        return int(stringifiedNumber)
 
     def parse_to_numeric(self, number: object):
         stringVersion = self.number_to_string(number)  # this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
