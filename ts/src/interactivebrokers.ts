@@ -1815,8 +1815,7 @@ export default class interactivebrokers extends Exchange {
                 contractSize = this.safeString (this.options, 'defaultContractSize', '1');
             }
         }
-        let symbol = base + '/' + quote + '.' + listingExchange; // specific to IBKR
-        const underlyingSymbol = base + '/' + quote;
+        let symbol = base + '.' + listingExchange + '/' + quote; // specific to IBKR
         let settleId: Str = undefined;
         let settle: Str = undefined;
         if (isContract) {
@@ -1836,7 +1835,6 @@ export default class interactivebrokers extends Exchange {
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
-            'underlyingSymbol': underlyingSymbol,
             'quote': quote,
             'quoteId': quoteId,
             'base': base,

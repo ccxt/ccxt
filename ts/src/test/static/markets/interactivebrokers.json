@@ -1,8 +1,8 @@
 {
-    "ETH/USD.PAXOS": {
+    "ETH.PAXOS/USD": {
         "id": "495759171",
         "lowercaseId": null,
-        "symbol": "ETH/USD.PAXOS",
+        "symbol": "ETH.PAXOS/USD",
         "base": "ETH",
         "quote": "USD",
         "settle": null,
@@ -112,10 +112,10 @@
         "percentage": true,
         "feeSide": "get"
     },
-    "BTC/USD.PAXOS": {
+    "BTC.PAXOS/USD": {
         "id": "479624278",
         "lowercaseId": null,
-        "symbol": "BTC/USD.PAXOS",
+        "symbol": "BTC.PAXOS/USD",
         "base": "BTC",
         "quote": "USD",
         "settle": null,
@@ -224,10 +224,10 @@
         "percentage": true,
         "feeSide": "get"
     },
-    "AAPL/USD.NASDAQ": {
+    "AAPL.NASDAQ/USD": {
         "id": "265598",
         "lowercaseId": null,
-        "symbol": "AAPL/USD.NASDAQ",
+        "symbol": "AAPL.NASDAQ/USD",
         "base": "AAPL",
         "quote": "USD",
         "settle": null,

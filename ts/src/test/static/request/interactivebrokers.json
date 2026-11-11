@@ -20,7 +20,7 @@
                 "method": "fetchPositionsForSymbol",
                 "url": "https://localhost:5000/v1/api/portfolio/U3448646/position/495759171",
                 "input": [
-                    "ETH/USD.PAXOS"
+                    "ETH.PAXOS/USD"
                 ],
                 "output": null
             }
@@ -32,8 +32,8 @@
                 "url": "https://localhost:5000/v1/api/portfolio2/U3448646/positions",
                 "input": [
                     [
-                        "ETH/USD.PAXOS",
-                        "BTC/USD.PAXOS"
+                        "ETH.PAXOS/USD",
+                        "BTC.PAXOS/USD"
                     ]
                 ],
                 "output": null
@@ -60,7 +60,7 @@
                 "url": "https://api.ibkr.com/v1/api/iserver/account/order/status/1490918069",
                 "input": [
                     1490918069,
-                    "AAPL/USD.NASDAQ"
+                    "AAPL.NASDAQ/USD"
                 ],
                 "output": null
             }
@@ -71,7 +71,7 @@
                 "method": "fetchOHLCV",
                 "url": "https://localhost:5000/v1/api/iserver/marketdata/history?conid=495759171&bar=1min&period=1000min",
                 "input": [
-                    "ETH/USD.PAXOS"
+                    "ETH.PAXOS/USD"
                 ],
                 "output": null
             },
@@ -80,7 +80,7 @@
                 "method": "fetchOHLCV",
                 "url": "https://api.ibkr.com/v1/api/iserver/marketdata/history?conid=265598&bar=1d&period=3d",
                 "input": [
-                    "AAPL/USD.NASDAQ",
+                    "AAPL.NASDAQ/USD",
                     "1d",
                     null,
                     3
@@ -103,7 +103,7 @@
                 "method": "fetchCanceledAndClosedOrders",
                 "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=filled%2Ccancelled",
                 "input": [
-                    "ETH/USD.PAXOS"
+                    "ETH.PAXOS/USD"
                 ],
                 "output": null
             }
@@ -124,8 +124,8 @@
                 "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=479624278%2C495759171&fields=7635",
                 "input": [
                     [
-                        "BTC/USD.PAXOS",
-                        "ETH/USD.PAXOS"
+                        "BTC.PAXOS/USD",
+                        "ETH.PAXOS/USD"
                     ]
                 ],
                 "output": null
@@ -138,8 +138,8 @@
                 "url": "https://localhost:5000/v1/api/iserver/marketdata/snapshot?conids=495759171%2C479624278&fields=31",
                 "input": [
                     [
-                        "ETH/USD.PAXOS",
-                        "BTC/USD.PAXOS"
+                        "ETH.PAXOS/USD",
+                        "BTC.PAXOS/USD"
                     ]
                 ],
                 "output": null
@@ -150,8 +150,8 @@
                 "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=479624278%2C495759171&fields=31",
                 "input": [
                     [
-                        "BTC/USD.PAXOS",
-                        "ETH/USD.PAXOS"
+                        "BTC.PAXOS/USD",
+                        "ETH.PAXOS/USD"
                     ]
                 ],
                 "output": null
@@ -164,8 +164,8 @@
                 "url": "https://localhost:5000/v1/api/iserver/marketdata/snapshot?conids=495759171%2C479624278&fields=84%2C85%2C86%2C88",
                 "input": [
                     [
-                        "ETH/USD.PAXOS",
-                        "BTC/USD.PAXOS"
+                        "ETH.PAXOS/USD",
+                        "BTC.PAXOS/USD"
                     ]
                 ],
                 "output": null
@@ -176,8 +176,8 @@
                 "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=479624278%2C495759171&fields=84%2C85%2C86%2C88",
                 "input": [
                     [
-                        "BTC/USD.PAXOS",
-                        "ETH/USD.PAXOS"
+                        "BTC.PAXOS/USD",
+                        "ETH.PAXOS/USD"
                     ]
                 ],
                 "output": null
@@ -189,7 +189,7 @@
                 "method": "createOrder",
                 "url": "https://api.ibkr.com/v1/api/iserver/account/U3448646/orders",
                 "input": [
-                    "AAPL/USD.NASDAQ",
+                    "AAPL.NASDAQ/USD",
                     "limit",
                     "buy",
                     1,
@@ -202,7 +202,7 @@
                 "method": "createOrder",
                 "url": "https://api.ibkr.com/v1/api/iserver/account/U3448646/orders",
                 "input": [
-                    "ETH/USD.PAXOS",
+                    "ETH.PAXOS/USD",
                     "market",
                     "buy",
                     1,
@@ -223,7 +223,7 @@
                 },
                 "url": "https://localhost:5000/v1/api/iserver/account/U3448646/orders",
                 "input": [
-                    "ETH/USD.PAXOS",
+                    "ETH.PAXOS/USD",
                     "market",
                     "buy",
                     1,
@@ -240,7 +240,7 @@
                 "method": "createOrder",
                 "url": "https://api.ibkr.com/v1/api/iserver/reply/177043b5-c95d-4809-b515-7357ed7ea4c7",
                 "input": [
-                    "ETH/USD.PAXOS",
+                    "ETH.PAXOS/USD",
                     "limit",
                     "sell",
                     0.01,
@@ -256,8 +256,8 @@
                 "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=479624278%2C495759171&fields=31%2C55%2C70%2C71%2C82%2C83%2C84%2C85%2C86%2C88%2C6457%2C6509%2C7058%2C7295%2C7296%2C7635%2C7741%2C7762",
                 "input": [
                     [
-                        "BTC/USD.PAXOS",
-                        "ETH/USD.PAXOS"
+                        "BTC.PAXOS/USD",
+                        "ETH.PAXOS/USD"
                     ]
                 ],
                 "output": null
@@ -269,7 +269,7 @@
                 "method": "fetchMyTrades",
                 "url": "https://api.ibkr.com/v1/api/pa/transactions",
                 "input": [
-                    "ETH/USD.PAXOS"
+                    "ETH.PAXOS/USD"
                 ],
                 "output": "{\"acctIds\":[\"U3448646\"],\"conids\":[495759171],\"currency\":\"USD\",\"days\":90}"
             }
@@ -280,7 +280,7 @@
                 "method": "fetchOrders",
                 "url": "https://api.ibkr.com/v1/api/iserver/account/orders",
                 "input": [
-                    "ETH/USD.PAXOS"
+                    "ETH.PAXOS/USD"
                 ],
                 "output": null
             }
@@ -291,7 +291,7 @@
                 "method": "fetchOpenOrders",
                 "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=pending_submit%2Cpre_submitted%2Csubmitted%2Cpending_cancel%2Cwarn_state",
                 "input": [
-                    "ETH/USD.PAXOS"
+                    "ETH.PAXOS/USD"
                 ],
                 "output": null
             }
@@ -302,7 +302,7 @@
                 "method": "fetchClosedOrders",
                 "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=filled",
                 "input": [
-                    "ETH/USD.PAXOS"
+                    "ETH.PAXOS/USD"
                 ],
                 "output": null
             }
@@ -313,7 +313,7 @@
                 "method": "fetchCanceledOrders",
                 "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=cancelled",
                 "input": [
-                    "ETH/USD.PAXOS"
+                    "ETH.PAXOS/USD"
                 ],
                 "output": null
             },
@@ -322,7 +322,7 @@
                 "method": "fetchCanceledOrders",
                 "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=cancelled",
                 "input": [
-                    "ETH/USD.PAXOS"
+                    "ETH.PAXOS/USD"
                 ],
                 "output": null
             }
@@ -348,7 +348,7 @@
                 "url": "https://api.ibkr.com/v1/api/iserver/account/U3448646/order/1490918069",
                 "input": [
                     1490918069,
-                    "AAPL/USD.NASDAQ"
+                    "AAPL.NASDAQ/USD"
                 ],
                 "output": null
             },

@@ -16,7 +16,7 @@
                 "description": "spot crypto",
                 "method": "fetchPositionsForSymbol",
                 "input": [
-                    "ETH/USD.PAXOS"
+                    "ETH.PAXOS/USD"
                 ],
                 "httpResponse": [
                     {
@@ -69,7 +69,7 @@
                             "model": ""
                         },
                         "id": null,
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "timestamp": null,
                         "datetime": null,
                         "isolated": null,
@@ -106,8 +106,8 @@
                 "method": "fetchPositions",
                 "input": [
                     [
-                        "ETH/USD.PAXOS",
-                        "BTC/USD.PAXOS"
+                        "ETH.PAXOS/USD",
+                        "BTC.PAXOS/USD"
                     ]
                 ],
                 "httpResponse": [
@@ -153,7 +153,7 @@
                             "model": ""
                         },
                         "id": null,
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "timestamp": 1794325185000,
                         "datetime": "2026-11-10T15:39:45.000Z",
                         "isolated": null,
@@ -272,8 +272,8 @@
                 "method": "fetchBidsAsks",
                 "input": [
                     [
-                        "ETH/USD.PAXOS",
-                        "BTC/USD.PAXOS"
+                        "ETH.PAXOS/USD",
+                        "BTC.PAXOS/USD"
                     ]
                 ],
                 "httpResponse": [
@@ -305,8 +305,8 @@
                     }
                 ],
                 "parsedResponse": {
-                    "ETH/USD.PAXOS": {
-                        "symbol": "ETH/USD.PAXOS",
+                    "ETH.PAXOS/USD": {
+                        "symbol": "ETH.PAXOS/USD",
                         "timestamp": 1794324723141,
                         "datetime": "2026-11-10T15:32:03.141Z",
                         "high": null,
@@ -341,8 +341,8 @@
                             "server_id": "q2"
                         }
                     },
-                    "BTC/USD.PAXOS": {
-                        "symbol": "BTC/USD.PAXOS",
+                    "BTC.PAXOS/USD": {
+                        "symbol": "BTC.PAXOS/USD",
                         "timestamp": 1794324722875,
                         "datetime": "2026-11-10T15:32:02.875Z",
                         "high": null,
@@ -386,8 +386,8 @@
                 "method": "fetchLastPrices",
                 "input": [
                     [
-                        "ETH/USD.PAXOS",
-                        "BTC/USD.PAXOS"
+                        "ETH.PAXOS/USD",
+                        "BTC.PAXOS/USD"
                     ]
                 ],
                 "httpResponse": [
@@ -411,8 +411,8 @@
                     }
                 ],
                 "parsedResponse": {
-                    "ETH/USD.PAXOS": {
-                        "symbol": "ETH/USD.PAXOS",
+                    "ETH.PAXOS/USD": {
+                        "symbol": "ETH.PAXOS/USD",
                         "timestamp": 1794324663559,
                         "datetime": "2026-11-10T15:31:03.559Z",
                         "price": 2059.4,
@@ -427,8 +427,8 @@
                             "server_id": "q2"
                         }
                     },
-                    "BTC/USD.PAXOS": {
-                        "symbol": "BTC/USD.PAXOS",
+                    "BTC.PAXOS/USD": {
+                        "symbol": "BTC.PAXOS/USD",
                         "timestamp": 1794324663616,
                         "datetime": "2026-11-10T15:31:03.616Z",
                         "price": 73926.25,
@@ -453,7 +453,7 @@
                 "method": "fetchOrder",
                 "input": [
                     1490918069,
-                    "AAPL/USD.NASDAQ"
+                    "AAPL.NASDAQ/USD"
                 ],
                 "httpResponse": {
                     "sub_type": null,
@@ -511,7 +511,7 @@
                     "datetime": "2026-11-10T09:14:17.000Z",
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": null,
-                    "symbol": "AAPL/USD.NASDAQ",
+                    "symbol": "AAPL.NASDAQ/USD",
                     "type": "limit",
                     "timeInForce": "Day",
                     "postOnly": false,
@@ -588,7 +588,7 @@
                 "description": "crypto spot",
                 "method": "fetchOHLCV",
                 "input": [
-                    "ETH/USD.PAXOS"
+                    "ETH.PAXOS/USD"
                 ],
                 "httpResponse": {
                     "serverId": "3625473",
@@ -16620,7 +16620,7 @@
                 "description": "stock daily candles",
                 "method": "fetchOHLCV",
                 "input": [
-                    "AAPL/USD.NASDAQ",
+                    "AAPL.NASDAQ/USD",
                     "1d",
                     null,
                     3
@@ -16772,7 +16772,7 @@
                 "description": "crypto spot",
                 "method": "fetchCanceledAndClosedOrders",
                 "input": [
-                    "ETH/USD.PAXOS"
+                    "ETH.PAXOS/USD"
                 ],
                 "httpResponse": {
                     "orders": [
@@ -17055,7 +17055,7 @@
                         "datetime": "2026-10-22T14:52:20.000Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": null,
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "type": "limit",
                         "timeInForce": "PAX",
                         "postOnly": false,
@@ -17116,7 +17116,7 @@
                         "datetime": "2026-10-22T14:52:48.000Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": null,
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "type": "limit",
                         "timeInForce": "PAX",
                         "postOnly": false,
@@ -17177,7 +17177,7 @@
                         "datetime": "2026-10-22T14:53:14.000Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": null,
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "type": "limit",
                         "timeInForce": "PAX",
                         "postOnly": false,
@@ -17238,7 +17238,7 @@
                         "datetime": "2026-10-22T15:05:50.000Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": null,
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "type": "limit",
                         "timeInForce": "GTC",
                         "postOnly": false,
@@ -17299,7 +17299,7 @@
                         "datetime": "2026-10-22T15:22:28.000Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": null,
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "type": "market",
                         "timeInForce": "IOC",
                         "postOnly": false,
@@ -17362,7 +17362,7 @@
                         "datetime": "2026-10-22T16:17:46.000Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": null,
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "type": "limit",
                         "timeInForce": "GTC",
                         "postOnly": false,
@@ -17422,7 +17422,7 @@
                         "datetime": "2026-10-22T16:18:19.000Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": null,
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "type": "limit",
                         "timeInForce": "GTC",
                         "postOnly": false,
@@ -17483,7 +17483,7 @@
                         "datetime": "2026-10-22T16:19:08.000Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": null,
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "type": "market",
                         "timeInForce": "IOC",
                         "postOnly": false,
@@ -17590,7 +17590,7 @@
                 "description": "stock limit buy",
                 "method": "createOrder",
                 "input": [
-                    "AAPL/USD.NASDAQ",
+                    "AAPL.NASDAQ/USD",
                     "limit",
                     "buy",
                     1,
@@ -17611,7 +17611,7 @@
                     "datetime": null,
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": null,
-                    "symbol": "AAPL/USD.NASDAQ",
+                    "symbol": "AAPL.NASDAQ/USD",
                     "type": null,
                     "timeInForce": null,
                     "postOnly": null,
@@ -17643,7 +17643,7 @@
                 "description": "spot crypto buy market",
                 "method": "createOrder",
                 "input": [
-                    "ETH/USD.PAXOS",
+                    "ETH.PAXOS/USD",
                     "market",
                     "buy",
                     1,
@@ -17667,7 +17667,7 @@
                     "datetime": null,
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": null,
-                    "symbol": "ETH/USD.PAXOS",
+                    "symbol": "ETH.PAXOS/USD",
                     "type": null,
                     "timeInForce": null,
                     "postOnly": null,
@@ -17699,7 +17699,7 @@
                 "description": "spot crypto sell limit",
                 "method": "createOrder",
                 "input": [
-                    "ETH/USD.PAXOS",
+                    "ETH.PAXOS/USD",
                     "limit",
                     "sell",
                     0.01,
@@ -17720,7 +17720,7 @@
                     "datetime": null,
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": null,
-                    "symbol": "ETH/USD.PAXOS",
+                    "symbol": "ETH.PAXOS/USD",
                     "type": null,
                     "timeInForce": null,
                     "postOnly": null,
@@ -17755,8 +17755,8 @@
                 "method": "fetchTickers",
                 "input": [
                     [
-                        "BTC/USD.PAXOS",
-                        "ETH/USD.PAXOS"
+                        "BTC.PAXOS/USD",
+                        "ETH.PAXOS/USD"
                     ]
                 ],
                 "httpResponse": [
@@ -17804,8 +17804,8 @@
                     }
                 ],
                 "parsedResponse": {
-                    "ETH/USD.PAXOS": {
-                        "symbol": "ETH/USD.PAXOS",
+                    "ETH.PAXOS/USD": {
+                        "symbol": "ETH.PAXOS/USD",
                         "timestamp": 1792673743489,
                         "datetime": "2026-10-22T12:55:43.489Z",
                         "high": 2525,
@@ -17848,8 +17848,8 @@
                             "conid": 495759171
                         }
                     },
-                    "BTC/USD.PAXOS": {
-                        "symbol": "BTC/USD.PAXOS",
+                    "BTC.PAXOS/USD": {
+                        "symbol": "BTC.PAXOS/USD",
                         "timestamp": 1792673743989,
                         "datetime": "2026-10-22T12:55:43.989Z",
                         "high": 84827.25,
@@ -17900,7 +17900,7 @@
                 "description": "spot crypto",
                 "method": "fetchMyTrades",
                 "input": [
-                    "ETH/USD.PAXOS"
+                    "ETH.PAXOS/USD"
                 ],
                 "httpResponse": {
                     "nd": 91,
@@ -18063,7 +18063,7 @@
                         },
                         "timestamp": 1791432000000,
                         "datetime": "2026-10-08T04:00:00.000Z",
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "order": null,
                         "type": null,
                         "side": "buy",
@@ -18095,7 +18095,7 @@
                         },
                         "timestamp": 1791518400000,
                         "datetime": "2026-10-09T04:00:00.000Z",
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "order": null,
                         "type": null,
                         "side": "sell",
@@ -18127,7 +18127,7 @@
                         },
                         "timestamp": 1791864000000,
                         "datetime": "2026-10-13T04:00:00.000Z",
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "order": null,
                         "type": null,
                         "side": "buy",
@@ -18159,7 +18159,7 @@
                         },
                         "timestamp": 1791864000000,
                         "datetime": "2026-10-13T04:00:00.000Z",
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "order": null,
                         "type": null,
                         "side": "sell",
@@ -18191,7 +18191,7 @@
                         },
                         "timestamp": 1792382400000,
                         "datetime": "2026-10-19T04:00:00.000Z",
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "order": null,
                         "type": null,
                         "side": "buy",
@@ -18223,7 +18223,7 @@
                         },
                         "timestamp": 1792382400000,
                         "datetime": "2026-10-19T04:00:00.000Z",
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "order": null,
                         "type": null,
                         "side": "sell",
@@ -18255,7 +18255,7 @@
                         },
                         "timestamp": 1792555200000,
                         "datetime": "2026-10-21T04:00:00.000Z",
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "order": null,
                         "type": null,
                         "side": "buy",
@@ -18277,7 +18277,7 @@
                 "description": "spot crypto",
                 "method": "fetchOrders",
                 "input": [
-                    "ETH/USD.PAXOS"
+                    "ETH.PAXOS/USD"
                 ],
                 "httpResponse": {
                     "orders": [
@@ -18421,7 +18421,7 @@
                         "datetime": "2026-10-21T08:32:14.000Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": null,
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "type": "limit",
                         "timeInForce": "PAX",
                         "postOnly": false,
@@ -18481,7 +18481,7 @@
                         "datetime": "2026-10-21T08:42:21.000Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": null,
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "type": "limit",
                         "timeInForce": "PAX",
                         "postOnly": false,
@@ -18541,7 +18541,7 @@
                         "datetime": "2026-10-21T10:05:27.000Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": null,
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "type": "limit",
                         "timeInForce": "PAX",
                         "postOnly": false,
@@ -18602,7 +18602,7 @@
                         "datetime": "2026-10-21T12:42:21.000Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": null,
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "type": "limit",
                         "timeInForce": "GTC",
                         "postOnly": false,
@@ -18663,7 +18663,7 @@
                 "description": "spot crypto",
                 "method": "fetchOpenOrders",
                 "input": [
-                    "ETH/USD.PAXOS"
+                    "ETH.PAXOS/USD"
                 ],
                 "httpResponse": {
                     "orders": [
@@ -18710,7 +18710,7 @@
                         "datetime": "2026-10-21T12:42:21.000Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": null,
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "type": "limit",
                         "timeInForce": "GTC",
                         "postOnly": false,
@@ -18771,7 +18771,7 @@
                 "description": "spot crypto",
                 "method": "fetchCanceledOrders",
                 "input": [
-                    "ETH/USD.PAXOS"
+                    "ETH.PAXOS/USD"
                 ],
                 "httpResponse": {
                     "orders": [
@@ -18850,7 +18850,7 @@
                         "datetime": "2026-10-21T08:32:14.000Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": null,
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "type": "limit",
                         "timeInForce": "PAX",
                         "postOnly": false,
@@ -18910,7 +18910,7 @@
                         "datetime": "2026-10-21T08:42:21.000Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": null,
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "type": "limit",
                         "timeInForce": "PAX",
                         "postOnly": false,
@@ -18971,7 +18971,7 @@
                 "description": "spot crypto",
                 "method": "fetchClosedOrders",
                 "input": [
-                    "ETH/USD.PAXOS"
+                    "ETH.PAXOS/USD"
                 ],
                 "httpResponse": {
                     "orders": [
@@ -19019,7 +19019,7 @@
                         "datetime": "2026-10-21T10:05:27.000Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": null,
-                        "symbol": "ETH/USD.PAXOS",
+                        "symbol": "ETH.PAXOS/USD",
                         "type": "limit",
                         "timeInForce": "PAX",
                         "postOnly": false,
@@ -19366,7 +19366,7 @@
                 "method": "cancelOrder",
                 "input": [
                     1490918069,
-                    "AAPL/USD.NASDAQ"
+                    "AAPL.NASDAQ/USD"
                 ],
                 "httpResponse": {
                     "msg": "Request was submitted",
@@ -19381,7 +19381,7 @@
                     "datetime": null,
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": null,
-                    "symbol": "AAPL/USD.NASDAQ",
+                    "symbol": "AAPL.NASDAQ/USD",
                     "type": null,
                     "timeInForce": null,
                     "postOnly": null,
