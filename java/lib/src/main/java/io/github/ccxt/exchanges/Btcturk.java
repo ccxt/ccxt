@@ -926,30 +926,36 @@ public class Btcturk extends BtcturkApi
             //        ]
             //    }
             //
-            return this.parseOHLCVs(response, market, java.util.Objects.requireNonNullElse(timeframe, "1h"), since, limitResolved, false);
+            List<Object> timestamp = (List<Object>) this.safeList(response, "t", new ArrayList<Object>(Arrays.asList()));
+            List<Object> high = (List<Object>) this.safeList(response, "h", new ArrayList<Object>(Arrays.asList()));
+            List<Object> open = (List<Object>) this.safeList(response, "o", new ArrayList<Object>(Arrays.asList()));
+            List<Object> low = (List<Object>) this.safeList(response, "l", new ArrayList<Object>(Arrays.asList()));
+            List<Object> close = (List<Object>) this.safeList(response, "c", new ArrayList<Object>(Arrays.asList()));
+            List<Object> volume = (List<Object>) this.safeList(response, "v", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)timestamp).size(); i++)
+            {
+                HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+                mapLiteral8.put("timestamp", this.safeInteger(timestamp, i));
+                mapLiteral8.put("high", this.safeNumber(high, i, (Object) null));
+                mapLiteral8.put("open", this.safeNumber(open, i, (Object) null));
+                mapLiteral8.put("low", this.safeNumber(low, i, (Object) null));
+                mapLiteral8.put("close", this.safeNumber(close, i, (Object) null));
+                mapLiteral8.put("volume", this.safeNumber(volume, i, (Object) null));
+                ((List<Object>)rows).add(mapLiteral8);
+            }
+            return this.parseOHLCVs(rows, market, java.util.Objects.requireNonNullElse(timeframe, "1h"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
     public List<Object> parseOHLCVs(Object ohlcvs, Object market, String timeframe, Long since, Long limit, Object tail)
     {
+        List<Object> rows = this.toArray(ohlcvs);
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        List<Object> timestamp = (List<Object>) this.safeList(ohlcvs, "t", new ArrayList<Object>(Arrays.asList()));
-        List<Object> high = (List<Object>) this.safeList(ohlcvs, "h", new ArrayList<Object>(Arrays.asList()));
-        List<Object> open = (List<Object>) this.safeList(ohlcvs, "o", new ArrayList<Object>(Arrays.asList()));
-        List<Object> low = (List<Object>) this.safeList(ohlcvs, "l", new ArrayList<Object>(Arrays.asList()));
-        List<Object> close = (List<Object>) this.safeList(ohlcvs, "c", new ArrayList<Object>(Arrays.asList()));
-        List<Object> volume = (List<Object>) this.safeList(ohlcvs, "v", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)timestamp).size(); i++)
+        for (var i = 0; i < ((List<?>)rows).size(); i++)
         {
-            Map<String, Object> ohlcv = new HashMap<String, Object>();
-            ohlcv.put("timestamp", this.safeInteger(timestamp, i));
-            ohlcv.put("high", this.safeNumber(high, i, (Object) null));
-            ohlcv.put("open", this.safeNumber(open, i, (Object) null));
-            ohlcv.put("low", this.safeNumber(low, i, (Object) null));
-            ohlcv.put("close", this.safeNumber(close, i, (Object) null));
-            ohlcv.put("volume", this.safeNumber(volume, i, (Object) null));
-            ((List<Object>)results).add(this.parseOHLCV(ohlcv, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); }))));
+            ((List<Object>)results).add(this.parseOHLCV(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); }))));
         }
         List<Object> sorted = this.sortBy(results, 0);
         return this.filterBySinceLimit(sorted, since, limit, 0, java.util.Objects.requireNonNullElse(tail, false));

@@ -8837,9 +8837,9 @@ public class Gate extends GateApi
                     requestUntil.put("currency_pair", market.get("id"));
                 }
                 response = (this.privateMarginGetUniInterestRecords(this.extend(requestUntil, paramsMarginMode))).join();
-            } else if (java.util.Objects.equals(marginMode, "cross"))
+            } else
             {
-                // deprecated and not present in the exchange's docs but still works
+                // cross: deprecated and not present in the exchange's docs but still works
                 response = (this.privateMarginGetCrossInterestRecords(this.extend(requestUntil, paramsMarginMode))).join();
             }
             List<Object> interest = this.parseBorrowInterests(response, market);

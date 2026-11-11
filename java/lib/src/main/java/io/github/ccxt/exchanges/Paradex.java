@@ -874,7 +874,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "results", (Object) null);
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(data);
         });
 

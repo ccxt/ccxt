@@ -472,7 +472,7 @@ public class Hibachi extends HibachiApi
             //     "underlyingDecimals": 9,
             //     "underlyingSymbol": "ETH"
             // },
-            List<Object> rows = (List<Object>) this.safeList(response, "futureContracts", (Object) null);
+            List<Object> rows = (List<Object>) this.safeList(response, "futureContracts", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(rows);
         });
 
