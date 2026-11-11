@@ -456,7 +456,7 @@ public class BaseTest {
         BaseExchange.syncSleep = true;
         var exchange = (BaseExchange) exchange2;
         var client = exchange.client(url);
-        client.startedConnecting.set(true);
+        client.startedConnecting = true;
         client.isMock = true;
         client.isConnected = true;
         client.connected.complete(true);
@@ -468,7 +468,16 @@ public class BaseTest {
         // handler - the same entry point the real transport invokes
         var exchange = (BaseExchange) exchange2;
         var client = exchange.client(url);
-        client.handleMessageCallback.accept(client, message);
+        try {
+            client.handleMessageCallback.accept(client, message);
+        } catch (Exception e) {
+            // mirror the real transport (WsClient.onMessage): a handler that throws must
+            // fail the pending watch futures, otherwise the watch side of the static test
+            // joins forever and the whole suite hangs instead of reporting the error
+            System.err.println("[STATIC_WS] handleMessage threw on injected frame: " + e);
+            e.printStackTrace();
+            client.reject(e);
+        }
     }
 
     public static Object getWsSentMessages(Object exchange2, Object url) {

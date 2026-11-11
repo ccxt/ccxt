@@ -176,17 +176,6 @@ public class KrakenfuturesApi extends Exchange
     }
 
     /**
-     * Calls the privateGetRecentorders endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privateGetRecentorders (Object... optionalArgs)
-    {
-        return this.callAsync ("privateGetRecentorders", optionalArgs);
-    }
-
-    /**
      * Calls the privateGetFills endpoint.
      *
      * @param optionalArgs the request parameters

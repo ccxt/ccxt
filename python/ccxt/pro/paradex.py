@@ -5,28 +5,34 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide
-from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
+from ccxt.base.types import Balances, Bool, Int, Liquidation, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.precise import Precise
 
 
 class paradex(ccxt.async_support.paradex):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(paradex, self).describe(), {
             'has': {
                 'ws': True,
+                'watchBidsAsks': True,
                 'watchFundingRate': True,
                 'watchFundingRates': True,
+                'watchLiquidations': True,
+                'watchMarkPrice': True,
+                'watchMarkPrices': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchOrderBook': True,
+                'watchOrderBookForSymbols': True,
                 'watchOrders': True,
                 'watchMyTrades': True,
                 'watchPositions': True,
                 'watchTrades': True,
-                'watchTradesForSymbols': False,
+                'watchTradesForSymbols': True,
                 'watchBalance': True,
                 'watchOHLCV': False,
             },
@@ -53,6 +59,16 @@ class paradex(ccxt.async_support.paradex):
                 'sbeSchemaVersion': '3',
                 # SBE frames must reach handleMessage as raw bytes, the JSON feed only sends text frames
                 'decompressBinary': False,
+                'watchOrderBook': {
+                    # true subscribes to the full-depth deltas feed, a limit above 15 does too, otherwise
+                    # the book is the 15-level snapshot sent every 100ms
+                    'deltas': False,
+                },
+                'ws': {
+                    # paces the requests sent on a connection: a subscribe per market adds up when
+                    # many symbols are watched at once
+                    'cost': 2,
+                },
             },
             'streaming': {},
         })
@@ -64,7 +80,13 @@ class paradex(ccxt.async_support.paradex):
         schemaVersion = self.safe_string(self.options, 'sbeSchemaVersion', '3')
         return url + '?sbeSchemaId=1&sbeSchemaVersion=' + schemaVersion
 
-    def get_order_book_channel(self, marketId: Str) -> str:
+    def get_order_book_channel(self, marketId: Str, deltas: bool = False) -> str:
+        if deltas:
+            # the docs list the channel as order_book.{market_symbol}.{feed_type}@15@{refresh_rate}, but the deltas feed
+            # takes none of those parameters: it sends one full-depth snapshot on subscribe, then incremental updates
+            # see the order book channel description in https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
+            # do not add @15@{refresh_rate} here, that is the 15-level snapshot form
+            return 'order_book.' + marketId + '.deltas'
         return 'order_book.' + marketId + '.snapshot@15@100ms'
 
     def request_id(self) -> float:
@@ -87,6 +109,83 @@ class paradex(ccxt.async_support.paradex):
                 'channel': channel,
             },
         }
+
+    def unsubscribe_request(self, channel: str) -> dict:
+        """
+ @ignore
+        builds a json-rpc unsubscribe request
+        :param str channel: the channel to unsubscribe from
+        :returns dict: the unsubscribe request
+        """
+        return {
+            'jsonrpc': '2.0',
+            'id': self.request_id(),
+            'method': 'unsubscribe',
+            'params': {
+                'channel': channel,
+            },
+        }
+
+    async def send_request(self, url: str, request: dict, subscribeHash: Str = None) -> object:
+        """
+ @ignore
+        sends a json-rpc request and waits for its reply, the reply or an error with its id settles it
+        :param str url: the websocket url
+        :param dict request: the json-rpc request
+        :param str [subscribeHash]: the subscription the request opens, the request id when None
+        :returns dict: the reply
+        """
+        requestHash = 'request:' + self.safe_string(request, 'id')
+        subscription = {
+            'id': request['id'],
+            'messageHashes': [requestHash],
+        }
+        hash = requestHash if (subscribeHash is None) else subscribeHash
+        return await self.watch(url, requestHash, request, hash, subscription)
+
+    async def subscribe_channels(self, url: str, messageHashes: list[str], channels: list[str], params: dict = {}) -> object:
+        """
+ @ignore
+        subscribes to the channels not subscribed yet on the connection, one request per channel as the server takes one channel per request, and waits for an update on any of the message hashes
+        :param str url: the websocket url
+        :param str[] messageHashes: the message hashes to wait on
+        :param str[] channels: the channels to subscribe to
+        :param dict [params]: extra parameters merged into each subscribe request
+        :returns dict: the first update
+        """
+        # messageHashes[i] is the hash the updates of channels[i] resolve. The channels still to subscribe are
+        # looked up again after each await: another watch may have subscribed one meanwhile, and a reconnect
+        # starts a client without any. Each but the last is sent once the previous one is acknowledged
+        channelsLength = len(channels)
+        for attempt in range(0, channelsLength):
+            pending = self.unsubscribed_channels(url, channels)
+            pendingLength = len(pending)
+            if pendingLength < 2:
+                break
+            channel = channels[pending[0]]
+            pendingRequest = self.subscribe_request(channel)
+            await self.send_request(url, self.deep_extend(pendingRequest, params), channel)
+        # the last one goes with the watch, so that an update sent right after it is not missed
+        missing = self.unsubscribed_channels(url, channels)
+        missingLength = len(missing)
+        if missingLength == 0:
+            return await self.watch_multiple(url, messageHashes, None, channels)
+        index = missing[0]
+        request = self.subscribe_request(channels[index])
+        # a failed subscribe rejects the watchers of its own channel only
+        subscription = {
+            'id': request['id'],
+            'messageHashes': [messageHashes[index]],
+        }
+        return await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), [channels[index]], subscription)
+
+    def unsubscribed_channels(self, url: str, channels: list[str]) -> list[float]:
+        client = self.client(url)
+        result = []
+        for i in range(0, len(channels)):
+            if not (channels[i] in client.subscriptions):
+                result.append(i)
+        return result
 
     async def authenticate(self, params: dict = {}):
         url = self.get_ws_url()
@@ -150,6 +249,12 @@ class paradex(ccxt.async_support.paradex):
         isAuth = ((requestId is not None) and (requestId == authRequestId)) or (self.safe_string(result, 'node_id') is not None)
         if isAuth:
             self.handle_authentication_message(client, message)
+        if requestId is not None:
+            # sendRequest waits on the request id, a request without a subscription of its own is kept under it
+            requestHash = 'request:' + requestId
+            if requestHash in client.subscriptions:
+                del client.subscriptions[requestHash]
+            client.resolve(message, requestHash)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -165,12 +270,10 @@ class paradex(ccxt.async_support.paradex):
         """
         if self.markets is None:
             await self.load_markets()
-        messageHash = 'trades.'
+        messageHash = 'trades.ALL'
         if symbol is not None:
             market = self.market(symbol)
-            messageHash += market['id']
-        else:
-            messageHash += 'ALL'
+            messageHash = 'trades.' + market['id']
         url = self.get_ws_url()
         request = self.subscribe_request(messageHash)
         subscription = {
@@ -182,6 +285,93 @@ class paradex(ccxt.async_support.paradex):
         if self.newUpdates:
             limitResolved = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
+
+    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+        """
+        get the list of most recent trades for a list of symbols
+
+        https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
+
+        :param str[] symbols: unified symbols of the markets to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols, None, False)
+        symbolsLength = len(symbolsNormalized)
+        if symbolsLength == 0:
+            raise ArgumentsRequired(self.id + ' watchTradesForSymbols() requires a non-empty array of symbols')
+        channels = []
+        for i in range(0, symbolsLength):
+            market = self.market(symbolsNormalized[i])
+            channels.append('trades.' + market['id'])
+        url = self.get_ws_url()
+        # handleTrade resolves the channel of each market
+        trades = await self.subscribe_channels(url, channels, channels, params)
+        first = self.safe_dict(trades, 0)
+        tradeSymbol = self.safe_string(first, 'symbol')
+        limitResolved = limit
+        if self.newUpdates:
+            limitResolved = trades.getLimit(tradeSymbol, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
+
+    async def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
+        """
+        watch the public liquidations of a trading pair, from the liquidation trades of the trades channel
+
+        https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
+
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters
+        :returns dict[]: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        channel = 'trades.' + market['id']
+        messageHash = 'liquidations:' + market['symbol']
+        url = self.get_ws_url()
+        liquidations = await self.subscribe_channels(url, [messageHash], [channel], params)
+        limitResolved = limit
+        if self.newUpdates:
+            limitResolved = liquidations.getLimit(market['symbol'], limit)
+        return self.filter_by_since_limit(liquidations, since, limitResolved, 'timestamp', True)
+
+    def parse_ws_liquidation(self, liquidation: dict, market: Market = None) -> Liquidation:
+        #
+        #     {
+        #         "id": "1718179273230201709233240002",
+        #         "market": "XRP-USD-PERP",
+        #         "side": "SELL",
+        #         "size": "120",
+        #         "price": "1.2854",
+        #         "created_at": 1718179273230,
+        #         "trade_type": "LIQUIDATION"
+        #     }
+        #
+        marketId = self.safe_string(liquidation, 'market')
+        marketResolved = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(liquidation, 'created_at')
+        contracts = self.safe_string(liquidation, 'size')
+        price = self.safe_string(liquidation, 'price')
+        return self.safe_liquidation({
+            'info': liquidation,
+            'symbol': marketResolved['symbol'],
+            'contracts': self.parse_number(contracts),
+            'contractSize': None,
+            'price': self.parse_number(price),
+            # the side of the taker, the liquidated order
+            'side': self.safe_string_lower(liquidation, 'side'),
+            'baseValue': self.parse_number(contracts),
+            'quoteValue': self.parse_number(Precise.string_mul(contracts, price)),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }, marketResolved)
 
     def handle_trade(self, client: Client, message: dict) -> dict:
         #
@@ -213,6 +403,18 @@ class paradex(ccxt.async_support.paradex):
             self.trades[symbol] = stored
         stored.append(parsedTrade)
         client.resolve(stored, messageHash)
+        if self.safe_string(data, 'trade_type') == 'LIQUIDATION':
+            # one cache per market, kept in the options next to the request id counter: this.liquidations
+            # is typed as a single cache in some languages and initialized as a map in others
+            liquidation = self.parse_ws_liquidation(data)
+            caches = self.safe_dict(self.options, 'liquidationsBySymbol', {})
+            liquidations = self.safe_value(caches, symbol)
+            if liquidations is None:
+                liquidations = ArrayCache(self.safe_integer(self.options, 'liquidationsLimit', 1000))
+                caches[symbol] = liquidations
+                self.options['liquidationsBySymbol'] = caches
+            liquidations.append(liquidation)
+            client.resolve(liquidations, 'liquidations:' + symbol)
         # an SBE frame names its market but not the subscription it was sent for,
         # so the trades.ALL subscription is resolved from the per-market channel too
         isSbe = self.safe_bool(message, 'sbe', False)
@@ -227,24 +429,65 @@ class paradex(ccxt.async_support.paradex):
         https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
 
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int [limit]: the maximum amount of order book entries to return
+        :param int [limit]: above 15 the full-depth deltas feed is used and the whole book is returned, otherwise the 15-level snapshots
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.deltas]: True for the full-depth deltas feed, default False(the 15-level snapshots)
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
+        """
+        return await self.watch_order_book_for_symbols([symbol], limit, params)
+
+    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params: dict = {}) -> OrderBook:
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
+
+        :param str[] symbols: unified array of symbols
+        :param int [limit]: above 15 the full-depth deltas feed is used and the whole book is returned, otherwise the 15-level snapshots
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.deltas]: True for the full-depth deltas feed, default False(the 15-level snapshots)
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
-        market = self.market(symbol)
-        messageHash = self.get_order_book_channel(market['id'])
+        symbolsNormalized = self.market_symbols(symbols, None, False)
+        symbolsLength = len(symbolsNormalized)
+        if symbolsLength == 0:
+            raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
+        deltasOption, paramsDeltas = self.handle_option_and_params(params, 'watchOrderBook', 'deltas', False)
+        deltas = (deltasOption is True) or ((limit is not None) and (limit > 15))
         url = self.get_ws_url()
-        request = self.subscribe_request(messageHash)
-        subscription = {
-            'id': request['id'],
-            'messageHashes': [messageHash],
-        }
-        orderbook = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, subscription)
+        client = self.client(url)
+        channels = []
+        messageHashes = []
+        for i in range(0, symbolsLength):
+            market = self.market(symbolsNormalized[i])
+            deltasChannel = self.get_order_book_channel(market['id'], True)
+            snapshotChannel = self.get_order_book_channel(market['id'], False)
+            # one feed per market on a connection: both send BookEvent frames, which do not name their channel,
+            # and the 15-level snapshots would cut a full-depth book down. The deltas feed is a superset, it stays
+            # the market stays on the deltas feed from the first call that asks for it, a call made while the
+            # snapshot feed is being unsubscribed included
+            deltasHash = deltasChannel + ':requested'
+            isDeltas = deltas or (deltasHash in client.subscriptions)
+            if isDeltas:
+                client.subscriptions[deltasHash] = True
+            if isDeltas and (snapshotChannel in client.subscriptions):
+                # the snapshot feed is unsubscribed before the deltas one is subscribed, no snapshot of it
+                # arrives once the reply is in
+                unsubscribe = self.unsubscribe_request(snapshotChannel)
+                del client.subscriptions[snapshotChannel]
+                await self.send_request(url, unsubscribe)
+            channel = deltasChannel if (isDeltas) else snapshotChannel
+            channels.append(channel)
+            messageHashes.append('orderbook:' + market['symbol'])
+        orderbook = await self.subscribe_channels(url, messageHashes, channels, paramsDeltas)
         return orderbook.limit()
 
     def handle_order_book(self, client: Client, message: dict):
+        #
+        # a snapshot, the 15-level feed sends one every 100ms, the deltas feed sends a full-depth one on
+        # subscribe and on a resync
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -274,37 +517,118 @@ class paradex(ccxt.async_support.paradex):
         #         }
         #     }
         #
+        # a delta, the levels added or changed, and the levels removed
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "method": "subscription",
+        #         "params": {
+        #             "channel": "order_book.XRP-USD-PERP.deltas",
+        #             "data": {
+        #                 "seq_no": 1669897428,
+        #                 "market": "XRP-USD-PERP",
+        #                 "last_updated_at": 1792183966700,
+        #                 "update_type": "d",
+        #                 "inserts": [],
+        #                 "updates": [ { "side": "SELL", "price": "1.3908", "size": "6600" } ],
+        #                 "deletes": [ { "side": "SELL", "price": "1.4737", "size": "0" } ]
+        #             }
+        #         }
+        #     }
+        #
         params = self.safe_dict(message, 'params', {})
         data = self.safe_dict(params, 'data', {})
         marketId = self.safe_string(data, 'market')
         market = self.safe_market(marketId)
+        symbol = self.safe_string(market, 'symbol', '')
         timestamp = self.safe_integer(data, 'last_updated_at')
-        symbol = market['symbol']
-        if not (symbol in self.orderbooks):
-            self.orderbooks[symbol] = self.order_book()
+        nonce = self.safe_integer(data, 'seq_no')
+        messageHash = 'orderbook:' + symbol
         # levels go into local arrays first: pushing into orderbookData['bids'] appends to a copy in go
         bids = []
         asks = []
-        inserts = self.safe_list(data, 'inserts')
-        for i in range(0, len((inserts))):
-            insert = self.safe_dict(inserts, i)
-            side = self.safe_string(insert, 'side')
-            price = self.safe_string(insert, 'price')
-            size = self.safe_string(insert, 'size')
-            if side == 'BUY':
-                bids.append([price, size])
-            else:
-                asks.append([price, size])
+        # a level of the deletes is removed whatever size it carries, an SBE delta removes one by a size of 0
+        levelKeys = ['inserts', 'updates', 'deletes']
+        for k in range(0, len(levelKeys)):
+            isDelete = (levelKeys[k] == 'deletes')
+            levels = self.safe_list(data, levelKeys[k], [])
+            for i in range(0, len(levels)):
+                level = self.safe_dict(levels, i)
+                price = self.safe_string(level, 'price')
+                size = '0' if (isDelete) else self.safe_string(level, 'size')
+                if self.safe_string(level, 'side') == 'BUY':
+                    bids.append([price, size])
+                else:
+                    asks.append([price, size])
+        if self.safe_string(data, 'update_type') == 'd':
+            deltasChannel = self.get_order_book_channel(marketId, True)
+            stored = self.safe_value(self.orderbooks, symbol)
+            # a delta applies only to the book of the deltas feed
+            if (stored is None) or not (deltasChannel in client.subscriptions):
+                return
+            storedNonce = stored['nonce']
+            # no book to apply it to: before the first snapshot, and between a resync and its snapshot
+            if (storedNonce is None) or (nonce is None) or (nonce <= storedNonce):
+                return
+            if nonce != self.sum(storedNonce, 1):
+                # a skipped delta leaves the book wrong, the feed is subscribed again for a fresh snapshot
+                stored['nonce'] = None
+                self.spawn(self.resubscribe_order_book, client, deltasChannel, messageHash)
+                return
+            storedBids = stored['bids']
+            storedAsks = stored['asks']
+            self.handle_book_side_deltas(storedBids, bids)
+            self.handle_book_side_deltas(storedAsks, asks)
+            stored['nonce'] = nonce
+            stored['timestamp'] = timestamp
+            stored['datetime'] = self.iso8601(timestamp)
+            client.resolve(stored, messageHash)
+            return
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book()
         orderbookData = {
             'bids': bids,
             'asks': asks,
         }
         orderbook = self.orderbooks[symbol]
         snapshot = self.parse_order_book(orderbookData, symbol, timestamp, 'bids', 'asks')
-        snapshot['nonce'] = self.safe_integer(data, 'seq_no')
+        snapshot['nonce'] = nonce
         orderbook.reset(snapshot)
-        messageHash = self.safe_string(params, 'channel')
+        # a channel override in params still resolves, frames are routed by market and package type
         client.resolve(orderbook, messageHash)
+
+    def handle_book_side_deltas(self, bookside: object, deltas: list[object]):
+        # a size of 0 removes the price level
+        for i in range(0, len(deltas)):
+            bidAsk = self.parse_order_book_bid_ask(deltas[i], 0, 1)
+            bookside.storeArray(bidAsk)
+
+    async def resubscribe_order_book(self, client: Client, channel: str, messageHash: str) -> bool:
+        """
+ @ignore
+        subscribes to an order book deltas feed again, the server sends a fresh full-depth snapshot on subscribe
+        :param dict client: the websocket client
+        :param str channel: the deltas channel
+        :param str messageHash: the message hash the book watchers wait on
+        :returns boolean: True once both requests are sent
+        """
+        # a subscribe alone is acknowledged without a snapshot, the feed is unsubscribed first. Both requests
+        # keep their ids in the subscriptions, so that an error reply reaches neither an unrelated watcher nor
+        # the whole connection
+        unsubscribe = self.unsubscribe_request(channel)
+        subscribe = self.subscribe_request(channel)
+        unsubscribeHash = 'request:' + self.safe_string(unsubscribe, 'id')
+        client.subscriptions[unsubscribeHash] = {
+            'id': unsubscribe['id'],
+            'messageHashes': [],
+        }
+        client.subscriptions[channel] = {
+            'id': subscribe['id'],
+            'messageHashes': [messageHash],
+        }
+        await client.send(unsubscribe)
+        await client.send(subscribe)
+        return True
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -319,17 +643,8 @@ class paradex(ccxt.async_support.paradex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        # the per-market channel: the all-markets one carries a summary for every listed
-        # option too, thousands of messages a second, all decoded only to be filtered out
-        channel = 'markets_summary.' + market['id']
-        url = self.get_ws_url()
         messageHash = 'markets_summary.' + market['symbol']
-        request = self.subscribe_request(channel)
-        subscription = {
-            'id': request['id'],
-            'messageHashes': [messageHash],
-        }
-        return await self.watch(url, messageHash, self.deep_extend(request, params), channel, subscription)
+        return await self.subscribe_markets_summary([market['symbol']], [messageHash], params)
 
     async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -337,27 +652,42 @@ class paradex(ccxt.async_support.paradex):
 
         https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
 
-        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param str[] [symbols]: unified symbols of the markets to fetch the tickers for, all markets when None, which is thousands of updates a second
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols)
+        symbolsLength = 0
+        if symbolsNormalized is not None:
+            symbolsLength = len(symbolsNormalized)
         channel = 'markets_summary'
-        url = self.get_ws_url()
         messageHashes = []
-        if symbolsNormalized is not None and isinstance(symbolsNormalized, list):
-            for i in range(0, len(symbolsNormalized)):
-                messageHash = channel + '.' + symbolsNormalized[i]
-                messageHashes.append(messageHash)
+        newTicker = None
+        if symbolsLength > 0:
+            for i in range(0, symbolsLength):
+                messageHashes.append(channel + '.' + (symbolsNormalized)[i])
+            newTicker = await self.subscribe_markets_summary(symbolsNormalized, messageHashes, params)
         else:
-            messageHashes.append(channel)
-        request = self.subscribe_request(channel)
-        subscription = {
-            'id': request['id'],
-        }
-        newTicker = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes, subscription)
+            # every listed market, options included
+            url = self.get_ws_url()
+            client = self.client(url)
+            scopedHash = channel + ':scoped'
+            if scopedHash in client.subscriptions:
+                # a scoped subscription keeps its filter through a plain subscribe, it is unsubscribed first
+                subscribeHashes = list(client.subscriptions.keys())
+                for i in range(0, len(subscribeHashes)):
+                    if (subscribeHashes[i] == scopedHash) or (subscribeHashes[i].find(channel + '.') == 0):
+                        del client.subscriptions[subscribeHashes[i]]
+                unsubscribe = self.unsubscribe_request(channel)
+                await self.send_request(url, unsubscribe)
+            request = self.subscribe_request(channel)
+            subscription = {
+                'id': request['id'],
+                'messageHashes': [channel],
+            }
+            newTicker = await self.watch(url, channel, self.deep_extend(request, params), channel, subscription)
         if self.newUpdates:
             result = {}
             newTickerSymbol = self.safe_string(newTicker, 'symbol')
@@ -365,6 +695,165 @@ class paradex(ccxt.async_support.paradex):
                 result[newTickerSymbol] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
+
+    async def subscribe_markets_summary(self, symbols: list[str], messageHashes: list[str], params: dict = {}) -> object:
+        """
+ @ignore
+        watches the market summaries of a list of markets over one scoped subscription, the markets not in it yet are added in place
+
+        https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+
+        :param str[] symbols: unified symbols of the markets
+        :param str[] messageHashes: the message hashes to wait on
+        :param dict [params]: extra parameters merged into the request
+        :returns dict: the first `ticker structure <https://docs.ccxt.com/?id=ticker-structure>` updated
+        """
+        url = self.get_ws_url()
+        client = self.client(url)
+        channel = 'markets_summary'
+        if channel in client.subscriptions:
+            # the all-markets subscription carries these markets already
+            return await self.watch_multiple(url, messageHashes, None, [channel])
+        # one subscription with a market filter: a subscription per market is a request per market, and
+        # the all-markets one is thousands of frames a second, mostly options, decoded to be dropped
+        scopedHash = channel + ':scoped'
+        subscribeHashes = []
+        missing = []
+        missingHashes = []
+        # messageHashes[i] is the hash the summaries of symbols[i] resolve
+        for i in range(0, len(symbols)):
+            marketId = self.market(symbols[i])['id']
+            subscribeHash = channel + '.' + marketId
+            subscribeHashes.append(subscribeHash)
+            if not (subscribeHash in client.subscriptions):
+                missing.append(marketId)
+                missingHashes.append(messageHashes[i])
+        missingLength = len(missing)
+        if missingLength == 0:
+            return await self.watch_multiple(url, messageHashes, None, subscribeHashes)
+        request = None
+        if scopedHash in client.subscriptions:
+            request = {
+                'jsonrpc': '2.0',
+                'id': self.request_id(),
+                'method': 'modify_subscription',
+                'params': {
+                    'channel': channel,
+                    'add': missing,
+                },
+            }
+        else:
+            request = self.subscribe_request(channel)
+            request['params']['markets'] = missing
+            subscribeHashes.append(scopedHash)
+        # a failed request is forgotten with every market it carried, the next watch sends them again, and
+        # it rejects the watchers of those markets only
+        subscription = {
+            'id': request['id'],
+            'messageHashes': missingHashes,
+        }
+        return await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), subscribeHashes, subscription)
+
+    async def watch_mark_price(self, symbol: str, params: dict = {}) -> Ticker:
+        """
+        watches a mark price for a specific market
+
+        https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        return await self.watch_ticker(symbol, params)
+
+    async def watch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+        """
+        watches the mark prices for all markets of a list
+
+        https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+
+        :param str[] [symbols]: unified symbols of the markets to fetch the tickers for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        return await self.watch_tickers(symbols, params)
+
+    async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+        """
+        watches best bid & ask for symbols
+
+        https://docs.paradex.trade/ws/web-socket-channels/bbo-market-symbol/bbo-market-symbol
+
+        :param str[] [symbols]: unified symbols of the markets to fetch the best bid and ask for, all markets when None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols)
+        symbolsLength = 0
+        if symbolsNormalized is not None:
+            symbolsLength = len(symbolsNormalized)
+        url = self.get_ws_url()
+        channels = []
+        messageHashes = []
+        if symbolsLength > 0:
+            for i in range(0, symbolsLength):
+                market = self.market((symbolsNormalized)[i])
+                channels.append('bbo.' + market['id'])
+                messageHashes.append('bidask:' + market['symbol'])
+        else:
+            channels.append('bbo.ALL')
+            messageHashes.append('bidask')
+        newBidAsk = await self.subscribe_channels(url, messageHashes, channels, params)
+        if self.newUpdates:
+            result = {}
+            result[newBidAsk['symbol']] = newBidAsk
+            return result
+        return self.filter_by_array(self.bidsasks, 'symbol', symbolsNormalized)
+
+    def handle_bid_ask(self, client: Client, message: dict):
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "method": "subscription",
+        #         "params": {
+        #             "channel": "bbo.XRP-USD-PERP",
+        #             "data": {
+        #                 "market": "XRP-USD-PERP",
+        #                 "seq_no": 1669897465,
+        #                 "bid": "1.2782",
+        #                 "bid_size": "267.7",
+        #                 "ask": "1.318",
+        #                 "ask_size": "259.6",
+        #                 "last_updated_at": 1792183969812
+        #             }
+        #         }
+        #     }
+        #
+        params = self.safe_dict(message, 'params', {})
+        data = self.safe_dict(params, 'data', {})
+        bidAsk = self.parse_ws_bid_ask(data)
+        symbol = bidAsk['symbol']
+        self.bidsasks[symbol] = bidAsk
+        client.resolve(bidAsk, 'bidask:' + symbol)
+        # an SBE frame does not tell bbo.ALL from the per-market channel
+        client.resolve(bidAsk, 'bidask')
+
+    def parse_ws_bid_ask(self, data: dict, market: Market = None) -> Ticker:
+        marketId = self.safe_string(data, 'market')
+        marketResolved = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(data, 'last_updated_at')
+        return self.safe_ticker({
+            'symbol': marketResolved['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'ask': self.safe_string(data, 'ask'),
+            'askVolume': self.safe_string(data, 'ask_size'),
+            'bid': self.safe_string(data, 'bid'),
+            'bidVolume': self.safe_string(data, 'bid_size'),
+            'info': data,
+        }, marketResolved)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -382,14 +871,12 @@ class paradex(ccxt.async_support.paradex):
             await self.load_markets()
         await self.authenticate()
         messageHash = 'orders'
-        channel = 'orders.'
+        channel = 'orders.ALL'
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
         if symbol is not None:
             market = self.market(symbol)
-            channel += market['id']
-            messageHash += ':' + symbolResolved
-        else:
-            channel += 'ALL'
+            channel = 'orders.' + market['id']
+            messageHash = 'orders:' + symbolResolved
         url = self.get_ws_url()
         request = self.subscribe_request(channel)
         subscription = {
@@ -460,14 +947,12 @@ class paradex(ccxt.async_support.paradex):
             await self.load_markets()
         await self.authenticate()
         messageHash = 'myTrades'
-        channel = 'fills.'
+        channel = 'fills.ALL'
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
         if symbol is not None:
             market = self.market(symbol)
-            channel += market['id']
-            messageHash += ':' + symbolResolved
-        else:
-            channel += 'ALL'
+            channel = 'fills.' + market['id']
+            messageHash = 'myTrades:' + symbolResolved
         url = self.get_ws_url()
         request = self.subscribe_request(channel)
         subscription = {
@@ -748,16 +1233,12 @@ class paradex(ccxt.async_support.paradex):
         """
         if self.markets is None:
             await self.load_markets()
-        symbolValue = self.symbol(symbol)
-        channel = 'funding_data'
+        market = self.market(symbol)
+        # the per-market channel, the all-markets one sends every perpetual's funding
+        channel = 'funding_data.' + market['id']
         url = self.get_ws_url()
-        messageHash = channel + '.' + symbolValue
-        request = self.subscribe_request(channel)
-        subscription = {
-            'id': request['id'],
-            'messageHashes': [messageHash],
-        }
-        return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, subscription)
+        messageHash = 'funding_data.' + market['symbol']
+        return await self.subscribe_channels(url, [messageHash], [channel], params)
 
     async def watch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
@@ -820,14 +1301,12 @@ class paradex(ccxt.async_support.paradex):
         params = self.safe_dict(message, 'params', {})
         data = self.safe_dict(params, 'data', {})
         fundingRate = self.parse_funding_rate_ws(data)
-        symbol = fundingRate['symbol']
+        symbol = self.safe_string(fundingRate, 'symbol')
         self.fundingRates[symbol] = fundingRate
-        channel = self.safe_string(params, 'channel')
-        # watchFundingRates without symbols waits on the bare channel
-        client.resolve(fundingRate, channel)
-        if channel is not None:
-            messageHash = channel + '.' + symbol
-            client.resolve(fundingRate, messageHash)
+        # watchFundingRates without symbols waits on the bare channel, the per-market and all-markets
+        # channels carry the same frame
+        client.resolve(fundingRate, 'funding_data')
+        client.resolve(fundingRate, 'funding_data.' + symbol)
 
     def parse_funding_rate_ws(self, contract: dict, market: Market = None) -> FundingRate:
         #
@@ -869,7 +1348,7 @@ class paradex(ccxt.async_support.paradex):
             'interval': interval,
         }
 
-    def parse_sbe_message(self, message: object) -> object:
+    def parse_sbe_message(self, client: Client, message: object) -> object:
         #
         # Paradex SBE schema 1:3 (https://docs.paradex.trade), little-endian. Every frame is an 8-byte
         # header (blockLength, templateId, schemaId, version as uint16) followed by a fixed block of
@@ -894,13 +1373,18 @@ class paradex(ccxt.async_support.paradex):
         if templateId == 1:
             data = self.parse_sbe_trade(frameHex, blockLength, frameLength)
             if data is not None:
-                channel = 'trades.' + data['market']
+                channel = 'trades.' + self.safe_string(data, 'market', '')
+        elif templateId == 2:
+            data = self.parse_sbe_bbo(frameHex, blockLength, frameLength)
+            if data is not None:
+                channel = 'bbo.' + self.safe_string(data, 'market', '')
         elif templateId == 3:
+            # the snapshot and deltas feeds send the same frame, handleOrderBook tells them apart by package type
             data = self.parse_sbe_order_book(frameHex, blockLength, frameLength)
             if data is not None:
-                channel = self.get_order_book_channel(data['market'])
+                channel = 'order_book.' + self.safe_string(data, 'market', '')
         elif templateId == 4:
-            data = self.parse_sbe_market_summary(frameHex, blockLength, frameLength)
+            data = self.parse_sbe_market_summary(client, frameHex, blockLength, frameLength)
             channel = 'markets_summary'
         elif templateId == 5:
             data = self.parse_sbe_funding_data(frameHex, blockLength, frameLength)
@@ -908,11 +1392,11 @@ class paradex(ccxt.async_support.paradex):
         elif templateId == 20:
             data = self.parse_sbe_order(frameHex, blockLength, frameLength)
             if data is not None:
-                channel = 'orders.' + data['market']
+                channel = 'orders.' + self.safe_string(data, 'market', '')
         elif templateId == 21:
             data = self.parse_sbe_fill(frameHex, blockLength, frameLength)
             if data is not None:
-                channel = 'fills.' + data['market']
+                channel = 'fills.' + self.safe_string(data, 'market', '')
         elif templateId == 22:
             data = self.parse_sbe_position(frameHex, blockLength, frameLength)
             channel = 'positions'
@@ -1002,10 +1486,11 @@ class paradex(ccxt.async_support.paradex):
                 break
         return '0x' + raw[start:64]
 
-    def sbe_read_var_strings(self, frameHex: str, offset: float, count: float, frameLength: float) -> object:
-        # the var-data section: count strings, each prefixed with a uint8 length. Returns undefined
+    def sbe_read_var_strings(self, frameHex: str, offset: float, count: float, frameLength: float) -> list[str]:
+        # the var-data section: count strings, each prefixed with a uint8 length. Returns an empty list
         # when the frame ends before all of them, and only the strings present when a trailing one is
-        # absent, which is how a field appended to var-data reads on a frame from before it
+        # absent, which is how a field appended to var-data reads on a frame from before it.
+        # Every caller guards on the count it needs, so an empty list and a short one read alike
         result = []
         end = self.parse_to_int(frameLength)
         total = self.parse_to_int(count)
@@ -1016,7 +1501,7 @@ class paradex(ccxt.async_support.paradex):
             length = self.parse_to_int(self.sbe_read_uint(frameHex, position, 1))
             next = self.parse_to_int(self.sum(position, 1, length))
             if next > end:
-                return None
+                return []
             result.append(self.sbe_read_string(frameHex, position + 1, length))
             position = next
         return result
@@ -1032,7 +1517,7 @@ class paradex(ccxt.async_support.paradex):
         if blockSize < 50:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 2, frameLength)
-        stringsLength = 0 if (strings is None) else len(strings)
+        stringsLength = len(strings)
         if stringsLength < 1:
             return None
         sides = {'1': 'BUY', '2': 'SELL'}
@@ -1040,7 +1525,7 @@ class paradex(ccxt.async_support.paradex):
         return {
             # the full trade id, absent only on frames that predate it, the int64 tradeId cannot hold it
             'id': self.safe_string(strings, 1),
-            'market': strings[0],
+            'market': self.safe_string(strings, 0),
             'side': self.sbe_read_enum(frameHex, 32, sides),
             'size': self.sbe_read_decimal(frameHex, 41),
             'price': self.sbe_read_decimal(frameHex, 33),
@@ -1048,21 +1533,45 @@ class paradex(ccxt.async_support.paradex):
             'trade_type': self.sbe_read_enum(frameHex, 57, tradeTypes),
         }
 
+    def parse_sbe_bbo(self, frameHex: str, blockLength: float, frameLength: float) -> dict:
+        blockSize = self.parse_to_int(blockLength)
+        #
+        # BboEvent (templateId 2), 48-byte block
+        #
+        #     ts int64, seq int64, bidPrice int64, bidSize int64, askPrice int64, askSize int64 (each price
+        #     and size null on an empty side), then the market string
+        #
+        if blockSize < 48:
+            return None
+        strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 1, frameLength)
+        stringsLength = len(strings)
+        if stringsLength < 1:
+            return None
+        return {
+            'market': self.safe_string(strings, 0),
+            'seq_no': self.sbe_read_int64(frameHex, 16),
+            'bid': self.sbe_read_decimal(frameHex, 24),
+            'bid_size': self.sbe_read_decimal(frameHex, 32),
+            'ask': self.sbe_read_decimal(frameHex, 40),
+            'ask_size': self.sbe_read_decimal(frameHex, 48),
+            'last_updated_at': self.sbe_read_timestamp(frameHex, 8),
+        }
+
     def parse_sbe_order_book(self, frameHex: str, blockLength: float, frameLength: float) -> dict:
         blockSize = self.parse_to_int(blockLength)
         #
         # BookEvent (templateId 3), 89-byte block
         #
-        #     ts int64, seq int64, pkgType uint8, nine best bid/ask int64 fields, then the bids and asks
-        #     groups of (price int64, size int64) entries and the market string
+        #     ts int64, seq int64, pkgType uint8 (0 snapshot, 1 delta), nine best bid/ask int64 fields, then
+        #     the bids and asks groups of (price int64, size int64) entries and the market string. A delta
+        #     carries the changed levels, a size of 0 removes the level
         #
         if blockSize < 17:
             return None
-        # watchOrderBook subscribes to the snapshot channel, a delta would need a book to apply it to
         pkgType = self.parse_to_int(self.sbe_read_uint(frameHex, 24, 1))
-        if pkgType != 0:
+        if (pkgType != 0) and (pkgType != 1):
             return None
-        inserts = []
+        levels = []
         sides = ['BUY', 'SELL']
         frameEnd = self.parse_to_int(frameLength)
         position = self.parse_to_int(self.sum(blockLength, 8))
@@ -1075,27 +1584,29 @@ class paradex(ccxt.async_support.paradex):
             if (entryLength < 16) or (self.parse_to_int(self.sum(position, numInGroup * entryLength)) > frameEnd):
                 return None
             for j in range(0, numInGroup):
-                inserts.append({
+                levels.append({
                     'side': sides[i],
                     'price': self.sbe_read_decimal(frameHex, position),
                     'size': self.sbe_read_decimal(frameHex, position + 8),
                 })
                 position = self.parse_to_int(self.sum(position, entryLength))
         strings = self.sbe_read_var_strings(frameHex, position, 1, frameLength)
-        stringsLength = 0 if (strings is None) else len(strings)
+        stringsLength = len(strings)
         if stringsLength < 1:
             return None
+        isSnapshot = (pkgType == 0)
         return {
             'seq_no': self.sbe_read_int64(frameHex, 16),
-            'market': strings[0],
+            'market': self.safe_string(strings, 0),
             'last_updated_at': self.sbe_read_timestamp(frameHex, 8),
-            'update_type': 's',
-            'inserts': inserts,
-            'updates': [],
+            'update_type': 's' if (isSnapshot) else 'd',
+            'inserts': levels if (isSnapshot) else [],
+            # a delta does not tell an insert from an update, a removal is a size of 0 among them
+            'updates': [] if (isSnapshot) else levels,
             'deletes': [],
         }
 
-    def parse_sbe_market_summary(self, frameHex: str, blockLength: float, frameLength: float) -> dict:
+    def parse_sbe_market_summary(self, client: Client, frameHex: str, blockLength: float, frameLength: float) -> dict:
         blockSize = self.parse_to_int(blockLength)
         #
         # MarketSummaryEvent (templateId 4), 248-byte block (240 before 1:3), of which the first
@@ -1108,15 +1619,21 @@ class paradex(ccxt.async_support.paradex):
         if blockSize < 96:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 1, frameLength)
-        stringsLength = 0 if (strings is None) else len(strings)
+        stringsLength = len(strings)
         if stringsLength < 1:
+            return None
+        # the market is read first, so that a frame for a market nobody subscribed to is dropped before its
+        # decimals are decoded, like one still in flight after its market left the scoped filter
+        marketId = self.safe_string(strings, 0, '')
+        subscribeHash = 'markets_summary.' + marketId
+        if not ('markets_summary' in client.subscriptions) and not (subscribeHash in client.subscriptions):
             return None
         # appended in 1:3: null outside the pre-expiry settlement window and for undated markets
         settlementTwapEstimate = None
         if blockSize >= 248:
             settlementTwapEstimate = self.sbe_read_decimal(frameHex, 248)
         return {
-            'symbol': strings[0],
+            'symbol': marketId,
             'mark_price': self.sbe_read_decimal(frameHex, 24),
             'last_traded_price': self.sbe_read_decimal(frameHex, 40),
             'bid': self.sbe_read_decimal(frameHex, 72),
@@ -1142,11 +1659,11 @@ class paradex(ccxt.async_support.paradex):
         if blockSize < 58:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 1, frameLength)
-        stringsLength = 0 if (strings is None) else len(strings)
+        stringsLength = len(strings)
         if stringsLength < 1:
             return None
         return {
-            'market': strings[0],
+            'market': self.safe_string(strings, 0),
             'funding_index': self.sbe_read_decimal(frameHex, 32),
             'funding_premium': self.sbe_read_decimal(frameHex, 48),
             'funding_rate': self.sbe_read_decimal(frameHex, 24),
@@ -1168,7 +1685,7 @@ class paradex(ccxt.async_support.paradex):
         if blockSize < 126:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 4, frameLength)
-        stringsLength = 0 if (strings is None) else len(strings)
+        stringsLength = len(strings)
         if stringsLength < 4:
             return None
         statuses = {'1': 'NEW', '2': 'UNTRIGGERED', '3': 'OPEN', '4': 'CLOSED'}
@@ -1180,13 +1697,13 @@ class paradex(ccxt.async_support.paradex):
         order = {
             'account': self.sbe_read_address(frameHex, 84),
             'avg_fill_price': self.sbe_read_decimal(frameHex, 60),
-            'client_id': strings[1],
+            'client_id': self.safe_string(strings, 1),
             'created_at': self.sbe_read_timestamp(frameHex, 68),
             'flags': flags,
-            'id': strings[0],
+            'id': self.safe_string(strings, 0),
             'instruction': self.sbe_read_enum(frameHex, 27, timeInForces),
             'last_updated_at': self.sbe_read_timestamp(frameHex, 76),
-            'market': strings[2],
+            'market': self.safe_string(strings, 2),
             'price': self.sbe_read_decimal(frameHex, 28),
             'published_at': self.sbe_read_timestamp(frameHex, 124),
             'received_at': self.sbe_read_timestamp(frameHex, 116),
@@ -1201,8 +1718,9 @@ class paradex(ccxt.async_support.paradex):
             'type': self.sbe_read_enum(frameHex, 26, orderTypes),
         }
         # an empty cancel reason is sent for every live order, parseOrder reads any reason as canceled
-        if strings[3] != '':
-            order['cancel_reason'] = strings[3]
+        cancelReason = self.safe_string(strings, 3, '')
+        if cancelReason != '':
+            order['cancel_reason'] = cancelReason
         return order
 
     def sbe_read_flags(self, frameHex: str, offset: float, names: list[str]) -> list[str]:
@@ -1229,7 +1747,7 @@ class paradex(ccxt.async_support.paradex):
         if blockSize < 107:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 6, frameLength)
-        stringsLength = 0 if (strings is None) else len(strings)
+        stringsLength = len(strings)
         if stringsLength < 5:
             return None
         fillTypes = {'1': 'FILL', '2': 'LIQUIDATION', '3': 'UNWIND_TRANSFER', '4': 'SETTLE_MARKET', '5': 'RPI', '6': 'BLOCK_TRADE'}
@@ -1237,15 +1755,15 @@ class paradex(ccxt.async_support.paradex):
         liquidities = {'1': 'MAKER', '2': 'TAKER'}
         fill = {
             'account': self.sbe_read_address(frameHex, 67),
-            'client_id': strings[2],
+            'client_id': self.safe_string(strings, 2),
             'created_at': self.sbe_read_timestamp(frameHex, 59),
             'fee': self.sbe_read_decimal(frameHex, 43),
             'fee_currency': self.safe_string(strings, 5),
             'fill_type': self.sbe_read_enum(frameHex, 24, fillTypes),
-            'id': strings[0],
+            'id': self.safe_string(strings, 0),
             'liquidity': self.sbe_read_enum(frameHex, 26, liquidities),
-            'market': strings[4],
-            'order_id': strings[1],
+            'market': self.safe_string(strings, 4),
+            'order_id': self.safe_string(strings, 1),
             'price': self.sbe_read_decimal(frameHex, 27),
             'realized_funding': self.sbe_read_decimal(frameHex, 107),
             'realized_pnl': self.sbe_read_decimal(frameHex, 51),
@@ -1273,7 +1791,7 @@ class paradex(ccxt.async_support.paradex):
         if blockSize < 154:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 2, frameLength)
-        stringsLength = 0 if (strings is None) else len(strings)
+        stringsLength = len(strings)
         if stringsLength < 1:
             return None
         sides = {'1': 'LONG', '2': 'SHORT'}
@@ -1292,12 +1810,12 @@ class paradex(ccxt.async_support.paradex):
             'cost': self.sbe_read_decimal(frameHex, 129),
             'cost_usd': self.sbe_read_decimal(frameHex, 137),
             # the JSON channel's id, one position per account and market
-            'id': account + '-' + strings[0],
+            'id': account + '-' + self.safe_string(strings, 0, ''),
             'last_fill_id': self.safe_string(strings, 1),
             'last_updated_at': self.sbe_read_timestamp(frameHex, 81),
             'leverage': self.sbe_read_decimal(frameHex, 73),
             'liquidation_price': self.sbe_read_decimal(frameHex, 65),
-            'market': strings[0],
+            'market': self.safe_string(strings, 0),
             'realized_positional_pnl': self.sbe_read_decimal(frameHex, 49),
             'seq_no': self.sbe_read_int64(frameHex, 16),
             'side': side,
@@ -1320,7 +1838,7 @@ class paradex(ccxt.async_support.paradex):
         if blockSize < 113:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 1, frameLength)
-        stringsLength = 0 if (strings is None) else len(strings)
+        stringsLength = len(strings)
         if stringsLength < 1:
             return None
         statuses = {'1': 'ACTIVE', '2': 'LIQUIDATION'}
@@ -1332,7 +1850,7 @@ class paradex(ccxt.async_support.paradex):
             'maintenance_margin_requirement': self.sbe_read_decimal(frameHex, 48),
             'margin_cushion': self.sbe_read_decimal(frameHex, 112),
             'seq_no': self.sbe_read_int64(frameHex, 16),
-            'settlement_asset': strings[0],
+            'settlement_asset': self.safe_string(strings, 0),
             'status': self.sbe_read_enum(frameHex, 120, statuses),
             'total_collateral': self.sbe_read_decimal(frameHex, 24),
             'updated_at': self.sbe_read_timestamp(frameHex, 72),
@@ -1393,13 +1911,17 @@ class paradex(ccxt.async_support.paradex):
                 client.reject(e)
         return False
 
-    def handle_message(self, client: Client, message: object):
-        parsedMessage = message
-        if self.is_binary_message(message):
-            parsedMessage = self.parse_sbe_message(message)
-            if parsedMessage is None:
-                return
-        if self.handle_error_message(client, parsedMessage) is not True:
+    def handle_binary_message(self, client: Client, message: object):
+        parsedMessage = self.parse_sbe_message(client, message)
+        if parsedMessage is None:
+            return
+        self.handle_stream_message(client, parsedMessage)
+
+    def handle_message(self, client: Client, message: dict):
+        self.handle_stream_message(client, message)
+
+    def handle_stream_message(self, client: Client, message: dict):
+        if self.handle_error_message(client, message) is not True:
             return
         #
         # auth response
@@ -1429,11 +1951,11 @@ class paradex(ccxt.async_support.paradex):
         #         }
         #     }
         #
-        result = self.safe_dict(parsedMessage, 'result')
+        result = self.safe_dict(message, 'result')
         if result is not None:
-            self.handle_request_reply(client, parsedMessage)
+            self.handle_request_reply(client, message)
             return
-        data = self.safe_dict(parsedMessage, 'params')
+        data = self.safe_dict(message, 'params')
         if data is not None:
             channel = self.safe_string(data, 'channel')
             parts = channel.split('.')
@@ -1441,6 +1963,7 @@ class paradex(ccxt.async_support.paradex):
             methods = {
                 'trades': self.handle_trade,
                 'order_book': self.handle_order_book,
+                'bbo': self.handle_bid_ask,
                 'markets_summary': self.handle_ticker,
                 'orders': self.handle_order,
                 'funding_data': self.handle_funding_rate,
@@ -1450,4 +1973,4 @@ class paradex(ccxt.async_support.paradex):
             }
             method = self.safe_value(methods, name)
             if method is not None:
-                method(client, parsedMessage)
+                method(client, message)

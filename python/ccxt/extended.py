@@ -23,7 +23,7 @@ from ccxt.base.precise import Precise
 
 class extended(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(extended, self).describe(), {
             'id': 'extended',
             'name': 'Extended',
@@ -373,7 +373,7 @@ class extended(Exchange, ImplicitAPI):
         keys = list(input.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            item = input[key]
+            item = self.safe_dict(input, key, {})
             numericIdString = self.safe_string(item, 'numericId')
             if numericIdString is None:
                 continue
@@ -1021,7 +1021,7 @@ class extended(Exchange, ImplicitAPI):
         result = []
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_dict(data, i, {})
             if (cursor is not None) and (i == dataLength - 1):
                 entry = self.extend(entry, {'cursor': cursor})
             result.append(entry)
@@ -1084,7 +1084,7 @@ class extended(Exchange, ImplicitAPI):
         result = []
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_dict(data, i, {})
             if (cursor is not None) and (i == dataLength - 1):
                 entry = self.extend(entry, {'cursor': cursor})
             result.append(entry)
@@ -1123,7 +1123,7 @@ class extended(Exchange, ImplicitAPI):
     def parse_funding_histories(self, histories: list[object], market: Market = None, since: Int = None, limit: Int = None) -> list[FundingHistory]:
         result = []
         for i in range(0, len(histories)):
-            result.append(self.parse_funding_history(histories[i], market))
+            result.append(self.parse_funding_history(self.safe_dict(histories, i, {}), market))
         symbol = None if (market is None) else self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
@@ -1290,7 +1290,7 @@ class extended(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', None, 10000)
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         limitResolved = 100 if (limit is None) else limit
         until = self.safe_integer(paramsPaginate, 'until', self.milliseconds())
         endTime = self.safe_integer(paramsPaginate, 'endTime', until)
@@ -1327,7 +1327,7 @@ class extended(Exchange, ImplicitAPI):
         result = []
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_dict(data, i, {})
             if (cursor is not None) and (i == dataLength - 1):
                 entry = self.extend(entry, {'cursor': cursor})
             result.append(self.parse_funding_rate_history(entry, market))
@@ -1463,9 +1463,9 @@ class extended(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        return self.parse_balance(data)
+        return self.parse_balance_list(data)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = self.safe_dict(response, i, {})
@@ -1588,7 +1588,7 @@ class extended(Exchange, ImplicitAPI):
         result = []
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_dict(data, i, {})
             if (cursor is not None) and (i == dataLength - 1):
                 entry = self.extend(entry, {'cursor': cursor})
             result.append(entry)
@@ -1693,7 +1693,7 @@ class extended(Exchange, ImplicitAPI):
         result = []
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_dict(data, i, {})
             if (cursor is not None) and (i == dataLength - 1):
                 entry = self.extend(entry, {'cursor': cursor})
             result.append(entry)
@@ -1828,7 +1828,7 @@ class extended(Exchange, ImplicitAPI):
         result = []
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_dict(data, i, {})
             if (cursor is not None) and (i == dataLength - 1):
                 entry = self.extend(entry, {'cursor': cursor})
             result.append(entry)
@@ -1855,8 +1855,7 @@ class extended(Exchange, ImplicitAPI):
         currency = self.currency(code)
         account = self.fetch_extended_account()
         currentAccountId = self.safe_string(account, 'accountId', '')
-        fromAccountResolved = currentAccountId if (fromAccount is None) else fromAccount
-        if fromAccountResolved != currentAccountId:
+        if (fromAccount is not None) and (fromAccount != currentAccountId):
             raise BadRequest(self.id + ' transfer() can only transfer from the authenticated account')
         toVault = self.safe_string_2(params, 'toVault', 'receiverPositionId')
         toL2Key = self.safe_string_2(params, 'toL2Key', 'receiverPublicKey')
@@ -1865,7 +1864,7 @@ class extended(Exchange, ImplicitAPI):
         amountString = self.currency_to_precision(code, amount)
         settlement = self.create_transfer_settlement_data(amountString, currency, account, toVault, toL2Key, params)
         request = {
-            'fromAccount': fromAccountResolved,
+            'fromAccount': currentAccountId,
             'toAccount': toAccount,
             'amount': amountString,
             'transferredAsset': currency['id'],
@@ -1895,7 +1894,7 @@ class extended(Exchange, ImplicitAPI):
             'datetime': self.iso8601(now),
             'currency': currency['code'],
             'amount': self.parse_number(amountString),
-            'fromAccount': fromAccountResolved,
+            'fromAccount': currentAccountId,
             'toAccount': toAccount,
             'status': status,
         }
@@ -1939,7 +1938,7 @@ class extended(Exchange, ImplicitAPI):
         if currencyByNumericId is not None:
             return self.safe_string(currencyByNumericId, 'code')
         if currency is not None:
-            return currency['code']
+            return self.safe_string(currency, 'code')
         code = self.safe_currency_code(assetId)
         if code == 'USD':
             code = 'USDC'
@@ -2300,7 +2299,7 @@ class extended(Exchange, ImplicitAPI):
         result = []
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_dict(data, i, {})
             if (cursor is not None) and (i == dataLength - 1):
                 entry = self.extend(entry, {'cursor': cursor})
             result.append(entry)
@@ -2339,7 +2338,7 @@ class extended(Exchange, ImplicitAPI):
         lastUpdateTimestamp = self.safe_integer_2(position, 'updatedAt', 'updatedTime')
         lastUpdateTimestamp = self.safe_integer(position, 'closedTime', lastUpdateTimestamp)
         side = self.safe_string_lower(position, 'side')
-        margin = self.safe_string(position, 'margin')
+        margin = self.safe_number(position, 'margin')
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'id'),
@@ -2351,24 +2350,24 @@ class extended(Exchange, ImplicitAPI):
             'initialMarginPercentage': None,
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
-            'entryPrice': self.safe_string(position, 'openPrice'),
-            'notional': self.safe_string(position, 'value'),
-            'leverage': self.safe_string(position, 'leverage'),
-            'unrealizedPnl': self.safe_string(position, 'unrealisedPnl'),
-            'realizedPnl': self.safe_string(position, 'realisedPnl'),
-            'contracts': self.safe_string(position, 'size'),
-            'contractSize': self.safe_string(marketResolved, 'contractSize'),
+            'entryPrice': self.safe_number(position, 'openPrice'),
+            'notional': self.safe_number(position, 'value'),
+            'leverage': self.safe_number(position, 'leverage'),
+            'unrealizedPnl': self.safe_number(position, 'unrealisedPnl'),
+            'realizedPnl': self.safe_number(position, 'realisedPnl'),
+            'contracts': self.safe_number(position, 'size'),
+            'contractSize': self.safe_number(marketResolved, 'contractSize'),
             'marginRatio': None,
-            'liquidationPrice': self.safe_string(position, 'liquidationPrice'),
-            'markPrice': self.safe_string(position, 'markPrice'),
-            'lastPrice': self.safe_string(position, 'exitPrice'),
+            'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
+            'markPrice': self.safe_number(position, 'markPrice'),
+            'lastPrice': self.safe_number(position, 'exitPrice'),
             'collateral': margin,
             'marginMode': None,
             'side': side,
             'percentage': None,
             'hedged': None,
-            'stopLossPrice': self.safe_string(position, 'slTriggerPrice'),
-            'takeProfitPrice': self.safe_string(position, 'tpTriggerPrice'),
+            'stopLossPrice': self.safe_number(position, 'slTriggerPrice'),
+            'takeProfitPrice': self.safe_number(position, 'tpTriggerPrice'),
         })
 
     def get_extended_stark_amount(self, amount: str, resolution: Int, roundUp: bool = False) -> str:
@@ -2376,7 +2375,7 @@ class extended(Exchange, ImplicitAPI):
         precise = Precise.string_mul(amount, resolutionString)
         result = self.decimal_to_precision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING)
         if roundUp and Precise.string_gt(precise, result):
-            result = Precise.string_add(result, '1')
+            return Precise.string_add(result, '1')
         return result
 
     def fetch_extended_account(self, params: dict = {}) -> dict:
@@ -2384,7 +2383,7 @@ class extended(Exchange, ImplicitAPI):
         if cachedAccount is not None:
             return self.safe_dict(self.options, 'account', {})
         accountData = self.fetch_account(params)
-        self.options['account'] = accountData['info']
+        self.options['account'] = self.safe_dict(accountData, 'info', {})
         return self.safe_dict(self.options, 'account', {})
 
     def create_order_settlement_data(self, isBuy: bool, amountString: str, priceString: str, params: dict = {}) -> dict:
@@ -2421,8 +2420,8 @@ class extended(Exchange, ImplicitAPI):
         }
         msgHash = self.get_extended_order_msg_hash(settlement)
         sig = json.loads(self.extended_starknet_sign(msgHash, self.privateKey))
-        r = self.get_extended_signature_hex(sig[0])
-        s = self.get_extended_signature_hex(sig[1])
+        r = self.get_extended_signature_hex(self.safe_string(sig, 0, '0'))
+        s = self.get_extended_signature_hex(self.safe_string(sig, 1, '0'))
         settlement['r'] = r
         settlement['s'] = s
         return settlement
@@ -2453,8 +2452,8 @@ class extended(Exchange, ImplicitAPI):
         msgHash = self.get_extended_withdrawal_msg_hash(settlement, starkKey)
         sig = json.loads(self.extended_starknet_sign(msgHash, self.privateKey))
         settlement['signature'] = {
-            'r': self.get_extended_signature_hex(sig[0]),
-            's': self.get_extended_signature_hex(sig[1]),
+            'r': self.get_extended_signature_hex(self.safe_string(sig, 0, '0')),
+            's': self.get_extended_signature_hex(self.safe_string(sig, 1, '0')),
         }
         return settlement
 
@@ -2483,8 +2482,8 @@ class extended(Exchange, ImplicitAPI):
         msgHash = self.get_extended_transfer_msg_hash(settlement)
         sig = json.loads(self.extended_starknet_sign(msgHash, self.privateKey))
         settlement['signature'] = {
-            'r': self.get_extended_signature_hex(sig[0]),
-            's': self.get_extended_signature_hex(sig[1]),
+            'r': self.get_extended_signature_hex(self.safe_string(sig, 0, '0')),
+            's': self.get_extended_signature_hex(self.safe_string(sig, 1, '0')),
         }
         return settlement
 
@@ -2497,7 +2496,7 @@ class extended(Exchange, ImplicitAPI):
         market = self.market(symbol)
         uppercaseType = type.upper()
         uppercaseSide = side.upper()
-        if (market['spot'] is True) and uppercaseType != 'LIMIT':
+        if (self.safe_bool(market, 'spot', False)) and uppercaseType != 'LIMIT':
             raise BadRequest(self.id + ' createOrder() supports limit orders for spot markets only')
         if not self.in_array(uppercaseType, ['LIMIT', 'MARKET', 'CONDITIONAL', 'TPSL']):
             raise BadRequest(self.id + ' createOrder() supports limit, market, conditional and tpsl orders only')
@@ -2514,8 +2513,8 @@ class extended(Exchange, ImplicitAPI):
         builderFeeRate = None
         builderId = None
         paramsBuilder = params
-        builderEnabled = self.safe_bool(self.options, 'builderFee')
-        if builderEnabled is True:
+        builderEnabled = self.safe_bool(self.options, 'builderFee', False)
+        if builderEnabled:
             if self.isSandboxModeEnabled:
                 builderFeeRate = self.safe_string_2(params, 'builderFeeRate', 'defaultBuilderFeeRate')
                 builderId = self.safe_string_2(params, 'builderId', 'defaultBuilderId')
@@ -2808,8 +2807,9 @@ class extended(Exchange, ImplicitAPI):
         market = None
         orderSymbol = symbol
         if symbol is not None:
-            market = self.market(symbol)
-            orderSymbol = market['symbol']
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
+            orderSymbol = symbolMarket['symbol']
         response = None
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
         paramsOmitted = self.omit(params, ['clientOrderId', 'client_id'])
@@ -3079,7 +3079,7 @@ class extended(Exchange, ImplicitAPI):
         result = []
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_dict(data, i, {})
             if (cursor is not None) and (i == dataLength - 1):
                 entry = self.extend(entry, {'cursor': cursor})
             result.append(entry)
@@ -3230,31 +3230,23 @@ class extended(Exchange, ImplicitAPI):
             return Precise.string_add(prime, valueString)
         return value
 
-    def get_extended_decimal_to_base16(self, value: object) -> str:
-        decimalString = ''
-        if isinstance(value, str):
-            decimalString = value
-        else:
-            decimalString = self.number_to_string(value)
+    def get_extended_decimal_to_base16(self, value: str) -> str:
+        decimalString = value
         hexChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
         result = ''
         while(Precise.string_gt(decimalString, '0')):
             remainder = self.parse_to_int(Precise.string_mod(decimalString, '16'))
-            result = hexChars[remainder] + result
+            hexChar = self.safe_string(hexChars, remainder, '')
+            result = hexChar + result
             decimalString = Precise.string_div(decimalString, '16', 0)
         if result == '':
             return '0'
         return result
 
-    def get_extended_signature_hex(self, signature: object) -> str:
-        if isinstance(signature, str):
-            if signature.find('0x') == 0:
-                return signature
-            return '0x' + self.get_extended_decimal_to_base16(signature)
-        signatureString = self.number_to_string(signature)
-        if signatureString.find('0x') == 0:
-            return signatureString
-        return '0x' + self.get_extended_decimal_to_base16(signatureString)
+    def get_extended_signature_hex(self, signature: str) -> str:
+        if signature.find('0x') == 0:
+            return signature
+        return '0x' + self.get_extended_decimal_to_base16(signature)
 
     def get_extended_domain_hash(self):
         domainTypeHash = self.convert_to_big_int(self.extended_starknet_get_selector_from_name(
@@ -3355,7 +3347,7 @@ class extended(Exchange, ImplicitAPI):
             transferHash,
         ])
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #
@@ -3374,8 +3366,7 @@ class extended(Exchange, ImplicitAPI):
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestHeaders = None
         requestBody = None
-        version = self.safe_string(api, 0)
-        accessibility = self.safe_string(api, 1)
+        accessibility = api[1]
         endpoint = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         queryPost = (path == 'user/deadmanswitch')
@@ -3392,7 +3383,7 @@ class extended(Exchange, ImplicitAPI):
             if ((method == 'POST') or (method == 'PATCH')) and not queryPost:
                 requestBody = self.json(query)
                 requestHeaders['Content-Type'] = 'application/json'
-        url = self.implode_hostname(baseApiUrl) + '/api/' + version + endpoint
+        url = self.implode_hostname(baseApiUrl) + '/api/' + api[0] + endpoint
         if (method == 'GET' or method == 'DELETE' or queryPost) and (len(query) > 0):
             url += '?' + self.urlencode_with_array_repeat(query)
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}

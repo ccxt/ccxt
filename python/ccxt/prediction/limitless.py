@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class limitless(PredictionExchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(limitless, self).describe(), {
             'id': 'limitless',
             'name': 'Limitless',
@@ -267,8 +267,8 @@ class limitless(PredictionExchange, ImplicitAPI):
                     pageMarketsLength = len(page_markets)
                     if pageMarketsLength == 0:
                         break
-                    for i in range(0, len(page_markets)):
-                        raw = page_markets[i]
+                    for i in range(0, pageMarketsLength):
+                        raw = self.safe_value(page_markets, i)
                         allRaw.append(raw)
                     allRawCount = len(allRaw)
                     if pageMarketsLength < pageSize or allRawCount >= maxMarkets:
@@ -1130,8 +1130,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         for i in range(0, len(slugs)):
             slug = slugs[i]
             detailIndex = i * 2
-            detail = responses[detailIndex]
-            book = responses[self.sum(detailIndex, 1)]
+            detail = self.safe_value(responses, detailIndex)
+            book = self.safe_value(responses, self.sum(detailIndex, 1))
             tickerInput = {'market': detail, 'book': book}
             grouped = self.safe_list(outcomesBySlug, slug, [])
             for j in range(0, len(grouped)):
@@ -1250,18 +1250,18 @@ class limitless(PredictionExchange, ImplicitAPI):
         bids = []
         asks = []
         for bi in range(0, len(bidsSource)):
-            priceStr = self.safe_string(bidsSource[bi], 'price')
+            priceStr = self.safe_string(self.safe_value(bidsSource, bi), 'price')
             if not isYes and (priceStr is not None):
                 priceStr = Precise.string_sub('1', priceStr)
-            sizeStr = self.safe_string(bidsSource[bi], 'size')
+            sizeStr = self.safe_string(self.safe_value(bidsSource, bi), 'size')
             if sizeStr is not None:
                 sizeStr = Precise.string_div(sizeStr, scaleStr)
             bids.append([self.parse_number(priceStr), self.parse_number(sizeStr)])
         for ai in range(0, len(asksSource)):
-            priceStr = self.safe_string(asksSource[ai], 'price')
+            priceStr = self.safe_string(self.safe_value(asksSource, ai), 'price')
             if not isYes and (priceStr is not None):
                 priceStr = Precise.string_sub('1', priceStr)
-            sizeStr = self.safe_string(asksSource[ai], 'size')
+            sizeStr = self.safe_string(self.safe_value(asksSource, ai), 'size')
             if sizeStr is not None:
                 sizeStr = Precise.string_div(sizeStr, scaleStr)
             asks.append([self.parse_number(priceStr), self.parse_number(sizeStr)])
@@ -1340,7 +1340,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             firstPrices = self.safe_list(first, 'prices')
             if firstPrices is not None:
                 selectedSeries = first
-                for i in range(0, len(rawHistory)):
+                for i in range(0, rawHistoryLength):
                     series = self.safe_dict(rawHistory, i, {})
                     title = self.safe_string_upper(series, 'title', '')
                     if title is None:
@@ -1399,7 +1399,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 candles[key] = candle  # php arrays are value types - write the mutation back
         result = []
         for i in range(0, len(bucketOrder)):
-            result.append(candles[bucketOrder[i]])
+            result.append(self.safe_value(candles, bucketOrder[i]))
         return self.filter_by_since_limit(result, since, limit, 0)
 
     async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionOrder]:
@@ -2802,8 +2802,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         eventKeys = list(eventGroups.keys())
         eventKeysLength = len(eventKeys)
         for i in range(0, eventKeysLength):
-            g = eventGroups[eventKeys[i]]
-            ev = self.parse_event(g)
+            ev = self.parse_event(self.safe_dict(eventGroups, eventKeys[i], {}))
             result.append(ev)
         # setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
         self.set_events(result)
@@ -2854,7 +2853,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 break
         return allRaw
 
-    async def fetch_raw_markets_by_tags(self, tags: list[str], params: dict = {}) -> list[object]:
+    async def fetch_raw_markets_by_tags(self, tags: list[str], params: dict = {}) -> list[dict]:
         """
  @ignore
         resolves the requested tags to limitless categories via GET /categories, then pages only those categories' active listings server-side
@@ -2901,7 +2900,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                     allRaw.append(raw)
         return allRaw
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         # the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         # unique when two orders are signed within the same millisecond
         return self.milliseconds()
@@ -2917,7 +2916,6 @@ class limitless(PredictionExchange, ImplicitAPI):
         :returns dict: a dictionary with url, method, body and headers
         """
         apiGroup = api[0]
-        access = self.safe_string(api, 1, 'public')
         baseUrls = self.urls['api']
         baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['limitless'])
         url = '/' + self.implode_params(path, params)
@@ -2927,7 +2925,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             url += '?' + querystring
         headersValue = None
         bodyValue = None
-        if access == 'private':
+        if api[1] == 'private':
             bodyString = ''
             headersValue = {}
             if method == 'POST' and (querystring != ''):
@@ -2953,22 +2951,22 @@ class limitless(PredictionExchange, ImplicitAPI):
         url = baseUrl + url
         return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue}
 
-    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         """
  @ignore
         maps limitless error responses to ccxt exceptions
         """
         if response is None:
             return None
-        statusCodeInt = self.parse_to_int(statusCode)
+        statusCodeInt = self.parse_to_int(code)
         if (statusCodeInt >= 200) and (statusCodeInt < 300):
             return None
-        feedback = self.id + ' ' + responseBody
+        feedback = self.id + ' ' + body
         # the API returns either a string message or an array of field-validation errors
         message = self.safe_string(response, 'message')
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-        self.throw_broadly_matched_exception(self.exceptions['broad'], responseBody, feedback)
+        self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
         # a 400 is a client-side bad request (bad params, or a business rule like "market not
         # resolved"), not a transport outage — throw BadRequest with the exchange message instead
         # of letting the base map the bare 400 to a retryable network-unavailable error

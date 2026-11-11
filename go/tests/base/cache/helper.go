@@ -157,7 +157,7 @@ func GetArrayLength(value any) int {
 
 // the ws cache test ends on Object.keys (cache.hashmap); package `base` resolves
 // the bare ObjectKeys through its own shim, package `cache` needs its own.
-// ccxt.ObjectKeys only knows map[string]any / *sync.Map, but the nested caches
+// ccxt.ObjectKeys only knows map[string]any, but the nested caches
 // expose Hashmap as map[string]map[string]any, so reflect over any string-keyed map.
 func ObjectKeys(value any) []string {
 	if keys := ccxt.ObjectKeys(value); keys != nil {

@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\aster as Exchange;
 
 class aster extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'aster',
             'name' => 'Aster',
@@ -984,6 +984,7 @@ class aster extends Exchange {
             return null;
         }
         $active = $this->safe_string($market, 'status') === 'TRADING';
+        $tradingFees = $this->safe_dict($this->fees, 'trading', array());
         $spot = null;
         $symbol = null;
         $settle = null;
@@ -1041,8 +1042,8 @@ class aster extends Exchange {
             'contract' => $isContract,
             'linear' => $linear,
             'inverse' => $inverse,
-            'taker' => $this->fees['trading']['taker'],
-            'maker' => $this->fees['trading']['maker'],
+            'taker' => $tradingFees['taker'],
+            'maker' => $tradingFees['maker'],
             'contractSize' => $contractSize,
             'expiry' => null,
             'expiryDatetime' => null,
@@ -1172,14 +1173,14 @@ class aster extends Exchange {
         $isIndex = ($price === 'index');
         $paramsOmitted = $this->omit($paramsUntil, 'price');
         if ($isMark) {
-            $requestUntil['symbol'] = $market['id'];
+            $requestUntil['symbol'] = $this->safe_string($market, 'id', '');
             $response = $this->fapiPublicGetV3MarkPriceKlines($this->extend($requestUntil, $paramsOmitted));
         } elseif ($isIndex) {
-            $requestUntil['pair'] = $market['id'];
+            $requestUntil['pair'] = $this->safe_string($market, 'id', '');
             $response = $this->fapiPublicGetV3IndexPriceKlines($this->extend($requestUntil, $paramsOmitted));
         } else {
-            $requestUntil['symbol'] = $market['id'];
-            if ($market['linear'] === true) {
+            $requestUntil['symbol'] = $this->safe_string($market, 'id', '');
+            if ($this->safe_bool($market, 'linear', false)) {
                 $response = $this->fapiPublicGetV3Klines($this->extend($requestUntil, $paramsOmitted));
             } else {
                 $response = $this->sapiPublicGetV3Klines($this->extend($requestUntil, $paramsOmitted));
@@ -1342,7 +1343,7 @@ class aster extends Exchange {
         }
         // use historical endpoint for targeted requests
         if ($sinceDefined) {
-            if ($market['swap'] === true) {
+            if ($this->safe_bool($market, 'swap', false)) {
                 $response = $this->fapiPublicGetV3AggTrades($this->extend($request, $params));
             } else {
                 $response = $this->sapiPublicGetV3AggTrades($this->extend($request, $params));
@@ -1363,7 +1364,7 @@ class aster extends Exchange {
             // ]
             //
         } else {
-            if ($market['swap'] === true) {
+            if ($this->safe_bool($market, 'swap', false)) {
                 $response = $this->fapiPublicGetV3Trades($this->extend($request, $params));
             } else {
                 $response = $this->sapiPublicGetV3Trades($this->extend($request, $params));
@@ -1468,7 +1469,7 @@ class aster extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $this->find_nearest_ceiling(array( 5, 10, 20, 50, 100, 500, 1000 ), $limit);
         }
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = $this->fapiPublicGetV3Depth($this->extend($request, $params));
         } else {
             $response = $this->sapiPublicGetV3Depth($this->extend($request, $params));
@@ -1602,7 +1603,7 @@ class aster extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = $this->fapiPublicGetV3Ticker24hr($this->extend($request, $params));
         } else {
             $response = $this->sapiPublicGetV3Ticker24hr($this->extend($request, $params));
@@ -2036,7 +2037,7 @@ class aster extends Exchange {
         $this->load_markets_and_sign_in();
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $response = null;
-        $data = null;
+        $data = array();
         if ($marketType === 'swap') {
             $data = $this->fapiPrivateGetV3Balance($paramsMarketType);
             //
@@ -2066,13 +2067,14 @@ class aster extends Exchange {
             //     ]
             //
         }
-        return $this->parse_balance($data);
+        return $this->parse_balance_list($data);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         $result = array( 'info' => $response );
-        for ($i = 0; $i < count($response); $i++) {
-            $balance = $this->safe_dict($response, $i);
+        $rows = $this->to_array($response);
+        for ($i = 0; $i < count($rows); $i++) {
+            $balance = $this->safe_dict($rows, $i);
             $currencyId = $this->safe_string($balance, 'asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -2197,7 +2199,7 @@ class aster extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = $this->fapiPrivateGetV3CommissionRate($this->extend($request, $params));
         } else {
             $response = $this->sapiPrivateGetV3CommissionRate($this->extend($request, $params));
@@ -2361,7 +2363,7 @@ class aster extends Exchange {
         } else {
             $request['orderId'] = $id;
         }
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = $this->fapiPrivateGetV3Order($this->extend($request, $paramsOmitted));
         } else {
             $response = $this->sapiPrivateGetV3Order($this->extend($request, $paramsOmitted));
@@ -2425,7 +2427,7 @@ class aster extends Exchange {
         } else {
             $request['orderId'] = $id;
         }
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $response = $this->sapiPrivateGetV3OpenOrder($this->extend($request, $paramsOmitted));
         } else {
             $response = $this->fapiPrivateGetV3OpenOrder($this->extend($request, $paramsOmitted));
@@ -2491,7 +2493,7 @@ class aster extends Exchange {
             $request['startTime'] = $since;
         }
         list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = $this->fapiPrivateGetV3AllOrders($this->extend($requestUntil, $paramsUntil));
         } else {
             $response = $this->sapiPrivateGetV3AllOrders($this->extend($requestUntil, $paramsUntil));
@@ -2627,7 +2629,7 @@ class aster extends Exchange {
         $this->load_markets_and_sign_in();
         $market = $this->market($symbol);
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = $this->fapiPrivatePostV3Order($request);
         } else {
             $response = $this->sapiPrivatePostV3Order($request);
@@ -2678,26 +2680,27 @@ class aster extends Exchange {
         $this->load_markets_and_sign_in();
         $ordersRequests = array();
         $orderSymbols = array();
-        if (strlen($orders) > 5) {
+        $ordersLength = count($orders);
+        if ($ordersLength > 5) {
             throw new InvalidOrder($this->id . ' createOrders() order list max 5 orders');
         }
-        for ($i = 0; $i < count($orders); $i++) {
+        for ($i = 0; $i < $ordersLength; $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $currentMarket = $this->market($marketId);
             $orderSymbols[] = $currentMarket['symbol'];
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
             $ordersRequests[] = $orderRequest;
         }
         $orderSymbolsResolved = $this->market_symbols($orderSymbols, null, false, true, true);
         $market = $this->market($orderSymbolsResolved[0]);
-        if ($market['spot'] === true) {
-            throw new NotSupported($this->id . ' createOrders() does not support ' . $market['type'] . ' orders');
+        if ($this->safe_bool($market, 'spot', false)) {
+            throw new NotSupported($this->id . ' createOrders() does not support ' . $this->safe_string($market, 'type', '') . ' orders');
         }
         $request = array(
             'batchOrders' => $ordersRequests,
@@ -2778,7 +2781,7 @@ class aster extends Exchange {
         $uppercaseType = $initialUppercaseType;
         $stopPrice = null;
         if ($isTrailingPercentOrder) {
-            if ($market['swap'] === true) {
+            if ($this->safe_bool($market, 'swap', false)) {
                 $uppercaseType = 'TRAILING_STOP_MARKET';
                 $request['callbackRate'] = $trailingPercent;
                 if ($trailingTriggerPrice !== null) {
@@ -2816,11 +2819,12 @@ class aster extends Exchange {
         $quantityIsRequired = false;
         $request['type'] = $uppercaseType;
         if ($uppercaseType === 'MARKET') {
-            if ($market['spot'] === true) {
+            if ($this->safe_bool($market, 'spot', false)) {
                 $quoteOrderQty = $this->handle_option('createOrder', 'quoteOrderQty', true);
                 if ($quoteOrderQty === true) {
                     $quoteOrderQtyNew = $this->safe_string_2($params, 'quoteOrderQty', 'cost');
-                    $precision = $market['precision']['price'];
+                    $marketPrecision = $this->safe_dict($market, 'precision', array());
+                    $precision = $marketPrecision['price'];
                     if ($quoteOrderQtyNew !== null) {
                         $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQtyNew, TRUNCATE, $precision, $this->precisionMode);
                     } elseif ($price !== null) {
@@ -2893,7 +2897,7 @@ class aster extends Exchange {
         } else {
             $requestParams = $this->omit($params, $omitKeys);
         }
-        if (($this->safe_bool($this->options, 'builderFee', false)) && ($market['swap'] === true)) {
+        if (($this->safe_bool($this->options, 'builderFee', false)) && ($this->safe_bool($market, 'swap', false))) {
             $request['builder'] = $this->safe_string($this->options, 'builder');
             $request['feeRate'] = $this->safe_string($this->options, 'builderRate');
         }
@@ -2919,7 +2923,7 @@ class aster extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = $this->fapiPrivateDeleteV3AllOpenOrders($this->extend($request, $params));
         } else {
             $response = $this->sapiPrivateDeleteV3AllOpenOrders($this->extend($request, $params));
@@ -2966,7 +2970,7 @@ class aster extends Exchange {
             $request['orderId'] = $id;
         }
         $paramsOmitted = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = $this->fapiPrivateDeleteV3Order($this->extend($request, $paramsOmitted));
         } else {
             $response = $this->sapiPrivateDeleteV3Order($this->extend($request, $paramsOmitted));
@@ -3004,7 +3008,7 @@ class aster extends Exchange {
         } else {
             $request['orderIdList'] = $ids;
         }
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $response = $this->fapiPrivateDeleteV3BatchOrders($this->extend($request, $params));
             //
             //    [
@@ -3420,13 +3424,13 @@ class aster extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
         if ($since !== null) {
-            $requestUntil['startTime'] = $since;
+            $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $requestUntil['limit'] = min($limit, 1000); // max 1000
+            $request['limit'] = min($limit, 1000); // max 1000
         }
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
         $response = $this->fapiPrivateGetV3Income($this->extend($requestUntil, $paramsUntil));
         return $this->parse_incomes($response, $market, $since, $limit);
     }
@@ -3813,14 +3817,14 @@ class aster extends Exchange {
             $position = $positions[$i];
             $marketId = $this->safe_string($position, 'symbol');
             $market = $this->safe_market($marketId, null, null, 'contract');
-            $code = ($market['linear'] === true) ? $market['quote'] : $market['base'];
+            $code = ($this->safe_bool($market, 'linear', false)) ? $market['quote'] : $market['base'];
             $maintenanceMargin = $this->safe_string($position, 'maintMargin');
             // check for maintenance margin so empty positions are not returned
             $isPositionOpen = ($maintenanceMargin !== '0') && ($maintenanceMargin !== '0.00000000');
             if (!$filterClosed || $isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
-                if (is_array($balances) && array_key_exists($code ?? '', $balances)) {
-                    $balance = $this->safe_dict($balances, $code);
+                $balance = $this->safe_dict($balances, $code);
+                if ($balance !== null) {
                     $parsed = $this->parse_account_position($this->extend($position, array(
                         'crossMargin' => $this->safe_string($balance, 'crossMargin'),
                         'crossWalletBalance' => $this->safe_string($balance, 'crossWalletBalance'),
@@ -3956,15 +3960,15 @@ class aster extends Exchange {
             }
             $pricePrecision = $this->precision_from_string($this->safe_string($marketResolved['precision'], 'price'));
             $pricePrecisionPlusOne = $pricePrecision + 1;
-            $pricePrecisionPlusOneString = (string) $pricePrecisionPlusOne;
             // round half up
+            $pricePrecisionPlusOneString = $this->number_to_string($pricePrecisionPlusOne);
             $rounderString = '5e-' . $pricePrecisionPlusOneString;
             $liquidationPriceRoundedString = Precise::string_add($rounderString, $liquidationPriceStringRaw);
             $truncatedLiquidationPrice = Precise::string_div($liquidationPriceRoundedString, '1', $pricePrecision);
             if ($truncatedLiquidationPrice === null) {
                 throw new ExchangeError($this->id . ' method() missing truncatedLiquidationPrice');
             }
-            if ($truncatedLiquidationPrice[0] === '-') {
+            if (str_starts_with($truncatedLiquidationPrice, '-')) {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
                 $truncatedLiquidationPrice = null;
@@ -4441,7 +4445,7 @@ class aster extends Exchange {
         //        }
         //    ]
         //
-        $approvedBuilders = $result;
+        $approvedBuilders = $this->to_array($result);
         $length = count($approvedBuilders);
         $found = false;
         $builderAddress = $this->safe_string($this->options, 'builder');
@@ -4479,7 +4483,7 @@ class aster extends Exchange {
         return null; // just c#
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -4489,12 +4493,12 @@ class aster extends Exchange {
         //        "msg": "Invalid symbol.",
         //    }
         //
-        $code = $this->safe_string($response, 'code');
+        $codeError = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg');
-        if ($code !== null && $code !== '200') {
+        if ($codeError !== null && $codeError !== '200') {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }

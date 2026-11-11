@@ -349,7 +349,7 @@ function insideNestedFunction (s, mask, body0, pos) {
     return /=>\s*\{[^}]*$/.test (text) || /delegate\s*\(/.test (text.slice (-400)) || insideOpenLambdaBlock (s, mask, body0, pos);
 }
 
-// hx4 C34: brace-aware twin — a `=> {` block still open at pos (its body may hold nested `{ }`)
+// brace-aware twin — a `=> {` block still open at pos (its body may hold nested `{ }`)
 function insideOpenLambdaBlock (s, mask, body0, pos) {
     const stack = [];
     for (let i = body0; i < pos; i++) {

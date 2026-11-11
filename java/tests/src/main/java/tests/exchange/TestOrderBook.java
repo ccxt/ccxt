@@ -17,7 +17,7 @@ import java.util.Map;
 
 
 public class TestOrderBook extends BaseTest {
-    public static void testOrderBook(BaseExchange exchange, Object skippedProperties, Object method, Object orderbook, Object symbol)
+    public static void testOrderBook(BaseExchange exchange, Object skippedProperties, String method, Object orderbook, Object symbol)
     {
         // prediction-market structures are keyed by an outcome handle, not a `symbol`
         if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
@@ -35,10 +35,10 @@ public class TestOrderBook extends BaseTest {
             put( "nonce", 134234234 );
         }};
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("nonce"));
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, orderbook, format, emptyAllowedFor);
-        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, orderbook);
-        TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, orderbook, "symbol", symbol);
-        Object logText = TestSharedMethods.logTemplate(exchange, method, orderbook);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), orderbook, format, emptyAllowedFor);
+        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, (String) (method), orderbook);
+        TestSharedMethods.AssertSymbol(exchange, skippedProperties, (String) (method), orderbook, "symbol", symbol);
+        Object logText = TestSharedMethods.logTemplate(exchange, (String) (method), orderbook);
         // todo: check non-emtpy arrays for bids/asks for toptier exchanges
         Object bids = ((Map<String, Object>)orderbook).get("bids");
         Integer bidsLength = ((List<?>)bids).size();
@@ -57,8 +57,8 @@ public class TestOrderBook extends BaseTest {
             if (!(Helpers.inOp(skippedProperties, "compareToZero")))
             {
                 // compare price & volume to zero
-                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, (bids == null || i < 0 || i >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(i)), 0, "0");
-                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, (bids == null || i < 0 || i >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(i)), 1, "0");
+                TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), (bids == null || i < 0 || i >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(i)), 0, "0");
+                TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), (bids == null || i < 0 || i >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(i)), 1, "0");
             }
         }
         Object asks = ((Map<String, Object>)orderbook).get("asks");
@@ -78,8 +78,8 @@ public class TestOrderBook extends BaseTest {
             if (!(Helpers.inOp(skippedProperties, "compareToZero")))
             {
                 // compare price & volume to zero
-                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, (asks == null || i < 0 || i >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(i)), 0, "0");
-                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, (asks == null || i < 0 || i >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(i)), 1, "0");
+                TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), (asks == null || i < 0 || i >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(i)), 0, "0");
+                TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), (asks == null || i < 0 || i >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(i)), 1, "0");
             }
         }
         if (!(Helpers.inOp(skippedProperties, "spread")))
