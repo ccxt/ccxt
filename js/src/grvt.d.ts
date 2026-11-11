@@ -359,7 +359,7 @@ export default class grvt extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     eipDomainData(): Dict;
     feeAmountMultiplier(): int;
-    createSignedRequest(request: Dict, structureType: string, currencyObj?: Dict | undefined, signerAddress?: Str): Dict;
+    createSignedRequest(request: Dict, structureType: string, currencyObj?: Currency, signerAddress?: Str): Dict;
     formatSignatureRS(value: string): string;
     defaultSignature(): Dict;
     handleUntilOptionString(key: string, request: Dict, params?: Dict, multiplier?: int): [Dict, Dict];

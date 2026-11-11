@@ -63,7 +63,7 @@ export default class bitfinex extends Exchange {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
-    convertDerivativesId(currency: Dict, type: string): Str;
+    convertDerivativesId(currency: Currency, type: string): Str;
     /**
      * @method
      * @name bitfinex#fetchOrderBook
