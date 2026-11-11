@@ -1932,8 +1932,8 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsResolved: Value = self.market_symbols(&[symbols]);
-        if (symbolsResolved == Value::Null) {
+        let mut symbolsResolved: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        if (symbolsResolved.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() requires a symbols argument".into()))));
         }
         let mut tickers: indexmap::IndexMap<String, Value> = ({
@@ -1943,8 +1943,8 @@ impl Coinbaseinternational {
         {
                         let mut i: i64 = 0;
             let mut __for_first_559: bool = true;
-            while { if !__for_first_559 { i += 1; } __for_first_559 = false; i < (symbolsResolved.len() as i64) } {
-            let mut symbol: Option<String> = self.safe_string_opt(symbolsResolved.clone(), Value::Int(i), &[]);
+            while { if !__for_first_559 { i += 1; } __for_first_559 = false; i < (symbolsResolved.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut symbol: Option<String> = self.safe_string_opt(&symbolsResolved, Value::Int(i), &[]);
             if (symbol.is_none()) {
                 continue;
             }
@@ -1952,7 +1952,7 @@ impl Coinbaseinternational {
             tickers.insert(symbol.as_deref().unwrap_or("null").to_string(), ticker);
         }
         }
-        return self.filter_by_array_tickers(Value::Map(tickers), Value::Str("symbol".into()), &[symbolsResolved]);
+        return self.filter_by_array_tickers(Value::Map(tickers), Value::Str("symbol".into()), &[symbolsResolved.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2242,7 +2242,7 @@ impl Coinbaseinternational {
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             paramsOmitted = self.omit(paramsResolved, Value::Str("code".into()), &[]);
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if self.is_native_deribit_credentials().as_bool() == Some(true) && (code.is_some()) {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -2250,9 +2250,9 @@ impl Coinbaseinternational {
                 m
             });
             let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted.clone()]);
-            response = self.private_get_get_account_summary(&[__ws_arg_5]).await;
+            response = self.private_get_get_account_summary(&[__ws_arg_5]).await.into_opt_dict();
         }  else {
-            response = self.private_get_get_account_summaries(&[paramsOmitted]).await;
+            response = self.private_get_get_account_summaries(&[paramsOmitted]).await.into_opt_dict();
         }
         //
         // {
@@ -2494,15 +2494,15 @@ impl Coinbaseinternational {
         //     }
         // }
         //
-        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         if !(self.is_native_deribit_credentials().as_bool() == Some(true)) {
             // Account summaries are arrays; retain the gateway info shape without dropping balances.
-            let mut summaries: Value = self.safe_list_k(result.clone(), "summaries", &[]);
-            if (summaries != Value::Null) {
-                return self.parse_balance_list(summaries);
+            let mut summaries: Option<crate::value::List> = self.safe_list_k(result.clone(), "summaries", &[]).into_opt_list();
+            if (summaries.is_some()) {
+                return self.parse_balance_list(summaries.map_or(Value::Null, Value::Arr));
             }
             return self.parse_balance_list(self.safe_dict_k(result.clone(), "summaries", &[Value::from(vec![])]));
         }
@@ -3377,13 +3377,13 @@ impl Coinbaseinternational {
             paramsOrder = self.omit(paramsOrder.clone(), Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into())]), &[]);
         }
         self.authenticate_v2(&[]).await;
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (side.as_str() == Some("buy")) {
             let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[paramsOrder.clone()]);
-            response = self.private_get_buy(&[__ws_arg_11]).await;
+            response = self.private_get_buy(&[__ws_arg_11]).await.into_opt_dict();
         }  else {
             let __ws_arg_12 = self.extend(Value::Map(request), &[paramsOrder]);
-            response = self.private_get_sell(&[__ws_arg_12]).await;
+            response = self.private_get_sell(&[__ws_arg_12]).await.into_opt_dict();
         }
         //
         //     {
@@ -3439,10 +3439,10 @@ impl Coinbaseinternational {
         //         }
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(response, "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut order: indexmap::IndexMap<String, Value> = self.safe_dict_k(&result, "order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4148,7 +4148,7 @@ impl Coinbaseinternational {
             paramsOmitted = self.omit(paramsPaginate, Value::Str("until".into()), &[]);
         }
         self.authenticate_v2(&[]).await;
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if self.is_native_deribit_credentials().as_bool() == Some(true) && ((since != Value::Null) || (until.is_some())) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), (if (since != Value::Null) { since.clone() } else { Value::Int(0) })); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), (if (until.is_some()) { Value::from(until) } else { self.milliseconds() })); }
@@ -4156,10 +4156,10 @@ impl Coinbaseinternational {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).shift_remove("include_old"); }
             }
             let __ws_arg_18 = self.extend(request.clone(), &[paramsOmitted.clone()]);
-            response = self.private_get_get_user_trades_by_instrument_and_time(&[__ws_arg_18]).await;
+            response = self.private_get_get_user_trades_by_instrument_and_time(&[__ws_arg_18]).await.into_opt_dict();
         }  else {
             let __ws_arg_19 = self.extend(request, &[paramsOmitted]);
-            response = self.private_get_get_user_trades_by_instrument(&[__ws_arg_19]).await;
+            response = self.private_get_get_user_trades_by_instrument(&[__ws_arg_19]).await.into_opt_dict();
         }
         //
         //     {
@@ -4216,10 +4216,10 @@ impl Coinbaseinternational {
         //         }
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(response, "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut trades: Value = self.safe_list_k(&result, "trades", &[Value::from(vec![])]);
         return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
         Value::Null

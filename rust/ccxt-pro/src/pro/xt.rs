@@ -1868,8 +1868,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(tradeType.clone())]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut obAsks: Value = self.safe_list_k(data.clone(), "a", &[]);
-            let mut obBids: Value = self.safe_list_k(data.clone(), "b", &[]);
+            let mut obAsks: Option<crate::value::List> = self.safe_list_k(data.clone(), "a", &[]).into_opt_list();
+            let mut obBids: Option<crate::value::List> = self.safe_list_k(data.clone(), "b", &[]).into_opt_list();
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event, Value::Str("::".into())).into()), tradeType);
             if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
@@ -1896,26 +1896,26 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".into()), data.clone());
                 return;
             }
-            if (obAsks != Value::Null) {
+            if (obAsks.is_some()) {
                 let mut asks: Value = orderbook.book_field("asks");
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_722: bool = true;
-                    while { if !__for_first_722 { i += 1; } __for_first_722 = false; i < (obAsks.len() as i64) } {
-                    let mut ask: Value = self.safe_list(obAsks.clone(), Value::Int(i), &[]);
+                    while { if !__for_first_722 { i += 1; } __for_first_722 = false; i < (obAsks.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                    let mut ask: Value = self.safe_list(obAsks.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]);
                     let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
                     let mut quantity: Value = self.safe_number(ask, Value::Int(1), &[]);
                     asks.store(price.clone(), quantity.clone());
                 }
                 }
             }
-            if (obBids != Value::Null) {
+            if (obBids.is_some()) {
                 let mut bids: Value = orderbook.book_field("bids");
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_723: bool = true;
-                    while { if !__for_first_723 { i += 1; } __for_first_723 = false; i < (obBids.len() as i64) } {
-                    let mut bid: Value = self.safe_list(obBids.clone(), Value::Int(i), &[]);
+                    while { if !__for_first_723 { i += 1; } __for_first_723 = false; i < (obBids.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                    let mut bid: Value = self.safe_list(obBids.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[]);
                     let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
                     let mut quantity: Value = self.safe_number(bid, Value::Int(1), &[]);
                     bids.store(price, quantity);

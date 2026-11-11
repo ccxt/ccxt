@@ -577,8 +577,8 @@ impl Bitfinex {
         //
         let mut data: Value = self.safe_list(message, Value::Int(1), &[Value::from(vec![])]);
         let mut ohlcvs: Value = Value::from(vec![]);
-        let mut first: Value = self.safe_list(data.clone(), Value::Int(0), &[]);
-        if (first != Value::Null) {
+        let mut first: Option<crate::value::List> = self.safe_list(data.clone(), Value::Int(0), &[]).into_opt_list();
+        if (first.is_some()) {
             // snapshot
             ohlcvs = data.clone();
         }  else {
@@ -1276,15 +1276,15 @@ impl Bitfinex {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_105: bool = true;
             while { if !__for_first_105 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_105 = false; i.as_f64().unwrap_or(f64::NAN) < depth } {
-            let mut bid: Value = self.safe_list(bids.clone(), i.clone(), &[]);
-            let mut ask: Value = self.safe_list(asks.clone(), i.clone(), &[]);
-            if (bid != Value::Null) {
-                stringArray.push(self.number_to_string(self.safe_number(bid.clone(), Value::from(idToCheck), &[])));
-                stringArray.push(self.number_to_string(self.safe_number(bid, Value::Int(1), &[])));
+            let mut bid: Option<crate::value::List> = self.safe_list(bids.clone(), i.clone(), &[]).into_opt_list();
+            let mut ask: Option<crate::value::List> = self.safe_list(asks.clone(), i.clone(), &[]).into_opt_list();
+            if (bid.is_some()) {
+                stringArray.push(self.number_to_string(self.safe_number(bid.clone().map_or(Value::Null, Value::Arr), Value::from(idToCheck), &[])));
+                stringArray.push(self.number_to_string(self.safe_number(bid.clone().map_or(Value::Null, Value::Arr), Value::Int(1), &[])));
             }
-            if (ask != Value::Null) {
-                stringArray.push(self.number_to_string(self.safe_number(ask.clone(), Value::from(idToCheck), &[])));
-                let mut aski1: Value = self.safe_number(ask, Value::Int(1), &[]);
+            if (ask.is_some()) {
+                stringArray.push(self.number_to_string(self.safe_number(ask.clone().map_or(Value::Null, Value::Arr), Value::from(idToCheck), &[])));
+                let mut aski1: Value = self.safe_number(ask.clone().map_or(Value::Null, Value::Arr), Value::Int(1), &[]);
                 if (aski1 != Value::Null) {
                     stringArray.push(self.number_to_string((match &(aski1) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null })));
                 }

@@ -3472,8 +3472,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         }), &[__ws_arg_16]);
-        let mut nestedMarkets: Value = self.safe_list_k(fullEvent.clone(), "markets", &[]);
-        if (nestedMarkets == Value::Null) {
+        let mut nestedMarkets: Option<crate::value::List> = self.safe_list_k(fullEvent.clone(), "markets", &[]).into_opt_list();
+        if (nestedMarkets.is_none()) {
             add_element_to_object(&mut fullEvent, &Value::Str("markets".into()), self.safe_list_k(response, "markets", &[Value::from(vec![])]));
         }
         return fullEvent;

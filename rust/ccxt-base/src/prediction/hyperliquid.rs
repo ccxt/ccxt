@@ -812,7 +812,7 @@ impl Hyperliquid {
     m
 })]), Value::Str("name".into()), &[Value::Str("NO".into())]).as_str().unwrap_or("NO").to_string();
         let mut quoteCurrency: String = self.safe_string_k(self.options.clone(), "outcomeQuoteCurrency", &[Value::Str("USDH".into())]).as_str().unwrap_or("USDH").to_string();
-        let mut szDecimals: Value = Value::Int(4); // outcomes use 4 decimal places
+        let mut szDecimals: i64 = 4; // outcomes use 4 decimal places
         let mut active: bool = true;
         let mut outcomePrecision: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3231,10 +3231,10 @@ if _try_result.is_err() {
         let mut userAux: Value = userAuxparamsUserVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUser: crate::value::Dict = userAuxparamsUserVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let userparamsAddressVariable: Vec<Value> = self.handle_option_string_and_params(&paramsUser, methodName.clone(), Value::Str("address".into()), &[userAux]).as_array().cloned().unwrap_or_default();
-        let mut user: Value = userparamsAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut user: Option<String> = userparamsAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAddress: Value = userparamsAddressVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (user != Value::Null) && (user.as_str() != Some("")) {
-            return Value::from(vec![user, paramsAddress.clone()]);
+        if (user.is_some()) && (user.as_deref() != Some("")) {
+            return Value::from(vec![user.map(Value::from).unwrap_or(Value::Null), paramsAddress.clone()]);
         }
         if (self.walletAddress.clone() != Value::Null) && (self.walletAddress.as_str() != Some("")) {
             return Value::from(vec![self.walletAddress.clone(), paramsAddress]);

@@ -2457,9 +2457,9 @@ impl Derive {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(1000)]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("page".into()), Value::Int(1000)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2484,8 +2484,8 @@ impl Derive {
         if (since != Value::Null) {
             request.insert("from_timestamp".into(), since.clone());
         }
-        let mut until: Option<i64> = self.safe_integer_k(paramsPaginate.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         if (until.is_some()) {
             request.insert("to_timestamp".into(), Value::from(until));
         }
@@ -2714,17 +2714,17 @@ impl Derive {
                 m.insert("end_timestamp".to_string(), end);
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (priceType.as_deref() == Some("index")) {
             request.insert("currency".into(), Value::from((market).base_id.clone()));
             let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.public_post_get_index_chart_data(&[__ws_arg_9]).await;
+            response = self.public_post_get_index_chart_data(&[__ws_arg_9]).await.into_opt_dict();
         }  else {
             request.insert("instrument_name".into(), Value::from((market).id.clone()));
             let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.public_post_get_tradingview_chart_data(&[__ws_arg_10]).await;
+            response = self.public_post_get_tradingview_chart_data(&[__ws_arg_10]).await.into_opt_dict();
         }
-        let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
+        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(result, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -3212,13 +3212,13 @@ impl Derive {
         request.insert("signature".into(), signature);
         let mut paramsOmitted: Value = self.omit(paramsDeriveWalletAddress, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("postOnly".into()), Value::Str("test".into()), Value::Str("clientOrderId".into()), Value::Str("stopPrice".into()),
             Value::Str("triggerPrice".into()), Value::Str("trigger_price".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("trigger_price_type".into())]), &[]);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if test {
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
-            response = self.private_post_order_debug(&[__ws_arg_12]).await;
+            response = self.private_post_order_debug(&[__ws_arg_12]).await.into_opt_dict();
         }  else {
             let __ws_arg_13 = self.extend(Value::Map(request), &[paramsOmitted]);
-            response = self.private_post_order(&[__ws_arg_13]).await;
+            response = self.private_post_order(&[__ws_arg_13]).await.into_opt_dict();
         }
         //
         //     {
@@ -3265,7 +3265,7 @@ impl Derive {
         //         }
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(response, "result", &[]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[]).into_dict();
         let mut rawOrder: Value = self.safe_dict_k(&result, "raw_data", &[]);
         if (rawOrder == Value::Null) {
             rawOrder = self.safe_dict_k(&result, "order", &[Value::Map({
@@ -3517,20 +3517,20 @@ impl Derive {
         let mut clientOrderIdUnified: Option<String> = self.safe_string_k(&paramsOmitted, "clientOrderId", &[]).as_str().map(str::to_owned);
         let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(&paramsOmitted, "label", &[clientOrderIdUnified.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut isByClientOrder: bool = clientOrderIdExchangeSpecific != Value::Null;
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isByClientOrder {
             request.insert("label".into(), clientOrderIdExchangeSpecific.clone());
             let mut paramsLabel: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("label".into())]), &[]).into_dict();
             let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[&paramsLabel]);
-            response = self.private_post_cancel_by_label(&[__ws_arg_15]).await;
+            response = self.private_post_cancel_by_label(&[__ws_arg_15]).await.into_opt_dict();
         }  else {
             request.insert("order_id".into(), id);
             if isTrigger {
                 let __ws_arg_16 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_post_cancel_trigger_order(&[__ws_arg_16]).await;
+                response = self.private_post_cancel_trigger_order(&[__ws_arg_16]).await.into_opt_dict();
             }  else {
                 let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.private_post_cancel(&[__ws_arg_17]).await;
+                response = self.private_post_cancel(&[__ws_arg_17]).await.into_opt_dict();
             }
         }
         //
@@ -3580,10 +3580,10 @@ impl Derive {
                 m.insert("symbol".to_string(), symbol);
             m
         });
-        let mut order: Value = self.safe_dict_k(response, "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut order: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         if isByClientOrder {
             extendParams.insert("client_order_id".into(), clientOrderIdExchangeSpecific);
         }
@@ -3680,14 +3680,14 @@ impl Derive {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchCanceledAndClosedOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
             // paginate without a symbol: the venue cannot filter the order history by instrument, so an inner call filtering by symbol could return an empty page and stop the pagination loop prematurely
-            let mut allOrders: Value = self.fetch_paginated_call_incremental(Value::Str("fetchCanceledAndClosedOrders".into()), &[Value::Null, since.clone(), Value::Null, paramsPaginate.clone(), Value::Str("page".into()), Value::Int(500)]).await;
+            let mut allOrders: Value = self.fetch_paginated_call_incremental(Value::Str("fetchCanceledAndClosedOrders".into()), &[Value::Null, since.clone(), Value::Null, Value::from(&paramsPaginate), Value::Str("page".into()), Value::Int(500)]).await;
             return self.filter_by_symbol_since_limit(allOrders, &[symbol.clone(), since.clone(), limit.clone()]);
         }
-        let mut until: Option<i64> = self.safe_integer_k(paramsPaginate.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
+        let mut paramsOmitted: Value = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]);
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.handle_derive_subaccount_id(Value::Str("fetchCanceledAndClosedOrders".into()), paramsOmitted).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -3874,13 +3874,13 @@ impl Derive {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isTrigger {
             let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[&paramsDeriveSubaccountId]);
-            response = self.private_post_get_trigger_orders(&[__ws_arg_23]).await;
+            response = self.private_post_get_trigger_orders(&[__ws_arg_23]).await.into_opt_dict();
         }  else {
             let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-            response = self.private_post_get_open_orders(&[__ws_arg_24]).await;
+            response = self.private_post_get_open_orders(&[__ws_arg_24]).await.into_opt_dict();
         }
         //
         //     {
@@ -3929,7 +3929,7 @@ impl Derive {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response, "result", &[]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "result", &[]).into_dict();
         let mut orders: Value = self.safe_list_k(&data, "orders", &[Value::from(vec![])]);
         let mut parsedOrders: Value = self.parse_orders(orders, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         return self.filter_by_symbol_since_limit(parsedOrders, &[symbol, since, limit]);
@@ -5930,8 +5930,8 @@ impl Derive {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]).as_str().map(str::to_owned);
+        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
@@ -5942,7 +5942,7 @@ impl Derive {
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                 m
             });
-            if (apiName.as_str() == Some("private")) {
+            if (apiName.as_deref() == Some("private")) {
                 let mut now: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
                 let mut signature: Value = self.sign_message(now.clone().map(Value::from).unwrap_or(Value::Null), self.privateKey.clone()).map(Value::from).unwrap_or(Value::Null);
                 let mut configuredWalletAddress: Option<String> = self.safe_string_k(self.options.clone(), "deriveWalletAddress", &[]).as_str().map(str::to_owned);

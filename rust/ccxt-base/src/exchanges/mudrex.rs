@@ -646,13 +646,13 @@ impl Mudrex {
         let mut endTime: Value = self.parse_to_int((if (until != Value::Null) { ((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { cappedEnd }));
         request.insert("start_time".into(), startTime);
         request.insert("end_time".into(), endTime);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (priceType.as_deref() == Some("mark")) {
             let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.market_get_price_mark_kline(&[__ws_arg_0]).await;
+            response = self.market_get_price_mark_kline(&[__ws_arg_0]).await.into_opt_dict();
         }  else {
             let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.market_get_price_kline(&[__ws_arg_1]).await;
+            response = self.market_get_price_kline(&[__ws_arg_1]).await.into_opt_dict();
         }
         //
         //     {
@@ -664,10 +664,10 @@ impl Mudrex {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut assetTicks: Value = self.safe_dict_k(&data, "asset_ticks", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1571,13 +1571,13 @@ impl Mudrex {
             q.insert("limit".into(), limit.clone());
         }
         let mut request: Value = self.extend(Value::Map(q), &[params]);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (state.as_str() == Some("closed")) {
-            response = self.private_get_futures_orders_history(&[request.clone()]).await;
+            response = self.private_get_futures_orders_history(&[request.clone()]).await.into_opt_dict();
         }  else {
-            response = self.private_get_futures_orders(&[request]).await;
+            response = self.private_get_futures_orders(&[request]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_value_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Value = self.safe_value_k(&response, "data", &[Value::from(vec![])]);
         let mut rows: Value = self.to_array(data);
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {

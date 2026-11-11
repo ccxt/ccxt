@@ -437,7 +437,7 @@ impl Pacifica {
         }
         let requestoperationTypeVariable: Vec<Value> = self.parent.create_order_request(symbol.clone(), type_var, side, amount, &[price, params]).as_array().cloned().unwrap_or_default();
         let mut request: Value = requestoperationTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut operationType: Value = requestoperationTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut operationType: Option<String> = requestoperationTypeVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: String = "api".to_string();
         if isTestnet.as_bool() == Some(true) {
@@ -455,11 +455,11 @@ impl Pacifica {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
-        let mut wsRequest: Value = self.wrap_as_post_action(operationType.clone(), request);
+        let mut wsRequest: Value = self.wrap_as_post_action(operationType.clone().map(Value::from).unwrap_or(Value::Null), request);
         let mut requestId: Option<String> = self.safe_string_k(wsRequest.clone(), "id", &[]).as_str().map(str::to_owned);
-        if (operationType.as_str() == Some("create_stop_order")) {
+        if (operationType.as_deref() == Some("create_stop_order")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() do not support stop order type of order. Check provided arguments correctly!".into()))));
-        }  else if (operationType.as_str() == Some("set_position_tpsl")) {
+        }  else if (operationType.as_deref() == Some("set_position_tpsl")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!".into()))));
         }
         let mut response: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), requestId.clone().map(Value::from).unwrap_or(Value::Null), &[wsRequest, requestId.clone().map(Value::from).unwrap_or(Value::Null)]).await;

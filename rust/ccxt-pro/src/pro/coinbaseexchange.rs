@@ -383,14 +383,14 @@ impl Coinbaseexchange {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut messageHashes: Value = Value::from(vec![]);
         let mut productIds: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_237: bool = true;
-            while { if !__for_first_237 { i += 1; } __for_first_237 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Option<String> = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            while { if !__for_first_237 { i += 1; } __for_first_237 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: Value = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[Value::Str("".into())]);
             productIds.push(marketId);
@@ -1469,11 +1469,11 @@ impl Coinbaseexchange {
                                 let mut i: i64 = 0;
                 let mut __for_first_242: bool = true;
                 while { if !__for_first_242 { i += 1; } __for_first_242 = false; i < (changes.len() as i64) } {
-                let mut change: Value = self.safe_list(changes.clone().into(), Value::Int(i), &[]);
-                let mut key: Option<String> = self.safe_string(change.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+                let mut change: Option<crate::value::List> = self.safe_list(changes.clone().into(), Value::Int(i), &[]).into_opt_list();
+                let mut key: Option<String> = self.safe_string(&change, Value::Int(0), &[]).as_str().map(str::to_owned);
                 let mut side: Option<String> = self.safe_string(Value::Map(sides.clone()), key.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-                let mut price: Value = self.safe_number(change.clone(), Value::Int(1), &[]);
-                let mut amount: Value = self.safe_number(change, Value::Int(2), &[]);
+                let mut price: Value = self.safe_number(change.clone().map_or(Value::Null, Value::Arr), Value::Int(1), &[]);
+                let mut amount: Value = self.safe_number(change.clone().map_or(Value::Null, Value::Arr), Value::Int(2), &[]);
                 let mut bookside: Value = self.safe_value(orderbook.clone(), side.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                 bookside.store(price, amount);
             }

@@ -939,20 +939,20 @@ impl Extended {
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-        let mut rawOrders: Value = self.safe_list_k(&data, "orders", &[]);
+        let mut rawOrders: Option<crate::value::List> = self.safe_list_k(&data, "orders", &[]).into_opt_list();
         let mut symbols: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut first: Value = self.safe_dict(rawOrders.clone(), Value::Int(0), &[]);
+        let mut first: Value = self.safe_dict(rawOrders.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[]);
         if (first == Value::Null) {
             return;
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_314: bool = true;
-            while { if !__for_first_314 { i += 1; } __for_first_314 = false; i < (rawOrders.len() as i64) } {
-            let mut order: Value = self.parse_order(self.safe_dict(rawOrders.clone(), Value::Int(i), &[Value::Map({
+            while { if !__for_first_314 { i += 1; } __for_first_314 = false; i < (rawOrders.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut order: Value = self.parse_order(self.safe_dict(rawOrders.clone().map_or(Value::Null, Value::Arr), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]), &[]);
@@ -1459,10 +1459,10 @@ impl Extended {
             return;
         }
         let mut type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut dataList: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null });
+        let mut dataList: Option<crate::value::List> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        if (dataList != Value::Null) {
-            let mut first: crate::value::Dict = self.safe_dict(dataList, Value::Int(0), &[Value::Map({
+        if (dataList.is_some()) {
+            let mut first: crate::value::Dict = self.safe_dict(dataList.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();

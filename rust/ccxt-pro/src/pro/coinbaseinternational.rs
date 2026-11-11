@@ -1017,21 +1017,21 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsResolved: Value = self.market_symbols(&[symbols]);
+        let mut symbolsResolved: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let intervalparamsIntervalVariable: Vec<Value> = self.handle_option_string_and_params(paramsResolved, Value::Str("watchPositions".into()), Value::Str("interval".into()), &[Value::Str("raw".into())]).as_array().cloned().unwrap_or_default();
         let mut interval: Value = intervalparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsInterval: Value = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut channels: Value = Value::from(vec![]);
         let mut symbolsLength: i64 = 0;
-        if (symbolsResolved != Value::Null) {
-            symbolsLength = symbolsResolved.len() as i64;
+        if (symbolsResolved.is_some()) {
+            symbolsLength = symbolsResolved.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
         }
-        if (symbolsResolved != Value::Null) && ((symbolsLength as f64) > ((0i64) as f64)) {
+        if (symbolsResolved.is_some()) && ((symbolsLength as f64) > ((0i64) as f64)) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_248: bool = true;
                 while { if !__for_first_248 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_248 = false; i.as_f64().unwrap_or(f64::NAN) < (symbolsLength as f64) } {
-                if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.changes.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(symbolsResolved.clone(), i.clone(),
+                if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.changes.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, i.clone(),
                     &[Value::Str("".into())])).as_str().unwrap_or_default())), Value::Str("id".into()), &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval).into())); }
             }
             }
@@ -1042,7 +1042,7 @@ impl Coinbaseinternational {
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsResolved, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsResolved.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1073,21 +1073,21 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsResolved: Value = self.market_symbols(&[symbols]);
+        let mut symbolsResolved: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let intervalparamsIntervalVariable: Vec<Value> = self.handle_option_string_and_params(paramsResolved, Value::Str("watchPositions".into()), Value::Str("interval".into()), &[Value::Str("raw".into())]).as_array().cloned().unwrap_or_default();
         let mut interval: Value = intervalparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsInterval: Value = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut channels: Vec<Value> = Vec::new();
         let mut symbolsLength: i64 = 0;
-        if (symbolsResolved != Value::Null) {
-            symbolsLength = symbolsResolved.len() as i64;
+        if (symbolsResolved.is_some()) {
+            symbolsLength = symbolsResolved.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
         }
-        if (symbolsResolved != Value::Null) && ((symbolsLength as f64) > ((0i64) as f64)) {
+        if (symbolsResolved.is_some()) && ((symbolsLength as f64) > ((0i64) as f64)) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_249: bool = true;
                 while { if !__for_first_249 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_249 = false; i.as_f64().unwrap_or(f64::NAN) < (symbolsLength as f64) } {
-                channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.changes.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(symbolsResolved.clone(), i.clone(), &[Value::Str("".into())])).as_str().unwrap_or_default())), Value::Str("id".into()),
+                channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.changes.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, i.clone(), &[Value::Str("".into())])).as_str().unwrap_or_default())), Value::Str("id".into()),
                     &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval).into()));
             }
             }

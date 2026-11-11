@@ -1126,17 +1126,17 @@ impl Limitless {
             while { if !__for_first_1308 { i += 1; } __for_first_1308 = false; i < (rawRows.len() as i64) } {
             let mut raw: Value = rawRows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut rowType: Option<String> = self.safe_string_k(raw.clone(), "marketType", &[]).as_str().map(str::to_owned);
-            let mut nestedMarkets: Value = self.safe_list_k(raw.clone(), "markets", &[]);
-            if (rowType.as_deref() == Some("group")) && (nestedMarkets != Value::Null) {
+            let mut nestedMarkets: Option<crate::value::List> = self.safe_list_k(raw.clone(), "markets", &[]).into_opt_list();
+            if (rowType.as_deref() == Some("group")) && (nestedMarkets.is_some()) {
                 let mut groupSlug: Option<String> = self.safe_string_k(raw.clone(), "slug", &[]).as_str().map(str::to_owned);
                 let mut groupTitle: Value = self.safe_string_k(raw.clone(), "title", &[groupSlug.clone().map(Value::from).unwrap_or(Value::Null)]);
-                let mut nestedMarketsLength: f64 = ((nestedMarkets.len() as i64) as f64);
+                let mut nestedMarketsLength: f64 = ((nestedMarkets.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_1307: bool = true;
                     while { if !__for_first_1307 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1307 = false; j.as_f64().unwrap_or(f64::NAN) < nestedMarketsLength } {
                     // extend copies — the raw child stays untouched
-                    let mut tagged: Value = self.extend(nestedMarkets.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[Value::Map({
+                    let mut tagged: Value = self.extend(nestedMarkets.as_deref().map(Vec::as_slice).unwrap_or_default().get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("groupSlug".to_string(), groupSlug.clone().map(Value::from).unwrap_or(Value::Null));
                             m.insert("groupTitle".to_string(), groupTitle.clone());
@@ -1402,8 +1402,8 @@ impl Limitless {
             // an already-parsed ccxt market row carries the unified 'market' handle + outcomes
             // with 'symbol' kept as a legacy fallback — don't run it through parseMarket again
             let mut marketSymbol: Option<String> = self.safe_string2(rawMarket.clone(), Value::Str("market".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
-            let mut marketOutcomes: Value = self.safe_list_k(rawMarket.clone(), "outcomes", &[]);
-            if (marketSymbol.is_some()) && (marketOutcomes != Value::Null) {
+            let mut marketOutcomes: Option<crate::value::List> = self.safe_list_k(rawMarket.clone(), "outcomes", &[]).into_opt_list();
+            if (marketSymbol.is_some()) && (marketOutcomes.is_some()) {
                 markets.push(rawMarket.clone());
             }  else {
                 markets.push(self.parse_market(rawMarket.clone()));
@@ -2137,8 +2137,8 @@ impl Limitless {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut firstPrices: Value = self.safe_list_k(first.clone(), "prices", &[]);
-            if (firstPrices != Value::Null) {
+            let mut firstPrices: Option<crate::value::List> = self.safe_list_k(first.clone(), "prices", &[]).into_opt_list();
+            if (firstPrices.is_some()) {
                 let mut selectedSeries: Value = first;
                 {
                                         let mut i: Value = Value::Int(0);
@@ -4198,16 +4198,16 @@ if _try_result.is_err() {
                     m.insert("limit".to_string(), pageSize.clone());
                 m
             });
-            let mut response: Value = Value::Null;
+            let mut response: Option<crate::value::Dict> = None;
             if (categoryId != Value::Null) {
                 request.insert("categoryId".into(), categoryId.clone());
                 let __ws_arg_32 = self.extend(Value::Map(request.clone()), &[&rest]);
-                response = self.limitless_public_get_markets_active_category_id(&[__ws_arg_32]).await;
+                response = self.limitless_public_get_markets_active_category_id(&[__ws_arg_32]).await.into_opt_dict();
             }  else {
                 let __ws_arg_33 = self.extend(Value::Map(request), &[&rest]);
-                response = self.limitless_public_get_markets_active(&[__ws_arg_33]).await;
+                response = self.limitless_public_get_markets_active(&[__ws_arg_33]).await.into_opt_dict();
             }
-            let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut dataLength: f64 = ((data.len() as i64) as f64);
             if (dataLength == 0.0) {
                 break;

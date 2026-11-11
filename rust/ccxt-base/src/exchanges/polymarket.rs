@@ -4156,8 +4156,8 @@ impl Polymarket {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiType: Value = api.get(0).cloned().unwrap_or(Value::Null);
-        let mut baseUrl: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiType.clone(), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut apiType: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut baseUrl: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiType.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut implodedPath: Value = self.implode_params(path.clone(), params.clone());
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), implodedPath);
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
@@ -4167,7 +4167,7 @@ impl Polymarket {
             m
         });
         let mut bodyResolved: Value = Value::Null;
-        if (apiType.as_str() == Some("trade")) {
+        if (apiType.as_deref() == Some("trade")) {
             // the params hold the signed operation envelope assembled by the
             // calling method, the signature authenticates so no headers apply
             bodyResolved = json_stringify(&query);
@@ -4180,7 +4180,7 @@ impl Polymarket {
                     url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), implodedPath).into()), Value::Str("?".into())).into()), self.urlencode(query, &[]));
                 }
             }
-            if (apiType.as_str() == Some("private")) {
+            if (apiType.as_deref() == Some("private")) {
                 let mut credentials: crate::value::Dict = self.safe_dict_k(self.options.clone(), "proxyCredentials", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

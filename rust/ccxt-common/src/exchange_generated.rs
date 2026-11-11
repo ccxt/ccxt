@@ -3321,13 +3321,13 @@ pub trait ExchangeBase:
                         }
                     }
                     if shouldParseFees {
-                        let mut tradeFees: Value = self.safe_list_k(trade.clone(), "fees", &[]);
-                        if (tradeFees != Value::Null) {
+                        let mut tradeFees: Option<crate::value::List> = self.safe_list_k(trade.clone(), "fees", &[]).into_opt_list();
+                        if (tradeFees.is_some()) {
                             {
                                                                 let mut j: i64 = 0;
                                 let mut __for_first_93: bool = true;
-                                while { if !__for_first_93 { j += 1; } __for_first_93 = false; j < (tradeFees.len() as i64) } {
-                                let mut tradeFee: Value = tradeFees.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
+                                while { if !__for_first_93 { j += 1; } __for_first_93 = false; j < (tradeFees.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                                let mut tradeFee: Value = tradeFees.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                                 if let Value::Arr(__a) = &mut fees { std::sync::Arc::make_mut(__a).push(self.extend(Value::Map({
                                     let mut m = indexmap::IndexMap::new();
                                     m
@@ -4976,16 +4976,16 @@ pub trait ExchangeBase:
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut marketIdKey = get_arg(optional_args, 1, Value::Null);
         // marketIdKey should only be undefined when response is a dictionary.
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut tiers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut symbolsLength: i64 = 0;
-        if (symbolsNormalized != Value::Null) {
-            symbolsLength = symbolsNormalized.len() as i64;
+        if (symbolsNormalized.is_some()) {
+            symbolsLength = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
         }
-        let mut noSymbols: bool = (symbolsNormalized == Value::Null) || (((symbolsLength as f64) == 0.0));
+        let mut noSymbols: bool = (symbolsNormalized.is_none()) || (((symbolsLength as f64) == 0.0));
         if (matches!(&response, Value::Arr(_))) {
             {
                                 let mut i: i64 = 0;
@@ -4996,7 +4996,7 @@ pub trait ExchangeBase:
                 let mut market: Value = self.safe_market(&[id, Value::Null, Value::Null, Value::Str("swap".into())]);
                 let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
                 let mut contract: bool = self.safe_bool_k_opt(market.clone(), "contract", &[Value::Bool(false)]).unwrap_or(false);
-                if contract && (noSymbols || ((symbolsNormalized != Value::Null) && self.in_array(symbol.clone(), symbolsNormalized.clone()).as_bool() == Some(true))) {
+                if contract && (noSymbols || ((symbolsNormalized.is_some()) && self.in_array(symbol.clone(), symbolsNormalized.clone().map_or(Value::Null, Value::Arr)).as_bool() == Some(true))) {
                     if let Value::Dict(__d) = &mut tiers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), <Self as crate::exchange_generated::ExchangeBase>::parse_market_leverage_tiers(self, item.clone(), &[market.clone()])); }
                 }
             }
@@ -5012,7 +5012,7 @@ pub trait ExchangeBase:
                 let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, Value::Str("swap".into())]);
                 let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
                 let mut contract: bool = self.safe_bool_k_opt(market.clone(), "contract", &[Value::Bool(false)]).unwrap_or(false);
-                if contract && (noSymbols || ((symbolsNormalized != Value::Null) && self.in_array(symbol.clone(), symbolsNormalized.clone()).as_bool() == Some(true))) {
+                if contract && (noSymbols || ((symbolsNormalized.is_some()) && self.in_array(symbol.clone(), symbolsNormalized.clone().map_or(Value::Null, Value::Arr)).as_bool() == Some(true))) {
                     if let Value::Dict(__d) = &mut tiers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), <Self as crate::exchange_generated::ExchangeBase>::parse_market_leverage_tiers(self, item, &[market])); }
                 }
             }

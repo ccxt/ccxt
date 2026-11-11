@@ -1383,25 +1383,25 @@ impl Coinmate {
             request.insert("destinationTag".into(), tagWithdrawTag.clone());
         }
         let mut requestParams: Value = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privatePostBitcoinWithdrawal")) {
-            response = self.private_post_bitcoin_withdrawal(&[requestParams.clone()]).await;
+            response = self.private_post_bitcoin_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostLitecoinWithdrawal")) {
-            response = self.private_post_litecoin_withdrawal(&[requestParams.clone()]).await;
+            response = self.private_post_litecoin_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostBitcoinCashWithdrawal")) {
-            response = self.private_post_bitcoin_cash_withdrawal(&[requestParams.clone()]).await;
+            response = self.private_post_bitcoin_cash_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostEthereumWithdrawal")) {
-            response = self.private_post_ethereum_withdrawal(&[requestParams.clone()]).await;
+            response = self.private_post_ethereum_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostRippleWithdrawal")) {
-            response = self.private_post_ripple_withdrawal(&[requestParams.clone()]).await;
+            response = self.private_post_ripple_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostDashWithdrawal")) {
-            response = self.private_post_dash_withdrawal(&[requestParams.clone()]).await;
+            response = self.private_post_dash_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostDaiWithdrawal")) {
-            response = self.private_post_dai_withdrawal(&[requestParams.clone()]).await;
+            response = self.private_post_dai_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostAdaWithdrawal")) {
-            response = self.private_post_ada_withdrawal(&[requestParams.clone()]).await;
+            response = self.private_post_ada_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostSolWithdrawal")) {
-            response = self.private_post_sol_withdrawal(&[requestParams]).await;
+            response = self.private_post_sol_withdrawal(&[requestParams]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() does not support the ".into())).into()), method.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" method".into()))));
         }
@@ -1414,10 +1414,10 @@ impl Coinmate {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut transaction: indexmap::IndexMap<String, Value> = self.parse_transaction(data, &[currency]).as_map().cloned().unwrap_or_default();
         let mut fillResponseFromRequest: bool = self.safe_bool_k(&withdrawOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if fillResponseFromRequest {

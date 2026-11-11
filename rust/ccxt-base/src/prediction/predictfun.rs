@@ -2718,7 +2718,7 @@ impl Predictfun {
         let mut taker: String = "0x0000000000000000000000000000000000000000".to_string();
         let takerOptionparamsTakerVariable: Vec<Value> = self.handle_option_and_params(&paramsWarnOnMarketOrderWithoutPrice, Value::Str("createOrder".into()), Value::Str("taker".into()), &[Value::from(taker)]).as_array().cloned().unwrap_or_default();
         let mut takerOption: Value = takerOptionparamsTakerVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsTaker: Value = takerOptionparamsTakerVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsTaker: crate::value::Dict = takerOptionparamsTakerVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut contractOrder: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("salt".to_string(), salt);
@@ -2729,7 +2729,7 @@ impl Predictfun {
                 m.insert("makerAmount".to_string(), self.decimal_to_precision(makerAmount, Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]));
                 m.insert("takerAmount".to_string(), self.decimal_to_precision(takerAmount, Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]));
                 m.insert("expiration".to_string(), expiration);
-                m.insert("nonce".to_string(), self.safe_string_k(paramsTaker.clone(), "nonce", &[Value::Str("0".into())]));
+                m.insert("nonce".to_string(), self.safe_string_k(&paramsTaker, "nonce", &[Value::Str("0".into())]));
                 m.insert("feeRateBps".to_string(), feeRateBps);
                 m.insert("side".to_string(), (if isBuy { Value::Int(0) } else { Value::Int(1) }));
                 m.insert("signatureType".to_string(), Value::Int(0));
@@ -2751,8 +2751,8 @@ impl Predictfun {
                 m.insert("strategy".to_string(), Value::from(strategy));
             m
         });
-        let mut postOnly: bool = self.safe_bool_k(paramsTaker.clone(), "isPostOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let postOnlyOptionparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(postOnly), &[paramsTaker]).as_array().cloned().unwrap_or_default();
+        let mut postOnly: bool = self.safe_bool_k(&paramsTaker, "isPostOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let postOnlyOptionparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(postOnly), &[Value::from(&paramsTaker)]).as_array().cloned().unwrap_or_default();
         let mut postOnlyOption: Value = postOnlyOptionparamsPostOnlyVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPostOnly: crate::value::Dict = postOnlyOptionparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if postOnlyOption.as_bool() == Some(true) {
@@ -2855,7 +2855,7 @@ impl Predictfun {
             self.load_outcomes(&[outcomes.clone()]).await;
         }
         let mut address: Option<String> = self.safe_string_k(params.clone(), "address", &[]).as_str().map(str::to_owned);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (address.is_some()) {
             // the by-address endpoint reads any wallet and is happy with just the api key
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2865,11 +2865,11 @@ impl Predictfun {
             });
             let mut rest: crate::value::Dict = self.omit(params.clone(), Value::Str("address".into()), &[]).into_dict();
             let __ws_arg_10 = self.extend(Value::Map(request), &[&rest]);
-            response = self.predictfun_get_v1_positions_address(&[__ws_arg_10]).await;
+            response = self.predictfun_get_v1_positions_address(&[__ws_arg_10]).await.into_opt_dict();
         }  else {
             // the JWT is what names the wallet whose positions come back
             self.authenticate(&[]).await;
-            response = self.predictfun_get_v1_positions(&[params]).await;
+            response = self.predictfun_get_v1_positions(&[params]).await.into_opt_dict();
         }
         //
         //     {
@@ -2895,7 +2895,7 @@ impl Predictfun {
         //         "success": true
         //     }
         //
-        let mut rows: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut rows: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         if (((outcomesLength as f64) == 0.0)) {
             return self.parse_prediction_positions(rows.clone(), &[]);
         }

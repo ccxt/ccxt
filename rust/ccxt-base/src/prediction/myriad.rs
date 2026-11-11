@@ -1954,14 +1954,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 return keyedResponse;
             }
         }
-        let mut orderResponses: Value = self.safe_list_k(params, "orderResponses", &[]);
-        if (orderResponses != Value::Null) {
-            let mut responsesLength: f64 = ((orderResponses.len() as i64) as f64);
+        let mut orderResponses: Option<crate::value::List> = self.safe_list_k(params, "orderResponses", &[]).into_opt_list();
+        if (orderResponses.is_some()) {
+            let mut responsesLength: f64 = ((orderResponses.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1351: bool = true;
                 while { if !__for_first_1351 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1351 = false; i.as_f64().unwrap_or(f64::NAN) < responsesLength } {
-                let mut current: Value = self.safe_dict(orderResponses.clone(), i.clone(), &[Value::Map({
+                let mut current: Value = self.safe_dict(orderResponses.clone().map_or(Value::Null, Value::Arr), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3870,13 +3870,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments
         let mut chart: Value = Value::Null;
-        let mut chartsList: Value = self.safe_list_k(selectedOutcome.clone(), "price_charts", &[]);
-        if (chartsList != Value::Null) {
+        let mut chartsList: Option<crate::value::List> = self.safe_list_k(selectedOutcome.clone(), "price_charts", &[]).into_opt_list();
+        if (chartsList.is_some()) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1363: bool = true;
-                while { if !__for_first_1363 { i += 1; } __for_first_1363 = false; i < (chartsList.len() as i64) } {
-                let mut chartObj: Value = chartsList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_1363 { i += 1; } __for_first_1363 = false; i < (chartsList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut chartObj: Value = chartsList.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if (self.safe_string_k(chartObj.clone(), "timeframe", &[]).as_str() == bucketKey.as_str()) {
                     chart = chartObj;
                     break;
@@ -4862,10 +4862,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         stored.append(trade.clone());
         client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str("trades::".into()), sym).into())]);
         // also surface the wallet's own fills (taker or maker leg) with their real execution prices
-        let mut myWallet: Value = self.wallet_address_or_undefined().map(Value::from).unwrap_or(Value::Null);
-        if (myWallet != Value::Null) {
+        let mut myWallet: Option<String> = self.wallet_address_or_undefined();
+        if (myWallet.is_some()) {
             let mut myLegs: Vec<Value> = Vec::new();
-            let mut takerTrader: Value = self.safe_string_lower_k(&taker, "trader", &[]);
+            let mut takerTrader: Option<String> = self.safe_string_lower_k(&taker, "trader", &[]).as_str().map(str::to_owned);
             if (takerTrader == myWallet) {
                 myLegs.push(trade);
             }
@@ -4876,7 +4876,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut __for_first_1378: bool = true;
                 while { if !__for_first_1378 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1378 = false; i.as_f64().unwrap_or(f64::NAN) < makersLength } {
                 let mut maker: Value = makers.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                let mut makerTrader: Value = self.safe_string_lower_k(maker.clone(), "trader", &[]);
+                let mut makerTrader: Option<String> = self.safe_string_lower_k(maker.clone(), "trader", &[]).as_str().map(str::to_owned);
                 if (makerTrader == myWallet) {
                     let mut makerSym: Value = self.market_outcome_to_symbol(networkId.clone().map(Value::from).unwrap_or(Value::Null), marketId.clone().map(Value::from).unwrap_or(Value::Null), self.safe_string_k(maker.clone(), "outcome", &[])).map(Value::from).unwrap_or(Value::Null);
                     let mut makerMarket: Value = self.safe_market(&[makerSym.clone()]);

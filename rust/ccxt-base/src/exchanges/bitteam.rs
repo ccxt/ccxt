@@ -2387,16 +2387,16 @@ impl Bitteam {
         let mut bestAskPrice: Option<String> = None;
         let mut bestBidVolume: Option<String> = None;
         let mut bestAskVolume: Option<String> = None;
-        let mut bids: Value = self.safe_list_k(ticker.clone(), "bids", &[]);
-        let mut asks: Value = self.safe_list_k(ticker.clone(), "asks", &[]);
-        if (bids != Value::Null) && (asks != Value::Null) {
-            let mut bestBid: crate::value::Dict = self.safe_dict(bids, Value::Int(0), &[Value::Map({
+        let mut bids: Option<crate::value::List> = self.safe_list_k(ticker.clone(), "bids", &[]).into_opt_list();
+        let mut asks: Option<crate::value::List> = self.safe_list_k(ticker.clone(), "asks", &[]).into_opt_list();
+        if (bids.is_some()) && (asks.is_some()) {
+            let mut bestBid: crate::value::Dict = self.safe_dict(bids.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
             bestBidPrice = self.safe_string_k(&bestBid, "price", &[]).as_str().map(str::to_owned);
             bestBidVolume = self.safe_string_k(&bestBid, "quantity", &[]).as_str().map(str::to_owned);
-            let mut bestAsk: crate::value::Dict = self.safe_dict(asks, Value::Int(0), &[Value::Map({
+            let mut bestAsk: crate::value::Dict = self.safe_dict(asks.clone().map_or(Value::Null, Value::Arr), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -3158,10 +3158,10 @@ impl Bitteam {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut request: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path, params));
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
@@ -3169,7 +3169,7 @@ impl Bitteam {
         let mut query: Option<String> = self.urlencode(request.clone(), &[]).as_str().map(str::to_owned);
         let mut requestBody: Value = Value::Null;
         let mut requestHeaders: Value = Value::Null;
-        if (apiName.as_str() == Some("private")) {
+        if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) {
                 requestBody = json_stringify(&request);

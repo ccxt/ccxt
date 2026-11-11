@@ -518,8 +518,8 @@ impl Gemini {
         //
         let mut marketId: Option<String> = self.safe_string_lower_k(message, "symbol", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut trades: Value = (match __pro_message.get("trades").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null });
-        if (trades != Value::Null) {
+        let mut trades: Option<crate::value::List> = (match __pro_message.get("trades").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
+        if (trades.is_some()) {
             let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
             let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
@@ -530,8 +530,8 @@ impl Gemini {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_342: bool = true;
-                while { if !__for_first_342 { i += 1; } __for_first_342 = false; i < (trades.len() as i64) } {
-                let mut trade: Value = self.parse_ws_trade(self.safe_value(trades.clone(), Value::Int(i), &[]), &[market.clone()]);
+                while { if !__for_first_342 { i += 1; } __for_first_342 = false; i < (trades.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut trade: Value = self.parse_ws_trade(self.safe_value(&trades, Value::Int(i), &[]), &[market.clone()]);
                 stored.append(trade);
             }
             }
@@ -1385,19 +1385,19 @@ impl Gemini {
             let mut ts: Value = self.safe_integer_k(message, "timestampms", &[self.milliseconds()]);
             let mut eventId: Option<i64> = (match __pro_message.get("eventId").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
                 Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-            let mut events: Value = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null });
-            if (events == Value::Null) {
+            let mut events: Option<crate::value::List> = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
+            if (events.is_none()) {
                 return;
             }
             let mut orderBookItems: Vec<Value> = Vec::new();
             let mut bidaskItems: Vec<Value> = Vec::new();
             let mut collectedEventsOfTrades: Vec<Value> = Vec::new();
-            let mut eventsLength: f64 = ((events.len() as i64) as f64);
+            let mut eventsLength: f64 = ((events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_352: bool = true;
-                while { if !__for_first_352 { i += 1; } __for_first_352 = false; i < (events.len() as i64) } {
-                let mut event: Value = self.safe_value(events.clone(), Value::Int(i), &[]);
+                while { if !__for_first_352 { i += 1; } __for_first_352 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut event: Value = self.safe_value(&events, Value::Int(i), &[]);
                 let mut eventType: Option<String> = self.safe_string_k(event.clone(), "type", &[]).as_str().map(str::to_owned);
                 let mut side: Option<String> = self.safe_string_k(event.clone(), "side", &[]).as_str().map(str::to_owned);
                 let mut isOrderBook: bool = (eventType.as_deref() == Some("change")) && (side.is_some()) && self.in_array(side.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::Str("ask".into()), Value::Str("bid".into())])).as_bool() == Some(true);
