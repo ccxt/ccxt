@@ -236,6 +236,14 @@ impl Value {
     pub fn into_list(self) -> List {
         if let Value::Arr(a) = self { a } else { Arc::new(Vec::new()) }
     }
+    /// The map an optional dict local holds, moved out of the box (`None` for anything but a dict).
+    pub fn into_opt_dict(self) -> Option<Dict> {
+        if let Value::Dict(m) = self { Some(m) } else { None }
+    }
+    /// The list an optional list local holds, moved out of the box (`None` for anything but a list).
+    pub fn into_opt_list(self) -> Option<List> {
+        if let Value::Arr(a) = self { Some(a) } else { None }
+    }
     pub fn as_array(&self) -> Option<&Vec<Value>> {
         if let Value::Arr(a) = self { Some(&**a) } else { None }
     }
@@ -718,6 +726,14 @@ impl KeyRead for &List {
     fn key_read(&self, _key: &str) -> Value { Value::Null }
     fn read(&self, key: &Value) -> Value { get_list_value(self, key) }
 }
+impl KeyRead for &Option<Dict> {
+    fn key_read(&self, key: &str) -> Value { self.as_ref().map_or(Value::Null, |m| get_map_value_k(m, key)) }
+    fn read(&self, key: &Value) -> Value { self.as_ref().map_or(Value::Null, |m| get_map_value(m, key)) }
+}
+impl KeyRead for &Option<List> {
+    fn key_read(&self, _key: &str) -> Value { Value::Null }
+    fn read(&self, key: &Value) -> Value { self.as_ref().map_or(Value::Null, |a| get_list_value(a, key)) }
+}
 
 /// Extra operands of `extend` / `deep_extend`: a `Value` slice, or a dict local lent by reference.
 pub trait MergeOperands {
@@ -741,6 +757,8 @@ impl MergeOperands for &[&Dict; 1] {
 pub trait OmitSource { fn into_operand(self) -> Value; }
 impl OmitSource for Value { fn into_operand(self) -> Value { self } }
 impl OmitSource for &Dict { fn into_operand(self) -> Value { Value::Dict(Arc::clone(self)) } }
+/// A dict local lent to a `params: impl Into<Value>` parameter: the shared map, not a copy.
+impl From<&Dict> for Value { fn from(m: &Dict) -> Self { Value::Dict(Arc::clone(m)) } }
 
 /// `get_value_k` on the map itself.
 pub fn get_map_value_k(m: &HashMap<String, Value>, key: &str) -> Value {

@@ -1153,7 +1153,7 @@ export default class bitfinex extends Exchange {
         return this.safeString (statuses, status as IndexType, status);
     }
 
-    convertDerivativesId (currency: Dict, type: string): Str {
+    convertDerivativesId (currency: Currency, type: string): Str {
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
         //   "id": "fUSTF0",
