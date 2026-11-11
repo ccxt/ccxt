@@ -9,57 +9,57 @@ package ccxt
 
 // IndexerGetAddressesAddress returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetAddressesAddress(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "addresses/{address}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "addresses/{address}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetAddressesAddressParentSubaccountNumberNumber returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetAddressesAddressParentSubaccountNumberNumber(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "addresses/{address}/parentSubaccountNumber/{number}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "addresses/{address}/parentSubaccountNumber/{number}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetAddressesAddressSubaccountNumberSubaccountNumber returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetAddressesAddressSubaccountNumberSubaccountNumber(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "addresses/{address}/subaccountNumber/{subaccountNumber}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "addresses/{address}/subaccountNumber/{subaccountNumber}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetAssetPositions returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetAssetPositions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "assetPositions", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "assetPositions", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetAssetPositionsParentSubaccountNumber returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetAssetPositionsParentSubaccountNumber(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "assetPositions/parentSubaccountNumber", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "assetPositions/parentSubaccountNumber", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetCandlesPerpetualMarketsMarket returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetCandlesPerpetualMarketsMarket(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "candles/perpetualMarkets/{market}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "candles/perpetualMarkets/{market}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetComplianceScreenAddress returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetComplianceScreenAddress(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "compliance/screen/{address}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "compliance/screen/{address}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetFills returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetFills(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "fills", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "fills", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetFillsParentSubaccountNumber returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetFillsParentSubaccountNumber(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "fills/parentSubaccountNumber", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "fills/parentSubaccountNumber", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetFundingPayments returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetFundingPayments(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "fundingPayments", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "fundingPayments", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetFundingPaymentsParentSubaccount returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetFundingPaymentsParentSubaccount(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "fundingPayments/parentSubaccount", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "fundingPayments/parentSubaccount", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetHeight returns a channel that yields a JSON object.
@@ -69,240 +69,240 @@ func (this *Dydx) IndexerGetHeight(args ...any) <-chan EndpointResult[map[string
 
 // IndexerGetHistoricalPnl returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetHistoricalPnl(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "historical-pnl", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "historical-pnl", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetHistoricalPnlParentSubaccountNumber returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetHistoricalPnlParentSubaccountNumber(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "historical-pnl/parentSubaccountNumber", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "historical-pnl/parentSubaccountNumber", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetHistoricalBlockTradingRewardsAddress returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetHistoricalBlockTradingRewardsAddress(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "historicalBlockTradingRewards/{address}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "historicalBlockTradingRewards/{address}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetHistoricalFundingMarket returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetHistoricalFundingMarket(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "historicalFunding/{market}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "historicalFunding/{market}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetHistoricalTradingRewardAggregationsAddress returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetHistoricalTradingRewardAggregationsAddress(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "historicalTradingRewardAggregations/{address}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "historicalTradingRewardAggregations/{address}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetOrderbooksPerpetualMarketMarket returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetOrderbooksPerpetualMarketMarket(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "orderbooks/perpetualMarket/{market}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "orderbooks/perpetualMarket/{market}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetOrders returns a channel that yields a JSON array.
 func (this *Dydx) IndexerGetOrders(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "orders", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[[]any](this, "orders", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetOrdersParentSubaccountNumber returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetOrdersParentSubaccountNumber(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "orders/parentSubaccountNumber", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "orders/parentSubaccountNumber", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetOrdersOrderId returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetOrdersOrderId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "orders/{orderId}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "orders/{orderId}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetPerpetualMarkets returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetPerpetualMarkets(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "perpetualMarkets", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "perpetualMarkets", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetPerpetualPositions returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetPerpetualPositions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "perpetualPositions", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "perpetualPositions", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetPerpetualPositionsParentSubaccountNumber returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetPerpetualPositionsParentSubaccountNumber(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "perpetualPositions/parentSubaccountNumber", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "perpetualPositions/parentSubaccountNumber", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetScreen returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetScreen(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "screen", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "screen", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetSparklines returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetSparklines(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "sparklines", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "sparklines", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetTime returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetTime(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "time", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "time", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetTradesPerpetualMarketMarket returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetTradesPerpetualMarketMarket(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "trades/perpetualMarket/{market}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "trades/perpetualMarket/{market}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetTransfers returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetTransfers(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "transfers", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "transfers", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetTransfersBetween returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetTransfersBetween(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "transfers/between", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "transfers/between", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetTransfersParentSubaccountNumber returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetTransfersParentSubaccountNumber(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "transfers/parentSubaccountNumber", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "transfers/parentSubaccountNumber", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetVaultV1MegavaultHistoricalPnl returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetVaultV1MegavaultHistoricalPnl(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "vault/v1/megavault/historicalPnl", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "vault/v1/megavault/historicalPnl", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetVaultV1MegavaultPositions returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetVaultV1MegavaultPositions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "vault/v1/megavault/positions", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "vault/v1/megavault/positions", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetVaultV1VaultsHistoricalPnl returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetVaultV1VaultsHistoricalPnl(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "vault/v1/vaults/historicalPnl", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "vault/v1/vaults/historicalPnl", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetPerpetualMarketSparklines returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetPerpetualMarketSparklines(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "perpetualMarketSparklines", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "perpetualMarketSparklines", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetPerpetualMarketsTicker returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetPerpetualMarketsTicker(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "perpetualMarkets/{ticker}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "perpetualMarkets/{ticker}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetPerpetualMarketsTickerOrderbook returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetPerpetualMarketsTickerOrderbook(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "perpetualMarkets/{ticker}/orderbook", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "perpetualMarkets/{ticker}/orderbook", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetTradesPerpetualMarketTicker returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetTradesPerpetualMarketTicker(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "trades/perpetualMarket/{ticker}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "trades/perpetualMarket/{ticker}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetHistoricalFundingTicker returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetHistoricalFundingTicker(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "historicalFunding/{ticker}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "historicalFunding/{ticker}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetCandlesTickerResolution returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetCandlesTickerResolution(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "candles/{ticker}/{resolution}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "candles/{ticker}/{resolution}", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetAddressesAddressSubaccounts returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetAddressesAddressSubaccounts(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "addresses/{address}/subaccounts", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "addresses/{address}/subaccounts", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "addresses/{address}/subaccountNumber/{subaccountNumber}/orders", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "addresses/{address}/subaccountNumber/{subaccountNumber}/orders", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetFillsParentSubaccount returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetFillsParentSubaccount(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "fills/parentSubaccount", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "fills/parentSubaccount", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetHistoricalPnlParentSubaccount returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetHistoricalPnlParentSubaccount(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "historical-pnl/parentSubaccount", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "historical-pnl/parentSubaccount", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetPnl returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetPnl(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "pnl", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "pnl", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetPnlParentSubaccountNumber returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetPnlParentSubaccountNumber(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "pnl/parentSubaccountNumber", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "pnl/parentSubaccountNumber", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetTradeHistory returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetTradeHistory(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "tradeHistory", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "tradeHistory", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerGetTradeHistoryParentSubaccountNumber returns a channel that yields a JSON object.
 func (this *Dydx) IndexerGetTradeHistoryParentSubaccountNumber(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "tradeHistory/parentSubaccountNumber", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "tradeHistory/parentSubaccountNumber", []string{"indexer"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerPostTurnkeySignin returns a channel that yields a JSON object.
 func (this *Dydx) IndexerPostTurnkeySignin(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "turnkey/signin", []string{"indexer"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "turnkey/signin", []string{"indexer"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // IndexerPostTurnkeyUploadAddress returns a channel that yields a JSON object.
 func (this *Dydx) IndexerPostTurnkeyUploadAddress(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "turnkey/uploadAddress", []string{"indexer"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "turnkey/uploadAddress", []string{"indexer"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // NodeRpcGetAbciInfo returns a channel that yields a JSON object.
 func (this *Dydx) NodeRpcGetAbciInfo(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "abci_info", []string{"nodeRpc"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "abci_info", []string{"nodeRpc"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // NodeRpcGetBlock returns a channel that yields a JSON object.
 func (this *Dydx) NodeRpcGetBlock(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "block", []string{"nodeRpc"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "block", []string{"nodeRpc"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // NodeRpcGetBroadcastTxAsync returns a channel that yields a JSON object.
 func (this *Dydx) NodeRpcGetBroadcastTxAsync(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "broadcast_tx_async", []string{"nodeRpc"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "broadcast_tx_async", []string{"nodeRpc"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // NodeRpcGetBroadcastTxSync returns a channel that yields a JSON object.
 func (this *Dydx) NodeRpcGetBroadcastTxSync(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "broadcast_tx_sync", []string{"nodeRpc"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "broadcast_tx_sync", []string{"nodeRpc"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // NodeRpcGetTx returns a channel that yields a JSON object.
 func (this *Dydx) NodeRpcGetTx(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "tx", []string{"nodeRpc"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "tx", []string{"nodeRpc"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // NodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress returns a channel that yields a JSON object.
 func (this *Dydx) NodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "cosmos/auth/v1beta1/account_info/{dydxAddress}", []string{"nodeRest"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "cosmos/auth/v1beta1/account_info/{dydxAddress}", []string{"nodeRest"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // NodeRestPostCosmosTxV1beta1Encode returns a channel that yields a JSON object.
 func (this *Dydx) NodeRestPostCosmosTxV1beta1Encode(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "cosmos/tx/v1beta1/encode", []string{"nodeRest"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "cosmos/tx/v1beta1/encode", []string{"nodeRest"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // NodeRestPostCosmosTxV1beta1Simulate returns a channel that yields a JSON object.
 func (this *Dydx) NodeRestPostCosmosTxV1beta1Simulate(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "cosmos/tx/v1beta1/simulate", []string{"nodeRest"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "cosmos/tx/v1beta1/simulate", []string{"nodeRest"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
