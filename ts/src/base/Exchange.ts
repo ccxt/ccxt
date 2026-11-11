@@ -3836,7 +3836,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseCurrency() is not supported yet');
     }
 
-    parseCurrencies (rawCurrencies: any): Currencies {
+    parseCurrencies (rawCurrencies: List): Currencies {
         const result: Dict = {};
         const arr = this.toArray (rawCurrencies);
         for (let i = 0; i < arr.length; i++) {
@@ -3854,7 +3854,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseMarket() is not supported yet');
     }
 
-    parseMarkets (markets: any): Market[] {
+    parseMarkets (markets: List): Market[] {
         const result: Market[] = [];
         for (let i = 0; i < markets.length; i++) {
             const market = this.parseMarket (markets[i]);
@@ -6047,7 +6047,7 @@ export class BaseExchange {
         } as any;
     }
 
-    parseOHLCVs (ohlcvs: object[] | undefined, market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false): OHLCV[] {
+    parseOHLCVs (ohlcvs: NullableList, market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false): OHLCV[] {
         if (ohlcvs === undefined) {
             return [];
         }
@@ -8038,7 +8038,7 @@ export class BaseExchange {
         return this.filterByArrayTickers (results, 'symbol', this.marketSymbols (symbols));
     }
 
-    parseDepositAddresses (addresses: any, codes: Strings = undefined, indexed = true, params: Dict = {}): DepositAddress[] {
+    parseDepositAddresses (addresses: List, codes: Strings = undefined, indexed = true, params: Dict = {}): DepositAddress[] {
         let result: DepositAddress[] = [];
         for (let i = 0; i < addresses.length; i++) {
             const address = this.extend (this.parseDepositAddress (addresses[i]), params);
@@ -8053,7 +8053,7 @@ export class BaseExchange {
         return result;
     }
 
-    parseBorrowInterests (response: any, market: Market = undefined): BorrowInterest[] {
+    parseBorrowInterests (response: List, market: Market = undefined): BorrowInterest[] {
         const interests: BorrowInterest[] = [];
         for (let i = 0; i < response.length; i++) {
             const row = this.safeValue (response, i);
@@ -8077,7 +8077,7 @@ export class BaseExchange {
         return this.filterByCurrencySinceLimit (sorted, code, since, limit);
     }
 
-    parseIsolatedBorrowRates (info: any): IsolatedBorrowRates {
+    parseIsolatedBorrowRates (info: List): IsolatedBorrowRates {
         const result: Dict = {};
         for (let i = 0; i < info.length; i++) {
             const item = this.safeValue (info, i);
@@ -8088,7 +8088,7 @@ export class BaseExchange {
         return result as any;
     }
 
-    parseFundingRateHistories (response: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingRateHistory[] {
+    parseFundingRateHistories (response: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingRateHistory[] {
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -8124,7 +8124,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseLongShortRatio() is not supported yet');
     }
 
-    parseLongShortRatioHistory (response: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): LongShortRatio[] {
+    parseLongShortRatioHistory (response: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined): LongShortRatio[] {
         const rates: LongShortRatio[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -8285,7 +8285,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
     }
 
-    parseOpenInterests (response: any, symbols: Strings = undefined): OpenInterests {
+    parseOpenInterests (response: List, symbols: Strings = undefined): OpenInterests {
         const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];

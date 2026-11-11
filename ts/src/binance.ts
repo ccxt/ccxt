@@ -11196,7 +11196,7 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response: NullableDict = undefined;
+        let response: NullableList = undefined;
         if (this.isLinear (type, subType)) {
             response = await this.fapiPublicGetFundingRate (this.extend (request, paramsOmitted2));
         } else if (this.isInverse (type, subType)) {
@@ -14097,7 +14097,7 @@ export default class binance extends Exchange {
         //         ]
         //     }
         //
-        const rows = this.safeList (response, 'rows');
+        const rows = this.safeList (response, 'rows', []);
         const interest = this.parseBorrowInterests (rows, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
@@ -15768,7 +15768,7 @@ export default class binance extends Exchange {
             requestUntil['limit'] = limit;
         }
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchLongShortRatioHistory', market, paramsUntil);
-        let response: NullableDict = undefined;
+        let response: NullableList = undefined;
         if (subType === 'linear') {
             requestUntil['symbol'] = market['id'];
             response = await this.fapiDataGetGlobalLongShortAccountRatio (this.extend (requestUntil, paramsSubType));

@@ -6,7 +6,7 @@ import Exchange from './abstract/btcturk.js';
 import { BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, NullableDict, FeeString, Endpoint, List } from './base/types.js';
+import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, NullableDict, FeeString, Endpoint, List, NullableList } from './base/types.js';
 
 ;
 
@@ -802,27 +802,31 @@ export default class btcturk extends Exchange {
         //        ]
         //    }
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limitResolved);
-    }
-
-    override parseOHLCVs (ohlcvs: any, market: any = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false) {
-        const results: OHLCV[] = [];
-        const timestamp = this.safeList (ohlcvs, 't', []);
-        const high = this.safeList (ohlcvs, 'h', []);
-        const open = this.safeList (ohlcvs, 'o', []);
-        const low = this.safeList (ohlcvs, 'l', []);
-        const close = this.safeList (ohlcvs, 'c', []);
-        const volume = this.safeList (ohlcvs, 'v', []);
+        const timestamp = this.safeList (response, 't', []);
+        const high = this.safeList (response, 'h', []);
+        const open = this.safeList (response, 'o', []);
+        const low = this.safeList (response, 'l', []);
+        const close = this.safeList (response, 'c', []);
+        const volume = this.safeList (response, 'v', []);
+        const rows: Dict[] = [];
         for (let i = 0; i < timestamp.length; i++) {
-            const ohlcv: Dict = {
+            rows.push ({
                 'timestamp': this.safeInteger (timestamp, i),
                 'high': this.safeNumber (high, i),
                 'open': this.safeNumber (open, i),
                 'low': this.safeNumber (low, i),
                 'close': this.safeNumber (close, i),
                 'volume': this.safeNumber (volume, i),
-            };
-            results.push (this.parseOHLCV (ohlcv, market));
+            });
+        }
+        return this.parseOHLCVs (rows, market, timeframe, since, limitResolved);
+    }
+
+    override parseOHLCVs (ohlcvs: NullableList, market: any = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false) {
+        const rows = this.toArray (ohlcvs);
+        const results: OHLCV[] = [];
+        for (let i = 0; i < rows.length; i++) {
+            results.push (this.parseOHLCV (this.safeDict (rows, i, {}), market));
         }
         const sorted = this.sortBy (results, 0);
         return this.filterBySinceLimit (sorted, since, limit, 0, tail) as OHLCV[];

@@ -472,7 +472,7 @@ export default class bitvavo extends Exchange {
         return this.parseMarkets (response);
     }
 
-    override parseMarkets (markets: any) {
+    override parseMarkets (markets: List) {
         const result: Market[] = [];
         for (let i = 0; i < markets.length; i++) {
             const market = this.safeDict (markets, i);

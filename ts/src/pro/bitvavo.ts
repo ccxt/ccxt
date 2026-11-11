@@ -1556,7 +1556,7 @@ export default class bitvavo extends bitvavoRest {
         //    }
         //
         const messageHash = this.safeString (message, 'requestId');
-        const response = this.safeList (message, 'response');
+        const response = this.safeList (message, 'response', []);
         const currencies = this.parseCurrencies (response);
         client.resolve (currencies, messageHash);
     }
