@@ -388,7 +388,9 @@ CCXT provides sensible defaults for the most common use cases; however, you may 
 
 ## How to use the InteractiveBrokers in CCXT?
 
-As opposed to typical exchanges in CCXT, InteractiveBrokers has a different kind of API infrastructure. Users can use IBKR Web-Api with either Oauth or a special Gateway app. However note, due to the IBKR limitations, user can only have one active session - if you login the ibkr website, your running ibkr instance might switch off. Users can add addition profiles ("users") in account management, however each of them would need separate data-subscriptions or whatever, like a separate account.
+InteractiveBrokers works differently from the other exchanges in CCXT. You connect through the IBKR Web API, using either OAuth or the Client Portal Gateway app.
+
+IBKR allows only one active session per user. If you log in to the IBKR website or another IBKR app with the same user, your running CCXT session may be disconnected. To avoid this, you can create an additional user in Account Management and use it only for the API. Each user needs its own market data subscriptions.
 
 #### Use IBKR Web-Api with Oauth 1.0
 
@@ -416,10 +418,10 @@ instance = new ccxt.interactivebrokers ({
 #### Use IBKR with Web-Api with Client-Portal Gateway
 
 If your account is not permitted to generate credentials for WebApi, then you can use local IBKR bridge where you will not need api-keys. You need to download `Client-Portal Gateway`, either one of the ways:
-- A) Here is a handy dockerized repository https://github.com/ccxt/interactive-brokers-cpg-wrapper/ (append `archive/refs/heads/master.zip` to download it directly) and run it as noted in repo description.
+- A) Here is a handy dockerized repository https://github.com/ccxt/interactive-brokers-cpg-wrapper/ and run it as noted in repo description.
 - B) You can manually download the files from: https://www.interactivebrokers.com/docs/web-api/authentication/cpgw/installation-authentication and follow instructions shown there. Also note, in this case, you will need to manually re-run gateway after every device restart or alike cases, that's why Dockerized approach is preferred for flexibility.
 
-After you are running CP Gateway, you can use:
+After you are running Client-Portal Gateway, you can use:
 
 ```
 instance = new ccxt.interactivebrokers ({
