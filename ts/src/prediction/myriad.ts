@@ -2045,6 +2045,7 @@ export default class myriad extends Exchange {
         const slug = this.safeString (raw, 'slug', this.safeString (raw, 'id'));
         const state = this.safeString (raw, 'state', 'open');
         const endDate = this.safeString (raw, 'expiresAt');
+        const end = (endDate !== undefined) ? this.parse8601 (endDate) : undefined;
         return {
             'id': market['id'],
             'slug': slug,
@@ -2062,8 +2063,8 @@ export default class myriad extends Exchange {
             'tags': this.safeList (raw, 'topics'),
             'created': this.parse8601 (this.safeString (raw, 'publishedAt')),
             'createdDatetime': this.safeString (raw, 'publishedAt'),
-            'end': (endDate !== undefined) ? this.parse8601 (endDate) : undefined,
-            'endDatetime': endDate,
+            'end': end,
+            'endDatetime': this.iso8601 (end),
             'lastUpdatedAt': undefined,
             'resolutionSource': this.safeString (raw, 'resolutionSource'),
             'info': raw,
@@ -2085,6 +2086,7 @@ export default class myriad extends Exchange {
         const slug = this.safeString (raw, 'slug', marketId);
         const rawOutcomes: Dict[] = this.safeList (raw, 'outcomes', []);
         const endDate = this.safeString (raw, 'expiresAt');
+        const expiry = (endDate !== undefined && endDate !== '') ? this.parse8601 (endDate) : undefined;
         const state = this.safeString (raw, 'state', 'open');
         const active = state === 'open';
         // resolution: resolvedOutcomeId is "-1" until the market resolves, then the winning outcome id
@@ -2193,8 +2195,8 @@ export default class myriad extends Exchange {
             'linear': undefined,
             'inverse': undefined,
             'contractSize': undefined,
-            'expiry': (endDate !== undefined && endDate !== '') ? this.parse8601 (endDate) : undefined,
-            'expiryDatetime': endDate,
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
             'strike': undefined,
             'optionType': undefined,
             'taker': takerFee,
@@ -3138,6 +3140,7 @@ export default class myriad extends Exchange {
             marketsList.push (this.parseMyriadMarket (rawMarket, questionSlug));
         }
         const endDate = this.safeString (rawEvent, 'expiresAt', this.safeString (rawEvent, 'endDate'));
+        const end = (endDate !== undefined && endDate !== '') ? this.parse8601 (endDate) : undefined;
         return this.extend (rawEvent, {
             'id': this.safeString (rawEvent, 'id'),
             'slug': questionSlug,
@@ -3155,8 +3158,8 @@ export default class myriad extends Exchange {
             'tags': this.safeList (rawEvent, 'tags'),
             'created': this.parse8601 (this.safeString (rawEvent, 'createdAt')),
             'createdDatetime': this.safeString (rawEvent, 'createdAt'),
-            'end': (endDate !== undefined && endDate !== '') ? this.parse8601 (endDate) : undefined,
-            'endDatetime': endDate,
+            'end': end,
+            'endDatetime': this.iso8601 (end),
             'lastUpdatedAt': this.parse8601 (this.safeString (rawEvent, 'updatedAt')),
             'resolutionSource': this.safeString (rawEvent, 'resolutionSource'),
             'info': rawEvent,
