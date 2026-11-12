@@ -2793,7 +2793,7 @@ class mexc(Exchange, ImplicitAPI):
                 request['endTime'] = until
             if limit is not None:
                 request['limit'] = limit
-            response: dict
+            response: List
             if marginMode is not None:
                 if marginMode != 'isolated':
                     raise BadRequest(self.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
@@ -3023,7 +3023,7 @@ class mexc(Exchange, ImplicitAPI):
             if symbol is not None:
                 request['symbol'] = self.safe_string(market, 'id')
             marginMode, query = self.handle_margin_mode_and_params('fetchOpenOrders', paramsMarketType)
-            response: dict
+            response: List
             if marginMode is not None:
                 if marginMode != 'isolated':
                     raise BadRequest(self.id + ' fetchOpenOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')

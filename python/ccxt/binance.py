@@ -7558,7 +7558,8 @@ class binance(Exchange, ImplicitAPI):
                     request['isIsolated'] = True
                 response = self.sapiGetMarginAllOrders(self.extend(request, paramsPaginate))
             elif stock:
-                response = self.sapiGetEquityOrderHistory(self.extend(request, paramsPaginate))
+                equityResponse = self.sapiGetEquityOrderHistory(self.extend(request, paramsPaginate))
+                response = self.safe_list(equityResponse, 'rows', [])
             else:
                 response = self.privateGetAllOrders(self.extend(request, paramsPaginate))
         #
@@ -7767,9 +7768,6 @@ class binance(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        if stock:
-            result = self.safe_list(response, 'rows', [])
-            return self.parse_orders(result, market, since, limitResolved)
         return self.parse_orders(response, market, since, limitResolved)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -10577,7 +10575,7 @@ class binance(Exchange, ImplicitAPI):
         type = self.safe_string(params, 'type', defaultType)
         subType, paramsSubType = self.handle_sub_type_and_params('fetchFundingRates', None, params, 'linear')
         query = self.omit(paramsSubType, 'type')
-        response = None
+        response: List
         if self.is_linear(type, subType):
             response = self.fapiPublicGetPremiumIndex(query)
         elif self.is_inverse(type, subType):
@@ -14663,7 +14661,7 @@ class binance(Exchange, ImplicitAPI):
             market = self.market(symbolsNormalized[0])
         type = 'swap'
         subType, paramsSubType = self.handle_sub_type_and_params('fetchFundingIntervals', market, params, 'linear')
-        response = None
+        response: List
         if self.is_linear(type, subType):
             response = self.fapiPublicGetFundingInfo(paramsSubType)
         elif self.is_inverse(type, subType):

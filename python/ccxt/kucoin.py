@@ -4608,8 +4608,7 @@ class kucoin(Exchange, ImplicitAPI):
         #           },
         # }
         #
-        data = self.safe_dict(response, 'data', {})
-        data = self.safe_list(data, 'data', [])
+        data = self.safe_list(self.safe_dict(response, 'data', {}), 'data', [])
         return self.parse_orders(data)
 
     def create_contract_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:

@@ -5304,7 +5304,7 @@ class gate(Exchange, ImplicitAPI):
         spot = (type == 'spot') or (type == 'margin')
         openStatus = (status == 'open')
         openSpotOrders = spot and openStatus and (trigger is not True)
-        response: dict | List
+        response: List
         if spot:
             if trigger is not True:
                 if openStatus:
@@ -5731,7 +5731,7 @@ class gate(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         type, query = self.handle_market_type_and_params('cancelAllOrders', market, paramsOmitted)
         request, requestParams = self.multi_order_spot_prepare_request(market, trigger, query) if (type == 'spot') else self.prepare_request(market, type, query)
-        response: dict
+        response: List
         if type == 'spot' or type == 'margin':
             if trigger is True:
                 response = await self.privateSpotDeletePriceOrders(self.extend(request, requestParams))

@@ -1896,7 +1896,7 @@ class aster(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_funding_rates(response, symbolsNormalized)
+        return self.parse_funding_rates(self.to_array(response), symbolsNormalized)
 
     def fetch_funding_intervals(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
@@ -2425,7 +2425,7 @@ class aster(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
-        response: dict
+        response: List
         if self.safe_bool(market, 'swap', False):
             response = self.fapiPrivateGetV3AllOrders(self.extend(requestUntil, paramsUntil))
         else:
@@ -2901,7 +2901,7 @@ class aster(Exchange, ImplicitAPI):
             for i in range(0, len(ids)):
                 orderIdList.append(self.parse_to_numeric(ids[i]))
             request['orderIdList'] = orderIdList
-        response: dict
+        response: List
         if self.safe_bool(market, 'swap', False):
             response = self.fapiPrivateDeleteV3BatchOrders(self.extend(request, params))
             #

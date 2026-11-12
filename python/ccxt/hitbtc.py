@@ -1941,7 +1941,7 @@ class hitbtc(Exchange, ImplicitAPI):
         marketType, paramsMarketType = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchClosedOrders', paramsMarketType)
         paramsOmitted = self.omit(paramsMarginMode, ['marginMode', 'margin'])
-        response: dict
+        response: List
         if marginMode is not None:
             response = self.privateGetMarginHistoryOrder(self.extend(request, paramsOmitted))
         else:
@@ -2127,7 +2127,7 @@ class hitbtc(Exchange, ImplicitAPI):
         marketType, paramsMarketType = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchOpenOrders', paramsMarketType)
         paramsOmitted = self.omit(paramsMarginMode, ['marginMode', 'margin'])
-        response: dict
+        response: List
         if marginMode is not None:
             response = self.privateGetMarginOrder(self.extend(request, paramsOmitted))
         else:
@@ -2224,7 +2224,7 @@ class hitbtc(Exchange, ImplicitAPI):
         marketType, paramsMarketType = self.handle_market_type_and_params('cancelAllOrders', market, params)
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('cancelAllOrders', paramsMarketType)
         paramsOmitted = self.omit(paramsMarginMode, ['marginMode', 'margin'])
-        response: dict
+        response: List
         if marginMode is not None:
             response = self.privateDeleteMarginOrder(self.extend(request, paramsOmitted))
         else:

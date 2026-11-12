@@ -4650,7 +4650,7 @@ class BaseExchange(object):
             'fee': self.safe_value(orderDict, 'fee'),
         })
 
-    def parse_orders(self, orders: dict | list[dict] | None, market: Market = None, since: Int = None, limit: Int = None, params: dict = {}):
+    def parse_orders(self, orders: list, market: Market = None, since: Int = None, limit: Int = None, params: dict = {}):
         #
         # the value of orders is either a dict or a list
         #
@@ -4681,13 +4681,7 @@ class BaseExchange(object):
                 order = self.extend(parsed, params)
                 results.append(order)
         else:
-            ids = list(orders.keys())
-            for i in range(0, len(ids)):
-                id = ids[i]
-                idExtended = self.extend({'id': id}, orders[id])
-                parsedOrder = self.parse_order(idExtended, market)  # don't  inline these calls
-                order = self.extend(parsedOrder, params)
-                results.append(order)
+            return self.parse_orders(self.add_key_in_array_items(orders, 'id'), market, since, limit, params)
         results = self.sort_by(results, 'timestamp')
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(results, symbol, since, limit)
@@ -7018,7 +7012,7 @@ class BaseExchange(object):
     def parse_funding_rate(self, contract: str, market: Market = None):
         raise NotSupported(self.id + ' parseFundingRate() is not supported yet')
 
-    def parse_funding_rates(self, response: object, symbols: Strings = None):
+    def parse_funding_rates(self, response: list, symbols: Strings = None):
         fundingRates = {}
         for i in range(0, len(response)):
             entry = response[i]
