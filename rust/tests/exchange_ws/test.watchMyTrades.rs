@@ -32,8 +32,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             now = exchange.milliseconds();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1605: bool = true;
-                while { if !__for_first_1605 { i += 1; } __for_first_1605 = false; i < (response.len() as i64) } {
+                let mut __for_first_1604: bool = true;
+                while { if !__for_first_1604 { i += 1; } __for_first_1604 = false; i < (response.len() as i64) } {
                 testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone(), Value::Bool(false));
             }
             }

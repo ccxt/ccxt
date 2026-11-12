@@ -189,10 +189,10 @@ impl crate::exchange_generated::ExchangeBase for Coinbase {
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "subscribe" => self.subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "subscribe_multiple" => self.subscribe_multiple(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "un_subscribe" => self.un_subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
-                "un_subscribe_multiple" => self.un_subscribe_multiple(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "subscribe" => self.subscribe(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
+                "subscribe_multiple" => self.subscribe_multiple(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
+                "un_subscribe" => self.un_subscribe(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), &args[2.min(args.len())..]).await,
+                "un_subscribe_multiple" => self.un_subscribe_multiple(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), &args[2.min(args.len())..]).await,
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_orders" => crate::types::IntoRaw::into_raw(self.un_watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_ticker" => crate::types::IntoRaw::into_raw(self.un_watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -337,7 +337,8 @@ impl Coinbase {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} subscription to a websocket channel
  */
-    pub async fn subscribe(&mut self, mut name: Value, optional_args: &[Value]) -> Value {
+    pub async fn subscribe(&mut self, name: &str, optional_args: &[Value]) -> Value {
+        let mut name: Value = name.into();
         let isPrivate: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut symbol = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -348,14 +349,14 @@ impl Coinbase {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
-        let mut messageHash: Value = name.clone();
+        let mut messageHash: String = name.as_str().unwrap_or_default().to_string();
         let mut productIds: Value = Value::from(vec![]);
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol).into());
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol);
             productIds = Value::from(vec![self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[])]);
         }
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
@@ -367,7 +368,7 @@ impl Coinbase {
             let __ws_arg_0 = self.create_ws_auth(name, productIds);
             subscribe = self.extend(subscribe.clone(), &[__ws_arg_0]);
         }
-        return self.watch(url, messageHash.clone(), &[subscribe, messageHash.clone()]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[subscribe, Value::from(messageHash.clone())]).await;
 
     Value::Null
 }
@@ -383,7 +384,9 @@ impl Coinbase {
  * @param {string} [symbol] unified market symbol
  * @returns {object} subscription to a websocket channel
  */
-    pub async fn un_subscribe(&mut self, mut topic: Value, mut name: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_subscribe(&mut self, topic: &str, name: &str, optional_args: &[Value]) -> Value {
+        let mut topic: Value = topic.into();
+        let mut name: Value = name.into();
         let isPrivate: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut symbol = get_arg(optional_args, 1, Value::Null);
         if (self.markets.clone() == Value::Null) {
@@ -403,7 +406,7 @@ impl Coinbase {
             unWatchMessageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), name).into()), Value::Str("::".into())).into()), symbol);
             productIds = Value::from(vec![self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[])]);
         }
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
         let mut message: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -426,7 +429,7 @@ impl Coinbase {
             message = self.extend(message.clone(), &[__ws_arg_1]);
         }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscription".into(), Value::Map(subscription.clone())); }
-        let mut res: Value = self.watch(url, &unWatchMessageHash[..], &[message, Value::from(unWatchMessageHash.clone()), Value::Map(subscription)]).await;
+        let mut res: Value = self.watch(url.as_deref(), &unWatchMessageHash[..], &[message, Value::from(unWatchMessageHash.clone()), Value::Map(subscription)]).await;
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscriptionPending".into(), Value::Bool(false)); }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscription".into(), Value::Null); }
         return res;
@@ -445,7 +448,8 @@ impl Coinbase {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} subscription to a websocket channel
  */
-    pub async fn subscribe_multiple(&mut self, mut name: Value, optional_args: &[Value]) -> Value {
+    pub async fn subscribe_multiple(&mut self, name: &str, optional_args: &[Value]) -> Value {
+        let mut name: Value = name.into();
         let isPrivate: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut symbols = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -469,7 +473,7 @@ impl Coinbase {
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
         }
         }
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
@@ -481,7 +485,7 @@ impl Coinbase {
             let __ws_arg_2 = self.create_ws_auth(name, Value::from(productIds));
             subscribe = self.extend(subscribe.clone(), &[__ws_arg_2]);
         }
-        return self.watch_multiple(url, &messageHashes, &[subscribe, Value::Arr(messageHashes.clone())]).await;
+        return self.watch_multiple(url.as_deref(), &messageHashes, &[subscribe, Value::Arr(messageHashes.clone())]).await;
 
     Value::Null
 }
@@ -498,7 +502,9 @@ impl Coinbase {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} subscription to a websocket channel
  */
-    pub async fn un_subscribe_multiple(&mut self, mut topic: Value, mut name: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_subscribe_multiple(&mut self, topic: &str, name: &str, optional_args: &[Value]) -> Value {
+        let mut topic: Value = topic.into();
+        let mut name: Value = name.into();
         let isPrivate: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut symbols = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -528,7 +534,7 @@ impl Coinbase {
             if let Value::Arr(__a) = &mut unWatchMessageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), name).into()), Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())); };
         }
         }
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut message: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("unsubscribe".into()));
@@ -550,7 +556,7 @@ impl Coinbase {
             m
         });
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscription".into(), Value::Map(subscription.clone())); }
-        let mut res: Value = self.watch_multiple(url, unWatchMessageHashes.clone(), &[message, unWatchMessageHashes.clone(), Value::Map(subscription)]).await;
+        let mut res: Value = self.watch_multiple(url.as_deref(), unWatchMessageHashes.clone(), &[message, unWatchMessageHashes.clone(), Value::Map(subscription)]).await;
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscriptionPending".into(), Value::Bool(false)); }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscription".into(), Value::Null); }
         return res;
@@ -566,9 +572,9 @@ impl Coinbase {
         let mut timestamp: Option<String> = self.number_to_string(self.seconds()).as_str().map(str::to_owned);
         self.check_required_credentials(&[]);
         let mut isCloudAPiKey: bool = (self.apiKey.as_str().unwrap_or("").contains("organizations/")) || (self.secret.as_str().unwrap_or("").starts_with("-----BEGIN"));
-        let mut isV2CloudAPiKey: Value = self.parent.is_eddsa_api_key();
+        let mut isV2CloudAPiKey: bool = self.parent.is_eddsa_api_key().as_bool().unwrap_or_default();
         let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", timestamp.clone().map(Value::from).unwrap_or(Value::Null), name).into()), Value::Str(productIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
-        if !isCloudAPiKey && !is_true(&isV2CloudAPiKey) {
+        if !isCloudAPiKey && !isV2CloudAPiKey {
             subscribe.insert("api_key".into(), self.apiKey.clone());
             subscribe.insert("timestamp".into(), timestamp.map(Value::from).unwrap_or(Value::Null));
             subscribe.insert("signature".into(), self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
@@ -582,7 +588,7 @@ impl Coinbase {
             let mut tokenExpiry: Value = (match (&(tokenTimestamp), &(Value::Int(90))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             if (currentToken.is_none()) || tokenExpiry.as_f64().unwrap_or(f64::NAN) < seconds.as_f64().unwrap_or(f64::NAN) {
                 // we should generate new token
-                let mut token: Value = self.parent.create_auth_token(seconds.clone(), Value::Str("".into()), &[Value::Null, self.parent.is_eddsa_api_key()]);
+                let mut token: Value = self.parent.create_auth_token(seconds.clone(), "", &[Value::Null, self.parent.is_eddsa_api_key()]);
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsToken".into(), token); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsTokenTimestamp".into(), seconds); }
             }
@@ -617,7 +623,7 @@ impl Coinbase {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "ticker".to_string();
-        return self.subscribe(Value::from(name), &[Value::Bool(false), symbol, params]).await;
+        return self.subscribe(name.as_str(), &[Value::Bool(false), symbol, params]).await;
         Value::Null
         }).await?))
     }
@@ -646,7 +652,7 @@ impl Coinbase {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "ticker".to_string();
-        return self.un_subscribe(Value::Str("ticker".into()), Value::from(name), &[Value::Bool(false), symbol]).await;
+        return self.un_subscribe("ticker", name.as_str(), &[Value::Bool(false), symbol]).await;
         Value::Null
         }).await?))
     }
@@ -679,7 +685,7 @@ impl Coinbase {
             symbolsResolved = self.symbols.clone();
         }
         let mut name: String = "ticker_batch".to_string();
-        let mut ticker: Value = self.subscribe_multiple(Value::from(name), &[Value::Bool(false), symbolsResolved, params]).await;
+        let mut ticker: Value = self.subscribe_multiple(name.as_str(), &[Value::Bool(false), symbolsResolved, params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut tickers: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -718,9 +724,9 @@ impl Coinbase {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbols == Value::Null) {
-            return self.un_subscribe_multiple(Value::Str("ticker".into()), Value::Str("ticker_batch".into()), &[Value::Bool(false), self.symbols.clone()]).await;
+            return self.un_subscribe_multiple("ticker", "ticker_batch", &[Value::Bool(false), self.symbols.clone()]).await;
         }
-        return self.un_subscribe_multiple(Value::Str("ticker".into()), Value::Str("ticker_batch".into()), &[Value::Bool(false), symbols]).await;
+        return self.un_subscribe_multiple("ticker", "ticker_batch", &[Value::Bool(false), symbols]).await;
         Value::Null
         }).await?))
     }
@@ -941,7 +947,7 @@ impl Coinbase {
         }
         let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
         let mut name: String = "candles".to_string();
-        let mut ohlcv: Value = self.subscribe(Value::from(name), &[Value::Bool(false), symbolValue.clone().map(Value::from).unwrap_or(Value::Null), params]).await;
+        let mut ohlcv: Value = self.subscribe(name.as_str(), &[Value::Bool(false), symbolValue.clone().map(Value::from).unwrap_or(Value::Null), params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_deref(), limit.as_i64());
@@ -1041,7 +1047,7 @@ impl Coinbase {
         }
         let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
         let mut name: String = "market_trades".to_string();
-        let mut trades: Value = self.subscribe(Value::from(name), &[Value::Bool(false), symbolValue.clone().map(Value::from).unwrap_or(Value::Null), params]).await;
+        let mut trades: Value = self.subscribe(name.as_str(), &[Value::Bool(false), symbolValue.clone().map(Value::from).unwrap_or(Value::Null), params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_deref(), limit.as_i64());
@@ -1075,7 +1081,7 @@ impl Coinbase {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "market_trades".to_string();
-        return self.un_subscribe(Value::Str("trades".into()), Value::from(name), &[Value::Bool(false), symbol]).await;
+        return self.un_subscribe("trades", name.as_str(), &[Value::Bool(false), symbol]).await;
         Value::Null
         }).await?))
     }
@@ -1108,7 +1114,7 @@ impl Coinbase {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "market_trades".to_string();
-        let mut trades: Value = self.subscribe_multiple(Value::from(name), &[Value::Bool(false), symbols, params]).await;
+        let mut trades: Value = self.subscribe_multiple(name.as_str(), &[Value::Bool(false), symbols, params]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -1144,7 +1150,7 @@ impl Coinbase {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "market_trades".to_string();
-        return self.un_subscribe_multiple(Value::Str("trades".into()), Value::from(name), &[Value::Bool(false), symbols, params]).await;
+        return self.un_subscribe_multiple("trades", name.as_str(), &[Value::Bool(false), symbols, params]).await;
         Value::Null
         }).await?))
     }
@@ -1177,7 +1183,7 @@ impl Coinbase {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "user".to_string();
-        let mut orders: Value = self.subscribe(Value::from(name), &[Value::Bool(true), symbol.clone(), params]).await;
+        let mut orders: Value = self.subscribe(name.as_str(), &[Value::Bool(true), symbol.clone(), params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
@@ -1211,7 +1217,7 @@ impl Coinbase {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "user".to_string();
-        return self.un_subscribe(Value::Str("orders".into()), Value::from(name), &[Value::Bool(true), self.symbol(symbol.clone())]).await;
+        return self.un_subscribe("orders", name.as_str(), &[Value::Bool(true), self.symbol(symbol.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -1244,7 +1250,7 @@ impl Coinbase {
         let mut name: String = "level2".to_string();
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut orderbook: Value = self.subscribe(Value::from(name), &[Value::Bool(false), Value::from(symbolValue), params]).await;
+        let mut orderbook: Value = self.subscribe(name.as_str(), &[Value::Bool(false), Value::from(symbolValue), params]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1275,7 +1281,7 @@ impl Coinbase {
         }
         let mut symbolValue: Value = self.symbol(symbol.clone());
         let mut name: String = "level2".to_string();
-        return self.un_subscribe(Value::Str("orderbook".into()), Value::from(name), &[Value::Bool(false), symbolValue]).await;
+        return self.un_subscribe("orderbook", name.as_str(), &[Value::Bool(false), symbolValue]).await;
         Value::Null
         }).await?))
     }
@@ -1306,7 +1312,7 @@ impl Coinbase {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "level2".to_string();
-        let mut orderbook: Value = self.subscribe_multiple(Value::from(name), &[Value::Bool(false), symbols, params]).await;
+        let mut orderbook: Value = self.subscribe_multiple(name.as_str(), &[Value::Bool(false), symbols, params]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1461,7 +1467,8 @@ impl Coinbase {
         client.resolve(self.orders.clone(), "user");
 }
 
-    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {
@@ -1505,7 +1512,7 @@ impl Coinbase {
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "avg_price", &[]));
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "cumulative_quantity", &[]));
         m.insert("remaining".to_string(), self.safe_string_k(order.clone(), "leaves_quantity", &[]));
-        m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parent.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.safe_string_k(order, "total_fees", &[]));

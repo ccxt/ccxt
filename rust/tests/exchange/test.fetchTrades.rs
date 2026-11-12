@@ -20,8 +20,8 @@ pub async fn testFetchTrades(mut exchange: Value, mut skippedProperties: Value, 
     let mut isPublicTrade: Value = Value::Bool(true);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1595: bool = true;
-        while { if !__for_first_1595 { i += 1; } __for_first_1595 = false; i < (trades.len() as i64) } {
+        let mut __for_first_1594: bool = true;
+        while { if !__for_first_1594 { i += 1; } __for_first_1594 = false; i < (trades.len() as i64) } {
         testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone(), isPublicTrade.clone());
     }
     }
@@ -69,8 +69,8 @@ async fn helperTestFetchTradesSideSequence(mut exchange: Value, mut skippedPrope
     let mut lastTrade: Value = Value::Null;
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1596: bool = true;
-        while { if !__for_first_1596 { i += 1; } __for_first_1596 = false; i < (trades.len() as i64) } {
+        let mut __for_first_1595: bool = true;
+        while { if !__for_first_1595 { i += 1; } __for_first_1595 = false; i < (trades.len() as i64) } {
         let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         let mut ts: Value = get_value(&trade, &Value::Str("timestamp".into()));
         let mut price: Value = exchange.safe_string(trade.clone(), Value::Str("price".into()), &[]);

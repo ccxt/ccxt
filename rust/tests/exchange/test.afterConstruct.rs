@@ -43,8 +43,8 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
         let mut collectedNetworkIds: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1559: bool = true;
-            while { if !__for_first_1559 { i += 1; } __for_first_1559 = false; i < (networkCodes.len() as i64) } {
+            let mut __for_first_1558: bool = true;
+            while { if !__for_first_1558 { i += 1; } __for_first_1558 = false; i < (networkCodes.len() as i64) } {
             let mut networkCode: Value = networkCodes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Value = get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), &networkCode);
             if !is_true(&exchange.in_array(networkCode.clone(), allowedUnifiedAliases.clone())) {
@@ -57,8 +57,8 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
         let mut collectedNetworkCodes: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1560: bool = true;
-            while { if !__for_first_1560 { i += 1; } __for_first_1560 = false; i < (networkCodes.len() as i64) } {
+            let mut __for_first_1559: bool = true;
+            while { if !__for_first_1559 { i += 1; } __for_first_1559 = false; i < (networkCodes.len() as i64) } {
             let mut networkCodeLower: Value = ((networkCodes.get(i as usize).cloned().unwrap_or(Value::Null))).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
             assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.in_array(networkCodeLower.clone(), collectedNetworkCodes.clone()))))));
             append_to_array(&mut collectedNetworkCodes, networkCodeLower.clone());
@@ -66,8 +66,8 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1561: bool = true;
-            while { if !__for_first_1561 { i += 1; } __for_first_1561 = false; i < (networkCodes.len() as i64) } {
+            let mut __for_first_1560: bool = true;
+            while { if !__for_first_1560 { i += 1; } __for_first_1560 = false; i < (networkCodes.len() as i64) } {
             let mut networkCode: Value = networkCodes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Value = get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), &networkCode);
             // check networkCodeToId

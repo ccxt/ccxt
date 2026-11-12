@@ -389,7 +389,7 @@ impl Cex {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        return self.watch(url.as_str(), messageHash.clone(), &[request.clone(), messageHash.clone(), request.clone()]).await;
+        return self.watch(url.as_str(), &messageHash, &[request.clone(), messageHash.clone(), request.clone()]).await;
         Value::Null
         }).await?))
     }
@@ -768,7 +768,7 @@ impl Cex {
                 m.insert("data".to_string(), Value::from(vec![Value::from((market).base.clone()), Value::from((market).quote.clone())]));
             m
         }), &[params]);
-        return self.watch(url.as_str(), messageHash.clone(), &[request, messageHash.clone()]).await;
+        return self.watch(url.as_str(), &messageHash, &[request, messageHash.clone()]).await;
         Value::Null
         }).await?))
     }
@@ -906,7 +906,7 @@ impl Cex {
                 m.insert("oid".to_string(), messageHash.clone());
             m
         }), &[params]);
-        return self.watch(url.as_str(), messageHash.clone(), &[request, messageHash.clone()]).await;
+        return self.watch(url.as_str(), &messageHash, &[request, messageHash.clone()]).await;
         Value::Null
         }).await?))
     }
@@ -1079,23 +1079,21 @@ impl Cex {
         //             "id": "59091012962"
         //         }
         //     }
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         if (self.myTrades.clone() == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = ArrayCacheBySymbolById::new(limit);
         }
         let mut stored: Value = self.myTrades.clone();
-        let mut trade: Value = self.parse_ws_trade(data, &[]);
+        let mut trade: Value = self.parse_ws_trade(&data, &[]);
         stored.append(trade.clone());
         let mut tradeSymbol: String = self.safe_string_k(trade, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("myTrades:".into()), tradeSymbol);
         client.resolve(stored, messageHash.as_str());
 }
 
-    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1897,7 +1895,7 @@ impl Cex {
                 m.insert("data".to_string(), data);
             m
         });
-        let mut response: Value = self.watch(url.as_str(), messageHash.clone(), &[Value::Map(request), messageHash]).await;
+        let mut response: Value = self.watch(url.as_str(), &messageHash, &[Value::Map(request), messageHash.clone()]).await;
         return self.parse_order(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         Value::Null
         }).await?))
@@ -1949,7 +1947,7 @@ impl Cex {
                 m.insert("data".to_string(), data);
             m
         });
-        let mut response: Value = self.watch(url.as_str(), messageHash.clone(), &[Value::Map(request), messageHash]).await;
+        let mut response: Value = self.watch(url.as_str(), &messageHash, &[Value::Map(request), messageHash.clone()]).await;
         return self.parse_orders(response, &[(market).raw.clone(), since, limit, params]);
         Value::Null
         }).await?))
@@ -2009,7 +2007,7 @@ impl Cex {
                 m.insert("data".to_string(), data);
             m
         });
-        let mut rawOrder: Value = self.watch(url.as_str(), messageHash.clone(), &[Value::Map(request), messageHash]).await;
+        let mut rawOrder: Value = self.watch(url.as_str(), &messageHash, &[Value::Map(request), messageHash.clone()]).await;
         return self.parse_order(rawOrder, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -2074,7 +2072,7 @@ impl Cex {
                 m.insert("data".to_string(), data);
             m
         });
-        let mut response: Value = self.watch(url.as_str(), messageHash.clone(), &[Value::Map(request), messageHash.clone(), messageHash.clone()]).await;
+        let mut response: Value = self.watch(url.as_str(), &messageHash, &[Value::Map(request), messageHash.clone(), messageHash.clone()]).await;
         return self.parse_order(response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -2124,7 +2122,7 @@ impl Cex {
                 m.insert("data".to_string(), data);
             m
         });
-        let mut response: Value = self.watch(url.as_str(), messageHash.clone(), &[Value::Map(request), messageHash.clone(), messageHash.clone()]).await;
+        let mut response: Value = self.watch(url.as_str(), &messageHash, &[Value::Map(request), messageHash.clone(), messageHash.clone()]).await;
         return self.parse_order(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         Value::Null
         }).await?))
@@ -2173,7 +2171,7 @@ impl Cex {
                 m.insert("data".to_string(), data);
             m
         });
-        let mut response: Value = self.watch(url.as_str(), messageHash.clone(), &[Value::Map(request), messageHash.clone(), messageHash.clone()]).await;
+        let mut response: Value = self.watch(url.as_str(), &messageHash, &[Value::Map(request), messageHash.clone(), messageHash.clone()]).await;
         //
         //    {
         //        "cancel-orders": [{

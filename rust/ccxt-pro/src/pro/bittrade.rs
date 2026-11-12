@@ -841,7 +841,7 @@ impl Bittrade {
                     m.insert("method".to_string(), Value::Str("handle_order_book_snapshot".into()).clone());
                 m
             });
-            let mut orderbook: Value = self.watch(url.as_str(), Value::Str(format!("{}", requestId).into()), &[Value::Map(request), Value::Str(format!("{}", requestId).into()), Value::Map(snapshotSubscription)]).await;
+            let mut orderbook: Value = self.watch(url.as_str(), &(Value::Str(format!("{}", requestId).into())), &[Value::Map(request), Value::Str(format!("{}", requestId).into()), Value::Map(snapshotSubscription)]).await;
             return orderbook.limit();
          #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 

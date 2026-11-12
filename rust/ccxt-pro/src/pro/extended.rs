@@ -195,7 +195,7 @@ impl crate::exchange_generated::ExchangeBase for Extended {
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_positions" => crate::types::IntoRaw::into_raw(self.watch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "watch_private" => self.watch_private(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "watch_private" => self.watch_private(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
                 _ => crate::exchange_generated::ExchangeBase::call_dynamic(&mut self.parent, method, args).await,
@@ -432,7 +432,8 @@ impl Extended {
         }
 }
 
-    pub async fn watch_private(&mut self, mut messageHash: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_private(&mut self, messageHash: &str, optional_args: &[Value]) -> Value {
+        let mut messageHash: Value = messageHash.into();
         let mut subscription = get_arg(optional_args, 0, Value::Null);
         self.check_required_credentials(&[]);
         let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]), Value::Str("/account".into())).into());
@@ -480,7 +481,7 @@ impl Extended {
             self.client(&[url.clone()]);
             if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("options".to_string(), originalOptions); } }
         }
-        return self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone(), subscription]).await;
+        return self.watch(&url, &messageHash, &[Value::Null, messageHash.clone(), subscription]).await;
 
     Value::Null
 }
@@ -519,7 +520,7 @@ impl Extended {
             symbolResolved = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().map(str::to_owned);
             messageHash = format!("{}{}", Value::Str("orders:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
-        let mut orders: Value = self.watch_private(Value::from(messageHash), &[Value::Map({
+        let mut orders: Value = self.watch_private(messageHash.as_str(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("limit".to_string(), limit.clone());
@@ -555,7 +556,7 @@ impl Extended {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        return self.watch_private(Value::Str("balance".into()), &[params]).await;
+        return self.watch_private("balance", &[params]).await;
         Value::Null
         }).await?))
     }
@@ -675,7 +676,7 @@ impl Extended {
             symbolResolved = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().map(str::to_owned);
             messageHash = format!("{}{}", Value::Str("myTrades:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
-        let mut trades: Value = self.watch_private(Value::from(messageHash), &[Value::Map({
+        let mut trades: Value = self.watch_private(messageHash.as_str(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("limit".to_string(), limit.clone());
@@ -804,7 +805,7 @@ impl Extended {
         if (symbolsNormalized.is_some()) {
             messageHash.push_str(&format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into())));
         }
-        let mut positions: Value = self.watch_private(Value::from(messageHash), &[Value::Map({
+        let mut positions: Value = self.watch_private(messageHash.as_str(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbols".to_string(), symbolsNormalized.clone().map_or(Value::Null, Value::Arr));
         m.insert("limit".to_string(), limit.clone());

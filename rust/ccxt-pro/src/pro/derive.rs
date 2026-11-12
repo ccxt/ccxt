@@ -193,7 +193,7 @@ impl crate::exchange_generated::ExchangeBase for Derive {
                 "un_watch_my_trades" => crate::types::IntoRaw::into_raw(self.un_watch_my_trades(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_orders" => crate::types::IntoRaw::into_raw(self.un_watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
-                "un_watch_public" => self.un_watch_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "un_watch_public" => self.un_watch_public(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
                 "un_watch_ticker" => crate::types::IntoRaw::into_raw(self.un_watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -202,8 +202,8 @@ impl crate::exchange_generated::ExchangeBase for Derive {
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_positions" => crate::types::IntoRaw::into_raw(self.watch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "watch_private" => self.watch_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
-                "watch_public" => self.watch_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "watch_private" => self.watch_private(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "watch_public" => self.watch_public(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
@@ -347,7 +347,8 @@ impl Derive {
     Value::Null
 }
 
-    pub async fn watch_public(&mut self, mut messageHash: Value, mut message: Value, mut subscription: Value) -> Value {
+    pub async fn watch_public(&mut self, messageHash: &str, mut message: Value, mut subscription: Value) -> Value {
+        let mut messageHash: Value = messageHash.into();
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: i64 = self.request_id(url.clone()).as_i64().unwrap_or_default();
         let mut request: Value = self.extend(message, &[Value::Map({
@@ -361,7 +362,7 @@ impl Derive {
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
             m
         })]);
-        return self.watch(url, messageHash.clone(), &[request, messageHash.clone(), subscriptionExtended]).await;
+        return self.watch(&url, &messageHash, &[request, messageHash.clone(), subscriptionExtended]).await;
 
     Value::Null
 }
@@ -413,7 +414,7 @@ impl Derive {
                 m.insert("params".to_string(), params);
             m
         });
-        let mut orderbook: Value = self.watch_public(Value::from(topic), Value::Map(request), Value::Map(subscription)).await;
+        let mut orderbook: Value = self.watch_public(topic.as_str(), Value::Map(request), Value::Map(subscription)).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -506,7 +507,7 @@ impl Derive {
                 m.insert("params".to_string(), params);
             m
         });
-        return self.watch_public(Value::from(topic), Value::Map(request), Value::Map(subscription)).await;
+        return self.watch_public(topic.as_str(), Value::Map(request), Value::Map(subscription)).await;
         Value::Null
         }).await?))
     }
@@ -553,7 +554,7 @@ impl Derive {
                 m.insert("name".to_string(), Value::from(topic));
             m
         });
-        return self.un_watch_public(Value::from(messageHash), Value::Map(request), Value::Map(subscription)).await;
+        return self.un_watch_public(messageHash.as_str(), Value::Map(request), Value::Map(subscription)).await;
         Value::Null
         }).await?))
     }
@@ -615,7 +616,7 @@ impl Derive {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut ticker: Value = self.watch_multiple(url, &messageHashes, &[__ws_arg_0, Value::Arr(messageHashes.clone()), Value::Map(subscription)]).await;
+        let mut ticker: Value = self.watch_multiple(&url, &messageHashes, &[__ws_arg_0, Value::Arr(messageHashes.clone()), Value::Map(subscription)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -749,7 +750,7 @@ impl Derive {
                 m.insert("name".to_string(), Value::from(topic));
             m
         });
-        return self.un_watch_public(Value::from(messageHash), Value::Map(request), Value::Map(subscription)).await;
+        return self.un_watch_public(messageHash.as_str(), Value::Map(request), Value::Map(subscription)).await;
         Value::Null
         }).await?))
     }
@@ -795,12 +796,13 @@ impl Derive {
                 m.insert("name".to_string(), Value::from(topic));
             m
         });
-        return self.un_watch_public(Value::from(messageHah), Value::Map(request), Value::Map(subscription)).await;
+        return self.un_watch_public(messageHah.as_str(), Value::Map(request), Value::Map(subscription)).await;
         Value::Null
         }).await?))
     }
 
-    pub async fn un_watch_public(&mut self, mut messageHash: Value, mut message: Value, mut subscription: Value) -> Value {
+    pub async fn un_watch_public(&mut self, messageHash: &str, mut message: Value, mut subscription: Value) -> Value {
+        let mut messageHash: Value = messageHash.into();
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: i64 = self.request_id(url.clone()).as_i64().unwrap_or_default();
         let mut request: Value = self.extend(message, &[Value::Map({
@@ -814,7 +816,7 @@ impl Derive {
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
             m
         })]);
-        return self.watch(url, messageHash.clone(), &[request, messageHash.clone(), subscriptionExtended]).await;
+        return self.watch(&url, &messageHash, &[request, messageHash.clone(), subscriptionExtended]).await;
 
     Value::Null
 }
@@ -961,7 +963,7 @@ impl Derive {
                 m.insert("params".to_string(), params);
             m
         });
-        let mut trades: Value = self.watch_public(Value::from(topic), Value::Map(request), Value::Map(subscription)).await;
+        let mut trades: Value = self.watch_public(topic.as_str(), Value::Map(request), Value::Map(subscription)).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
@@ -1017,7 +1019,7 @@ impl Derive {
         if (authenticated == Value::Null) {
             let mut requestId: Value = self.request_id(url.clone());
             let mut now: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
-            let mut signature: Value = self.parent.sign_message(now.clone().map(Value::from).unwrap_or(Value::Null), self.privateKey.clone()).map(Value::from).unwrap_or(Value::Null);
+            let mut signature: Value = self.parent.sign_message(now.as_deref().unwrap_or_default(), (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
             let mut configuredWalletAddress: Option<String> = self.safe_string_k(self.options.clone(), "deriveWalletAddress", &[]).as_str().map(str::to_owned);
             // v3: the owner wallet is the user's own EOA
             let mut deriveWalletAddress: Value = (if ((configuredWalletAddress.is_none()) || (configuredWalletAddress.as_deref() == Some(""))) { self.walletAddress.clone() } else { configuredWalletAddress.clone().map(Value::from).unwrap_or(Value::Null) });
@@ -1040,14 +1042,15 @@ impl Derive {
             //     'params': params,
             // }
             let mut message: Value = self.extend(Value::Map(request), &[params]);
-            self.watch(url, &messageHash[..], &[message.clone(), Value::from(messageHash.clone()), message]).await;
+            self.watch(&url, &messageHash[..], &[message.clone(), Value::from(messageHash.clone()), message]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
     Value::Null
 }
 
-    pub async fn watch_private(&mut self, mut messageHash: Value, mut message: Value, mut subscription: Value) -> Value {
+    pub async fn watch_private(&mut self, messageHash: &str, mut message: Value, mut subscription: Value) -> Value {
+        let mut messageHash: Value = messageHash.into();
         self.authenticate(&[]).await;
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: i64 = self.request_id(url.clone()).as_i64().unwrap_or_default();
@@ -1062,7 +1065,7 @@ impl Derive {
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
             m
         })]);
-        return self.watch(url, messageHash.clone(), &[request, messageHash.clone(), subscriptionExtended]).await;
+        return self.watch(&url, &messageHash, &[request, messageHash.clone(), subscriptionExtended]).await;
 
     Value::Null
 }
@@ -1095,7 +1098,7 @@ impl Derive {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("watchOrders".into()), params).as_array().cloned().unwrap_or_default();
+        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id("watchOrders", params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subaccountIdString: Value = self.number_to_string(subaccountId);
@@ -1123,7 +1126,7 @@ impl Derive {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let mut orders: Value = self.watch_private(Value::from(messageHash), message, Value::Map(subscription)).await;
+        let mut orders: Value = self.watch_private(messageHash.as_str(), message, Value::Map(subscription)).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -1247,7 +1250,7 @@ impl Derive {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("unWatchOrders".into()), params).as_array().cloned().unwrap_or_default();
+        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id("unWatchOrders", params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subaccountIdString: Value = self.number_to_string(subaccountId);
@@ -1269,7 +1272,7 @@ impl Derive {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        return self.un_watch_public(Value::from(messageHash), message, Value::Map(subscription)).await;
+        return self.un_watch_public(messageHash.as_str(), message, Value::Map(subscription)).await;
         Value::Null
         }).await?))
     }
@@ -1302,7 +1305,7 @@ impl Derive {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("watchMyTrades".into()), params).as_array().cloned().unwrap_or_default();
+        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id("watchMyTrades", params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subaccountIdString: Value = self.number_to_string(subaccountId);
@@ -1330,7 +1333,7 @@ impl Derive {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let mut trades: Value = self.watch_private(Value::from(messageHash), message, Value::Map(subscription)).await;
+        let mut trades: Value = self.watch_private(messageHash.as_str(), message, Value::Map(subscription)).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -1393,7 +1396,7 @@ impl Derive {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("unWatchMyTrades".into()), params).as_array().cloned().unwrap_or_default();
+        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id("unWatchMyTrades", params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subaccountIdString: Value = self.number_to_string(subaccountId);
@@ -1415,7 +1418,7 @@ impl Derive {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        return self.un_watch_public(Value::from(messageHash), message, Value::Map(subscription)).await;
+        return self.un_watch_public(messageHash.as_str(), message, Value::Map(subscription)).await;
         Value::Null
         }).await?))
     }
@@ -1446,7 +1449,7 @@ impl Derive {
         let fetchSnapshotparamsSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut fetchSnapshot: bool = fetchSnapshotparamsSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsSnapshot: crate::value::Dict = fetchSnapshotparamsSnapshotVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("watchBalance".into()), &paramsSnapshot).as_array().cloned().unwrap_or_default();
+        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id("watchBalance", &paramsSnapshot).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.balance.clone() == Value::Null) {
@@ -1495,7 +1498,7 @@ impl Derive {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        return self.watch_private(Value::from(topic), message, Value::Map(subscription)).await;
+        return self.watch_private(topic.as_str(), message, Value::Map(subscription)).await;
         Value::Null
         }).await?))
     }
@@ -1533,7 +1536,7 @@ impl Derive {
         let fetchSnapshotparamsSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut fetchSnapshot: bool = fetchSnapshotparamsSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsSnapshot: crate::value::Dict = fetchSnapshotparamsSnapshotVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("watchPositions".into()), &paramsSnapshot).as_array().cloned().unwrap_or_default();
+        let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id("watchPositions", &paramsSnapshot).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.positions.clone() == Value::Null) {
@@ -1597,7 +1600,7 @@ impl Derive {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let mut newPositions: Value = self.watch_private(Value::from(messageHash), message, Value::Map(subscription)).await;
+        let mut newPositions: Value = self.watch_private(messageHash.as_str(), message, Value::Map(subscription)).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }

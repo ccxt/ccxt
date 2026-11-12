@@ -33,8 +33,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone()]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1612: bool = true;
-                while { if !__for_first_1612 { i += 1; } __for_first_1612 = false; i < (response.len() as i64) } {
+                let mut __for_first_1611: bool = true;
+                while { if !__for_first_1611 { i += 1; } __for_first_1611 = false; i < (response.len() as i64) } {
                 testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone(), Value::Bool(true));
             }
             }

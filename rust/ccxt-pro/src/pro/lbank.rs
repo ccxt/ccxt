@@ -412,7 +412,7 @@ if _try_result.is_err() {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.check_contract_market((market).raw.clone(), Value::Str("fetchOHLCVWs".into()));
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut watchOHLCVOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchOHLCV", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -440,7 +440,7 @@ if _try_result.is_err() {
         }
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut requestId: Value = self.request_id();
-        return self.watch(url, messageHash.as_str(), &[request.clone(), requestId, request.clone()]).await;
+        return self.watch(url.as_deref(), messageHash.as_str(), &[request.clone(), requestId, request.clone()]).await;
         Value::Null
         }).await?))
     }
@@ -486,7 +486,7 @@ if _try_result.is_err() {
         })]).into_dict();
         let mut timeframeId: Value = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), Value::from((market).symbol.clone())).into()), Value::Str(":".into())).into()), timeframeId);
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
@@ -496,7 +496,7 @@ if _try_result.is_err() {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut ohlcv: Value = self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
@@ -703,7 +703,7 @@ if _try_result.is_err() {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.check_contract_market((market).raw.clone(), Value::Str("fetchTickerWs".into()));
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", Value::Str("fetchTicker:".into()), Value::from((market).symbol.clone()));
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -714,7 +714,7 @@ if _try_result.is_err() {
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut requestId: Value = self.request_id();
-        return self.watch(url, messageHash.as_str(), &[request.clone(), requestId, request.clone()]).await;
+        return self.watch(url.as_deref(), messageHash.as_str(), &[request.clone(), requestId, request.clone()]).await;
         Value::Null
         }).await?))
     }
@@ -744,7 +744,7 @@ if _try_result.is_err() {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.check_contract_market((market).raw.clone(), Value::Str("watchTicker".into()));
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.clone()));
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -754,7 +754,7 @@ if _try_result.is_err() {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(url, &messageHash[..], &[request.clone(), Value::from(messageHash.clone()), request]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[request.clone(), Value::from(messageHash.clone()), request]).await;
         Value::Null
         }).await?))
     }
@@ -878,7 +878,7 @@ if _try_result.is_err() {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.check_contract_market((market).raw.clone(), Value::Str("fetchTradesWs".into()));
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", Value::Str("fetchTrades:".into()), Value::from((market).symbol.clone()));
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(10) } else { limit });
         let mut message: indexmap::IndexMap<String, Value> = ({
@@ -891,7 +891,7 @@ if _try_result.is_err() {
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut requestId: Value = self.request_id();
-        return self.watch(url, messageHash.as_str(), &[request.clone(), requestId, request.clone()]).await;
+        return self.watch(url.as_deref(), messageHash.as_str(), &[request.clone(), requestId, request.clone()]).await;
         Value::Null
         }).await?))
     }
@@ -925,7 +925,7 @@ if _try_result.is_err() {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.check_contract_market((market).raw.clone(), Value::Str("watchTrades".into()));
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), Value::from((market).symbol.clone()));
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -935,7 +935,7 @@ if _try_result.is_err() {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut trades: Value = self.watch(url, &messageHash[..], &[request.clone(), Value::from(messageHash.clone()), request]).await;
+        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[request.clone(), Value::from(messageHash.clone()), request]).await;
         let mut result: Value = self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         return self.sort_by(result, Value::Str("timestamp".into()), &[]);
         Value::Null
@@ -1046,7 +1046,8 @@ if _try_result.is_err() {
         client.resolve((if let (Some(__m), Some(__k)) = (self.trades.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
-    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // request
@@ -1128,7 +1129,7 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut key: Value = self.authenticate(&[params.clone()]).await;
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut messageHash: Option<String> = None;
         let mut pair: Value = Value::Str("all".into());
         let mut symbolResolved: Option<String> = (if (symbol == Value::Null) { None } else { self.symbol(symbol.clone()).as_str().map(str::to_owned) });
@@ -1148,7 +1149,7 @@ if _try_result.is_err() {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut orders: Value = self.watch(url, messageHash.clone().map(Value::from).unwrap_or(Value::Null), &[request.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null), request]).await;
+        let mut orders: Value = self.watch(url.as_deref(), messageHash.as_deref(), &[request.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null), request]).await;
         return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
@@ -1189,7 +1190,8 @@ if _try_result.is_err() {
         client.resolve(myOrders, messageHash.as_str());
 }
 
-    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1316,7 +1318,7 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut key: Value = self.authenticate(&[params.clone()]).await;
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut messageHash: String = "balance".to_string();
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1326,7 +1328,7 @@ if _try_result.is_err() {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(url, &messageHash[..], &[request.clone(), Value::from(messageHash.clone()), request]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[request.clone(), Value::from(messageHash.clone()), request]).await;
         Value::Null
         }).await?))
     }
@@ -1398,7 +1400,7 @@ if _try_result.is_err() {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.check_contract_market((market).raw.clone(), Value::Str("fetchOrderBookWs".into()));
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", Value::Str("fetchOrderbook:".into()), Value::from((market).symbol.clone()));
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() });
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
@@ -1410,7 +1412,7 @@ if _try_result.is_err() {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut orderbook: Value = self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1443,7 +1445,7 @@ if _try_result.is_err() {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.check_contract_market((market).raw.clone(), Value::Str("watchOrderBook".into()));
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), Value::from((market).symbol.clone()));
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("aggregation".into()), &[]).into_dict();
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() });
@@ -1456,7 +1458,7 @@ if _try_result.is_err() {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[&paramsOmitted]);
-        let mut orderbook: Value = self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         return orderbook.limit();
         Value::Null
         }).await?))

@@ -100,13 +100,13 @@ impl crate::exchange_generated::ExchangeBase for Bithumb {
                 "create_market_buy_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_buy_order_with_cost(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
+                "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "create_twap_order" => crate::types::IntoRaw::into_raw(self.create_twap_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_canceled_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_deposit" => self.fetch_deposit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_deposit" => self.fetch_deposit(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
                 "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposit_addresses" => crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -119,7 +119,7 @@ impl crate::exchange_generated::ExchangeBase for Bithumb {
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_withdrawal" => self.fetch_withdrawal(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_withdrawal" => self.fetch_withdrawal(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
                 "fetch_withdrawal_whitelist" => self.fetch_withdrawal_whitelist(&args[..]).await,
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "get_gen2_market_id" => self.get_gen2_market_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -948,8 +948,8 @@ impl Bithumb {
             let mut response: Value = self.public_get_v1_market_all(&[__ws_arg_0]).await;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_390: bool = true;
-                while { if !__for_first_390 { i += 1; } __for_first_390 = false; i < (response.len() as i64) } {
+                let mut __for_first_389: bool = true;
+                while { if !__for_first_389 { i += 1; } __for_first_389 = false; i < (response.len() as i64) } {
                 let mut entry: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "market", &[]).as_str().map(str::to_owned);
                 let mut baseId: Value = Value::Null;
@@ -1041,8 +1041,8 @@ impl Bithumb {
             let mut promises: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_391: bool = true;
-                while { if !__for_first_391 { i += 1; } __for_first_391 = false; i < (quotes.len() as i64) } {
+                let mut __for_first_390: bool = true;
+                while { if !__for_first_390 { i += 1; } __for_first_390 = false; i < (quotes.len() as i64) } {
                 request.insert("quoteId".into(), quotes.get(i as usize).cloned().unwrap_or(Value::Null));
                 let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
                 promises.push(self.public_get_public_ticker_all_quote_id(&[__ws_arg_1]).await);
@@ -1051,8 +1051,8 @@ impl Bithumb {
             let mut results: Value = promise_all(&Value::from(promises)).await;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_393: bool = true;
-                while { if !__for_first_393 { i += 1; } __for_first_393 = false; i < (quotes.len() as i64) } {
+                let mut __for_first_392: bool = true;
+                while { if !__for_first_392 { i += 1; } __for_first_392 = false; i < (quotes.len() as i64) } {
                 let mut quote: Value = quotes.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut quoteId: Value = quote.clone();
                 let mut response: Value = self.safe_dict(results.clone(), Value::Int(i), &[]);
@@ -1067,8 +1067,8 @@ impl Bithumb {
                 let mut currencyIds: Vec<Value> = Value::Array(data.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_392: bool = true;
-                    while { if !__for_first_392 { j += 1; } __for_first_392 = false; j < (currencyIds.len() as i64) } {
+                    let mut __for_first_391: bool = true;
+                    while { if !__for_first_391 { j += 1; } __for_first_391 = false; j < (currencyIds.len() as i64) } {
                     let mut currencyId: Value = currencyIds.get(j as usize).cloned().unwrap_or(Value::Null);
                     if (currencyId.as_str() == Some("date")) {
                         continue;
@@ -1193,8 +1193,8 @@ impl Bithumb {
             let mut codes: Vec<Value> = Value::Array(self.currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_394: bool = true;
-                while { if !__for_first_394 { i += 1; } __for_first_394 = false; i < (codes.len() as i64) } {
+                let mut __for_first_393: bool = true;
+                while { if !__for_first_393 { i += 1; } __for_first_393 = false; i < (codes.len() as i64) } {
                 let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut account: Value = self.account();
                 let mut currency: Value = self.currency(code.clone());
@@ -1208,8 +1208,8 @@ impl Bithumb {
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_395: bool = true;
-                while { if !__for_first_395 { i += 1; } __for_first_395 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_394: bool = true;
+                while { if !__for_first_394 { i += 1; } __for_first_394 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
                 let mut entry: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
                 let mut account: Value = self.account();
                 let mut currencyId: Option<String> = self.safe_string_k(&entry, "currency", &[]).as_str().map(str::to_owned);
@@ -1341,8 +1341,8 @@ impl Bithumb {
             let mut asks: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_396: bool = true;
-                while { if !__for_first_396 { i += 1; } __for_first_396 = false; i < (orderBookUnits.len() as i64) } {
+                let mut __for_first_395: bool = true;
+                while { if !__for_first_395 { i += 1; } __for_first_395 = false; i < (orderBookUnits.len() as i64) } {
                 let mut entry: crate::value::Dict = self.safe_dict(&orderBookUnits, Value::Int(i), &[]).into_dict();
                 bids.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1403,7 +1403,8 @@ impl Bithumb {
         }).await?))
     }
 
-    pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut ticker: Value = ticker.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // generation 1: fetchTicker, fetchTickers
@@ -1581,8 +1582,8 @@ impl Bithumb {
             let mut symbolsForMarketIdsLength: f64 = ((symbolsForMarketIds.len() as i64) as f64);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_397: bool = true;
-                while { if !__for_first_397 { i += 1; } __for_first_397 = false; (i as f64) < symbolsForMarketIdsLength } {
+                let mut __for_first_396: bool = true;
+                while { if !__for_first_396 { i += 1; } __for_first_396 = false; (i as f64) < symbolsForMarketIdsLength } {
                 let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsForMarketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
                 marketIds.push(self.get_gen2_market_id(market.clone()));
             }
@@ -1599,8 +1600,8 @@ impl Bithumb {
             let mut marketIdsChunk: Value = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_398: bool = true;
-                while { if !__for_first_398 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_398 = false; i.as_f64().unwrap_or(f64::NAN) < marketIdsLength.as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_397: bool = true;
+                while { if !__for_first_397 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_397 = false; i.as_f64().unwrap_or(f64::NAN) < marketIdsLength.as_f64().unwrap_or(f64::NAN) } {
                 if let Value::Arr(__a) = &mut marketIdsChunk { std::sync::Arc::make_mut(__a).push(marketIds.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)); }
                 let mut marketIdsChunkLength: f64 = ((marketIdsChunk.len() as i64) as f64);
                 let mut isLastMarketId: bool = i.as_f64() == ((match (&(marketIdsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64();
@@ -1649,8 +1650,8 @@ impl Bithumb {
             let mut responsesLength: f64 = ((responses.len() as i64) as f64);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_401: bool = true;
-                while { if !__for_first_401 { i += 1; } __for_first_401 = false; (i as f64) < responsesLength } {
+                let mut __for_first_400: bool = true;
+                while { if !__for_first_400 { i += 1; } __for_first_400 = false; (i as f64) < responsesLength } {
                 let mut response: Value = self.safe_value(responses.clone(), Value::Int(i), &[]);
                 if self.is_dictionary(response.clone()).as_bool() == Some(true) && (self.safe_value_k(response.clone(), "data", &[]) != Value::Null) {
                     response = self.safe_value_k(response.clone(), "data", &[]);
@@ -1671,8 +1672,8 @@ impl Bithumb {
                         let mut ids: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut j: i64 = 0;
-                            let mut __for_first_399: bool = true;
-                            while { if !__for_first_399 { j += 1; } __for_first_399 = false; j < (ids.len() as i64) } {
+                            let mut __for_first_398: bool = true;
+                            while { if !__for_first_398 { j += 1; } __for_first_398 = false; j < (ids.len() as i64) } {
                             let mut id: Value = ids.get(j as usize).cloned().unwrap_or(Value::Null);
                             let mut ticker: Value = self.safe_dict(response.clone(), id.clone(), &[]);
                             if (ticker != Value::Null) {
@@ -1685,8 +1686,8 @@ impl Bithumb {
                 }
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_400: bool = true;
-                    while { if !__for_first_400 { j += 1; } __for_first_400 = false; j < (tickers.len() as i64) } {
+                    let mut __for_first_399: bool = true;
+                    while { if !__for_first_399 { j += 1; } __for_first_399 = false; j < (tickers.len() as i64) } {
                     let mut entry: crate::value::Dict = tickers.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                     let mut marketId: Value = self.safe_string_k(&entry, "market", &[expectedMarketId.clone()]);
                     if (marketId == Value::Null) {
@@ -1697,7 +1698,7 @@ impl Bithumb {
                     if (symbol.is_none()) {
                         continue;
                     }
-                    result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_ticker(Value::Dict(entry), &[market.clone()]));
+                    result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_ticker(&entry, &[market.clone()]));
                 }
                 }
             }
@@ -1715,8 +1716,8 @@ impl Bithumb {
                 });
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_402: bool = true;
-                    while { if !__for_first_402 { i += 1; } __for_first_402 = false; i < (symbols.len() as i64) } {
+                    let mut __for_first_401: bool = true;
+                    while { if !__for_first_401 { i += 1; } __for_first_401 = false; i < (symbols.len() as i64) } {
                     let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
                     let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteId", &[]);
@@ -1734,8 +1735,8 @@ impl Bithumb {
             let mut promises: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_403: bool = true;
-                while { if !__for_first_403 { i += 1; } __for_first_403 = false; i < (quotes.len() as i64) } {
+                let mut __for_first_402: bool = true;
+                while { if !__for_first_402 { i += 1; } __for_first_402 = false; i < (quotes.len() as i64) } {
                 request.insert("quoteId".into(), quotes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
                 promises.push(self.public_get_public_ticker_all_quote_id(&[__ws_arg_6]).await);
@@ -1744,8 +1745,8 @@ impl Bithumb {
             let mut responses: Value = promise_all(&Value::from(promises)).await;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_405: bool = true;
-                while { if !__for_first_405 { i += 1; } __for_first_405 = false; i < (quotes.len() as i64) } {
+                let mut __for_first_404: bool = true;
+                while { if !__for_first_404 { i += 1; } __for_first_404 = false; i < (quotes.len() as i64) } {
                 let mut quote: Value = quotes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut response: Value = self.safe_dict(responses.clone(), Value::Int(i), &[]);
                 let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(response, "data", &[Value::Map({
@@ -1757,8 +1758,8 @@ impl Bithumb {
                 let mut currencyIds: Vec<Value> = Value::Array(tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_404: bool = true;
-                    while { if !__for_first_404 { j += 1; } __for_first_404 = false; j < (currencyIds.len() as i64) } {
+                    let mut __for_first_403: bool = true;
+                    while { if !__for_first_403 { j += 1; } __for_first_403 = false; j < (currencyIds.len() as i64) } {
                     let mut currencyId: Option<String> = currencyIds.get(j as usize).and_then(Value::as_str).map(str::to_owned);
                     let mut ticker: Value = data.get(currencyId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
                     let mut base: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -2069,7 +2070,8 @@ impl Bithumb {
         }).await?))
     }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // generation 1: fetchTrades (public)
@@ -2336,8 +2338,8 @@ impl Bithumb {
         let mut orderSymbols: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_406: bool = true;
-            while { if !__for_first_406 { i += 1; } __for_first_406 = false; i < (orders.len() as i64) } {
+            let mut __for_first_405: bool = true;
+            while { if !__for_first_405 { i += 1; } __for_first_405 = false; i < (orders.len() as i64) } {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_none()) {
@@ -2358,7 +2360,7 @@ impl Bithumb {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut orderRequest: Value = self.create_order_request(symbol.map(Value::from).unwrap_or(Value::Null), type_var.map(Value::from).unwrap_or(Value::Null), side.map(Value::from).unwrap_or(Value::Null), amount, &[price, orderParams]);
+            let mut orderRequest: Value = self.create_order_request(symbol.as_deref().unwrap_or_default(), type_var.as_deref().unwrap_or_default(), side.as_deref().unwrap_or_default(), amount, &[price, orderParams]);
             ordersRequests.push(orderRequest);
         }
         }
@@ -2385,13 +2387,16 @@ impl Bithumb {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "batch_orders_response", &[Value::from(vec![])]);
-        return self.parse_orders(data, &[market]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "batch_orders_response", &[Value::from(vec![])]).into_list();
+        return self.parse_orders(&data, &[market]);
         Value::Null
         }).await?))
     }
 
-    pub fn create_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub fn create_order_request(&self, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[Value]) -> Value {
+        let mut symbol: Value = symbol.into();
+        let mut type_var: Value = type_var.into();
+        let mut side: Value = side.into();
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2532,7 +2537,7 @@ impl Bithumb {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Value = Value::Null;
         if (generation == Some(2.0)) {
-            request = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), Value::from(&paramsGeneration)]).as_map().cloned().unwrap_or_default();
+            request = self.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.clone(), &[price.clone(), Value::from(&paramsGeneration)]).as_map().cloned().unwrap_or_default();
             response = self.private_post_v2_orders(&[Value::Map(request.clone())]).await;
         }  else {
             request.insert("order_currency".into(), Value::from((market).base.clone()));
@@ -2847,13 +2852,14 @@ impl Bithumb {
                 m.insert("order_id".to_string(), id);
             m
         });
-        let mut parsedOrder: Value = self.extend(data, &[Value::Map(orderData)]);
-        return self.parse_order(parsedOrder, &[market]);
+        let mut parsedOrder: crate::value::Dict = self.extend(data, &[Value::Map(orderData)]).into_dict();
+        return self.parse_order(&parsedOrder, &[market]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_order_status(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Pending".to_string(), Value::Str("open".into()));
@@ -2869,7 +2875,8 @@ impl Bithumb {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //
@@ -3013,7 +3020,7 @@ impl Bithumb {
         }  else if (sideProperty.as_deref() == Some("ask")) {
             side = Some("sell".to_string());
         }
-        let mut status: Value = self.parse_order_status(self.safe_string2(order.clone(), Value::Str("order_status".into()), Value::Str("state".into()), &[])).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Value = self.parse_order_status((self.safe_string2(order.clone(), Value::Str("order_status".into()), Value::Str("state".into()), &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
         let mut price: Option<String> = self.safe_string2(order.clone(), Value::Str("order_price".into()), Value::Str("price".into()), &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string2(order.clone(), Value::Str("order_type".into()), Value::Str("ord_type".into()), &[]).as_str().map(str::to_owned);
         let mut progressCount: Option<String> = self.safe_string_k(order.clone(), "progress_count", &[]).as_str().map(str::to_owned);
@@ -3163,8 +3170,8 @@ impl Bithumb {
             let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsGeneration]);
             response = self.private_post_info_orders(&[__ws_arg_27]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_orders(data, &[market, since, Value::from(limitResolved)]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_orders(&data, &[market, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -3530,8 +3537,8 @@ impl Bithumb {
         //         "fail": []
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "success", &[Value::from(vec![])]);
-        return self.parse_orders(data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "success", &[Value::from(vec![])]).into_list();
+        return self.parse_orders(&data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         Value::Null
         }).await?))
     }
@@ -3691,7 +3698,8 @@ impl Bithumb {
         }).await?))
     }
 
-    pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut transaction: Value = transaction.into();
         let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // generation 1: withdraw
@@ -3741,7 +3749,7 @@ impl Bithumb {
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), currencyResolved.get("code").cloned().unwrap_or(Value::Null));
-        m.insert("status".to_string(), self.parse_transaction_status_by_type(self.safe_string_k(transaction.clone(), "state", &[]), &[type_var.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_transaction_status_by_type((self.safe_string_k(transaction.clone(), "state", &[])).as_str(), &[type_var.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), Value::Null);
@@ -3762,7 +3770,8 @@ impl Bithumb {
     Value::Null
 }
 
-    pub fn parse_transaction_status_by_type(&self, mut status: Value, optional_args: &[Value]) -> Option<String> {
+    pub fn parse_transaction_status_by_type(&self, status: Option<&str>, optional_args: &[Value]) -> Option<String> {
+        let mut status: Value = status.into();
         let mut type_var = get_arg(optional_args, 0, Value::Null);
         if (type_var == Value::Null) {
             return status.as_str().map(str::to_owned);
@@ -3839,7 +3848,8 @@ impl Bithumb {
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-    pub async fn fetch_withdrawal(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_withdrawal(&mut self, id: &str, optional_args: &[Value]) -> Value {
+        let mut id: Value = id.into();
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3951,7 +3961,8 @@ impl Bithumb {
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-    pub async fn fetch_deposit(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_deposit(&mut self, id: &str, optional_args: &[Value]) -> Value {
+        let mut id: Value = id.into();
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4190,7 +4201,8 @@ impl Bithumb {
         }).await?))
     }
 
-    pub fn parse_deposit_address(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_deposit_address(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut response: Value = response.into();
         let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // generation 2: createDepositAddress, fetchDepositAddress, fetchDepositAddresses
@@ -4245,16 +4257,16 @@ impl Bithumb {
         let mut result: String = "".to_string();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_408: bool = true;
-            while { if !__for_first_408 { i += 1; } __for_first_408 = false; i < (keys.len() as i64) } {
+            let mut __for_first_407: bool = true;
+            while { if !__for_first_407 { i += 1; } __for_first_407 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = self.safe_value(query.clone(), key.clone(), &[]);
             if (matches!(&value, Value::Arr(_))) {
                 let mut encodedKey: String = format!("{}{}", self.encode_uri_component(key.clone()), Value::Str("[]".into()));
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_407: bool = true;
-                    while { if !__for_first_407 { j += 1; } __for_first_407 = false; j < (value.len() as i64) } {
+                    let mut __for_first_406: bool = true;
+                    while { if !__for_first_406 { j += 1; } __for_first_406 = false; j < (value.len() as i64) } {
                     let mut item: Value = value.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut valueString: Option<String> = self.safe_string(value.clone(), Value::Int(j), &[]).as_str().map(str::to_owned);
                     if (valueString.is_none()) {

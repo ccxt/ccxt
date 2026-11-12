@@ -115,7 +115,7 @@ impl crate::exchange_generated::ExchangeBase for Luno {
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_orders_by_state" => self.fetch_orders_by_state(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_orders_by_state" => self.fetch_orders_by_state(args.get(0).and_then(crate::Value::as_str), &args[1.min(args.len())..]).await,
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -125,7 +125,7 @@ impl crate::exchange_generated::ExchangeBase for Luno {
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ledger_comment" => self.parse_ledger_comment(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_ledger_comment" => self.parse_ledger_comment(args.get(0).and_then(crate::Value::as_str).unwrap_or_default()),
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -829,7 +829,8 @@ impl Luno {
         }).await?))
     }
 
-    pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+    pub fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+        let mut rawCurrency: Value = rawCurrency.into();
         let mut id: Option<String> = self.safe_string(self.safe_dict(rawCurrency.clone(), Value::Int(0), &[]), Value::Str("native_currency".into()), &[]).as_str().map(str::to_owned); // first item is guaranteed
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut networks: indexmap::IndexMap<String, Value> = ({
@@ -838,8 +839,8 @@ impl Luno {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_939: bool = true;
-            while { if !__for_first_939 { i += 1; } __for_first_939 = false; i < (rawCurrency.len() as i64) } {
+            let mut __for_first_938: bool = true;
+            while { if !__for_first_938 { i += 1; } __for_first_938 = false; i < (rawCurrency.len() as i64) } {
             let mut networkEntry: Value = self.safe_dict(rawCurrency.clone(), Value::Int(i), &[]);
             let mut networkId: Option<String> = self.safe_string_k(networkEntry.clone(), "name", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -952,8 +953,8 @@ impl Luno {
         let mut markets: crate::value::List = self.safe_list_k(&response, "markets", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_940: bool = true;
-            while { if !__for_first_940 { i += 1; } __for_first_940 = false; i < (markets.len() as i64) } {
+            let mut __for_first_939: bool = true;
+            while { if !__for_first_939 { i += 1; } __for_first_939 = false; i < (markets.len() as i64) } {
             let mut market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k(&market, "market_id", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_k(&market, "base_currency", &[]).as_str().map(str::to_owned);
@@ -1085,8 +1086,8 @@ impl Luno {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_941: bool = true;
-            while { if !__for_first_941 { i += 1; } __for_first_941 = false; i < (wallets.len() as i64) } {
+            let mut __for_first_940: bool = true;
+            while { if !__for_first_940 { i += 1; } __for_first_940 = false; i < (wallets.len() as i64) } {
             let mut account: crate::value::Dict = wallets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut accountId: Option<String> = self.safe_string_k(&account, "account_id", &[]).as_str().map(str::to_owned);
             let mut currencyId: Option<String> = self.safe_string_k(&account, "asset", &[]).as_str().map(str::to_owned);
@@ -1106,7 +1107,8 @@ impl Luno {
         }).await?))
     }
 
-    pub fn parse_balance(&self, mut response: Value) -> Value {
+    pub fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut wallets: crate::value::List = self.safe_list_k(response.clone(), "balance", &[Value::from(vec![])]).into_list();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1117,8 +1119,8 @@ impl Luno {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_942: bool = true;
-            while { if !__for_first_942 { i += 1; } __for_first_942 = false; i < (wallets.len() as i64) } {
+            let mut __for_first_941: bool = true;
+            while { if !__for_first_941 { i += 1; } __for_first_941 = false; i < (wallets.len() as i64) } {
             let mut wallet: crate::value::Dict = self.safe_dict(&wallets, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&wallet, "asset", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1222,7 +1224,8 @@ impl Luno {
         }).await?))
     }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_order_status(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("PENDING".to_string(), Value::Str("open".into()));
@@ -1231,7 +1234,8 @@ impl Luno {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1251,7 +1255,7 @@ impl Luno {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "creation_timestamp", &[]).as_i64();
-        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[])).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "state", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
         let mut side: Option<String> = None;
         let mut orderType: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
         if (orderType.as_deref() == Some("ASK")) || (orderType.as_deref() == Some("SELL")) {
@@ -1350,7 +1354,8 @@ impl Luno {
         }).await?))
     }
 
-    pub async fn fetch_orders_by_state(&mut self, mut state: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_orders_by_state(&mut self, state: Option<&str>, optional_args: &[Value]) -> Value {
+        let mut state: Value = state.into();
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -1375,8 +1380,8 @@ impl Luno {
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_listorders(&[__ws_arg_5]).await.into_dict();
-        let mut orders: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
-        return self.parse_orders(orders, &[market, since, limit]);
+        let mut orders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
+        return self.parse_orders(&orders, &[market, since, limit]);
 
     Value::Null
 }
@@ -1405,7 +1410,7 @@ impl Luno {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_orders_by_state(Value::Null, &[symbol, since, limit, params]).await;
+        return self.fetch_orders_by_state(None, &[symbol, since, limit, params]).await;
         Value::Null
         }).await?))
     }
@@ -1434,7 +1439,7 @@ impl Luno {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_orders_by_state(Value::Str("PENDING".into()), &[symbol, since, limit, params]).await;
+        return self.fetch_orders_by_state(Some("PENDING"), &[symbol, since, limit, params]).await;
         Value::Null
         }).await?))
     }
@@ -1463,12 +1468,13 @@ impl Luno {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_orders_by_state(Value::Str("COMPLETE".into()), &[symbol, since, limit, params]).await;
+        return self.fetch_orders_by_state(Some("COMPLETE"), &[symbol, since, limit, params]).await;
         Value::Null
         }).await?))
     }
 
-    pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut ticker: Value = ticker.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         // {
         //     "pair":"XBTAUD",
@@ -1545,8 +1551,8 @@ impl Luno {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_943: bool = true;
-            while { if !__for_first_943 { i += 1; } __for_first_943 = false; i < (ids.len() as i64) } {
+            let mut __for_first_942: bool = true;
+            while { if !__for_first_942 { i += 1; } __for_first_942 = false; i < (ids.len() as i64) } {
             let mut id: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: Value = self.safe_market(&[id.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1595,7 +1601,8 @@ impl Luno {
         }).await?))
     }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
@@ -2151,7 +2158,8 @@ impl Luno {
         }).await?))
     }
 
-    pub fn parse_ledger_comment(&self, mut comment: Value) -> Value {
+    pub fn parse_ledger_comment(&self, comment: &str) -> Value {
+        let mut comment: Value = comment.into();
         let mut words: Value = Value::Array(if let Some(__s) = comment.as_str() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
         let mut types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2189,7 +2197,8 @@ impl Luno {
     Value::Null
 }
 
-    pub fn parse_ledger_entry(&self, mut entry: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ledger_entry(&self, entry: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut entry: Value = entry.into();
         let mut currency = get_arg(optional_args, 0, Value::Null);
         // const details = this.safeValue (entry, 'details', {});
         let mut id: Option<String> = self.safe_string_k(entry.clone(), "row_index", &[]).as_str().map(str::to_owned);
@@ -2204,7 +2213,7 @@ impl Luno {
         let mut comment: String = self.safe_string_k(entry.clone(), "description", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut before: Option<String> = after.clone();
         let mut amount: Option<String> = Some("0.0".to_string());
-        let mut result: Value = self.parse_ledger_comment(Value::from(comment));
+        let mut result: Value = self.parse_ledger_comment(comment.as_str());
         let mut resultType: Option<String> = self.safe_string_k(result.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut resultReferenceId: Option<String> = self.safe_string_k(result, "referenceId", &[]).as_str().map(str::to_owned);
         let mut direction: Option<String> = None;
@@ -2325,7 +2334,8 @@ impl Luno {
         }).await?))
     }
 
-    pub fn parse_deposit_address(&self, mut depositAddress: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut depositAddress: Value = depositAddress.into();
         let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {

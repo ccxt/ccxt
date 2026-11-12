@@ -569,7 +569,7 @@ impl Toobit {
         });
         let __ws_arg_0 = self.safe_string(crate::value::get_value_k(&crate::value::get_value_k(&self.urls, "api"), "ws"), Value::Str("common".into()), &[Value::Str("".into())]);
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch_multiple(Value::Str(format!("{}{}", __ws_arg_0, Value::Str("/quote/ws/v1".into())).into()), &messageHashes, &[__ws_arg_1, Value::Arr(messageHashes.clone())]).await;
+        let mut trades: Value = self.watch_multiple(&(Value::Str(format!("{}{}", __ws_arg_0, Value::Str("/quote/ws/v1".into())).into())), &messageHashes, &[__ws_arg_1, Value::Arr(messageHashes.clone())]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -628,7 +628,8 @@ impl Toobit {
         client.resolve(stored, messageHash.as_str());
 }
 
-    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         return self.parse_trade(trade, &[market]);
 
@@ -904,7 +905,7 @@ impl Toobit {
         });
         let __ws_arg_3 = self.safe_string(crate::value::get_value_k(&crate::value::get_value_k(&self.urls, "api"), "ws"), Value::Str("common".into()), &[Value::Str("".into())]);
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut ticker: Value = self.watch_multiple(Value::Str(format!("{}{}", __ws_arg_3, Value::Str("/quote/ws/v1".into())).into()), &messageHashes, &[__ws_arg_4, Value::Arr(messageHashes.clone())]).await;
+        let mut ticker: Value = self.watch_multiple(&(Value::Str(format!("{}{}", __ws_arg_3, Value::Str("/quote/ws/v1".into())).into())), &messageHashes, &[__ws_arg_4, Value::Arr(messageHashes.clone())]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1252,7 +1253,7 @@ impl Toobit {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         self.set_balance_cache(client.as_value(), marketType.map(Value::from).unwrap_or(Value::Null), &[subscriptionHash.clone(), paramsMarketType.clone()]);
         client.future(Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into()));
-        return self.watch(url, messageHash, &[paramsMarketType, subscriptionHash]).await;
+        return self.watch(&url, &messageHash, &[paramsMarketType, subscriptionHash]).await;
         Value::Null
         }).await?))
     }
@@ -1468,7 +1469,8 @@ impl Toobit {
         client.resolve(orders, messageHash.as_str());
 }
 
-    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "O", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "s", &[]).as_str().map(str::to_owned);
@@ -1512,7 +1514,7 @@ impl Toobit {
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "p", &[]));
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "z", &[]));
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(order, "X", &[])).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parent.parse_order_status((self.safe_string_k(order, "X", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);
     m
@@ -1676,7 +1678,7 @@ impl Toobit {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into()))).await;
             return self.filter_by_symbols_since_limit(snapshot, symbolsNormalized.clone(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
-        let mut newPositions: Value = self.watch(url, &messageHash[..], &[Value::Null, Value::from(messageHash.clone())]).await;
+        let mut newPositions: Value = self.watch(&url, &messageHash[..], &[Value::Null, Value::from(messageHash.clone())]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }

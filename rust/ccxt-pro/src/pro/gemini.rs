@@ -189,7 +189,7 @@ impl crate::exchange_generated::ExchangeBase for Gemini {
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_ohlcv" => self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_subscription" => self.handle_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "helper_for_watch_multiple_construct" => self.helper_for_watch_multiple_construct(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "helper_for_watch_multiple_construct" => self.helper_for_watch_multiple_construct(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "watch_bids_asks" => crate::types::IntoRaw::into_raw(self.watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -375,7 +375,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut trades: Value = self.helper_for_watch_multiple_construct(Value::Str("trades".into()), &[symbols, params]).await;
+        let mut trades: Value = self.helper_for_watch_multiple_construct("trades", &[symbols, params]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -387,7 +387,8 @@ impl Gemini {
         }).await?))
     }
 
-    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // regular v2 trade
@@ -847,7 +848,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orderbook: Value = self.helper_for_watch_multiple_construct(Value::Str("orderbook".into()), &[symbols, params]).await;
+        let mut orderbook: Value = self.helper_for_watch_multiple_construct("orderbook", &[symbols, params]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -873,7 +874,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.helper_for_watch_multiple_construct(Value::Str("bidsasks".into()), &[symbols, params]).await;
+        return self.helper_for_watch_multiple_construct("bidsasks", &[symbols, params]).await;
         Value::Null
         }).await?))
     }
@@ -963,7 +964,8 @@ impl Gemini {
         client.resolve(Value::Map(bidsAsksDict), messageHash.as_str());
 }
 
-    pub async fn helper_for_watch_multiple_construct(&mut self, mut itemHashName: Value, optional_args: &[Value]) -> Value {
+    pub async fn helper_for_watch_multiple_construct(&mut self, itemHashName: &str, optional_args: &[Value]) -> Value {
+        let mut itemHashName: Value = itemHashName.into();
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1221,7 +1223,8 @@ impl Gemini {
         client.resolve(self.orders.clone(), messageHash.as_str());
 }
 
-    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {

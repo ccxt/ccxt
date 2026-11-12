@@ -198,7 +198,7 @@ impl crate::exchange_generated::ExchangeBase for Weex {
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "request_id" => self.request_id(),
-                "subscribe_private" => self.subscribe_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "subscribe_private" => self.subscribe_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str), &args[3.min(args.len())..]).await,
                 "subscribe_public" => self.subscribe_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "un_watch_bids_asks" => crate::types::IntoRaw::into_raw(self.un_watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_my_trades" => crate::types::IntoRaw::into_raw(self.un_watch_my_trades(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
@@ -463,7 +463,9 @@ impl Weex {
     Value::Null
 }
 
-    pub async fn subscribe_private(&mut self, mut messageHash: Value, mut subscribeHash: Value, mut channel: Value, optional_args: &[Value]) -> Value {
+    pub async fn subscribe_private(&mut self, mut messageHash: Value, subscribeHash: &str, channel: Option<&str>, optional_args: &[Value]) -> Value {
+        let mut subscribeHash: Value = subscribeHash.into();
+        let mut channel: Value = channel.into();
         let isContract: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -498,7 +500,7 @@ impl Weex {
             m
         })]);
         let __ws_arg_1 = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(url.as_str(), messageHash, &[__ws_arg_1, subscribeHash, subscriptionExtended]).await;
+        return self.watch(url.as_str(), &messageHash, &[__ws_arg_1, subscribeHash, subscriptionExtended]).await;
 
     Value::Null
 }
@@ -1050,11 +1052,11 @@ impl Weex {
                         let mut i: i64 = 0;
             let mut __for_first_672: bool = true;
             while { if !__for_first_672 { i += 1; } __for_first_672 = false; i < (data.len() as i64) } {
-            let mut rawTrade: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut rawTrade: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut trade: Value = self.parse_ws_trade(rawTrade, &[market.clone()]);
+            })]).into_dict();
+            let mut trade: Value = self.parse_ws_trade(&rawTrade, &[market.clone()]);
             newTrades.push(trade);
         }
         }
@@ -1071,7 +1073,8 @@ impl Weex {
         client.resolve(tradesArray, messageHash.as_str());
 }
 
-    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1883,12 +1886,12 @@ impl Weex {
         if isContract {
             messageHash = "myContractTrades".to_string();
         }
-        let mut subscriptionHash: Value = Value::from(messageHash.clone());
+        let mut subscriptionHash: String = messageHash.clone();
         if (symbolResolved.is_some()) {
             messageHash.push_str(&format!("{}{}", Value::Str("::".into()), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null)));
         }
         let mut channel: String = "fill".to_string();
-        let mut trades: Value = self.subscribe_private(Value::from(messageHash), subscriptionHash, Value::from(channel), &[Value::Bool(isContract), paramsMarketType]).await;
+        let mut trades: Value = self.subscribe_private(Value::from(messageHash), subscriptionHash.as_str(), Some(channel.as_str()), &[Value::Bool(isContract), paramsMarketType]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -1942,7 +1945,7 @@ impl Weex {
                 m.insert("subHashIsPrefix".to_string(), Value::Bool(true));
             m
         });
-        return self.subscribe_private(Value::from(unSubHash.clone()), Value::from(unSubHash), Value::from(channel), &[Value::Bool(isContract), paramsMarketType, Value::Map(subscription)]).await;
+        return self.subscribe_private(Value::from(unSubHash.clone()), unSubHash.clone().as_str(), Some(channel.as_str()), &[Value::Bool(isContract), paramsMarketType, Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -2150,12 +2153,12 @@ impl Weex {
         if isContract {
             messageHash = "contractOrders".to_string();
         }
-        let mut subscriptionHash: Value = Value::from(messageHash.clone());
+        let mut subscriptionHash: String = messageHash.clone();
         if (symbolResolved.is_some()) {
             messageHash.push_str(&format!("{}{}", Value::Str("::".into()), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null)));
         }
         let mut channel: String = "orders".to_string();
-        let mut orders: Value = self.subscribe_private(Value::from(messageHash), subscriptionHash, Value::from(channel), &[Value::Bool(isContract), paramsMarketType]).await;
+        let mut orders: Value = self.subscribe_private(Value::from(messageHash), subscriptionHash.as_str(), Some(channel.as_str()), &[Value::Bool(isContract), paramsMarketType]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -2208,7 +2211,7 @@ impl Weex {
                 m.insert("subHashIsPrefix".to_string(), Value::Bool(true));
             m
         });
-        return self.subscribe_private(Value::from(unSubHash.clone()), Value::from(unSubHash), Value::from(channel), &[Value::Bool(isContract), paramsMarketType, Value::Map(subscription)]).await;
+        return self.subscribe_private(Value::from(unSubHash.clone()), unSubHash.clone().as_str(), Some(channel.as_str()), &[Value::Bool(isContract), paramsMarketType, Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -2277,11 +2280,11 @@ impl Weex {
                         let mut i: i64 = 0;
             let mut __for_first_683: bool = true;
             while { if !__for_first_683 { i += 1; } __for_first_683 = false; i < (data.len() as i64) } {
-            let mut rawOrder: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut rawOrder: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut parsed: Value = self.parse_ws_order(rawOrder, &[]);
+            })]).into_dict();
+            let mut parsed: Value = self.parse_ws_order(&rawOrder, &[]);
             orders.append(parsed.clone());
             let mut symbol: Option<String> = self.safe_string_k_opt(parsed, "symbol", &[]);
             if (symbol.is_some()) {
@@ -2307,7 +2310,8 @@ impl Weex {
         client.resolve(self.orders.clone(), messageHash.as_str());
 }
 
-    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // spot
@@ -2438,7 +2442,7 @@ impl Weex {
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "clientOrderId", &[]));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("type".to_string(), self.parent.parse_order_type(rawType.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), self.parent.parse_order_type(rawType.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "timeInForce", &[]));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduceOnly", &[]));
@@ -2452,7 +2456,7 @@ impl Weex {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("fee".to_string(), fee);
-        m.insert("status".to_string(), self.parent.parse_order_status(rawStatus.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parent.parse_order_status(rawStatus.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(order.clone(), "updatedTime", &[]));
         m.insert("average".to_string(), Value::Null);
@@ -2490,12 +2494,12 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (type_var.is_none()) {
+        if (type_var == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() requires a market type".into()))));
         }
-        let mut isContract: bool = type_var.as_deref() != Some("spot");
+        let mut isContract: bool = (type_var.as_str() != Some("spot"));
         let mut urlType: String = "spot".to_string();
         if isContract {
             urlType = "contract".to_string();
@@ -2503,14 +2507,14 @@ impl Weex {
         let mut url: String = format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(urlType), &[Value::Str("".into())]), Value::Str("/private".into()));
         self.authenticate(Value::from(url.clone()));
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url)]));
-        self.set_balance_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
+        self.set_balance_cache(client.as_value(), type_var.clone());
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut awaitBalanceSnapshot: bool = self.safe_bool_k(&options, "awaitBalanceSnapshot", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
-            crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), Value::Str(":fetchBalanceSnapshot".into())).into()))).await;
+            crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into()))).await;
         }
-        return self.subscribe_private(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), Value::Str(":balance".into())).into()), type_var.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("account".into()), &[Value::Bool(isContract), paramsMarketType]).await;
+        return self.subscribe_private(Value::Str(format!("{}{}", type_var, Value::Str(":balance".into())).into()), type_var.as_str().unwrap_or_default(), Some("account"), &[Value::Bool(isContract), paramsMarketType]).await;
         Value::Null
         }).await?))
     }
@@ -2694,7 +2698,7 @@ impl Weex {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url)]));
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Str("swap".into()), Value::Bool(true)]).into_opt_list();
         let mut messageHash: String = "positions".to_string();
-        let mut subscriptionHash: Value = Value::from(messageHash.clone());
+        let mut subscriptionHash: String = messageHash.clone();
         if (symbolsNormalized.is_some()) {
             messageHash.push_str(&format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into())));
         }
@@ -2708,7 +2712,7 @@ impl Weex {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
             return self.filter_by_symbols_since_limit(snapshot, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
-        let mut newPositions: Value = self.subscribe_private(Value::from(messageHash), subscriptionHash, Value::from(channel), &[Value::Bool(true), params]).await;
+        let mut newPositions: Value = self.subscribe_private(Value::from(messageHash), subscriptionHash.as_str(), Some(channel.as_str()), &[Value::Bool(true), params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -2791,7 +2795,7 @@ impl Weex {
                 m.insert("subHashIsPrefix".to_string(), Value::Bool(true));
             m
         });
-        return self.subscribe_private(Value::from(unSubHash.clone()), Value::from(unSubHash), Value::from(channel), &[Value::Bool(true), params, Value::Map(subscription)]).await;
+        return self.subscribe_private(Value::from(unSubHash.clone()), unSubHash.clone().as_str(), Some(channel.as_str()), &[Value::Bool(true), params, Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }

@@ -568,7 +568,8 @@ impl Zaif {
         }).await?))
     }
 
-    pub fn parse_market(&self, mut market: Value) -> Value {
+    pub fn parse_market(&self, market: impl Into<crate::Value>) -> Value {
+        let mut market: Value = market.into();
         let mut id: Option<String> = self.safe_string_k(market.clone(), "currency_pair", &[]).as_str().map(str::to_owned);
         let mut name: Option<String> = self.safe_string_k(market.clone(), "name", &[]).as_str().map(str::to_owned);
         if (name.is_none()) {
@@ -650,7 +651,8 @@ impl Zaif {
     Value::Null
 }
 
-    pub fn parse_balance(&self, mut response: Value) -> Value {
+    pub fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut balances: crate::value::Dict = self.safe_dict_k(response.clone(), "return", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -670,8 +672,8 @@ impl Zaif {
         let mut currencyIds: Vec<Value> = Value::Array(funds.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1201: bool = true;
-            while { if !__for_first_1201 { i += 1; } __for_first_1201 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_1200: bool = true;
+            while { if !__for_first_1200 { i += 1; } __for_first_1200 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Option<String> = currencyIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut balance: Option<String> = self.safe_string(&funds, currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -758,7 +760,8 @@ impl Zaif {
         }).await?))
     }
 
-    pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut ticker: Value = ticker.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // {
@@ -840,7 +843,8 @@ impl Zaif {
         }).await?))
     }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
@@ -1048,16 +1052,17 @@ impl Zaif {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(&response, "return", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "return", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_order(data, &[]);
+        })]).into_dict();
+        return self.parse_order(&data, &[]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1160,7 +1165,7 @@ impl Zaif {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        return self.parse_orders(data, &[market, since, limit]);
+        return self.parse_orders(self.add_key_in_array_items(data, Value::Str("id".into())), &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1213,7 +1218,7 @@ impl Zaif {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        return self.parse_orders(data, &[market, since, limit]);
+        return self.parse_orders(self.add_key_in_array_items(data, Value::Str("id".into())), &[market, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1282,16 +1287,17 @@ impl Zaif {
         //         }
         //     }
         //
-        let mut returnData: Value = self.safe_dict_k(&result, "return", &[Value::Map({
+        let mut returnData: crate::value::Dict = self.safe_dict_k(&result, "return", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_transaction(returnData, &[currency]);
+        })]).into_dict();
+        return self.parse_transaction(&returnData, &[currency]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut transaction: Value = transaction.into();
         let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {

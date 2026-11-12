@@ -193,8 +193,8 @@ impl crate::exchange_generated::ExchangeBase for Bullish {
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_positions" => crate::types::IntoRaw::into_raw(self.watch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "watch_private" => self.watch_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
-                "watch_public" => self.watch_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "watch_private" => self.watch_private(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), &args[2.min(args.len())..]).await,
+                "watch_public" => self.watch_public(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), &args[2.min(args.len())..]).await,
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
@@ -358,7 +358,9 @@ impl Bullish {
     Value::Null
 }
 
-    pub async fn watch_public(&mut self, mut url: Value, mut messageHash: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_public(&mut self, url: &str, messageHash: &str, optional_args: &[Value]) -> Value {
+        let mut url: Value = url.into();
+        let mut messageHash: Value = messageHash.into();
         let mut request = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -382,12 +384,14 @@ impl Bullish {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchPublic() has no public websocket url".into()))));
         }
         let __ws_arg_0 = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), url).into()), messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
+        return self.watch(&(Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), url).into())), &messageHash, &[__ws_arg_0, messageHash.clone()]).await;
 
     Value::Null
 }
 
-    pub async fn watch_private(&mut self, mut messageHash: Value, mut subscribeHash: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_private(&mut self, messageHash: &str, subscribeHash: &str, optional_args: &[Value]) -> Value {
+        let mut messageHash: Value = messageHash.into();
+        let mut subscribeHash: Value = subscribeHash.into();
         let mut request = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -396,7 +400,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private");
+        let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private").as_str().map(str::to_owned);
         let mut token: Value = self.parent.handle_token(&[]).await;
         let mut cookies: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -415,7 +419,7 @@ impl Bullish {
             m
         });
         let __ws_arg_1 = self.deep_extend(Value::Map(message), &[params]);
-        let mut result: Value = self.watch(url, messageHash, &[__ws_arg_1, subscribeHash]).await;
+        let mut result: Value = self.watch(url.as_deref(), &messageHash, &[__ws_arg_1, subscribeHash]).await;
         return result;
 
     Value::Null
@@ -457,7 +461,7 @@ impl Bullish {
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
-        let mut trades: Value = self.watch_public(Value::from(url), Value::from(messageHash), &[Value::Map(request), params]).await;
+        let mut trades: Value = self.watch_public(url.as_str(), messageHash.as_str(), &[Value::Map(request), params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
@@ -553,7 +557,7 @@ impl Bullish {
         }
         let mut messageHash: String = format!("{}{}", Value::Str("ticker::".into()), symbolValue);
         let __ws_arg_2 = self.safe_string_k(&market, "id", &[Value::Str("".into())]);
-        return self.watch(Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/trading-api/v1/market-data/tick/".into())).into()), __ws_arg_2).into()), &messageHash[..], &[params, Value::from(messageHash.clone())]).await;
+        return self.watch(&(Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/trading-api/v1/market-data/tick/".into())).into()), __ws_arg_2).into())), &messageHash[..], &[params, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -664,7 +668,7 @@ impl Bullish {
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
-        let mut orderbook: Value = self.watch_public(Value::from(url), Value::from(messageHash), &[Value::Map(request), params]).await;
+        let mut orderbook: Value = self.watch_public(url.as_str(), messageHash.as_str(), &[Value::Map(request), params]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -791,7 +795,7 @@ impl Bullish {
         if (tradingAccountId.is_some()) {
             request.insert("tradingAccountId".into(), tradingAccountId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut orders: Value = self.watch_private(Value::from(messageHash), Value::from(subscribeHash), &[Value::Map(request), paramsOmitted]).await;
+        let mut orders: Value = self.watch_private(messageHash.as_str(), subscribeHash.as_str(), &[Value::Map(request), paramsOmitted]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -942,7 +946,7 @@ impl Bullish {
         if (tradingAccountId.is_some()) {
             request.insert("tradingAccountId".into(), tradingAccountId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut trades: Value = self.watch_private(Value::from(messageHash), Value::from(subscribeHash), &[Value::Map(request), paramsOmitted]).await;
+        let mut trades: Value = self.watch_private(messageHash.as_str(), subscribeHash.as_str(), &[Value::Map(request), paramsOmitted]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -1075,7 +1079,7 @@ impl Bullish {
             request.insert("tradingAccountId".into(), tradingAccountId.clone().map(Value::from).unwrap_or(Value::Null));
             messageHash.push_str(&format!("{}{}", Value::Str("::".into()), tradingAccountId.map(Value::from).unwrap_or(Value::Null)));
         }
-        return self.watch_private(Value::from(messageHash.clone()), Value::from(messageHash), &[Value::Map(request), paramsOmitted]).await;
+        return self.watch_private(messageHash.as_str(), messageHash.as_str(), &[Value::Map(request), paramsOmitted]).await;
         Value::Null
         }).await?))
     }
@@ -1216,7 +1220,7 @@ impl Bullish {
                 m.insert("topic".to_string(), Value::Str("derivativesPositionsV2".into()));
             m
         });
-        let mut positions: Value = self.watch_private(Value::from(messageHash), Value::from(subscribeHash), &[Value::Map(request), params]).await;
+        let mut positions: Value = self.watch_private(messageHash.as_str(), subscribeHash.as_str(), &[Value::Map(request), params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }

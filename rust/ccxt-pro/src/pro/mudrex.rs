@@ -328,7 +328,7 @@ impl Mudrex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolValue);
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         self.set_broker_headers();
         let mut baseIdString: String = self.safe_string_k((market).raw.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut quoteIdString: String = self.safe_string_k((market).raw.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -343,7 +343,7 @@ impl Mudrex {
             m
         });
         let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
-        return self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -380,7 +380,7 @@ impl Mudrex {
             }
             }
         }
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         self.set_broker_headers();
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -391,7 +391,7 @@ impl Mudrex {
             m
         });
         let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
-        let mut ticker: Value = self.watch_multiple(url, &messageHashes, &[request, Value::Arr(messageHashes.clone())]).await;
+        let mut ticker: Value = self.watch_multiple(url.as_deref(), &messageHashes, &[request, Value::Arr(messageHashes.clone())]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -441,7 +441,7 @@ impl Mudrex {
         let mut streamQuoteId: String = self.safe_string_k((market).raw.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut stream: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, Value::Str("@".into())).into()), interval.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("@".into())).into()), Value::from(streamBaseId.to_lowercase())).into()), Value::from(streamQuoteId.to_lowercase()));
         let mut messageHash: String = stream.clone();
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         self.set_broker_headers();
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -451,7 +451,7 @@ impl Mudrex {
             m
         });
         let mut request: Value = self.extend(Value::Map(subscribe), &[&paramsOmitted]);
-        let mut ohlcv: Value = self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());

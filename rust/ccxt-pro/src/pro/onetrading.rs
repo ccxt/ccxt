@@ -194,7 +194,7 @@ impl crate::exchange_generated::ExchangeBase for Onetrading {
                 "parse_trading_order" => self.parse_trading_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
-                "watch_many" => self.watch_many(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "watch_many" => self.watch_many(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), &args[3.min(args.len())..]).await,
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
@@ -499,7 +499,7 @@ impl Onetrading {
 })]));
             m
         });
-        return self.watch_many(Value::from(messageHash), Value::Map(request), Value::from(subscriptionHash), &[Value::from(vec![Value::from(symbolValue)]), params]).await;
+        return self.watch_many(messageHash.as_str(), Value::Map(request), subscriptionHash.as_str(), &[Value::from(vec![Value::from(symbolValue)]), params]).await;
         Value::Null
         }).await?))
     }
@@ -542,7 +542,7 @@ impl Onetrading {
 })]));
             m
         });
-        let mut tickers: Value = self.watch_many(Value::from(messageHash), Value::Map(request), Value::from(subscriptionHash), &[symbolsList.clone(), params]).await;
+        let mut tickers: Value = self.watch_many(messageHash.as_str(), Value::Map(request), subscriptionHash.as_str(), &[symbolsList.clone(), params]).await;
         return self.filter_by_array(tickers, Value::Str("symbol".into()), symbolsList, &[]);
         Value::Null
         }).await?))
@@ -739,7 +739,7 @@ impl Onetrading {
 })]));
             m
         });
-        let mut orderbook: Value = self.watch_many(Value::from(messageHash), Value::Map(request), Value::from(subscriptionHash), &[Value::from(vec![Value::from(symbolValue)]), params]).await;
+        let mut orderbook: Value = self.watch_many(messageHash.as_str(), Value::Map(request), subscriptionHash.as_str(), &[Value::from(vec![Value::from(symbolValue)]), params]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1820,7 +1820,9 @@ impl Onetrading {
     Value::Null
 }
 
-    pub async fn watch_many(&mut self, mut messageHash: Value, mut request: Value, mut subscriptionHash: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_many(&mut self, messageHash: &str, mut request: Value, subscriptionHash: &str, optional_args: &[Value]) -> Value {
+        let mut messageHash: Value = messageHash.into();
+        let mut subscriptionHash: Value = subscriptionHash.into();
         let mut symbols = get_arg(optional_args, 0, Value::from(vec![]));
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1878,7 +1880,7 @@ impl Onetrading {
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::from(type_var)); }
         add_element_to_object(get_value_mut(get_value_mut(&mut request, &Value::Str("channels".into())), &Value::Int(0)), &Value::Str("instrument_codes".into()), object_keys(&subscription));
         let __ws_arg_1 = self.deep_extend(request, &[params]);
-        return self.watch(url.as_deref(), messageHash, &[__ws_arg_1, subscriptionHash, subscription]).await;
+        return self.watch(url.as_deref(), &messageHash, &[__ws_arg_1, subscriptionHash, subscription]).await;
 
     Value::Null
 }

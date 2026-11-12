@@ -97,7 +97,7 @@ impl crate::exchange_generated::ExchangeBase for Btcbox {
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_orders_by_type" => self.fetch_orders_by_type(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_orders_by_type" => self.fetch_orders_by_type(args.get(0).and_then(crate::Value::as_str), &args[1.min(args.len())..]).await,
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -474,8 +474,8 @@ impl Btcbox {
         let mut markets: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_471: bool = true;
-            while { if !__for_first_471 { i += 1; } __for_first_471 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_470: bool = true;
+            while { if !__for_first_470 { i += 1; } __for_first_470 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut symbolParts: Value = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut baseCurr: String = self.safe_string(symbolParts.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -569,7 +569,8 @@ impl Btcbox {
         }).await?))
     }
 
-    pub fn parse_market(&self, mut market: Value) -> Value {
+    pub fn parse_market(&self, market: impl Into<crate::Value>) -> Value {
+        let mut market: Value = market.into();
         let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base", &[]).as_str().map(str::to_owned);
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "quote", &[]).as_str().map(str::to_owned);
@@ -646,7 +647,8 @@ impl Btcbox {
     Value::Null
 }
 
-    pub fn parse_balance(&self, mut response: Value) -> Value {
+    pub fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -655,8 +657,8 @@ impl Btcbox {
         let mut codes: Vec<Value> = Value::Array(self.currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_472: bool = true;
-            while { if !__for_first_472 { i += 1; } __for_first_472 = false; i < (codes.len() as i64) } {
+            let mut __for_first_471: bool = true;
+            while { if !__for_first_471 { i += 1; } __for_first_471 = false; i < (codes.len() as i64) } {
             let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currency: Value = self.currency(code.clone());
             let mut currencyId: String = self.safe_string_k(currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -743,7 +745,8 @@ impl Btcbox {
         }).await?))
     }
 
-    pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut ticker: Value = ticker.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut symbol: Option<String> = self.safe_symbol(Value::Null, &[market.clone()]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last", &[]).as_str().map(str::to_owned);
@@ -842,7 +845,8 @@ impl Btcbox {
         }).await?))
     }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
@@ -1014,7 +1018,8 @@ impl Btcbox {
         }).await?))
     }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_order_status(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("part".to_string(), Value::Str("open".into()));
@@ -1030,7 +1035,8 @@ impl Btcbox {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1054,7 +1060,7 @@ impl Btcbox {
         let mut remaining: Option<String> = self.safe_string_k(order.clone(), "amount_outstanding", &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         // status is set by fetchOrder method only
-        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
         // fetchOrders do not return status, use heuristic
         if (status == Value::Null) {
             if crate::precise::Precise::stringEquals(&remaining.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
@@ -1134,7 +1140,8 @@ impl Btcbox {
         }).await?))
     }
 
-    pub async fn fetch_orders_by_type(&mut self, mut type_var: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_orders_by_type(&mut self, type_var: Option<&str>, optional_args: &[Value]) -> Value {
+        let mut type_var: Value = type_var.into();
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -1206,7 +1213,7 @@ impl Btcbox {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_orders_by_type(Value::Str("all".into()), &[symbol, since, limit, params]).await;
+        return self.fetch_orders_by_type(Some("all"), &[symbol, since, limit, params]).await;
         Value::Null
         }).await?))
     }
@@ -1235,7 +1242,7 @@ impl Btcbox {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_orders_by_type(Value::Str("open".into()), &[symbol, since, limit, params]).await;
+        return self.fetch_orders_by_type(Some("open"), &[symbol, since, limit, params]).await;
         Value::Null
         }).await?))
     }

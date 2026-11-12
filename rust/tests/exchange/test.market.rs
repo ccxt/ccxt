@@ -152,8 +152,8 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     let mut checkedTypes: Value = Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into()), Value::Str("future".into()), Value::Str("option".into())]);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1551: bool = true;
-        while { if !__for_first_1551 { i += 1; } __for_first_1551 = false; i < (checkedTypes.len() as i64) } {
+        let mut __for_first_1550: bool = true;
+        while { if !__for_first_1550 { i += 1; } __for_first_1550 = false; i < (checkedTypes.len() as i64) } {
         let mut type_var: Value = checkedTypes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         if is_equal(&get_value(&market, &type_var), &Value::Bool(true)) {
             assert!(ccxt::runtime::is_true(&((type_var.as_str() == market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str()))));
@@ -165,8 +165,8 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
         let mut checkedSubTypes: Value = Value::from(vec![Value::Str("linear".into()), Value::Str("inverse".into())]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1552: bool = true;
-            while { if !__for_first_1552 { i += 1; } __for_first_1552 = false; i < (checkedSubTypes.len() as i64) } {
+            let mut __for_first_1551: bool = true;
+            while { if !__for_first_1551 { i += 1; } __for_first_1551 = false; i < (checkedSubTypes.len() as i64) } {
             let mut subType: Value = checkedSubTypes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if is_equal(&get_value(&market, &subType), &Value::Bool(true)) {
                 assert!(ccxt::runtime::is_true(&((subType.as_str() == market.as_map().and_then(|__m| __m.get("subType")).cloned().unwrap_or(Value::Null).as_str()))));
@@ -258,8 +258,8 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     assert!(ccxt::runtime::is_true(&((precisionKeysLen >= 2))));
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1553: bool = true;
-        while { if !__for_first_1553 { i += 1; } __for_first_1553 = false; i < (precisionKeys.len() as i64) } {
+        let mut __for_first_1552: bool = true;
+        while { if !__for_first_1552 { i += 1; } __for_first_1552 = false; i < (precisionKeys.len() as i64) } {
         let mut priceOrAmountKey: Value = precisionKeys.get(i as usize).cloned().unwrap_or(Value::Null);
         // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
         let mut isExclusivePair: bool = market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null).as_str() == Some("BTC");
@@ -280,8 +280,8 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     assert!(ccxt::runtime::is_true(&((limitsKeysLength >= 3))));
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1554: bool = true;
-        while { if !__for_first_1554 { i += 1; } __for_first_1554 = false; i < (limitsKeys.len() as i64) } {
+        let mut __for_first_1553: bool = true;
+        while { if !__for_first_1553 { i += 1; } __for_first_1553 = false; i < (limitsKeys.len() as i64) } {
         let mut key: Value = limitsKeys.get(i as usize).cloned().unwrap_or(Value::Null);
         let mut limitEntry: Value = get_value(&market.as_map().and_then(|__m| __m.get("limits")).cloned().unwrap_or(Value::Null), &key);
         if isInactiveMarket {

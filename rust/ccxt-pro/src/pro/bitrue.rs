@@ -375,7 +375,7 @@ impl Bitrue {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Value = self.authenticate(&[]).await;
+        let mut url: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
         let mut messageHash: String = "balance".to_string();
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -388,7 +388,7 @@ impl Bitrue {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        return self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -527,7 +527,7 @@ impl Bitrue {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolResolved = Value::from((market).symbol.clone()).as_str().map(str::to_owned);
         }
-        let mut url: Value = self.authenticate(&[]).await;
+        let mut url: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
         let mut messageHash: String = "orders".to_string();
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -540,7 +540,7 @@ impl Bitrue {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut orders: Value = self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        let mut orders: Value = self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -585,7 +585,8 @@ impl Bitrue {
         client.resolve(self.orders.clone(), messageHash.as_str());
 }
 
-    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {
@@ -704,7 +705,7 @@ impl Bitrue {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        return self.watch(&url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -905,7 +906,7 @@ impl Bitrue {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut trades: Value = self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        let mut trades: Value = self.watch(&url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
@@ -970,7 +971,8 @@ impl Bitrue {
         }
 }
 
-    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut symbol: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "ts", &[]).as_i64();
@@ -1062,7 +1064,7 @@ impl Bitrue {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut ohlcv: Value = self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        let mut ohlcv: Value = self.watch(&url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
@@ -1195,7 +1197,7 @@ impl Bitrue {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        return self.watch(&url, &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
         Value::Null
         }).await?))
     }

@@ -401,7 +401,7 @@ impl Grvt {
             apiPart = Value::Str("publicMarket".into());
         }
         let __ws_arg_0 = crate::value::get_value_k(&self.urls, "api");
-        return self.watch_multiple(get_value(&crate::value::get_value_k(&__ws_arg_0, "ws"), &apiPart), messageHashes, &[Value::Map(payload), rawHashes]).await;
+        return self.watch_multiple(&(get_value(&crate::value::get_value_k(&__ws_arg_0, "ws"), &apiPart)), messageHashes, &[Value::Map(payload), rawHashes]).await;
 
     Value::Null
 }
@@ -735,10 +735,7 @@ impl Grvt {
         //        "prev_sequence_number": "0"
         //    }
         //
-        let mut data: Value = (match message.get("feed") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut data: crate::value::Dict = message.get("feed").cloned().unwrap_or_default().into_dict();
         let mut selector: String = (match message.get("selector") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut parts: Value = Value::Array(selector.split("@").map(Value::from).collect());
         let mut marketId: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -748,13 +745,14 @@ impl Grvt {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), ArrayCache::new(limit)); }
         }
-        let mut parsed: Value = self.parse_ws_trade(data, &[]);
+        let mut parsed: Value = self.parse_ws_trade(&data, &[]);
         let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), Some(symbol.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         stored.append(parsed);
         client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol).into())));
 }
 
-    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         return self.parse_trade(trade, &[market]);
 
@@ -1508,7 +1506,8 @@ impl Grvt {
         client.resolve(self.orders.clone(), &(Value::Str(format!("{}{}", Value::Str("order::".into()), self.safe_string_k(order, "symbol", &[Value::Str("".into())])).into())));
 }
 
-    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         return self.parse_order(order, &[market]);
 

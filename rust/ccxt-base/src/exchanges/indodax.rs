@@ -654,8 +654,8 @@ impl Indodax {
         let mut rawMarkets: crate::value::List = self.to_array(response).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_839: bool = true;
-            while { if !__for_first_839 { i += 1; } __for_first_839 = false; i < (rawMarkets.len() as i64) } {
+            let mut __for_first_838: bool = true;
+            while { if !__for_first_838 { i += 1; } __for_first_838 = false; i < (rawMarkets.len() as i64) } {
             let mut market: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k(market.clone(), "id", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_k(market.clone(), "traded_currency", &[]).as_str().map(str::to_owned);
@@ -740,7 +740,8 @@ impl Indodax {
         }).await?))
     }
 
-    pub fn parse_balance(&self, mut response: Value) -> Value {
+    pub fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut balances: crate::value::Dict = self.safe_dict_k(response.clone(), "return", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -764,8 +765,8 @@ impl Indodax {
         let mut currencyIds: Vec<Value> = Value::Array(free.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_840: bool = true;
-            while { if !__for_first_840 { i += 1; } __for_first_840 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_839: bool = true;
+            while { if !__for_first_839 { i += 1; } __for_first_839 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -846,7 +847,8 @@ impl Indodax {
         }).await?))
     }
 
-    pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut ticker: Value = ticker.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -940,11 +942,11 @@ impl Indodax {
         //         }
         //     }
         //
-        let mut ticker: Value = self.safe_dict_k(&response, "ticker", &[Value::Map({
+        let mut ticker: crate::value::Dict = self.safe_dict_k(&response, "ticker", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_ticker(ticker, &[(market).raw.clone()]);
+        })]).into_dict();
+        return self.parse_ticker(&ticker, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1000,8 +1002,8 @@ impl Indodax {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_841: bool = true;
-            while { if !__for_first_841 { i += 1; } __for_first_841 = false; i < (keys.len() as i64) } {
+            let mut __for_first_840: bool = true;
+            while { if !__for_first_840 { i += 1; } __for_first_840 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut rawTicker: Value = tickers.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = (if let Some(__s) = key.as_deref() { Some(__s.replace("_", "")) } else { None }).map(Value::from).unwrap_or(Value::Null);
@@ -1015,7 +1017,8 @@ impl Indodax {
         }).await?))
     }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(trade.clone(), "date", &[]).as_i64();
         return self.safe_trade(Value::Map({
@@ -1149,7 +1152,8 @@ impl Indodax {
         }).await?))
     }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_order_status(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("open".to_string(), Value::Str("open".into()));
@@ -1160,7 +1164,8 @@ impl Indodax {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1204,7 +1209,7 @@ impl Indodax {
         //    }
         //
         let mut side: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[Value::Str("open".into())])).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[Value::Str("open".into())])).as_str()).map(Value::from).unwrap_or(Value::Null);
         let mut symbol: Value = Value::Null;
         let mut cost: Option<String> = None;
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
@@ -1375,8 +1380,8 @@ impl Indodax {
         let mut exchangeOrders: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_842: bool = true;
-            while { if !__for_first_842 { i += 1; } __for_first_842 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_841: bool = true;
+            while { if !__for_first_841 { i += 1; } __for_first_841 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut marketOrders: Value = ordersDict.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
@@ -1828,8 +1833,8 @@ impl Indodax {
             let mut withdrawKeys: Vec<Value> = Value::Array(withdraw.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_843: bool = true;
-                while { if !__for_first_843 { i += 1; } __for_first_843 = false; i < (withdrawKeys.len() as i64) } {
+                let mut __for_first_842: bool = true;
+                while { if !__for_first_842 { i += 1; } __for_first_842 = false; i < (withdrawKeys.len() as i64) } {
                 let mut key: Value = withdrawKeys.get(i as usize).cloned().unwrap_or(Value::Null);
                 transactions = self.array_concat(transactions.clone(), withdraw.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
             }
@@ -1837,8 +1842,8 @@ impl Indodax {
             let mut depositKeys: Vec<Value> = Value::Array(deposit.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_844: bool = true;
-                while { if !__for_first_844 { i += 1; } __for_first_844 = false; i < (depositKeys.len() as i64) } {
+                let mut __for_first_843: bool = true;
+                while { if !__for_first_843 { i += 1; } __for_first_843 = false; i < (depositKeys.len() as i64) } {
                 let mut key: Value = depositKeys.get(i as usize).cloned().unwrap_or(Value::Null);
                 transactions = self.array_concat(transactions.clone(), deposit.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
             }
@@ -1912,7 +1917,8 @@ impl Indodax {
         }).await?))
     }
 
-    pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut transaction: Value = transaction.into();
         let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // withdraw
@@ -1982,7 +1988,7 @@ impl Indodax {
         m.insert("amount".to_string(), self.safe_number_n(transaction.clone(), Value::from(vec![Value::Str("amount".into()), Value::Str("withdraw_amount".into()), Value::Str("deposit_amount".into())]), &[]));
         m.insert("type".to_string(), (if (depositId.is_none()) { Value::Str("withdraw".into()) } else { Value::Str("deposit".into()) }));
         m.insert("currency".to_string(), self.safe_currency_code(Value::Null, &[currency]));
-        m.insert("status".to_string(), self.parse_transaction_status(status.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_transaction_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), Value::Null);
@@ -1997,7 +2003,8 @@ impl Indodax {
     Value::Null
 }
 
-    pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_transaction_status(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("success".to_string(), Value::Str("ok".into()));
@@ -2078,8 +2085,8 @@ impl Indodax {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_846: bool = true;
-            while { if !__for_first_846 { i += 1; } __for_first_846 = false; i < (addressKeys.len() as i64) } {
+            let mut __for_first_845: bool = true;
+            while { if !__for_first_845 { i += 1; } __for_first_845 = false; i < (addressKeys.len() as i64) } {
             let mut marketId: Option<String> = addressKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut address: Option<String> = self.safe_string(&addresses, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -2099,8 +2106,8 @@ impl Indodax {
                         let mut networkIds: Vec<Value> = Value::Array(if let Some(__s) = networkId.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut j: i64 = 0;
-                            let mut __for_first_845: bool = true;
-                            while { if !__for_first_845 { j += 1; } __for_first_845 = false; j < (networkIds.len() as i64) } {
+                            let mut __for_first_844: bool = true;
+                            while { if !__for_first_844 { j += 1; } __for_first_844 = false; j < (networkIds.len() as i64) } {
                             let mut _netIdTmp: Value = self.network_id_to_code(&[networkIds.get(j as usize).cloned().unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
                             if (_netIdTmp != Value::Null) {
                                 if let Value::Arr(__a) = &mut network { std::sync::Arc::make_mut(__a).push((if let Some(__s) = _netIdTmp.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })); };

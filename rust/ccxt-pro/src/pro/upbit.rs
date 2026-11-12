@@ -191,8 +191,8 @@ impl crate::exchange_generated::ExchangeBase for Upbit {
                 "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "watch_private" => self.watch_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
-                "watch_public_multiple" => self.watch_public_multiple(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "watch_private" => self.watch_private(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), &args[3.min(args.len())..]).await,
+                "watch_public_multiple" => self.watch_public_multiple(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str), &args[2.min(args.len())..]).await,
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -285,7 +285,8 @@ impl Upbit {
     Value::Null
 }
 
-    pub async fn watch_public_multiple(&mut self, mut symbols: Value, mut channel: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_public_multiple(&mut self, mut symbols: Value, channel: Option<&str>, optional_args: &[Value]) -> Value {
+        let mut channel: Value = channel.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -369,7 +370,7 @@ impl Upbit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.watch_public_multiple(Value::from(vec![symbol]), Value::Str("ticker".into()), &[]).await;
+        return self.watch_public_multiple(Value::from(vec![symbol]), Some("ticker"), &[]).await;
         Value::Null
         })).expect("a sync body never awaits")?))
     }
@@ -394,7 +395,7 @@ impl Upbit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut newTickers: Value = self.watch_public_multiple(symbols.clone(), Value::Str("ticker".into()), &[]).await;
+        let mut newTickers: Value = self.watch_public_multiple(symbols.clone(), Some("ticker"), &[]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -464,7 +465,7 @@ impl Upbit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut trades: Value = self.watch_public_multiple(symbols, Value::Str("trade".into()), &[]).await;
+        let mut trades: Value = self.watch_public_multiple(symbols, Some("trade"), &[]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -498,7 +499,7 @@ impl Upbit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orderbook: Value = self.watch_public_multiple(Value::from(vec![symbol]), Value::Str("orderbook".into()), &[]).await;
+        let mut orderbook: Value = self.watch_public_multiple(Value::from(vec![symbol]), Some("orderbook"), &[]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -535,7 +536,7 @@ impl Upbit {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV does not support".into())).into()), timeframe).into()), Value::Str(" candle.".into()))));
         }
         let mut timeFrameOHLCV: String = format!("{}{}", Value::Str("candle.".into()), timeframe);
-        return self.watch_public_multiple(Value::from(vec![symbol]), Value::from(timeFrameOHLCV), &[]).await;
+        return self.watch_public_multiple(Value::from(vec![symbol]), Some(timeFrameOHLCV.as_str()), &[]).await;
         Value::Null
         }).await?))
     }
@@ -747,7 +748,10 @@ impl Upbit {
         }
 }
 
-    pub async fn watch_private(&mut self, mut symbol: Value, mut channel: Value, mut messageHash: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_private(&mut self, symbol: Option<&str>, channel: &str, messageHash: &str, optional_args: &[Value]) -> Value {
+        let mut symbol: Value = symbol.into();
+        let mut channel: Value = channel.into();
+        let mut messageHash: Value = messageHash.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -758,14 +762,14 @@ impl Upbit {
                 m.insert("type".to_string(), channel.clone());
             m
         });
-        let mut messageHashResolved: Value = messageHash.clone();
+        let mut messageHashResolved: String = messageHash.as_str().unwrap_or_default().to_string();
         let mut channelKey: Value = channel.clone();
         if (symbol != Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
             let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
             let mut symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             request.insert("codes".into(), self.market_ids(&[Value::from(vec![Value::from(symbolResolved.clone())])]));
-            messageHashResolved = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved).into());
+            messageHashResolved = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved);
             channelKey = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbolResolved).into());
         }
         let mut url: String = format!("{}{}", self.implode_params(self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]), Value::Map({
@@ -803,7 +807,7 @@ impl Upbit {
             message.push(get_value(&subscriptions, &channelKeys.get(i as usize).cloned().unwrap_or(Value::Null)));
         }
         }
-        return self.watch(url.as_str(), messageHashResolved.clone(), &[Value::from(message), messageHashResolved]).await;
+        return self.watch(url.as_str(), &messageHashResolved[..], &[Value::from(message), Value::from(messageHashResolved.clone())]).await;
 
     Value::Null
 }
@@ -837,7 +841,7 @@ impl Upbit {
         }
         let mut channel: String = "myOrder".to_string();
         let mut messageHash: String = "myOrder".to_string();
-        let mut orders: Value = self.watch_private(symbol.clone(), Value::from(channel), Value::from(messageHash), &[]).await;
+        let mut orders: Value = self.watch_private(symbol.as_str(), channel.as_str(), messageHash.as_str(), &[]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
@@ -876,7 +880,7 @@ impl Upbit {
         }
         let mut channel: String = "myOrder".to_string();
         let mut messageHash: String = "myTrades".to_string();
-        let mut trades: Value = self.watch_private(symbol.clone(), Value::from(channel), Value::from(messageHash), &[]).await;
+        let mut trades: Value = self.watch_private(symbol.as_str(), channel.as_str(), messageHash.as_str(), &[]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
@@ -902,7 +906,8 @@ impl Upbit {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // {
@@ -995,7 +1000,8 @@ impl Upbit {
     Value::Null
 }
 
-    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         // see: parseWsOrder
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "ask_bid", &[]).as_str().map(str::to_owned);
@@ -1159,7 +1165,7 @@ impl Upbit {
         }
         let mut channel: String = "myAsset".to_string();
         let mut messageHash: String = "myAsset".to_string();
-        return self.watch_private(Value::Null, Value::from(channel), Value::from(messageHash), &[]).await;
+        return self.watch_private(None, channel.as_str(), messageHash.as_str(), &[]).await;
         Value::Null
         }).await?))
     }

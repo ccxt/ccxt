@@ -1337,7 +1337,8 @@ impl Aster {
         client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())));
 }
 
-    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // public watchTrades (spot)
@@ -2210,7 +2211,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let mut messageHash: String = format!("{}{}", typeMarketType, Value::Str(":balance".into()));
         let mut message: Value = Value::Null;
-        return self.watch(url, messageHash.as_str(), &[message, typeMarketType]).await;
+        return self.watch(&url, messageHash.as_str(), &[message, typeMarketType]).await;
         Value::Null
         }).await?))
     }
@@ -2403,7 +2404,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
             return self.filter_by_symbols_since_limit(snapshot, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
-        let mut newPositions: Value = self.watch_multiple(url, Value::from(messageHashes), &[Value::Null, Value::from(vec![Value::from(type_var)])]).await;
+        let mut newPositions: Value = self.watch_multiple(&url, Value::from(messageHashes), &[Value::Null, Value::from(vec![Value::from(type_var)])]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -2635,7 +2636,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut url: Value = self.get_private_url(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         self.set_balance_cache(client.as_value(), typeMarketType.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut orders: Value = self.watch_multiple(url, Value::from(vec![Value::from(messageHash)]), &[Value::Null, Value::from(vec![typeMarketType.map(Value::from).unwrap_or(Value::Null)])]).await;
+        let mut orders: Value = self.watch_multiple(&url, Value::from(vec![Value::from(messageHash)]), &[Value::Null, Value::from(vec![typeMarketType.map(Value::from).unwrap_or(Value::Null)])]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -2695,7 +2696,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut url: Value = self.get_private_url(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         self.set_balance_cache(client.as_value(), typeMarketType.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut trades: Value = self.watch_multiple(url, Value::from(vec![Value::from(messageHash)]), &[Value::Null, Value::from(vec![typeMarketType.map(Value::from).unwrap_or(Value::Null)])]).await;
+        let mut trades: Value = self.watch_multiple(&url, Value::from(vec![Value::from(messageHash)]), &[Value::Null, Value::from(vec![typeMarketType.map(Value::from).unwrap_or(Value::Null)])]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -2906,7 +2907,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
 }
 
-    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut executionType: Option<String> = self.safe_string_k(order.clone(), "x", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "s", &[]).as_str().map(str::to_owned);
@@ -2935,7 +2937,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             });
         }
         let mut rawStatus: Option<String> = self.safe_string_k(order.clone(), "X", &[]).as_str().map(str::to_owned);
-        let mut status: Value = self.parent.parse_order_status(rawStatus.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Value = self.parent.parse_order_status(rawStatus.as_deref()).map(Value::from).unwrap_or(Value::Null);
         let mut clientOrderId: Option<String> = self.safe_string2(order.clone(), Value::Str("C".into()), Value::Str("caid".into()), &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_none()) || (((clientOrderId.as_deref().unwrap_or_default().chars().count() as i64)) == 0) {
             clientOrderId = self.safe_string_k(order.clone(), "c", &[]).as_str().map(str::to_owned);
@@ -2956,7 +2958,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
         m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp);
-        m.insert("type".to_string(), self.parent.parse_order_type(self.safe_string_lower_k(order.clone(), "o", &[])).map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), self.parent.parse_order_type((self.safe_string_lower_k(order.clone(), "o", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "R", &[]));

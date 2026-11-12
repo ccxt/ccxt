@@ -181,13 +181,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if possibleMethodNames.as_array().map_or(Value::Int(0), |__a| Value::Int(__a.len() as i64)).as_f64().unwrap_or(f64::NAN) >= Value::Int(1).as_f64().unwrap_or(f64::NAN) {
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_1615: bool = true;
-                    while { if !__for_first_1615 { i += 1; } __for_first_1615 = false; i < (testFileNames.len() as i64) } {
+                    let mut __for_first_1614: bool = true;
+                    while { if !__for_first_1614 { i += 1; } __for_first_1614 = false; i < (testFileNames.len() as i64) } {
                     let mut testFileName: Value = testFileNames.get(i as usize).cloned().unwrap_or(Value::Null);
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_1614: bool = true;
-                        while { if !__for_first_1614 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1614 = false; j.as_f64().unwrap_or(f64::NAN) < possibleMethodNames.as_array().map_or(Value::Int(0), |__a| Value::Int(__a.len() as i64)).as_f64().unwrap_or(f64::NAN) } {
+                        let mut __for_first_1613: bool = true;
+                        while { if !__for_first_1613 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1613 = false; j.as_f64().unwrap_or(f64::NAN) < possibleMethodNames.as_array().map_or(Value::Int(0), |__a| Value::Int(__a.len() as i64)).as_f64().unwrap_or(f64::NAN) } {
                         let mut methodName: Value = get_value(&possibleMethodNames, &j);
                         methodName = replace_str(&methodName, &Value::Str("()".into()), &Value::Str("".into()));
                         if is_equal(&testFileName, &methodName) {
@@ -221,8 +221,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut objkeys: Value = object_keys(&reqCreds);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1616: bool = true;
-            while { if !__for_first_1616 { i += 1; } __for_first_1616 = false; i < (objkeys.len() as i64) } {
+            let mut __for_first_1615: bool = true;
+            while { if !__for_first_1615 { i += 1; } __for_first_1615 = false; i < (objkeys.len() as i64) } {
             let mut credential: Value = objkeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut isRequired: Value = get_value(&reqCreds, &credential);
             if (is_equal(&isRequired, &Value::Bool(true))) && (getExchangeProp(exchange.clone(), credential.clone(), &[]) == Value::Null) {
@@ -267,8 +267,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut settingKeys: Value = object_keys(&exchangeSettings);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1617: bool = true;
-                while { if !__for_first_1617 { i += 1; } __for_first_1617 = false; i < (settingKeys.len() as i64) } {
+                let mut __for_first_1616: bool = true;
+                while { if !__for_first_1616 { i += 1; } __for_first_1616 = false; i < (settingKeys.len() as i64) } {
                 let mut key: Value = settingKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut settingValue: Value = get_value(&exchangeSettings, &key);
                 let mut settingIsEmpty: bool = (settingValue == Value::Null) || (settingValue == Value::Null) || (settingValue.as_str() == Some("")) || (is_equal(&settingValue, &Value::Bool(false))) || (is_equal(&settingValue, &Value::Int(0)));
@@ -331,8 +331,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if missingSpace.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1618: bool = true;
-                while { if !__for_first_1618 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1618 = false; i.as_f64().unwrap_or(f64::NAN) < missingSpace.as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1617: bool = true;
+                while { if !__for_first_1617 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1617 = false; i.as_f64().unwrap_or(f64::NAN) < missingSpace.as_f64().unwrap_or(f64::NAN) } {
                 res.push_str(" ");
             }
             }
@@ -414,8 +414,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methodNames: Value = Value::from(vec![methodName.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", methodName, Value::Str(".".into())).into()), self.ext.clone()).into())]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1619: bool = true;
-            while { if !__for_first_1619 { i += 1; } __for_first_1619 = false; i < (methodNames.len() as i64) } {
+            let mut __for_first_1618: bool = true;
+            while { if !__for_first_1618 { i += 1; } __for_first_1618 = false; i < (methodNames.len() as i64) } {
             let mut mName: Value = methodNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if (in_op(&self.skippedMethods, &mName)) {
                 // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
@@ -442,8 +442,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut objectNames: Value = object_keys(&Value::Map(objectSkips.clone()));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1620: bool = true;
-            while { if !__for_first_1620 { i += 1; } __for_first_1620 = false; i < (objectNames.len() as i64) } {
+            let mut __for_first_1619: bool = true;
+            while { if !__for_first_1619 { i += 1; } __for_first_1619 = false; i < (objectNames.len() as i64) } {
             let mut objectName: Value = objectNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut objectMethods: Value = objectSkips.get(objectName.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if is_true(&exchange.in_array(methodName.clone(), objectMethods.clone())) {
@@ -488,8 +488,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut argsStringified: Value = exchange.json(args.clone()); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.to_string()" breaks bcz of "array to string conversion"
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1621: bool = true;
-            while { if !__for_first_1621 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1621 = false; i.as_f64().unwrap_or(f64::NAN) < maxRetries.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1620: bool = true;
+            while { if !__for_first_1620 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1620 = false; i.as_f64().unwrap_or(f64::NAN) < maxRetries.as_f64().unwrap_or(f64::NAN) } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.test_method(methodName.clone(), exchange.clone(), args.clone(), isPublic.clone()).await;
                 return Value::Bool(true);
@@ -649,8 +649,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut promises: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1622: bool = true;
-            while { if !__for_first_1622 { i += 1; } __for_first_1622 = false; i < (testNames.len() as i64) } {
+            let mut __for_first_1621: bool = true;
+            while { if !__for_first_1621 { i += 1; } __for_first_1621 = false; i < (testNames.len() as i64) } {
             let mut testName: Value = testNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut testArgs: Value = get_value(&tests, &testName);
             promises.push(self.test_safe(testName.clone(), exchange.clone(), &[testArgs.clone(), isPublicTest.clone()]).await);
@@ -663,8 +663,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut failedMethods: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1623: bool = true;
-            while { if !__for_first_1623 { i += 1; } __for_first_1623 = false; i < (testNames.len() as i64) } {
+            let mut __for_first_1622: bool = true;
+            while { if !__for_first_1622 { i += 1; } __for_first_1622 = false; i < (testNames.len() as i64) } {
             let mut testName: Value = testNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut testReturnedValue: Value = results.get(i as usize).cloned().unwrap_or(Value::Null);
             if !is_equal(&testReturnedValue, &Value::Bool(true)) {
@@ -708,8 +708,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1624: bool = true;
-            while { if !__for_first_1624 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1624 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&symbols).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1623: bool = true;
+            while { if !__for_first_1623 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1623 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&symbols).as_f64().unwrap_or(f64::NAN) } {
             let mut s: Value = get_value(&symbols, &i);
             let mut market: Value = exchange.safe_value(get_value(&exchange, &Value::Str("markets".into())), s.clone(), &[]);
             if (market != Value::Null) {
@@ -734,8 +734,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut code: Value = codes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1625: bool = true;
-            while { if !__for_first_1625 { i += 1; } __for_first_1625 = false; i < (codes.len() as i64) } {
+            let mut __for_first_1624: bool = true;
+            while { if !__for_first_1624 { i += 1; } __for_first_1624 = false; i < (codes.len() as i64) } {
             if (in_op(&get_value(&exchange, &Value::Str("currencies".into())), &codes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))) {
                 return codes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             }
@@ -756,8 +756,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut keys: Value = object_keys(&markets);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1626: bool = true;
-            while { if !__for_first_1626 { i += 1; } __for_first_1626 = false; i < (keys.len() as i64) } {
+            let mut __for_first_1625: bool = true;
+            while { if !__for_first_1625 { i += 1; } __for_first_1625 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = get_value(&markets, &key);
             if spot && (is_equal(&get_value(&market, &Value::Str("spot".into())), &Value::Bool(true))) {
@@ -788,8 +788,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (symbol == Value::Null) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1627: bool = true;
-                while { if !__for_first_1627 { i += 1; } __for_first_1627 = false; i < (codes.len() as i64) } {
+                let mut __for_first_1626: bool = true;
+                while { if !__for_first_1626 { i += 1; } __for_first_1626 = false; i < (codes.len() as i64) } {
                 let mut currentCode: Value = codes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut marketsArrayForCurrentCode: Value = exchange.filter_by(currentTypeMarkets.clone(), Value::Str("base".into()), currentCode.clone(), &[]);
                 let mut indexedMkts: Value = exchange.index_by(marketsArrayForCurrentCode.clone(), Value::Str("symbol".into()));
@@ -808,8 +808,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut activeSymbols: Vec<Value> = Vec::new();
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1628: bool = true;
-                while { if !__for_first_1628 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1628 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&activeMarkets).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1627: bool = true;
+                while { if !__for_first_1627 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1627 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&activeMarkets).as_f64().unwrap_or(f64::NAN) } {
                 activeSymbols.push(get_value(&get_value(&activeMarkets, &i), &Value::Str("symbol".into())));
             }
             }
@@ -898,8 +898,8 @@ if _try_result.is_err() {
         let mut tickerSymbols: Value = object_keys(&tickers);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1629: bool = true;
-            while { if !__for_first_1629 { i += 1; } __for_first_1629 = false; i < (tickerSymbols.len() as i64) } {
+            let mut __for_first_1628: bool = true;
+            while { if !__for_first_1628 { i += 1; } __for_first_1628 = false; i < (tickerSymbols.len() as i64) } {
             let mut tickerSymbol: Value = tickerSymbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = exchange.safe_dict(get_value(&exchange, &Value::Str("markets".into())), tickerSymbol.clone(), &[]);
             if (market != Value::Null) {
@@ -1047,14 +1047,14 @@ if _try_result.is_err() {
             let mut pinnedKeys: Vec<Value> = object_keys(&get_value(&exchange, &Value::Str("markets".into()))).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1631: bool = true;
-                while { if !__for_first_1631 { i += 1; } __for_first_1631 = false; i < (pinnedKeys.len() as i64) } {
+                let mut __for_first_1630: bool = true;
+                while { if !__for_first_1630 { i += 1; } __for_first_1630 = false; i < (pinnedKeys.len() as i64) } {
                 let mut pinnedMarket: Value = get_value(&get_value(&exchange, &Value::Str("markets".into())), &pinnedKeys.get(i as usize).cloned().unwrap_or(Value::Null));
                 let mut pinnedOutcomes: Value = exchange.safe_list(pinnedMarket.clone(), Value::Str("outcomes".into()), &[Value::from(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_1630: bool = true;
-                    while { if !__for_first_1630 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1630 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&pinnedOutcomes).as_f64().unwrap_or(f64::NAN) } {
+                    let mut __for_first_1629: bool = true;
+                    while { if !__for_first_1629 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1629 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&pinnedOutcomes).as_f64().unwrap_or(f64::NAN) } {
                     if is_equal(&exchange.safe_string(get_value(&pinnedOutcomes, &j), Value::Str("outcome".into()), &[]), &outcomeSymbol) {
                         pinFound = true;
                         break;
@@ -1075,8 +1075,8 @@ if _try_result.is_err() {
             let mut marketKeys: Vec<Value> = object_keys(&get_value(&exchange, &Value::Str("markets".into()))).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1632: bool = true;
-                while { if !__for_first_1632 { i += 1; } __for_first_1632 = false; i < (marketKeys.len() as i64) } {
+                let mut __for_first_1631: bool = true;
+                while { if !__for_first_1631 { i += 1; } __for_first_1631 = false; i < (marketKeys.len() as i64) } {
                 let mut market: Value = get_value(&get_value(&exchange, &Value::Str("markets".into())), &marketKeys.get(i as usize).cloned().unwrap_or(Value::Null));
                 let mut outcomesList: Value = exchange.safe_list(market.clone(), Value::Str("outcomes".into()), &[Value::from(vec![])]);
                 let mut outcomesListLength: Value = get_array_length(&outcomesList);
@@ -1178,16 +1178,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut extraScopesLength: Value = get_array_length(&extraScopes);
                 {
                                         let mut si: Value = Value::Int(0);
-                    let mut __for_first_1633: bool = true;
-                    while { if !__for_first_1633 { if let Value::Int(n) = &mut si { *n += 1; } } __for_first_1633 = false; si.as_f64().unwrap_or(f64::NAN) < extraScopesLength.as_f64().unwrap_or(f64::NAN) } {
+                    let mut __for_first_1632: bool = true;
+                    while { if !__for_first_1632 { if let Value::Int(n) = &mut si { *n += 1; } } __for_first_1632 = false; si.as_f64().unwrap_or(f64::NAN) < extraScopesLength.as_f64().unwrap_or(f64::NAN) } {
                     scopesToTest.push(get_value(&extraScopes, &si));
                 }
                 }
                 let mut scopesToTestLength: Value = Value::Int(scopesToTest.len() as i64);
                 {
                                         let mut sj: Value = Value::Int(0);
-                    let mut __for_first_1634: bool = true;
-                    while { if !__for_first_1634 { if let Value::Int(n) = &mut sj { *n += 1; } } __for_first_1634 = false; sj.as_f64().unwrap_or(f64::NAN) < scopesToTestLength.as_f64().unwrap_or(f64::NAN) } {
+                    let mut __for_first_1633: bool = true;
+                    while { if !__for_first_1633 { if let Value::Int(n) = &mut sj { *n += 1; } } __for_first_1633 = false; sj.as_f64().unwrap_or(f64::NAN) < scopesToTestLength.as_f64().unwrap_or(f64::NAN) } {
                     let mut scope: Value = scopesToTest.get((sj).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                     // fetchEvents scoped by a single parameter must return a non-empty, valid list
                     let mut scopedEvents: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".into()), Value::from(vec![scope.clone()])).await;
@@ -1292,8 +1292,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut eventsLength: Value = Value::Int(events.len() as i64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1635: bool = true;
-            while { if !__for_first_1635 { i += 1; } __for_first_1635 = false; (i as f64) < eventsLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1634: bool = true;
+            while { if !__for_first_1634 { i += 1; } __for_first_1634 = false; (i as f64) < eventsLength.as_f64().unwrap_or(f64::NAN) } {
             self.assert_prediction_event(exchange.clone(), events.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -1315,8 +1315,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         assert((exchange.safe_string(event.clone(), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event must not carry the deprecated symbol key".into())).into()), logText).into())]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1637: bool = true;
-            while { if !__for_first_1637 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1637 = false; i.as_f64().unwrap_or(f64::NAN) < marketsLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1636: bool = true;
+            while { if !__for_first_1636 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1636 = false; i.as_f64().unwrap_or(f64::NAN) < marketsLength.as_f64().unwrap_or(f64::NAN) } {
             let mut market: Value = get_value(&markets, &i);
             assert(Value::Bool(is_equal(&exchange.is_dictionary(market.clone()), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event market should be a dict".into())).into()), logText).into())]);
             assert((exchange.safe_string(market.clone(), Value::Str("market".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event market missing the unified market handle".into())).into()), logText).into())]);
@@ -1327,8 +1327,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut outcomesLength: Value = get_array_length(&outcomes);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1636: bool = true;
-                while { if !__for_first_1636 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1636 = false; j.as_f64().unwrap_or(f64::NAN) < outcomesLength.as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1635: bool = true;
+                while { if !__for_first_1635 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1635 = false; j.as_f64().unwrap_or(f64::NAN) < outcomesLength.as_f64().unwrap_or(f64::NAN) } {
                 assert((exchange.safe_string(get_value(&outcomes, &j), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event outcome must not carry the deprecated symbol key".into())).into()), logText).into())]);
             }
             }
@@ -1538,8 +1538,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut exceptionMessageString: Value = Value::Null;
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1638: bool = true;
-            while { if !__for_first_1638 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1638 = false; j.as_f64().unwrap_or(f64::NAN) < maxRetries.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1637: bool = true;
+            while { if !__for_first_1637 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1637 = false; j.as_f64().unwrap_or(f64::NAN) < maxRetries.as_f64().unwrap_or(f64::NAN) } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.test_method(proxyTestName.clone(), exchange.clone(), Value::from(vec![]), true).await;
                 return Value::Bool(true);
@@ -1722,8 +1722,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut files: Value = ioDirRead(folder.clone());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1639: bool = true;
-            while { if !__for_first_1639 { i += 1; } __for_first_1639 = false; i < (files.len() as i64) } {
+            let mut __for_first_1638: bool = true;
+            while { if !__for_first_1638 { i += 1; } __for_first_1638 = false; i < (files.len() as i64) } {
             let mut file: Option<String> = files.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             // the only non-json entry in the static dirs is the prediction/ subfolder (prediction
             // fixtures live under static/<type>/prediction/). skip it by name — a string-equality
@@ -1750,8 +1750,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut res: String = "".to_string();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1640: bool = true;
-            while { if !__for_first_1640 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1640 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(urlParts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1639: bool = true;
+            while { if !__for_first_1639 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1639 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(urlParts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             if i.as_f64().unwrap_or(f64::NAN) > Value::Int(2).as_f64().unwrap_or(f64::NAN) {
                 let mut current: Value = urlParts.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 if current.as_str().unwrap_or("").contains("?") {
@@ -1779,8 +1779,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut parts: Vec<Value> = Value::Array(if let Some(__s) = url.as_str() { __s.split("&").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1641: bool = true;
-            while { if !__for_first_1641 { i += 1; } __for_first_1641 = false; i < (parts.len() as i64) } {
+            let mut __for_first_1640: bool = true;
+            while { if !__for_first_1640 { i += 1; } __for_first_1640 = false; i < (parts.len() as i64) } {
             let mut part: Option<String> = parts.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut keyValue: Value = Value::Array(if let Some(__s) = part.as_deref() { __s.split("=").map(Value::from).collect() } else { Vec::new() });
             let mut keysLength: i64 = keyValue.len() as i64;
@@ -1835,8 +1835,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (matches!(&value, Value::Arr(_))) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1642: bool = true;
-                while { if !__for_first_1642 { i += 1; } __for_first_1642 = false; i < (value.len() as i64) } {
+                let mut __for_first_1641: bool = true;
+                while { if !__for_first_1641 { i += 1; } __for_first_1641 = false; i < (value.len() as i64) } {
                 if !(self.is_vacant_value(exchange.clone(), value.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_bool() == Some(true)) {
                     return Value::Bool(false);
                 }
@@ -1848,8 +1848,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut keys: Value = object_keys(&value);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1643: bool = true;
-                while { if !__for_first_1643 { i += 1; } __for_first_1643 = false; i < (keys.len() as i64) } {
+                let mut __for_first_1642: bool = true;
+                while { if !__for_first_1642 { i += 1; } __for_first_1642 = false; i < (keys.len() as i64) } {
                 if !(self.is_vacant_value(exchange.clone(), get_value(&value, &keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))).as_bool() == Some(true)) {
                     return Value::Bool(false);
                 }
@@ -1869,8 +1869,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut count: i64 = 0;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1644: bool = true;
-            while { if !__for_first_1644 { i += 1; } __for_first_1644 = false; i < (keys.len() as i64) } {
+            let mut __for_first_1643: bool = true;
+            while { if !__for_first_1643 { i += 1; } __for_first_1643 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if !is_true(&(exchange.in_array(key.clone(), otherKeys.clone()))) && self.is_vacant_value(exchange.clone(), get_value(&target, &key)).as_bool() == Some(true) {
                 continue;
@@ -1891,8 +1891,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut skipKeys: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1645: bool = true;
-            while { if !__for_first_1645 { i += 1; } __for_first_1645 = false; i < (rawSkipKeys.len() as i64) } {
+            let mut __for_first_1644: bool = true;
+            while { if !__for_first_1644 { i += 1; } __for_first_1644 = false; i < (rawSkipKeys.len() as i64) } {
             let mut key: Value = rawSkipKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if !is_true(&(exchange.in_array(key.clone(), forceCheckKeys.clone()))) {
                 skipKeys.push(key.clone());
@@ -1944,8 +1944,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.assert_static_error(Value::Bool(storedKeysLength.as_f64() == newKeysLength.as_f64()), Value::Str("output length mismatch".into()), storedOutput.clone(), newOutput.clone(), &[]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1646: bool = true;
-                while { if !__for_first_1646 { i += 1; } __for_first_1646 = false; i < (storedOutputKeys.len() as i64) } {
+                let mut __for_first_1645: bool = true;
+                while { if !__for_first_1645 { i += 1; } __for_first_1645 = false; i < (storedOutputKeys.len() as i64) } {
                 let mut key: Value = storedOutputKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if !is_true(&(exchange.in_array(key.clone(), newOutputKeys.clone()))) {
                     if ((self.lang.as_str() == Some("C#")) || (self.lang.as_str() == Some("GO"))) && self.is_vacant_value(exchange.clone(), get_value(&storedOutput, &key)).as_bool() == Some(true) {
@@ -1974,8 +1974,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.assert_static_error(Value::Bool(storedArrayLength == newArrayLength), Value::Str("output length mismatch".into()), storedOutput.clone(), newOutput.clone(), &[]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1647: bool = true;
-                while { if !__for_first_1647 { i += 1; } __for_first_1647 = false; i < (storedOutput.len() as i64) } {
+                let mut __for_first_1646: bool = true;
+                while { if !__for_first_1646 { i += 1; } __for_first_1646 = false; i < (storedOutput.len() as i64) } {
                 let mut storedItem: Value = storedOutput.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut newItem: Value = newOutput.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 self.assert_new_and_stored_output_inner(exchange.clone(), skipKeys.clone(), newItem.clone(), storedItem.clone(), &[strictTypeCheck.clone()]);
@@ -2235,8 +2235,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut outputLength: Value = Value::Int(output.len() as i64);
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_1648: bool = true;
-                    while { if !__for_first_1648 { i += 1; } __for_first_1648 = false; (i as f64) < outputLength.as_f64().unwrap_or(f64::NAN) } {
+                    let mut __for_first_1647: bool = true;
+                    while { if !__for_first_1647 { i += 1; } __for_first_1647 = false; (i as f64) < outputLength.as_f64().unwrap_or(f64::NAN) } {
                     self.assert_static_isolated_position(exchange.clone(), output.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
@@ -2261,8 +2261,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut newInput: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1649: bool = true;
-            while { if !__for_first_1649 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1649 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&input).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1648: bool = true;
+            while { if !__for_first_1648 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1648 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&input).as_f64().unwrap_or(f64::NAN) } {
             let mut current: Value = get_value(&input, &i);
             if is_true(&isNullValue(current.clone())) {
                 newInput.push(Value::Null);
@@ -2312,8 +2312,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut storedHeaderKeys: Value = object_keys(&storedHeaders);
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_1650: bool = true;
-                    while { if !__for_first_1650 { i += 1; } __for_first_1650 = false; i < (storedHeaderKeys.len() as i64) } {
+                    let mut __for_first_1649: bool = true;
+                    while { if !__for_first_1649 { i += 1; } __for_first_1649 = false; i < (storedHeaderKeys.len() as i64) } {
                     let mut headerKey: Value = storedHeaderKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut storedHeaderValue: Value = get_value(&storedHeaders, &headerKey);
                     let mut sentHeaderValue: Value = exchange.safe_string(sentHeaders.clone(), headerKey.clone(), &[]);
@@ -2377,8 +2377,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut sentMessages: Value = getWsSentMessages(exchange.clone(), url.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1651: bool = true;
-            while { if !__for_first_1651 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1651 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&sentMessages).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1650: bool = true;
+            while { if !__for_first_1650 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1650 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&sentMessages).as_f64().unwrap_or(f64::NAN) } {
             if is_equal(&exchange.safe_string(get_value(&sentMessages, &i), Value::Str("id".into()), &[]), &id) {
                 return Value::Bool(true);
             }
@@ -2395,8 +2395,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let messages = messages.as_array().unwrap_or(&__messages_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1652: bool = true;
-            while { if !__for_first_1652 { i += 1; } __for_first_1652 = false; i < (messages.len() as i64) } {
+            let mut __for_first_1651: bool = true;
+            while { if !__for_first_1651 { i += 1; } __for_first_1651 = false; i < (messages.len() as i64) } {
             let mut waited: i64 = 0;
             while !is_true(&wsClientHasPendingFutures(exchange.clone(), url.clone())) && (waited < 5000) {
                 exchange.sleep(Value::Int(50)).await;
@@ -2458,8 +2458,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1653: bool = true;
-                while { if !__for_first_1653 { i += 1; } __for_first_1653 = false; i < (expectedResults.len() as i64) } {
+                let mut __for_first_1652: bool = true;
+                while { if !__for_first_1652 { i += 1; } __for_first_1652 = false; i < (expectedResults.len() as i64) } {
                 let mut result: Value = callExchangeMethodDynamically(&mut exchange, method.clone(), input.clone()).await;
                 // ws structures can be live typed objects (e.g. orderbooks) in some
                 // runtimes — roundtrip through json so the deep-compare sees plain
@@ -2499,8 +2499,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             to_string_val(&expectedLength)).into()), Value::Str(" ".into())).into()), jsonStringify(sentMessages.clone())).into())]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1654: bool = true;
-            while { if !__for_first_1654 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1654 = false; i.as_f64().unwrap_or(f64::NAN) < expectedLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1653: bool = true;
+            while { if !__for_first_1653 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1653 = false; i.as_f64().unwrap_or(f64::NAN) < expectedLength.as_f64().unwrap_or(f64::NAN) } {
             let mut unifiedSent: Value = jsonParse(jsonStringify(get_value(&sentMessages, &i)));
             self.assert_static_response_output(exchange.clone(), sentSkipKeys.clone(), unifiedSent.clone(), get_value(&expectedSent, &i));
         }
@@ -2571,14 +2571,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1656: bool = true;
-            while { if !__for_first_1656 { i += 1; } __for_first_1656 = false; i < (methodsNames.len() as i64) } {
+            let mut __for_first_1655: bool = true;
+            while { if !__for_first_1655 { i += 1; } __for_first_1655 = false; i < (methodsNames.len() as i64) } {
             let mut method: Value = methodsNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1655: bool = true;
-                while { if !__for_first_1655 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1655 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1654: bool = true;
+                while { if !__for_first_1654 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1654 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
                 let mut result: Value = get_value(&results, &j);
                 let mut description: Value = get_value(&result, &Value::Str("description".into()));
                 if (testName != Value::Null) && (!is_equal(&testName, &description)) {
@@ -2753,13 +2753,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut eventMarkets: Value = Value::from(vec![]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1658: bool = true;
-                while { if !__for_first_1658 { i += 1; } __for_first_1658 = false; i < (predictionEvents.len() as i64) } {
+                let mut __for_first_1657: bool = true;
+                while { if !__for_first_1657 { i += 1; } __for_first_1657 = false; i < (predictionEvents.len() as i64) } {
                 let mut evMarkets: Value = exchange.safe_list(predictionEvents.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("markets".into()), &[Value::from(vec![])]);
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_1657: bool = true;
-                    while { if !__for_first_1657 { j += 1; } __for_first_1657 = false; j < (evMarkets.len() as i64) } {
+                    let mut __for_first_1656: bool = true;
+                    while { if !__for_first_1656 { j += 1; } __for_first_1656 = false; j < (evMarkets.len() as i64) } {
                     let mut evMarket: Value = evMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                     // every market row must carry the unified market handle (PredictionMarket
                     // declares it required) — enforce it on the fixtures so a venue that stops
@@ -2824,14 +2824,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1660: bool = true;
-            while { if !__for_first_1660 { i += 1; } __for_first_1660 = false; i < (methodsNames.len() as i64) } {
+            let mut __for_first_1659: bool = true;
+            while { if !__for_first_1659 { i += 1; } __for_first_1659 = false; i < (methodsNames.len() as i64) } {
             let mut method: Value = methodsNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1659: bool = true;
-                while { if !__for_first_1659 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1659 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1658: bool = true;
+                while { if !__for_first_1658 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1658 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
                 let mut result: Value = get_value(&results, &j);
                 let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".into())); // snapshot options;
                 let mut testExchangeOptions: Value = exchange.safe_value(result.clone(), Value::Str("options".into()), &[Value::Map({
@@ -2934,14 +2934,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1662: bool = true;
-            while { if !__for_first_1662 { i += 1; } __for_first_1662 = false; i < (methodsNames.len() as i64) } {
+            let mut __for_first_1661: bool = true;
+            while { if !__for_first_1661 { i += 1; } __for_first_1661 = false; i < (methodsNames.len() as i64) } {
             let mut method: Value = methodsNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1661: bool = true;
-                while { if !__for_first_1661 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1661 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1660: bool = true;
+                while { if !__for_first_1660 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1660 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
                 let mut result: Value = get_value(&results, &j);
                 let mut description: Value = exchange.safe_value(result.clone(), Value::Str("description".into()), &[]);
                 let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".into())); // snapshot options;
@@ -3020,8 +3020,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1663: bool = true;
-            while { if !__for_first_1663 { i += 1; } __for_first_1663 = false; i < (methodsNames.len() as i64) } {
+            let mut __for_first_1662: bool = true;
+            while { if !__for_first_1662 { i += 1; } __for_first_1662 = false; i < (methodsNames.len() as i64) } {
             let mut method: Value = methodsNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut results: Value = get_value(&methods, &method);
             let mut resultsLength: Value = get_array_length(&results);
@@ -3117,8 +3117,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1664: bool = true;
-            while { if !__for_first_1664 { i += 1; } __for_first_1664 = false; i < (exchanges.len() as i64) } {
+            let mut __for_first_1663: bool = true;
+            while { if !__for_first_1663 { i += 1; } __for_first_1663 = false; i < (exchanges.len() as i64) } {
             let mut exchangeName: Value = exchanges.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut exchangeData: Value = staticData.as_map().and_then(|__m| exchangeName.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut disabled: Value = self.check_if_exchange_is_disabled(exchangeName.clone(), exchangeData.clone());
@@ -3376,8 +3376,8 @@ if _try_result.is_err() {
         let mut batchOrders: Value = createOrdersRequest.as_map().and_then(|__m| __m.get("batchOrders")).cloned().unwrap_or(Value::Null);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1665: bool = true;
-            while { if !__for_first_1665 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1665 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&batchOrders).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1664: bool = true;
+            while { if !__for_first_1664 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1664 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&batchOrders).as_f64().unwrap_or(f64::NAN) } {
             let mut current: Value = get_value(&batchOrders, &i);
             let mut currentClientOrderId: Value = get_value(&current, &Value::Str("newClientOrderId".into()));
             assert((starts_with(&currentClientOrderId, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance createOrders - clientOrderId: ".into()), currentClientOrderId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);

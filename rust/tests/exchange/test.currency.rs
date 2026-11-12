@@ -79,8 +79,8 @@ pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut metho
     let mut networkKeysLength: Value = Value::Int(networkKeys.len() as i64);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1550: bool = true;
-        while { if !__for_first_1550 { i += 1; } __for_first_1550 = false; (i as f64) < networkKeysLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1549: bool = true;
+        while { if !__for_first_1549 { i += 1; } __for_first_1549 = false; (i as f64) < networkKeysLength.as_f64().unwrap_or(f64::NAN) } {
         crate::tests_support::shared::assert_unified_network_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), networkKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).clone()]);
     }
     }

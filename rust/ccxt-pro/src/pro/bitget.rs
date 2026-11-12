@@ -199,11 +199,11 @@ impl crate::exchange_generated::ExchangeBase for Bitget {
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "un_watch_channel" => self.un_watch_channel(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "un_watch_channel" => self.un_watch_channel(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(), &args[4.min(args.len())..]).await,
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_private" => self.un_watch_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
-                "un_watch_public" => self.un_watch_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "un_watch_public" => self.un_watch_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "un_watch_ticker" => crate::types::IntoRaw::into_raw(self.un_watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -214,8 +214,8 @@ impl crate::exchange_generated::ExchangeBase for Bitget {
                 "watch_order_book_for_symbols" => crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_positions" => crate::types::IntoRaw::into_raw(self.watch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "watch_private" => self.watch_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
-                "watch_public" => self.watch_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "watch_private" => self.watch_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "watch_public" => self.watch_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "watch_public_multiple" => self.watch_public_multiple(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -503,7 +503,7 @@ impl Bitget {
         }
         args.insert(topicOrChannel, Value::Str("ticker".into()));
         args.insert(symbolOrInstId, Value::from((market).id.clone()));
-        return self.watch_public(uta.map_or(Value::Null, Value::Bool), Value::from(messageHash), Value::Map(args), &[paramsValue]).await;
+        return self.watch_public(uta.map_or(Value::Null, Value::Bool), messageHash.as_str(), Value::Map(args), &[paramsValue]).await;
         Value::Null
         }).await?))
     }
@@ -529,7 +529,7 @@ impl Bitget {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.un_watch_channel(symbol, Value::Str("ticker".into()), Value::Str("ticker".into()), Value::Str("watchTicker".into()), &[params]).await;
+        return self.un_watch_channel(symbol.as_str().unwrap_or_default(), "ticker", "ticker", "watchTicker", &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1018,7 +1018,7 @@ impl Bitget {
             args.insert("instId".into(), Value::from((market).id.clone()));
             messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue));
         }
-        let mut ohlcv: Value = self.watch_public(Value::Bool(isStockOrUta), messageHash.clone().map(Value::from).unwrap_or(Value::Null), Value::Map(args), &[paramsRequest]).await;
+        let mut ohlcv: Value = self.watch_public(Value::Bool(isStockOrUta), messageHash.as_deref().unwrap_or_default(), Value::Map(args), &[paramsRequest]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
@@ -1096,7 +1096,7 @@ impl Bitget {
             args.insert("instId".into(), Value::from((market).id.clone()));
             messageHash = Some(format!("{}{}", Value::Str("candles:".into()), interval.map(Value::from).unwrap_or(Value::Null)));
         }
-        return self.un_watch_channel(symbol, channel.map(Value::from).unwrap_or(Value::Null), messageHash.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("watchOHLCV".into()), &[paramsRequest]).await;
+        return self.un_watch_channel(symbol.as_str().unwrap_or_default(), channel.as_deref().unwrap_or_default(), messageHash.as_deref().unwrap_or_default(), "watchOHLCV", &[paramsRequest]).await;
         Value::Null
         }).await?))
     }
@@ -1340,12 +1340,16 @@ impl Bitget {
         if isFixedDepth {
             channel.push_str(&(Value::Str(format!("{}", limit).into())).to_string());
         }
-        return self.un_watch_channel(symbol, Value::from(channel), Value::Str("orderbook".into()), Value::Str("watchOrderBook".into()), &[paramsOmitted]).await;
+        return self.un_watch_channel(symbol.as_str().unwrap_or_default(), channel.as_str(), "orderbook", "watchOrderBook", &[paramsOmitted]).await;
         Value::Null
         }).await?))
     }
 
-    pub async fn un_watch_channel(&mut self, mut symbol: Value, mut channel: Value, mut messageHashTopic: Value, mut methodName: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_watch_channel(&mut self, symbol: &str, channel: &str, messageHashTopic: &str, methodName: &str, optional_args: &[Value]) -> Value {
+        let mut symbol: Value = symbol.into();
+        let mut channel: Value = channel.into();
+        let mut messageHashTopic: Value = messageHashTopic.into();
+        let mut methodName: Value = methodName.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1391,7 +1395,7 @@ impl Bitget {
         if privateChannel {
             return self.un_watch_private(uta.map_or(Value::Null, Value::Bool), Value::from(messageHash.clone()), Value::Map(args.clone()), &[paramsRequest.clone()]).await;
         }
-        return self.un_watch_public(uta.map_or(Value::Null, Value::Bool), Value::from(messageHash), Value::Map(args), &[paramsRequest]).await;
+        return self.un_watch_public(uta.map_or(Value::Null, Value::Bool), messageHash.as_str(), Value::Map(args), &[paramsRequest]).await;
 
     Value::Null
 }
@@ -1836,7 +1840,7 @@ impl Bitget {
         if uta.as_bool() == Some(true) {
             channelTopic = "publicTrade".to_string();
         }
-        return self.un_watch_channel(symbol, Value::from(channelTopic), Value::Str("trade".into()), Value::Str("watchTrades".into()), &[params]).await;
+        return self.un_watch_channel(symbol.as_str().unwrap_or_default(), channelTopic.as_str(), "trade", "watchTrades", &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1910,7 +1914,8 @@ impl Bitget {
         client.resolve(stored, messageHash.as_str());
 }
 
-    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -2127,7 +2132,7 @@ impl Bitget {
         if !(uta == Some(true)) {
             args.insert("instId".into(), Value::Str("default".into()));
         }
-        let mut newPositions: Value = self.watch_private(uta.map_or(Value::Null, Value::Bool), Value::from(messageHash), Value::from(subscriptionHash), Value::Map(args), &[paramsRequest]).await;
+        let mut newPositions: Value = self.watch_private(uta.map_or(Value::Null, Value::Bool), messageHash.as_str(), subscriptionHash.as_str(), Value::Map(args), &[paramsRequest]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -2503,7 +2508,7 @@ impl Bitget {
         if !(uta == Some(true)) {
             args.insert("instId".into(), instId);
         }
-        let mut orders: Value = self.watch_private(uta.map_or(Value::Null, Value::Bool), Value::from(messageHash), Value::from(subscriptionHash), Value::Map(args), &[paramsRequest]).await;
+        let mut orders: Value = self.watch_private(uta.map_or(Value::Null, Value::Bool), messageHash.as_str(), subscriptionHash.as_str(), Value::Map(args), &[paramsRequest]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -2686,7 +2691,8 @@ impl Bitget {
         }
 }
 
-    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // spot
@@ -3043,7 +3049,7 @@ impl Bitget {
         if !(uta == Some(true)) {
             args.insert("instId".into(), Value::Str("default".into()));
         }
-        let mut trades: Value = self.watch_private(uta.map_or(Value::Null, Value::Bool), Value::from(messageHash), Value::from(subscriptionHash), Value::Map(args), &[paramsRequest]).await;
+        let mut trades: Value = self.watch_private(uta.map_or(Value::Null, Value::Bool), messageHash.as_str(), subscriptionHash.as_str(), Value::Map(args), &[paramsRequest]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -3193,7 +3199,7 @@ impl Bitget {
                 let mut marketId: Option<String> = self.safe_string2(&trade, Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
                 market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
             }
-            let mut parsed: Value = self.parse_ws_trade(Value::Dict(trade), &[market]);
+            let mut parsed: Value = self.parse_ws_trade(&trade, &[market]);
             stored.append(parsed.clone());
             let mut symbol: String = self.safe_string_k(parsed, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut symbolSpecificMessageHash: String = format!("{}{}", Value::Str("myTrades:".into()), symbol);
@@ -3289,7 +3295,7 @@ impl Bitget {
         }
         let mut instTypeLower: String = self.safe_string_lower(Value::Map(args.clone()), Value::Str("instType".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("balance:".into()), instTypeLower);
-        return self.watch_private(Value::Bool(isStockOrUta), Value::from(messageHash.clone()), Value::from(messageHash), Value::Map(args), &[paramsRequest]).await;
+        return self.watch_private(Value::Bool(isStockOrUta), messageHash.as_str(), messageHash.as_str(), Value::Map(args), &[paramsRequest]).await;
         Value::Null
         }).await?))
     }
@@ -3452,7 +3458,8 @@ impl Bitget {
         client.resolve(self.balance.clone(), messageHash.as_str());
 }
 
-    pub async fn watch_public(&mut self, mut uta: Value, mut messageHash: Value, mut args: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_public(&mut self, mut uta: Value, messageHash: &str, mut args: Value, optional_args: &[Value]) -> Value {
+        let mut messageHash: Value = messageHash.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3477,12 +3484,13 @@ impl Bitget {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
+        return self.watch(&url, &messageHash, &[message, messageHash.clone()]).await;
 
     Value::Null
 }
 
-    pub async fn un_watch_public(&mut self, mut uta: Value, mut messageHash: Value, mut args: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_watch_public(&mut self, mut uta: Value, messageHash: &str, mut args: Value, optional_args: &[Value]) -> Value {
+        let mut messageHash: Value = messageHash.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3507,7 +3515,7 @@ impl Bitget {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
+        return self.watch(&url, &messageHash, &[message, messageHash.clone()]).await;
 
     Value::Null
 }
@@ -3543,7 +3551,7 @@ impl Bitget {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
+        return self.watch(&url, &messageHash, &[message, messageHash.clone()]).await;
 
     Value::Null
 }
@@ -3574,7 +3582,7 @@ impl Bitget {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch_multiple(url, messageHashes.clone(), &[message, messageHashes.clone()]).await;
+        return self.watch_multiple(&url, messageHashes.clone(), &[message, messageHashes.clone()]).await;
 
     Value::Null
 }
@@ -3616,7 +3624,9 @@ impl Bitget {
     Value::Null
 }
 
-    pub async fn watch_private(&mut self, mut uta: Value, mut messageHash: Value, mut subscriptionHash: Value, mut args: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_private(&mut self, mut uta: Value, messageHash: &str, subscriptionHash: &str, mut args: Value, optional_args: &[Value]) -> Value {
+        let mut messageHash: Value = messageHash.into();
+        let mut subscriptionHash: Value = subscriptionHash.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3646,7 +3656,7 @@ impl Bitget {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch(url, messageHash, &[message, subscriptionHash]).await;
+        return self.watch(&url, &messageHash, &[message, subscriptionHash]).await;
 
     Value::Null
 }

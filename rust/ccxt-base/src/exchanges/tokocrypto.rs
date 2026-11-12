@@ -1151,8 +1151,8 @@ impl Tokocrypto {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1127: bool = true;
-            while { if !__for_first_1127 { i += 1; } __for_first_1127 = false; i < (list.len() as i64) } {
+            let mut __for_first_1126: bool = true;
+            while { if !__for_first_1126 { i += 1; } __for_first_1126 = false; i < (list.len() as i64) } {
             let mut market: crate::value::Dict = list.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut baseId: Option<String> = self.safe_string_k(&market, "baseAsset", &[]).as_str().map(str::to_owned);
             let mut quoteId: Option<String> = self.safe_string_k(&market, "quoteAsset", &[]).as_str().map(str::to_owned);
@@ -1173,8 +1173,8 @@ impl Tokocrypto {
             let mut permissions: crate::value::List = self.safe_list_k(&market, "permissions", &[Value::from(vec![])]).into_list();
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_1126: bool = true;
-                while { if !__for_first_1126 { j += 1; } __for_first_1126 = false; j < (permissions.len() as i64) } {
+                let mut __for_first_1125: bool = true;
+                while { if !__for_first_1125 { j += 1; } __for_first_1125 = false; j < (permissions.len() as i64) } {
                 if (self.safe_string(&permissions, Value::Int(j), &[]).as_str() == Some("TRD_GRP_003")) {
                     active = false;
                     break;
@@ -1388,7 +1388,8 @@ impl Tokocrypto {
         }).await?))
     }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // aggregate trades
@@ -1674,7 +1675,8 @@ impl Tokocrypto {
         }).await?))
     }
 
-    pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut ticker: Value = ticker.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1867,11 +1869,11 @@ impl Tokocrypto {
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.binance_get_ticker24hr(&[__ws_arg_5]).await;
         if (matches!(&response, Value::Arr(_))) {
-            let mut firstTicker: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
+            let mut firstTicker: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            return self.parse_ticker(firstTicker, &[market.clone()]);
+})]).into_dict();
+            return self.parse_ticker(&firstTicker, &[market.clone()]);
         }
         return self.parse_ticker(response, &[market]);
         Value::Null
@@ -2093,8 +2095,8 @@ impl Tokocrypto {
         let mut balances: crate::value::List = self.safe_list_k(&data, "accountAssets", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1128: bool = true;
-            while { if !__for_first_1128 { i += 1; } __for_first_1128 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1127: bool = true;
+            while { if !__for_first_1127 { i += 1; } __for_first_1127 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "asset", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -2111,7 +2113,8 @@ impl Tokocrypto {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_order_status(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("-2".to_string(), Value::Str("open".into()));
@@ -2134,7 +2137,8 @@ impl Tokocrypto {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // spot
@@ -2234,7 +2238,7 @@ impl Tokocrypto {
         //       "updateTime": "1636061952660"
         //     }
         //
-        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]).as_str().map(str::to_owned);
         let mut filled: String = self.safe_string_k(order.clone(), "executedQty", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
@@ -2247,7 +2251,7 @@ impl Tokocrypto {
         let mut cost: Option<String> = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("cummulativeQuoteQty".into()), Value::Str("cumQuote".into()), Value::Str("executedQuoteQty".into()), Value::Str("cumBase".into())]), &[]).as_str().map(str::to_owned);
         let mut id: Option<String> = self.safe_string_k(order.clone(), "orderId", &[]).as_str().map(str::to_owned);
         let mut rawOrderType: Option<String> = self.safe_string_lower_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = self.parse_order_type(rawOrderType.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Value = self.parse_order_type(rawOrderType.as_deref()).map(Value::from).unwrap_or(Value::Null);
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         if (side.as_deref() == Some("0")) {
             side = Some("buy".to_string());
@@ -2256,7 +2260,7 @@ impl Tokocrypto {
         }
         let mut fills: Value = self.safe_list_k(order.clone(), "fills", &[Value::from(vec![])]);
         let mut clientOrderId: Option<String> = self.safe_string2(order.clone(), Value::Str("clientOrderId".into()), Value::Str("clientId".into()), &[]).as_str().map(str::to_owned);
-        let mut timeInForce: Value = self.parse_time_in_force(self.safe_string_k(order.clone(), "timeInForce", &[])).map(Value::from).unwrap_or(Value::Null);
+        let mut timeInForce: Value = self.parse_time_in_force((self.safe_string_k(order.clone(), "timeInForce", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
         // the order type carries the post only flag on its own, 7 on the open/v1
         // payloads and LIMIT_MAKER on the binance shaped ones, so the time force
         // echoed back by the venue is only the third witness
@@ -2292,7 +2296,8 @@ impl Tokocrypto {
     Value::Null
 }
 
-    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Option<String> {
+    pub fn parse_time_in_force(&self, timeInForce: Option<&str>) -> Option<String> {
+        let mut timeInForce: Value = timeInForce.into();
         let mut timeInForces: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("1".to_string(), Value::Str("GTC".into()));
@@ -2305,7 +2310,8 @@ impl Tokocrypto {
         return self.safe_string(&timeInForces, timeInForce.clone(), &[timeInForce.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order_type(&self, mut status: Value) -> Option<String> {
+    pub fn parse_order_type(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("2".to_string(), Value::Str("market".into()));
@@ -2571,11 +2577,11 @@ impl Tokocrypto {
         //         "timestamp": 1662710994975
         //     }
         //
-        let mut rawOrder: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut rawOrder: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_order(rawOrder, &[market]);
+        })]).into_dict();
+        return self.parse_order(&rawOrder, &[market]);
         Value::Null
         }).await?))
     }
@@ -2644,11 +2650,11 @@ impl Tokocrypto {
             m
         })]).into_dict();
         let mut list: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
-        let mut rawOrder: Value = self.safe_dict(&list, Value::Int(0), &[Value::Map({
+        let mut rawOrder: crate::value::Dict = self.safe_dict(&list, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        return self.parse_order(rawOrder, &[]);
+})]).into_dict();
+        return self.parse_order(&rawOrder, &[]);
         Value::Null
         }).await?))
     }
@@ -2734,8 +2740,8 @@ impl Tokocrypto {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut orders: Value = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
-        return self.parse_orders(orders, &[(market).raw.clone(), since, limit]);
+        let mut orders: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
+        return self.parse_orders(&orders, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2866,11 +2872,11 @@ impl Tokocrypto {
         //         "timestamp": 1662710683634
         //     }
         //
-        let mut rawOrder: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut rawOrder: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_order(rawOrder, &[]);
+        })]).into_dict();
+        return self.parse_order(&rawOrder, &[]);
         Value::Null
         }).await?))
     }
@@ -3206,7 +3212,8 @@ impl Tokocrypto {
         }).await?))
     }
 
-    pub fn parse_transaction_status_by_type(&self, mut status: Value, optional_args: &[Value]) -> Option<String> {
+    pub fn parse_transaction_status_by_type(&self, status: Option<&str>, optional_args: &[Value]) -> Option<String> {
+        let mut status: Value = status.into();
         let mut type_var = get_arg(optional_args, 0, Value::Null);
         let mut statusesByType: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3236,7 +3243,8 @@ impl Tokocrypto {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut transaction: Value = transaction.into();
         let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // fetchDeposits
@@ -3343,7 +3351,7 @@ impl Tokocrypto {
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "network", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)]));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
-        m.insert("status".to_string(), self.parse_transaction_status_by_type(self.safe_string_k(transaction.clone(), "status", &[]), &[type_var.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_transaction_status_by_type((self.safe_string_k(transaction.clone(), "status", &[])).as_str(), &[type_var.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3626,8 +3634,8 @@ if _try_result.is_err() {
             let mut limit: Value = self.safe_integer_k(&paramsDict, "limit", &[]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1129: bool = true;
-                while { if !__for_first_1129 { i += 1; } __for_first_1129 = false; i < (byLimit.len() as i64) } {
+                let mut __for_first_1128: bool = true;
+                while { if !__for_first_1128 { i += 1; } __for_first_1128 = false; i < (byLimit.len() as i64) } {
                 let mut entry: Value = byLimit.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut entryLimit: Value = self.safe_integer(entry.clone(), Value::Int(0), &[]);
                 if (limit != Value::Null) && (entryLimit != Value::Null) && (limit.as_f64().unwrap_or(f64::NAN) <= entryLimit.as_f64().unwrap_or(f64::NAN)) {

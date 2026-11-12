@@ -310,14 +310,14 @@ impl Kucoinfutures {
                 m.insert("amount".to_string(), amountToPrecision.clone());
             m
         });
-        let mut toAccountString: Value = self.parse_transfer_type(toAccount.clone()).map(Value::from).unwrap_or(Value::Null);
+        let mut toAccountString: Value = self.parse_transfer_type(toAccount.as_str()).map(Value::from).unwrap_or(Value::Null);
         let mut response: Option<crate::value::Dict> = None;
         if (toAccountString.as_str() == Some("TRADE")) || (toAccountString.as_str() == Some("MAIN")) {
             request.insert("recAccountType".into(), toAccountString);
             let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.parent.futures_private_post_transfer_out(&[__ws_arg_0]).await.into_opt_dict();
         }  else if (toAccount.as_str() == Some("future")) || (toAccount.as_str() == Some("swap")) || (toAccount.as_str() == Some("contract")) {
-            request.insert("payAccountType".into(), self.parse_transfer_type(fromAccount.clone()).map(Value::from).unwrap_or(Value::Null));
+            request.insert("payAccountType".into(), self.parse_transfer_type(fromAccount.as_str()).map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
             response = self.parent.futures_private_post_transfer_in(&[__ws_arg_1]).await.into_opt_dict();
         }  else {
@@ -340,7 +340,8 @@ impl Kucoinfutures {
         }).await?))
     }
 
-    pub fn parse_transfer_type(&self, mut transferType: Value) -> Option<String> {
+    pub fn parse_transfer_type(&self, transferType: Option<&str>) -> Option<String> {
+        let mut transferType: Value = transferType.into();
         let mut transferTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("TRADE".into()));

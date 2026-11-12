@@ -34,8 +34,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             assert!(ccxt::runtime::is_true(&((matches!(&response, Value::Arr(_))))));
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1613: bool = true;
-                while { if !__for_first_1613 { i += 1; } __for_first_1613 = false; i < (response.len() as i64) } {
+                let mut __for_first_1612: bool = true;
+                while { if !__for_first_1612 { i += 1; } __for_first_1612 = false; i < (response.len() as i64) } {
                 let mut trade: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 assert!(ccxt::runtime::is_true(&((symbol != Value::Null))));

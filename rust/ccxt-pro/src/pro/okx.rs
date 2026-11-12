@@ -204,8 +204,8 @@ impl crate::exchange_generated::ExchangeBase for Okx {
                 "parse_ws_my_liquidation" => self.parse_ws_my_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "request_id" => self.request_id(),
-                "subscribe" => self.subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
-                "subscribe_multiple" => self.subscribe_multiple(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "subscribe" => self.subscribe(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str), &args[4.min(args.len())..]).await,
+                "subscribe_multiple" => self.subscribe_multiple(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), &args[2.min(args.len())..]).await,
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_ohlcv_for_symbols" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -471,7 +471,9 @@ impl Okx {
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("/private".into())).into()), sandboxSuffix).into()).as_str().map(str::to_owned);
 }
 
-    pub async fn subscribe_multiple(&mut self, mut access: Value, mut channel: Value, optional_args: &[Value]) -> Value {
+    pub async fn subscribe_multiple(&mut self, access: &str, channel: &str, optional_args: &[Value]) -> Value {
+        let mut access: Value = access.into();
+        let mut channel: Value = channel.into();
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -523,7 +525,11 @@ impl Okx {
     Value::Null
 }
 
-    pub async fn subscribe(&mut self, mut access: Value, mut messageHash: Value, mut channel: Value, mut symbol: Value, optional_args: &[Value]) -> Value {
+    pub async fn subscribe(&mut self, access: &str, messageHash: &str, channel: &str, symbol: Option<&str>, optional_args: &[Value]) -> Value {
+        let mut access: Value = access.into();
+        let mut messageHash: Value = messageHash.into();
+        let mut channel: Value = channel.into();
+        let mut symbol: Value = symbol.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -537,10 +543,10 @@ impl Okx {
                 m.insert("channel".to_string(), channel);
             m
         });
-        let mut messageHashResolved: Value = messageHash.clone();
+        let mut messageHashResolved: String = messageHash.as_str().unwrap_or_default().to_string();
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            messageHashResolved = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])).into());
+            messageHashResolved = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]));
             firstArgument.insert("instId".into(), Value::from((market).id.clone()));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -549,7 +555,7 @@ impl Okx {
                 m.insert("args".to_string(), Value::from(vec![self.deep_extend(Value::Map(firstArgument), &[params])]));
             m
         });
-        return self.watch(url.as_deref(), messageHashResolved.clone(), &[Value::Map(request), messageHashResolved]).await;
+        return self.watch(url.as_deref(), &messageHashResolved[..], &[Value::Map(request), Value::from(messageHashResolved.clone())]).await;
 
     Value::Null
 }
@@ -1039,9 +1045,9 @@ impl Okx {
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let channelparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchTickers".into()), Value::Str("channel".into()), &[Value::Str("tickers".into())]).as_array().cloned().unwrap_or_default();
-        let mut channel: Value = channelparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut channel: Option<String> = channelparamsChannelVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsChannel: Value = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut newTickers: Value = self.subscribe_multiple(Value::Str("public".into()), channel, &[Value::Arr(symbolsNormalized.clone()), paramsChannel]).await;
+        let mut newTickers: Value = self.subscribe_multiple("public", channel.as_deref().unwrap_or_default(), &[Value::Arr(symbolsNormalized.clone()), paramsChannel]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newTickers;
         }
@@ -1112,9 +1118,9 @@ impl Okx {
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let channelparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchMarkPrices".into()), Value::Str("channel".into()), &[Value::Str("mark-price".into())]).as_array().cloned().unwrap_or_default();
-        let mut channel: Value = channelparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut channel: Option<String> = channelparamsChannelVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsChannel: Value = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut newTickers: Value = self.subscribe_multiple(Value::Str("public".into()), channel, &[Value::Arr(symbolsNormalized.clone()), paramsChannel]).await;
+        let mut newTickers: Value = self.subscribe_multiple("public", channel.as_deref().unwrap_or_default(), &[Value::Arr(symbolsNormalized.clone()), paramsChannel]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newTickers;
         }
@@ -1802,7 +1808,7 @@ impl Okx {
         let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
         let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut name: String = format!("{}{}", Value::Str("candle".into()), interval.map(Value::from).unwrap_or(Value::Null));
-        let mut ohlcv: Value = self.subscribe(Value::Str("public".into()), Value::from(name.clone()), Value::from(name), symbolValue.clone().map(Value::from).unwrap_or(Value::Null), &[params]).await;
+        let mut ohlcv: Value = self.subscribe("public", name.as_str(), name.as_str(), symbolValue.as_deref(), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_deref(), limit.as_i64());
@@ -2162,9 +2168,9 @@ impl Okx {
                     m.insert("args".to_string(), Value::from(resyncTopics));
                 m
             });
-            self.watch_multiple(url.clone(), &resyncHashes, &[Value::Map(unsubscribeRequest), Value::Arr(resyncHashes.clone())]).await;
+            self.watch_multiple(&url, &resyncHashes, &[Value::Map(unsubscribeRequest), Value::Arr(resyncHashes.clone())]).await;
         }
-        let mut orderbook: Value = self.watch_multiple(url, &messageHashes, &[Value::Map(request), Value::Arr(messageHashes.clone())]).await;
+        let mut orderbook: Value = self.watch_multiple(&url, &messageHashes, &[Value::Map(request), Value::Arr(messageHashes.clone())]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -2572,7 +2578,7 @@ impl Okx {
             if (paramsOmitted.contains_key("access")) {
                 request.insert("access".into(), crate::value::KeyRead::key_read(&&paramsOmitted, "access"));
             }
-            self.watch(url, &messageHash[..], &[Value::Map(request), Value::from(messageHash.clone())]).await;
+            self.watch(&url, &messageHash[..], &[Value::Map(request), Value::from(messageHash.clone())]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -2601,7 +2607,7 @@ impl Okx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        return self.subscribe(Value::Str("private".into()), Value::Str("account".into()), Value::Str("account".into()), Value::Null, &[params]).await;
+        return self.subscribe("private", "account", "account", None, &[params]).await;
         Value::Null
         }).await?))
     }
@@ -2850,7 +2856,7 @@ impl Okx {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        let mut orders: Value = self.subscribe(Value::Str("private".into()), Value::from(messageHash), Value::from(channel), Value::Null, &[__ws_arg_1]).await;
+        let mut orders: Value = self.subscribe("private", messageHash.as_str(), channel.as_str(), None, &[__ws_arg_1]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
@@ -2914,7 +2920,7 @@ impl Okx {
             newPositions = self.watch(url.as_deref(), &channel[..], &[Value::Map(nonSymbolRequest), Value::from(channel.clone())]).await;
         }  else {
             let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-            newPositions = self.subscribe_multiple(Value::Str("private".into()), Value::from(channel), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr), __ws_arg_2]).await;
+            newPositions = self.subscribe_multiple("private", channel.as_str(), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr), __ws_arg_2]).await;
         }
         if self.newUpdates.as_bool() == Some(true) {
             return (if (newPositions == Value::Null) { Value::from(vec![]) } else { newPositions });
@@ -3107,7 +3113,7 @@ impl Okx {
             channel = "orders-algo".to_string();
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        let mut orders: Value = self.subscribe(Value::Str("private".into()), Value::from(channel.clone()), Value::from(channel), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), &[__ws_arg_3]).await;
+        let mut orders: Value = self.subscribe("private", channel.as_str(), channel.as_str(), symbolResolved.as_deref(), &[__ws_arg_3]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -3374,7 +3380,7 @@ impl Okx {
         let opparamsOpVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrderWs".into()), Value::Str("op".into()), &[Value::Str("batch-orders".into())]).as_array().cloned().unwrap_or_default();
         let mut op: Option<String> = opparamsOpVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOp: Value = opparamsOpVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut args: Value = self.parent.create_order_request(symbol.clone(), type_var.clone(), side, amount, &[price, paramsOp]);
+        let mut args: Value = self.parent.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, paramsOp]);
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
         let mut instIdCode: Option<i64> = self.safe_integer_k(&market, "instIdCode", &[]).as_i64();
         if (instIdCode.is_some()) {
@@ -3395,7 +3401,7 @@ impl Okx {
                 m.insert("args".to_string(), Value::from(vec![args]));
             m
         });
-        return self.watch(url.as_deref(), messageHash.clone(), &[Value::Map(request), messageHash]).await;
+        return self.watch(url.as_deref(), &messageHash, &[Value::Map(request), messageHash.clone()]).await;
         Value::Null
         }).await?))
     }
@@ -3485,7 +3491,7 @@ impl Okx {
         let opparamsOpVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("editOrderWs".into()), Value::Str("op".into()), &[Value::Str("amend-order".into())]).as_array().cloned().unwrap_or_default();
         let mut op: Value = opparamsOpVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsOp: crate::value::Dict = opparamsOpVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut args: Value = self.parent.edit_order_request(id, symbol.clone(), type_var, side, &[amount, price, Value::from(&paramsOp)]);
+        let mut args: Value = self.parent.edit_order_request(id.as_str(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[amount, price, Value::from(&paramsOp)]);
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
         let mut instIdCode: Option<i64> = self.safe_integer_k(&market, "instIdCode", &[]).as_i64();
         if (instIdCode.is_some()) {
@@ -3500,7 +3506,7 @@ impl Okx {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOp]);
-        return self.watch(url.as_deref(), messageHash.clone(), &[__ws_arg_4, messageHash.clone()]).await;
+        return self.watch(url.as_deref(), &messageHash, &[__ws_arg_4, messageHash.clone()]).await;
         Value::Null
         }).await?))
     }
@@ -3558,7 +3564,7 @@ impl Okx {
                 m.insert("args".to_string(), Value::from(vec![self.extend(Value::Map(arg), &[&paramsOmitted])]));
             m
         });
-        return self.watch(url.as_deref(), messageHash.clone(), &[Value::Map(request), messageHash]).await;
+        return self.watch(url.as_deref(), &messageHash, &[Value::Map(request), messageHash.clone()]).await;
         Value::Null
         }).await?))
     }
@@ -3627,7 +3633,7 @@ impl Okx {
             m
         });
         let __ws_arg_6 = self.deep_extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), messageHash.clone(), &[__ws_arg_6, messageHash.clone()]).await;
+        return self.watch(url.as_deref(), &messageHash, &[__ws_arg_6, messageHash.clone()]).await;
         Value::Null
         }).await?))
     }
@@ -3677,7 +3683,7 @@ impl Okx {
 }), &[params])]));
             m
         });
-        return self.watch(url.as_deref(), messageHash.clone(), &[Value::Map(request), messageHash]).await;
+        return self.watch(url.as_deref(), &messageHash, &[Value::Map(request), messageHash.clone()]).await;
         Value::Null
         }).await?))
     }

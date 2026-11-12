@@ -205,9 +205,9 @@ impl crate::exchange_generated::ExchangeBase for Modetrade {
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_positions" => crate::types::IntoRaw::into_raw(self.watch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "watch_private" => self.watch_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "watch_private" => self.watch_private(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "watch_private_multiple" => self.watch_private_multiple(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
-                "watch_public" => self.watch_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "watch_public" => self.watch_public(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -384,7 +384,8 @@ impl Modetrade {
     Value::Null
 }
 
-    pub async fn watch_public(&mut self, mut messageHash: Value, mut message: Value) -> Value {
+    pub async fn watch_public(&mut self, messageHash: &str, mut message: Value) -> Value {
+        let mut messageHash: Value = messageHash.into();
         let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -409,7 +410,7 @@ impl Modetrade {
             m
         });
         let mut request: Value = self.extend(Value::Map(subscribe.clone()), &[message]);
-        return self.watch(url.as_str(), messageHash.clone(), &[request, messageHash.clone(), Value::Map(subscribe)]).await;
+        return self.watch(url.as_str(), &messageHash, &[request, messageHash.clone(), Value::Map(subscribe)]).await;
 
     Value::Null
 }
@@ -450,7 +451,7 @@ impl Modetrade {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: Value = self.watch_public(Value::from(topic), message).await;
+        let mut orderbook: Value = self.watch_public(topic.as_str(), message).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -529,7 +530,7 @@ impl Modetrade {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch_public(Value::from(topic), message).await;
+        return self.watch_public(topic.as_str(), message).await;
         Value::Null
         }).await?))
     }
@@ -649,7 +650,7 @@ impl Modetrade {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut tickers: Value = self.watch_public(topic, message).await;
+        let mut tickers: Value = self.watch_public(topic.as_str().unwrap_or_default(), message).await;
         return self.filter_by_array(tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
@@ -733,7 +734,7 @@ impl Modetrade {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut tickers: Value = self.watch_public(topic, message).await;
+        let mut tickers: Value = self.watch_public(topic.as_str().unwrap_or_default(), message).await;
         return self.filter_by_array(tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
@@ -847,7 +848,7 @@ impl Modetrade {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut ohlcv: Value = self.watch_public(Value::from(topic), message).await;
+        let mut ohlcv: Value = self.watch_public(topic.as_str(), message).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
@@ -941,7 +942,7 @@ impl Modetrade {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch_public(Value::from(topic), message).await;
+        let mut trades: Value = self.watch_public(topic.as_str(), message).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
@@ -989,7 +990,8 @@ impl Modetrade {
         client.resolve(trades, topic.as_deref());
 }
 
-    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1154,7 +1156,8 @@ impl Modetrade {
     Value::Null
 }
 
-    pub async fn watch_private(&mut self, mut messageHash: Value, mut message: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_private(&mut self, messageHash: &str, mut message: Value, optional_args: &[Value]) -> Value {
+        let mut messageHash: Value = messageHash.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1180,7 +1183,7 @@ impl Modetrade {
             m
         });
         let mut request: Value = self.extend(Value::Map(subscribe.clone()), &[message]);
-        return self.watch(url.as_str(), messageHash.clone(), &[request, messageHash.clone(), Value::Map(subscribe)]).await;
+        return self.watch(url.as_str(), &messageHash, &[request, messageHash.clone(), Value::Map(subscribe)]).await;
 
     Value::Null
 }
@@ -1265,7 +1268,7 @@ impl Modetrade {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut orders: Value = self.watch_private(Value::from(messageHash), message, &[]).await;
+        let mut orders: Value = self.watch_private(messageHash.as_str(), message, &[]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -1324,7 +1327,7 @@ impl Modetrade {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut orders: Value = self.watch_private(Value::from(messageHash), message, &[]).await;
+        let mut orders: Value = self.watch_private(messageHash.as_str(), message, &[]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -1334,7 +1337,8 @@ impl Modetrade {
         }).await?))
     }
 
-    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1428,7 +1432,7 @@ impl Modetrade {
             remaining = crate::precise::Precise::stringSub(&remaining.clone().map(Value::from).unwrap_or(Value::Null), &totalExecQuantity.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut rawStatus: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut status: Value = self.parent.parse_order_status(rawStatus.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Value = self.parent.parse_order_status(rawStatus.as_deref()).map(Value::from).unwrap_or(Value::Null);
         let mut trades: Value = Value::Null;
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
         let mut triggerPrice: Option<f64> = self.safe_number_k(order.clone(), "triggerPrice", &[]).as_f64();
@@ -1882,7 +1886,7 @@ impl Modetrade {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut topic: String = "balance".to_string();
-        let mut messageHash: Value = Value::from(topic.clone());
+        let mut messageHash: String = topic.clone();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
@@ -1890,7 +1894,7 @@ impl Modetrade {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch_private(messageHash, message, &[]).await;
+        return self.watch_private(messageHash.as_str(), message, &[]).await;
         Value::Null
         }).await?))
     }

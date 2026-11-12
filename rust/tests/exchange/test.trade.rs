@@ -66,8 +66,8 @@ pub fn testTrade(mut exchange: Value, mut skippedProperties: Value, mut method: 
         if (entry.as_map().and_then(|__m| __m.get("fees")).cloned().unwrap_or(Value::Null) != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1558: bool = true;
-                while { if !__for_first_1558 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1558 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&get_value(&entry, &Value::Str("fees".into()))).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1557: bool = true;
+                while { if !__for_first_1557 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1557 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&get_value(&entry, &Value::Str("fees".into()))).as_f64().unwrap_or(f64::NAN) } {
                 crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.as_map().and_then(|__m| __m.get("fees")).cloned().unwrap_or(Value::Null).clone(), i.clone()]);
             }
             }

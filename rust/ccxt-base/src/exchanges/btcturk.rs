@@ -591,7 +591,8 @@ impl Btcturk {
         }).await?))
     }
 
-    pub fn parse_market(&self, mut entry: Value) -> Value {
+    pub fn parse_market(&self, entry: impl Into<crate::Value>) -> Value {
+        let mut entry: Value = entry.into();
         let mut id: Option<String> = self.safe_string_k(entry.clone(), "name", &[]).as_str().map(str::to_owned);
         let mut baseId: Option<String> = self.safe_string_k(entry.clone(), "numerator", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(entry.clone(), "denominator", &[]).as_str().map(str::to_owned);
@@ -608,8 +609,8 @@ impl Btcturk {
         let mut minCost: Value = Value::Null;
         {
                         let mut j: i64 = 0;
-            let mut __for_first_475: bool = true;
-            while { if !__for_first_475 { j += 1; } __for_first_475 = false; j < (filters.len() as i64) } {
+            let mut __for_first_474: bool = true;
+            while { if !__for_first_474 { j += 1; } __for_first_474 = false; j < (filters.len() as i64) } {
             let mut filter: crate::value::Dict = self.safe_dict(&filters, Value::Int(j), &[]).into_dict();
             let mut filterType: Option<String> = self.safe_string_k(&filter, "filterType", &[]).as_str().map(str::to_owned);
             if (filterType.as_deref() == Some("PRICE_FILTER")) {
@@ -689,7 +690,8 @@ impl Btcturk {
     Value::Null
 }
 
-    pub fn parse_balance(&self, mut response: Value) -> Value {
+    pub fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut data: crate::value::List = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -700,8 +702,8 @@ impl Btcturk {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_476: bool = true;
-            while { if !__for_first_476 { i += 1; } __for_first_476 = false; i < (data.len() as i64) } {
+            let mut __for_first_475: bool = true;
+            while { if !__for_first_475 { i += 1; } __for_first_475 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "asset", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -800,7 +802,8 @@ impl Btcturk {
         }).await?))
     }
 
-    pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut ticker: Value = ticker.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //   {
@@ -926,7 +929,8 @@ impl Btcturk {
         }).await?))
     }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades
@@ -1185,8 +1189,8 @@ impl Btcturk {
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_477: bool = true;
-            while { if !__for_first_477 { i += 1; } __for_first_477 = false; i < (timestamp.len() as i64) } {
+            let mut __for_first_476: bool = true;
+            while { if !__for_first_476 { i += 1; } __for_first_476 = false; i < (timestamp.len() as i64) } {
             rows.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), self.safe_integer(&timestamp, Value::Int(i), &[]));
@@ -1215,8 +1219,8 @@ impl Btcturk {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_478: bool = true;
-            while { if !__for_first_478 { i += 1; } __for_first_478 = false; i < (rows.len() as i64) } {
+            let mut __for_first_477: bool = true;
+            while { if !__for_first_477 { i += 1; } __for_first_477 = false; i < (rows.len() as i64) } {
             results.push(self.parse_ohlcv(self.safe_dict(&rows, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1279,11 +1283,11 @@ impl Btcturk {
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_order(&[__ws_arg_3]).await.into_dict();
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_order(data, &[(market).raw.clone()]);
+        })]).into_dict();
+        return self.parse_order(&data, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1443,7 +1447,8 @@ impl Btcturk {
         }).await?))
     }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_order_status(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Untouched".to_string(), Value::Str("open".into()));
@@ -1455,7 +1460,8 @@ impl Btcturk {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchOrders / fetchOpenOrders
@@ -1502,7 +1508,7 @@ impl Btcturk {
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "orderClientId", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("updateTime".into()), Value::Str("datetime".into()), &[]).as_i64();
         let mut rawStatus: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut status: Value = self.parse_order_status(rawStatus.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Value = self.parse_order_status(rawStatus.as_deref()).map(Value::from).unwrap_or(Value::Null);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);

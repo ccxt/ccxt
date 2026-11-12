@@ -929,11 +929,11 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_638: bool = true;
             while { if !__for_first_638 { i += 1; } __for_first_638 = false; (i as f64) < rowsLength } {
-            let mut row: Value = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
+            let mut row: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut trade: Value = self.parse_ws_trade(row, &[market.clone()]);
+            })]).into_dict();
+            let mut trade: Value = self.parse_ws_trade(&row, &[market.clone()]);
             trades.append(trade);
         }
         }
@@ -941,7 +941,8 @@ impl Polymarket {
         client.resolve(trades, messageHash.as_str());
 }
 
-    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1489,7 +1490,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }), params, subscribeHashes]);
-        let mut newPositions: Value = self.watch(url.as_deref(), Value::Str("positions".into()), &[request, Value::Str("portfolio".into())]).await;
+        let mut newPositions: Value = self.watch(url.as_deref(), "positions", &[request, Value::Str("portfolio".into())]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return self.filter_by_symbols_since_limit(newPositions, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
@@ -1576,7 +1577,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }), params, subscribeHashes]);
-        return self.watch(url.as_deref(), Value::Str("balance".into()), &[request, Value::Str("portfolio".into())]).await;
+        return self.watch(url.as_deref(), "balance", &[request, Value::Str("portfolio".into())]).await;
         Value::Null
         }).await?))
     }

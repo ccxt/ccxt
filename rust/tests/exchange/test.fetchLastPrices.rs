@@ -30,8 +30,8 @@ if _try_result.is_err() {
     let mut atLeastOnePassed: Value = Value::Bool(false);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1573: bool = true;
-        while { if !__for_first_1573 { i += 1; } __for_first_1573 = false; i < (values.len() as i64) } {
+        let mut __for_first_1572: bool = true;
+        while { if !__for_first_1572 { i += 1; } __for_first_1572 = false; i < (values.len() as i64) } {
         // todo: symbol check here
         testLastPrice(exchange.clone(), skippedProperties.clone(), method.clone(), values.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), checkedSymbol.clone());
         atLeastOnePassed = Value::Bool(is_true(&atLeastOnePassed) || (exchange.safe_number(values.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("price".into()), &[]).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)));

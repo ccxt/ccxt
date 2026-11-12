@@ -109,9 +109,9 @@ impl crate::exchange_generated::ExchangeBase for Predictfun {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "nonce" => self.nonce(),
-                "order_book_message_hashes" => self.order_book_message_hashes(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "outcome_for_token" => self.outcome_for_token(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "outcomes_by_market_id" => self.outcomes_by_market_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "order_book_message_hashes" => self.order_book_message_hashes(args.get(0).and_then(crate::Value::as_str)),
+                "outcome_for_token" => self.outcome_for_token(args.get(0).and_then(crate::Value::as_str), &args[1.min(args.len())..]),
+                "outcomes_by_market_id" => self.outcomes_by_market_id(args.get(0).and_then(crate::Value::as_str)),
                 "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -126,18 +126,18 @@ impl crate::exchange_generated::ExchangeBase for Predictfun {
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign_evm_transaction" => self.sign_evm_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_predictfun_order" => self.sign_predictfun_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).is_some_and(crate::Value::is_truthy), args.get(2).is_some_and(crate::Value::is_truthy)),
-                "strip_price_formatting" => self.strip_price_formatting(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "strip_price_formatting" => self.strip_price_formatting(args.get(0).and_then(crate::Value::as_str)),
                 "un_watch_my_trades" => crate::types::IntoRaw::into_raw(self.un_watch_my_trades(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_orders" => crate::types::IntoRaw::into_raw(self.un_watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
-                "un_watch_wallet_events" => self.un_watch_wallet_events(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "un_watch_wallet_events" => self.un_watch_wallet_events(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
                 "wallet_event_message_hashes" => self.wallet_event_message_hashes(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "wallet_event_outcome" => self.wallet_event_outcome(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "wallet_events_topic" => self.wallet_events_topic().await,
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "watch_wallet_events" => self.watch_wallet_events(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "watch_wallet_events" => self.watch_wallet_events(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
                 // Prediction Core: fall through to prediction base methods (then Exchange base).
                 _ => self.call_dynamic_prediction_base(method, args).await,
             }
@@ -571,14 +571,14 @@ impl Predictfun {
         let mut markets: Vec<Value> = Vec::new();
         {
                         let mut ei: i64 = 0;
-            let mut __for_first_1458: bool = true;
-            while { if !__for_first_1458 { ei += 1; } __for_first_1458 = false; (ei as f64) < eventsLength } {
+            let mut __for_first_1457: bool = true;
+            while { if !__for_first_1457 { ei += 1; } __for_first_1457 = false; (ei as f64) < eventsLength } {
             let mut eventMarkets: crate::value::List = self.safe_list_k(events.as_array().map(Vec::as_slice).unwrap_or_default().get(ei as usize).cloned().unwrap_or(Value::Null), "markets", &[Value::from(vec![])]).into_list();
             let mut eventMarketsLength: f64 = ((eventMarkets.len() as i64) as f64);
             {
                                 let mut mi: i64 = 0;
-                let mut __for_first_1457: bool = true;
-                while { if !__for_first_1457 { mi += 1; } __for_first_1457 = false; (mi as f64) < eventMarketsLength } {
+                let mut __for_first_1456: bool = true;
+                while { if !__for_first_1456 { mi += 1; } __for_first_1456 = false; (mi as f64) < eventMarketsLength } {
                 markets.push(eventMarkets.get(mi as usize).cloned().unwrap_or(Value::Null));
             }
             }
@@ -888,16 +888,16 @@ impl Predictfun {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1460: bool = true;
-            while { if !__for_first_1460 { i += 1; } __for_first_1460 = false; (i as f64) < rawTopicsLength } {
+            let mut __for_first_1459: bool = true;
+            while { if !__for_first_1459 { i += 1; } __for_first_1459 = false; (i as f64) < rawTopicsLength } {
             let mut parsedEvent: Value = self.parse_event(rawTopics.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             result.push(parsedEvent.clone());
             let mut parsedMarkets: crate::value::List = self.safe_list_k(parsedEvent, "markets", &[Value::from(vec![])]).into_list();
             let mut parsedMarketsLength: f64 = ((parsedMarkets.len() as i64) as f64);
             {
                                 let mut mi: i64 = 0;
-                let mut __for_first_1459: bool = true;
-                while { if !__for_first_1459 { mi += 1; } __for_first_1459 = false; (mi as f64) < parsedMarketsLength } {
+                let mut __for_first_1458: bool = true;
+                while { if !__for_first_1458 { mi += 1; } __for_first_1458 = false; (mi as f64) < parsedMarketsLength } {
                 let mut m: Value = parsedMarkets.get(mi as usize).cloned().unwrap_or(Value::Null);
                 // prediction market rows are keyed by the unified 'market' handle
                 let mut handle: Option<String> = self.safe_string_k_opt(m.clone(), "market", &[]);
@@ -979,8 +979,8 @@ impl Predictfun {
         let mut orphanSlugs: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1463: bool = true;
-            while { if !__for_first_1463 { i += 1; } __for_first_1463 = false; (i as f64) < queriesLength } {
+            let mut __for_first_1462: bool = true;
+            while { if !__for_first_1462 { i += 1; } __for_first_1462 = false; (i as f64) < queriesLength } {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("query".to_string(), self.safe_string(queries.clone(), Value::Int(i), &[Value::Str("".into())]));
@@ -1046,8 +1046,8 @@ impl Predictfun {
             let mut categoriesLength: f64 = ((categories.len() as i64) as f64);
             {
                                 let mut ci: i64 = 0;
-                let mut __for_first_1461: bool = true;
-                while { if !__for_first_1461 { ci += 1; } __for_first_1461 = false; (ci as f64) < categoriesLength } {
+                let mut __for_first_1460: bool = true;
+                while { if !__for_first_1460 { ci += 1; } __for_first_1460 = false; (ci as f64) < categoriesLength } {
                 let mut category: Value = self.safe_dict(&categories, Value::Int(ci), &[]);
                 let mut categorySlug: Option<String> = self.safe_string_k_opt(category.clone(), "slug", &[]);
                 if (categorySlug.is_none()) {
@@ -1066,8 +1066,8 @@ impl Predictfun {
             let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
             {
                                 let mut mi: i64 = 0;
-                let mut __for_first_1462: bool = true;
-                while { if !__for_first_1462 { mi += 1; } __for_first_1462 = false; (mi as f64) < rawMarketsLength } {
+                let mut __for_first_1461: bool = true;
+                while { if !__for_first_1461 { mi += 1; } __for_first_1461 = false; (mi as f64) < rawMarketsLength } {
                 let mut rawMarket: Value = rawMarkets.get(mi as usize).cloned().unwrap_or(Value::Null);
                 let mut marketSlug: Option<String> = self.safe_string_k_opt(rawMarket.clone(), "categorySlug", &[]);
                 if (marketSlug.is_some()) {
@@ -1092,8 +1092,8 @@ impl Predictfun {
         let mut orphanSlugsLength: f64 = ((orphanSlugs.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1464: bool = true;
-            while { if !__for_first_1464 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1464 = false; i.as_f64().unwrap_or(f64::NAN) < orphanSlugsLength } {
+            let mut __for_first_1463: bool = true;
+            while { if !__for_first_1463 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1463 = false; i.as_f64().unwrap_or(f64::NAN) < orphanSlugsLength } {
             let mut orphanSlug: Value = orphanSlugs.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             if !(matches!(&orphanSlug, Value::Str(__k) if seenSlugs.contains_key(__k.as_ref()))) {
                 seenSlugs.insert(crate::runtime::stringify_param(&orphanSlug), Value::Bool(true));
@@ -1311,8 +1311,8 @@ impl Predictfun {
         let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1465: bool = true;
-            while { if !__for_first_1465 { i += 1; } __for_first_1465 = false; (i as f64) < rawMarketsLength } {
+            let mut __for_first_1464: bool = true;
+            while { if !__for_first_1464 { i += 1; } __for_first_1464 = false; (i as f64) < rawMarketsLength } {
             let mut parsed: Value = self.parse_topic_market(rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null), rawTopic.clone());
             marketsList.push(parsed.clone());
             if matches!(self.safe_bool_k(parsed, "active", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -1365,7 +1365,8 @@ impl Predictfun {
  * @param {string} [text] the raw title or outcome label
  * @returns {string} the same text with '$' removed and thousands separators closed up
  */
-    pub fn strip_price_formatting(&self, mut text: Value) -> Value {
+    pub fn strip_price_formatting(&self, text: Option<&str>) -> Value {
+        let mut text: Value = text.into();
         if (text == Value::Null) {
             return Value::Null;
         }
@@ -1374,8 +1375,8 @@ impl Predictfun {
         let mut stripped: String = "".to_string();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1466: bool = true;
-            while { if !__for_first_1466 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1466 = false; i.as_f64().unwrap_or(f64::NAN) < ((chars.len() as i64) as f64) } {
+            let mut __for_first_1465: bool = true;
+            while { if !__for_first_1465 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1465 = false; i.as_f64().unwrap_or(f64::NAN) < ((chars.len() as i64) as f64) } {
             let mut ch: Option<String> = chars.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).and_then(Value::as_str).map(str::to_owned);
             let mut keep: bool = true;
             if (ch.as_deref() == Some("$")) {
@@ -1411,7 +1412,9 @@ impl Predictfun {
  * @param {int} [marketCount] how many markets the topic carries
  * @returns {string} the title to append, or the slug itself when the topic holds a single market
  */
-    pub fn title_for_market_symbol(&self, mut topicSlug: Value, mut title: Value, optional_args: &[Value]) -> Option<String> {
+    pub fn title_for_market_symbol(&self, topicSlug: Option<&str>, title: Option<&str>, optional_args: &[Value]) -> Option<String> {
+        let mut topicSlug: Value = topicSlug.into();
+        let mut title: Value = title.into();
         let mut marketCount = get_arg(optional_args, 0, Value::Null);
         // a topic holding one market needs nothing to tell its markets apart, and the title there
         // only restates the slug in another spelling - the venue writes the same window as
@@ -1421,7 +1424,7 @@ impl Predictfun {
         if (marketCount.as_f64() == Some(1.0)) && (topicSlug != Value::Null) {
             return topicSlug.as_str().map(str::to_owned);
         }
-        return self.strip_price_formatting(title).as_str().map(str::to_owned);
+        return self.strip_price_formatting(title.as_str()).as_str().map(str::to_owned);
 }
 
 /*
@@ -1532,7 +1535,7 @@ impl Predictfun {
         let mut title: Option<String> = self.safe_string_k(rawMarket.clone(), "title", &[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut topicMarkets: crate::value::List = rawTopic.get("markets").cloned().unwrap_or_default().into_list();
         let mut marketCount: Value = Value::Int(topicMarkets.len() as i64);
-        let mut symbolTitle: Value = self.title_for_market_symbol(topicSlug.clone().map(Value::from).unwrap_or(Value::Null), title.map(Value::from).unwrap_or(Value::Null), &[marketCount]).map(Value::from).unwrap_or(Value::Null);
+        let mut symbolTitle: Value = self.title_for_market_symbol(topicSlug.as_deref(), title.as_deref(), &[marketCount]).map(Value::from).unwrap_or(Value::Null);
         let mut marketSymbol: Value = self.slug_to_market_symbol(topicSlug.map(Value::from).unwrap_or(Value::Null), symbolTitle);
         let mut tradingStatus: Option<String> = self.safe_string_k(rawMarket.clone(), "tradingStatus", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.safe_string_k(rawMarket.clone(), "status", &[]).as_str().map(str::to_owned);
@@ -1558,13 +1561,13 @@ impl Predictfun {
         let mut rawOutcomesLength: f64 = ((rawOutcomes.len() as i64) as f64);
         {
                         let mut oi: i64 = 0;
-            let mut __for_first_1467: bool = true;
-            while { if !__for_first_1467 { oi += 1; } __for_first_1467 = false; (oi as f64) < rawOutcomesLength } {
+            let mut __for_first_1466: bool = true;
+            while { if !__for_first_1466 { oi += 1; } __for_first_1466 = false; (oi as f64) < rawOutcomesLength } {
             let mut rawOutcome: Value = rawOutcomes.get(oi as usize).cloned().unwrap_or(Value::Null);
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
             let mut rawLabel: Option<String> = self.safe_string_upper_k(rawOutcome.clone(), "name", &[]).as_str().map(str::to_owned);
-            let mut label: Value = self.strip_price_formatting(rawLabel.map(Value::from).unwrap_or(Value::Null));
+            let mut label: Value = self.strip_price_formatting(rawLabel.as_deref());
             let mut tokenId: Option<String> = self.safe_string_k(rawOutcome.clone(), "onChainId", &[]).as_str().map(str::to_owned);
             let mut outcomeHandle: String = format!("{}{}", Value::Str(format!("{}{}", marketSymbol, Value::Str(":".into())).into()), label);
             let mut winner: Option<bool> = None;
@@ -1755,8 +1758,8 @@ impl Predictfun {
             let mut noAsks: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1468: bool = true;
-                while { if !__for_first_1468 { i += 1; } __for_first_1468 = false; i < (bids.len() as i64) } {
+                let mut __for_first_1467: bool = true;
+                while { if !__for_first_1467 { i += 1; } __for_first_1467 = false; i < (bids.len() as i64) } {
                 let mut bid: crate::value::List = self.safe_list(&bids, Value::Int(i), &[]).into_list();
                 let mut bidPrice: Option<String> = self.safe_string(&bid, Value::Int(0), &[]).as_str().map(str::to_owned);
                 let mut bidSize: Value = self.parse_number(self.safe_string(&bid, Value::Int(1), &[]), &[]);
@@ -1766,8 +1769,8 @@ impl Predictfun {
             }
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1469: bool = true;
-                while { if !__for_first_1469 { i += 1; } __for_first_1469 = false; i < (asks.len() as i64) } {
+                let mut __for_first_1468: bool = true;
+                while { if !__for_first_1468 { i += 1; } __for_first_1468 = false; i < (asks.len() as i64) } {
                 let mut ask: crate::value::List = self.safe_list(&asks, Value::Int(i), &[]).into_list();
                 let mut askPrice: Option<String> = self.safe_string(&ask, Value::Int(0), &[]).as_str().map(str::to_owned);
                 let mut askSize: Value = self.parse_number(self.safe_string(&ask, Value::Int(1), &[]), &[]);
@@ -1856,11 +1859,11 @@ impl Predictfun {
         //         "success": true
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_prediction_ticker(data, &[outcomeObj]);
+        })]).into_dict();
+        return self.parse_prediction_ticker(&data, &[outcomeObj]);
         Value::Null
         }).await?))
     }
@@ -1874,7 +1877,8 @@ impl Predictfun {
  * @param {object} [market] the outcome the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-    pub fn parse_prediction_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut ticker: Value = ticker.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -1917,8 +1921,8 @@ impl Predictfun {
         let mut outcomeFound: bool = false;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1470: bool = true;
-            while { if !__for_first_1470 { i += 1; } __for_first_1470 = false; (i as f64) < rawOutcomesLength } {
+            let mut __for_first_1469: bool = true;
+            while { if !__for_first_1469 { i += 1; } __for_first_1469 = false; (i as f64) < rawOutcomesLength } {
             let mut candidate: Value = rawOutcomes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut candidateIndexSet: Option<i64> = self.safe_integer_k(candidate.clone(), "indexSet", &[]).as_i64();
             if (candidateIndexSet == indexSet) {
@@ -2034,8 +2038,8 @@ impl Predictfun {
         let mut dataLength: f64 = ((data.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1472: bool = true;
-            while { if !__for_first_1472 { i += 1; } __for_first_1472 = false; (i as f64) < dataLength } {
+            let mut __for_first_1471: bool = true;
+            while { if !__for_first_1471 { i += 1; } __for_first_1471 = false; (i as f64) < dataLength } {
             let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut taker: crate::value::Dict = self.safe_dict_k(&entry, "taker", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2060,8 +2064,8 @@ impl Predictfun {
             let mut makersLength: f64 = ((makers.len() as i64) as f64);
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_1471: bool = true;
-                while { if !__for_first_1471 { j += 1; } __for_first_1471 = false; (j as f64) < makersLength } {
+                let mut __for_first_1470: bool = true;
+                while { if !__for_first_1470 { j += 1; } __for_first_1470 = false; (j as f64) < makersLength } {
                 let mut maker: crate::value::Dict = makers.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut makerSigner: Option<String> = self.safe_string_lower_k_opt(&maker, "signer", &[]);
                 if (makerSigner.as_deref() == wallet.as_str()) {
@@ -2169,8 +2173,8 @@ impl Predictfun {
         let mut dataLength: f64 = ((data.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1474: bool = true;
-            while { if !__for_first_1474 { i += 1; } __for_first_1474 = false; (i as f64) < dataLength } {
+            let mut __for_first_1473: bool = true;
+            while { if !__for_first_1473 { i += 1; } __for_first_1473 = false; (i as f64) < dataLength } {
             let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut taker: crate::value::Dict = self.safe_dict_k(&entry, "taker", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2214,8 +2218,8 @@ impl Predictfun {
                 });
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_1473: bool = true;
-                    while { if !__for_first_1473 { j += 1; } __for_first_1473 = false; (j as f64) < makersLength } {
+                    let mut __for_first_1472: bool = true;
+                    while { if !__for_first_1472 { j += 1; } __for_first_1472 = false; (j as f64) < makersLength } {
                     let mut maker: Value = makers.get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut makerOutcome: crate::value::Dict = self.safe_dict_k(maker.clone(), "outcome", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2250,7 +2254,8 @@ impl Predictfun {
  * @param {object} [market] the outcome the trade belongs to
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-    pub fn parse_prediction_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut party: crate::value::Dict = self.safe_dict_k(trade.clone(), "partyToParse", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2263,7 +2268,7 @@ impl Predictfun {
             m
         })]).into_dict();
         let mut tokenId: Option<String> = self.safe_string_k(&partyOutcome, "onChainId", &[]).as_str().map(str::to_owned);
-        let mut outcomeObj: Value = self.outcome_for_token(tokenId.map(Value::from).unwrap_or(Value::Null), &[market]);
+        let mut outcomeObj: Value = self.outcome_for_token(tokenId.as_deref(), &[market]);
         let mut role: Option<String> = self.safe_string_k(&party, "role", &[]).as_str().map(str::to_owned);
         // a resting maker fills at its own price, so the party price is the execution price for
         // that leg. the taker's party price is only its limit: the settlement records what it
@@ -2372,7 +2377,8 @@ impl Predictfun {
  * @param {string} message the message to hash
  * @returns {string} the 0x prefixed hash
  */
-    pub fn hash_message(&self, mut message: Value) -> Option<String> {
+    pub fn hash_message(&self, message: &str) -> Option<String> {
+        let mut message: Value = message.into();
         let mut binaryMessage: Value = self.encode(message);
         let mut binaryMessageLength: Value = self.binary_length(binaryMessage.clone(), &[]);
         let mut x19: Value = self.base16_to_binary(Value::Str("19".into()), &[]);
@@ -2390,7 +2396,9 @@ impl Predictfun {
  * @param {string} privateKey the wallet private key
  * @returns {string} the 65 byte signature, 0x prefixed
  */
-    pub fn sign_hash(&self, mut hash: Value, mut privateKey: Value) -> Option<String> {
+    pub fn sign_hash(&self, hash: &str, privateKey: &str) -> Option<String> {
+        let mut hash: Value = hash.into();
+        let mut privateKey: Value = privateKey.into();
         let mut signature: Value = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
             privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
@@ -2443,7 +2451,7 @@ impl Predictfun {
         if (message.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() got an auth reply without the \"message\" field to sign".into()))));
         }
-        let mut signature: Value = self.sign_hash(self.hash_message(message.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), self.privateKey.clone()).map(Value::from).unwrap_or(Value::Null);
+        let mut signature: Value = self.sign_hash(self.hash_message(message.as_deref().unwrap_or_default()).as_deref().unwrap_or_default(), (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("signer".to_string(), self.walletAddress.clone());
@@ -2570,7 +2578,7 @@ impl Predictfun {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("hash".to_string(), Value::from(hash.clone()));
-        m.insert("signature".to_string(), self.sign_hash(Value::from(hash), self.privateKey.clone()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("signature".to_string(), self.sign_hash(hash.as_str(), (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null));
     m
 });
 
@@ -2902,8 +2910,8 @@ impl Predictfun {
         let mut wantedOutcomes: Value = self.to_array(outcomes);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1475: bool = true;
-            while { if !__for_first_1475 { i += 1; } __for_first_1475 = false; (i as f64) < (outcomesLength as f64) } {
+            let mut __for_first_1474: bool = true;
+            while { if !__for_first_1474 { i += 1; } __for_first_1474 = false; (i as f64) < (outcomesLength as f64) } {
             let mut outcomeObj: crate::value::Dict = self.outcome(self.safe_string(wantedOutcomes.clone(), Value::Int(i), &[])).into_dict();
             let mut wantedId: String = self.safe_string_k(&outcomeObj, "outcomeId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if let Value::Dict(__d) = &mut wanted { std::sync::Arc::make_mut(__d).insert(wantedId, Value::Bool(true)); }
@@ -2913,8 +2921,8 @@ impl Predictfun {
         let mut parsedLength: f64 = ((parsed.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1476: bool = true;
-            while { if !__for_first_1476 { i += 1; } __for_first_1476 = false; (i as f64) < parsedLength } {
+            let mut __for_first_1475: bool = true;
+            while { if !__for_first_1475 { i += 1; } __for_first_1475 = false; (i as f64) < parsedLength } {
             let mut position: Value = parsed.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut outcomeId: Option<String> = self.safe_string_k_opt(position.clone(), "outcomeId", &[]);
             if (outcomeId.is_some()) && (matches!((&wanted, &outcomeId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -2976,7 +2984,8 @@ impl Predictfun {
  * @param {object} [market] not used by predictfun parsePredictionPosition
  * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
  */
-    pub fn parse_prediction_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_position(&self, position: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut position: Value = position.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut rawOutcome: crate::value::Dict = self.safe_dict_k(position.clone(), "outcome", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2987,7 +2996,7 @@ impl Predictfun {
     m
 })]).into_dict();
         let mut tokenId: Option<String> = self.safe_string_k(&rawOutcome, "onChainId", &[]).as_str().map(str::to_owned);
-        let mut outcomeObj: Value = self.outcome_for_token(tokenId.clone().map(Value::from).unwrap_or(Value::Null), &[market]);
+        let mut outcomeObj: Value = self.outcome_for_token(tokenId.as_deref(), &[market]);
         // shares are collateral wei, the usd figures come back already scaled
         let mut contracts: Option<String> = crate::precise::Precise::stringDiv(&self.safe_string_k(position.clone(), "amount", &[]), &Value::Str("1000000000000000000".into())).as_str().map(str::to_owned);
         let mut entryPrice: Option<String> = self.safe_string_k(position.clone(), "averageBuyPriceUsd", &[]).as_str().map(str::to_owned);
@@ -3159,8 +3168,8 @@ impl Predictfun {
         let mut removedLength: f64 = ((removed.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1477: bool = true;
-            while { if !__for_first_1477 { i += 1; } __for_first_1477 = false; (i as f64) < removedLength } {
+            let mut __for_first_1476: bool = true;
+            while { if !__for_first_1476 { i += 1; } __for_first_1476 = false; (i as f64) < removedLength } {
             rows.push(self.extend(&response, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("orderHash".to_string(), removed.get(i as usize).cloned().unwrap_or(Value::Null));
@@ -3172,8 +3181,8 @@ impl Predictfun {
         let mut noopLength: f64 = ((noop.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1478: bool = true;
-            while { if !__for_first_1478 { i += 1; } __for_first_1478 = false; (i as f64) < noopLength } {
+            let mut __for_first_1477: bool = true;
+            while { if !__for_first_1477 { i += 1; } __for_first_1477 = false; (i as f64) < noopLength } {
             // accepted, but nothing was resting to pull: the order had already filled, expired,
             // was never booked, or had been removed before - so the status is left unknown
             rows.push(self.extend(&response, &[Value::Map({
@@ -3256,11 +3265,11 @@ impl Predictfun {
         //         "success": true
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_prediction_order(data, &[outcomeObj]);
+        })]).into_dict();
+        return self.parse_prediction_order(&data, &[outcomeObj]);
         Value::Null
         }).await?))
     }
@@ -3425,7 +3434,8 @@ impl Predictfun {
  * @param {object} [market] the outcome the order belongs to, resolved from the token id when omitted
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-    pub fn parse_prediction_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchOrder
@@ -3464,7 +3474,7 @@ impl Predictfun {
         let mut topLevelHash: Option<String> = self.safe_string2(order.clone(), Value::Str("hash".into()), Value::Str("orderHash".into()), &[]).as_str().map(str::to_owned);
         let mut orderHash: Option<String> = self.safe_string_k(&data, "hash", &[topLevelHash.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut tokenId: Option<String> = self.safe_string_k(&data, "tokenId", &[]).as_str().map(str::to_owned);
-        let mut outcomeObj: Value = self.outcome_for_token(tokenId.clone().map(Value::from).unwrap_or(Value::Null), &[market]);
+        let mut outcomeObj: Value = self.outcome_for_token(tokenId.as_deref(), &[market]);
         // the contract order carries the economics: a buy offers collateral for shares while a
         // sell offers shares for collateral, so which leg is the size depends on the side
         let mut rawSide: Option<String> = self.safe_string_k(&data, "side", &[]).as_str().map(str::to_owned);
@@ -3501,7 +3511,7 @@ impl Predictfun {
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.safe_string_lower_k(order.clone(), "strategy", &[]));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3533,7 +3543,8 @@ impl Predictfun {
  * @param {string} [status] the raw status
  * @returns {string} the unified status
  */
-    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_order_status(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OPEN".to_string(), Value::Str("open".into()));
@@ -3798,8 +3809,8 @@ impl Predictfun {
             let mut operatorsLength: f64 = ((operators.len() as i64) as f64);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1479: bool = true;
-                while { if !__for_first_1479 { i += 1; } __for_first_1479 = false; (i as f64) < operatorsLength } {
+                let mut __for_first_1478: bool = true;
+                while { if !__for_first_1478 { i += 1; } __for_first_1478 = false; (i as f64) < operatorsLength } {
                 let mut operatorAddress: Option<String> = self.safe_string(&operators, Value::Int(i), &[]).as_str().map(str::to_owned);
                 if (operatorAddress.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" approve() could not resolve the operator to approve for chain ".into())).into()), chainKey.clone().map(Value::from).unwrap_or(Value::Null))));
@@ -3902,7 +3913,7 @@ impl Predictfun {
                 m.insert("id".to_string(), self.number_to_string(Value::from(requestId)));
                 m.insert("topic".to_string(), Value::from(topic.clone()));
                 m.insert("subscribeHash".to_string(), Value::from(topic.clone()));
-                m.insert("messageHashes".to_string(), self.order_book_message_hashes(marketId.map(Value::from).unwrap_or(Value::Null)));
+                m.insert("messageHashes".to_string(), self.order_book_message_hashes(marketId.as_deref()));
             m
         });
         let mut url: Option<String> = self.socket_url();
@@ -3944,15 +3955,15 @@ impl Predictfun {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchOrderBook() could not resolve the market id of ".into())).into()), outcome)));
         }
         let mut topic: String = format!("{}{}", Value::Str("predictOrderbook/".into()), marketId.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut outcomes: Vec<Value> = self.outcomes_by_market_id(marketId.map(Value::from).unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
+        let mut outcomes: Vec<Value> = self.outcomes_by_market_id(marketId.as_deref()).as_array().cloned().unwrap_or_default();
         let mut outcomesLength: f64 = ((outcomes.len() as i64) as f64);
         let mut handles: Vec<Value> = Vec::new();
         let mut subMessageHashes: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1480: bool = true;
-            while { if !__for_first_1480 { i += 1; } __for_first_1480 = false; (i as f64) < outcomesLength } {
+            let mut __for_first_1479: bool = true;
+            while { if !__for_first_1479 { i += 1; } __for_first_1479 = false; (i as f64) < outcomesLength } {
             let mut handle: Option<String> = self.safe_string_k(outcomes.get(i as usize).cloned().unwrap_or(Value::Null), "outcome", &[]).as_str().map(str::to_owned);
             if (handle.is_some()) {
                 handles.push(handle.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3998,14 +4009,15 @@ impl Predictfun {
  * @param {string} [marketId] the venue market id
  * @returns {string[]} the message hashes
  */
-    pub fn order_book_message_hashes(&self, mut marketId: Value) -> Value {
-        let mut outcomes: Vec<Value> = self.outcomes_by_market_id(marketId).as_array().cloned().unwrap_or_default();
+    pub fn order_book_message_hashes(&self, marketId: Option<&str>) -> Value {
+        let mut marketId: Value = marketId.into();
+        let mut outcomes: Vec<Value> = self.outcomes_by_market_id(marketId.as_str()).as_array().cloned().unwrap_or_default();
         let mut outcomesLength: f64 = ((outcomes.len() as i64) as f64);
         let mut hashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1481: bool = true;
-            while { if !__for_first_1481 { i += 1; } __for_first_1481 = false; (i as f64) < outcomesLength } {
+            let mut __for_first_1480: bool = true;
+            while { if !__for_first_1480 { i += 1; } __for_first_1480 = false; (i as f64) < outcomesLength } {
             let mut handle: Option<String> = self.safe_string_k(outcomes.get(i as usize).cloned().unwrap_or(Value::Null), "outcome", &[]).as_str().map(str::to_owned);
             if (handle.is_some()) {
                 hashes.push(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), handle.map(Value::from).unwrap_or(Value::Null)).into()));
@@ -4058,8 +4070,8 @@ impl Predictfun {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1482: bool = true;
-            while { if !__for_first_1482 { i += 1; } __for_first_1482 = false; (i as f64) < messageHashesLength } {
+            let mut __for_first_1481: bool = true;
+            while { if !__for_first_1481 { i += 1; } __for_first_1481 = false; (i as f64) < messageHashesLength } {
             client.reject(error.clone(), &self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]));
         }
         }
@@ -4087,8 +4099,8 @@ impl Predictfun {
         let mut isWalletTopic: Value = (Value::Bool((match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str() == Some("walletEvents")));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1483: bool = true;
-            while { if !__for_first_1483 { i += 1; } __for_first_1483 = false; (i as f64) < messageHashesLength } {
+            let mut __for_first_1482: bool = true;
+            while { if !__for_first_1482 { i += 1; } __for_first_1482 = false; (i as f64) < messageHashesLength } {
             self.clean_unsubscription(client.clone(), subMessageHashes.get(i as usize).cloned().unwrap_or(Value::Null), messageHashes.get(i as usize).cloned().unwrap_or(Value::Null), &[isWalletTopic.clone()]);
         }
         }
@@ -4109,8 +4121,8 @@ impl Predictfun {
         let mut subMessageHashesLength: f64 = ((subMessageHashes.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1484: bool = true;
-            while { if !__for_first_1484 { i += 1; } __for_first_1484 = false; (i as f64) < subMessageHashesLength } {
+            let mut __for_first_1483: bool = true;
+            while { if !__for_first_1483 { i += 1; } __for_first_1483 = false; (i as f64) < subMessageHashesLength } {
             let mut subHash: Option<String> = self.safe_string(&subMessageHashes, Value::Int(i), &[]).as_str().map(str::to_owned);
             if (subHash.as_deref() == Some("orders")) || (subHash.as_deref() == Some("myTrades")) {
                 self.clean_cache(Value::Map({
@@ -4162,7 +4174,7 @@ impl Predictfun {
             // without a request once the cache is warm
             self.load_outcomes(&[]).await;
         }
-        let mut orders: Value = self.watch_wallet_events(Value::from(messageHash), &[params]).await;
+        let mut orders: Value = self.watch_wallet_events(messageHash.as_str(), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(outcomeResolved.as_deref(), limitResolved.clone());
@@ -4208,7 +4220,7 @@ impl Predictfun {
             // a synchronous handler, so the cache is warmed here rather than on the first event
             self.load_outcomes(&[]).await;
         }
-        let mut trades: Value = self.watch_wallet_events(Value::from(messageHash), &[params]).await;
+        let mut trades: Value = self.watch_wallet_events(messageHash.as_str(), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(outcomeResolved.as_deref(), limitResolved.clone());
@@ -4238,7 +4250,7 @@ impl Predictfun {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.un_watch_wallet_events(Value::Str("orders".into()), &[params]).await;
+        return self.un_watch_wallet_events("orders", &[params]).await;
         Value::Null
         }).await?))
     }
@@ -4263,7 +4275,7 @@ impl Predictfun {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.un_watch_wallet_events(Value::Str("myTrades".into()), &[params]).await;
+        return self.un_watch_wallet_events("myTrades", &[params]).await;
         Value::Null
         }).await?))
     }
@@ -4297,7 +4309,8 @@ impl Predictfun {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} whatever the channel resolves with
  */
-    pub async fn watch_wallet_events(&mut self, mut messageHash: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_wallet_events(&mut self, messageHash: &str, optional_args: &[Value]) -> Value {
+        let mut messageHash: Value = messageHash.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4322,7 +4335,7 @@ impl Predictfun {
             m
         });
         let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
-        return self.watch(url, messageHash, &[__ws_arg_19, Value::Str("walletEvents".into()), Value::Map(subscription)]).await;
+        return self.watch(&url, &messageHash, &[__ws_arg_19, Value::Str("walletEvents".into()), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -4348,8 +4361,8 @@ impl Predictfun {
         let mut futuresLength: f64 = ((futures.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1485: bool = true;
-            while { if !__for_first_1485 { i += 1; } __for_first_1485 = false; (i as f64) < futuresLength } {
+            let mut __for_first_1484: bool = true;
+            while { if !__for_first_1484 { i += 1; } __for_first_1484 = false; (i as f64) < futuresLength } {
             let mut future: Option<String> = futures.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (((if let (Some(__h), Some(__n)) = (future.as_deref(), Some("orders::")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) || (((if let (Some(__h), Some(__n)) = (future.as_deref(), Some("myTrades::")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
                 hashes.push(future.map(Value::from).unwrap_or(Value::Null));
@@ -4373,7 +4386,8 @@ impl Predictfun {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} the venue's acknowledgement
  */
-    pub async fn un_watch_wallet_events(&mut self, mut channel: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_watch_wallet_events(&mut self, channel: &str, optional_args: &[Value]) -> Value {
+        let mut channel: Value = channel.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4452,14 +4466,15 @@ impl Predictfun {
  * @param {object} [market] the outcome the caller asked about
  * @returns {object} the outcome object, or a stub keyed by the token id when it is not cached
  */
-    pub fn outcome_for_token(&self, mut tokenId: Value, optional_args: &[Value]) -> Value {
+    pub fn outcome_for_token(&self, tokenId: Option<&str>, optional_args: &[Value]) -> Value {
+        let mut tokenId: Value = tokenId.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         // the list endpoints (orders, matches, positions) answer for the whole wallet rather than
         // for the outcome asked about, so the caller's outcome is only a hint. safeOutcome falls
         // back to it on any cache miss, which stamped the requested outcome onto rows from other
         // markets - and the outcome filter afterwards then kept them, as they now matched
-        let mut hintId: Option<String> = self.safe_string_k_opt(market.clone(), "outcomeId", &[]);
-        if (tokenId == Value::Null) || (hintId.as_deref() == tokenId.as_str()) {
+        let mut hintId: Option<String> = self.safe_string_k(market.clone(), "outcomeId", &[]).as_str().map(str::to_owned);
+        if (tokenId == Value::Null) || (hintId == tokenId.as_str().map(str::to_owned)) {
             return self.safe_outcome(tokenId.clone(), &[market]);
         }
         return self.safe_outcome(tokenId, &[]);
@@ -4475,7 +4490,8 @@ impl Predictfun {
  * @param {string} [marketId] the venue market id
  * @returns {object[]} the outcome objects
  */
-    pub fn outcomes_by_market_id(&self, mut marketId: Value) -> Value {
+    pub fn outcomes_by_market_id(&self, marketId: Option<&str>) -> Value {
+        let mut marketId: Value = marketId.into();
         let mut result: Vec<Value> = Vec::new();
         if (marketId == Value::Null) || (self.exchange.outcomes.clone() == Value::Null) {
             return Value::from(result);
@@ -4485,8 +4501,8 @@ impl Predictfun {
         let mut handlesLength: f64 = ((handles.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1486: bool = true;
-            while { if !__for_first_1486 { i += 1; } __for_first_1486 = false; (i as f64) < handlesLength } {
+            let mut __for_first_1485: bool = true;
+            while { if !__for_first_1485 { i += 1; } __for_first_1485 = false; (i as f64) < handlesLength } {
             let mut outcomeObj: Value = get_value(&cached, &handles.get(i as usize).cloned().unwrap_or(Value::Null));
             let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4561,8 +4577,8 @@ impl Predictfun {
         let mut bidsLength: f64 = ((rawBids.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1487: bool = true;
-            while { if !__for_first_1487 { i += 1; } __for_first_1487 = false; (i as f64) < bidsLength } {
+            let mut __for_first_1486: bool = true;
+            while { if !__for_first_1486 { i += 1; } __for_first_1486 = false; (i as f64) < bidsLength } {
             let mut bid: crate::value::List = self.safe_list(&rawBids, Value::Int(i), &[]).into_list();
             let mut bidPrice: Option<String> = self.safe_string(&bid, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut bidSize: Value = self.parse_number(self.safe_string(&bid, Value::Int(1), &[]), &[]);
@@ -4574,8 +4590,8 @@ impl Predictfun {
         let mut asksLength: f64 = ((rawAsks.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1488: bool = true;
-            while { if !__for_first_1488 { i += 1; } __for_first_1488 = false; (i as f64) < asksLength } {
+            let mut __for_first_1487: bool = true;
+            while { if !__for_first_1487 { i += 1; } __for_first_1487 = false; (i as f64) < asksLength } {
             let mut ask: crate::value::List = self.safe_list(&rawAsks, Value::Int(i), &[]).into_list();
             let mut askPrice: Option<String> = self.safe_string(&ask, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut askSize: Value = self.parse_number(self.safe_string(&ask, Value::Int(1), &[]), &[]);
@@ -4583,12 +4599,12 @@ impl Predictfun {
             std::sync::Arc::make_mut(&mut noBids).push(Value::from(vec![self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &askPrice.map(Value::from).unwrap_or(Value::Null)), &[]), askSize]));
         }
         }
-        let mut outcomes: Vec<Value> = self.outcomes_by_market_id(marketId.map(Value::from).unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
+        let mut outcomes: Vec<Value> = self.outcomes_by_market_id(marketId.as_deref()).as_array().cloned().unwrap_or_default();
         let mut outcomesLength: f64 = ((outcomes.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1489: bool = true;
-            while { if !__for_first_1489 { i += 1; } __for_first_1489 = false; (i as f64) < outcomesLength } {
+            let mut __for_first_1488: bool = true;
+            while { if !__for_first_1488 { i += 1; } __for_first_1488 = false; (i as f64) < outcomesLength } {
             let mut outcomeObj: crate::value::Dict = self.safe_dict(&outcomes, Value::Int(i), &[]).into_dict();
             let mut outcomeInfo: crate::value::Dict = self.safe_dict_k(&outcomeObj, "info", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4750,12 +4766,12 @@ impl Predictfun {
     pub fn wallet_event_outcome(&self, mut details: Value) -> Value {
         let mut marketId: Option<String> = self.safe_string_k(details.clone(), "marketId", &[]).as_str().map(str::to_owned);
         let mut outcomeIndex: Option<i64> = self.safe_integer_k(details.clone(), "outcomeIndex", &[]).as_i64();
-        let mut outcomes: Vec<Value> = self.outcomes_by_market_id(marketId.map(Value::from).unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
+        let mut outcomes: Vec<Value> = self.outcomes_by_market_id(marketId.as_deref()).as_array().cloned().unwrap_or_default();
         let mut outcomesLength: f64 = ((outcomes.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1490: bool = true;
-            while { if !__for_first_1490 { i += 1; } __for_first_1490 = false; (i as f64) < outcomesLength } {
+            let mut __for_first_1489: bool = true;
+            while { if !__for_first_1489 { i += 1; } __for_first_1489 = false; (i as f64) < outcomesLength } {
             let mut candidate: Value = outcomes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut info: crate::value::Dict = self.safe_dict_k(candidate.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4780,7 +4796,7 @@ impl Predictfun {
         if (topicSlug.is_some()) {
             eventHandle = self.shorten_slug(topicSlug.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut label: Value = self.strip_price_formatting(self.safe_string_upper_k(details.clone(), "outcomeName", &[]));
+        let mut label: Value = self.strip_price_formatting((self.safe_string_upper_k(details.clone(), "outcomeName", &[])).as_str());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), Value::Null);

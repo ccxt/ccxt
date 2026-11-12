@@ -206,9 +206,9 @@ impl crate::exchange_generated::ExchangeBase for Hitbtc {
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_trades" => self.parse_ws_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "subscribe_private" => self.subscribe_private(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "subscribe_public" => self.subscribe_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
-                "trade_request" => self.trade_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "un_subscribe_public" => self.un_subscribe_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), &args[2.min(args.len())..]).await,
+                "trade_request" => self.trade_request(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
+                "un_subscribe_public" => self.un_subscribe_public(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -444,7 +444,9 @@ impl Hitbtc {
  * @param {string[]} [symbols] unified CCXT symbol(s)
  * @param {object} [params] extra parameters specific to the hitbtc api
  */
-    pub async fn subscribe_public(&mut self, mut name: Value, mut messageHashPrefix: Value, optional_args: &[Value]) -> Value {
+    pub async fn subscribe_public(&mut self, name: &str, messageHashPrefix: &str, optional_args: &[Value]) -> Value {
+        let mut name: Value = name.into();
+        let mut messageHashPrefix: Value = messageHashPrefix.into();
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -501,12 +503,14 @@ impl Hitbtc {
  * @param {object} [params] extra parameters specific to the hitbtc api
  * @returns {boolean} true once the exchange acknowledges the unsubscribe
  */
-    pub async fn un_subscribe_public(&mut self, mut name: Value, mut messageHashPrefix: Value, mut symbols: Value, mut subscription: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_subscribe_public(&mut self, name: &str, messageHashPrefix: &str, mut symbols: Value, mut subscription: Value, optional_args: &[Value]) -> Value {
+        let mut name: Value = name.into();
+        let mut messageHashPrefix: Value = messageHashPrefix.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
         let mut subMessageHashes: Vec<Value> = Vec::new();
         let mut messageHashes: Value = Value::from(vec![]);
         {
@@ -540,7 +544,7 @@ impl Hitbtc {
             m
         })]);
         let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
-        return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone(), unsubscription]).await;
+        return self.watch_multiple(url.as_deref(), messageHashes.clone(), &[__ws_arg_0, messageHashes.clone(), unsubscription]).await;
 
     Value::Null
 }
@@ -594,7 +598,8 @@ impl Hitbtc {
  * @param {string} name websocket endpoint name
  * @param {object} [params] extra parameters specific to the hitbtc api
  */
-    pub async fn trade_request(&mut self, mut name: Value, optional_args: &[Value]) -> Value {
+    pub async fn trade_request(&mut self, name: &str, optional_args: &[Value]) -> Value {
+        let mut name: Value = name.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -669,7 +674,7 @@ impl Hitbtc {
 }));
             m
         });
-        let mut orderbook: Value = self.subscribe_public(name.map(Value::from).unwrap_or(Value::Null), Value::Str("orderbooks".into()), &[Value::from(vec![symbol]), self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
+        let mut orderbook: Value = self.subscribe_public(name.as_deref().unwrap_or_default(), "orderbooks", &[Value::from(vec![symbol]), self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -849,11 +854,11 @@ impl Hitbtc {
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("ticker/{speed}/batch".into())]).as_str().unwrap_or("ticker/{speed}/batch").to_string();
         let mut method: Option<String> = self.safe_string2(Value::from(&paramsMethod), Value::Str("method".into()), Value::Str("defaultMethod".into()), &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut speedValue: String = self.safe_string_k(&paramsMethod, "speed", &[Value::Str("1s".into())]).as_str().unwrap_or("1s").to_string(); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
-        let mut name: Value = Value::from(self.implode_params(method.map(Value::from).unwrap_or(Value::Null), Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("speed".to_string(), Value::from(speedValue));
-            m
-        })));
+        let mut name: String = self.implode_params(method.map(Value::from).unwrap_or(Value::Null), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("speed".to_string(), Value::from(speedValue));
+    m
+}));
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMethod, Value::from(vec![Value::Str("method".into()), Value::Str("defaultMethod".into()), Value::Str("speed".into())]), &[]).into_dict();
         let mut marketIds: Vec<Value> = Vec::new();
         if (symbolsNormalized.is_none()) {
@@ -879,7 +884,7 @@ impl Hitbtc {
 }));
             m
         });
-        let mut newTickers: Value = self.subscribe_public(name, Value::Str("tickers".into()), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr), self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
+        let mut newTickers: Value = self.subscribe_public(name.as_str(), "tickers", &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr), self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
         if self.newUpdates.as_bool() == Some(true) {
             if !(matches!(&newTickers, Value::Arr(_))) {
                 let mut tickers: indexmap::IndexMap<String, Value> = ({
@@ -1054,11 +1059,11 @@ impl Hitbtc {
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("orderbook/top/{speed}/batch".into())]).as_str().unwrap_or("orderbook/top/{speed}/batch").to_string();
         let mut method: Option<String> = self.safe_string2(params.clone(), Value::Str("method".into()), Value::Str("defaultMethod".into()), &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut speedValue: String = self.safe_string_k(params.clone(), "speed", &[Value::Str("100ms".into())]).as_str().unwrap_or("100ms").to_string(); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
-        let mut name: Value = Value::from(self.implode_params(method.map(Value::from).unwrap_or(Value::Null), Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("speed".to_string(), Value::from(speedValue));
-            m
-        })));
+        let mut name: String = self.implode_params(method.map(Value::from).unwrap_or(Value::Null), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("speed".to_string(), Value::from(speedValue));
+    m
+}));
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("method".into()), Value::Str("defaultMethod".into()), Value::Str("speed".into())]), &[]).into_dict();
         let mut marketIds: Value = self.market_ids(&[Value::Arr(symbolsNormalized.clone())]);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1070,7 +1075,7 @@ impl Hitbtc {
 }));
             m
         });
-        let mut newTickers: Value = self.subscribe_public(name, Value::Str("bidask".into()), &[Value::Arr(symbolsNormalized.clone()), self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
+        let mut newTickers: Value = self.subscribe_public(name.as_str(), "bidask", &[Value::Arr(symbolsNormalized.clone()), self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
         if self.newUpdates.as_bool() == Some(true) {
             if !(matches!(&newTickers, Value::Arr(_))) {
                 let mut tickers: indexmap::IndexMap<String, Value> = ({
@@ -1194,7 +1199,7 @@ impl Hitbtc {
             request.insert("limit".into(), limit.clone());
         }
         let mut name: String = "trades".to_string();
-        let mut trades: Value = self.subscribe_public(Value::from(name), Value::Str("trades".into()), &[Value::from(vec![symbol.clone()]), self.deep_extend(Value::Map(request), &[params])]).await;
+        let mut trades: Value = self.subscribe_public(name.as_str(), "trades", &[Value::from(vec![symbol.clone()]), self.deep_extend(Value::Map(request), &[params])]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
@@ -1232,7 +1237,7 @@ impl Hitbtc {
                 m.insert("symbols".to_string(), Value::from(vec![Value::from((market).symbol.clone())]));
             m
         });
-        return self.un_subscribe_public(Value::Str("trades".into()), Value::Str("trades".into()), Value::from(vec![Value::from((market).symbol.clone())]), Value::Map(subscription), &[params]).await;
+        return self.un_subscribe_public("trades", "trades", Value::from(vec![Value::from((market).symbol.clone())]), Value::Map(subscription), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1339,7 +1344,8 @@ impl Hitbtc {
     Value::Null
 }
 
-    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {
@@ -1414,7 +1420,7 @@ impl Hitbtc {
                 m.insert("params".to_string(), Value::Map(subscribeParams));
             m
         });
-        let mut ohlcv: Value = self.subscribe_public(Value::from(name.clone()), Value::from(name), &[Value::from(vec![symbol.clone()]), self.deep_extend(Value::Map(request), &[params])]).await;
+        let mut ohlcv: Value = self.subscribe_public(name.as_str(), name.as_str(), &[Value::from(vec![symbol.clone()]), self.deep_extend(Value::Map(request), &[params])]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
@@ -1456,7 +1462,7 @@ impl Hitbtc {
                 m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![Value::from((market).symbol.clone()), timeframe])]));
             m
         });
-        return self.un_subscribe_public(Value::from(name.clone()), Value::from(name), Value::from(vec![Value::from((market).symbol.clone())]), Value::Map(subscription), &[params]).await;
+        return self.un_subscribe_public(name.as_str(), name.as_str(), Value::from(vec![Value::from((market).symbol.clone())]), Value::Map(subscription), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1712,7 +1718,8 @@ impl Hitbtc {
         }
 }
 
-    pub fn parse_ws_order_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {
@@ -1769,7 +1776,8 @@ impl Hitbtc {
     Value::Null
 }
 
-    pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {
@@ -1810,9 +1818,9 @@ impl Hitbtc {
         let mut report_type: Option<String> = self.safe_string_k(order.clone(), "report_type", &[]).as_str().map(str::to_owned);
         let mut parsedStatus: Value = Value::Null;
         if (report_type.as_deref() == Some("canceled")) {
-            parsedStatus = self.parent.parse_order_status(report_type.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+            parsedStatus = self.parent.parse_order_status(report_type.as_deref()).map(Value::from).unwrap_or(Value::Null);
         }  else {
-            parsedStatus = self.parent.parse_order_status(rawStatus.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+            parsedStatus = self.parent.parse_order_status(rawStatus.as_deref()).map(Value::from).unwrap_or(Value::Null);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1937,16 +1945,16 @@ impl Hitbtc {
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let orderRequestparamsValueVariable: Vec<Value> = self.parent.create_order_request(market, marketType.clone().map(Value::from).unwrap_or(Value::Null), type_var, side, amount, &[price, marginMode.clone().map(Value::from).unwrap_or(Value::Null), paramsMarginMode]).as_array().cloned().unwrap_or_default();
+        let orderRequestparamsValueVariable: Vec<Value> = self.parent.create_order_request(market, marketType.as_deref().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, marginMode.clone().map(Value::from).unwrap_or(Value::Null), paramsMarginMode]).as_array().cloned().unwrap_or_default();
         let mut orderRequest: Value = orderRequestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsValue: crate::value::Dict = orderRequestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: Value = self.extend(orderRequest, &[&paramsValue]);
         if (marketType.as_deref() == Some("swap")) {
-            return self.trade_request(Value::Str("futures_new_order".into()), &[request.clone()]).await;
+            return self.trade_request("futures_new_order", &[request.clone()]).await;
         }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
-            return self.trade_request(Value::Str("margin_new_order".into()), &[request.clone()]).await;
+            return self.trade_request("margin_new_order", &[request.clone()]).await;
         }  else {
-            return self.trade_request(Value::Str("spot_new_order".into()), &[request]).await;
+            return self.trade_request("spot_new_order", &[request]).await;
         }
         Value::Null
         }).await?))
@@ -1998,11 +2006,11 @@ impl Hitbtc {
         let mut query: crate::value::Dict = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         request = self.extend(request.clone(), &[&query]);
         if (marketType.as_deref() == Some("swap")) {
-            return self.trade_request(Value::Str("futures_cancel_order".into()), &[request.clone()]).await;
+            return self.trade_request("futures_cancel_order", &[request.clone()]).await;
         }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
-            return self.trade_request(Value::Str("margin_cancel_order".into()), &[request.clone()]).await;
+            return self.trade_request("margin_cancel_order", &[request.clone()]).await;
         }  else {
-            return self.trade_request(Value::Str("spot_cancel_order".into()), &[request]).await;
+            return self.trade_request("spot_cancel_order", &[request]).await;
         }
         Value::Null
         }).await?))
@@ -2045,11 +2053,11 @@ impl Hitbtc {
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
         if (marketType.as_deref() == Some("swap")) {
-            return self.trade_request(Value::Str("futures_cancel_orders".into()), &[paramsMarginMode.clone()]).await;
+            return self.trade_request("futures_cancel_orders", &[paramsMarginMode.clone()]).await;
         }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersWs is not supported for margin orders".into()))));
         }  else {
-            return self.trade_request(Value::Str("spot_cancel_orders".into()), &[paramsMarginMode]).await;
+            return self.trade_request("spot_cancel_orders", &[paramsMarginMode]).await;
         }
         Value::Null
         }).await?))
@@ -2101,11 +2109,11 @@ impl Hitbtc {
         let marginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOpenOrdersWs".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         if (marketType.as_deref() == Some("swap")) {
-            return self.trade_request(Value::Str("futures_get_orders".into()), &[Value::Map(request.clone())]).await;
+            return self.trade_request("futures_get_orders", &[Value::Map(request.clone())]).await;
         }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
-            return self.trade_request(Value::Str("margin_get_orders".into()), &[Value::Map(request.clone())]).await;
+            return self.trade_request("margin_get_orders", &[Value::Map(request.clone())]).await;
         }  else {
-            return self.trade_request(Value::Str("spot_get_orders".into()), &[Value::Map(request)]).await;
+            return self.trade_request("spot_get_orders", &[Value::Map(request)]).await;
         }
         Value::Null
         }).await?))

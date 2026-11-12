@@ -650,8 +650,8 @@ impl Bitbns {
         let mut rawMarkets: crate::value::List = self.to_array(response).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_338: bool = true;
-            while { if !__for_first_338 { i += 1; } __for_first_338 = false; i < (rawMarkets.len() as i64) } {
+            let mut __for_first_337: bool = true;
+            while { if !__for_first_337 { i += 1; } __for_first_337 = false; i < (rawMarkets.len() as i64) } {
             let mut market: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k(market.clone(), "id", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base", &[]).as_str().map(str::to_owned);
@@ -816,7 +816,8 @@ impl Bitbns {
         }).await?))
     }
 
-    pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut ticker: Value = ticker.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -908,7 +909,8 @@ impl Bitbns {
         }).await?))
     }
 
-    pub fn parse_balance(&self, mut response: Value) -> Value {
+    pub fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut timestamp: Value = Value::Null;
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -924,8 +926,8 @@ impl Bitbns {
         let mut keys: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_339: bool = true;
-            while { if !__for_first_339 { i += 1; } __for_first_339 = false; i < (keys.len() as i64) } {
+            let mut __for_first_338: bool = true;
+            while { if !__for_first_338 { i += 1; } __for_first_338 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Value = Value::Array(if let Some(__s) = key.as_deref() { __s.split("availableorder").map(Value::from).collect() } else { Vec::new() });
             let mut numParts: i64 = parts.len() as i64;
@@ -977,7 +979,8 @@ impl Bitbns {
         }).await?))
     }
 
-    pub fn parse_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_status(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("-1".to_string(), Value::Str("cancelled".into()));
@@ -989,7 +992,8 @@ impl Bitbns {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder
@@ -1038,7 +1042,7 @@ impl Bitbns {
         if (data.as_deref() == Some("Successfully cancelled the order")) {
             status = Value::Str("cancelled".into());
         }  else {
-            status = self.parse_status(status.clone()).map(Value::from).unwrap_or(Value::Null);
+            status = self.parse_status(status.as_str()).map(Value::from).unwrap_or(Value::Null);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1286,11 +1290,11 @@ impl Bitbns {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut first: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
+        let mut first: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        return self.parse_order(first, &[(market).raw.clone()]);
+})]).into_dict();
+        return self.parse_order(&first, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1363,13 +1367,14 @@ impl Bitbns {
         //         "code":200
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_orders(data, &[(market).raw.clone(), since, limit]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_orders(&data, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchMyTrades
@@ -1702,7 +1707,8 @@ impl Bitbns {
         }).await?))
     }
 
-    pub fn parse_transaction_status_by_type(&self, mut status: Value, optional_args: &[Value]) -> Option<String> {
+    pub fn parse_transaction_status_by_type(&self, status: Option<&str>, optional_args: &[Value]) -> Option<String> {
+        let mut status: Value = status.into();
         let mut type_var = get_arg(optional_args, 0, Value::Null);
         let mut statusesByType: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1732,7 +1738,8 @@ impl Bitbns {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut transaction: Value = transaction.into();
         let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // fetchDeposits

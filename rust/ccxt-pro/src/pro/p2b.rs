@@ -328,7 +328,7 @@ impl P2b {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), name);
@@ -337,7 +337,7 @@ impl P2b {
             m
         });
         let mut query: Value = self.extend(Value::Map(subscribe), &[params]);
-        return self.watch(url, messageHash.clone(), &[query, messageHash.clone()]).await;
+        return self.watch(url.as_deref(), &messageHash, &[query, messageHash.clone()]).await;
 
     Value::Null
 }
@@ -473,7 +473,7 @@ impl P2b {
             args.push(Value::from((market).id.clone()));
         }
         }
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str(format!("{}{}", nameOption, Value::Str(".subscribe".into())).into()));
@@ -482,7 +482,7 @@ impl P2b {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsName]);
-        self.watch_multiple(url, &messageHashes, &[__ws_arg_0, Value::Arr(messageHashes.clone())]).await;
+        self.watch_multiple(url.as_deref(), &messageHashes, &[__ws_arg_0, Value::Arr(messageHashes.clone())]).await;
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
@@ -556,7 +556,7 @@ impl P2b {
             }
         }
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("deals.subscribe".into()));
@@ -565,7 +565,7 @@ impl P2b {
             m
         });
         let mut query: Value = self.extend(Value::Map(subscribe), &[params]);
-        let mut trades: Value = self.watch_multiple(url, &messageHashes, &[query, Value::Arr(messageHashes.clone())]).await;
+        let mut trades: Value = self.watch_multiple(url.as_deref(), &messageHashes, &[query, Value::Arr(messageHashes.clone())]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
         let mut limitResolved: Option<i64> = limit.as_i64();

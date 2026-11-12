@@ -15,8 +15,8 @@ pub async fn testFetchOpenInterestHistory(mut exchange: Value, mut skippedProper
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), openInterestHistory.clone(), symbol.clone()]);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1588: bool = true;
-        while { if !__for_first_1588 { i += 1; } __for_first_1588 = false; i < (openInterestHistory.len() as i64) } {
+        let mut __for_first_1587: bool = true;
+        while { if !__for_first_1587 { i += 1; } __for_first_1587 = false; i < (openInterestHistory.len() as i64) } {
         testOpenInterest(exchange.clone(), skippedProperties.clone(), method.clone(), openInterestHistory.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
     }
     }
