@@ -521,8 +521,11 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_165: bool = true;
             while { if !__for_first_165 { i += 1; } __for_first_165 = false; i < (data.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let mut rawTrade: Value = self.safe_value(&data, Value::Int(i), &[]);
-            let mut trade: Value = self.parse_ws_trade(rawTrade, &[]);
+            let mut rawTrade: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
+            let mut trade: Value = self.parse_ws_trade(&rawTrade, &[]);
             let mut symbol: Value = self.safe_string_k(trade.clone(), "symbol", &[Value::Str("".into())]);
             let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
             if (stored == Value::Null) {
@@ -761,7 +764,10 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_166: bool = true;
             while { if !__for_first_166 { i += 1; } __for_first_166 = false; i < (data.len() as i64) } {
-            let mut ticker: Value = self.parse_ws_ticker(self.safe_value(&data, Value::Int(i), &[]), &[]);
+            let mut ticker: Value = self.parse_ws_ticker(self.safe_dict(&data, Value::Int(i), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]), &[]);
             let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
             if (channelName.is_some()) {
@@ -807,9 +813,9 @@ impl Blofin {
         let mut firstMarket: Value = crate::types::IntoRaw::into_raw(self.market((symbolsList.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
         let mut channel: String = "tickers".to_string();
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBidsAsks".into()), &[firstMarket, params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType, &[Value::Map({
+        let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -857,7 +863,10 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_168: bool = true;
             while { if !__for_first_168 { i += 1; } __for_first_168 = false; i < (data.len() as i64) } {
-            let mut ticker: Value = self.parse_ws_bid_ask(self.safe_value(&data, Value::Int(i), &[]), &[]);
+            let mut ticker: Value = self.parse_ws_bid_ask(self.safe_dict(&data, Value::Int(i), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]), &[]);
             let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]);
             let mut messageHash: String = format!("{}{}", Value::Str("bidask:".into()), symbol);
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
@@ -1064,7 +1073,7 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_169: bool = true;
             while { if !__for_first_169 { i += 1; } __for_first_169 = false; i < (data.len() as i64) } {
-            let mut candle: Value = self.safe_value(&data, Value::Int(i), &[]);
+            let mut candle: Value = self.safe_list(&data, Value::Int(i), &[]);
             let mut parsed: Value = self.parse_ohlcv(candle, &[market.clone()]);
             stored.append(parsed);
         }
@@ -1275,7 +1284,10 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_171: bool = true;
             while { if !__for_first_171 { i += 1; } __for_first_171 = false; i < (data.len() as i64) } {
-            let mut order: Value = self.parse_ws_order(self.safe_value(&data, Value::Int(i), &[]), &[]);
+            let mut order: Value = self.parse_ws_order(self.safe_dict(&data, Value::Int(i), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]), &[]);
             orders.append(order.clone());
             if (channelName.is_some()) {
                 client.resolve(orders.clone(), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), self.safe_string_k(order, "symbol", &[Value::Str("".into())])).into())));
@@ -1353,7 +1365,10 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_172: bool = true;
             while { if !__for_first_172 { i += 1; } __for_first_172 = false; i < (data.len() as i64) } {
-            let mut position: Value = self.parse_ws_position(self.safe_value(&data, Value::Int(i), &[]), &[]);
+            let mut position: Value = self.parse_ws_position(self.safe_dict(&data, Value::Int(i), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]), &[]);
             newPositions.push(position.clone());
             cache.append(position.clone());
             if (channelName.is_some()) {
@@ -1395,7 +1410,7 @@ impl Blofin {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchFundingRate".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageHash: String = format!("{}{}", Value::Str("fundingRate:".into()), Value::from((market).symbol.clone()));
         let mut requestParams: Value = Value::Map({
@@ -1405,7 +1420,7 @@ impl Blofin {
             m
         });
         let mut request: Value = self.get_subscription_request(Value::from(vec![requestParams]));
-        let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType, &[Value::Map({
+        let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -1490,7 +1505,7 @@ impl Blofin {
                 let mut channel: String = channelName.as_str().unwrap_or_default().to_string();
                 if isOHLCV {
                     market = Some(match self.market(current.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                    let mut tf: Option<String> = self.safe_string(self.safe_value(symbolsArray.clone(), Value::Int(i), &[]), Value::Int(1), &[]).as_str().map(str::to_owned);
+                    let mut tf: Option<String> = self.safe_string(self.safe_list(symbolsArray.clone(), Value::Int(i), &[]), Value::Int(1), &[]).as_str().map(str::to_owned);
                     let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), tf.clone().map(Value::from).unwrap_or(Value::Null), &[tf.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
                     channel = format!("{}{}", channel, interval.map(Value::from).unwrap_or(Value::Null));
                 }  else {
@@ -1726,7 +1741,7 @@ impl Blofin {
         let mut timestamp: Value = Value::Str(format!("{}", milliseconds).into());
         let mut nonce: String = format!("{}{}", Value::Str("n_".into()), timestamp);
         let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/users/self/verify".into()), Value::Str("GET".into())).into()), timestamp).into()), Value::Str("".into())).into()), nonce);
-        let mut signature: Value = self.string_to_base64(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]), &[]);
+        let mut signature: Option<String> = self.string_to_base64(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]), &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("login".into()));
@@ -1736,7 +1751,7 @@ impl Blofin {
         m.insert("passphrase".to_string(), self.password.clone());
         m.insert("timestamp".to_string(), timestamp);
         m.insert("nonce".to_string(), Value::from(nonce));
-        m.insert("sign".to_string(), signature);
+        m.insert("sign".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
     m
 })]));
             m

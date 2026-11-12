@@ -3133,12 +3133,12 @@ impl Mexc {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut maxLimit: Value = (if (market).spot { Value::Int(500) } else { Value::Int(2000) }); // docs say 1000 for spot, but in practice it's 500
+        let mut maxLimit: i64 = (if (market).spot { 500 } else { 2000 }); // docs say 1000 for spot, but in practice it's 500
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), maxLimit]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), Value::from(maxLimit)]).await;
         }
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3790,8 +3790,8 @@ impl Mexc {
                 }  else {
                     let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
                     let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
-                    let mut quoteAmount: Value = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null));
-                    request.insert("quoteOrderQty".into(), self.cost_to_precision(Value::from(symbol.clone()), quoteAmount));
+                    let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    request.insert("quoteOrderQty".into(), self.cost_to_precision(Value::from(symbol.clone()), quoteAmount.map(Value::from).unwrap_or(Value::Null)));
                 }
             }
         }  else {
@@ -5134,11 +5134,11 @@ impl Mexc {
         if (feeCurrency.is_some()) {
             let mut takerFee: Option<String> = self.safe_string_k(order.clone(), "takerFee", &[]).as_str().map(str::to_owned);
             let mut makerFee: Option<String> = self.safe_string_k(order.clone(), "makerFee", &[]).as_str().map(str::to_owned);
-            let mut feeSum: Value = crate::precise::Precise::stringAdd(&takerFee.map(Value::from).unwrap_or(Value::Null), &makerFee.map(Value::from).unwrap_or(Value::Null));
+            let mut feeSum: Option<String> = crate::precise::Precise::stringAdd(&takerFee.map(Value::from).unwrap_or(Value::Null), &makerFee.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), feeCurrency.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("cost".to_string(), self.parse_number(feeSum, &[]));
+                    m.insert("cost".to_string(), self.parse_number(feeSum.map(Value::from).unwrap_or(Value::Null), &[]));
                 m
             });
         }
@@ -6835,7 +6835,7 @@ impl Mexc {
         if (rawNetwork.is_some()) {
             network = self.network_id_to_code(&[rawNetwork.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
         }
-        let mut status: Value = self.parse_transaction_status_by_type((self.safe_string_k(transaction.clone(), "status", &[])).as_str(), Some(type_var.as_str())).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_transaction_status_by_type((self.safe_string_k(transaction.clone(), "status", &[])).as_str(), Some(type_var.as_str()));
         let mut amountString: Option<String> = self.safe_string_k(transaction.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut address: Option<String> = self.safe_string_k(transaction.clone(), "address", &[]).as_str().map(str::to_owned);
         let mut txid: Option<String> = self.safe_string2(transaction.clone(), Value::Str("transHash".into()), Value::Str("txId".into()), &[]).as_str().map(str::to_owned);
@@ -6870,7 +6870,7 @@ impl Mexc {
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("amount".to_string(), self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::from(updated));
         m.insert("comment".to_string(), self.safe_string_k(transaction, "remark", &[]));
         m.insert("internal".to_string(), Value::Null);
@@ -7121,7 +7121,7 @@ impl Mexc {
         let mut initialMargin: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "im", &[])).as_str().map(str::to_owned);
         let mut unrealizedPnl: Option<String> = self.safe_string_k(position.clone(), "unRealizedPnl", &[]).as_str().map(str::to_owned);
         let mut rawSide: Option<String> = self.safe_string_k(position.clone(), "positionType", &[]).as_str().map(str::to_owned);
-        let mut side: Value = (if (rawSide.as_deref() == Some("1")) { Value::Str("long".into()) } else { Value::Str("short".into()) });
+        let mut side: String = (if (rawSide.as_deref() == Some("1")) { "long".to_string() } else { "short".to_string() });
         let mut openType: Option<String> = self.safe_string2(position.clone(), Value::Str("openType".into()), Value::Str("margin_mode".into()), &[]).as_str().map(str::to_owned);
         let mut marginType: String = (if (openType.as_deref() == Some("1")) { "isolated".to_string() } else { "cross".to_string() });
         let mut collateralString: Value = Value::Null;
@@ -7147,7 +7147,7 @@ impl Mexc {
         m.insert("entryPrice".to_string(), Value::from(entryPrice));
         m.insert("positionMargin".to_string(), self.parse_number(marginString, &[]));
         m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), Value::from(side));
         m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnl.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("leverage".to_string(), self.parse_number(Value::from(leverage), &[]));
         m.insert("percentage".to_string(), Value::Null);
@@ -7481,7 +7481,7 @@ impl Mexc {
         let mut currencyId: Option<String> = self.safe_string2(transfer.clone(), Value::Str("currency".into()), Value::Str("asset".into()), &[]).as_str().map(str::to_owned);
         let mut id: Option<String> = self.safe_string_n(transfer.clone(), Value::from(vec![Value::Str("transact_id".into()), Value::Str("txid".into()), Value::Str("tranId".into())]), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer2(transfer.clone(), Value::Str("createTime".into()), Value::Str("timestamp".into()), &[]).as_i64();
-        let mut datetime: Value = (if (timestamp.is_some()) { self.iso8601(Value::from(timestamp)) } else { Value::Null });
+        let mut datetime: Option<String> = (if (timestamp.is_some()) { self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned) } else { None });
         let mut direction: Option<String> = self.safe_string_k(transfer.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut accountFrom: Option<String> = None;
         let mut accountTo: Option<String> = None;
@@ -7502,7 +7502,7 @@ impl Mexc {
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), datetime);
+        m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]));
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
         m.insert("fromAccount".to_string(), self.parse_account_id(accountFrom.as_deref()).map(Value::from).unwrap_or(Value::Null));
@@ -8006,12 +8006,12 @@ impl Mexc {
         let mut defaultType: Option<String> = self.safe_string_k(self.options.clone(), "defaultType", &[]).as_str().map(str::to_owned);
         let mut isMargin: bool = self.safe_bool_k(params.clone(), "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.super_handle_margin_mode_and_params(methodName, params, defaultValue).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
         if (defaultType.as_deref() == Some("margin")) || isMargin {
             return Value::from(vec![Value::Str("isolated".into()), paramsMarginMode.clone()]);
         }
-        return Value::from(vec![marginMode, paramsMarginMode]);
+        return Value::from(vec![marginMode.map(Value::from).unwrap_or(Value::Null), paramsMarginMode]);
 
     Value::Null
 }

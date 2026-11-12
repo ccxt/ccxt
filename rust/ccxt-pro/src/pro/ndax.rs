@@ -302,7 +302,7 @@ impl Ndax {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), Value::from(omsId));
@@ -312,7 +312,7 @@ impl Ndax {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("m".to_string(), Value::Int(0));
-                m.insert("i".to_string(), requestId);
+                m.insert("i".to_string(), Value::from(requestId));
                 m.insert("n".to_string(), Value::from(name));
                 m.insert("o".to_string(), json_stringify(&Value::Map(payload)));
             m
@@ -404,7 +404,7 @@ impl Ndax {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), Value::from(omsId));
@@ -415,7 +415,7 @@ impl Ndax {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("m".to_string(), Value::Int(0));
-                m.insert("i".to_string(), requestId);
+                m.insert("i".to_string(), Value::from(requestId));
                 m.insert("n".to_string(), Value::from(name));
                 m.insert("o".to_string(), json_stringify(&Value::Map(payload)));
             m
@@ -533,7 +533,7 @@ impl Ndax {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), Value::from(omsId));
@@ -545,7 +545,7 @@ impl Ndax {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("m".to_string(), Value::Int(0));
-                m.insert("i".to_string(), requestId);
+                m.insert("i".to_string(), Value::from(requestId));
                 m.insert("n".to_string(), Value::from(name));
                 m.insert("o".to_string(), json_stringify(&Value::Map(payload)));
             m

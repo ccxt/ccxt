@@ -1514,8 +1514,8 @@ impl Deribit {
                 market = Some(match self.market((self.safe_string(symbolsArray.clone(), Value::Int(i), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 currentDescriptor = channelDescriptor.clone();
             }
-            let mut message: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, Value::Str(".".into())).into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), currentDescriptor).into());
-            rawSubscriptions.push(message);
+            let mut message: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, Value::Str(".".into())).into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), currentDescriptor);
+            rawSubscriptions.push(Value::from(message));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, Value::Str("|".into())).into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into()), Value::Str("|".into())).into()), currentDescriptor).into()));
         }
         }
@@ -1683,20 +1683,21 @@ impl Deribit {
         let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
         if (future == Value::Null) {
             self.check_required_credentials(&[]);
-            let mut requestId: Value = self.request_id();
+            let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
             let mut lineBreak: String = "\n".to_string(); // eslint-disable-line quotes
-            let mut signature: Value = self.hmac(self.encode(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timeString.map(Value::from).unwrap_or(Value::Null), lineBreak).into()), nonce.clone().map(Value::from).unwrap_or(Value::Null)).into()), lineBreak).into())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut signature: Option<String> = self.hmac(self.encode(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timeString.map(Value::from).unwrap_or(Value::Null), lineBreak).into()), nonce.clone().map(Value::from).unwrap_or(Value::Null)).into()), lineBreak).into())), self.encode(self.secret.clone()),
+                Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
-                    m.insert("id".to_string(), requestId);
+                    m.insert("id".to_string(), Value::from(requestId));
                     m.insert("method".to_string(), Value::Str("public/auth".into()));
                     m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("grant_type".to_string(), Value::Str("client_signature".into()));
         m.insert("client_id".to_string(), self.apiKey.clone());
         m.insert("timestamp".to_string(), Value::from(time));
-        m.insert("signature".to_string(), signature);
+        m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
         m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
         m.insert("data".to_string(), Value::Str("".into()));
     m

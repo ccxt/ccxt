@@ -294,7 +294,7 @@ impl Upbit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsRequested: Value = (if (symbols == Value::Null) { self.symbols.clone() } else { symbols });
+        let mut symbolsRequested: Value = (if (symbols == Value::Null) { Value::Arr(self.symbols.clone()) } else { symbols });
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbolsRequested]).into_opt_list();
         let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
         let mut url: String = self.implode_params(self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]), Value::Map({
@@ -951,7 +951,7 @@ impl Upbit {
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "order_timestamp", &[]).as_i64();
         let mut rawStatus: Option<String> = self.safe_string_k(order.clone(), "state", &[]).as_str().map(str::to_owned);
-        let mut status: Value = self.parse_ws_order_status(rawStatus.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_ws_order_status(rawStatus.clone().map(Value::from).unwrap_or(Value::Null));
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "code", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]).into_dict();
         let mut fee: Value = Value::Null;
@@ -967,8 +967,8 @@ impl Upbit {
         // when state is trade the price and volume fields describe the fill, not the order:
         // fall back to the average fill price and let the order volume derive from filled + remaining
         let mut isTrade: bool = rawStatus.as_deref() == Some("trade");
-        let mut price: Value = (if isTrade { self.safe_string_k(order.clone(), "avg_price", &[]) } else { self.safe_string_k(order.clone(), "price", &[]) });
-        let mut amount: Value = (if isTrade { Value::Null } else { self.safe_string_k(order.clone(), "volume", &[]) });
+        let mut price: Option<String> = (if isTrade { self.safe_string_k(order.clone(), "avg_price", &[]).as_str().map(str::to_owned) } else { self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned) });
+        let mut amount: Option<String> = (if isTrade { None } else { self.safe_string_k(order.clone(), "volume", &[]).as_str().map(str::to_owned) });
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -983,15 +983,15 @@ impl Upbit {
         m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "time_in_force", &[]));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), price);
+        m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("stopPrice".to_string(), Value::Null);
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("cost".to_string(), self.safe_string_k(order.clone(), "executed_funds", &[]));
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "avg_price", &[]));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "executed_volume", &[]));
         m.insert("remaining".to_string(), self.safe_string_k(order, "remaining_volume", &[]));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);
     m

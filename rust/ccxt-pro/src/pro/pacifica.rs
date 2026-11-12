@@ -1266,7 +1266,7 @@ impl Pacifica {
     m
 }));
         let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.parent.handle_origin_and_single_address("watchMyTrades", params).as_array().cloned().unwrap_or_default();
-        let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut userAddress: Option<String> = userAddressparamsOriginAndSingleAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1300,7 +1300,7 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("account_trades".into()));
-        m.insert("account".to_string(), userAddress);
+        m.insert("account".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
     m
 }));
             m
@@ -1344,7 +1344,7 @@ impl Pacifica {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchMyTrades does not support a symbol argument, unWatch from all markets only".into()))));
         }
         let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.parent.handle_origin_and_single_address("unWatchMyTrades", params).as_array().cloned().unwrap_or_default();
-        let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut userAddress: Option<String> = userAddressparamsOriginAndSingleAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageHash: String = "unsubscribe:myTrades".to_string();
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
@@ -1370,7 +1370,7 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("account_trades".into()));
-        m.insert("account".to_string(), userAddress);
+        m.insert("account".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
     m
 }));
             m
@@ -1988,7 +1988,7 @@ impl Pacifica {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.parent.handle_origin_and_single_address("watchOrders", params).as_array().cloned().unwrap_or_default();
-        let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut userAddress: Option<String> = userAddressparamsOriginAndSingleAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "order".to_string();
@@ -2021,7 +2021,7 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("account_order_updates".into()));
-        m.insert("account".to_string(), userAddress);
+        m.insert("account".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
     m
 }));
             m
@@ -2083,7 +2083,7 @@ impl Pacifica {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
         let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.parent.handle_origin_and_single_address("unWatchOrders", params).as_array().cloned().unwrap_or_default();
-        let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut userAddress: Option<String> = userAddressparamsOriginAndSingleAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2091,7 +2091,7 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("account_order_updates".into()));
-        m.insert("account".to_string(), userAddress);
+        m.insert("account".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
     m
 }));
             m
@@ -2165,8 +2165,8 @@ impl Pacifica {
                         let mut i: i64 = 0;
             let mut __for_first_580: bool = true;
             while { if !__for_first_580 { i += 1; } __for_first_580 = false; i < (keys.len() as i64) } {
-            let mut symbol: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol);
+            let mut symbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
             client.resolve(stored.clone(), innerMessageHash.as_str());
         }
         }
@@ -2441,7 +2441,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str("postAction() requires a \"operationType\" argument!".into()))));
         }
         // the venue requires a full uuid v4 request id
-        let mut requestId: Value = self.uuid(&[]);
+        let mut requestId: Option<String> = self.uuid(&[]).as_str().map(str::to_owned);
         let mut postParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2449,7 +2449,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         postParams.insert(crate::runtime::stringify_param(&operationType), request);
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), requestId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("params".to_string(), Value::Map(postParams));
             m
         });

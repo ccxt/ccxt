@@ -374,7 +374,7 @@ impl Bithumb {
             m
         });
         if isGenerationTwo {
-            let mut marketIdRequest: Value = self.parent.get_gen2_market_id((market).raw.clone());
+            let mut marketIdRequest: Option<String> = self.parent.get_gen2_market_id((market).raw.clone()).as_str().map(str::to_owned);
             request = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), self.uuid(&[]));
@@ -382,7 +382,7 @@ impl Bithumb {
 }), self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("ticker".into()));
-        m.insert("codes".to_string(), Value::from(vec![marketIdRequest]));
+        m.insert("codes".to_string(), Value::from(vec![marketIdRequest.map(Value::from).unwrap_or(Value::Null)]));
     m
 }), &[&paramsOmitted])]);
             return self.watch(url.as_str(), &messageHash[..], request.clone(), &messageHash[..], Value::Null).await;
@@ -428,7 +428,7 @@ impl Bithumb {
         if isGenerationTwo && (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() requires symbols for the generation 2 API".into()))));
         }
-        let mut symbolsResolved: Value = self.symbols.clone();
+        let mut symbolsResolved: Value = Value::Arr(self.symbols.clone());
         if (symbolsNormalized != Value::Null) {
             symbolsResolved = symbolsNormalized;
         }
@@ -750,7 +750,7 @@ impl Bithumb {
             m
         });
         if isGenerationTwo {
-            let mut marketIdRequest: Value = self.parent.get_gen2_market_id((market).raw.clone());
+            let mut marketIdRequest: Option<String> = self.parent.get_gen2_market_id((market).raw.clone()).as_str().map(str::to_owned);
             request = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), self.uuid(&[]));
@@ -758,7 +758,7 @@ impl Bithumb {
 }), self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("orderbook".into()));
-        m.insert("codes".to_string(), Value::from(vec![marketIdRequest]));
+        m.insert("codes".to_string(), Value::from(vec![marketIdRequest.map(Value::from).unwrap_or(Value::Null)]));
     m
 }), &[&paramsGeneration])]);
         }  else {
@@ -972,7 +972,7 @@ impl Bithumb {
             m
         });
         if isGenerationTwo {
-            let mut marketIdRequest: Value = self.parent.get_gen2_market_id((market).raw.clone());
+            let mut marketIdRequest: Option<String> = self.parent.get_gen2_market_id((market).raw.clone()).as_str().map(str::to_owned);
             request = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), self.uuid(&[]));
@@ -980,7 +980,7 @@ impl Bithumb {
 }), self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("trade".into()));
-        m.insert("codes".to_string(), Value::from(vec![marketIdRequest]));
+        m.insert("codes".to_string(), Value::from(vec![marketIdRequest.map(Value::from).unwrap_or(Value::Null)]));
     m
 }), &[&paramsGeneration])]);
         }  else {

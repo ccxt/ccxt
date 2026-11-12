@@ -1013,8 +1013,8 @@ impl Opinion {
         }
         }
         let mut statusEnum: Option<String> = self.safe_string_k(rawEvent.clone(), "statusEnum", &[]).as_str().map(str::to_owned);
-        let mut active: Value = (Value::Bool(statusEnum.as_deref() == Some("Activated")));
-        let mut resolved: Value = (Value::Bool(statusEnum.as_deref() == Some("Resolved")));
+        let mut active: bool = statusEnum.as_deref() == Some("Activated");
+        let mut resolved: bool = statusEnum.as_deref() == Some("Resolved");
         let mut end: Option<i64> = None;
         if (self.safe_integer_k(rawEvent.clone(), "cutoffAt", &[Value::Int(0)]).as_f64() != Some(0.0)) {
             end = self.safe_timestamp_k(rawEvent.clone(), "cutoffAt", &[]).as_i64();
@@ -1037,8 +1037,8 @@ impl Opinion {
         m.insert("category".to_string(), __ws_arg_7);
         m.insert("tags".to_string(), Value::from(&labels));
         m.insert("markets".to_string(), Value::from(marketsList));
-        m.insert("active".to_string(), active);
-        m.insert("resolved".to_string(), resolved);
+        m.insert("active".to_string(), Value::Bool(active));
+        m.insert("resolved".to_string(), Value::Bool(resolved));
         m.insert("volume".to_string(), __ws_arg_8);
         m.insert("created".to_string(), Value::from(created));
         m.insert("createdDatetime".to_string(), __ws_arg_9);
@@ -1242,8 +1242,8 @@ impl Opinion {
             while { if !__for_first_1394 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1394 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
             let mut outcomeObj: Value = self.outcome(outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             let mut priceIndex: Value = (match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut priceResponse: Value = self.safe_value(responses.clone(), priceIndex.clone(), &[]);
-            let mut bookResponse: Value = self.safe_value(responses.clone(), self.sum(&[priceIndex, Value::Int(1)]), &[]);
+            let mut priceResponse: Value = self.safe_dict(responses.clone(), priceIndex.clone(), &[]);
+            let mut bookResponse: Value = self.safe_dict(responses.clone(), self.sum(&[priceIndex, Value::Int(1)]), &[]);
             let mut response: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("price".to_string(), priceResponse);
@@ -1602,10 +1602,10 @@ impl Opinion {
         }
         let mut amountStr: Option<String> = self.number_to_string(amount).as_str().map(str::to_owned);
         if isMarket && (side.as_str() == Some("BUY")) {
-            let mut marketMakerAmountWei: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&amountStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(decimalsStr.clone())), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
+            let mut marketMakerAmountWei: Option<String> = self.decimal_to_precision(crate::precise::Precise::stringMul(&amountStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(decimalsStr.clone())), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("makerAmount".to_string(), marketMakerAmountWei);
+        m.insert("makerAmount".to_string(), marketMakerAmountWei.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerAmount".to_string(), Value::Str("0".into()));
     m
 });
@@ -1812,11 +1812,11 @@ impl Opinion {
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them
-        let mut status: Value = (if canceled { Value::Str("canceled".into()) } else { Value::Null });
+        let mut status: Option<String> = (if canceled { Some("canceled".to_string()) } else { None });
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), response);
     m
 }), &[]);
@@ -1881,7 +1881,7 @@ impl Opinion {
         let mut id: Option<String> = self.safe_string_k(order.clone(), "orderId", &[]).as_str().map(str::to_owned);
         let mut marketAny: Value = market.clone();
         let mut statusEnum: Option<String> = self.safe_string_k(order.clone(), "statusEnum", &[]).as_str().map(str::to_owned);
-        let mut status: Value = self.parse_order_status(statusEnum.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_order_status(statusEnum.as_deref());
         let mut sideEnum: Option<String> = self.safe_string_lower_k(order.clone(), "sideEnum", &[]).as_str().map(str::to_owned);
         let mut tradingMethodEnum: Option<String> = self.safe_string_lower_k(order.clone(), "tradingMethodEnum", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(order.clone(), "createdAt", &[]).as_i64();
@@ -1893,7 +1893,7 @@ impl Opinion {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("outcome".to_string(), self.safe_string_k(marketAny.clone(), "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string2(marketAny.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
         m.insert("label".to_string(), self.safe_string_k(marketAny.clone(), "label", &[]));
@@ -2756,8 +2756,8 @@ if _try_result.is_err() {
             })]).into_dict();
             if (self.safe_integer_k(&info, "marketId", &[]).as_f64() == marketId.as_f64()) {
                 let mut outcomes: crate::value::List = self.safe_list_k(&market, "outcomes", &[Value::from(vec![])]).into_list();
-                let mut index: Value = (if (outcomeSide.as_f64() == Some(2.0)) { Value::Int(1) } else { Value::Int(0) });
-                return self.safe_dict(&outcomes, index, &[]);
+                let mut index: i64 = (if (outcomeSide.as_f64() == Some(2.0)) { 1 } else { 0 });
+                return self.safe_dict(&outcomes, Value::from(index), &[]);
             }
         }
         }
@@ -2899,8 +2899,8 @@ if _try_result.is_err() {
     m
 })]).into_dict();
         let mut marketId: Option<i64> = self.safe_integer_k(&info, "marketId", &[]).as_i64();
-        let mut sym: Value = self.safe_outcome_symbol(outcome, &[outcomeObj]);
-        let mut messageHash: String = format!("{}{}", Value::Str("ticker::".into()), sym);
+        let mut sym: Option<String> = self.safe_outcome_symbol(outcome, &[outcomeObj]).as_str().map(str::to_owned);
+        let mut messageHash: String = format!("{}{}", Value::Str("ticker::".into()), sym.map(Value::from).unwrap_or(Value::Null));
         return self.subscribe_opinion_channel(messageHash.as_str(), "market.last.price", marketId).await;
         Value::Null
         }).await?))
@@ -2977,8 +2977,8 @@ if _try_result.is_err() {
     m
 })]).into_dict();
         let mut marketId: Option<i64> = self.safe_integer_k(&info, "marketId", &[]).as_i64();
-        let mut sym: Value = self.safe_outcome_symbol(outcome, &[outcomeObj]);
-        let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), sym);
+        let mut sym: Option<String> = self.safe_outcome_symbol(outcome, &[outcomeObj]).as_str().map(str::to_owned);
+        let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), sym.map(Value::from).unwrap_or(Value::Null));
         let mut trades: Value = self.subscribe_opinion_channel(messageHash.as_str(), "market.last.trade", marketId).await;
         return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
@@ -3073,8 +3073,8 @@ if _try_result.is_err() {
         let mut marketId: Option<i64> = self.safe_integer_k(&info, "marketId", &[]).as_i64();
         let mut messageHash: String = "orders".to_string();
         let mut orders: Value = self.subscribe_opinion_channel(messageHash.as_str(), "trade.order.update", marketId).await;
-        let mut sym: Value = self.safe_outcome_symbol(outcome, &[outcomeObj]);
-        return self.filter_by_value_since_limit(orders, Value::Str("outcome".into()), &[sym, since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut sym: Option<String> = self.safe_outcome_symbol(outcome, &[outcomeObj]).as_str().map(str::to_owned);
+        return self.filter_by_value_since_limit(orders, Value::Str("outcome".into()), &[sym.map(Value::from).unwrap_or(Value::Null), since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3221,8 +3221,8 @@ if _try_result.is_err() {
         let mut marketId: Option<i64> = self.safe_integer_k(&info, "marketId", &[]).as_i64();
         let mut messageHash: String = "myTrades".to_string();
         let mut trades: Value = self.subscribe_opinion_channel(messageHash.as_str(), "trade.record.new", marketId).await;
-        let mut sym: Value = self.safe_outcome_symbol(outcome, &[outcomeObj]);
-        return self.filter_by_value_since_limit(trades, Value::Str("outcome".into()), &[sym, since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut sym: Option<String> = self.safe_outcome_symbol(outcome, &[outcomeObj]).as_str().map(str::to_owned);
+        return self.filter_by_value_since_limit(trades, Value::Str("outcome".into()), &[sym.map(Value::from).unwrap_or(Value::Null), since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3329,10 +3329,10 @@ if _try_result.is_err() {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiGroup: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut apiGroup: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut access: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
-        let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup, &[baseUrls.as_map().and_then(|__m| __m.get("opinion")).cloned().unwrap_or(Value::Null)]);
+        let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup.map(Value::from).unwrap_or(Value::Null), &[baseUrls.as_map().and_then(|__m| __m.get("opinion")).cloned().unwrap_or(Value::Null)]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         let mut existingHeaders: indexmap::IndexMap<String, Value> = ({

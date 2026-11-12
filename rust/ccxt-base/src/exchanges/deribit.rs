@@ -1634,11 +1634,11 @@ impl Deribit {
         //
         let mut result: crate::value::Dict = self.safe_dict_k(response.clone(), "result", &[]).into_dict();
         let mut locked: Option<String> = self.safe_string_k(&result, "locked", &[]).as_str().map(str::to_owned);
-        let mut updateTime: Value = self.safe_integer_product_k(response.clone(), "usIn", Value::Float(0.001), &[self.milliseconds()]);
+        let mut updateTime: Option<i64> = self.safe_integer_product_k(response.clone(), "usIn", Value::Float(0.001), &[self.milliseconds()]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), (if (locked.as_deref() == Some("false")) { Value::Str("ok".into()) } else { Value::Str("maintenance".into()) }));
-        m.insert("updated".to_string(), updateTime);
+        m.insert("updated".to_string(), Value::from(updateTime));
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
         m.insert("info".to_string(), response);
@@ -2590,7 +2590,7 @@ impl Deribit {
         // at max, it provides 5000 bars, but we set generous default here
         let mut defaultLimit: i64 = 1000;
         let mut windowLimit: i64 = limit.as_i64().unwrap_or(defaultLimit);
-        let mut limitResolved: Value = (if ((since == Value::Null) && (limit == Value::Null)) { Value::from(defaultLimit) } else { limit.clone() });
+        let mut limitResolved: Option<i64> = (if ((since == Value::Null) && (limit == Value::Null)) { Some(defaultLimit) } else { limit.as_i64() });
         let mut sinceResolved: Value = (if (since == Value::Null) { Value::Null } else { crate::runtime::Math::max(&(match (&(since), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &Value::Int(0)) });
         if (since == Value::Null) {
@@ -2638,7 +2638,7 @@ impl Deribit {
             m
         })]);
         let mut ohlcvs: Value = self.convert_trading_view_to_ohlcv(result, &[Value::Str("ticks".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("volume".into()), Value::Bool(true)]);
-        return self.parse_ohlc_vs(ohlcvs, &[(market).raw.clone(), timeframe, sinceResolved, limitResolved]);
+        return self.parse_ohlc_vs(ohlcvs, &[(market).raw.clone(), timeframe, sinceResolved, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -2852,8 +2852,8 @@ impl Deribit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut code: Value = self.code_from_options(Some("fetchTradingFees"), &[params.clone()]).map(Value::from).unwrap_or(Value::Null);
-        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code).as_map().cloned().unwrap_or_default();
+        let mut code: Option<String> = self.code_from_options(Some("fetchTradingFees"), &[params.clone()]);
+        let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.map(Value::from).unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
@@ -2965,12 +2965,12 @@ impl Deribit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbols: Value = self.symbols.clone();
+        let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
             let mut __for_first_626: bool = true;
             while { if !__for_first_626 { i += 1; } __for_first_626 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut fee: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3157,7 +3157,7 @@ impl Deribit {
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "creation_timestamp", &[]).as_i64();
-        let mut lastUpdate: Value = self.safe_integer_k(order.clone(), "last_update_timestamp", &[]);
+        let mut lastUpdate: Option<i64> = self.safe_integer_k(order.clone(), "last_update_timestamp", &[]).as_i64();
         let mut id: Option<String> = self.safe_string_k(order.clone(), "order_id", &[]).as_str().map(str::to_owned);
         let mut priceString: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         if (priceString.as_deref() == Some("market_price")) {
@@ -3178,10 +3178,10 @@ impl Deribit {
         if (filledString.is_some()) {
             let mut isFilledPositive: Value = crate::precise::Precise::stringGt(&filledString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into()));
             if isFilledPositive.as_bool() == Some(true) {
-                lastTradeTimestamp = lastUpdate;
+                lastTradeTimestamp = Value::from(lastUpdate);
             }
         }
-        let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "order_state", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "order_state", &[])).as_str());
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "direction", &[]).as_str().map(str::to_owned);
         let mut feeCostString: Option<String> = self.safe_string_k(order.clone(), "commission", &[]).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
@@ -3195,7 +3195,7 @@ impl Deribit {
             });
         }
         let mut rawType: Option<String> = self.safe_string_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = self.parse_order_type(rawType.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Option<String> = self.parse_order_type(rawType.as_deref());
         // injected in createOrder
         let mut trades: Value = self.safe_list_k(order.clone(), "trades", &[]);
         let mut timeInForce: Value = self.parse_time_in_force((self.safe_string_k(order.clone(), "time_in_force", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
@@ -3209,7 +3209,7 @@ impl Deribit {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), postOnly.map_or(Value::Null, Value::Bool));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -3220,7 +3220,7 @@ impl Deribit {
         m.insert("average".to_string(), averageString.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filledString.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), trades);
     m
@@ -3378,8 +3378,8 @@ impl Deribit {
             request.insert("type".into(), Value::Str("trailing_stop".into()));
             request.insert("trigger_offset".into(), self.parse_to_numeric(trailingAmount.map(Value::from).unwrap_or(Value::Null)));
         }  else if isStopOrder {
-            let mut triggerPrice: Value = (if (stopLossPrice.is_some()) { stopLossPrice.clone().map(Value::from).unwrap_or(Value::Null) } else { takeProfitPrice.map(Value::from).unwrap_or(Value::Null) });
-            request.insert("trigger_price".into(), self.price_to_precision(symbol, triggerPrice));
+            let mut triggerPrice: Option<String> = (if (stopLossPrice.is_some()) { stopLossPrice } else { takeProfitPrice });
+            request.insert("trigger_price".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
             request.insert("trigger".into(), Value::from(trigger));
             if isStopLossOrder {
                 if isMarketOrder {
@@ -3482,7 +3482,7 @@ impl Deribit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let __ws_arg_14 = self.safe_value_k(&result, "order", &[]);
+        let __ws_arg_14 = self.safe_dict_k(&result, "order", &[]);
         let __ws_arg_15 = self.safe_list_k(&result, "trades", &[Value::from(vec![])]);
         let mut order: crate::value::Dict = self.extend(__ws_arg_14, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3555,7 +3555,7 @@ impl Deribit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let __ws_arg_17 = self.safe_value_k(&result, "order", &[]);
+        let __ws_arg_17 = self.safe_dict_k(&result, "order", &[]);
         let __ws_arg_18 = self.safe_list_k(&result, "trades", &[Value::from(vec![])]);
         let mut order: crate::value::Dict = self.extend(__ws_arg_17, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3690,8 +3690,8 @@ impl Deribit {
         let mut market: Value = Value::Null;
         let mut response: Option<crate::value::Dict> = None;
         if (symbol == Value::Null) {
-            let mut code: Value = self.code_from_options(Some("fetchOpenOrders"), &[params.clone()]).map(Value::from).unwrap_or(Value::Null);
-            let mut currency: indexmap::IndexMap<String, Value> = self.currency(code).as_map().cloned().unwrap_or_default();
+            let mut code: Option<String> = self.code_from_options(Some("fetchOpenOrders"), &[params.clone()]);
+            let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.map(Value::from).unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
             request.insert("currency".into(), currency.get("id").cloned().unwrap_or(Value::Null));
             let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_get_get_open_orders_by_currency(&[__ws_arg_22]).await.into_opt_dict();
@@ -3747,8 +3747,8 @@ impl Deribit {
             request.insert("count".into(), Value::Int(1000)); // max value
         }
         if (symbol == Value::Null) {
-            let mut code: Value = self.code_from_options(Some("fetchClosedOrders"), &[params.clone()]).map(Value::from).unwrap_or(Value::Null);
-            let mut currency: indexmap::IndexMap<String, Value> = self.currency(code).as_map().cloned().unwrap_or_default();
+            let mut code: Option<String> = self.code_from_options(Some("fetchClosedOrders"), &[params.clone()]);
+            let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.map(Value::from).unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
             request.insert("currency".into(), currency.get("id").cloned().unwrap_or(Value::Null));
             let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_get_get_order_history_by_currency(&[__ws_arg_24]).await.into_opt_dict();
@@ -3880,8 +3880,8 @@ impl Deribit {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (symbol == Value::Null) {
-            let mut code: Value = self.code_from_options(Some("fetchMyTrades"), &[params.clone()]).map(Value::from).unwrap_or(Value::Null);
-            let mut currency: indexmap::IndexMap<String, Value> = self.currency(code).as_map().cloned().unwrap_or_default();
+            let mut code: Option<String> = self.code_from_options(Some("fetchMyTrades"), &[params.clone()]);
+            let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.map(Value::from).unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
             request.insert("currency".into(), currency.get("id").cloned().unwrap_or(Value::Null));
             if (since == Value::Null) {
                 let __ws_arg_27 = self.extend(Value::Map(request.clone()), &[params.clone()]);
@@ -4139,7 +4139,7 @@ impl Deribit {
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer2(transaction.clone(), Value::Str("created_timestamp".into()), Value::Str("received_timestamp".into()), &[]).as_i64();
         let mut updated: Option<i64> = self.safe_integer_k(transaction.clone(), "updated_timestamp", &[]).as_i64();
-        let mut status: Value = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "state", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "state", &[])).as_str());
         let mut address: Option<String> = self.safe_string_k(transaction.clone(), "address", &[]).as_str().map(str::to_owned);
         let mut feeCost: Option<f64> = self.safe_number_k(transaction.clone(), "fee", &[]).as_f64();
         let mut type_var: String = "deposit".to_string();
@@ -4169,7 +4169,7 @@ impl Deribit {
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("amount".to_string(), self.safe_number_k(transaction, "amount", &[]));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::from(updated));
         m.insert("network".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
@@ -4212,7 +4212,7 @@ impl Deribit {
         //
         let mut contract: Option<String> = self.safe_string_k(position.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[contract.map(Value::from).unwrap_or(Value::Null), market]);
-        let mut side: Value = (if (self.safe_string_k(position.clone(), "direction", &[]).as_str() == Some("buy")) { Value::Str("long".into()) } else { Value::Str("short".into()) });
+        let mut side: String = (if (self.safe_string_k(position.clone(), "direction", &[]).as_str() == Some("buy")) { "long".to_string() } else { "short".to_string() });
         let mut unrealizedPnl: Option<String> = self.safe_string_k(position.clone(), "floating_profit_loss", &[]).as_str().map(str::to_owned);
         let mut initialMarginString: Option<String> = self.safe_string_k(position.clone(), "initial_margin", &[]).as_str().map(str::to_owned);
         let mut notionalString: Option<String> = self.safe_string_k(position.clone(), "size_currency", &[]).as_str().map(str::to_owned);
@@ -4243,7 +4243,7 @@ impl Deribit {
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), Value::from(side));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("hedged".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
@@ -4706,9 +4706,9 @@ impl Deribit {
     m
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag]);
+        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null)]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -5761,11 +5761,11 @@ impl Deribit {
             }
             let mut requestData: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str("\n".into())).into()), request).into()), Value::Str("\n".into())).into()), requestBody).into()), Value::Str("\n".into())); // eslint-disable-line quotes
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, Value::Str("\n".into())).into()), nonce).into()), Value::Str("\n".into())).into()), requestData); // eslint-disable-line quotes
-            let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
             let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("deri-hmac-sha256 id=".into()), self.apiKey.clone()).into()),
-                        Value::Str(",ts=".into())).into()), timestamp).into()), Value::Str(",sig=".into())).into()), signature).into()), Value::Str(",".into())).into()), Value::Str("nonce=".into())).into()), nonce).into()));
+                        Value::Str(",ts=".into())).into()), timestamp).into()), Value::Str(",sig=".into())).into()), signature.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(",".into())).into()), Value::Str("nonce=".into())).into()), nonce).into()));
                 m
             });
             let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);

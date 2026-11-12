@@ -674,9 +674,9 @@ impl Nado {
             while { if !__for_first_505 { i += 1; } __for_first_505 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), Value::from((market).symbol.clone())).into());
+            let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), Value::from((market).symbol.clone()));
             markets.push((market).raw.clone());
-            messageHashes.push(messageHash);
+            messageHashes.push(Value::from(messageHash));
             if !(self.orderbooks.as_map().is_some_and(|__m| Value::from((market).symbol.clone()).as_str().is_some_and(|__k| __m.contains_key(__k)))) {
                 let mut snapshot: crate::types::OrderBook = (match self.fetch_order_book(symbol.as_deref().unwrap_or_default(), limit.as_i64(), Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 { let __be_tmp = self.order_book(&[crate::types::IntoRaw::into_raw(snapshot), limit.clone()]); add_element_to_object(&mut self.orderbooks, &Value::from((market).symbol.clone()), __be_tmp); };
@@ -1207,13 +1207,13 @@ impl Nado {
             productId = self.parse_to_int(crate::value::KeyRead::key_read(&&market, "id"));
         }
         let subaccountparamsSubaccountVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrders".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
-        let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subaccount: Option<String> = subaccountparamsSubaccountVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubaccount: Value = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut sender: Value = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount]).map(Value::from).unwrap_or(Value::Null);
+        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let mut stream: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("order_update".into()));
-                m.insert("subaccount".to_string(), sender);
+                m.insert("subaccount".to_string(), sender.map(Value::from).unwrap_or(Value::Null));
                 m.insert("product_id".to_string(), productId);
             m
         });
@@ -1267,13 +1267,13 @@ impl Nado {
             productId = self.parse_to_int(crate::value::KeyRead::key_read(&&market, "id"));
         }
         let subaccountparamsSubaccountVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("unWatchOrders".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
-        let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subaccount: Option<String> = subaccountparamsSubaccountVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubaccount: Value = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut sender: Value = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount]).map(Value::from).unwrap_or(Value::Null);
+        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let mut stream: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("order_update".into()));
-                m.insert("subaccount".to_string(), sender);
+                m.insert("subaccount".to_string(), sender.map(Value::from).unwrap_or(Value::Null));
                 m.insert("product_id".to_string(), productId);
             m
         });
@@ -1329,13 +1329,13 @@ impl Nado {
             productId = self.parse_to_int(crate::value::KeyRead::key_read(&&market, "id"));
         }
         let subaccountparamsSubaccountVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchMyTrades".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
-        let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subaccount: Option<String> = subaccountparamsSubaccountVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubaccount: Value = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut sender: Value = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount]).map(Value::from).unwrap_or(Value::Null);
+        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let mut stream: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("fill".into()));
-                m.insert("subaccount".to_string(), sender);
+                m.insert("subaccount".to_string(), sender.map(Value::from).unwrap_or(Value::Null));
                 m.insert("product_id".to_string(), productId);
             m
         });
@@ -1389,13 +1389,13 @@ impl Nado {
             productId = self.parse_to_int(crate::value::KeyRead::key_read(&&market, "id"));
         }
         let subaccountparamsSubaccountVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("unWatchMyTrades".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
-        let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subaccount: Option<String> = subaccountparamsSubaccountVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubaccount: Value = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut sender: Value = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount]).map(Value::from).unwrap_or(Value::Null);
+        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let mut stream: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("fill".into()));
-                m.insert("subaccount".to_string(), sender);
+                m.insert("subaccount".to_string(), sender.map(Value::from).unwrap_or(Value::Null));
                 m.insert("product_id".to_string(), productId);
             m
         });
@@ -1452,13 +1452,13 @@ impl Nado {
             }
         }
         let subaccountparamsSubaccountVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchPositions".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
-        let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subaccount: Option<String> = subaccountparamsSubaccountVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubaccount: Value = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut sender: Value = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount]).map(Value::from).unwrap_or(Value::Null);
+        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let mut stream: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("position_change".into()));
-                m.insert("subaccount".to_string(), sender);
+                m.insert("subaccount".to_string(), sender.map(Value::from).unwrap_or(Value::Null));
                 m.insert("product_id".to_string(), productId);
             m
         });
@@ -1514,13 +1514,13 @@ impl Nado {
             }
         }
         let subaccountparamsSubaccountVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("unWatchPositions".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
-        let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subaccount: Option<String> = subaccountparamsSubaccountVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubaccount: Value = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut sender: Value = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount]).map(Value::from).unwrap_or(Value::Null);
+        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let mut stream: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("position_change".into()));
-                m.insert("subaccount".to_string(), sender);
+                m.insert("subaccount".to_string(), sender.map(Value::from).unwrap_or(Value::Null));
                 m.insert("product_id".to_string(), productId);
             m
         });
@@ -1936,13 +1936,13 @@ impl Nado {
         if (clientSubscription != Value::Null) {
             return self.watch(url.as_deref(), &messageHash, Value::Null, None::<&str>, Value::Null).await;
         }
-        let mut id: Value = self.request_id();
+        let mut id: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:".into()), messageHash).into());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("stream".to_string(), self.deep_extend(stream, &[params]));
-                m.insert("id".to_string(), id);
+                m.insert("id".to_string(), Value::from(id));
             m
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -2016,14 +2016,14 @@ impl Nado {
         let mut recvWindow: Value = recvWindowparamsRecvWindowVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsRecvWindow: crate::value::Dict = recvWindowparamsRecvWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let subaccountparamsSubaccountVariable: Vec<Value> = self.handle_option_string_and_params(&paramsRecvWindow, Value::Str("authenticate".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
-        let mut subaccount: Value = subaccountparamsSubaccountVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subaccount: Option<String> = subaccountparamsSubaccountVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubaccount: crate::value::Dict = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut id: Value = self.request_id();
-        let mut sender: Value = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount]).map(Value::from).unwrap_or(Value::Null);
+        let mut id: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let mut expiration: Value = self.sum(&[self.milliseconds(), recvWindow]);
         let mut tx: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("sender".to_string(), sender);
+                m.insert("sender".to_string(), sender.map(Value::from).unwrap_or(Value::Null));
                 m.insert("expiration".to_string(), self.number_to_string(expiration));
             m
         });
@@ -2033,13 +2033,13 @@ impl Nado {
         if (endpointAddress.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() requires endpoint_addr from contracts query".into()))));
         }
-        let mut signature: Value = self.sign_stream_authentication(Value::Map(tx.clone()), chainId.map(Value::from).unwrap_or(Value::Null), endpointAddress.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+        let mut signature: Option<String> = self.sign_stream_authentication(Value::Map(tx.clone()), chainId.map(Value::from).unwrap_or(Value::Null), endpointAddress.map(Value::from).unwrap_or(Value::Null));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("authenticate".into()));
-                m.insert("id".to_string(), id);
+                m.insert("id".to_string(), Value::from(id));
                 m.insert("tx".to_string(), Value::Map(tx));
-                m.insert("signature".to_string(), signature);
+                m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
             m
         });
         client.add_subscription(&Value::Str(format!("{}{}", Value::Str("authentication:".into()), self.safe_string(Value::Map(request.clone()), Value::Str("id".into()), &[Value::Str("".into())])).into()), Value::from(messageHash.clone()));
@@ -2122,9 +2122,9 @@ impl Nado {
             let mut clientSubscription: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash), &[]);
             if (clientSubscription == Value::Null) {
                 let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut id: Value = self.request_id();
+                let mut id: i64 = self.request_id().as_i64().unwrap_or_default();
                 let mut requestParams: Value = (if (subscriptionParams == Value::Null) { params.clone() } else { subscriptionParams.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null) });
-                let mut request: indexmap::IndexMap<String, Value> = self.create_public_subscription_request(Value::Str("subscribe".into()), streamType.clone(), &[market.clone(), id, requestParams]).as_map().cloned().unwrap_or_default();
+                let mut request: indexmap::IndexMap<String, Value> = self.create_public_subscription_request(Value::Str("subscribe".into()), streamType.clone(), &[market.clone(), Value::from(id), requestParams]).as_map().cloned().unwrap_or_default();
                 let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:".into()), json_stringify(&request.get("stream").cloned().unwrap_or(Value::Null))).into());
                 let mut streamSubscription: Value = self.safe_value((client).subscriptions.clone(), subscribeHash.clone(), &[]);
                 if (streamSubscription == Value::Null) {

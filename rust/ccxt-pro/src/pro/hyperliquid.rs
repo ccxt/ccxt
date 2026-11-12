@@ -739,8 +739,8 @@ impl Hyperliquid {
         let mut subMessageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbolValue);
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
-        let mut nonce: Value = self.incrementing_nonce();
-        let mut id: Option<String> = self.number_to_string(nonce).as_str().map(str::to_owned);
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut id: Option<String> = self.number_to_string(Value::from(nonce)).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -1258,8 +1258,8 @@ impl Hyperliquid {
                 let mut __for_first_400: bool = true;
                 while { if !__for_first_400 { i += 1; } __for_first_400 = false; i < (keys.len() as i64) } {
                 let mut name: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                let mut marketId: Value = self.parent.coin_to_market_id(name.as_deref()).map(Value::from).unwrap_or(Value::Null);
-                let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, Value::Str("swap".into())]);
+                let mut marketId: Option<String> = self.parent.coin_to_market_id(name.as_deref());
+                let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::Str("swap".into())]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 let mut ticker: Value = self.parse_ws_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1308,8 +1308,8 @@ impl Hyperliquid {
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut coin: Option<String> = self.safe_string_k(&data, "coin", &[]).as_str().map(str::to_owned);
-        let mut marketId: Value = self.parent.coin_to_market_id(coin.as_deref()).map(Value::from).unwrap_or(Value::Null);
-        let mut market: Value = self.safe_market(&[marketId]);
+        let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
+        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut ctx: Value = self.safe_dict_k(&data, "ctx", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1667,8 +1667,8 @@ impl Hyperliquid {
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "px", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(trade.clone(), "sz", &[]).as_str().map(str::to_owned);
         let mut coin: Option<String> = self.safe_string_k(trade.clone(), "coin", &[]).as_str().map(str::to_owned);
-        let mut marketId: Value = self.parent.coin_to_market_id(coin.as_deref()).map(Value::from).unwrap_or(Value::Null);
-        let mut marketResolved: Value = self.safe_market(&[marketId]);
+        let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "tid", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
@@ -1829,8 +1829,8 @@ impl Hyperliquid {
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut base: Option<String> = self.safe_string_k(&data, "s", &[]).as_str().map(str::to_owned);
-        let mut marketId: Value = self.parent.coin_to_market_id(base.as_deref()).map(Value::from).unwrap_or(Value::Null);
-        let mut symbol: Value = self.safe_symbol(marketId, &[]);
+        let mut marketId: Option<String> = self.parent.coin_to_market_id(base.as_deref());
+        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut timeframe: Value = self.safe_string_k(&data, "i", &[Value::Str("".into())]);
         if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
@@ -2505,8 +2505,8 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_411: bool = true;
             while { if !__for_first_411 { i += 1; } __for_first_411 = false; i < (keys.len() as i64) } {
-            let mut symbol: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol);
+            let mut symbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
             client.resolve(stored.clone(), innerMessageHash.as_str());
         }
         }
@@ -2669,8 +2669,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        }
         //
         let mut coin: Option<String> = (match subscription.get("coin") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut marketId: Value = self.parent.coin_to_market_id(coin.as_deref()).map(Value::from).unwrap_or(Value::Null);
-        let mut symbol: Value = self.safe_symbol(marketId, &[]);
+        let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
+        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut subMessageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
@@ -2684,8 +2684,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let subscription = subscription.as_map().unwrap_or(&__subscription_empty);
         //
         let mut coin: Option<String> = (match subscription.get("coin") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut marketId: Value = self.parent.coin_to_market_id(coin.as_deref()).map(Value::from).unwrap_or(Value::Null);
-        let mut symbol: Value = self.safe_symbol(marketId, &[]);
+        let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
+        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut subMessageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol);
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
@@ -2714,8 +2714,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let subscription = subscription.as_map().unwrap_or(&__subscription_empty);
         //
         let mut coin: Option<String> = (match subscription.get("coin") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut marketId: Value = self.parent.coin_to_market_id(coin.as_deref()).map(Value::from).unwrap_or(Value::Null);
-        let mut symbol: Value = self.safe_symbol(marketId, &[]);
+        let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
+        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut subMessageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol);
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
@@ -2728,8 +2728,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __subscription_empty = indexmap::IndexMap::new();
         let subscription = subscription.as_map().unwrap_or(&__subscription_empty);
         let mut coin: Option<String> = (match subscription.get("coin") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut marketId: Value = self.parent.coin_to_market_id(coin.as_deref()).map(Value::from).unwrap_or(Value::Null);
-        let mut symbol: Value = self.safe_symbol(marketId, &[]);
+        let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
+        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut interval: String = (match subscription.get("interval") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut timeframe: Value = self.find_timeframe(Value::from(interval), &[]);
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol);

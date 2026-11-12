@@ -3741,7 +3741,7 @@ impl Htx {
         }
         let mut symbolsValue: Value = symbols.clone();
         if (symbols == Value::Null) {
-            symbolsValue = self.symbols.clone();
+            symbolsValue = Value::Arr(self.symbols.clone());
         }
         if (symbolsValue == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" markets not loaded".into()))));
@@ -5503,9 +5503,9 @@ impl Htx {
         let mut priceType: Option<String> = self.safe_string2(Value::from(&paramsPaginate), Value::Str("priceType".into()), Value::Str("price".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("priceType".into()), Value::Str("price".into())]), &[]).into_dict();
         let untilParamparamsUntilVariable: Vec<Value> = self.handle_param_integer(&paramsOmitted, Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut untilParam: Value = untilParamparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut untilParam: Option<i64> = untilParamparamsUntilVariable.get(0).and_then(Value::as_i64);
         let mut paramsUntil: crate::value::Dict = untilParamparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut until: Value = self.safe_integer_k(&paramsOmitted, "until", &[untilParam]);
+        let mut until: Value = self.safe_integer_k(&paramsOmitted, "until", &[Value::from(untilParam)]);
         let mut untilSeconds: Value = Value::Null;
         if (until != Value::Null) {
             untilSeconds = self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
@@ -6440,9 +6440,9 @@ impl Htx {
                     }
                     request.insert("contract_code".into(), self.safe_string_k(&market, "id", &[]));
                     let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOrder".into()), &[Value::from(&paramsClientOrderId), Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
-                    let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+                    let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
                     let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-                    request.insert("margin_mode".into(), marginMode);
+                    request.insert("margin_mode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
                     let __ws_arg_51 = self.extend(Value::Map(request.clone()), &[&paramsMarginMode]);
                     response = self.contract_private_get_v5_trade_order(&[__ws_arg_51]).await.into_opt_dict();
                 }
@@ -6733,9 +6733,9 @@ impl Htx {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
             }
             let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchContractOrders".into()), &[paramsUntil.clone(), Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
-            let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("margin_mode".into(), marginMode); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("margin_mode".into(), marginMode.map(Value::from).unwrap_or(Value::Null)); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("contract_code".into(), Value::from((market).id.as_deref())); }
             if isAlgo {
                 if (trigger == Some(true)) {
@@ -7910,10 +7910,10 @@ impl Htx {
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut accountId: Value = self.fetch_account_id_by_type((Value::from((market).market_type.clone())).as_str().unwrap_or_default(), marginMode.as_deref(), symbol.as_str(), &[]).await;
+        let mut accountId: Option<String> = self.fetch_account_id_by_type((Value::from((market).market_type.clone())).as_str().unwrap_or_default(), marginMode.as_deref(), symbol.as_str(), &[]).await.as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("account-id".to_string(), accountId);
+                m.insert("account-id".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
@@ -8083,10 +8083,10 @@ impl Htx {
         let mut timeInForce: Value = self.safe_string_lower2(query.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[Value::Str("gtc".into())]);
         if isLinear {
             let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[query.clone(), Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
-            let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
             query = paramsMarginMode;
-            request.insert("margin_mode".into(), marginMode);
+            request.insert("margin_mode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
             request.insert("side".into(), side.clone());
             if (timeInForce != Value::Null) {
                 request.insert("time_in_force".into(), (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
@@ -8192,8 +8192,8 @@ impl Htx {
                 }
             }
         }  else if isTrailingPercentOrder {
-            let mut trailingPercentString: Value = crate::precise::Precise::stringDiv(&trailingPercent.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into()));
-            request.insert("callback_rate".into(), self.parse_to_numeric(trailingPercentString));
+            let mut trailingPercentString: Option<String> = crate::precise::Precise::stringDiv(&trailingPercent.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            request.insert("callback_rate".into(), self.parse_to_numeric(trailingPercentString.map(Value::from).unwrap_or(Value::Null)));
             request.insert("order_price_type".into(), self.safe_string_k(query.clone(), "order_price_type", &[Value::Str("formula_price".into())]));
             request.insert("active_price".into(), trailingTriggerPrice);
             if isLinear {
@@ -9462,11 +9462,11 @@ impl Htx {
         }
         let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
         let networkCodeparamsOmitedVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
-        let mut networkCode: Value = networkCodeparamsOmitedVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut networkCode: Option<String> = networkCodeparamsOmitedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOmited: Value = networkCodeparamsOmitedVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut indexedAddresses: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), paramsOmited).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut selectedNetworkCode: Value = self.select_network_key_from_networks(currency.get("code").cloned().unwrap_or(Value::Null), networkCode, crate::types::IntoRaw::into_raw(indexedAddresses.clone()), &[Value::Bool(true)]);
-        return self.safe_dict(crate::types::IntoRaw::into_raw(indexedAddresses), selectedNetworkCode, &[]);
+        let mut selectedNetworkCode: Option<String> = self.select_network_key_from_networks(currency.get("code").cloned().unwrap_or(Value::Null), networkCode.map(Value::from).unwrap_or(Value::Null), crate::types::IntoRaw::into_raw(indexedAddresses.clone()), &[Value::Bool(true)]).as_str().map(str::to_owned);
+        return self.safe_dict(crate::types::IntoRaw::into_raw(indexedAddresses), selectedNetworkCode.map(Value::from).unwrap_or(Value::Null), &[]);
         Value::Null
         }).await?))
     }
@@ -9747,7 +9747,7 @@ impl Htx {
             txHash = Some(format!("{}{}", Value::Str("0x".into()), txHash.clone().map(Value::from).unwrap_or(Value::Null)));
         }
         let mut subType: Option<String> = self.safe_string_k(transaction.clone(), "sub-type", &[]).as_str().map(str::to_owned);
-        let mut internal: Value = Value::Bool(subType.as_deref() == Some("FAST"));
+        let mut internal: bool = subType.as_deref() == Some("FAST");
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
@@ -9768,7 +9768,7 @@ impl Htx {
         m.insert("status".to_string(), self.parse_transaction_status((self.safe_string_k(transaction.clone(), "state", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), self.safe_integer_k(transaction, "updated-at", &[]));
         m.insert("comment".to_string(), Value::Null);
-        m.insert("internal".to_string(), internal);
+        m.insert("internal".to_string(), Value::Bool(internal));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
@@ -9886,17 +9886,17 @@ impl Htx {
             // fee needs to be deducted from whole amount
             let mut feeString: Value = self.currency_to_precision(code.clone(), Value::from(fee), &[networkCode.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut amountString: Option<String> = self.number_to_string(amountValue.clone()).as_str().map(str::to_owned);
-            let mut amountSubtractedString: Value = crate::precise::Precise::stringSub(&amountString.map(Value::from).unwrap_or(Value::Null), &feeString);
-            let mut amountSubtractedParsed: Value = amountSubtractedString;
-            if (amountSubtractedParsed == Value::Null) {
-                amountSubtractedParsed = Value::Str("0".into());
+            let mut amountSubtractedString: Option<String> = crate::precise::Precise::stringSub(&amountString.map(Value::from).unwrap_or(Value::Null), &feeString).as_str().map(str::to_owned);
+            let mut amountSubtractedParsed: Option<String> = amountSubtractedString;
+            if (amountSubtractedParsed.is_none()) {
+                amountSubtractedParsed = Some("0".to_string());
             }
             let mut feeParsed: Value = feeString;
             if (feeParsed == Value::Null) {
                 feeParsed = Value::Str("0".into());
             }
             request.insert("fee".into(), self.parse_number(feeParsed, &[]));
-            let mut amountAfterFee: Option<String> = self.currency_to_precision(code, self.parse_number(amountSubtractedParsed, &[]), &[networkCode.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            let mut amountAfterFee: Option<String> = self.currency_to_precision(code, self.parse_number(amountSubtractedParsed.map(Value::from).unwrap_or(Value::Null), &[]), &[networkCode.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             if (amountAfterFee.is_none()) {
                 amountAfterFee = Some("0".to_string());
             }
@@ -10808,13 +10808,13 @@ impl Htx {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into())).into());
             if (apiName.as_str() == Some("private")) || (apiName.as_str() == Some("v2Private")) {
                 self.check_required_credentials(&[]);
-                let mut timestamp: Value = self.ymdhms(self.nonce(), &[Value::Str("T".into())]);
+                let mut timestamp: Option<String> = self.ymdhms(self.nonce(), &[Value::Str("T".into())]).as_str().map(str::to_owned);
                 let mut request: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("SignatureMethod".to_string(), Value::Str("HmacSHA256".into()));
                         m.insert("SignatureVersion".to_string(), Value::Str("2".into()));
                         m.insert("AccessKeyId".to_string(), self.apiKey.clone());
-                        m.insert("Timestamp".to_string(), timestamp.clone());
+                        m.insert("Timestamp".to_string(), timestamp.map(Value::from).unwrap_or(Value::Null));
                     m
                 });
                 if (method.as_str() != Some("POST")) {
@@ -10825,10 +10825,10 @@ impl Htx {
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 let mut content: Value = Value::from(vec![method.clone(), self.hostname.clone(), url.clone(), auth.clone()]);
                 let mut payload: Value = Value::Str(content.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into()); // eslint-disable-line quotes
-                let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+                let mut signature: Option<String> = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
                 auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("&".into()), self.urlencode(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Signature".to_string(), signature.clone());
+        m.insert("Signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[])).into())).into());
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), auth).into())).into());
@@ -10911,13 +10911,13 @@ impl Htx {
                         }
                     }
                 }
-                let mut timestamp: Value = self.ymdhms(self.nonce(), &[Value::Str("T".into())]);
+                let mut timestamp: Option<String> = self.ymdhms(self.nonce(), &[Value::Str("T".into())]).as_str().map(str::to_owned);
                 let mut request: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("SignatureMethod".to_string(), Value::Str("HmacSHA256".into()));
                         m.insert("SignatureVersion".to_string(), Value::Str("2".into()));
                         m.insert("AccessKeyId".to_string(), self.apiKey.clone());
-                        m.insert("Timestamp".to_string(), timestamp);
+                        m.insert("Timestamp".to_string(), timestamp.map(Value::from).unwrap_or(Value::Null));
                     m
                 });
                 // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
@@ -10930,10 +10930,10 @@ impl Htx {
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 let mut content2: Value = Value::from(vec![method.clone(), hostname.clone(), url.clone(), auth.clone()]);
                 let mut payload: Value = Value::Str(content2.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into()); // eslint-disable-line quotes
-                let mut signature: Value = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+                let mut signature: Option<String> = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
                 auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("&".into()), self.urlencode(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Signature".to_string(), signature);
+        m.insert("Signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[])).into())).into());
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), auth).into())).into());
@@ -11080,9 +11080,9 @@ impl Htx {
         if (marketType.as_deref() == Some("swap")) {
             if ((market).linear == Some(true)) {
                 let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchFundingHistory".into()), &[Value::from(&paramsUntil), Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
-                let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+                let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
                 let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-                std::sync::Arc::make_mut(&mut request).insert("margin_mode".into(), marginMode);
+                std::sync::Arc::make_mut(&mut request).insert("margin_mode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
                 std::sync::Arc::make_mut(&mut request).insert("contract_code".into(), Value::from((market).id.as_deref()));
                 if (limit != Value::Null) {
                     std::sync::Arc::make_mut(&mut request).insert("limit".into(), limit.clone());
@@ -11326,7 +11326,7 @@ impl Htx {
         let mut unrealizedProfit: Option<f64> = self.safe_number_k(position.clone(), "profit_unreal", &[]).as_f64();
         let mut marginMode: Option<String> = self.safe_string_k(position.clone(), "margin_mode", &[]).as_str().map(str::to_owned);
         let mut leverage: Option<String> = self.safe_string_k(position.clone(), "lever_rate", &[]).as_str().map(str::to_owned);
-        let mut percentage: Value = crate::precise::Precise::stringMul(&self.safe_string_k(position.clone(), "profit_rate", &[]), &Value::Str("100".into()));
+        let mut percentage: Option<String> = crate::precise::Precise::stringMul(&self.safe_string_k(position.clone(), "profit_rate", &[]), &Value::Str("100".into())).as_str().map(str::to_owned);
         let mut lastPrice: Option<String> = self.safe_string_k(position.clone(), "last_price", &[]).as_str().map(str::to_owned);
         let mut faceValue: Option<String> = crate::precise::Precise::stringMul(&contracts.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut notional: Option<String> = None;
@@ -11336,7 +11336,7 @@ impl Htx {
             notional = crate::precise::Precise::stringDiv(&faceValue.map(Value::from).unwrap_or(Value::Null), &lastPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             marginMode = Some("cross".to_string());
         }
-        let mut intialMarginPercentage: Value = crate::precise::Precise::stringDiv(&initialMargin.clone().map(Value::from).unwrap_or(Value::Null), &notional.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut intialMarginPercentage: Option<String> = crate::precise::Precise::stringDiv(&initialMargin.clone().map(Value::from).unwrap_or(Value::Null), &notional.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut collateral: Option<String> = self.safe_string2(position.clone(), Value::Str("margin_balance".into()), Value::Str("margin".into()), &[]).as_str().map(str::to_owned);
         let mut adjustmentFactor: Option<String> = self.safe_string_k(position.clone(), "adjust_factor", &[]).as_str().map(str::to_owned);
         let mut maintenanceMarginLinear: Option<String> = self.safe_string_k(position.clone(), "maintenance_margin", &[]).as_str().map(str::to_owned);
@@ -11370,14 +11370,14 @@ impl Htx {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("unrealizedPnl".to_string(), Value::from(unrealizedProfit));
         m.insert("leverage".to_string(), self.parse_number(leverage.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("percentage".to_string(), self.parse_number(percentage, &[]));
+        m.insert("percentage".to_string(), self.parse_number(percentage.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
         m.insert("notional".to_string(), self.parse_number(notional.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "mark_price", &[]));
         m.insert("lastPrice".to_string(), self.parse_number(lastPrice.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidation_price", &[]));
         m.insert("initialMargin".to_string(), self.parse_number(initialMargin.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("initialMarginPercentage".to_string(), self.parse_number(intialMarginPercentage, &[]));
+        m.insert("initialMarginPercentage".to_string(), self.parse_number(intialMarginPercentage.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMargin, &[]));
         m.insert("maintenanceMarginPercentage".to_string(), maintenanceMarginPercentageResult);
         m.insert("marginRatio".to_string(), self.parse_number(marginRatio, &[]));
@@ -11681,10 +11681,10 @@ impl Htx {
         if paginate {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchLedger".into()), &[code.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Int(500)]).await;
         }
-        let mut accountId: Value = self.fetch_account_id_by_type("spot", None, None, &[Value::from(&paramsPaginate)]).await;
+        let mut accountId: Option<String> = self.fetch_account_id_by_type("spot", None, None, &[Value::from(&paramsPaginate)]).await.as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("accountId".to_string(), accountId);
+                m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut currency: Value = Value::Null;
@@ -12380,12 +12380,12 @@ impl Htx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut accountId: Value = self.fetch_account_id_by_type("spot", Some("isolated"), symbol.as_str(), &[params.clone()]).await;
+        let mut accountId: Option<String> = self.fetch_account_id_by_type("spot", Some("isolated"), symbol.as_str(), &[params.clone()]).await.as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount.clone(), &[]));
-                m.insert("accountId".to_string(), accountId);
+                m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_154 = self.extend(Value::Map(request), &[params]);
@@ -12440,12 +12440,12 @@ impl Htx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut accountId: Value = self.fetch_account_id_by_type("spot", Some("cross"), None, &[params.clone()]).await;
+        let mut accountId: Option<String> = self.fetch_account_id_by_type("spot", Some("cross"), None, &[params.clone()]).await.as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount.clone(), &[]));
-                m.insert("accountId".to_string(), accountId);
+                m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_155 = self.extend(Value::Map(request), &[params]);
@@ -13143,9 +13143,9 @@ impl Htx {
         let mut response: Value = Value::Null;
         if ((market).linear == Some(true)) {
             let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("closePosition".into()), &[paramsOmitted.clone(), Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
-            let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-            request.insert("margin_mode".into(), marginMode);
+            request.insert("margin_mode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_162 = self.extend(Value::Map(request.clone()), &[&paramsMarginMode]);
             response = self.contract_private_post_v5_trade_position(&[__ws_arg_162]).await;
         }  else {

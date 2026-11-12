@@ -1414,12 +1414,12 @@ impl Ndax {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut limitValue: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit }); // default 100
+        let mut limitValue: i64 = limit.as_i64().unwrap_or(100); // default 100
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), Value::from(omsId));
                 m.insert("InstrumentId".to_string(), Value::from((market).id.as_deref()));
-                m.insert("Depth".to_string(), limitValue);
+                m.insert("Depth".to_string(), Value::from(limitValue));
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
@@ -2362,7 +2362,7 @@ impl Ndax {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into()), Value::Str("clientOrderId".into()), Value::Str("ClientOrderId".into()), Value::Str("triggerPrice".into())]), &[]).into_dict();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut orderSide: Value = (if (side.as_str() == Some("buy")) { Value::Int(0) } else { Value::Int(1) });
+        let mut orderSide: i64 = (if (side.as_str() == Some("buy")) { 0 } else { 1 });
         let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2370,7 +2370,7 @@ impl Ndax {
                 m.insert("omsId".to_string(), Value::from(omsId));
                 m.insert("AccountId".to_string(), accountId);
                 m.insert("TimeInForce".to_string(), Value::Int(1));
-                m.insert("Side".to_string(), orderSide);
+                m.insert("Side".to_string(), Value::from(orderSide));
                 m.insert("Quantity".to_string(), (if (amountString.is_none()) { Value::Null } else { self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]) }));
                 m.insert("OrderType".to_string(), Value::from(orderType));
             m
@@ -2432,7 +2432,7 @@ impl Ndax {
         let mut clientOrderId: Option<i64> = self.safe_integer2(params.clone(), Value::Str("ClientOrderId".into()), Value::Str("clientOrderId".into()), &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into()), Value::Str("clientOrderId".into()), Value::Str("ClientOrderId".into())]), &[]).into_dict();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut orderSide: Value = (if (side.as_str() == Some("buy")) { Value::Int(0) } else { Value::Int(1) });
+        let mut orderSide: i64 = (if (side.as_str() == Some("buy")) { 0 } else { 1 });
         let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2441,7 +2441,7 @@ impl Ndax {
                 m.insert("omsId".to_string(), Value::from(omsId));
                 m.insert("AccountId".to_string(), accountId);
                 m.insert("TimeInForce".to_string(), Value::Int(1));
-                m.insert("Side".to_string(), orderSide);
+                m.insert("Side".to_string(), Value::from(orderSide));
                 m.insert("Quantity".to_string(), (if (amountString.is_none()) { Value::Null } else { self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]) }));
                 m.insert("OrderType".to_string(), self.safe_integer(self.safe_dict_k(self.options.clone(), "orderTypes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3260,7 +3260,7 @@ impl Ndax {
                 type_var = Some("withdrawal".to_string());
             }
         }
-        let mut templateForm: Value = self.parse_json_value(self.safe_value2(transaction.clone(), Value::Str("TemplateForm".into()), Value::Str("DepositInfo".into()), &[]));
+        let mut templateForm: Value = self.parse_json_value(self.safe_string2(transaction.clone(), Value::Str("TemplateForm".into()), Value::Str("DepositInfo".into()), &[]));
         let mut updated: Option<i64> = self.safe_integer_k(transaction.clone(), "LastUpdateTimeStamp", &[]).as_i64();
         if (templateForm != Value::Null) {
             updated = self.safe_integer_k(templateForm.clone(), "LastUpdated", &[Value::from(updated)]).as_i64();
@@ -3457,10 +3457,10 @@ impl Ndax {
         if (apiName.as_deref() == Some("public")) {
             if (path.as_str() == Some("Authenticate")) {
                 let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", self.login.clone(), Value::Str(":".into())).into()), self.password.clone());
-                let mut auth64: Value = self.string_to_base64(Value::from(auth), &[]);
+                let mut auth64: Option<String> = self.string_to_base64(Value::from(auth), &[]).as_str().map(str::to_owned);
                 headersSigned = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str("Basic ".into()), auth64).into()));
+                        m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str("Basic ".into()), auth64.map(Value::from).unwrap_or(Value::Null)).into()));
                     m
                 });
             }  else if (path.as_str() == Some("Authenticate2FA")) {

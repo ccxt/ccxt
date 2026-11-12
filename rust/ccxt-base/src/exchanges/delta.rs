@@ -828,8 +828,8 @@ impl Delta {
         let mut symbolBase: Value = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
         let mut hasSlash: bool = symbol.as_str().unwrap_or("").contains("/");
         let mut partSource: Value = (if hasSlash { symbolBase } else { optionParts.clone() });
-        let mut baseIndex: Value = (if hasSlash { Value::Int(0) } else { Value::Int(1) });
-        let mut base: String = self.safe_string(partSource, baseIndex, &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut baseIndex: i64 = (if hasSlash { 0 } else { 1 });
+        let mut base: String = self.safe_string(partSource, Value::from(baseIndex), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut optionType: String = self.safe_string(optionParts.clone(), (if hasSlash { Value::Int(3) } else { Value::Int(0) }), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut rawExpiry: Value = self.safe_string(optionParts.clone(), (if hasSlash { Value::Int(1) } else { Value::Int(3) }), &[Value::Str("".into())]);
         let mut expiry: String = format!("{}{}", Value::Str(format!("{}{}", rawExpiry.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
@@ -838,7 +838,7 @@ impl Delta {
         let mut settle: String = quote.clone();
         let mut strike: String = self.safe_string(optionParts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut datetime: Value = self.convert_expire_date(Value::from(expiry.clone()));
-        let mut timestamp: Value = self.parse8601(datetime.clone());
+        let mut timestamp: Option<i64> = self.parse8601(datetime.clone()).as_i64();
         let mut optionTypeUnified: String = "put".to_string();
         if (optionType == "C") {
             optionTypeUnified = "call".to_string();
@@ -865,7 +865,7 @@ impl Delta {
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("contract".to_string(), Value::Bool(true));
         m.insert("contractSize".to_string(), self.parse_number(Value::Str("1".into()), &[]));
-        m.insert("expiry".to_string(), timestamp);
+        m.insert("expiry".to_string(), Value::from(timestamp));
         m.insert("expiryDatetime".to_string(), datetime);
         m.insert("optionType".to_string(), Value::from(optionTypeUnified));
         m.insert("strike".to_string(), self.parse_number(Value::from(strike), &[]));
@@ -1026,11 +1026,11 @@ impl Delta {
         if (underMaintenance.as_deref() == Some("true")) {
             status = "maintenance".to_string();
         }
-        let mut updated: Value = self.safe_integer_product_k(&result, "server_time", Value::Float(0.001), &[self.milliseconds()]);
+        let mut updated: Option<i64> = self.safe_integer_product_k(&result, "server_time", Value::Float(0.001), &[self.milliseconds()]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::from(status));
-        m.insert("updated".to_string(), updated);
+        m.insert("updated".to_string(), Value::from(updated));
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
         m.insert("info".to_string(), response);
@@ -1236,8 +1236,8 @@ impl Delta {
                         let mut i: i64 = 0;
             let mut __for_first_614: bool = true;
             while { if !__for_first_614 { i += 1; } __for_first_614 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut item: Value = self.safe_dict(input.clone(), key, &[Value::Map({
+            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut item: Value = self.safe_dict(input.clone(), key.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1495,7 +1495,7 @@ impl Delta {
             let mut option: Value = Value::Bool(callOptions || putOptions || moveOptions);
             let mut strike: Option<String> = self.safe_string_k(&market, "strike_price", &[]).as_str().map(str::to_owned);
             let mut expiryDatetime: Option<String> = self.safe_string_k(&market, "settlement_time", &[]).as_str().map(str::to_owned);
-            let mut expiry: Value = self.parse8601(expiryDatetime.map(Value::from).unwrap_or(Value::Null));
+            let mut expiry: Option<i64> = self.parse8601(expiryDatetime.map(Value::from).unwrap_or(Value::Null)).as_i64();
             let mut contractSize: Option<f64> = self.safe_number_k(&market, "contract_value", &[]).as_f64();
             let mut amountPrecision: Value = Value::Null;
             if matches!(&spot, Value::Bool(true)) {
@@ -1510,7 +1510,7 @@ impl Delta {
             if swap || future || matches!(&option, Value::Bool(true)) {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle.clone().map(Value::from).unwrap_or(Value::Null));
                 if future || matches!(&option, Value::Bool(true)) {
-                    symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.yymmdd(expiry.clone(), &[]));
+                    symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.yymmdd(Value::from(expiry), &[]));
                     if matches!(&option, Value::Bool(true)) {
                         type_var = Some("option".to_string());
                         let mut letter: String = "C".to_string();
@@ -1555,8 +1555,8 @@ impl Delta {
         m.insert("taker".to_string(), self.safe_number_k(&market, "taker_commission_rate", &[]));
         m.insert("maker".to_string(), self.safe_number_k(&market, "maker_commission_rate", &[]));
         m.insert("contractSize".to_string(), (if matches!(&spot, Value::Bool(true)) { Value::Null } else { Value::from(contractSize) }));
-        m.insert("expiry".to_string(), expiry.clone());
-        m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
+        m.insert("expiry".to_string(), Value::from(expiry));
+        m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiry)));
         m.insert("strike".to_string(), self.parse_number(strike.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("optionType".to_string(), optionType.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("precision".to_string(), Value::Map({
@@ -1722,7 +1722,7 @@ impl Delta {
         //         "turnover_symbol": "USDT"
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_product_k(ticker.clone(), "timestamp", Value::Float(0.001), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k(ticker.clone(), "timestamp", Value::Float(0.001), &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1736,12 +1736,12 @@ impl Delta {
         let mut turnoverSymbol: Option<String> = self.safe_string_upper_k(ticker.clone(), "turnover_symbol", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_upper_k(marketResolved.clone(), "quoteId", &[]).as_str().map(str::to_owned);
         let mut baseDenominated: bool = (turnoverSymbol.is_some()) && (quoteId.is_some()) && (turnoverSymbol != quoteId);
-        let mut quoteVolume: Value = (if baseDenominated { self.safe_number_k(ticker.clone(), "turnover_usd", &[]) } else { self.safe_number_k(ticker.clone(), "turnover", &[]) });
+        let mut quoteVolume: Option<f64> = (if baseDenominated { self.safe_number_k(ticker.clone(), "turnover_usd", &[]).as_f64() } else { self.safe_number_k(ticker.clone(), "turnover", &[]).as_f64() });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_number_k(ticker.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_number_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_number_k(&quotes, "best_bid", &[]));
@@ -1757,7 +1757,7 @@ impl Delta {
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_number_k(ticker.clone(), "volume", &[]));
-        m.insert("quoteVolume".to_string(), quoteVolume);
+        m.insert("quoteVolume".to_string(), Value::from(quoteVolume));
         m.insert("markPrice".to_string(), self.safe_number_k(ticker.clone(), "mark_price", &[]));
         m.insert("indexPrice".to_string(), self.safe_number_k(ticker.clone(), "spot_price", &[]));
         m.insert("info".to_string(), ticker);
@@ -2617,7 +2617,7 @@ impl Delta {
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "product_symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut timestamp: Value = self.safe_integer_product_k(position.clone(), "timestamp", Value::Float(0.001), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k(position.clone(), "timestamp", Value::Float(0.001), &[]).as_i64();
         let mut sizeString: Option<String> = self.safe_string_k(position.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
         if (sizeString.is_some()) {
@@ -2643,8 +2643,8 @@ impl Delta {
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("hedged".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("positionMargin".to_string(), self.safe_number_k(position, "margin", &[]));
@@ -2757,7 +2757,7 @@ impl Delta {
         }  else {
             symbol = self.safe_string_k(marketValue.clone(), "symbol", &[]);
         }
-        let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "state", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "state", &[])).as_str());
         let mut side: Option<String> = self.safe_string_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
         if (type_var.is_some()) {
@@ -2804,7 +2804,7 @@ impl Delta {
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), Value::Null);
         m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);
     m
@@ -3522,9 +3522,9 @@ impl Delta {
         let mut currencyValue: Value = self.safe_value(&currenciesByNumericId, currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut code: Option<String> = self.safe_string_k(currencyValue.clone(), "code", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(item.clone(), "amount", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Value = self.parse8601(self.safe_string_k(item.clone(), "created_at", &[]));
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(item.clone(), "created_at", &[])).as_i64();
         let mut after: Option<String> = self.safe_string_k(item.clone(), "balance", &[]).as_str().map(str::to_owned);
-        let mut before: Value = crate::precise::Precise::stringMax(&Value::Str("0".into()), &crate::precise::Precise::stringSub(&after.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null)));
+        let mut before: Option<String> = crate::precise::Precise::stringMax(&Value::Str("0".into()), &crate::precise::Precise::stringSub(&after.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
         let mut status: String = "ok".to_string();
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3537,11 +3537,11 @@ impl Delta {
         m.insert("type".to_string(), type_var);
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("before".to_string(), self.parse_number(before, &[]));
+        m.insert("before".to_string(), self.parse_number(before.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("after".to_string(), self.parse_number(after.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("status".to_string(), Value::from(status));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("fee".to_string(), Value::Null);
     m
 }), &[currencyValue]);
@@ -3856,10 +3856,10 @@ impl Delta {
         //         "volume": 1226.3029999999485
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_product_k(contract.clone(), "timestamp", Value::Float(0.001), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k(contract.clone(), "timestamp", Value::Float(0.001), &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(contract.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut fundingRateString: Option<String> = self.safe_string_k(contract.clone(), "funding_rate", &[]).as_str().map(str::to_owned);
-        let mut fundingRate: Value = crate::precise::Precise::stringDiv(&fundingRateString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into()));
+        let mut fundingRate: Option<String> = crate::precise::Precise::stringDiv(&fundingRateString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
@@ -3868,9 +3868,9 @@ impl Delta {
         m.insert("indexPrice".to_string(), self.safe_number_k(contract, "spot_price", &[]));
         m.insert("interestRate".to_string(), Value::Null);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("fundingRate".to_string(), self.parse_number(fundingRate, &[]));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("fundingRate".to_string(), self.parse_number(fundingRate.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
         m.insert("nextFundingRate".to_string(), Value::Null);
@@ -3951,11 +3951,11 @@ impl Delta {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut amountString: Option<String> = self.number_to_string(amount).as_str().map(str::to_owned);
-        let mut deltaMargin: Value = (if (type_var.as_str() == Some("reduce")) { crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("-1".into())) } else { amountString.clone().map(Value::from).unwrap_or(Value::Null) });
+        let mut deltaMargin: Option<String> = (if (type_var.as_str() == Some("reduce")) { crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("-1".into())).as_str().map(str::to_owned) } else { amountString.clone() });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("product_id".to_string(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
-                m.insert("delta_margin".to_string(), deltaMargin);
+                m.insert("delta_margin".to_string(), deltaMargin.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
@@ -4180,7 +4180,7 @@ impl Delta {
         //         "volume": 0.15200000000000002
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_product_k(interest.clone(), "timestamp", Value::Float(0.001), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k(interest.clone(), "timestamp", Value::Float(0.001), &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(interest.clone(), "symbol", &[]).as_str().map(str::to_owned);
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4189,8 +4189,8 @@ impl Delta {
         m.insert("quoteVolume".to_string(), self.safe_number_k(interest.clone(), "oi_value_usd", &[]));
         m.insert("openInterestAmount".to_string(), self.safe_number_k(interest.clone(), "oi_contracts", &[]));
         m.insert("openInterestValue".to_string(), self.safe_number_k(interest.clone(), "oi", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("info".to_string(), interest);
     m
 }), &[market]);
@@ -4633,7 +4633,7 @@ impl Delta {
         //         "volume": 0.005
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_product_k(greeks.clone(), "timestamp", Value::Float(0.001), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k(greeks.clone(), "timestamp", Value::Float(0.001), &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(greeks.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]).as_str().map(str::to_owned);
         let mut stats: crate::value::Dict = self.safe_dict_k(greeks.clone(), "greeks", &[Value::Map({
@@ -4647,8 +4647,8 @@ impl Delta {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("delta".to_string(), self.safe_number_k(&stats, "delta", &[]));
         m.insert("gamma".to_string(), self.safe_number_k(&stats, "gamma", &[]));
         m.insert("theta".to_string(), self.safe_number_k(&stats, "theta", &[]));
@@ -5013,14 +5013,14 @@ impl Delta {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut timestamp: Value = self.safe_integer_product_k(chain.clone(), "timestamp", Value::Float(0.001), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k(chain.clone(), "timestamp", Value::Float(0.001), &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("currency".to_string(), self.safe_string_k(chain.clone(), "currency", &[]));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("impliedVolatility".to_string(), self.safe_number_k(&quotes, "mark_iv", &[]));
         m.insert("openInterest".to_string(), self.safe_number_k(chain.clone(), "oi", &[]));
         m.insert("bidPrice".to_string(), self.safe_number_k(&quotes, "best_bid", &[]));
@@ -5468,17 +5468,17 @@ impl Delta {
                 auth = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, timestamp).into()), requestPath).into()), requestBody.as_deref().unwrap_or("null"));
                 if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
             }
-            let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-            if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
+            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
+            if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("signature".into(), signature.map(Value::from).unwrap_or(Value::Null)); }
             requestHeaders = privateHeaders;
         }
-        let mut bodyResult: Value = requestBody.map(Value::from).unwrap_or(Value::Null);
+        let mut bodyResult: Option<String> = requestBody;
         let mut headersResult: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResult);
+        m.insert("body".to_string(), bodyResult.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResult);
     m
 });

@@ -406,7 +406,7 @@ impl Hitbtc {
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "private", &[]).as_str().map(str::to_owned);
         let mut messageHash: String = "authenticated".to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
-        let mut future: Value = client.reusable_future(messageHash.as_str());
+        let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
@@ -415,7 +415,7 @@ impl Hitbtc {
             if (timestampString.is_none()) {
                 timestampEncoded = Some("".to_string());
             }
-            let mut signature: Value = self.hmac(self.encode(timestampEncoded.map(Value::from).unwrap_or(Value::Null)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
+            let mut signature: Option<String> = self.hmac(self.encode(timestampEncoded.map(Value::from).unwrap_or(Value::Null)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]).as_str().map(str::to_owned);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("method".to_string(), Value::Str("login".into()));
@@ -424,7 +424,7 @@ impl Hitbtc {
         m.insert("type".to_string(), Value::Str("HS256".into()));
         m.insert("api_key".to_string(), self.apiKey.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("signature".to_string(), signature);
+        m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
     m
 }));
                 m
@@ -466,25 +466,25 @@ impl Hitbtc {
                                 let mut i: i64 = 0;
                 let mut __for_first_361: bool = true;
                 while { if !__for_first_361 { i += 1; } __for_first_361 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let mut symbolId: Value = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashPrefix, Value::Str("::".into())).into()), symbolId).into()));
+                let mut symbolId: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashPrefix, Value::Str("::".into())).into()), symbolId.map(Value::from).unwrap_or(Value::Null)).into()));
             }
             }
         }  else {
             std::sync::Arc::make_mut(&mut messageHashes).push(messageHashPrefix);
         }
-        let mut requestId: Value = self.incrementing_nonce();
+        let mut requestId: Option<i64> = self.incrementing_nonce().as_i64();
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("ch".to_string(), name);
             m
         });
         let mut request: crate::value::Dict = self.extend(Value::Map(subscribe), &[params]).into_dict();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
             m
         });
         return self.watch_multiple(url.as_deref(), &messageHashes, &request, &messageHashes, Value::Map(subscription)).await;
@@ -522,11 +522,11 @@ impl Hitbtc {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into())); };
         }
         }
-        let mut requestId: Value = self.incrementing_nonce();
+        let mut requestId: Option<i64> = self.incrementing_nonce().as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("ch".to_string(), name);
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -537,7 +537,7 @@ impl Hitbtc {
         });
         let mut unsubscription: crate::value::Dict = self.extend(subscription, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("subMessageHashes".to_string(), Value::from(subMessageHashes));
                 m.insert("messageHashes".to_string(), messageHashes.clone());
@@ -574,17 +574,17 @@ impl Hitbtc {
         if (symbol != Value::Null) {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHashBase, Value::Str("::".into())).into()), symbol);
         }
-        let mut requestId: Value = self.incrementing_nonce();
+        let mut requestId: Option<i64> = self.incrementing_nonce().as_i64();
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), name);
                 m.insert("params".to_string(), params);
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId));
             m
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
             m
         });
         return self.watch(url.as_deref(), &messageHash[..], Value::Map(subscribe), &messageHash[..], Value::Map(subscription)).await;
@@ -610,8 +610,8 @@ impl Hitbtc {
         self.authenticate().await;
         let mut wsUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "private", &[]).as_str().map(str::to_owned);
-        let mut requestId: Value = self.incrementing_nonce();
-        let mut messageHash: Option<String> = self.number_to_string(requestId).as_str().map(str::to_owned);
+        let mut requestId: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut messageHash: Option<String> = self.number_to_string(Value::from(requestId)).as_str().map(str::to_owned);
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), name);
@@ -848,9 +848,9 @@ impl Hitbtc {
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let methodNameparamsMethodVariable: Vec<Value> = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[Value::Str("watchTickers".into())]).as_array().cloned().unwrap_or_default();
-        let mut methodName: Value = methodNameparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut methodName: Option<String> = methodNameparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodNameparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict(); // watchTicker passes its own name, so options.watchTicker still applies to it
-        let mut options: crate::value::Dict = self.safe_dict(self.options.clone(), methodName, &[]).into_dict();
+        let mut options: crate::value::Dict = self.safe_dict(self.options.clone(), methodName.map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("ticker/{speed}/batch".into())]).as_str().unwrap_or("ticker/{speed}/batch").to_string();
         let mut method: Option<String> = self.safe_string2(Value::from(&paramsMethod), Value::Str("method".into()), Value::Str("defaultMethod".into()), &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut speedValue: String = self.safe_string_k(&paramsMethod, "speed", &[Value::Str("1s".into())]).as_str().unwrap_or("1s").to_string(); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
@@ -1592,9 +1592,9 @@ impl Hitbtc {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut name: Value = self.get_supported_mapping(marketType, &[Value::Map({
+        let mut name: Value = self.get_supported_mapping(marketType.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("spot_subscribe".into()));
                 m.insert("margin".to_string(), Value::Str("margin_subscribe".into()));
@@ -1878,9 +1878,9 @@ impl Hitbtc {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut name: Value = self.get_supported_mapping(type_var, &[Value::Map({
+        let mut name: Value = self.get_supported_mapping(type_var.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("spot_balance_subscribe".into()));
                 m.insert("swap".to_string(), Value::Str("futures_balance_subscribe".into()));

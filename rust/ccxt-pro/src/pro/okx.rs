@@ -484,7 +484,7 @@ impl Okx {
         }
         let mut symbolsRequested: Value = symbols.clone();
         if (symbols == Value::Null) {
-            symbolsRequested = self.symbols.clone();
+            symbolsRequested = Value::Arr(self.symbols.clone());
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbolsRequested]).into_opt_list();
         let mut url: Option<String> = self.get_url(channel.clone(), &[access]);
@@ -982,9 +982,9 @@ impl Okx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let channelparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchTicker".into()), Value::Str("channel".into()), &[Value::Str("tickers".into())]).as_array().cloned().unwrap_or_default();
-        let mut channel: Value = channelparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut channel: Option<String> = channelparamsChannelVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsChannel: Value = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
-        add_element_to_object(&mut paramsChannel, &Value::Str("channel".into()), channel);
+        add_element_to_object(&mut paramsChannel, &Value::Str("channel".into()), channel.map(Value::from).unwrap_or(Value::Null));
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut ticker: crate::types::Tickers = (match self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), paramsChannel).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1081,9 +1081,9 @@ impl Okx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let channelparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchMarkPrice".into()), Value::Str("channel".into()), &[Value::Str("mark-price".into())]).as_array().cloned().unwrap_or_default();
-        let mut channel: Value = channelparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut channel: Option<String> = channelparamsChannelVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsChannel: Value = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
-        add_element_to_object(&mut paramsChannel, &Value::Str("channel".into()), channel);
+        add_element_to_object(&mut paramsChannel, &Value::Str("channel".into()), channel.map(Value::from).unwrap_or(Value::Null));
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut ticker: crate::types::Tickers = (match self.watch_mark_prices((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), paramsChannel).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1446,8 +1446,8 @@ impl Okx {
                                 let mut i: i64 = 0;
                 let mut __for_first_535: bool = true;
                 while { if !__for_first_535 { i += 1; } __for_first_535 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into()));
+                let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
             }
             }
         }  else {
@@ -1583,8 +1583,8 @@ impl Okx {
                                 let mut i: i64 = 0;
                 let mut __for_first_537: bool = true;
                 while { if !__for_first_537 { i += 1; } __for_first_537 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into()));
+                let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
             }
             }
         }  else {
@@ -2552,14 +2552,14 @@ impl Okx {
         let mut url: Value = self.get_url(Value::Str("users".into()), &[Value::from(access)]).map(Value::from).unwrap_or(Value::Null);
         let mut messageHash: String = "authenticated".to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
-        let mut future: Value = client.reusable_future(messageHash.as_str());
+        let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut timestamp: String = format!("{}", self.seconds().as_i64().unwrap_or_default());
             let mut method: String = "GET".to_string();
             let mut path: String = "/users/self/verify".to_string();
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), path);
-            let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
             let mut operation: String = "login".to_string();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -2569,7 +2569,7 @@ impl Okx {
         m.insert("apiKey".to_string(), self.apiKey.clone());
         m.insert("passphrase".to_string(), self.password.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("sign".to_string(), signature);
+        m.insert("sign".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
     m
 })]));
                 m
@@ -3434,11 +3434,11 @@ impl Okx {
         // if empty means request failed and handle error
         if self.is_empty(args.clone()).as_bool() == Some(true) {
             let mut method: Option<String> = (match __pro_message.get("op").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-            let mut stringMsg: Value = json_stringify(&message);
+            let mut stringMsg: Option<String> = json_stringify(&message).as_str().map(str::to_owned);
             self.handle_errors(Value::Int(1), Value::Str("".into()), client.url(), method.map(Value::from).unwrap_or(Value::Null), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), stringMsg, message, Value::Map({
+            }), stringMsg.map(Value::from).unwrap_or(Value::Null), message, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             }), Value::Str("".into()));
@@ -3489,7 +3489,7 @@ impl Okx {
         let mut url: Option<String> = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]);
         let mut messageHash: Value = Value::Str(format!("{}", self.request_id()).into());
         let opparamsOpVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("editOrderWs".into()), Value::Str("op".into()), &[Value::Str("amend-order".into())]).as_array().cloned().unwrap_or_default();
-        let mut op: Value = opparamsOpVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut op: Option<String> = opparamsOpVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOp: crate::value::Dict = opparamsOpVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut args: Value = self.parent.edit_order_request(id.as_str(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[amount, price, Value::from(&paramsOp)]);
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
@@ -3501,7 +3501,7 @@ impl Okx {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
-                m.insert("op".to_string(), op);
+                m.insert("op".to_string(), op.map(Value::from).unwrap_or(Value::Null));
                 m.insert("args".to_string(), Value::from(vec![args]));
             m
         });
@@ -3712,11 +3712,11 @@ impl Okx {
         args = self.filter_by(args.clone(), Value::Str("sCode".into()), Value::Str("0".into()), &[]);
         if self.is_empty(args.clone()).as_bool() == Some(true) {
             let mut method: Option<String> = (match __pro_message.get("op").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-            let mut stringMsg: Value = json_stringify(&message);
+            let mut stringMsg: Option<String> = json_stringify(&message).as_str().map(str::to_owned);
             self.handle_errors(Value::Int(1), Value::Str("".into()), client.url(), method.map(Value::from).unwrap_or(Value::Null), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), stringMsg, message, Value::Map({
+            }), stringMsg.map(Value::from).unwrap_or(Value::Null), message, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             }), Value::Str("".into()));
@@ -3821,8 +3821,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // try to parse it from the stringified json inside msg
                 let mut msg: Option<String> = (match __pro_message.get("msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
                 if (msg.is_some()) && (msg.as_deref().unwrap_or_default().starts_with("Illegal request: {")) {
-                    let mut stringifiedJson: Value = (if let Some(__s) = msg.as_deref() { Some(__s.replace("Illegal request: ", "")) } else { None }).map(Value::from).unwrap_or(Value::Null);
-                    let mut parsedJson: Value = self.parse_json_value(stringifiedJson);
+                    let mut stringifiedJson: Option<String> = (if let Some(__s) = msg.as_deref() { Some(__s.replace("Illegal request: ", "")) } else { None });
+                    let mut parsedJson: Value = self.parse_json_value(stringifiedJson.map(Value::from).unwrap_or(Value::Null));
                     id = self.safe_string_k(parsedJson, "id", &[]).as_str().map(str::to_owned);
                 }
             }

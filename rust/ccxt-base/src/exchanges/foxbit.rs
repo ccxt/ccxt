@@ -2590,7 +2590,7 @@ impl Foxbit {
         let mut amount: Value = self.safe_string_k(trade.clone(), "volume", &[self.safe_string(trade.clone(), Value::Str("quantity".into()), &[])]);
         let mut privateSideField: Option<String> = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "taker_side", &[privateSideField.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-        let mut cost: Value = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount);
+        let mut cost: Option<String> = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount).as_str().map(str::to_owned);
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), self.safe_symbol(self.safe_string_k(trade.clone(), "fee_currency_symbol", &[]), &[]));
@@ -2611,7 +2611,7 @@ impl Foxbit {
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
-        m.insert("cost".to_string(), cost);
+        m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map(fee));
     m
 }), &[market]);
@@ -2760,7 +2760,7 @@ impl Foxbit {
         let mut currencySymbol: Option<String> = self.safe_string_k(transaction.clone(), "currency_symbol", &[]).as_str().map(str::to_owned);
         let mut actualAmount: Option<String> = amount.clone();
         let mut currencyCode: Option<String> = self.safe_currency_code(currencySymbol.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-        let mut status: Value = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "state", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "state", &[])).as_str());
         let mut created_at: Option<String> = self.safe_string_k(transaction.clone(), "created_at", &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = self.parse_date(created_at.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut datetime: Option<String> = self.iso8601(timestamp.clone()).as_str().map(str::to_owned);
@@ -2768,12 +2768,12 @@ impl Foxbit {
             // actualAmount = amount - fee;
             actualAmount = crate::precise::Precise::stringSub(&amount.clone().map(Value::from).unwrap_or(Value::Null), &fee).as_str().map(str::to_owned);
         }
-        let mut feeRate: Value = crate::precise::Precise::stringDiv(&fee, &actualAmount.map(Value::from).unwrap_or(Value::Null));
+        let mut feeRate: Option<String> = crate::precise::Precise::stringDiv(&fee, &actualAmount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut feeObj: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), self.parse_number(fee, &[]));
                 m.insert("currency".to_string(), currencyCode.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("rate".to_string(), self.parse_number(feeRate, &[]));
+                m.insert("rate".to_string(), self.parse_number(feeRate.map(Value::from).unwrap_or(Value::Null), &[]));
             m
         });
         return Value::Map({
@@ -2793,7 +2793,7 @@ impl Foxbit {
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("currency".to_string(), currencyCode.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map(feeObj));
         m.insert("comment".to_string(), Value::Null);
@@ -2834,9 +2834,9 @@ impl Foxbit {
         // }
         let mut id: Option<String> = self.safe_string_k(item.clone(), "uuid", &[]).as_str().map(str::to_owned);
         let mut createdAt: Option<String> = self.safe_string_k(item.clone(), "created_at", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Value = self.parse8601(createdAt.map(Value::from).unwrap_or(Value::Null));
+        let mut timestamp: Option<i64> = self.parse8601(createdAt.map(Value::from).unwrap_or(Value::Null)).as_i64();
         let mut reasonType: Option<String> = self.safe_string_k(item.clone(), "reason_type", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = self.parse_ledger_entry_type(reasonType.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Option<String> = self.parse_ledger_entry_type(reasonType.as_deref());
         let mut exchangeSymbol: Option<String> = self.safe_string_k(item.clone(), "currency_symbol", &[]).as_str().map(str::to_owned);
         let mut currencySymbol: Option<String> = self.safe_currency_code(exchangeSymbol.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut direction: String = "in".to_string();
@@ -2867,13 +2867,13 @@ impl Foxbit {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), item);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("direction".to_string(), Value::from(direction));
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), currencySymbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), realAmount);
         m.insert("before".to_string(), before);
@@ -2952,10 +2952,10 @@ impl Foxbit {
         if (urlPath.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut preHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}", timestamp).into()), method).into()), fullPath).into()), signatureQuery).into()), bodyToSignature.map(Value::from).unwrap_or(Value::Null));
-            let mut signature: Value = self.hmac(self.encode(Value::from(preHash)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
+            let mut signature: Option<String> = self.hmac(self.encode(Value::from(preHash)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]).as_str().map(str::to_owned);
             headersValue.insert("X-FB-ACCESS-KEY".into(), self.apiKey.clone());
             headersValue.insert("X-FB-ACCESS-TIMESTAMP".into(), Value::Str(format!("{}", timestamp).into()));
-            headersValue.insert("X-FB-ACCESS-SIGNATURE".into(), signature);
+            headersValue.insert("X-FB-ACCESS-SIGNATURE".into(), signature.map(Value::from).unwrap_or(Value::Null));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

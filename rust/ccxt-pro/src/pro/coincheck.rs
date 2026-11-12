@@ -448,7 +448,7 @@ impl Coincheck {
         //         "2078767" // ID of the Maker
         //     ]
         //
-        let mut symbol: Value = self.symbol(self.safe_string(trade.clone(), Value::Int(2), &[]));
+        let mut symbol: Option<String> = self.symbol(self.safe_string(trade.clone(), Value::Int(2), &[])).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_timestamp(trade.clone(), Value::Int(0), &[]).as_i64();
         let mut side: Option<String> = self.safe_string(trade.clone(), Value::Int(5), &[]).as_str().map(str::to_owned);
         let mut priceString: Option<String> = self.safe_string(trade.clone(), Value::Int(3), &[]).as_str().map(str::to_owned);
@@ -460,7 +460,7 @@ impl Coincheck {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("order".to_string(), Value::Null);
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);

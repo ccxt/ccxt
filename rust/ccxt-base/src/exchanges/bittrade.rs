@@ -1130,7 +1130,7 @@ impl Bittrade {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsResolved: Value = (if (symbols == Value::Null) { self.symbols.clone() } else { symbols });
+        let mut symbolsResolved: Value = (if (symbols == Value::Null) { Value::Arr(self.symbols.clone()) } else { symbols });
         if (symbolsResolved == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" markets not loaded".into()))));
         }
@@ -1690,7 +1690,7 @@ impl Bittrade {
         let mut takerOrMaker: Option<String> = self.safe_string_k(trade.clone(), "role", &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string2(trade.clone(), Value::Str("filled-amount".into()), Value::Str("amount".into()), &[]).as_str().map(str::to_owned);
-        let mut cost: Value = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut cost: Option<String> = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
         let mut feeCost: Option<String> = self.safe_string_k(trade.clone(), "filled-fees", &[]).as_str().map(str::to_owned);
         let mut feeCurrency: Option<String> = self.safe_currency_code(self.safe_string_k(trade.clone(), "fee-currency", &[]), &[]).as_str().map(str::to_owned);
@@ -1724,7 +1724,7 @@ impl Bittrade {
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
-        m.insert("cost".to_string(), cost);
+        m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
     m
 }), &[]);
@@ -3262,13 +3262,13 @@ impl Bittrade {
         let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
         if (apiName.as_deref() == Some("private")) || (apiName.as_deref() == Some("v2Private")) {
             self.check_required_credentials(&[]);
-            let mut timestamp: Value = self.ymdhms(self.milliseconds(), &[Value::Str("T".into())]);
+            let mut timestamp: Option<String> = self.ymdhms(self.milliseconds(), &[Value::Str("T".into())]).as_str().map(str::to_owned);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("SignatureMethod".to_string(), Value::Str("HmacSHA256".into()));
                     m.insert("SignatureVersion".to_string(), Value::Str("2".into()));
                     m.insert("AccessKeyId".to_string(), self.apiKey.clone());
-                    m.insert("Timestamp".to_string(), timestamp);
+                    m.insert("Timestamp".to_string(), timestamp.map(Value::from).unwrap_or(Value::Null));
                 m
             });
             if (method.as_str() != Some("POST")) {
@@ -3279,10 +3279,10 @@ impl Bittrade {
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str("\n".into())).into()), self.hostname.clone()).into()), Value::Str("\n".into())).into()), url).into()), Value::Str("\n".into())).into()), auth);
-            let mut signature: Value = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+            let mut signature: Option<String> = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
             auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("&".into()), self.urlencode(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Signature".to_string(), signature);
+        m.insert("Signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[])).into())).into());
             url.push_str(&format!("{}{}", Value::Str("?".into()), auth));

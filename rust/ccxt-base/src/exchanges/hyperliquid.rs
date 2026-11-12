@@ -2147,8 +2147,8 @@ impl Hyperliquid {
         //     }
         //
         let mut base: Option<String> = self.safe_string_k(info.clone(), "name", &[]).as_str().map(str::to_owned);
-        let mut marketId: Value = self.coin_to_market_id(base.as_deref()).map(Value::from).unwrap_or(Value::Null);
-        let mut symbol: Option<String> = self.safe_symbol(marketId, &[market]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.coin_to_market_id(base.as_deref());
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]).as_str().map(str::to_owned);
         let mut funding: Option<f64> = self.safe_number_k(info.clone(), "funding", &[]).as_f64();
         let mut markPx: Option<f64> = self.safe_number_k(info.clone(), "markPx", &[]).as_f64();
         let mut oraclePx: Option<f64> = self.safe_number_k(info.clone(), "oraclePx", &[]).as_f64();
@@ -2203,8 +2203,8 @@ impl Hyperliquid {
         //     },
         //
         let mut name: Option<String> = self.safe_string_k(ticker.clone(), "name", &[]).as_str().map(str::to_owned);
-        let mut marketId: Value = self.coin_to_market_id(name.as_deref()).map(Value::from).unwrap_or(Value::Null);
-        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
+        let mut marketId: Option<String> = self.coin_to_market_id(name.as_deref());
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut bidAsk: crate::value::List = self.safe_list_k(ticker.clone(), "impactPxs", &[]).into_list();
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2430,14 +2430,14 @@ impl Hyperliquid {
         let mut priceStrParts: Vec<Value> = Value::Array(if let Some(__s) = priceStr.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut integerPart: Option<String> = priceStrParts.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut significantDigits: i64 = i64::max(5, ((integerPart.as_deref().unwrap_or_default().chars().count() as i64)));
-        let mut result: Value = self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), Value::from(significantDigits), &[Value::Int(crate::runtime::SIGNIFICANT_DIGITS), self.paddingMode.clone()]);
+        let mut result: Option<String> = self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), Value::from(significantDigits), &[Value::Int(crate::runtime::SIGNIFICANT_DIGITS), self.paddingMode.clone()]).as_str().map(str::to_owned);
         let mut maxDecimals: Value = Value::Int(6);
         if (market).spot {
             maxDecimals = Value::Int(8);
         }
         let mut subtractedValue: Value = (match (&(maxDecimals), &(self.precision_from_string(self.safe_string((market).raw.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), Value::Str("amount".into()), &[])))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y),
             (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-        return self.decimal_to_precision(result, Value::Int(crate::runtime::ROUND), subtractedValue, &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]);
+        return self.decimal_to_precision(result.map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::ROUND), subtractedValue, &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]);
 
     Value::Null
 }
@@ -2470,10 +2470,10 @@ impl Hyperliquid {
 
     pub fn construct_phantom_agent(&self, mut hash: Value, optional_args: &[Value]) -> Value {
         let isTestnet: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
-        let mut source: Value = (if isTestnet { Value::Str("b".into()) } else { Value::Str("a".into()) });
+        let mut source: String = (if isTestnet { "b".to_string() } else { "a".to_string() });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("source".to_string(), source);
+        m.insert("source".to_string(), Value::from(source));
         m.insert("connectionId".to_string(), hash);
     m
 });
@@ -2485,8 +2485,8 @@ impl Hyperliquid {
         let mut vaultAddress: Value = vaultAddress.into();
         let mut expiresAfter: Value = expiresAfter.into();
         let mut dataBinary: Value = self.packb(action, &[]);
-        let mut dataHex: Value = self.binary_to_base16(dataBinary, &[]);
-        let mut data: String = format!("{}{}", Value::Str(format!("{}{}", dataHex, Value::Str("00000".into())).into()), self.int_to_base16(nonce, &[]));
+        let mut dataHex: Option<String> = self.binary_to_base16(dataBinary, &[]).as_str().map(str::to_owned);
+        let mut data: String = format!("{}{}", Value::Str(format!("{}{}", dataHex.map(Value::from).unwrap_or(Value::Null), Value::Str("00000".into())).into()), self.int_to_base16(nonce, &[]));
         if (vaultAddress == Value::Null) {
             data.push_str("00");
         }  else {
@@ -2827,12 +2827,12 @@ impl Hyperliquid {
                 m.insert("code".to_string(), self.safe_string_k(self.options.clone(), "ref", &[Value::Str("CCXT1".into())]));
             m
         });
-        let mut nonce: Value = self.incrementing_nonce();
-        let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), nonce.clone(), None, None);
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, None);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(action));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("signature".to_string(), signature);
             m
         });
@@ -2852,14 +2852,14 @@ if _try_result.is_err() {
     pub async fn approve_builder_fee(&mut self, builder: &str, maxFeeRate: &str) -> Value {
         let mut builder: Value = builder.into();
         let mut maxFeeRate: Value = maxFeeRate.into();
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), (if isSandboxMode { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
                 m.insert("maxFeeRate".to_string(), maxFeeRate);
                 m.insert("builder".to_string(), builder);
-                m.insert("nonce".to_string(), nonce.clone());
+                m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
         let mut sig: Value = self.build_approve_builder_fee_sig(Value::Map(payload.clone()));
@@ -2869,14 +2869,14 @@ if _try_result.is_err() {
                 m.insert("signatureChainId".to_string(), Value::Str("0x66eee".into()));
                 m.insert("maxFeeRate".to_string(), payload.get("maxFeeRate").cloned().unwrap_or(Value::Null));
                 m.insert("builder".to_string(), payload.get("builder").cloned().unwrap_or(Value::Null));
-                m.insert("nonce".to_string(), nonce.clone());
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("type".to_string(), Value::Str("approveBuilderFee".into()));
             m
         });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(action));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("signature".to_string(), sig);
                 m.insert("vaultAddress".to_string(), Value::Null);
             m
@@ -3019,17 +3019,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address("setUserAbstraction", params).as_array().cloned().unwrap_or_default();
-        let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut userAddress: Option<String> = userAddressparamsPublicAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut type_var: String = self.safe_string_k(&paramsPublicAddress, "type", &[Value::Str("userSetAbstraction".into())]).as_str().unwrap_or("userSetAbstraction").to_string();
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), (if isSandboxMode { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
-                m.insert("user".to_string(), userAddress);
+                m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
                 m.insert("abstraction".to_string(), abstraction);
-                m.insert("nonce".to_string(), nonce.clone());
+                m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
         let mut sig: Value = self.build_user_abstraction_sig(Value::Map(payload.clone()));
@@ -3039,14 +3039,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("signatureChainId".to_string(), Value::Str("0x66eee".into()));
                 m.insert("abstraction".to_string(), payload.get("abstraction").cloned().unwrap_or(Value::Null));
                 m.insert("user".to_string(), payload.get("user").cloned().unwrap_or(Value::Null));
-                m.insert("nonce".to_string(), nonce.clone());
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("type".to_string(), Value::from(type_var));
             m
         });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(action));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("signature".to_string(), sig);
                 m.insert("vaultAddress".to_string(), Value::Null);
             m
@@ -3072,17 +3072,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address("enableUserDexAbstraction", params).as_array().cloned().unwrap_or_default();
-        let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut userAddress: Option<String> = userAddressparamsPublicAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut type_var: String = self.safe_string_k(&paramsPublicAddress, "type", &[Value::Str("userDexAbstraction".into())]).as_str().unwrap_or("userDexAbstraction").to_string();
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), (if isSandboxMode { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
-                m.insert("user".to_string(), userAddress);
+                m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
                 m.insert("enabled".to_string(), enabled);
-                m.insert("nonce".to_string(), nonce.clone());
+                m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
         let mut sig: Value = self.build_user_dex_abstraction_sig(Value::Map(payload.clone()));
@@ -3092,14 +3092,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("signatureChainId".to_string(), Value::Str("0x66eee".into()));
                 m.insert("enabled".to_string(), payload.get("enabled").cloned().unwrap_or(Value::Null));
                 m.insert("user".to_string(), payload.get("user").cloned().unwrap_or(Value::Null));
-                m.insert("nonce".to_string(), nonce.clone());
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("type".to_string(), Value::from(type_var));
             m
         });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(action));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("signature".to_string(), sig);
                 m.insert("vaultAddress".to_string(), Value::Null);
             m
@@ -3123,10 +3123,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("nonce".to_string(), nonce.clone());
+                m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
         let mut action: indexmap::IndexMap<String, Value> = ({
@@ -3135,7 +3135,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("abstraction".to_string(), abstraction);
             m
         });
-        let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), nonce, None, None);
+        let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, None);
         request.insert("action".into(), Value::Map(action));
         request.insert("signature".into(), signature);
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
@@ -3228,8 +3228,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         self.initialize_client().await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut nonce: Value = self.incrementing_nonce();
-        let mut isBuy: Value = (Value::Bool((if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("BUY")));
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut isBuy: bool = (side.as_str().unwrap_or_default().to_string().to_uppercase()) == "BUY";
         let mut randomize: bool = self.safe_bool_k(params.clone(), "randomize", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("randomize".into()), &[]).into_dict();
         let vaultAddressOptionparamsVaultVariable: Vec<Value> = self.handle_option_string_and_params(&paramsOmitted, Value::Str("createOrder".into()), Value::Str("vaultAddress".into()), &[]).as_array().cloned().unwrap_or_default();
@@ -3240,7 +3240,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orderObj: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("a".to_string(), self.parse_to_int(Value::from((market).base_id.as_deref())));
-                m.insert("b".to_string(), isBuy);
+                m.insert("b".to_string(), Value::Bool(isBuy));
                 m.insert("s".to_string(), self.amount_to_precision(symbol, amount));
                 m.insert("r".to_string(), self.safe_bool_k(&paramsVault, "reduceOnly", &[Value::Bool(false)]));
                 m.insert("m".to_string(), durationMins);
@@ -3253,11 +3253,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("twap".to_string(), Value::Map(orderObj));
             m
         });
-        let mut signature: Value = self.sign_l1_action(Value::Map(orderAction.clone()), nonce.clone(), vaultAddress.as_str(), None);
+        let mut signature: Value = self.sign_l1_action(Value::Map(orderAction.clone()), Value::from(nonce), vaultAddress.as_str(), None);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(orderAction));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("signature".to_string(), signature);
             m
         });
@@ -3530,7 +3530,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut params2: Value = self.omit(params, Value::from(vec![Value::Str("slippage".into()), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), Value::Str("slippage".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("timeInForce".into())]), &[]);
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut orderReq: Vec<Value> = Vec::new();
         let mut grouping: String = "na".to_string();
         {
@@ -3632,11 +3632,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         }
-        let mut signature: Value = self.sign_l1_action(Value::Map(orderAction.clone()), nonce.clone(), vaultAddress.as_str(), None);
+        let mut signature: Value = self.sign_l1_action(Value::Map(orderAction.clone()), Value::from(nonce), vaultAddress.as_str(), None);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(orderAction));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("signature".to_string(), signature);
             m
         });
@@ -3797,12 +3797,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("t".to_string(), self.parse_to_numeric(id.clone()));
             m
         });
-        let mut nonce: Value = self.incrementing_nonce();
-        let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), nonce.clone(), vaultAddress.as_str(), None);
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), vaultAddress.as_str(), None);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(action));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("signature".to_string(), signature);
             m
         });
@@ -3868,10 +3868,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
         let mut fast: bool = self.safe_bool_k(params.clone(), "fast", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut params2: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into()), Value::Str("fast".into())]), &[]);
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("nonce".to_string(), nonce.clone());
+                m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
         let mut cancelReq: Vec<Value> = vec![];
@@ -3923,7 +3923,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(params2.clone(), Value::Str("cancelOrders".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().cloned().unwrap_or_default(); vaultAddress = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(vaultAddress.as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut signature: Value = self.sign_l1_action(Value::Map(cancelAction.clone()), nonce, vaultAddress.as_str(), None);
+        let mut signature: Value = self.sign_l1_action(Value::Map(cancelAction.clone()), Value::from(nonce), vaultAddress.as_str(), None);
         request.insert("action".into(), Value::Map(cancelAction));
         request.insert("signature".into(), signature);
         if (vaultAddress != Value::Null) {
@@ -3964,10 +3964,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("nonce".to_string(), nonce.clone());
+                m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
         let mut cancelReq: Value = Value::from(vec![]);
@@ -4016,7 +4016,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut vaultAddressOption: Value = self.handle_option_string_and_params2(params, Value::Str("cancelOrdersForSymbols".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut vaultAddress: Value = self.format_vault_address(vaultAddressOption.as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut signature: Value = self.sign_l1_action(Value::Map(cancelAction.clone()), nonce, vaultAddress.as_str(), None);
+        let mut signature: Value = self.sign_l1_action(Value::Map(cancelAction.clone()), Value::from(nonce), vaultAddress.as_str(), None);
         request.insert("action".into(), Value::Map(cancelAction));
         request.insert("signature".into(), signature);
         if (vaultAddress != Value::Null) {
@@ -4224,7 +4224,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             modifies.push(modifyReq);
         }
         }
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut modifyAction: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("batchModify".into()));
@@ -4234,11 +4234,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params2.clone(), Value::Str("editOrder".into()), Value::Str("vaultAddress".into()), &[]).as_array().cloned().unwrap_or_default(); vaultAddress = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(vaultAddress.as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut signature: Value = self.sign_l1_action(Value::Map(modifyAction.clone()), nonce.clone(), vaultAddress.as_str(), None);
+        let mut signature: Value = self.sign_l1_action(Value::Map(modifyAction.clone()), Value::from(nonce), vaultAddress.as_str(), None);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(modifyAction));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("signature".to_string(), signature);
             m
         });
@@ -4400,10 +4400,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("nonce".to_string(), nonce.clone());
+                m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
         let mut usd: Value = self.parse_to_int(crate::precise::Precise::stringMul(&self.number_to_string(initialUsd), &Value::Str("1000000".into())));
@@ -4413,10 +4413,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("name".to_string(), name);
                 m.insert("description".to_string(), description);
                 m.insert("initialUsd".to_string(), usd);
-                m.insert("nonce".to_string(), nonce.clone());
+                m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
-        let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), nonce, None, None);
+        let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, None);
         request.insert("action".into(), Value::Map(action));
         request.insert("signature".into(), signature);
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
@@ -4561,14 +4561,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsPublicAddress, Value::Str("fetchOpenOrders".into()), Value::Str("method".into()), &[Value::Str("frontendOpenOrders".into())]).as_array().cloned().unwrap_or_default();
-        let mut method: Value = methodparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), method);
+                m.insert("type".to_string(), method.map(Value::from).unwrap_or(Value::Null));
                 m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
@@ -5249,8 +5249,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "px", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(trade.clone(), "sz", &[]).as_str().map(str::to_owned);
         let mut coin: Option<String> = self.safe_string_k(trade.clone(), "coin", &[]).as_str().map(str::to_owned);
-        let mut marketId: Value = self.coin_to_market_id(coin.as_deref()).map(Value::from).unwrap_or(Value::Null);
-        let mut marketResolved: Value = self.safe_market(&[marketId]);
+        let mut marketId: Option<String> = self.coin_to_market_id(coin.as_deref());
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "tid", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
@@ -5410,8 +5410,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // see fetchMyLiquidations
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(liquidation.clone(), "time", &[]).as_i64();
-        let mut marketId: Value = self.coin_to_market_id((self.safe_string_k(liquidation.clone(), "coin", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut marketResolved: Value = self.safe_market(&[marketId]);
+        let mut marketId: Option<String> = self.coin_to_market_id((self.safe_string_k(liquidation.clone(), "coin", &[])).as_str());
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         // swap ids are asset indexes, so the market is looked up by symbol
         if (symbol != Value::Null) && (self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -5635,8 +5635,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]).into_dict();
         let mut coin: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
-        let mut marketId: Value = self.coin_to_market_id(coin.as_deref()).map(Value::from).unwrap_or(Value::Null);
-        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId]).into_dict();
+        let mut marketId: Option<String> = self.coin_to_market_id(coin.as_deref());
+        let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]).into_dict();
         let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut leverage: crate::value::Dict = self.safe_dict_k(&entry, "leverage", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5652,7 +5652,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             size = crate::precise::Precise::stringAbs(&size.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut rawUnrealizedPnl: Option<String> = self.safe_string_k(&entry, "unrealizedPnl", &[]).as_str().map(str::to_owned);
-        let mut absRawUnrealizedPnl: Value = crate::precise::Precise::stringAbs(&rawUnrealizedPnl.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut absRawUnrealizedPnl: Option<String> = crate::precise::Precise::stringAbs(&rawUnrealizedPnl.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut marginUsed: Option<String> = self.safe_string_k(&entry, "marginUsed", &[]).as_str().map(str::to_owned);
         let mut initialMargin: Value = Value::Null;
         if isIsolated {
@@ -5660,9 +5660,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             initialMargin = marginUsed.clone().map(Value::from).unwrap_or(Value::Null);
         }
-        let mut percentage: Value = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&absRawUnrealizedPnl, &marginUsed.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("100".into()));
+        let mut percentage: Option<String> = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&absRawUnrealizedPnl.map(Value::from).unwrap_or(Value::Null), &marginUsed.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("100".into())).as_str().map(str::to_owned);
         let mut positionValueString: Option<String> = self.safe_string_k(&entry, "positionValue", &[]).as_str().map(str::to_owned);
-        let mut markPriceString: Value = crate::precise::Precise::stringDiv(&positionValueString.clone().map(Value::from).unwrap_or(Value::Null), &size.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut markPriceString: Option<String> = crate::precise::Precise::stringDiv(&positionValueString.clone().map(Value::from).unwrap_or(Value::Null), &size.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut marginString: Value = Value::Null;
         if isIsolated {
             marginString = initialMargin.clone();
@@ -5680,7 +5680,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("contracts".to_string(), self.parse_number(size.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("entryPrice".to_string(), self.safe_number_k(&entry, "entryPx", &[]));
-        m.insert("markPrice".to_string(), self.parse_number(markPriceString, &[]));
+        m.insert("markPrice".to_string(), self.parse_number(markPriceString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("notional".to_string(), self.parse_number(positionValueString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("leverage".to_string(), self.safe_number_k(&leverage, "value", &[]));
         m.insert("positionMargin".to_string(), self.parse_number(marginString, &[]));
@@ -5693,7 +5693,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(&entry, "liquidationPx", &[]));
         m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
         m.insert("marginRatio".to_string(), Value::Null);
-        m.insert("percentage".to_string(), self.parse_number(percentage, &[]));
+        m.insert("percentage".to_string(), self.parse_number(percentage.map(Value::from).unwrap_or(Value::Null), &[]));
     m
 }));
 
@@ -5736,14 +5736,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a leverage parameter".into()))));
         }
         let mut asset: Value = self.parse_to_int(Value::from((market).base_id.as_deref()));
-        let mut isCross: Value = (Value::Bool(marginMode.as_str() == Some("cross")));
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut isCross: bool = marginMode.as_str().unwrap_or_default().to_string() == "cross";
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut params2: Value = self.omit(params, Value::from(vec![Value::Str("leverage".into())]), &[]);
         let mut updateAction: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("updateLeverage".into()));
                 m.insert("asset".to_string(), asset);
-                m.insert("isCross".to_string(), isCross);
+                m.insert("isCross".to_string(), Value::Bool(isCross));
                 m.insert("leverage".to_string(), Value::from(leverage));
             m
         });
@@ -5754,11 +5754,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 vaultAddress = vaultAddress.as_str().map(|__s| Value::Str(__s.replace("0x", "").into())).unwrap_or_else(|| vaultAddress.clone());
             }
         }
-        let mut signature: Value = self.sign_l1_action(Value::Map(updateAction.clone()), nonce.clone(), vaultAddress.as_str(), None);
+        let mut signature: Value = self.sign_l1_action(Value::Map(updateAction.clone()), Value::from(nonce), vaultAddress.as_str(), None);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(updateAction));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("signature".to_string(), signature);
             m
         });
@@ -5801,26 +5801,26 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marginMode: Option<String> = self.safe_string_k(params.clone(), "marginMode", &[Value::Str("cross".into())]).as_str().map(str::to_owned);
-        let mut isCross: Value = (Value::Bool(marginMode.as_deref() == Some("cross")));
+        let mut isCross: bool = marginMode.as_deref() == Some("cross");
         let mut asset: Value = self.parse_to_int(Value::from((market).base_id.as_deref()));
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut params2: Value = self.omit(params, Value::Str("marginMode".into()), &[]);
         let mut updateAction: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("updateLeverage".into()));
                 m.insert("asset".to_string(), asset);
-                m.insert("isCross".to_string(), isCross);
+                m.insert("isCross".to_string(), Value::Bool(isCross));
                 m.insert("leverage".to_string(), leverage);
             m
         });
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(params2.clone(), Value::Str("setLeverage".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().cloned().unwrap_or_default(); vaultAddress = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(vaultAddress.as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut signature: Value = self.sign_l1_action(Value::Map(updateAction.clone()), nonce.clone(), vaultAddress.as_str(), None);
+        let mut signature: Value = self.sign_l1_action(Value::Map(updateAction.clone()), Value::from(nonce), vaultAddress.as_str(), None);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(updateAction));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("signature".to_string(), signature);
             m
         });
@@ -5906,7 +5906,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut asset: Value = self.parse_to_int(Value::from((market).base_id.as_deref()));
         let mut szAbs: Value = self.parse_to_int(crate::precise::Precise::stringMul(&self.amount_to_precision(symbol, amount), &Value::Str("1000000".into())));
         let mut sz: Value = (if (type_var.as_str() == Some("reduce")) { (match &(szAbs) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }) } else { szAbs });
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut updateAction: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("updateIsolatedMargin".into()));
@@ -5917,11 +5917,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut vaultAddressOption: Value = self.handle_option_string_and_params2(params, Value::Str("modifyMargin".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut vaultAddress: Value = self.format_vault_address(vaultAddressOption.as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut signature: Value = self.sign_l1_action(Value::Map(updateAction.clone()), nonce.clone(), vaultAddress.as_str(), None);
+        let mut signature: Value = self.sign_l1_action(Value::Map(updateAction.clone()), Value::from(nonce), vaultAddress.as_str(), None);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(updateAction));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("signature".to_string(), signature);
             m
         });
@@ -6001,7 +6001,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         if self.in_array(fromAccount.clone(), Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into()), Value::Str("perp".into())])).as_bool() == Some(true) {
             // handle swap <> spot account transfer
             if !(self.in_array(toAccount.clone(), Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into()), Value::Str("perp".into())])).as_bool() == Some(true)) {
@@ -6019,7 +6019,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("hyperliquidChain".to_string(), (if isSandboxMode { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
                     m.insert("amount".to_string(), strAmountFinal.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("toPerp".to_string(), toPerp.clone());
-                    m.insert("nonce".to_string(), nonce.clone());
+                    m.insert("nonce".to_string(), Value::from(nonce));
                 m
             });
             let mut transferSig: Value = self.build_usd_class_send_sig(Value::Map(transferPayload.clone()));
@@ -6032,10 +6032,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("type".to_string(), Value::Str("usdClassTransfer".into()));
         m.insert("amount".to_string(), strAmountFinal.map(Value::from).unwrap_or(Value::Null));
         m.insert("toPerp".to_string(), toPerp);
-        m.insert("nonce".to_string(), nonce.clone());
+        m.insert("nonce".to_string(), Value::from(nonce));
     m
 }));
-                    m.insert("nonce".to_string(), nonce.clone());
+                    m.insert("nonce".to_string(), Value::from(nonce));
                     m.insert("signature".to_string(), transferSig);
                 m
             });
@@ -6100,7 +6100,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("token".to_string(), Value::from(sendAssetToken.clone()));
                     m.insert("amount".to_string(), self.number_to_string(amount.clone()));
                     m.insert("fromSubAccount".to_string(), (if isDeposit { Value::Str("".into()) } else { subAccountAddress.clone() }));
-                    m.insert("nonce".to_string(), nonce.clone());
+                    m.insert("nonce".to_string(), Value::from(nonce));
                 m
             });
             let mut sendAssetSig: Value = self.build_send_asset_sig(Value::Map(sendAssetPayload.clone()));
@@ -6117,10 +6117,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("token".to_string(), Value::from(sendAssetToken));
         m.insert("amount".to_string(), sendAssetPayload.get("amount").cloned().unwrap_or(Value::Null));
         m.insert("fromSubAccount".to_string(), sendAssetPayload.get("fromSubAccount").cloned().unwrap_or(Value::Null));
-        m.insert("nonce".to_string(), nonce.clone());
+        m.insert("nonce".to_string(), Value::from(nonce));
     m
 }));
-                    m.insert("nonce".to_string(), nonce.clone());
+                    m.insert("nonce".to_string(), Value::from(nonce));
                     m.insert("signature".to_string(), sendAssetSig);
                 m
             });
@@ -6142,11 +6142,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("usd".to_string(), usd);
                 m
             });
-            let mut sig: Value = self.sign_l1_action(action.clone(), nonce.clone(), None, None);
+            let mut sig: Value = self.sign_l1_action(action.clone(), Value::from(nonce), None, None);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("action".to_string(), action.clone());
-                    m.insert("nonce".to_string(), nonce.clone());
+                    m.insert("nonce".to_string(), Value::from(nonce));
                     m.insert("signature".to_string(), sig.clone());
                 m
             });
@@ -6172,11 +6172,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("amount".to_string(), self.number_to_string(amount));
                 m
             });
-            let mut sig: Value = self.sign_l1_action(action.clone(), nonce.clone(), None, None);
+            let mut sig: Value = self.sign_l1_action(action.clone(), Value::from(nonce), None, None);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("action".to_string(), action);
-                    m.insert("nonce".to_string(), nonce);
+                    m.insert("nonce".to_string(), Value::from(nonce));
                     m.insert("signature".to_string(), sig);
                 m
             });
@@ -6244,7 +6244,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut vaultAddressOption: Value = self.handle_option_string_and_params(params, Value::Str("withdraw".into()), Value::Str("vaultAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut vaultAddress: Value = self.format_vault_address(vaultAddressOption.as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut action: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -6259,7 +6259,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("usd".to_string(), amount.clone());
                 m
             });
-            sig = self.sign_l1_action(Value::Map(action.clone()), nonce.clone(), None, None);
+            sig = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, None);
         }  else {
             let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut payload: indexmap::IndexMap<String, Value> = ({
@@ -6267,7 +6267,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("hyperliquidChain".to_string(), (if isSandboxMode { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
                     m.insert("destination".to_string(), address.clone());
                     m.insert("amount".to_string(), self.number_to_string(amount.clone()));
-                    m.insert("time".to_string(), nonce.clone());
+                    m.insert("time".to_string(), Value::from(nonce));
                 m
             });
             sig = self.build_withdraw_sig(Value::Map(payload.clone()));
@@ -6277,7 +6277,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("signatureChainId".to_string(), Value::Str("0x66eee".into()));
                     m.insert("destination".to_string(), address);
                     m.insert("amount".to_string(), self.number_to_string(amount));
-                    m.insert("time".to_string(), nonce.clone());
+                    m.insert("time".to_string(), Value::from(nonce));
                     m.insert("type".to_string(), Value::Str("withdraw3".into()));
                 m
             });
@@ -6285,7 +6285,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(action));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("signature".to_string(), sig);
             m
         });
@@ -7045,10 +7045,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("nonce".to_string(), nonce.clone());
+                m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
         let mut action: indexmap::IndexMap<String, Value> = ({
@@ -7057,7 +7057,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("weight".to_string(), weight);
             m
         });
-        let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), nonce, None, None);
+        let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, None);
         request.insert("action".into(), Value::Map(action));
         request.insert("signature".into(), signature);
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
@@ -7081,10 +7081,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("nonce".to_string(), nonce.clone());
+                m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
         let mut action: indexmap::IndexMap<String, Value> = ({
@@ -7097,7 +7097,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (expiresAfter.is_some()) {
             request.insert("expiresAfter".into(), Value::from(expiresAfter));
         }
-        let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), nonce, None, expiresAfter);
+        let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, expiresAfter);
         request.insert("action".into(), Value::Map(action));
         request.insert("signature".into(), signature);
         let __ws_arg_38 = self.extend(Value::Map(request), &[self.omit(params, Value::Str("expiresAfter".into()), &[])]);
@@ -7145,9 +7145,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_public_address(&self, methodName: &str, mut params: Value) -> Value {
         let mut methodName: Value = methodName.into();
         let userAuxparamsUserVariable: Vec<Value> = self.handle_option_string_and_params2(params, methodName.clone(), Value::Str("user".into()), Value::Str("subAccountAddress".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut userAux: Value = userAuxparamsUserVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut userAux: Option<String> = userAuxparamsUserVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsUser: crate::value::Dict = userAuxparamsUserVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let userparamsAddressVariable: Vec<Value> = self.handle_option_string_and_params(&paramsUser, methodName.clone(), Value::Str("address".into()), &[userAux]).as_array().cloned().unwrap_or_default();
+        let userparamsAddressVariable: Vec<Value> = self.handle_option_string_and_params(&paramsUser, methodName.clone(), Value::Str("address".into()), &[userAux.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
         let mut user: Option<String> = userparamsAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAddress: Value = userparamsAddressVariable.get(1).cloned().unwrap_or(Value::Null);
         if (user.is_some()) && (user.as_deref() != Some("")) {
@@ -7265,8 +7265,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName, &[]).as_str().map(str::to_owned);
+        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }

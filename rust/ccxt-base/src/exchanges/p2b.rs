@@ -851,14 +851,14 @@ impl P2b {
         //        change: '3.13'
         //    }
         //
-        let mut timestamp: Value = self.safe_integer_product_k(ticker.clone(), "at", Value::Int(1000), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k(ticker.clone(), "at", Value::Int(1000), &[]).as_i64();
         let mut tickerInner: Value = self.safe_dict_k(ticker.clone(), "ticker", &[ticker.clone()]);
         let mut last: Option<String> = self.safe_string_k(tickerInner.clone(), "last", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_string_k(tickerInner.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(tickerInner.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(tickerInner.clone(), "bid", &[]));
@@ -950,8 +950,8 @@ impl P2b {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timestamp: Value = self.safe_integer_product_k(&response, "current_time", Value::Int(1000), &[]);
-        return self.parse_order_book(result, Value::from((market).symbol.clone()), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k(&response, "current_time", Value::Int(1000), &[]).as_i64();
+        return self.parse_order_book(result, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
         Value::Null
         }).await?))
     }
@@ -1068,7 +1068,7 @@ impl P2b {
         //        "deal": "10.9740544"          // Total (price * amount)
         //    }
         //
-        let mut timestamp: Value = self.safe_integer_product2(trade.clone(), Value::Str("time".into()), Value::Str("deal_time".into()), Value::Int(1000), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product2(trade.clone(), Value::Str("time".into()), Value::Str("deal_time".into()), Value::Int(1000), &[]).as_i64();
         let mut takerOrMaker: Option<String> = self.safe_string_k(trade.clone(), "role", &[]).as_str().map(str::to_owned);
         if (takerOrMaker.as_deref() == Some("1")) {
             takerOrMaker = Some("maker".to_string());
@@ -1079,8 +1079,8 @@ impl P2b {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("deal_id".into()), &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("order".to_string(), self.safe_string2(trade.clone(), Value::Str("dealOrderId".into()), Value::Str("deal_order_id".into()), &[]));
         m.insert("type".to_string(), Value::Null);
@@ -1825,7 +1825,7 @@ impl P2b {
         //        "dealMoney": "10.9740544"     // Filled total
         //    }
         //
-        let mut timestamp: Value = self.safe_integer_product2(order.clone(), Value::Str("timestamp".into()), Value::Str("ctime".into()), Value::Int(1000), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product2(order.clone(), Value::Str("timestamp".into()), Value::Str("ctime".into()), Value::Int(1000), &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "market", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         return self.safe_order(Value::Map({
@@ -1833,8 +1833,8 @@ impl P2b {
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("id".into()), Value::Str("orderId".into()), &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), self.safe_string_k(order.clone(), "type", &[]));
@@ -1876,8 +1876,8 @@ impl P2b {
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut baseUrl: Value = baseApiUrl.map(Value::from).unwrap_or(Value::Null);
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        let mut baseUrl: Option<String> = baseApiUrl;
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut paramsOmitted: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         if (method.as_str() == Some("GET")) {
             if ((Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
@@ -1903,12 +1903,12 @@ impl P2b {
                     m.insert("X-TXC-SIGNATURE".to_string(), self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]));
                 m
             });
-            let mut bodyJson: Value = json_stringify(&paramsOmitted);
+            let mut bodyJson: Option<String> = json_stringify(&paramsOmitted).as_str().map(str::to_owned);
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));
         m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), bodyJson);
+        m.insert("body".to_string(), bodyJson.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersSigned));
     m
 });

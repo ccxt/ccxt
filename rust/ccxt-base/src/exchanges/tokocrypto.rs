@@ -1950,12 +1950,12 @@ impl Tokocrypto {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 candles won't work right
-        let mut defaultLimit: Value = Value::Int(500);
+        let mut defaultLimit: i64 = 500;
         let mut maxLimit: Value = Value::Int(1500);
         let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("price".into()), Value::Str("until".into())]), &[]).into_dict();
-        let mut limitValue: Value = defaultLimit;
+        let mut limitValue: Value = Value::from(defaultLimit);
         if (limit != Value::Null) {
             limitValue = crate::runtime::Math::min(&limit, &maxLimit);
         }
@@ -2238,7 +2238,7 @@ impl Tokocrypto {
         //       "updateTime": "1636061952660"
         //     }
         //
-        let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str());
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]).as_str().map(str::to_owned);
         let mut filled: String = self.safe_string_k(order.clone(), "executedQty", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
@@ -2251,7 +2251,7 @@ impl Tokocrypto {
         let mut cost: Option<String> = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("cummulativeQuoteQty".into()), Value::Str("cumQuote".into()), Value::Str("executedQuoteQty".into()), Value::Str("cumBase".into())]), &[]).as_str().map(str::to_owned);
         let mut id: Option<String> = self.safe_string_k(order.clone(), "orderId", &[]).as_str().map(str::to_owned);
         let mut rawOrderType: Option<String> = self.safe_string_lower_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = self.parse_order_type(rawOrderType.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Option<String> = self.parse_order_type(rawOrderType.as_deref());
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         if (side.as_deref() == Some("0")) {
             side = Some("buy".to_string());
@@ -2275,7 +2275,7 @@ impl Tokocrypto {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), postOnly);
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduceOnly", &[]));
@@ -2287,7 +2287,7 @@ impl Tokocrypto {
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), Value::from(filled));
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), fills);
     m
@@ -2364,8 +2364,8 @@ impl Tokocrypto {
         let mut requestedTimeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut isMarketOrder: Value = (Value::Bool(requestedType == "MARKET"));
         // GTX is the venue spelling of post only, on top of the two unified spellings
-        let mut isPostOnlyTimeInForce: Value = (Value::Bool(requestedTimeInForce.as_deref() == Some("GTX")));
-        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), isPostOnlyTimeInForce, &[params.clone()]).as_array().cloned().unwrap_or_default();
+        let mut isPostOnlyTimeInForce: bool = requestedTimeInForce.as_deref() == Some("GTX");
+        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), Value::Bool(isPostOnlyTimeInForce), &[params.clone()]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // only supported for spot/margin api
@@ -2518,8 +2518,8 @@ impl Tokocrypto {
             }
         }
         if timeInForceIsRequired {
-            let mut defaultTimeInForce: Value = self.safe_string_k(self.options.clone(), "defaultTimeInForce", &[Value::Str("GTC".into())]);
-            let mut timeInForce: Value = defaultTimeInForce;
+            let mut defaultTimeInForce: String = self.safe_string_k(self.options.clone(), "defaultTimeInForce", &[Value::Str("GTC".into())]).as_str().unwrap_or("GTC").to_string();
+            let mut timeInForce: Value = Value::from(defaultTimeInForce);
             if (timeInForceResolved != Value::Null) {
                 timeInForce = timeInForceResolved.clone();
             }
@@ -3414,9 +3414,9 @@ impl Tokocrypto {
             request.insert("addressTag".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
         let networkCodequeryVariable: Vec<Value> = self.handle_network_code_and_params(&paramsWithdrawTag).as_array().cloned().unwrap_or_default();
-        let mut networkCode: Value = networkCodequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut networkCode: Option<String> = networkCodequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: crate::value::Dict = networkCodequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut networkId: Option<String> = self.network_code_to_id(networkCode, &[code]).as_str().map(str::to_owned);
+        let mut networkId: Option<String> = self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code]).as_str().map(str::to_owned);
         if (networkId.is_some()) {
             request.insert("network".into(), networkId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
         }
@@ -3463,12 +3463,12 @@ impl Tokocrypto {
                         m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m
                 });
-                let mut bodyStream: Value = (if (method.as_str() != Some("GET")) { self.urlencode(params.clone(), &[]) } else { Value::Null });
+                let mut bodyStream: Option<String> = (if (method.as_str() != Some("GET")) { self.urlencode(params.clone(), &[]).as_str().map(str::to_owned) } else { None });
                 return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));
         m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), bodyStream);
+        m.insert("body".to_string(), bodyStream.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersStream));
     m
 });
@@ -3500,8 +3500,8 @@ impl Tokocrypto {
             }  else {
                 query = self.urlencode(extendedParams, &[]);
             }
-            let mut signature: Value = self.hmac(self.encode(query.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-            query = Value::Str(format!("{}{}", query, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("&".into()), Value::Str("signature=".into())).into()), signature).into())).into());
+            let mut signature: Option<String> = self.hmac(self.encode(query.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
+            query = Value::Str(format!("{}{}", query, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("&".into()), Value::Str("signature=".into())).into()), signature.map(Value::from).unwrap_or(Value::Null)).into())).into());
             let mut headersSigned: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());

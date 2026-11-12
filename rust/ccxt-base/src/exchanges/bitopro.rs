@@ -755,7 +755,7 @@ impl Bitopro {
         if (id.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing id".into()))));
         }
-        let mut uppercaseId: Value = id.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null);
+        let mut uppercaseId: Option<String> = id.as_deref().map(str::to_uppercase);
         let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "quote", &[]).as_str().map(str::to_owned);
         let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -795,7 +795,7 @@ impl Bitopro {
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("uppercaseId".to_string(), uppercaseId);
+        m.insert("uppercaseId".to_string(), uppercaseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1219,12 +1219,12 @@ impl Bitopro {
         });
         let mut maker: Option<f64> = self.safe_number_k(first.clone(), "makerFee", &[]).as_f64();
         let mut taker: Option<f64> = self.safe_number_k(first.clone(), "takerFee", &[]).as_f64();
-        let mut symbols: Value = self.symbols.clone();
+        let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
             let mut __for_first_408: bool = true;
             while { if !__for_first_408 { i += 1; } __for_first_408 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), first.clone());
@@ -1339,7 +1339,7 @@ impl Bitopro {
         let mut copyFrom: Value = firstCandle.clone();
         let mut timestamp: Value = Value::Null;
         if (since == Value::Null) {
-            timestamp = self.safe_value(firstCandle, Value::Int(0), &[]);
+            timestamp = self.safe_integer(firstCandle, Value::Int(0), &[]);
         }  else {
             timestamp = since;
         }
@@ -1358,7 +1358,7 @@ impl Bitopro {
             }
             timestamp = self.sum(&[timestamp.clone(), distanceInMs.clone()]);
             resultLength = Value::Int(result.len() as i64);
-            copyFrom = self.safe_value(&result, (match (&(resultLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
+            copyFrom = self.safe_list(&result, (match (&(resultLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
         }
         return Value::Arr(result);
 
@@ -1500,7 +1500,7 @@ impl Bitopro {
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("_".into())]);
         let mut symbol: Option<String> = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut orderStatus: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut status: Value = self.parse_order_status(orderStatus.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_order_status(orderStatus.as_deref());
         let mut type_var: Option<String> = self.safe_string_lower_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut average: Option<String> = self.safe_string_k(order.clone(), "avgExecutionPrice", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "executedAmount", &[]).as_str().map(str::to_owned);
@@ -1540,7 +1540,7 @@ impl Bitopro {
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);
         m.insert("info".to_string(), order);
@@ -2463,8 +2463,8 @@ impl Bitopro {
                         m.insert("nonce".to_string(), Value::from(nonce));
                     m
                 });
-                let mut data: Value = json_stringify(&Value::Map(rawData));
-                let mut payload: Value = self.string_to_base64(data, &[]);
+                let mut data: Option<String> = json_stringify(&Value::Map(rawData)).as_str().map(str::to_owned);
+                let mut payload: Value = self.string_to_base64(data.map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
                 requestHeaders.insert("X-BITOPRO-APIKEY".into(), self.apiKey.clone());
                 requestHeaders.insert("X-BITOPRO-PAYLOAD".into(), payload);

@@ -1395,11 +1395,11 @@ impl Coinspot {
             let mut audfeeExGst: Option<String> = self.safe_string_k(trade.clone(), "audfeeExGst", &[]).as_str().map(str::to_owned);
             let mut audGst: Option<String> = self.safe_string_k(trade.clone(), "audGst", &[]).as_str().map(str::to_owned);
             // The transaction fee which consumers pay is inclusive of GST by default
-            let mut feeCost: Value = crate::precise::Precise::stringAdd(&audfeeExGst.map(Value::from).unwrap_or(Value::Null), &audGst.map(Value::from).unwrap_or(Value::Null));
+            let mut feeCost: Option<String> = crate::precise::Precise::stringAdd(&audfeeExGst.map(Value::from).unwrap_or(Value::Null), &audGst.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut feeCurrencyId: String = "AUD".to_string();
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), self.parse_number(feeCost, &[]));
+                    m.insert("cost".to_string(), self.parse_number(feeCost.map(Value::from).unwrap_or(Value::Null), &[]));
                     m.insert("currency".to_string(), self.safe_currency_code(Value::from(feeCurrencyId), &[]));
                 m
             });
@@ -1586,10 +1586,10 @@ impl Coinspot {
         if (accessType.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             // coinspot requires an increasing nonce
-            let mut nonce: Value = self.incrementing_nonce();
+            let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
             let __ws_arg_7 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("nonce".to_string(), nonce);
+                    m.insert("nonce".to_string(), Value::from(nonce));
                 m
             }), &[params]);
             requestBody = self.json(__ws_arg_7);

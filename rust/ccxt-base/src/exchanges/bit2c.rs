@@ -1166,7 +1166,7 @@ impl Bit2c {
         }
         let mut id: Option<String> = self.safe_string_k(orderUnified.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(Value::Null, &[market.clone()]).as_str().map(str::to_owned);
-        let mut timestamp: Value = self.safe_integer_product_k(orderUnified.clone(), "created", Value::Int(1000), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k(orderUnified.clone(), "created", Value::Int(1000), &[]).as_i64();
         // status field vary between responses
         // bit2c status type:
         // 0 = New
@@ -1218,8 +1218,8 @@ impl Bit2c {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -1554,10 +1554,10 @@ impl Bit2c {
         }  else {
             self.check_required_credentials(&[]);
             // bit2c requires an increasing nonce per key
-            let mut nonce: Value = self.incrementing_nonce();
+            let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
             let mut query: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("nonce".to_string(), nonce);
+                    m.insert("nonce".to_string(), Value::from(nonce));
                 m
             }), &[params]);
             let mut auth: Value = self.urlencode(query.clone(), &[]);
@@ -1568,12 +1568,12 @@ impl Bit2c {
             }  else {
                 requestBody = auth.clone();
             }
-            let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[Value::Str("base64".into())]);
+            let mut signature: Option<String> = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("key".to_string(), self.apiKey.clone());
-                    m.insert("sign".to_string(), signature);
+                    m.insert("sign".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                 m
             });
         }

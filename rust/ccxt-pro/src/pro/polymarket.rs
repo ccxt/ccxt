@@ -1158,7 +1158,7 @@ impl Polymarket {
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
         let mut messageHash: String = "authenticated".to_string();
-        let mut future: Value = client.reusable_future(messageHash.as_str());
+        let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut id: Value = self.request_id();
@@ -1531,7 +1531,7 @@ impl Polymarket {
         }
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
-            let mut future: Value = __ch.get_future(&messageHash);
+            let mut future: crate::pro::ws_client::Flight = __ch.get_future(&messageHash);
             future.resolve(cache.clone(), None);
         }
         client.resolve(cache, "positions");
@@ -1603,7 +1603,7 @@ impl Polymarket {
         { let __t = self.extend(self.balance.clone(), &[crate::types::IntoRaw::into_raw(balance.clone())]); self.balance = __t; }
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
-            let mut future: Value = __ch.get_future(&messageHash);
+            let mut future: crate::pro::ws_client::Flight = __ch.get_future(&messageHash);
             future.resolve(self.balance.clone(), None);
         }
         client.resolve(self.balance.clone(), "balance");

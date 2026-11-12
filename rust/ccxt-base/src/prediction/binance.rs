@@ -1490,7 +1490,7 @@ impl Binance {
         //     "networkFee": "0.000001"
         // }
         //
-        let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str());
         let mut outcomeObjResolved: Value = outcomeObj;
         if (outcomeObjResolved == Value::Null) {
             let mut marketId: Option<String> = self.safe_string_k(order.clone(), "marketId", &[]).as_str().map(str::to_owned);
@@ -1513,7 +1513,7 @@ impl Binance {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "id", &[]));
         m.insert("label".to_string(), self.safe_string_k(outcomeObjResolved.clone(), "label", &[]));
@@ -2179,11 +2179,11 @@ impl Binance {
         if (orderType.as_deref() == Some("market")) && (cost.is_some()) && (price.is_some()) && (filled.is_some()) {
             // buys pay cost above price*filled, sells receive proceeds net of the fee —
             // either way the fee is the absolute difference
-            let mut feeCost: Value = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&cost.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &filled.map(Value::from).unwrap_or(Value::Null))));
+            let mut feeCost: Option<String> = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&cost.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &filled.map(Value::from).unwrap_or(Value::Null)))).as_str().map(str::to_owned);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), Value::Str("USDT".into()));
-                    m.insert("cost".to_string(), self.parse_number(feeCost, &[]));
+                    m.insert("cost".to_string(), self.parse_number(feeCost.map(Value::from).unwrap_or(Value::Null), &[]));
                 m
             });
         }
@@ -2397,10 +2397,10 @@ impl Binance {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder requires price for ".into())).into()), side).into()), Value::Str(" order".into()))));
                     }
                 }
-                let mut feeRate: Value = crate::precise::Precise::stringDiv(&Value::from(feeRateBps), &Value::Str("10000".into()));
-                let mut minPrice: Value = crate::precise::Precise::stringMin(&priceStr.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr.clone().map(Value::from).unwrap_or(Value::Null)));
-                let mut fee: Value = crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&feeRate, &minPrice), &amountStr.clone().map(Value::from).unwrap_or(Value::Null));
-                amountStr = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&amountStr.clone().map(Value::from).unwrap_or(Value::Null), &priceStr.map(Value::from).unwrap_or(Value::Null)), &fee).as_str().map(str::to_owned);
+                let mut feeRate: Option<String> = crate::precise::Precise::stringDiv(&Value::from(feeRateBps), &Value::Str("10000".into())).as_str().map(str::to_owned);
+                let mut minPrice: Option<String> = crate::precise::Precise::stringMin(&priceStr.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr.clone().map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
+                let mut fee: Option<String> = crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&feeRate.map(Value::from).unwrap_or(Value::Null), &minPrice.map(Value::from).unwrap_or(Value::Null)), &amountStr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                amountStr = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&amountStr.clone().map(Value::from).unwrap_or(Value::Null), &priceStr.map(Value::from).unwrap_or(Value::Null)), &fee.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[Value::from(defaultTif)]).as_str().map(str::to_owned);
@@ -2667,9 +2667,9 @@ impl Binance {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiGroup: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut apiGroup: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
-        let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup, &[baseUrls.as_map().and_then(|__m| __m.get("sapi")).cloned().unwrap_or(Value::Null)]);
+        let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup.map(Value::from).unwrap_or(Value::Null), &[baseUrls.as_map().and_then(|__m| __m.get("sapi")).cloned().unwrap_or(Value::Null)]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         self.check_required_credentials(&[]);
@@ -2686,8 +2686,8 @@ impl Binance {
         let mut querystring: Value = self.urlencode_nested(extendedParams, &[]);
         querystring = querystring.as_str().map(|__s| Value::Str(__s.replace("%5B", "[").into())).unwrap_or_else(|| querystring.clone());
         querystring = querystring.as_str().map(|__s| Value::Str(__s.replace("%5D", "]").into())).unwrap_or_else(|| querystring.clone());
-        let mut signature: Value = self.hmac(self.encode(querystring.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-        querystring = Value::Str(format!("{}{}", Value::Str(format!("{}{}", querystring, Value::Str("&signature=".into())).into()), signature).into());
+        let mut signature: Option<String> = self.hmac(self.encode(querystring.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
+        querystring = Value::Str(format!("{}{}", Value::Str(format!("{}{}", querystring, Value::Str("&signature=".into())).into()), signature.map(Value::from).unwrap_or(Value::Null)).into());
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());

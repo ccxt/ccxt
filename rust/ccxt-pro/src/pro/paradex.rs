@@ -852,10 +852,10 @@ if _try_result.is_err() {
         let mut url: Value = self.get_ws_url();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         let mut messageHash: String = "authenticated".to_string();
-        let mut future: Value = client.reusable_future(Value::Str("authenticated".into()));
+        let mut future: crate::pro::ws_client::Flight = client.reusable_future(Value::Str("authenticated".into()));
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
-            let mut token: Value = self.parent.authenticate_rest(&[]).await;
+            let mut token: Option<String> = self.parent.authenticate_rest(&[]).await.as_str().map(str::to_owned);
             let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -864,7 +864,7 @@ if _try_result.is_err() {
                     m.insert("method".to_string(), Value::Str("auth".into()));
                     m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("bearer".to_string(), token);
+        m.insert("bearer".to_string(), token.map(Value::from).unwrap_or(Value::Null));
     m
 }));
                 m
@@ -2893,8 +2893,8 @@ if _try_result.is_err() {
                                         let mut i: i64 = 0;
                     let mut __for_first_612: bool = true;
                     while { if !__for_first_612 { i += 1; } __for_first_612 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                    let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into());
-                    std::sync::Arc::make_mut(&mut messageHashes).push(messageHash);
+                    let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+                    std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(messageHash));
                 }
                 }
             }  else {

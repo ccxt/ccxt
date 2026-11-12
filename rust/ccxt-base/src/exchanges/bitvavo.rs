@@ -1434,7 +1434,7 @@ impl Bitvavo {
                         let mut i: i64 = 0;
             let mut __for_first_454: bool = true;
             while { if !__for_first_454 { i += 1; } __for_first_454 = false; i < (self.symbols.len() as i64) } {
-            let mut symbol: Value = self.safe_string(self.symbols.clone(), Value::Int(i), &[Value::Str("".into())]);
+            let mut symbol: Value = self.safe_string(&self.symbols, Value::Int(i), &[Value::Str("".into())]);
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fees.clone());
@@ -2088,8 +2088,8 @@ impl Bitvavo {
             if (price != Value::Null) {
                 let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
                 let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-                let mut quoteAmount: Value = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null));
-                cost = self.parse_number(quoteAmount, &[]);
+                let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                cost = self.parse_number(quoteAmount.map(Value::from).unwrap_or(Value::Null), &[]);
             }  else {
                 cost = self.safe_number_k(paramsOmitted, "cost", &[]);
             }
@@ -2682,7 +2682,7 @@ impl Bitvavo {
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "market", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("-".into())]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str());
         let mut side: Option<String> = self.safe_string_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string_k(order.clone(), "orderType", &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
@@ -2730,7 +2730,7 @@ impl Bitvavo {
         m.insert("average".to_string(), Value::Null);
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), rawTrades);
     m
@@ -2910,7 +2910,7 @@ impl Bitvavo {
         let mut item: Value = item.into();
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut rawType: Option<String> = self.safe_string_k(item.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = self.parse_ledger_entry_type(rawType.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Option<String> = self.parse_ledger_entry_type(rawType.as_deref());
         let mut currencyId: Option<String> = self.safe_string_k(item.clone(), "receivedCurrency", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(item.clone(), "receivedAmount", &[]).as_str().map(str::to_owned);
         let mut direction: String = "in".to_string();
@@ -2921,7 +2921,7 @@ impl Bitvavo {
         }
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
-        let mut timestamp: Value = self.parse8601(self.safe_string_k(item.clone(), "executedAt", &[]));
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(item.clone(), "executedAt", &[])).as_i64();
         let mut fee: Value = Value::Null;
         let mut feeCost: Option<String> = self.safe_string_k(item.clone(), "feesAmount", &[]).as_str().map(str::to_owned);
         if (feeCost.is_some()) {
@@ -2942,11 +2942,11 @@ impl Bitvavo {
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), self.safe_string_k(item.clone(), "transactionId", &[]));
         m.insert("referenceAccount".to_string(), self.safe_string_k(item, "address", &[]));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::Null);
         m.insert("status".to_string(), Value::Str("ok".into()));
@@ -3219,7 +3219,7 @@ impl Bitvavo {
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "timestamp", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
-        let mut status: Value = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
         let mut address: Option<String> = self.safe_string_k(transaction.clone(), "address", &[]).as_str().map(str::to_owned);
         let mut txid: Option<String> = self.safe_string_k(transaction.clone(), "txId", &[]).as_str().map(str::to_owned);
@@ -3256,7 +3256,7 @@ impl Bitvavo {
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
         m.insert("network".to_string(), Value::Null);
@@ -3391,12 +3391,12 @@ impl Bitvavo {
             }
             let mut timestamp: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), url).into()), payload.map(Value::from).unwrap_or(Value::Null));
-            let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
             let mut accessWindow: String = self.safe_string2(self.options.clone(), Value::Str("recvWindow".into()), Value::Str("BITVAVO-ACCESS-WINDOW".into()), &[Value::Str("10000".into())]).as_str().unwrap_or("10000").to_string();
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("BITVAVO-ACCESS-KEY".to_string(), self.apiKey.clone());
-                    m.insert("BITVAVO-ACCESS-SIGNATURE".to_string(), signature);
+                    m.insert("BITVAVO-ACCESS-SIGNATURE".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                     m.insert("BITVAVO-ACCESS-TIMESTAMP".to_string(), Value::from(timestamp));
                     m.insert("BITVAVO-ACCESS-WINDOW".to_string(), Value::from(accessWindow));
                 m

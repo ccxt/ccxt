@@ -607,8 +607,8 @@ impl P2b {
         let mut name: String = "depth.subscribe".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), Value::from((market).symbol.clone()));
         let mut interval: String = self.safe_string_k(params.clone(), "interval", &[Value::Str("0.001".into())]).as_str().unwrap_or("0.001").to_string();
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() });
-        let mut request: Value = Value::from(vec![Value::from((market).id.as_deref()), limitResolved, Value::from(interval)]);
+        let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
+        let mut request: Value = Value::from(vec![Value::from((market).id.as_deref()), Value::from(limitResolved), Value::from(interval)]);
         let mut orderbook: Value = self.subscribe(Value::from(name), Value::from(messageHash), request, &[params]).await;
         return orderbook.limit();
         Value::Null

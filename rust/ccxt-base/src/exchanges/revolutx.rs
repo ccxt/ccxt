@@ -470,8 +470,8 @@ impl Revolutx {
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut baseUrl: Value = baseApiUrl.map(Value::from).unwrap_or(Value::Null);
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), implodedPath);
+        let mut baseUrl: Option<String> = baseApiUrl;
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), implodedPath);
         let mut queryString: Value = Value::Str("".into());
         let mut bodyString: Value = Value::Str("".into());
         if (apiName.as_deref() == Some("private")) {
@@ -491,8 +491,8 @@ impl Revolutx {
                 bodyString = json_stringify(&query);
             }
             let mut requestPath: String = format!("{}{}", Value::Str("/api/".into()), implodedPath);
-            let mut message: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, (if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).into()), requestPath).into()), queryString).into()), bodyString);
-            let mut signature: Value = eddsa(self.encode(Value::from(message)), self.privateKey.clone(), Value::Str("ed25519".into()));
+            let mut message: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, (if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).into()), requestPath).into()), queryString).into()), bodyString).into());
+            let mut signature: Value = eddsa(self.encode(message), self.privateKey.clone(), Value::Str("ed25519".into()));
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-Revx-API-Key".to_string(), self.apiKey.clone());
@@ -549,15 +549,15 @@ impl Revolutx {
         let mut id: Option<String> = self.safe_string_k(market.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut base: String = self.safe_string_k(market.clone(), "base", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut quote: String = self.safe_string_k(market.clone(), "quote", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut baseId: Value = Value::from(base.clone());
-        let mut quoteId: Value = Value::from(quote.clone());
+        let mut baseId: String = base.clone();
+        let mut quoteId: String = quote.clone();
         let mut baseStep: Option<String> = self.safe_string_k(market.clone(), "base_step", &[]).as_str().map(str::to_owned);
         let mut quoteStep: Option<String> = self.safe_string_k(market.clone(), "quote_step", &[]).as_str().map(str::to_owned);
         let mut minOrderSize: Option<String> = self.safe_string_k(market.clone(), "min_order_size", &[]).as_str().map(str::to_owned);
         let mut maxOrderSize: Option<String> = self.safe_string_k(market.clone(), "max_order_size", &[]).as_str().map(str::to_owned);
         let mut minOrderSizeQuote: Option<String> = self.safe_string_k(market.clone(), "min_order_size_quote", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut active: Value = (Value::Bool(status.as_deref() == Some("active")));
+        let mut active: bool = status.as_deref() == Some("active");
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -565,9 +565,9 @@ impl Revolutx {
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), Value::from(base));
         m.insert("quote".to_string(), Value::from(quote));
-        m.insert("baseId".to_string(), baseId);
-        m.insert("quoteId".to_string(), quoteId);
-        m.insert("active".to_string(), active);
+        m.insert("baseId".to_string(), Value::from(baseId));
+        m.insert("quoteId".to_string(), Value::from(quoteId));
+        m.insert("active".to_string(), Value::Bool(active));
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Bool(false));
@@ -678,8 +678,8 @@ impl Revolutx {
                         let mut i: i64 = 0;
             let mut __for_first_1115: bool = true;
             while { if !__for_first_1115 { i += 1; } __for_first_1115 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: crate::value::Dict = self.safe_dict(&markets, key, &[Value::Map({
+            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: crate::value::Dict = self.safe_dict(&markets, key.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -717,9 +717,9 @@ impl Revolutx {
         let mut name: Option<String> = self.safe_string_k(currency.clone(), "name", &[]).as_str().map(str::to_owned);
         let mut scale: Value = self.safe_integer_k(currency.clone(), "scale", &[]);
         let mut status: Option<String> = self.safe_string_k(currency.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut active: Value = (Value::Bool(status.as_deref() == Some("active")));
+        let mut active: bool = status.as_deref() == Some("active");
         let mut assetType: Option<String> = self.safe_string_k(currency.clone(), "asset_type", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = (if (assetType.as_deref() == Some("crypto")) { Value::Str("crypto".into()) } else { Value::Str("fiat".into()) });
+        let mut type_var: String = (if (assetType.as_deref() == Some("crypto")) { "crypto".to_string() } else { "fiat".to_string() });
         let mut precision: Value = (if (scale != Value::Null) { crate::runtime::Math::pow(&Value::Int(10), &(match &(scale) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null })) } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -727,8 +727,8 @@ impl Revolutx {
         m.insert("id".to_string(), Value::from(id));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("name".to_string(), name.map(Value::from).unwrap_or(Value::Null));
-        m.insert("active".to_string(), active);
-        m.insert("type".to_string(), type_var);
+        m.insert("active".to_string(), Value::Bool(active));
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("precision".to_string(), self.parse_number(precision, &[]));
@@ -861,8 +861,8 @@ impl Revolutx {
         }
         let mut percentage: Value = Value::Null;
         if (open.is_some()) && (priceChange.is_some()) {
-            let mut percentageString: Value = crate::precise::Precise::stringDivPrec(&priceChange.clone().map(Value::from).unwrap_or(Value::Null), &open.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(8));
-            percentage = self.parse_number(crate::precise::Precise::stringMul(&percentageString, &Value::Str("100".into())), &[]);
+            let mut percentageString: Option<String> = crate::precise::Precise::stringDivPrec(&priceChange.clone().map(Value::from).unwrap_or(Value::Null), &open.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(8)).as_str().map(str::to_owned);
+            percentage = self.parse_number(crate::precise::Precise::stringMul(&percentageString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1479,7 +1479,7 @@ impl Revolutx {
         let mut filledAmount: Option<String> = self.safe_string_k(order.clone(), "filled_amount", &[]).as_str().map(str::to_owned);
         let mut totalFee: Option<String> = self.safe_string_k(order.clone(), "total_fee", &[]).as_str().map(str::to_owned);
         let mut feeCurrency: Option<String> = self.safe_string_k(order.clone(), "fee_currency", &[]).as_str().map(str::to_owned);
-        let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str());
         let mut timeInForce: Option<String> = self.safe_string_upper_k(order.clone(), "time_in_force", &[]).as_str().map(str::to_owned);
         let mut createdDate: Option<i64> = self.safe_integer_k(order.clone(), "created_date", &[]).as_i64();
         let mut updatedDate: Option<i64> = self.safe_integer_k(order.clone(), "updated_date", &[]).as_i64();
@@ -1520,7 +1520,7 @@ impl Revolutx {
         m.insert("amount".to_string(), self.parse_number(amountValue.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("filled".to_string(), self.parse_number(filledValue.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("remaining".to_string(), self.parse_number(remainingValue, &[]));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), self.parse_number(triggerPrice.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("stopLossPrice".to_string(), self.parse_number(self.safe_string_k(stopLoss, "trigger_price", &[]), &[]));
@@ -2136,7 +2136,7 @@ impl Revolutx {
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "s", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer2(trade.clone(), Value::Str("tdt".into()), Value::Str("pdt".into()), &[]).as_i64();
         let mut isMaker: bool = self.safe_bool_k(trade.clone(), "im", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut takerOrMaker: Value = (if isMaker { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+        let mut takerOrMaker: String = (if isMaker { "maker".to_string() } else { "taker".to_string() });
         let mut cost: Value = Value::Null;
         if (priceString.is_some()) && (amountString.is_some()) {
             cost = self.parse_number(crate::precise::Precise::stringMul(&priceString.map(Value::from).unwrap_or(Value::Null), &amountString.map(Value::from).unwrap_or(Value::Null)), &[]);
@@ -2150,7 +2150,7 @@ impl Revolutx {
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
-        m.insert("takerOrMaker".to_string(), takerOrMaker);
+        m.insert("takerOrMaker".to_string(), Value::from(takerOrMaker));
         m.insert("price".to_string(), price);
         m.insert("amount".to_string(), amount);
         m.insert("cost".to_string(), cost);

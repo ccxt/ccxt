@@ -486,11 +486,11 @@ impl Bitget {
         let mut uta: Option<bool> = utaparamsUtaVariable.get(0).and_then(Value::as_bool);
         let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let instTypeparamsValueVariable: Vec<Value> = self.get_inst_type(Value::Str("watchTicker".into()), (market).raw.clone(), &[uta.map_or(Value::Null, Value::Bool), paramsUta]).as_array().cloned().unwrap_or_default();
-        let mut instType: Value = instTypeparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut instType: Option<String> = instTypeparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsValue: Value = instTypeparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut args: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instType".to_string(), instType);
+                m.insert("instType".to_string(), instType.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut topicOrChannel: String = "channel".to_string();
@@ -794,7 +794,7 @@ impl Bitget {
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Null, Value::from(marketType)]);
         let mut close: Option<String> = self.safe_string2(&ticker, Value::Str("lastPr".into()), Value::Str("lastPrice".into()), &[]).as_str().map(str::to_owned);
         let mut changeCoefficient: Option<String> = self.safe_string2(&ticker, Value::Str("price24hPcnt".into()), Value::Str("change24h".into()), &[]).as_str().map(str::to_owned);
-        let mut changePercentage: Value = crate::precise::Precise::stringMul(&changeCoefficient.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into()));
+        let mut changePercentage: Option<String> = crate::precise::Precise::stringMul(&changeCoefficient.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
@@ -812,7 +812,7 @@ impl Bitget {
         m.insert("last".to_string(), close.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
-        m.insert("percentage".to_string(), changePercentage);
+        m.insert("percentage".to_string(), changePercentage.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_string2(&ticker, Value::Str("baseVolume".into()), Value::Str("volume24h".into()), &[]));
         m.insert("quoteVolume".to_string(), self.safe_string2(&ticker, Value::Str("quoteVolume".into()), Value::Str("turnover24h".into()), &[]));
@@ -993,7 +993,7 @@ impl Bitget {
         let mut isStockSpot: bool = isStock.as_bool() == Some(true) && ((market).spot);
         let mut isStockOrUta: bool = isStockSpot || uta.as_bool() == Some(true);
         let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOHLCV".into()), (market).raw.clone(), &[Value::Bool(isStockOrUta.clone()), paramsStock]).as_array().cloned().unwrap_or_default();
-        let mut instType: Value = instTypeparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut instType: Option<String> = instTypeparamsInstTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsInstType: crate::value::Dict = instTypeparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsRequest: Value = Value::from(&paramsInstType);
         if isStockOrUta {
@@ -1005,7 +1005,7 @@ impl Bitget {
         }
         let mut args: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instType".to_string(), instType);
+                m.insert("instType".to_string(), instType.map(Value::from).unwrap_or(Value::Null));
             m
         });
         if isStockOrUta {
@@ -1068,7 +1068,7 @@ impl Bitget {
         let mut isStockSpot: bool = isStock.as_bool() == Some(true) && (market).spot;
         let mut isStockOrUta: Value = (Value::Bool(isStockSpot || (uta.as_bool() == Some(true))));
         let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOHLCV".into()), (market).raw.clone(), &[isStockOrUta.clone(), paramsStock]).as_array().cloned().unwrap_or_default();
-        let mut instType: Value = instTypeparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut instType: Option<String> = instTypeparamsInstTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsInstType: crate::value::Dict = instTypeparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsRequest: Value = Value::from(&paramsInstType);
         if matches!(&isStockOrUta, Value::Bool(true)) {
@@ -1081,7 +1081,7 @@ impl Bitget {
         }
         let mut args: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instType".to_string(), instType);
+                m.insert("instType".to_string(), instType.map(Value::from).unwrap_or(Value::Null));
             m
         });
         if matches!(&isStockOrUta, Value::Bool(true)) {
@@ -1366,7 +1366,7 @@ impl Bitget {
         let mut privateChannel: bool = privateChannelparamsPrivateChannelVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPrivateChannel: Value = privateChannelparamsPrivateChannelVariable.get(1).cloned().unwrap_or(Value::Null);
         let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(methodName, (market).raw.clone(), &[uta.map_or(Value::Null, Value::Bool), paramsPrivateChannel]).as_array().cloned().unwrap_or_default();
-        let mut instType: Value = instTypeparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut instType: Option<String> = instTypeparamsInstTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsInstType: crate::value::Dict = instTypeparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsRequest: Value = Value::from(&paramsInstType);
         if (uta == Some(true)) {
@@ -1379,7 +1379,7 @@ impl Bitget {
         }
         let mut args: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instType".to_string(), instType);
+                m.insert("instType".to_string(), instType.map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (uta == Some(true)) {
@@ -1457,12 +1457,12 @@ impl Bitget {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
             let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOrderBookForSymbols".into()), market.clone(), &[Value::Bool(isStockOrUta.clone()), paramsCursor.clone()]).as_array().cloned().unwrap_or_default();
-            let mut instType: Value = instTypeparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut instType: Option<String> = instTypeparamsInstTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsInstType: Value = instTypeparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null);
             paramsCursor = paramsInstType;
             let mut args: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("instType".to_string(), instType);
+                    m.insert("instType".to_string(), instType.map(Value::from).unwrap_or(Value::Null));
                 m
             };
             let mut topicOrChannel: String = "channel".to_string();
@@ -1762,12 +1762,12 @@ impl Bitget {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchTradesForSymbols".into()), (market).raw.clone(), &[uta.map_or(Value::Null, Value::Bool), paramsCursor.clone()]).as_array().cloned().unwrap_or_default();
-            let mut instType: Value = instTypeparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut instType: Option<String> = instTypeparamsInstTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsInstType: Value = instTypeparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null);
             paramsCursor = paramsInstType;
             let mut args: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("instType".to_string(), instType);
+                    m.insert("instType".to_string(), instType.map(Value::from).unwrap_or(Value::Null));
                 m
             };
             let mut topicOrChannel: String = "channel".to_string();
@@ -2336,7 +2336,7 @@ impl Bitget {
         }
         let mut timestamp: Option<i64> = self.safe_integer_n(position.clone(), Value::from(vec![Value::Str("updatedTime".into()), Value::Str("uTime".into()), Value::Str("cTime".into()), Value::Str("createdTime".into())]), &[]).as_i64();
         let mut percentageDecimal: Option<String> = self.safe_string2(position.clone(), Value::Str("unrealizedPLR".into()), Value::Str("profitRate".into()), &[]).as_str().map(str::to_owned);
-        let mut percentage: Value = crate::precise::Precise::stringMul(&percentageDecimal.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into()));
+        let mut percentage: Option<String> = crate::precise::Precise::stringMul(&percentageDecimal.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         let mut contractSize: Value = Value::Null;
         if (market != Value::Null) {
             contractSize = market.as_map().and_then(|__m| __m.get("contractSize")).cloned().unwrap_or(Value::Null);
@@ -2351,7 +2351,7 @@ impl Bitget {
         m.insert("liquidationPrice".to_string(), self.safe_number2(position.clone(), Value::Str("liquidationPrice".into()), Value::Str("liqPrice".into()), &[]));
         m.insert("entryPrice".to_string(), self.safe_number2(position.clone(), Value::Str("openPriceAvg".into()), Value::Str("avgPrice".into()), &[]));
         m.insert("unrealizedPnl".to_string(), self.safe_number2(position.clone(), Value::Str("unrealizedPL".into()), Value::Str("unrealisedPnl".into()), &[]));
-        m.insert("percentage".to_string(), self.parse_number(percentage, &[]));
+        m.insert("percentage".to_string(), self.parse_number(percentage.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contracts".to_string(), self.safe_number2(position.clone(), Value::Str("total".into()), Value::Str("size".into()), &[]));
         m.insert("contractSize".to_string(), contractSize);
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "markPrice", &[]));
@@ -2669,8 +2669,8 @@ impl Bitget {
                         let mut i: i64 = 0;
             let mut __for_first_122: bool = true;
             while { if !__for_first_122 { i += 1; } __for_first_122 = false; i < (keys.len() as i64) } {
-            let mut symbol: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol);
+            let mut symbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
             if (channel.as_deref() == Some("orders-crossed")) {
                 innerMessageHash = format!("{}{}", innerMessageHash, Value::Str(":cross".into()));
             }  else if (channel.as_deref() == Some("orders-isolated")) {
@@ -2885,7 +2885,7 @@ impl Bitget {
             price = self.safe_number_k(order.clone(), "executePrice", &[]);
         }
         let mut avgPriceString: Option<String> = self.safe_string_lower_n(order.clone(), Value::from(vec![Value::Str("priceAvg".into()), Value::Str("fillPrice".into()), Value::Str("avgPrice".into())]), &[]).as_str().map(str::to_owned);
-        let mut avgPrice: Value = (if (avgPriceString.is_none()) { Value::Null } else { self.omit_zero(avgPriceString.clone().map(Value::from).unwrap_or(Value::Null)) });
+        let mut avgPrice: Option<String> = (if (avgPriceString.is_none()) { None } else { self.omit_zero(avgPriceString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) });
         let mut side: Option<String> = self.safe_string_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string_k(order.clone(), "orderType", &[]).as_str().map(str::to_owned);
         let mut accBaseVolumeString: Option<String> = self.safe_string2(order.clone(), Value::Str("accBaseVolume".into()), Value::Str("cumExecQty".into()), &[]).as_str().map(str::to_owned);
@@ -2949,7 +2949,7 @@ impl Bitget {
         m.insert("triggerPrice".to_string(), Value::from(triggerPrice));
         m.insert("amount".to_string(), totalAmount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
-        m.insert("average".to_string(), avgPrice);
+        m.insert("average".to_string(), avgPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filledAmount.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_ws_order_status(rawStatus.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
@@ -3599,12 +3599,12 @@ impl Bitget {
         let mut url: String = self.safe_string_k(params.clone(), "url", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
         let mut messageHash: String = "authenticated".to_string();
-        let mut future: Value = client.reusable_future(messageHash.as_str());
+        let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut timestamp: String = format!("{}", self.seconds().as_i64().unwrap_or_default());
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, Value::Str("GET".into())).into()), Value::Str("/user/verify".into()));
-            let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
             let mut operation: String = "login".to_string();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -3614,7 +3614,7 @@ impl Bitget {
         m.insert("apiKey".to_string(), self.apiKey.clone());
         m.insert("passphrase".to_string(), self.password.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("sign".to_string(), signature);
+        m.insert("sign".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
     m
 })]));
                 m

@@ -346,8 +346,8 @@ impl Hashkey {
 
     pub async fn watch_private(&mut self, messageHash: &str) -> Value {
         let mut messageHash: Value = messageHash.into();
-        let mut listenKey: Value = self.authenticate(&[]).await;
-        let mut url: Option<String> = self.get_private_url(listenKey);
+        let mut listenKey: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
+        let mut url: Option<String> = self.get_private_url(listenKey.map(Value::from).unwrap_or(Value::Null));
         return self.watch(url.as_deref(), &messageHash, Value::Null, &messageHash, Value::Null).await;
 
     Value::Null
@@ -1054,7 +1054,7 @@ impl Hashkey {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut listenKey: Value = self.authenticate(&[]).await;
+        let mut listenKey: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut messageHash: String = "positions".to_string();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -1065,12 +1065,12 @@ impl Hashkey {
                                 let mut i: i64 = 0;
                 let mut __for_first_360: bool = true;
                 while { if !__for_first_360 { i += 1; } __for_first_360 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into()));
+                let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
             }
             }
         }
-        let mut url: Option<String> = self.get_private_url(listenKey);
+        let mut url: Option<String> = self.get_private_url(listenKey.map(Value::from).unwrap_or(Value::Null));
         let mut positions: Value = self.watch_multiple(url.as_deref(), &messageHashes, Value::Null, &messageHashes, Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
@@ -1174,14 +1174,14 @@ impl Hashkey {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut listenKey: Value = self.authenticate(&[]).await;
+        let mut listenKey: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut type_var: String = "spot".to_string();
         let mut typeMarketType: Value = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params, Value::from(type_var)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut messageHash: String = format!("{}{}", Value::Str("balance:".into()), typeMarketType);
-        let mut url: Value = self.get_private_url(listenKey).map(Value::from).unwrap_or(Value::Null);
+        let mut url: Value = self.get_private_url(listenKey.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         self.set_balance_cache(client.as_value(), typeMarketType.clone(), Value::from(messageHash.clone()));
         let fetchBalanceSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(self.options.clone(), Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
@@ -1230,7 +1230,7 @@ impl Hashkey {
         { let __be_tmp = self.extend(crate::types::IntoRaw::into_raw(response), &[__ws_arg_1]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
-            let mut future: Value = __ch.get_future(&messageHash);
+            let mut future: crate::pro::ws_client::Flight = __ch.get_future(&messageHash);
             future.resolve(Value::Null, None);
             client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", Value::Str("balance:".into()), type_var).into())));
         }
@@ -1315,7 +1315,7 @@ impl Hashkey {
         }
         // register the flight BEFORE the first await, so a caller arriving
         // during the fetch below finds it and waits instead of re-leading
-        let mut future: Value = client.reusable_future(messageHash.as_str());
+        let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut response: crate::value::Dict = self.parent.private_post_api_v1_user_data_stream(&[params.clone()]).await.into_dict();
             //
@@ -1367,8 +1367,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.delay(Value::from(listenKeyRefreshRate), &[Value::Str("keep_alive_listen_key".into()).clone(), listenKey.clone(), params]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
-            let mut url: Value = self.get_private_url(listenKey).map(Value::from).unwrap_or(Value::Null);
-            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+            let mut url: Option<String> = self.get_private_url(listenKey);
+            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.map(Value::from).unwrap_or(Value::Null)]));
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), Value::Null); }
             client.reject(error, None);
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.clients, &(client).url.clone()) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }

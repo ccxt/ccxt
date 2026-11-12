@@ -2216,8 +2216,8 @@ impl Phemex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_integer_product_k(&result, "timestamp", Value::Float(0.000001), &[]);
-        let mut orderbook: Value = self.custom_parse_order_book(book, symbol.as_str().unwrap_or_default(), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), (market).raw.clone()]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k(&result, "timestamp", Value::Float(0.000001), &[]).as_i64();
+        let mut orderbook: Value = self.custom_parse_order_book(book, symbol.as_str().unwrap_or_default(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), (market).raw.clone()]);
         let mut nonce: Option<i64> = self.safe_integer_k(&result, "sequence", &[]).as_i64();
         return self.extend(orderbook, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2506,7 +2506,7 @@ impl Phemex {
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut timestamp: Value = self.safe_integer_product_k(ticker.clone(), "timestamp", Value::Float(0.000001), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k(ticker.clone(), "timestamp", Value::Float(0.000001), &[]).as_i64();
         let mut last: Value = self.from_ep(self.safe_string2(ticker.clone(), Value::Str("lastEp".into()), Value::Str("closeRp".into()), &[]), &[marketResolved.clone()]);
         let mut quoteVolume: Value = self.from_er(self.safe_string2(ticker.clone(), Value::Str("turnoverEv".into()), Value::Str("turnoverRv".into()), &[]), &[marketResolved.clone()]);
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "volume", &[]);
@@ -2517,8 +2517,8 @@ impl Phemex {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.from_ep(self.safe_string2(ticker.clone(), Value::Str("highEp".into()), Value::Str("highRp".into()), &[]), &[marketResolved.clone()]));
         m.insert("low".to_string(), self.from_ep(self.safe_string2(ticker.clone(), Value::Str("lowEp".into()), Value::Str("lowRp".into()), &[]), &[marketResolved.clone()]));
         m.insert("bid".to_string(), self.from_ep(self.safe_string_k(ticker.clone(), "bidEp", &[]), &[marketResolved.clone()]));
@@ -3114,9 +3114,9 @@ impl Phemex {
             let mut lockedTradingBalanceEv: Option<String> = self.safe_string_k(&balance, "lockedTradingBalanceEv", &[]).as_str().map(str::to_owned);
             let mut lockedWithdrawEv: Option<String> = self.safe_string_k(&balance, "lockedWithdrawEv", &[]).as_str().map(str::to_owned);
             let mut total: Value = self.from_en(balanceEv.map(Value::from).unwrap_or(Value::Null), Some(scale)).map(Value::from).unwrap_or(Value::Null);
-            let mut lockedTradingBalance: Value = self.from_en(lockedTradingBalanceEv.map(Value::from).unwrap_or(Value::Null), Some(scale)).map(Value::from).unwrap_or(Value::Null);
-            let mut lockedWithdraw: Value = self.from_en(lockedWithdrawEv.map(Value::from).unwrap_or(Value::Null), Some(scale)).map(Value::from).unwrap_or(Value::Null);
-            let mut used: Value = crate::precise::Precise::stringAdd(&lockedTradingBalance, &lockedWithdraw);
+            let mut lockedTradingBalance: Option<String> = self.from_en(lockedTradingBalanceEv.map(Value::from).unwrap_or(Value::Null), Some(scale));
+            let mut lockedWithdraw: Option<String> = self.from_en(lockedWithdrawEv.map(Value::from).unwrap_or(Value::Null), Some(scale));
+            let mut used: Option<String> = crate::precise::Precise::stringAdd(&lockedTradingBalance.map(Value::from).unwrap_or(Value::Null), &lockedWithdraw.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut lastUpdateTimeNs: Value = self.safe_integer_product_k(&balance, "lastUpdateTimeNs", Value::Float(0.000001), &[]);
             if (timestamp == Value::Null) || (lastUpdateTimeNs == Value::Null) {
                 timestamp = lastUpdateTimeNs.clone();
@@ -3124,7 +3124,7 @@ impl Phemex {
                 timestamp = crate::runtime::Math::max(&timestamp, &lastUpdateTimeNs);
             }
             account.insert("total".into(), total);
-            account.insert("used".into(), used);
+            account.insert("used".into(), used.map(Value::from).unwrap_or(Value::Null));
             result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
         }
         }
@@ -3519,14 +3519,14 @@ impl Phemex {
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut price: Value = self.from_ep(self.safe_string_k(order.clone(), "priceEp", &[]), &[marketResolved.clone()]);
         let mut amount: Value = self.from_ev(self.safe_string_k(order.clone(), "baseQtyEv", &[]), &[marketResolved.clone()]);
-        let mut remaining: Value = self.omit_zero(self.from_ev(self.safe_string_k(order.clone(), "leavesBaseQtyEv", &[]), &[marketResolved.clone()]));
+        let mut remaining: Option<String> = self.omit_zero(self.from_ev(self.safe_string_k(order.clone(), "leavesBaseQtyEv", &[]), &[marketResolved.clone()])).as_str().map(str::to_owned);
         let mut filled: Value = self.from_ev(self.safe_string2(order.clone(), Value::Str("cumBaseQtyEv".into()), Value::Str("cumBaseValueEv".into()), &[]), &[marketResolved.clone()]);
         let mut cost: Value = self.from_er(self.safe_string2(order.clone(), Value::Str("cumQuoteValueEv".into()), Value::Str("quoteQtyEv".into()), &[]), &[marketResolved.clone()]);
         let mut average: Value = self.from_ep(self.safe_string_k(order.clone(), "avgPriceEp", &[]), &[marketResolved.clone()]);
-        let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "ordStatus", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "ordStatus", &[])).as_str());
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = self.parse_order_type((self.safe_string_k(order.clone(), "ordType", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut timestamp: Value = self.safe_integer_product2(order.clone(), Value::Str("actionTimeNs".into()), Value::Str("createTimeNs".into()), Value::Float(0.000001), &[]);
+        let mut type_var: Option<String> = self.parse_order_type((self.safe_string_k(order.clone(), "ordType", &[])).as_str());
+        let mut timestamp: Option<i64> = self.safe_integer_product2(order.clone(), Value::Str("actionTimeNs".into()), Value::Str("createTimeNs".into()), Value::Float(0.000001), &[]).as_i64();
         let mut fee: Value = Value::Null;
         let mut feeCost: Value = self.from_ev(self.safe_string_k(order.clone(), "cumFeeEv", &[]), &[marketResolved.clone()]);
         if (feeCost != Value::Null) {
@@ -3545,11 +3545,11 @@ impl Phemex {
         m.insert("info".to_string(), order);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), postOnly);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -3559,8 +3559,8 @@ impl Phemex {
         m.insert("cost".to_string(), cost);
         m.insert("average".to_string(), average);
         m.insert("filled".to_string(), filled);
-        m.insert("remaining".to_string(), remaining);
-        m.insert("status".to_string(), status);
+        m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);
     m
@@ -3691,9 +3691,9 @@ impl Phemex {
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone()]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
-        let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "ordStatus", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut side: Value = self.parse_order_side((self.safe_string_lower_k(order.clone(), "side", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut type_var: Value = self.parse_order_type((self.safe_string_k(order.clone(), "orderType", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "ordStatus", &[])).as_str());
+        let mut side: Option<String> = self.parse_order_side((self.safe_string_lower_k(order.clone(), "side", &[])).as_str());
+        let mut type_var: Option<String> = self.parse_order_type((self.safe_string_k(order.clone(), "orderType", &[])).as_str());
         let mut price: Value = self.safe_string_k(order.clone(), "priceRp", &[]);
         if (price == Value::Null) {
             price = self.from_ep(self.safe_string_k(order.clone(), "priceEp", &[]), &[marketResolved.clone()]);
@@ -3715,7 +3715,7 @@ impl Phemex {
             lastTradeTimestamp = None.clone();
         }
         let mut timeInForce: Value = self.parse_time_in_force((self.safe_string_k(order.clone(), "timeInForce", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut triggerPrice: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("stopPx".into()), Value::Str("stopPxRp".into()), &[]));
+        let mut triggerPrice: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("stopPx".into()), Value::Str("stopPxRp".into()), &[])).as_str().map(str::to_owned);
         let mut postOnly: Value = (Value::Bool(timeInForce.as_str() == Some("PO")));
         let mut reduceOnly: Option<bool> = self.safe_bool_k(order.clone(), "reduceOnly", &[]).as_bool();
         let mut execInst: Option<String> = self.safe_string_k(order.clone(), "execInst", &[]).as_str().map(str::to_owned);
@@ -3751,13 +3751,13 @@ impl Phemex {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), postOnly);
         m.insert("reduceOnly".to_string(), reduceOnly.map_or(Value::Null, Value::Bool));
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price);
-        m.insert("triggerPrice".to_string(), triggerPrice);
+        m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("takeProfitPrice".to_string(), takeProfit.map(Value::from).unwrap_or(Value::Null));
         m.insert("stopLossPrice".to_string(), stopLoss.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(amount));
@@ -3765,7 +3765,7 @@ impl Phemex {
         m.insert("remaining".to_string(), Value::from(remaining));
         m.insert("cost".to_string(), Value::from(cost));
         m.insert("average".to_string(), Value::Null);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);
     m
@@ -3884,15 +3884,15 @@ impl Phemex {
                     if (price != Value::Null) {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
                         let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
-                        let mut quoteAmount: Value = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null));
-                        cost = self.parse_number(quoteAmount, &[]);
+                        let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        cost = self.parse_number(quoteAmount.map(Value::from).unwrap_or(Value::Null), &[]);
                     }  else if (cost == Value::Null) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() ".into())).into()), qtyType).into()), Value::Str(" requires a price argument or a cost parameter".into()))));
                     }
                 }
                 cost = (if (cost == Value::Null) { amount.clone() } else { cost.clone() });
-                let mut costString: Value = self.cost_to_precision(symbol.clone(), cost);
-                request.insert("quoteQtyEv".into(), self.to_ev(costString, &[(market).raw.clone()]));
+                let mut costString: Option<String> = self.cost_to_precision(symbol.clone(), cost).as_str().map(str::to_owned);
+                request.insert("quoteQtyEv".into(), self.to_ev(costString.map(Value::from).unwrap_or(Value::Null), &[(market).raw.clone()]));
             }  else {
                 let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount.clone());
                 request.insert("baseQtyEv".into(), self.to_ev(amountString, &[(market).raw.clone()]));
@@ -5184,7 +5184,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
         }
-        let mut status: Value = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
         let mut amount: Value = self.parse_number(self.from_en(self.safe_string_k(transaction.clone(), "amountEv", &[]), (self.safe_integer_k(currencyResolved, "valueScale", &[])).as_i64()).map(Value::from).unwrap_or(Value::Null), &[]);
         if (amount == Value::Null) {
             amount = self.safe_number_k(transaction.clone(), "amountRv", &[]);
@@ -5206,7 +5206,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
         m.insert("currency".to_string(), code);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
@@ -5565,7 +5565,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut maintenanceMarginPercentageString: Option<String> = self.safe_string2(position.clone(), Value::Str("maintMarginReq".into()), Value::Str("maintMarginReqRr".into()), &[]).as_str().map(str::to_owned);
         let mut maintenanceMarginString: Option<String> = crate::precise::Precise::stringMul(&notionalString.clone().map(Value::from).unwrap_or(Value::Null), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut initialMarginString: Option<String> = self.safe_string2(position.clone(), Value::Str("assignedPosBalance".into()), Value::Str("assignedPosBalanceRv".into()), &[]).as_str().map(str::to_owned);
-        let mut initialMarginPercentageString: Value = crate::precise::Precise::stringDiv(&initialMarginString.clone().map(Value::from).unwrap_or(Value::Null), &notionalString.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut initialMarginPercentageString: Option<String> = crate::precise::Precise::stringDiv(&initialMarginString.clone().map(Value::from).unwrap_or(Value::Null), &notionalString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut liquidationPrice: Option<f64> = self.safe_number2(position.clone(), Value::Str("liquidationPrice".into()), Value::Str("liquidationPriceRp".into()), &[]).as_f64();
         let mut markPriceString: Option<String> = self.safe_string2(position.clone(), Value::Str("markPrice".into()), Value::Str("markPriceRp".into()), &[]).as_str().map(str::to_owned);
         let mut contracts: Option<String> = self.safe_string_n(position.clone(), Value::from(vec![Value::Str("size".into()), Value::Str("sizeRq".into()), Value::Str("closedSizeRq".into())]), &[]).as_str().map(str::to_owned);
@@ -5598,10 +5598,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 priceDiff = crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &markPriceString.clone().map(Value::from).unwrap_or(Value::Null)), &crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceString.clone().map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
             }
         }
-        let mut unrealizedPnl: Value = crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&priceDiff.clone().map(Value::from).unwrap_or(Value::Null), &contracts.clone().map(Value::from).unwrap_or(Value::Null)), &contractSizeString.map(Value::from).unwrap_or(Value::Null));
+        let mut unrealizedPnl: Option<String> = crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&priceDiff.clone().map(Value::from).unwrap_or(Value::Null), &contracts.clone().map(Value::from).unwrap_or(Value::Null)), &contractSizeString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         // the unrealizedPnl is only available in a specific endpoint which much higher RL limits
-        let mut apiUnrealizedPnl: Option<String> = self.safe_string_k(position.clone(), "unRealisedPnlRv", &[unrealizedPnl]).as_str().map(str::to_owned);
-        let mut marginRatio: Value = crate::precise::Precise::stringDiv(&maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null), &collateral.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut apiUnrealizedPnl: Option<String> = self.safe_string_k(position.clone(), "unRealisedPnlRv", &[unrealizedPnl.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut marginRatio: Option<String> = crate::precise::Precise::stringDiv(&maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null), &collateral.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut isCross: bool = self.safe_bool_k(position.clone(), "crossMargin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "openedTimeNs", &[]).as_i64();
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(position.clone(), "updatedTimeNs", &[self.safe_integer_product_k(position.clone(), "transactTimeNs", Value::Float(0.000001), &[])]).as_i64();
@@ -5624,10 +5624,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("exitPrice".to_string(), self.safe_number_k(position.clone(), "closePrice", &[]));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("initialMargin".to_string(), self.parse_number(initialMarginString.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("initialMarginPercentage".to_string(), self.parse_number(initialMarginPercentageString, &[]));
+        m.insert("initialMarginPercentage".to_string(), self.parse_number(initialMarginPercentageString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMarginString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(maintenanceMarginPercentageString.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("marginRatio".to_string(), self.parse_number(marginRatio, &[]));
+        m.insert("marginRatio".to_string(), self.parse_number(marginRatio.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("marginMode".to_string(), (if isCross { Value::Str("cross".into()) } else { Value::Str("isolated".into()) }));
@@ -5762,8 +5762,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut currency: indexmap::IndexMap<String, Value> = self.safe_currency(currencyCode, &[]).as_map().cloned().unwrap_or_default();
         let mut scale: Option<String> = self.safe_string_k(currency.get("info").cloned().unwrap_or(Value::Null), "valueScale", &[]).as_str().map(str::to_owned);
-        let mut tickPrecision: Value = self.parse_precision(&[scale.map(Value::from).unwrap_or(Value::Null)]);
-        return crate::precise::Precise::stringMul(&value, &tickPrecision);
+        let mut tickPrecision: Option<String> = self.parse_precision(&[scale.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        return crate::precise::Precise::stringMul(&value, &tickPrecision.map(Value::from).unwrap_or(Value::Null));
 
     Value::Null
 }
@@ -5883,7 +5883,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut marketId: Option<String> = self.safe_string_k(contract.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]).as_str().map(str::to_owned);
-        let mut timestamp: Value = self.safe_integer_product_k(contract.clone(), "timestamp", Value::Float(0.000001), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k(contract.clone(), "timestamp", Value::Float(0.000001), &[]).as_i64();
         let mut markEp: Value = self.from_ep(self.safe_string_k(contract.clone(), "markEp", &[]), &[market.clone()]);
         let mut indexEp: Value = self.from_ep(self.safe_string_k(contract.clone(), "indexEp", &[]), &[market.clone()]);
         let mut fundingRateEr: Value = self.from_er(self.safe_string_k(contract.clone(), "fundingRateEr", &[]), &[market.clone()]);
@@ -5896,8 +5896,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("indexPrice".to_string(), self.safe_number_k(contract.clone(), "indexPriceRp", &[indexEp]));
         m.insert("interestRate".to_string(), Value::Null);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "fundingRateRr", &[fundingRateEr]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
@@ -6250,13 +6250,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_1081 { i += 1; } __for_first_1081 = false; i < (riskLimits.len() as i64) } {
             let mut tier: Value = self.safe_dict(&riskLimits, Value::Int(i), &[]);
             let mut maxNotional: Option<i64> = self.safe_integer_k(tier.clone(), "limit", &[]).as_i64();
-            let mut minNotionalResponse: Value = Value::from(minNotional); // java req
+            let mut minNotionalResponse: Option<i64> = minNotional; // java req
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.sum(&[Value::Int(i), Value::Int(1)]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone()]));
                     m.insert("currency".to_string(), marketResolved.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null));
-                    m.insert("minNotional".to_string(), minNotionalResponse);
+                    m.insert("minNotional".to_string(), Value::from(minNotionalResponse));
                     m.insert("maxNotional".to_string(), Value::from(maxNotional));
                     m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(tier.clone(), "maintenanceMargin", &[]));
                     m.insert("maxLeverage".to_string(), Value::Null);

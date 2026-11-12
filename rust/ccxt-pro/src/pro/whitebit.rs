@@ -468,13 +468,13 @@ impl Whitebit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut limitValue: Value = (if (limit == Value::Null) { Value::Int(10) } else { limit.clone() });
+        let mut limitValue: i64 = limit.as_i64().unwrap_or(10);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), Value::from((market).symbol.clone()));
         let mut method: String = "depth_subscribe".to_string();
         let mut defaultPriceInterval: String = self.safe_string(self.options.as_map().and_then(|__m| __m.get("watchOrderBook")).cloned().unwrap_or(Value::Null), Value::Str("priceInterval".into()), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut priceInterval: Option<String> = self.safe_string_k(params.clone(), "priceInterval", &[Value::from(defaultPriceInterval)]).as_str().map(str::to_owned);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("priceInterval".into()), &[]);
-        let mut reqParams: Value = Value::from(vec![Value::from((market).id.as_deref()), limitValue, priceInterval.map(Value::from).unwrap_or(Value::Null), Value::Bool(true)]);
+        let mut reqParams: Value = Value::from(vec![Value::from((market).id.as_deref()), Value::from(limitValue), priceInterval.map(Value::from).unwrap_or(Value::Null), Value::Bool(true)]);
         let mut orderbook: Value = self.watch_public(messageHash.as_str(), method.as_str(), &[reqParams, paramsOmitted]).await;
         return orderbook.limit();
         Value::Null
@@ -624,7 +624,7 @@ impl Whitebit {
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut method: String = "market_subscribe".to_string();
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut id: Value = self.incrementing_nonce();
+        let mut id: Option<i64> = self.incrementing_nonce().as_i64();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut args: Vec<Value> = Vec::new();
         {
@@ -638,7 +638,7 @@ impl Whitebit {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), id);
+                m.insert("id".to_string(), Value::from(id));
                 m.insert("method".to_string(), Value::from(method));
                 m.insert("params".to_string(), Value::from(args));
             m
@@ -1086,7 +1086,7 @@ impl Whitebit {
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "market", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut id: Option<String> = self.safe_string_k(order.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut clientOrderId: Value = self.omit_zero(self.safe_string_k(order.clone(), "client_order_id", &[]));
+        let mut clientOrderId: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "client_order_id", &[])).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "deal_stock", &[]).as_str().map(str::to_owned);
         let mut cost: Option<String> = self.safe_string_k(order.clone(), "deal_money", &[]).as_str().map(str::to_owned);
@@ -1135,7 +1135,7 @@ impl Whitebit {
         m.insert("info".to_string(), order);
         m.insert("symbol".to_string(), symbol);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("clientOrderId".to_string(), clientOrderId);
+        m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
@@ -1256,7 +1256,7 @@ impl Whitebit {
         { let __t = self.extend(crate::types::IntoRaw::into_raw(response), &[self.balance.clone()]); self.balance = __t; }
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
-            let mut future: Value = __ch.get_future(&messageHash);
+            let mut future: crate::pro::ws_client::Flight = __ch.get_future(&messageHash);
             future.resolve(Value::Null, None);
             client.resolve(self.balance.clone(), &subscriptionHash);
         }
@@ -1373,10 +1373,10 @@ impl Whitebit {
     m
 }));
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut id: Value = self.incrementing_nonce();
+        let mut id: Option<i64> = self.incrementing_nonce().as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), id);
+                m.insert("id".to_string(), Value::from(id));
                 m.insert("method".to_string(), method);
                 m.insert("params".to_string(), reqParams);
             m
@@ -1400,7 +1400,7 @@ impl Whitebit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut id: Value = self.incrementing_nonce();
+        let mut id: Option<i64> = self.incrementing_nonce().as_i64();
         let mut client: Value = self.safe_value(self.clients.clone(), url.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut request: Value = Value::Null;
@@ -1421,7 +1421,7 @@ impl Whitebit {
             }
             request = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id.clone());
+                    m.insert("id".to_string(), Value::from(id));
                     m.insert("method".to_string(), method.clone());
                     m.insert("params".to_string(), marketIds);
                 m
@@ -1454,7 +1454,7 @@ impl Whitebit {
                 }
                 let mut resubRequest: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("id".to_string(), id);
+                        m.insert("id".to_string(), Value::from(id));
                         m.insert("method".to_string(), method.clone());
                         m.insert("params".to_string(), marketIdsNew);
                     m
@@ -1480,10 +1480,10 @@ impl Whitebit {
         self.check_required_credentials(&[]);
         self.authenticate(&[]).await;
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut id: Value = self.incrementing_nonce();
+        let mut id: Option<i64> = self.incrementing_nonce().as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), id);
+                m.insert("id".to_string(), Value::from(id));
                 m.insert("method".to_string(), method);
                 m.insert("params".to_string(), reqParams);
             m
@@ -1530,7 +1530,7 @@ impl Whitebit {
         // during the fetch or the authorize round-trip finds it and waits
         // instead of re-leading, and so client.reject () below always has a
         // waiter and can never park the error in client.rejections
-        let mut future: Value = client.reusable_future(messageHash.as_str());
+        let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut authToken: crate::value::Dict = self.parent.v4_private_post_profile_websocket_token(&[]).await.into_dict();
             //
@@ -1542,17 +1542,17 @@ impl Whitebit {
             if (token.is_none()) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty websocket_token".into()))));
             }
-            let mut id: Value = self.incrementing_nonce();
+            let mut id: Option<i64> = self.incrementing_nonce().as_i64();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id.clone());
+                    m.insert("id".to_string(), Value::from(id));
                     m.insert("method".to_string(), Value::Str("authorize".into()));
                     m.insert("params".to_string(), Value::from(vec![token.map(Value::from).unwrap_or(Value::Null), Value::Str("public".into())]));
                 m
             });
             let mut subscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id);
+                    m.insert("id".to_string(), Value::from(id));
                     m.insert("method".to_string(), Value::Str("handle_authenticate".into()).clone());
                 m
             });

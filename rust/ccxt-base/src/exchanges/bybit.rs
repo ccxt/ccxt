@@ -3815,7 +3815,7 @@ impl Bybit {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createExpiredOptionMarket() missing symbolQuoteAndSettle".into()))));
             }
             let mut splitQuote: Value = Value::Array(if let Some(__s) = symbolQuoteAndSettle.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
-            let mut quoteAndSettle: Option<String> = self.safe_string_opt(splitQuote, Value::Int(0), &[]);
+            let mut quoteAndSettle: Option<String> = self.safe_string(splitQuote, Value::Int(0), &[]).as_str().map(str::to_owned);
             quote = quoteAndSettle.map(Value::from).unwrap_or(Value::Null);
         }  else {
             expiry = self.convert_market_id_expire_date(self.safe_string(optionParts.clone(), Value::Int(1), &[]));
@@ -3828,7 +3828,7 @@ impl Bybit {
         let mut strike: Option<String> = self.safe_string(optionParts.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut optionType: Option<String> = self.safe_string(optionParts, Value::Int(3), &[]).as_str().map(str::to_owned);
         let mut datetime: Value = self.convert_expire_date(expiry.clone());
-        let mut timestamp: Value = self.parse8601(datetime.clone());
+        let mut timestamp: Option<i64> = self.parse8601(datetime.clone()).as_i64();
         let mut amountPrecision: Value = Value::Null;
         let mut pricePrecision: Value = Value::Null;
         // hard coded amount and price precisions from fetchOptionMarkets
@@ -3842,10 +3842,10 @@ impl Bybit {
             amountPrecision = self.parse_number(Value::Str("1".into()), &[]);
             pricePrecision = self.parse_number(Value::Str("0.01".into()), &[]);
         }
-        let mut convertedExpireDate: Value = self.convert_expire_date_to_market_id_date(expiry.clone());
+        let mut convertedExpireDate: Option<String> = self.convert_expire_date_to_market_id_date(expiry.clone()).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseName, Value::Str("-".into())).into()), convertedExpireDate).into()), Value::Str("-".into())).into()),
+        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseName, Value::Str("-".into())).into()), convertedExpireDate.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()),
             strike.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), optionType.clone().map(Value::from).unwrap_or(Value::Null)).into()));
         m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseName, Value::Str("/".into())).into()),
             quote).into()), Value::Str(":".into())).into()), quote).into()), Value::Str("-".into())).into()), expiry).into()), Value::Str("-".into())).into()), strike.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), optionType.clone().map(Value::from).unwrap_or(Value::Null)).into()));
@@ -3867,7 +3867,7 @@ impl Bybit {
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("contract".to_string(), Value::Bool(true));
         m.insert("contractSize".to_string(), self.parse_number(Value::Str("1".into()), &[]));
-        m.insert("expiry".to_string(), timestamp);
+        m.insert("expiry".to_string(), Value::from(timestamp));
         m.insert("expiryDatetime".to_string(), datetime);
         m.insert("optionType".to_string(), (if (optionType.as_deref() == Some("C")) { Value::Str("call".into()) } else { Value::Str("put".into()) }));
         m.insert("strike".to_string(), self.parse_number(strike.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -3931,12 +3931,12 @@ impl Bybit {
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(method, &[market, paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         if (type_var.as_deref() == Some("option")) || (type_var.as_deref() == Some("spot")) {
             return Value::from(vec![type_var.map(Value::from).unwrap_or(Value::Null), paramsSubType.clone()]);
         }
-        return Value::from(vec![subType, paramsSubType]);
+        return Value::from(vec![subType.map(Value::from).unwrap_or(Value::Null), paramsSubType]);
 
     Value::Null
 }
@@ -4403,12 +4403,12 @@ impl Bybit {
             }
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
             let mut status: Option<String> = self.safe_string_k(&market, "status", &[]).as_str().map(str::to_owned);
-            let mut active: Value = (Value::Bool(status.as_deref() == Some("Trading")));
+            let mut active: bool = status.as_deref() == Some("Trading");
             let mut lotSizeFilter: crate::value::Dict = self.safe_dict_k(&market, "lotSizeFilter", &[]).into_dict();
             let mut priceFilter: crate::value::Dict = self.safe_dict_k(&market, "priceFilter", &[]).into_dict();
             let mut quotePrecision: Option<f64> = self.safe_number_k(&lotSizeFilter, "quotePrecision", &[]).as_f64();
             let mut marginTrading: Option<String> = self.safe_string_k(&market, "marginTrading", &[Value::Str("none".into())]).as_str().map(str::to_owned);
-            let mut allowsMargin: Value = Value::Bool(marginTrading.as_deref() != Some("none"));
+            let mut allowsMargin: bool = marginTrading.as_deref() != Some("none");
             result.push(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -4421,11 +4421,11 @@ impl Bybit {
         m.insert("settleId".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
-        m.insert("margin".to_string(), allowsMargin);
+        m.insert("margin".to_string(), Value::Bool(allowsMargin));
         m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), Value::Bool(active));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
@@ -5094,9 +5094,9 @@ impl Bybit {
             m
         });
         let categoryparamsValueVariable: Vec<Value> = self.get_bybit_type("fetchTicker", &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut category: Value = categoryparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut category: Option<String> = categoryparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsValue: crate::value::Dict = categoryparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        request.insert("category".into(), category);
+        request.insert("category".into(), category.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsValue]);
         let mut response: crate::value::Dict = self.public_get_v5_market_tickers(&[__ws_arg_6]).await.into_dict();
         //
@@ -5345,8 +5345,8 @@ impl Bybit {
         //     ]
         //
         let mut isInverse: bool = (match market.get("inverse") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) }).as_bool().unwrap_or(false);
-        let mut volumeIndex: Value = (if isInverse { Value::Int(6) } else { Value::Int(5) });
-        return Value::from(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv, volumeIndex, &[])]);
+        let mut volumeIndex: i64 = (if isInverse { 6 } else { 5 });
+        return Value::from(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv, Value::from(volumeIndex), &[])]);
 
     Value::Null
 }
@@ -5612,9 +5612,9 @@ impl Bybit {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRates() does not support ".into())).into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" markets".into()))));
         }
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchFundingRates".into()), &[market, paramsMarketType, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
-        let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        request.insert("category".into(), subType);
+        request.insert("category".into(), subType.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsSubType]);
         let mut response: crate::value::Dict = self.public_get_v5_market_tickers(&[__ws_arg_13]).await.into_dict();
         //
@@ -6089,9 +6089,9 @@ impl Bybit {
             request.insert("limit".into(), limit.clone());
         }
         let type_varparamsValueVariable: Vec<Value> = self.get_bybit_type("fetchTrades", &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsValue: crate::value::Dict = type_varparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        request.insert("category".into(), type_var);
+        request.insert("category".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsValue]);
         let mut response: crate::value::Dict = self.public_get_v5_market_recent_trade(&[__ws_arg_15]).await.into_dict();
         //
@@ -6693,7 +6693,7 @@ impl Bybit {
         let mut remaining: Option<String> = self.safe_string_k(order.clone(), "leavesQty", &[]).as_str().map(str::to_owned);
         let mut lastTradeTimestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("updatedTime".into()), Value::Str("updatedAt".into()), &[]).as_i64();
         let mut rawStatus: Option<String> = self.safe_string_k(order.clone(), "orderStatus", &[]).as_str().map(str::to_owned);
-        let mut status: Value = self.parse_order_status(rawStatus.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_order_status(rawStatus.as_deref());
         let mut fee: Value = Value::Null;
         let mut cumFeeDetail: crate::value::Dict = self.safe_dict_k(order.clone(), "cumFeeDetail", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6713,7 +6713,7 @@ impl Bybit {
         if (clientOrderId.is_some()) && (((clientOrderId.as_deref().unwrap_or_default().chars().count() as i64)) < 1) {
             clientOrderId = None.clone();
         }
-        let mut avgPrice: Value = self.omit_zero(self.safe_string_k(order.clone(), "avgPrice", &[]));
+        let mut avgPrice: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "avgPrice", &[])).as_str().map(str::to_owned);
         let mut rawTimeInForce: Option<String> = self.safe_string_k(order.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut timeInForce: Value = self.parse_time_in_force(rawTimeInForce.as_deref()).map(Value::from).unwrap_or(Value::Null);
         let mut triggerPrice: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "triggerPrice", &[])).as_str().map(str::to_owned);
@@ -6766,10 +6766,10 @@ impl Bybit {
         m.insert("stopLossPrice".to_string(), stopLossPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("average".to_string(), avgPrice);
+        m.insert("average".to_string(), avgPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);
     m
@@ -6998,7 +6998,7 @@ impl Bybit {
         let mut isTakeProfitOrder: bool = takeProfitTriggerPrice.is_some();
         let mut hasStopLoss: bool = stopLoss != Value::Null;
         let mut hasTakeProfit: bool = takeProfit != Value::Null;
-        let mut isMarket: Value = Value::Bool(lowerCaseType.as_deref() == Some("market"));
+        let mut isMarket: bool = lowerCaseType.as_deref() == Some("market");
         let mut isLimit: bool = lowerCaseType.as_deref() == Some("limit");
         let mut isBuy: bool = side.as_str() == Some("buy");
         let mut switchToOco: bool = (isStopLossOrder && isTakeProfitOrder) || self.safe_bool_k(params.clone(), "tradingStopEndpoint", &[Value::Bool(false)]).as_bool() == Some(true);
@@ -7081,7 +7081,7 @@ impl Bybit {
             request.insert("orderType".into(), self.capitalize(lowerCaseType.clone().map(Value::from).unwrap_or(Value::Null)));
             let mut timeInForce: Option<String> = self.safe_string_lower_k(query.clone(), "timeInForce", &[]).as_str().map(str::to_owned); // this is same as exchange specific param
             let mut postOnly: Option<bool> = None;
-            { let __destr_tmp: Vec<Value> = self.handle_post_only(isMarket, Value::Bool(timeInForce.as_deref() == Some("postonly")), &[query.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool(); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(timeInForce.as_deref() == Some("postonly")), &[query.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool(); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             if (postOnly == Some(true)) {
                 request.insert("timeInForce".into(), Value::Str("PostOnly".into()));
             }  else if (timeInForce.as_deref() == Some("gtc")) {
@@ -7143,12 +7143,12 @@ impl Bybit {
                 if (price == Value::Null) && (cost.is_none()) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".into()))));
                 }  else {
-                    let mut quoteAmount: Value = crate::precise::Precise::stringMul(&self.number_to_string(amountValue), &priceString);
-                    let mut costRequest: Value = quoteAmount;
+                    let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&self.number_to_string(amountValue), &priceString).as_str().map(str::to_owned);
+                    let mut costRequest: Option<String> = quoteAmount;
                     if (cost.is_some()) {
-                        costRequest = cost.clone().map(Value::from).unwrap_or(Value::Null);
+                        costRequest = cost.clone();
                     }
-                    request.insert("qty".into(), self.get_cost(symbolValue.as_str(), costRequest).map(Value::from).unwrap_or(Value::Null));
+                    request.insert("qty".into(), self.get_cost(symbolValue.as_str(), costRequest.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
                 }
             }  else {
                 if (cost.is_some()) {
@@ -7378,9 +7378,9 @@ impl Bybit {
             request.insert("orderLinkId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
         let categoryparamsValueVariable: Vec<Value> = self.get_bybit_type("editOrderRequest", &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut category: Value = categoryparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut category: Option<String> = categoryparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsValue: crate::value::Dict = categoryparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        request.insert("category".into(), category);
+        request.insert("category".into(), category.map(Value::from).unwrap_or(Value::Null));
         if (amount != Value::Null) {
             request.insert("qty".into(), self.get_amount(symbol.as_str(), amount));
         }
@@ -7620,9 +7620,9 @@ impl Bybit {
         }
         let mut paramsOmitted: Value = (if (market).spot { self.omit(params.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]) } else { params });
         let categoryparamsCategoryVariable: Vec<Value> = self.get_bybit_type("cancelOrderRequest", &[(market).raw.clone(), paramsOmitted]).as_array().cloned().unwrap_or_default();
-        let mut category: Value = categoryparamsCategoryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut category: Option<String> = categoryparamsCategoryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsCategory: crate::value::Dict = categoryparamsCategoryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        request.insert("category".into(), category);
+        request.insert("category".into(), category.map(Value::from).unwrap_or(Value::Null));
         return self.extend(Value::Map(request), &[&paramsCategory]);
 
     Value::Null
@@ -8163,13 +8163,13 @@ impl Bybit {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let marketTypeparamsValueVariable: Vec<Value> = self.get_bybit_type("fetchOrder", &[(market).raw.clone(), paramsAcknowledged]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsValue: crate::value::Dict = marketTypeparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("orderId".to_string(), id.clone());
-                m.insert("category".to_string(), marketType);
+                m.insert("category".to_string(), marketType.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_param_bool2(&paramsValue, Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
@@ -8537,9 +8537,9 @@ impl Bybit {
             request.insert("symbol".into(), symbolMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let type_varparamsValueVariable: Vec<Value> = self.get_bybit_type("fetchCanceledAndClosedOrders", &[market.clone(), paramsPaginate]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsValue: crate::value::Dict = type_varparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        request.insert("category".into(), type_var);
+        request.insert("category".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         let mut isTrigger: bool = self.safe_bool2(Value::from(&paramsValue), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsValue, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         if isTrigger {
@@ -8953,9 +8953,9 @@ impl Bybit {
             request.insert("symbol".into(), symbolMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let type_varparamsValueVariable: Vec<Value> = self.get_bybit_type("fetchMyTrades", &[market.clone(), paramsPaginate]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsValue: crate::value::Dict = type_varparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        request.insert("category".into(), type_var);
+        request.insert("category".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
@@ -9141,11 +9141,11 @@ impl Bybit {
         }
         let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
         let networkCodeparamsOmitedVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
-        let mut networkCode: Value = networkCodeparamsOmitedVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut networkCode: Option<String> = networkCodeparamsOmitedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOmited: Value = networkCodeparamsOmitedVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut indexedAddresses: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), paramsOmited).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut selectedNetworkCode: Value = self.select_network_key_from_networks(currency.get("code").cloned().unwrap_or(Value::Null), networkCode, crate::types::IntoRaw::into_raw(indexedAddresses.clone()), &[Value::Bool(true)]);
-        return self.safe_dict(crate::types::IntoRaw::into_raw(indexedAddresses), selectedNetworkCode, &[]);
+        let mut selectedNetworkCode: Option<String> = self.select_network_key_from_networks(currency.get("code").cloned().unwrap_or(Value::Null), networkCode.map(Value::from).unwrap_or(Value::Null), crate::types::IntoRaw::into_raw(indexedAddresses.clone()), &[Value::Bool(true)]).as_str().map(str::to_owned);
+        return self.safe_dict(crate::types::IntoRaw::into_raw(indexedAddresses), selectedNetworkCode.map(Value::from).unwrap_or(Value::Null), &[]);
         Value::Null
         }).await?))
     }
@@ -9410,7 +9410,7 @@ impl Bybit {
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer2(transaction.clone(), Value::Str("createTime".into()), Value::Str("successAt".into()), &[]).as_i64();
         let mut updated: Option<i64> = self.safe_integer_k(transaction.clone(), "updateTime", &[]).as_i64();
-        let mut status: Value = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
         let mut feeCost: Option<f64> = self.safe_number2(transaction.clone(), Value::Str("depositFee".into()), Value::Str("withdrawFee".into()), &[]).as_f64();
         let mut type_var: String = "withdrawal".to_string();
         if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("depositFee"))) {
@@ -9443,7 +9443,7 @@ impl Bybit {
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("amount".to_string(), self.safe_number_k(transaction, "amount", &[]));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::from(updated));
         m.insert("fee".to_string(), fee);
         m.insert("internal".to_string(), Value::Null);
@@ -9797,8 +9797,8 @@ impl Bybit {
         let accountTypeOptionparamsAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(&paramsWithdrawTag, Value::Str("withdraw".into()), Value::Str("accountType".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut accountTypeOption: Value = accountTypeOptionparamsAccountTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsAccountType: crate::value::Dict = accountTypeOptionparamsAccountTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut defaultAccountType: Value = (if (isUta.as_bool() == Some(true)) { Value::Str("UTA".into()) } else { Value::Str("SPOT".into()) });
-        let mut accountType: Value = (if (accountTypeOption == Value::Null) { defaultAccountType } else { accountTypeOption });
+        let mut defaultAccountType: String = (if (isUta.as_bool() == Some(true)) { "UTA".to_string() } else { "SPOT".to_string() });
+        let mut accountType: Value = (if (accountTypeOption == Value::Null) { Value::from(defaultAccountType) } else { accountTypeOption });
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -9817,9 +9817,9 @@ impl Bybit {
             request.insert("tag".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
         let networkCodequeryVariable: Vec<Value> = self.handle_network_code_and_params(&paramsAccountType).as_array().cloned().unwrap_or_default();
-        let mut networkCode: Value = networkCodequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut networkCode: Option<String> = networkCodequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: crate::value::Dict = networkCodequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut networkId: Option<String> = self.network_code_to_id(networkCode, &[code]).as_str().map(str::to_owned);
+        let mut networkId: Option<String> = self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code]).as_str().map(str::to_owned);
         if (networkId.is_some()) {
             request.insert("chain".into(), networkId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
         }
@@ -9879,9 +9879,9 @@ impl Bybit {
         });
         let mut response: Option<crate::value::Dict> = None;
         let type_varparamsValueVariable: Vec<Value> = self.get_bybit_type("fetchPosition", &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsValue: crate::value::Dict = type_varparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        request.insert("category".into(), type_var);
+        request.insert("category".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_47 = self.extend(Value::Map(request), &[&paramsValue]);
         response = self.private_get_v5_position_list(&[__ws_arg_47]).await.into_opt_dict();
         //
@@ -10289,8 +10289,8 @@ impl Bybit {
                     //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
                     // Maintenance Margin = (Bust price - Liq price) x Contracts
                     if (maintenanceMarginString.is_none()) && (bustPrice.is_some()) && !(crate::precise::Precise::stringEq(&bustPrice.clone().map(Value::from).unwrap_or(Value::Null), &liquidationPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
-                        let mut maintenanceMarginPriceDifference: Value = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&liquidationPrice.clone().map(Value::from).unwrap_or(Value::Null), &bustPrice.clone().map(Value::from).unwrap_or(Value::Null)));
-                        maintenanceMarginString = crate::precise::Precise::stringMul(&maintenanceMarginPriceDifference, &size.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        let mut maintenanceMarginPriceDifference: Option<String> = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&liquidationPrice.clone().map(Value::from).unwrap_or(Value::Null), &bustPrice.clone().map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
+                        maintenanceMarginString = crate::precise::Precise::stringMul(&maintenanceMarginPriceDifference.map(Value::from).unwrap_or(Value::Null), &size.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     }
                     // Initial Margin = Contracts x Entry Price / Leverage + Closing Fee
                     if (entryPrice.is_some()) && (initialMarginString.is_none()) {
@@ -10306,8 +10306,8 @@ impl Bybit {
                     // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
                     if (maintenanceMarginString.is_none()) && (bustPrice.is_some()) && !(crate::precise::Precise::stringEq(&bustPrice.clone().map(Value::from).unwrap_or(Value::Null), &liquidationPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
                         let mut difference: Value = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&bustPrice.clone().map(Value::from).unwrap_or(Value::Null), &liquidationPrice.clone().map(Value::from).unwrap_or(Value::Null)));
-                        let mut multiply: Value = crate::precise::Precise::stringMul(&bustPrice.map(Value::from).unwrap_or(Value::Null), &liquidationPrice.clone().map(Value::from).unwrap_or(Value::Null));
-                        maintenanceMarginString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&size.clone().map(Value::from).unwrap_or(Value::Null), &difference), &multiply).as_str().map(str::to_owned);
+                        let mut multiply: Option<String> = crate::precise::Precise::stringMul(&bustPrice.map(Value::from).unwrap_or(Value::Null), &liquidationPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        maintenanceMarginString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&size.clone().map(Value::from).unwrap_or(Value::Null), &difference), &multiply.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     }
                     // Initial Margin = Contracts / (EntryPrice x Leverage) + Closing Fee
                     if (entryPrice.is_some()) && (initialMarginString.is_none()) {
@@ -10319,8 +10319,8 @@ impl Bybit {
                 }
             }
         }
-        let mut maintenanceMarginPercentage: Value = crate::precise::Precise::stringDiv(&maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null), &notional.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut marginRatio: Value = crate::precise::Precise::stringDivPrec(&maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null), &collateralString, &Value::Int(4));
+        let mut maintenanceMarginPercentage: Option<String> = crate::precise::Precise::stringDiv(&maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null), &notional.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut marginRatio: Option<String> = crate::precise::Precise::stringDivPrec(&maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null), &collateralString, &Value::Int(4)).as_str().map(str::to_owned);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -10332,7 +10332,7 @@ impl Bybit {
         m.insert("initialMargin".to_string(), self.parse_number(initialMarginString.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("initialMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&initialMarginString.clone().map(Value::from).unwrap_or(Value::Null), &notional.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
         m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMarginString.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(maintenanceMarginPercentage, &[]));
+        m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(maintenanceMarginPercentage.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("entryPrice".to_string(), self.parse_number(entryPrice.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("notional".to_string(), self.parse_number(notional.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("leverage".to_string(), self.parse_number(leverage.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -10340,7 +10340,7 @@ impl Bybit {
         m.insert("realizedPnl".to_string(), self.safe_number2(position.clone(), Value::Str("curRealisedPnl".into()), Value::Str("closedPnl".into()), &[]));
         m.insert("contracts".to_string(), self.parse_number(size.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
-        m.insert("marginRatio".to_string(), self.parse_number(marginRatio, &[]));
+        m.insert("marginRatio".to_string(), self.parse_number(marginRatio.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("liquidationPrice".to_string(), self.parse_number(liquidationPrice.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("markPrice".to_string(), self.parse_number(markPrice.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("lastPrice".to_string(), self.safe_number_k(position.clone(), "avgExitPrice", &[]));
@@ -10478,7 +10478,7 @@ impl Bybit {
                 response = self.private_post_v5_account_set_margin_mode(&[__ws_arg_50]).await;
             }  else {
                 let type_varparamsTypeVariable: Vec<Value> = self.get_bybit_type("setPositionMode", &[market.clone(), params]).as_array().cloned().unwrap_or_default();
-                let mut type_var: Value = type_varparamsTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+                let mut type_var: Option<String> = type_varparamsTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
                 let mut paramsType: crate::value::Dict = type_varparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
                 let mut tradeMode: Option<i64> = None;
                 if (marginMode.as_str() == Some("cross")) {
@@ -10512,7 +10512,7 @@ impl Bybit {
                 }
                 let mut request: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("category".to_string(), type_var);
+                        m.insert("category".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
                         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                         m.insert("tradeMode".to_string(), Value::from(tradeMode));
                         m.insert("buyLeverage".to_string(), buyLeverage);
@@ -10886,13 +10886,13 @@ impl Bybit {
         // the openInterest is in the base asset for linear and quote asset for inverse
         let mut isLinear: bool = self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isInverse: bool = self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut amount: Value = (if isLinear { Value::from(openInterest) } else { Value::Null });
-        let mut value: Value = (if isInverse { Value::from(openInterest) } else { Value::Null });
+        let mut amount: Option<f64> = (if isLinear { openInterest } else { None });
+        let mut value: Option<f64> = (if isInverse { openInterest } else { None });
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
-        m.insert("openInterestAmount".to_string(), amount);
-        m.insert("openInterestValue".to_string(), value);
+        m.insert("openInterestAmount".to_string(), Value::from(amount));
+        m.insert("openInterestValue".to_string(), Value::from(value));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("info".to_string(), interest);
@@ -11008,12 +11008,12 @@ impl Bybit {
         let mut timestamp: Option<i64> = self.safe_integer_k(info.clone(), "timestamp", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string2(info.clone(), Value::Str("coin".into()), Value::Str("currency".into()), &[]).as_str().map(str::to_owned);
         let mut hourlyBorrowRate: Option<f64> = self.safe_number_k(info.clone(), "hourlyBorrowRate", &[]).as_f64();
-        let mut period: Value = (if (hourlyBorrowRate.is_some()) { Value::Int(3600000) } else { Value::Int(86400000) }); // 1h or 1d
+        let mut period: i64 = (if (hourlyBorrowRate.is_some()) { 3600000 } else { 86400000 }); // 1h or 1d
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]));
         m.insert("rate".to_string(), self.safe_number_k(info.clone(), "interestRate", &[Value::from(hourlyBorrowRate)]));
-        m.insert("period".to_string(), period);
+        m.insert("period".to_string(), Value::from(period));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("info".to_string(), info);
@@ -11246,7 +11246,7 @@ impl Bybit {
             m
         })]);
         let mut statusRaw: Option<String> = self.safe_string2(&response, Value::Str("retCode".into()), Value::Str("retMsg".into()), &[]).as_str().map(str::to_owned);
-        let mut status: Value = self.parse_transfer_status(statusRaw.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_transfer_status(statusRaw.as_deref());
         let __ws_arg_60 = self.parse_transfer(transfer, &[currency]);
         let __ws_arg_61 = self.iso8601(Value::from(timestamp));
         let __ws_arg_62 = self.parse_number(amountToPrecision, &[]);
@@ -11257,7 +11257,7 @@ impl Bybit {
         m.insert("amount".to_string(), __ws_arg_62);
         m.insert("fromAccount".to_string(), fromAccount);
         m.insert("toAccount".to_string(), toAccount);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
     m
 })]);
         Value::Null
@@ -11702,9 +11702,9 @@ impl Bybit {
             m
         });
         let categoryparamsValueVariable: Vec<Value> = self.get_bybit_type("fetchTradingFee", &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut category: Value = categoryparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut category: Option<String> = categoryparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsValue: crate::value::Dict = categoryparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        request.insert("category".into(), category);
+        request.insert("category".into(), category.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_67 = self.extend(Value::Map(request), &[&paramsValue]);
         let mut response: crate::value::Dict = self.private_get_v5_account_fee_rate(&[__ws_arg_67]).await.into_dict();
         //
@@ -12568,9 +12568,9 @@ impl Bybit {
             request.insert("symbol".into(), symbolMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let type_varparamsValueVariable: Vec<Value> = self.get_bybit_type("fetchMyLiquidations", &[market.clone(), paramsPaginate]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsValue: crate::value::Dict = type_varparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        request.insert("category".into(), type_var);
+        request.insert("category".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
@@ -12664,7 +12664,7 @@ impl Bybit {
         let mut contractSizeString: Option<String> = self.safe_string_k(market.clone(), "contractSize", &[]).as_str().map(str::to_owned);
         let mut priceString: Option<String> = self.safe_string_k(liquidation.clone(), "execPrice", &[]).as_str().map(str::to_owned);
         let mut baseValueString: Option<String> = crate::precise::Precise::stringMul(&contractsString.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut quoteValueString: Value = crate::precise::Precise::stringMul(&baseValueString.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut quoteValueString: Option<String> = crate::precise::Precise::stringMul(&baseValueString.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         return self.safe_liquidation(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation);
@@ -12673,7 +12673,7 @@ impl Bybit {
         m.insert("contractSize".to_string(), self.parse_number(contractSizeString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("price".to_string(), self.parse_number(priceString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("baseValue".to_string(), self.parse_number(baseValueString.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("quoteValue".to_string(), self.parse_number(quoteValueString, &[]));
+        m.insert("quoteValue".to_string(), self.parse_number(quoteValueString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
     m
@@ -12702,11 +12702,11 @@ impl Bybit {
             return self.fetch_paginated_call_cursor(Value::Str("getLeverageTiersPaginated".into()), &[symbol, Value::Null, Value::Null, paramsPaginate.clone(), Value::Str("nextPageCursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
         }
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("getLeverageTiersPaginated".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsPaginate, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
-        let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("category".to_string(), subType);
+                m.insert("category".to_string(), subType.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_75 = self.extend(Value::Map(request), &[&paramsSubType]);
@@ -12919,9 +12919,9 @@ impl Bybit {
             request.insert("symbol".into(), symbolMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let type_varparamsValueVariable: Vec<Value> = self.get_bybit_type("fetchFundingHistory", &[market.clone(), paramsPaginate]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsValue: crate::value::Dict = type_varparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        request.insert("category".into(), type_var);
+        request.insert("category".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         if (symbol != Value::Null) {
             request.insert("symbol".into(), self.safe_string_k(market.clone(), "id", &[]));
         }
@@ -13271,12 +13271,12 @@ impl Bybit {
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchPositionsHistory".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
-        let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsOmitted: Value = self.omit(&paramsSubType, Value::Str("until".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("category".to_string(), subType);
+                m.insert("category".to_string(), subType.map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (symbols != Value::Null) && (symbolsLength == 1) {
@@ -13369,11 +13369,11 @@ impl Bybit {
             accountTypeDefault = "eb_convert_uta".to_string();
         }
         let accountTypeparamsAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchConvertCurrencies".into()), Value::Str("accountType".into()), &[Value::from(accountTypeDefault)]).as_array().cloned().unwrap_or_default();
-        let mut accountType: Value = accountTypeparamsAccountTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut accountType: Option<String> = accountTypeparamsAccountTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAccountType: crate::value::Dict = accountTypeparamsAccountTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("accountType".to_string(), accountType);
+                m.insert("accountType".to_string(), accountType.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_81 = self.extend(Value::Map(request), &[&paramsAccountType]);
@@ -13514,7 +13514,7 @@ impl Bybit {
             accountTypeDefault = "eb_convert_uta".to_string();
         }
         let accountTypeparamsAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchConvertQuote".into()), Value::Str("accountType".into()), &[Value::from(accountTypeDefault)]).as_array().cloned().unwrap_or_default();
-        let mut accountType: Value = accountTypeparamsAccountTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut accountType: Option<String> = accountTypeparamsAccountTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAccountType: crate::value::Dict = accountTypeparamsAccountTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -13522,7 +13522,7 @@ impl Bybit {
                 m.insert("toCoin".to_string(), toCode.clone());
                 m.insert("requestAmount".to_string(), self.number_to_string(amount));
                 m.insert("requestCoin".to_string(), fromCode.clone());
-                m.insert("accountType".to_string(), accountType);
+                m.insert("accountType".to_string(), accountType.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_82 = self.extend(Value::Map(request), &[&paramsAccountType]);
@@ -13652,12 +13652,12 @@ impl Bybit {
             accountTypeDefault = "eb_convert_uta".to_string();
         }
         let accountTypeparamsAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchConvertTrade".into()), Value::Str("accountType".into()), &[Value::from(accountTypeDefault)]).as_array().cloned().unwrap_or_default();
-        let mut accountType: Value = accountTypeparamsAccountTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut accountType: Option<String> = accountTypeparamsAccountTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAccountType: crate::value::Dict = accountTypeparamsAccountTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("quoteTxId".to_string(), id);
-                m.insert("accountType".to_string(), accountType);
+                m.insert("accountType".to_string(), accountType.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_84 = self.extend(Value::Map(request), &[&paramsAccountType]);
@@ -13940,15 +13940,15 @@ impl Bybit {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(info.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Value = self.safe_integer_omit_zero(info.clone(), Value::Str("timestamp".into()), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_omit_zero(info.clone(), Value::Str("timestamp".into()), &[]).as_i64();
         let mut longString: Option<String> = self.safe_string_k(info.clone(), "buyRatio", &[]).as_str().map(str::to_owned);
         let mut shortString: Option<String> = self.safe_string_k(info.clone(), "sellRatio", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info);
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market, Value::Null, Value::Str("contract".into())]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("timeframe".to_string(), Value::Null);
         m.insert("longShortRatio".to_string(), self.parse_to_numeric(crate::precise::Precise::stringDiv(&longString.map(Value::from).unwrap_or(Value::Null), &shortString.map(Value::from).unwrap_or(Value::Null))));
     m
@@ -13993,9 +13993,9 @@ impl Bybit {
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let type_varparamsValueVariable: Vec<Value> = self.get_bybit_type("fetchPositionsADLRank", &[market, params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsValue: crate::value::Dict = type_varparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        request.insert("category".into(), type_var);
+        request.insert("category".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_87 = self.extend(Value::Map(request), &[&paramsValue]);
         let mut response: crate::value::Dict = self.private_get_v5_position_list(&[__ws_arg_87]).await.into_dict();
         //

@@ -2175,7 +2175,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // prediction venues report those directly, so the crypto back-derivation from percentage is moot.
         let mut open: Option<String> = self.omit_zero(self.safe_string_k(ticker.clone(), "open", &[])).as_str().map(str::to_owned);
         let mut close: Option<String> = self.omit_zero(self.safe_string2(ticker.clone(), Value::Str("close".into()), Value::Str("last".into()), &[])).as_str().map(str::to_owned);
-        let mut last: Value = self.omit_zero(self.safe_string2(ticker.clone(), Value::Str("last".into()), Value::Str("close".into()), &[]));
+        let mut last: Option<String> = self.omit_zero(self.safe_string2(ticker.clone(), Value::Str("last".into()), Value::Str("close".into()), &[])).as_str().map(str::to_owned);
         let mut change: Option<String> = self.safe_string_k(ticker.clone(), "change", &[]).as_str().map(str::to_owned);
         let mut percentage: Option<String> = self.omit_zero(self.safe_string_k(ticker.clone(), "percentage", &[])).as_str().map(str::to_owned);
         let mut average: Option<String> = self.omit_zero(self.safe_string_k(ticker.clone(), "average", &[])).as_str().map(str::to_owned);
@@ -2205,7 +2205,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("askVolume".to_string(), self.safe_number_k(ticker.clone(), "askVolume", &[]));
                 m.insert("open".to_string(), self.parse_number(open.map(Value::from).unwrap_or(Value::Null), &[]));
                 m.insert("close".to_string(), self.parse_number(close.map(Value::from).unwrap_or(Value::Null), &[]));
-                m.insert("last".to_string(), self.parse_number(last, &[]));
+                m.insert("last".to_string(), self.parse_number(last.map(Value::from).unwrap_or(Value::Null), &[]));
                 m.insert("change".to_string(), self.parse_number(change.map(Value::from).unwrap_or(Value::Null), &[]));
                 m.insert("percentage".to_string(), self.parse_number(percentage.map(Value::from).unwrap_or(Value::Null), &[]));
                 m.insert("average".to_string(), self.parse_number(average.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -2515,8 +2515,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Str("".into());
         }
         // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
-        let mut stripped: Value = self.remove0x_prefix(address);
-        return Value::Str(format!("{}{}", Value::Str("000000000000000000000000".into()), stripped).into());
+        let mut stripped: Option<String> = self.remove0x_prefix(address).as_str().map(str::to_owned);
+        return Value::Str(format!("{}{}", Value::Str("000000000000000000000000".into()), stripped.map(Value::from).unwrap_or(Value::Null)).into());
 
     Value::Null
 }
@@ -2659,8 +2659,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("data".to_string(), data);
             m
         });
-        let mut signed: Value = self.sign_evm_transaction(Value::Map(tx), self.privateKey.clone());
-        return self.eth_rpc(rpcUrl, Value::Str("eth_sendRawTransaction".into()), Value::from(vec![signed])).await;
+        let mut signed: Option<String> = self.sign_evm_transaction(Value::Map(tx), self.privateKey.clone()).as_str().map(str::to_owned);
+        return self.eth_rpc(rpcUrl, Value::Str("eth_sendRawTransaction".into()), Value::from(vec![signed.map(Value::from).unwrap_or(Value::Null)])).await;
 
     Value::Null
 } }

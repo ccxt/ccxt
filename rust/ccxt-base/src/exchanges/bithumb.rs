@@ -1575,7 +1575,7 @@ impl Bithumb {
             // Bithumb v2 ticker payloads are inconsistent for all-market calls,
             // so we aggregate 300 markets per request only when symbols are not provided.
             let mut marketIds: Vec<Value> = Vec::new();
-            let mut symbolsForMarketIds: Value = self.symbols.clone();
+            let mut symbolsForMarketIds: Value = Value::Arr(self.symbols.clone());
             if (symbols != Value::Null) {
                 symbolsForMarketIds = symbols.clone();
             }
@@ -2138,13 +2138,13 @@ impl Bithumb {
             let mut parts: Value = Value::Array(if let Some(__s) = transactionDatetime.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
             let mut numParts: i64 = parts.len() as i64;
             if numParts > 1 {
-                let mut transactionDate: Value = parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+                let mut transactionDate: Option<String> = parts.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
                 let mut rawTransactionTime: String = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut transactionTime: String = rawTransactionTime.clone();
                 if ((rawTransactionTime.chars().count() as i64)) < 8 {
                     transactionTime = format!("{}{}", Value::Str("0".into()), rawTransactionTime);
                 }
-                let mut kstTimestamp: Value = self.parse8601(Value::Str(format!("{}{}", Value::Str(format!("{}{}", transactionDate, Value::Str(" ".into())).into()), transactionTime).into()));
+                let mut kstTimestamp: Value = self.parse8601(Value::Str(format!("{}{}", Value::Str(format!("{}{}", transactionDate.map(Value::from).unwrap_or(Value::Null), Value::Str(" ".into())).into()), transactionTime).into()));
                 timestamp = kstTimestamp.clone();
                 if (kstTimestamp != Value::Null) && (!isGenerationTwo) {
                     timestamp = (match (&(kstTimestamp), &((match (&(Value::Int(9)), &(Value::Int(3600000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
@@ -2179,11 +2179,11 @@ impl Bithumb {
         let mut feeCostString: Option<String> = self.safe_string_k(trade.clone(), "fee", &[]).as_str().map(str::to_owned);
         if (feeCostString.is_some()) {
             let mut feeCurrencyId: Option<String> = self.safe_string_k(trade.clone(), "fee_currency", &[]).as_str().map(str::to_owned);
-            let mut feeCurrencyCode: Value = self.common_currency_code(feeCurrencyId.map(Value::from).unwrap_or(Value::Null));
+            let mut feeCurrencyCode: Option<String> = self.common_currency_code(feeCurrencyId.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("currency".to_string(), feeCurrencyCode);
+                    m.insert("currency".to_string(), feeCurrencyCode.map(Value::from).unwrap_or(Value::Null));
                 m
             });
         }
@@ -2662,11 +2662,11 @@ impl Bithumb {
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut durationString: Option<String> = self.number_to_string(duration).as_str().map(str::to_owned);
-        let mut durationSeconds: Value = crate::precise::Precise::stringDiv(&durationString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into()));
+        let mut durationSeconds: Option<String> = crate::precise::Precise::stringDiv(&durationString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), self.get_gen2_market_id(market.clone()));
-                m.insert("duration".to_string(), durationSeconds);
+                m.insert("duration".to_string(), durationSeconds.map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (amount != Value::Null) {
@@ -4282,10 +4282,10 @@ impl Bithumb {
                 if ((result.chars().count() as i64)) > 0 {
                     result.push_str("&");
                 }
-                let mut encodedKey: Value = self.encode_uri_component(key.clone());
+                let mut encodedKey: Option<String> = self.encode_uri_component(key.clone()).as_str().map(str::to_owned);
                 let mut valueString: Option<String> = self.safe_string(query.clone(), key, &[]).as_str().map(str::to_owned);
-                let mut encodedValue: Value = self.encode_uri_component(valueString.map(Value::from).unwrap_or(Value::Null));
-                result.push_str(&format!("{}{}", Value::Str(format!("{}{}", encodedKey, Value::Str("=".into())).into()), encodedValue));
+                let mut encodedValue: Option<String> = self.encode_uri_component(valueString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                result.push_str(&format!("{}{}", Value::Str(format!("{}{}", encodedKey.map(Value::from).unwrap_or(Value::Null), Value::Str("=".into())).into()), encodedValue.map(Value::from).unwrap_or(Value::Null)));
             }
         }
         }
@@ -4374,14 +4374,14 @@ impl Bithumb {
                 requestBody = Value::Str(bodyParts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("+")).unwrap_or_default().into());
                 let mut nonce: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
                 let mut authPayload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", endpoint, Value::Str("\\".into())).into()), requestBody).into()), Value::Str("\\".into())).into()), nonce.clone().map(Value::from).unwrap_or(Value::Null)); // eslint-disable-line quotes
-                let mut signature: Value = self.hmac(self.encode(Value::from(authPayload)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);
-                let mut signature64: Value = self.string_to_base64(signature, &[]);
+                let mut signature: Option<String> = self.hmac(self.encode(Value::from(authPayload)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]).as_str().map(str::to_owned);
+                let mut signature64: Option<String> = self.string_to_base64(signature.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 requestHeaders = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Accept".to_string(), Value::Str("application/json".into()));
                         m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                         m.insert("Api-Key".to_string(), self.apiKey.clone());
-                        m.insert("Api-Sign".to_string(), signature64);
+                        m.insert("Api-Sign".to_string(), signature64.map(Value::from).unwrap_or(Value::Null));
                         m.insert("Api-Nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                         m.insert("OPEN-API-PARTNER".to_string(), Value::Str("CCXT".into()));
                     m

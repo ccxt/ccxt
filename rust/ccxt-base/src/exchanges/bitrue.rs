@@ -1598,7 +1598,7 @@ impl Bitrue {
         if (minCost.is_none()) {
             minCost = self.safe_number_k(market.clone(), "minOrderMoney", &[]).as_f64();
         }
-        let mut isSpot: Value = (Value::Bool(type_var == "spot"));
+        let mut isSpot: bool = type_var == "spot";
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::from(id));
@@ -1611,7 +1611,7 @@ impl Bitrue {
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::from(type_var));
-        m.insert("spot".to_string(), isSpot);
+        m.insert("spot".to_string(), Value::Bool(isSpot));
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(isContract));
         m.insert("future".to_string(), Value::Bool(false));
@@ -2788,13 +2788,13 @@ impl Bitrue {
                 }  else {
                     let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
                     let mut priceString: Option<String> = self.number_to_string(price).as_str().map(str::to_owned);
-                    let mut quoteAmount: Value = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null));
-                    let mut requestAmount: Value = quoteAmount;
+                    let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    let mut requestAmount: Option<String> = quoteAmount;
                     if (cost.is_some()) {
-                        requestAmount = cost.map(Value::from).unwrap_or(Value::Null);
+                        requestAmount = cost;
                     }
-                    request.insert("amount".into(), self.cost_to_precision(symbol.clone(), requestAmount.clone()));
-                    request.insert("volume".into(), self.cost_to_precision(symbol.clone(), requestAmount));
+                    request.insert("amount".into(), self.cost_to_precision(symbol.clone(), requestAmount.clone().map(Value::from).unwrap_or(Value::Null)));
+                    request.insert("volume".into(), self.cost_to_precision(symbol.clone(), requestAmount.map(Value::from).unwrap_or(Value::Null)));
                 }
             }  else {
                 request.insert("amount".into(), self.parse_to_numeric(amount.clone()));
@@ -3509,7 +3509,7 @@ impl Bitrue {
         if payAmount || ctime {
             type_var = "withdrawal".to_string();
         }
-        let mut status: Value = self.parse_transaction_status_by_type((self.safe_string_k(transaction.clone(), "status", &[])).as_str(), Some(type_var.as_str())).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_transaction_status_by_type((self.safe_string_k(transaction.clone(), "status", &[])).as_str(), Some(type_var.as_str()));
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
         let mut network: Value = Value::Null;
         let mut currencyId: Option<String> = self.safe_string2(transaction.clone(), Value::Str("symbol".into()), Value::Str("coin".into()), &[]).as_str().map(str::to_owned);
@@ -3549,7 +3549,7 @@ impl Bitrue {
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::from(updated));
         m.insert("internal".to_string(), Value::Bool(false));
         m.insert("comment".to_string(), Value::Null);
@@ -4091,8 +4091,8 @@ impl Bitrue {
                     m
                 }), &[paramsOmitted.clone()]);
                 let mut query: Value = self.urlencode(__ws_arg_42, &[]);
-                let mut signature: Value = self.hmac(self.encode(query.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-                query = Value::Str(format!("{}{}", query, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("&".into()), Value::Str("signature=".into())).into()), signature).into())).into());
+                let mut signature: Option<String> = self.hmac(self.encode(query.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
+                query = Value::Str(format!("{}{}", query, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("&".into()), Value::Str("signature=".into())).into()), signature.map(Value::from).unwrap_or(Value::Null)).into())).into());
                 if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), query));
                     requestHeaders = Value::Map({

@@ -1641,11 +1641,11 @@ impl Btse {
             response = self.safe_list_k(&walletResponse, "data", &[Value::from(vec![])]);
         }  else {
             let walletparamsWalletVariable: Vec<Value> = self.handle_option_string_and_params(&paramsMarketType, Value::Str("fetchBalance".into()), Value::Str("wallet".into()), &[Value::Str("CROSS@".into())]).as_array().cloned().unwrap_or_default();
-            let mut wallet: Value = walletparamsWalletVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut wallet: Option<String> = walletparamsWalletVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsWallet: crate::value::Dict = walletparamsWalletVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("wallet".to_string(), wallet);
+                    m.insert("wallet".to_string(), wallet.map(Value::from).unwrap_or(Value::Null));
                 m
             });
             let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsWallet]);
@@ -2254,7 +2254,7 @@ impl Btse {
         let mut timestamp: Option<i64> = self.safe_timestamp_k(contract.clone(), "closeTime", &[]).as_i64();
         // dated futures carry a zero nextFundingTime as funding only applies to
         // perpetuals, observed live, the zero means no next funding and is omitted
-        let mut nextFundingTimestamp: Value = self.safe_integer_omit_zero(contract.clone(), Value::Str("nextFundingTime".into()), &[]);
+        let mut nextFundingTimestamp: Option<i64> = self.safe_integer_omit_zero(contract.clone(), Value::Str("nextFundingTime".into()), &[]).as_i64();
         let mut fundingIntervalMinutes: Value = self.safe_integer_k(contract.clone(), "fundingIntervalMinutes", &[]);
         let mut interval: Option<String> = None;
         // a wire value of zero minutes reaches this, and zero hours is not an
@@ -2278,8 +2278,8 @@ impl Btse {
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
         m.insert("nextFundingRate".to_string(), Value::Null);
-        m.insert("nextFundingTimestamp".to_string(), nextFundingTimestamp.clone());
-        m.insert("nextFundingDatetime".to_string(), self.iso8601(nextFundingTimestamp));
+        m.insert("nextFundingTimestamp".to_string(), Value::from(nextFundingTimestamp));
+        m.insert("nextFundingDatetime".to_string(), self.iso8601(Value::from(nextFundingTimestamp)));
         m.insert("previousFundingRate".to_string(), Value::Null);
         m.insert("previousFundingTimestamp".to_string(), Value::Null);
         m.insert("previousFundingDatetime".to_string(), Value::Null);
@@ -5141,12 +5141,12 @@ impl Btse {
                 signPath = self.clean_path(path.as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
             }
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", signPath, Value::Str(format!("{}", nonce).into())).into()), bodyString);
-            let mut signature: Value = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
+            let mut signature: Option<String> = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]).as_str().map(str::to_owned);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("request-api".to_string(), self.apiKey.clone());
                     m.insert("request-nonce".to_string(), self.number_to_string(nonce));
-                    m.insert("request-sign".to_string(), signature);
+                    m.insert("request-sign".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("BROKER-ID".to_string(), Value::Str("ccxt".into()));
                 m

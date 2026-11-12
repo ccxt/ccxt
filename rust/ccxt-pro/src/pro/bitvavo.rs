@@ -2849,13 +2849,13 @@ impl Bitvavo {
             let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
             let mut stringTimestamp: Value = Value::Str(format!("{}", timestamp).into());
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", stringTimestamp, Value::Str("GET/".into())).into()), self.version.clone()).into()), Value::Str("/websocket".into()));
-            let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
             let mut action: String = "authenticate".to_string();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("action".to_string(), Value::from(action));
                     m.insert("key".to_string(), self.apiKey.clone());
-                    m.insert("signature".to_string(), signature);
+                    m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                 m
             });
@@ -2917,8 +2917,8 @@ impl Bitvavo {
         }
         let mut code: Option<i64> = self.safe_integer_k(error.clone().map(Value::from).unwrap_or(Value::Null), "errorCode", &[]).as_i64();
         let mut action: Option<String> = (match __pro_message.get("action").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut buildMessage: Value = self.build_message_hash(action.map(Value::from).unwrap_or(Value::Null), &[message.clone()]).map(Value::from).unwrap_or(Value::Null);
-        let mut messageHash: Option<String> = self.safe_string_k(message.clone(), "requestId", &[buildMessage]).as_str().map(str::to_owned);
+        let mut buildMessage: Option<String> = self.build_message_hash(action.map(Value::from).unwrap_or(Value::Null), &[message.clone()]);
+        let mut messageHash: Option<String> = self.safe_string_k(message.clone(), "requestId", &[buildMessage.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut rejected: bool = false;
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             self.handle_errors(Value::from(code), error.clone().map(Value::from).unwrap_or(Value::Null), client.url(), Value::Str("".into()), Value::Map({

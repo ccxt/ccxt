@@ -1361,7 +1361,7 @@ impl Coinbaseinternational {
         }
         let mut linear: Value = (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { (Value::Bool(settle == quote)) });
         let mut inverse: Value = (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { (Value::Bool(settle != quote)) });
-        let mut marketSettle: Value = (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { settle.map(Value::from).unwrap_or(Value::Null) });
+        let mut marketSettle: Option<String> = (if matches!(&isSpot, Value::Bool(true)) { None } else { settle });
         let mut marketSettleId: Value = (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { settleId });
         let mut minTradeAmount: Option<f64> = self.safe_number_k(market.clone(), "min_trade_amount", &[]).as_f64();
         let mut tickSize: Option<f64> = self.safe_number_k(market.clone(), "tick_size", &[]).as_f64();
@@ -1371,8 +1371,8 @@ impl Coinbaseinternational {
         let mut strike: Option<f64> = self.safe_number_k(market.clone(), "strike", &[]).as_f64();
         let mut optionType: Option<String> = self.safe_string_k(market.clone(), "option_type", &[]).as_str().map(str::to_owned);
         if !isComboMarket && (matches!(&isOption, Value::Bool(true)) || isFuture) {
-            let mut expiryString: Value = self.yymmdd(Value::from(expiry), &[Value::Str("".into())]);
-            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", symbol.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("-".into())).into()), expiryString));
+            let mut expiryString: Option<String> = self.yymmdd(Value::from(expiry), &[Value::Str("".into())]).as_str().map(str::to_owned);
+            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", symbol.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("-".into())).into()), expiryString.map(Value::from).unwrap_or(Value::Null)));
         }
         if !isComboMarket && matches!(&isOption, Value::Bool(true)) {
             let mut optionTypeLetter: String = "P".to_string();
@@ -1389,7 +1389,7 @@ impl Coinbaseinternational {
                 m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
                 m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
                 m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
-                m.insert("settle".to_string(), marketSettle);
+                m.insert("settle".to_string(), marketSettle.map(Value::from).unwrap_or(Value::Null));
                 m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("settleId".to_string(), marketSettleId);
@@ -4673,12 +4673,12 @@ impl Coinbaseinternational {
             }
             let mut requestData: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str("\n".into())).into()), signedRequest).into()), Value::Str("\n".into())).into()), Value::Str("\n".into())); // eslint-disable-line quotes
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, Value::Str("\n".into())).into()), nonce.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("\n".into())).into()), requestData); // eslint-disable-line quotes
-            let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("deri-hmac-sha256 id=".into()), self.apiKey.clone()).into()), Value::Str(",ts=".into())).into()),
-                        timestamp).into()), Value::Str(",sig=".into())).into()), signature).into()), Value::Str(",nonce=".into())).into()), nonce.map(Value::from).unwrap_or(Value::Null)).into()));
+                        timestamp).into()), Value::Str(",sig=".into())).into()), signature.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(",nonce=".into())).into()), nonce.map(Value::from).unwrap_or(Value::Null)).into()));
                 m
             });
         }  else if (access.as_str() == Some("private")) {
@@ -4715,7 +4715,7 @@ impl Coinbaseinternational {
                 m.insert("params".to_string(), requestParams);
             m
         });
-        let mut requestBody: Value = json_stringify(&Value::Map(request));
+        let mut requestBody: Option<String> = json_stringify(&Value::Map(request)).as_str().map(str::to_owned);
         requestHeaders = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
@@ -4725,7 +4725,7 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), requestHeaders);
     m
 });
@@ -4767,9 +4767,9 @@ impl Coinbaseinternational {
     m
 }));
         let routeparamsResolvedVariable: Vec<Value> = self.handle_option_string_and_params(params, methodName, Value::Str("route".into()), &[Value::Str("auto".into())]).as_array().cloned().unwrap_or_default();
-        let mut route: Value = routeparamsResolvedVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut route: Option<String> = routeparamsResolvedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsResolved: crate::value::Dict = routeparamsResolvedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut deribit: Value = self.resolve_route(&[route]);
+        let mut deribit: Value = self.resolve_route(&[route.map(Value::from).unwrap_or(Value::Null)]);
         let mut previousBackend: Value = self.safe_bool_k(self.options.clone(), "routeBackend", &[]);
         let mut configuredBackend: Value = self.is_native_deribit_credentials();
         let mut currentToken: Option<String> = self.get_v2_access_token();

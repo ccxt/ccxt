@@ -1640,7 +1640,7 @@ impl Hashkey {
         }
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), suffix);
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut active: Value = Value::Bool(status.as_deref() == Some("TRADING"));
+        let mut active: bool = status.as_deref() == Some("TRADING");
         let mut isLinear: Option<bool> = None;
         let mut subType: Option<String> = None;
         let mut isInverse: Option<bool> = self.safe_bool_k(market.clone(), "inverse", &[]).as_bool();
@@ -1667,7 +1667,7 @@ impl Hashkey {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut minCostString: Value = self.omit_zero(self.safe_string_k(&costFilter, "min_notional", &[]));
+        let mut minCostString: Option<String> = self.omit_zero(self.safe_string_k(&costFilter, "min_notional", &[])).as_str().map(str::to_owned);
         let mut contractSizeString: Option<String> = self.safe_string_k(market.clone(), "contractMultiplier", &[]).as_str().map(str::to_owned);
         let mut amountPrecisionString: Option<String> = self.safe_string_k(&amountFilter, "stepSize", &[]).as_str().map(str::to_owned);
         let mut amountMinLimitString: Option<String> = self.safe_string_k(&amountFilter, "minQty", &[]).as_str().map(str::to_owned);
@@ -1709,7 +1709,7 @@ impl Hashkey {
         m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), Value::Bool(active));
         m.insert("type".to_string(), Value::from(marketType));
         m.insert("subType".to_string(), subType.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("spot".to_string(), Value::Bool(isSpot));
@@ -1760,7 +1760,7 @@ impl Hashkey {
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.parse_number(minCostString, &[]));
+        m.insert("min".to_string(), self.parse_number(minCostString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -3129,8 +3129,8 @@ impl Hashkey {
         }  else if (accountLabel.as_deref() == Some("Sub Main Trading Account")) || (accountLabel.as_deref() == Some("Sub Main Future Account")) {
             label = "sub".to_string();
         }
-        let mut accountType: Value = self.parse_account_type((self.safe_string_k(account.clone(), "accountType", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut type_var: String = format!("{}{}", Value::Str(format!("{}{}", label, Value::Str(" ".into())).into()), accountType);
+        let mut accountType: Option<String> = self.parse_account_type((self.safe_string_k(account.clone(), "accountType", &[])).as_str());
+        let mut type_var: String = format!("{}{}", Value::Str(format!("{}{}", label, Value::Str(" ".into())).into()), accountType.map(Value::from).unwrap_or(Value::Null));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(account.clone(), "accountId", &[]));
@@ -3288,7 +3288,7 @@ impl Hashkey {
         let mut id: Option<String> = self.safe_string_k(item.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut account: Option<String> = self.safe_string_k(item.clone(), "accountId", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(item.clone(), "created", &[]).as_i64();
-        let mut type_var: Value = self.parse_ledger_entry_type((self.safe_string_k(item.clone(), "flowTypeValue", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Option<String> = self.parse_ledger_entry_type((self.safe_string_k(item.clone(), "flowTypeValue", &[])).as_str());
         let mut currencyId: Option<String> = self.safe_string_k(item.clone(), "coin", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency.clone()]).as_str().map(str::to_owned);
         let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
@@ -3311,7 +3311,7 @@ impl Hashkey {
         m.insert("direction".to_string(), Value::from(direction));
         m.insert("referenceId".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::Null);
         m.insert("amount".to_string(), amount);
@@ -3556,8 +3556,8 @@ impl Hashkey {
         if (price != Value::Null) {
             request.insert("price".into(), self.price_to_precision(symbol, price));
         }
-        let mut isMarketOrder: Value = Value::Bool(typeValue.as_deref() == Some("MARKET"));
-        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(isMarketOrder, Value::Bool(typeValue.as_deref() == Some("LIMIT_MAKER")), &[paramsCost]).as_array().cloned().unwrap_or_default();
+        let mut isMarketOrder: bool = typeValue.as_deref() == Some("MARKET");
+        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(typeValue.as_deref() == Some("LIMIT_MAKER")), &[paramsCost]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if postOnly && (typeValue.as_deref() == Some("LIMIT")) {
@@ -4362,9 +4362,9 @@ impl Hashkey {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut isTrigger: Value = defaultValue;
         let isTriggerStopparamsStopVariable: Vec<Value> = self.handle_option_bool_and_params2(params, methodName, Value::Str("stop".into()), Value::Str("trigger".into()), &[isTrigger]).as_array().cloned().unwrap_or_default();
-        let mut isTriggerStop: Value = isTriggerStopparamsStopVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isTriggerStop: Option<bool> = isTriggerStopparamsStopVariable.get(0).and_then(Value::as_bool);
         let mut paramsStop: Value = isTriggerStopparamsStopVariable.get(1).cloned().unwrap_or(Value::Null);
-        return Value::from(vec![isTriggerStop, paramsStop]);
+        return Value::from(vec![isTriggerStop.map_or(Value::Null, Value::Bool), paramsStop]);
 
     Value::Null
 }

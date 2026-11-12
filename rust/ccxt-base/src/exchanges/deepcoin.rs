@@ -1208,8 +1208,8 @@ impl Deepcoin {
                         let mut i: i64 = 0;
             let mut __for_first_609: bool = true;
             while { if !__for_first_609 { i += 1; } __for_first_609 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: Value = self.safe_dict(result.clone(), symbol, &[Value::Map({
+            let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: Value = self.safe_dict(result.clone(), symbol.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1253,11 +1253,11 @@ impl Deepcoin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(400) } else { limit });
+        let mut limitResolved: i64 = limit.as_i64().unwrap_or(400);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), Value::from((market).id.as_deref()));
-                m.insert("sz".to_string(), limitResolved);
+                m.insert("sz".to_string(), Value::from(limitResolved));
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
@@ -1478,7 +1478,7 @@ impl Deepcoin {
         //         "ts": "1760367816000"
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_omit_zero(ticker.clone(), Value::Str("ts".into()), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_omit_zero(ticker.clone(), Value::Str("ts".into()), &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "instId", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("-".into())]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1496,8 +1496,8 @@ impl Deepcoin {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), high.map(Value::from).unwrap_or(Value::Null));
         m.insert("low".to_string(), low.map(Value::from).unwrap_or(Value::Null));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bidPx", &[]));
@@ -1914,7 +1914,7 @@ impl Deepcoin {
         let mut timestamp: Option<i64> = self.safe_timestamp_k(transaction.clone(), "createTime", &[]).as_i64();
         let mut networkId: Option<String> = self.safe_string_k(transaction.clone(), "chainName", &[]).as_str().map(str::to_owned);
         let mut network: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-        let mut status: Value = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
@@ -1928,7 +1928,7 @@ impl Deepcoin {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tag".to_string(), Value::Null);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("updated".to_string(), Value::Null);
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
@@ -2069,9 +2069,9 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut defaultNetwork: Option<String> = self.safe_string_opt(&defaultNetworks, code.clone(), &[]);
+        let mut defaultNetwork: Option<String> = self.safe_string(&defaultNetworks, code.clone(), &[]).as_str().map(str::to_owned);
         if (network == Value::Null) || (network.as_str() == Some("")) {
-            network = defaultNetwork.clone().map(Value::from).unwrap_or(Value::Null);
+            network = defaultNetwork.map(Value::from).unwrap_or(Value::Null);
         }
         if (network != Value::Null) {
             network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
@@ -2246,7 +2246,7 @@ impl Deepcoin {
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(item.clone(), "ts", &[]).as_i64();
         let mut change: Option<String> = self.safe_string_k(item.clone(), "balChg", &[]).as_str().map(str::to_owned);
-        let mut amount: Value = crate::precise::Precise::stringAbs(&change.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut amount: Option<String> = crate::precise::Precise::stringAbs(&change.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut direction: String = "in".to_string();
         if crate::precise::Precise::stringLt(&change.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             direction = "out".to_string();
@@ -2264,7 +2264,7 @@ impl Deepcoin {
         m.insert("referenceId".to_string(), Value::Null);
         m.insert("type".to_string(), self.parse_ledger_entry_type(type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("before".to_string(), Value::Null);
@@ -2572,13 +2572,13 @@ impl Deepcoin {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let orderTypeparamsOrderTypeVariable: Vec<Value> = self.handle_type_post_only_and_time_in_force(type_var.as_str(), params).as_array().cloned().unwrap_or_default();
-        let mut orderType: Value = orderTypeparamsOrderTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut orderType: Option<String> = orderTypeparamsOrderTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOrderType: crate::value::Dict = orderTypeparamsOrderTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), side.clone());
-                m.insert("ordType".to_string(), orderType);
+                m.insert("ordType".to_string(), orderType.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut keysToOmit: Vec<Value> = Vec::new();
@@ -2635,14 +2635,14 @@ impl Deepcoin {
             request.insert("sz".into(), self.amount_to_precision(symbol, amount));
             let mut paramsOmitted: Value = self.omit(&paramsOrderType, Value::from(keysToOmit), &[]);
             let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsOmitted, Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
-            let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-            request.insert("tdMode".into(), marginMode);
+            request.insert("tdMode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
             let mrgPositionparamsMrgPositionVariable: Vec<Value> = self.handle_option_string_and_params(&paramsMarginMode, Value::Str("createOrder".into()), Value::Str("mrgPosition".into()), &[Value::Str("merge".into())]).as_array().cloned().unwrap_or_default();
-            let mut mrgPosition: Value = mrgPositionparamsMrgPositionVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut mrgPosition: Option<String> = mrgPositionparamsMrgPositionVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsMrgPosition: crate::value::Dict = mrgPositionparamsMrgPositionVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             paramsRequest = Value::from(&paramsMrgPosition);
-            request.insert("mrgPosition".into(), mrgPosition);
+            request.insert("mrgPosition".into(), mrgPosition.map(Value::from).unwrap_or(Value::Null));
             let mut posSide: Option<String> = None;
             let mut reduceOnly: bool = self.safe_bool_k(&paramsMrgPosition, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if reduceOnly {
@@ -2751,9 +2751,9 @@ impl Deepcoin {
         }
         let mut mrgPosition: String = "merge".to_string();
         let mrgPositionOptionparamsMrgPositionVariable: Vec<Value> = self.handle_option_string_and_params(&paramsOmitted, Value::Str("createOrder".into()), Value::Str("mrgPosition".into()), &[Value::from(mrgPosition)]).as_array().cloned().unwrap_or_default();
-        let mut mrgPositionOption: Value = mrgPositionOptionparamsMrgPositionVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut mrgPositionOption: Option<String> = mrgPositionOptionparamsMrgPositionVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMrgPosition: crate::value::Dict = mrgPositionOptionparamsMrgPositionVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        request.insert("mrgPosition".into(), mrgPositionOption);
+        request.insert("mrgPosition".into(), mrgPositionOption.map(Value::from).unwrap_or(Value::Null));
         return self.extend(Value::Map(request), &[&paramsMrgPosition]);
 
     Value::Null
@@ -3484,20 +3484,20 @@ impl Deepcoin {
         if (market).spot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() is not supported for spot markets".into()))));
         }
-        let mut productGroup: Value = self.get_product_group_from_market((market).raw.clone());
+        let mut productGroup: Option<String> = self.get_product_group_from_market((market).raw.clone()).as_str().map(str::to_owned);
         let mut marginMode: Option<String> = self.safe_string_k(params.clone(), "marginMode", &[]).as_str().map(str::to_owned);
-        let mut encodedMarginMode: Value = (if (marginMode.as_deref() == Some("isolated")) { Value::Int(0) } else { Value::Int(1) });
+        let mut encodedMarginMode: i64 = (if (marginMode.as_deref() == Some("isolated")) { 0 } else { 1 });
         let mut paramsOmitted: crate::value::Dict = (if (marginMode.is_some()) { self.omit(params.clone(), Value::Str("marginMode".into()), &[]) } else { params }).into_dict();
         let mergedparamsMergedVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsOmitted, Value::Str("cancelAllOrders".into()), Value::Str("merged".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut merged: bool = mergedparamsMergedVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsMerged: crate::value::Dict = mergedparamsMergedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isMergedMode: Value = (if merged { Value::Int(1) } else { Value::Int(0) });
+        let mut isMergedMode: i64 = (if merged { 1 } else { 0 });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("InstrumentID".to_string(), Value::from((market).id.as_deref()));
-                m.insert("ProductGroup".to_string(), productGroup);
-                m.insert("IsCrossMargin".to_string(), encodedMarginMode);
-                m.insert("IsMergeMode".to_string(), isMergedMode);
+                m.insert("ProductGroup".to_string(), productGroup.map(Value::from).unwrap_or(Value::Null));
+                m.insert("IsCrossMargin".to_string(), Value::from(encodedMarginMode));
+                m.insert("IsMergeMode".to_string(), Value::from(isMergedMode));
             m
         });
         let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsMerged]);
@@ -3837,10 +3837,10 @@ impl Deepcoin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut instrumentType: Value = self.convert_to_instrument_type((Value::from((market).market_type.clone())).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut instrumentType: Option<String> = self.convert_to_instrument_type((Value::from((market).market_type.clone())).as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instType".to_string(), instrumentType);
+                m.insert("instType".to_string(), instrumentType.map(Value::from).unwrap_or(Value::Null));
                 m.insert("instId".to_string(), Value::from((market).id.as_deref()));
             m
         });
@@ -3885,10 +3885,10 @@ impl Deepcoin {
         let marketTypeOptionparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchPositions".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params, Value::from(marketType)]).as_array().cloned().unwrap_or_default();
         let mut marketTypeOption: Option<String> = marketTypeOptionparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeOptionparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut instrumentType: Value = self.convert_to_instrument_type(marketTypeOption.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut instrumentType: Option<String> = self.convert_to_instrument_type(marketTypeOption.as_deref());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instType".to_string(), instrumentType);
+                m.insert("instType".to_string(), instrumentType.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsMarketType]);
@@ -4498,13 +4498,13 @@ impl Deepcoin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut productGroup: Value = self.get_product_group_from_market((market).raw.clone());
+        let mut productGroup: Option<String> = self.get_product_group_from_market((market).raw.clone()).as_str().map(str::to_owned);
         let mut positionId: Option<String> = self.safe_string_k(params.clone(), "positionId", &[]).as_str().map(str::to_owned);
         let mut positionIds: Option<crate::value::List> = self.safe_list_k(params.clone(), "positionIds", &[]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), Value::from((market).id.as_deref()));
-                m.insert("productGroup".to_string(), productGroup);
+                m.insert("productGroup".to_string(), productGroup.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut response: Option<crate::value::Dict> = None;
@@ -4566,8 +4566,8 @@ impl Deepcoin {
                 privateHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
                 payload = Value::Str(format!("{}{}", payload, requestBody).into());
             }
-            let mut signature: Value = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
-            privateHeaders.insert("DC-ACCESS-SIGN".into(), signature);
+            let mut signature: Option<String> = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
+            privateHeaders.insert("DC-ACCESS-SIGN".into(), signature.map(Value::from).unwrap_or(Value::Null));
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));

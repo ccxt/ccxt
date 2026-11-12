@@ -1771,7 +1771,7 @@ impl Apex {
         let mut status: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         // const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
-        let mut remaining: Value = self.omit_zero(self.safe_string_k(order.clone(), "remainingSize", &[]));
+        let mut remaining: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "remainingSize", &[])).as_str().map(str::to_owned);
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "updatedTime", &[]).as_i64();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1795,7 +1795,7 @@ impl Apex {
         m.insert("average".to_string(), Value::Null);
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), Value::Null);
-        m.insert("remaining".to_string(), remaining);
+        m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
@@ -2180,13 +2180,13 @@ impl Apex {
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
         if isContract {
             let mut formattedUint32: String = "4294967295".to_string();
-            let mut zkSignAccountId: Value = crate::precise::Precise::stringMod(&Value::from(accountId), &Value::from(formattedUint32));
+            let mut zkSignAccountId: Option<String> = crate::precise::Precise::stringMod(&Value::from(accountId), &Value::from(formattedUint32)).as_str().map(str::to_owned);
             let mut expireTime: Value = (match (&(timestampSeconds), &((match (&((match (&(Value::Int(3600)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                 Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(28))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                 _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             let mut orderToSign: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("zkAccountId".to_string(), zkSignAccountId);
+                    m.insert("zkAccountId".to_string(), zkSignAccountId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("receiverAddress".to_string(), Value::from(ethAddress.clone()));
                     m.insert("subAccountId".to_string(), Value::from(subAccountId.clone()));
                     m.insert("receiverSubAccountId".to_string(), Value::from(subAccountId.clone()));
@@ -2793,11 +2793,11 @@ impl Apex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut leverageString: Option<String> = self.number_to_string(leverage).as_str().map(str::to_owned);
-        let mut initialMarginRate: Value = crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &leverageString.map(Value::from).unwrap_or(Value::Null), &Value::Int(4));
+        let mut initialMarginRate: Option<String> = crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &leverageString.map(Value::from).unwrap_or(Value::Null), &Value::Int(4)).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("initialMarginRate".to_string(), initialMarginRate);
+                m.insert("initialMarginRate".to_string(), initialMarginRate.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
@@ -2945,8 +2945,8 @@ impl Apex {
             if (signBody.is_some()) {
                 messageString = format!("{}{}", messageString, signBody.as_deref().unwrap_or("null"));
             }
-            let mut signature: Value = self.hmac(self.encode(Value::from(messageString)), self.encode(self.string_to_base64(self.secret.clone(), &[])), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
-            headersValue.insert("APEX-SIGNATURE".into(), signature);
+            let mut signature: Option<String> = self.hmac(self.encode(Value::from(messageString)), self.encode(self.string_to_base64(self.secret.clone(), &[])), Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
+            headersValue.insert("APEX-SIGNATURE".into(), signature.map(Value::from).unwrap_or(Value::Null));
             headersValue.insert("APEX-API-KEY".into(), self.apiKey.clone());
             headersValue.insert("APEX-TIMESTAMP".into(), Value::from(timestamp));
             headersValue.insert("APEX-PASSPHRASE".into(), self.password.clone());

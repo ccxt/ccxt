@@ -656,7 +656,7 @@ impl Kraken {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut token: Value = self.authenticate(&[]).await;
+        let mut token: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2").as_str().map(str::to_owned);
         let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
@@ -667,7 +667,7 @@ impl Kraken {
                 m.insert("side".to_string(), side);
                 m.insert("order_qty".to_string(), self.parse_to_numeric(self.amount_to_precision(symbol.clone(), amount.clone())));
                 m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
-                m.insert("token".to_string(), token);
+                m.insert("token".to_string(), token.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -755,7 +755,7 @@ impl Kraken {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut token: Value = self.authenticate(&[]).await;
+        let mut token: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2").as_str().map(str::to_owned);
         let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut messageHash: Option<String> = self.number_to_string(Value::from(requestId)).as_str().map(str::to_owned);
@@ -763,7 +763,7 @@ impl Kraken {
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
                 m.insert("order_qty".to_string(), self.parse_to_numeric(self.amount_to_precision(symbol.clone(), amount.clone())));
-                m.insert("token".to_string(), token);
+                m.insert("token".to_string(), token.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -808,7 +808,7 @@ impl Kraken {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrdersWs () does not support cancelling orders for a specific symbol.".into()))));
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut token: Value = self.authenticate(&[]).await;
+        let mut token: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2").as_str().map(str::to_owned);
         let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut messageHash: Option<String> = self.number_to_string(Value::from(requestId)).as_str().map(str::to_owned);
@@ -818,7 +818,7 @@ impl Kraken {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("order_id".to_string(), ids);
-        m.insert("token".to_string(), token);
+        m.insert("token".to_string(), token.map(Value::from).unwrap_or(Value::Null));
     m
 }));
                 m.insert("req_id".to_string(), Value::from(requestId));
@@ -856,7 +856,7 @@ impl Kraken {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrderWs () does not support cancelling orders for a specific symbol.".into()))));
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut token: Value = self.authenticate(&[]).await;
+        let mut token: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2").as_str().map(str::to_owned);
         let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut messageHash: Option<String> = self.number_to_string(Value::from(requestId)).as_str().map(str::to_owned);
@@ -866,7 +866,7 @@ impl Kraken {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("order_id".to_string(), Value::from(vec![id]));
-        m.insert("token".to_string(), token);
+        m.insert("token".to_string(), token.map(Value::from).unwrap_or(Value::Null));
     m
 }));
                 m.insert("req_id".to_string(), Value::from(requestId));
@@ -921,7 +921,7 @@ impl Kraken {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersWs () does not support cancelling orders in a specific market.".into()))));
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut token: Value = self.authenticate(&[]).await;
+        let mut token: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2").as_str().map(str::to_owned);
         let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut messageHash: Option<String> = self.number_to_string(Value::from(requestId)).as_str().map(str::to_owned);
@@ -930,7 +930,7 @@ impl Kraken {
                 m.insert("method".to_string(), Value::Str("cancel_all".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("token".to_string(), token);
+        m.insert("token".to_string(), token.map(Value::from).unwrap_or(Value::Null));
     m
 }));
                 m.insert("req_id".to_string(), Value::from(requestId));
@@ -1122,8 +1122,8 @@ impl Kraken {
             while { if !__for_first_418 { i += 1; } __for_first_418 = false; (i as f64) < ohlcvsLength } {
             let mut candle: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut datetime: Option<String> = self.safe_string_k(&candle, "interval_begin", &[]).as_str().map(str::to_owned);
-            let mut timestamp: Value = self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null));
-            let mut parsed: Value = Value::from(vec![timestamp, self.safe_number_k(&candle, "open", &[]), self.safe_number_k(&candle, "high", &[]), self.safe_number_k(&candle, "low", &[]), self.safe_number_k(&candle, "close", &[]), self.safe_number_k(&candle, "volume", &[])]);
+            let mut timestamp: Option<i64> = self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null)).as_i64();
+            let mut parsed: Value = Value::from(vec![Value::from(timestamp), self.safe_number_k(&candle, "open", &[]), self.safe_number_k(&candle, "high", &[]), self.safe_number_k(&candle, "low", &[]), self.safe_number_k(&candle, "close", &[]), self.safe_number_k(&candle, "volume", &[])]);
             stored.append(parsed);
         }
         }
@@ -1488,7 +1488,7 @@ impl Kraken {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "publicV2").as_str().map(str::to_owned);
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut messageHash: Option<String> = self.get_message_hash(Value::Str("ohlcv".into()), &[Value::Null, symbolValue.clone()]);
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1500,7 +1500,7 @@ impl Kraken {
         m.insert("interval".to_string(), self.safe_value(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
     m
 }));
-                m.insert("req_id".to_string(), requestId);
+                m.insert("req_id".to_string(), Value::from(requestId));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
@@ -1579,7 +1579,7 @@ impl Kraken {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut symbols: Value = self.symbols.clone(); // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
+            let mut symbols: Value = Value::Arr(self.symbols.clone()); // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
             if (symbols != Value::Null) {
                 {
                                         let mut i: i64 = 0;
@@ -1897,7 +1897,7 @@ impl Kraken {
                 subscription = self.safe_dict(__ch.subscriptions.clone(), authenticated.clone(), &[]);
                 return self.safe_string_k(subscription.clone(), "token", &[]);
             }
-            let mut future: Value = client.reusable_future(messageHash.clone());
+            let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.clone());
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
                 let mut response: crate::value::Dict = self.parent.private_post_get_web_sockets_token(&[params]).await.into_dict();
@@ -1950,7 +1950,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut token: Value = self.authenticate(&[]).await;
+        let mut token: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
         let mut subscriptionHash: String = "executions".to_string();
         let mut messageHash: String = name.as_str().unwrap_or_default().to_string();
         let mut symbolResolved: Option<String> = None;
@@ -1959,17 +1959,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             messageHash = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2").as_str().map(str::to_owned);
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), Value::Str("executions".into()));
-        m.insert("token".to_string(), token);
+        m.insert("token".to_string(), token.map(Value::from).unwrap_or(Value::Null));
     m
 }));
-                m.insert("req_id".to_string(), requestId);
+                m.insert("req_id".to_string(), Value::from(requestId));
             m
         });
         if (params != Value::Null) {
@@ -2435,18 +2435,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut token: Value = self.authenticate(&[]).await;
+        let mut token: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
         let mut messageHash: String = "balances".to_string();
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateV2").as_str().map(str::to_owned);
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
-                m.insert("req_id".to_string(), requestId);
+                m.insert("req_id".to_string(), Value::from(requestId));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), Value::Str("balances".into()));
-        m.insert("token".to_string(), token);
+        m.insert("token".to_string(), token.map(Value::from).unwrap_or(Value::Null));
     m
 }));
             m
@@ -2596,16 +2596,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.clean_unsubscription(client.clone(), subMessageHash.clone(), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into()), &[]);
         }  else if (channel.as_deref() == Some("ohlc")) {
             let mut interval: Option<i64> = self.safe_integer_k(&result, "interval", &[]).as_i64();
-            let mut timeframe: Value = self.find_timeframe(Value::from(interval), &[]);
-            let mut subMessageHash: Value = self.get_message_hash(Value::Str("ohlcv".into()), &[Value::Null, symbol.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null);
+            let mut timeframe: Option<String> = self.find_timeframe(Value::from(interval), &[]).as_str().map(str::to_owned);
+            let mut subMessageHash: Option<String> = self.get_message_hash(Value::Str("ohlcv".into()), &[Value::Null, symbol.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut unsubMessageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("ohlcv".into()), &[self.number_to_string(Value::from(interval)), symbol.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
             self.clean_cache(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("topic".to_string(), Value::Str("ohlcv".into()));
-                    m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![symbol.map(Value::from).unwrap_or(Value::Null), timeframe])]));
+                    m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![symbol.map(Value::from).unwrap_or(Value::Null), timeframe.map(Value::from).unwrap_or(Value::Null)])]));
                 m
             }));
-            self.clean_unsubscription(client, subMessageHash, Value::from(unsubMessageHash), &[]);
+            self.clean_unsubscription(client, subMessageHash.map(Value::from).unwrap_or(Value::Null), Value::from(unsubMessageHash), &[]);
         }
         return message;
 

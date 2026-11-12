@@ -480,7 +480,7 @@ impl Btcbox {
             let mut symbolParts: Value = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut baseCurr: String = self.safe_string(symbolParts.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut quote: String = self.safe_string(symbolParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut quoteId: Value = Value::from(quote.to_lowercase());
+            let mut quoteId: String = quote.to_lowercase();
             let mut id: String = baseCurr.to_lowercase();
             let mut res: indexmap::IndexMap<String, Value> = self.safe_dict(response1.clone(), marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -504,7 +504,7 @@ impl Btcbox {
         m.insert("base".to_string(), Value::from(baseCurr));
         m.insert("baseId".to_string(), Value::from(id));
         m.insert("quote".to_string(), Value::from(quote));
-        m.insert("quoteId".to_string(), quoteId);
+        m.insert("quoteId".to_string(), Value::from(quoteId));
         m.insert("settle".to_string(), Value::Null);
         m.insert("settleId".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("spot".into()));
@@ -1284,10 +1284,10 @@ impl Btcbox {
                     m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m
             }), &[params]);
-            let mut request: Value = self.urlencode(query.clone(), &[]);
-            let mut secret: Value = self.hash(self.encode(self.secret.clone()), Value::Str("md5".into()), &[]);
-            if let Value::Dict(__d) = &mut query { std::sync::Arc::make_mut(__d).insert("signature".into(), self.hmac(self.encode(request), self.encode(secret), Value::Str("sha256".into()), &[])); }
-            let mut signedBody: Value = self.urlencode(query, &[]);
+            let mut request: Option<String> = self.urlencode(query.clone(), &[]).as_str().map(str::to_owned);
+            let mut secret: Option<String> = self.hash(self.encode(self.secret.clone()), Value::Str("md5".into()), &[]).as_str().map(str::to_owned);
+            if let Value::Dict(__d) = &mut query { std::sync::Arc::make_mut(__d).insert("signature".into(), self.hmac(self.encode(request.map(Value::from).unwrap_or(Value::Null)), self.encode(secret.map(Value::from).unwrap_or(Value::Null)), Value::Str("sha256".into()), &[])); }
+            let mut signedBody: Option<String> = self.urlencode(query, &[]).as_str().map(str::to_owned);
             let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
@@ -1297,7 +1297,7 @@ impl Btcbox {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));
         m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), signedBody);
+        m.insert("body".to_string(), signedBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(signedHeaders));
     m
 });

@@ -1040,7 +1040,7 @@ impl Mercado {
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
-        m.insert("id".to_string(), self.safe_string(self.safe_value(self.safe_value_k(response, "response_data", &[]), Value::Str("order".into()), &[]), Value::Str("order_id".into()), &[]));
+        m.insert("id".to_string(), self.safe_string(self.safe_dict(self.safe_dict_k(response, "response_data", &[]), Value::Str("order".into()), &[]), Value::Str("order_id".into()), &[]));
     m
 }), &[(market).raw.clone()]);
         Value::Null
@@ -1165,7 +1165,7 @@ impl Mercado {
         if (order_type.is_some()) {
             side = (if (order_type.as_deref() == Some("1")) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
-        let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str());
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "coin_pair", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(order.clone(), "created_timestamp", &[]).as_i64();
@@ -1203,7 +1203,7 @@ impl Mercado {
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map(fee));
         m.insert("trades".to_string(), rawTrades);
     m
@@ -1603,7 +1603,7 @@ impl Mercado {
                         let mut i: i64 = 0;
             let mut __for_first_946: bool = true;
             while { if !__for_first_946 { i += 1; } __for_first_946 = false; i < (orders.len() as i64) } {
-            let mut trades: crate::value::List = self.safe_list(self.safe_value(orders.clone(), Value::Int(i), &[]), Value::Str("trades".into()), &[Value::from(vec![])]).into_list();
+            let mut trades: crate::value::List = self.safe_list(self.safe_dict(orders.clone(), Value::Int(i), &[]), Value::Str("trades".into()), &[Value::from(vec![])]).into_list();
             {
                                 let mut y: i64 = 0;
                 let mut __for_first_945: bool = true;
@@ -1652,11 +1652,11 @@ impl Mercado {
             self.check_required_credentials(&[]);
             url.push_str(&format!("{}{}", self.version.clone(), Value::Str("/".into())));
             // mercado requires each tonce to be greater than the previous one
-            let mut nonce: Value = self.incrementing_nonce();
+            let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
             let __ws_arg_16 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("tapi_method".to_string(), path);
-        m.insert("tapi_nonce".to_string(), nonce);
+        m.insert("tapi_nonce".to_string(), Value::from(nonce));
     m
 }), &[params]);
             privateBody = self.urlencode(__ws_arg_16, &[]).as_str().map(str::to_owned);
@@ -1698,8 +1698,8 @@ impl Mercado {
         //
         //     {"status":503,"message":"Maintenancing, try again later","result":null}
         //
-        let mut errorMessage: Value = self.safe_value_k(response.clone(), "error_message", &[]);
-        if (errorMessage != Value::Null) {
+        let mut errorMessage: Option<String> = self.safe_string_k(response.clone(), "error_message", &[]).as_str().map(str::to_owned);
+        if (errorMessage.is_some()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response))));
         }
         return Value::Null;

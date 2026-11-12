@@ -1672,9 +1672,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut inst_type: Option<String> = self.safe_string_k(&market, "inst_type", &[]).as_str().map(str::to_owned);
             let mut spot: bool = inst_type.as_deref() == Some("CCY_PAIR");
-            let mut swap: Value = Value::Bool(inst_type.as_deref() == Some("PERPETUAL_SWAP"));
-            let mut future: Value = Value::Bool(inst_type.as_deref() == Some("FUTURE"));
-            let mut option: Value = Value::Bool(inst_type.as_deref() == Some("WARRANT"));
+            let mut swap: bool = inst_type.as_deref() == Some("PERPETUAL_SWAP");
+            let mut future: bool = inst_type.as_deref() == Some("FUTURE");
+            let mut option: bool = inst_type.as_deref() == Some("WARRANT");
             let mut baseId: Option<String> = self.safe_string_k(&market, "base_ccy", &[]).as_str().map(str::to_owned);
             let mut quoteId: Option<String> = self.safe_string_k(&market, "quote_ccy", &[]).as_str().map(str::to_owned);
             let mut settleId: Option<String> = (if spot { None } else { quoteId.clone() });
@@ -1683,7 +1683,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut settle: Value = (if spot { Value::Null } else { self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
+            let mut settle: Option<String> = (if spot { None } else { self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned) });
             let mut optionType: Option<String> = self.safe_string_lower_k(&market, "put_call", &[]).as_str().map(str::to_owned);
             let mut strike: Option<String> = self.safe_string_k(&market, "strike", &[]).as_str().map(str::to_owned);
             let mut marginBuyEnabled: bool = self.safe_bool_k_opt(&market, "margin_buy_enabled", &[Value::Bool(false)]).unwrap_or(false);
@@ -1721,16 +1721,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("symbol".to_string(), Value::from(symbol));
                     m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("settle".to_string(), settle);
+                    m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
                     m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("spot".to_string(), Value::Bool(spot));
                     m.insert("margin".to_string(), Value::Bool((marginBuyEnabled || marginSellEnabled)));
-                    m.insert("swap".to_string(), swap);
-                    m.insert("future".to_string(), future);
-                    m.insert("option".to_string(), option);
+                    m.insert("swap".to_string(), Value::Bool(swap));
+                    m.insert("future".to_string(), Value::Bool(future));
+                    m.insert("option".to_string(), Value::Bool(option));
                     m.insert("active".to_string(), self.safe_bool_k(&market, "tradable", &[]));
                     m.insert("contract".to_string(), contract.map(Value::from).unwrap_or(Value::Null));
                     m.insert("linear".to_string(), isLinear);
@@ -2788,8 +2788,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }  else {
                     let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
                     let mut priceString: Option<String> = self.number_to_string(price).as_str().map(str::to_owned);
-                    let mut costRequest: Value = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null));
-                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest);
+                    let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                 }
             }  else {
                 quoteAmount = self.cost_to_precision(symbol.clone(), amount.clone());
@@ -3280,10 +3280,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut addressString: Value = addressString.into();
         if (addressString != Value::Null) && Value::Int(addressString.as_str().and_then(|__s| __s.find("?")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
             let mut addressParts: Vec<Value> = Value::Array(if let Some(__s) = addressString.as_str() { __s.split("?").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-            let mut address: Value = addressParts.get(0).cloned().unwrap_or(Value::Null);
+            let mut address: Option<String> = addressParts.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut rawTag: Option<String> = addressParts.get(1).and_then(Value::as_str).map(str::to_owned);
             let mut splitted: Vec<Value> = Value::Array(if let Some(__s) = rawTag.as_deref() { __s.split("=").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-            return Value::from(vec![address, splitted.get(1).cloned().unwrap_or(Value::Null)]);
+            return Value::from(vec![address.map(Value::from).unwrap_or(Value::Null), splitted.get(1).cloned().unwrap_or(Value::Null)]);
         }
         return Value::from(vec![addressString, Value::Null]);
 
@@ -3334,9 +3334,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("address_tag".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(&paramsWithdrawTag).as_array().cloned().unwrap_or_default();
-        let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut networkId: Option<String> = self.network_code_to_id(networkCode, &[code]).as_str().map(str::to_owned);
+        let mut networkId: Option<String> = self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code]).as_str().map(str::to_owned);
         if (networkId.is_some()) {
             request.insert("network_id".into(), networkId.map(Value::from).unwrap_or(Value::Null));
         }
@@ -3437,7 +3437,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut responseCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let addresstagVariable: Vec<Value> = self.parse_address(addressString.as_deref()).as_array().cloned().unwrap_or_default();
             let mut address: Value = addresstagVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut tag: Value = addresstagVariable.get(1).cloned().unwrap_or(Value::Null);
+            let mut tag: Option<String> = addresstagVariable.get(1).and_then(Value::as_str).map(str::to_owned);
             self.check_address(&[address.clone()]);
             let mut networkId: Option<String> = self.safe_string_k(value.clone(), "network", &[]).as_str().map(str::to_owned);
             let mut network: Value = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), responseCode.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -3448,7 +3448,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("currency".to_string(), responseCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), network.clone());
         m.insert("address".to_string(), address);
-        m.insert("tag".to_string(), tag);
+        m.insert("tag".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
     m
 }));
             }
@@ -5262,7 +5262,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_601: bool = true;
             while { if !__for_first_601 { i += 1; } __for_first_601 = false; i < (self.symbols.len() as i64) } {
-            let mut symbol: String = self.safe_string(self.symbols.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut symbol: String = self.safe_string(&self.symbols, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str())).into_dict();
             let mut isSwap: bool = self.safe_bool_k(&market, "swap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut takerFeeKey: String = "effective_spot_taker_rate_bps".to_string();
@@ -5327,9 +5327,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Value = Value::Null;
-        let mut type_var: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut access: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), type_var, &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), type_var.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
@@ -5349,7 +5349,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut paramsKeys: Vec<Value> = Value::Array(requestParams.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut strSortKey: Value = self.params_to_string(requestParams, Value::Int(0));
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, nonce.clone().map(Value::from).unwrap_or(Value::Null)).into()), self.apiKey.clone()).into()), strSortKey).into()), nonce.clone().map(Value::from).unwrap_or(Value::Null));
-            let mut signature: Value = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut signature: Option<String> = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
             let mut paramsKeysLength: i64 = paramsKeys.len() as i64;
             requestBody = self.json(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -5357,7 +5357,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("method".to_string(), path);
                     m.insert("params".to_string(), params);
                     m.insert("api_key".to_string(), self.apiKey.clone());
-                    m.insert("sig".to_string(), signature);
+                    m.insert("sig".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                     m.insert("nonce".to_string(), nonce.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             }));

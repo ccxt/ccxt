@@ -1281,9 +1281,9 @@ impl Coinbaseinternational {
         let intervalparamsIntervalVariable: Vec<Value> = self.handle_option_string_and_params(paramsResolved, Value::Str("watchTicker".into()), Value::Str("interval".into()), &[Value::Str("100ms".into())]).as_array().cloned().unwrap_or_default();
         let mut interval: Option<String> = intervalparamsIntervalVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsInterval: Value = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isPrivate: Value = Value::Bool(interval.as_deref() == Some("raw"));
+        let mut isPrivate: bool = interval.as_deref() == Some("raw");
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval.as_deref().unwrap_or("null"));
-        return self.subscribe(Value::from(vec![Value::from(channel.clone())]), Value::from(vec![Value::from(channel)]), &[isPrivate, paramsInterval]).await;
+        return self.subscribe(Value::from(vec![Value::from(channel.clone())]), Value::from(vec![Value::from(channel)]), &[Value::Bool(isPrivate), paramsInterval]).await;
         Value::Null
         }).await?))
     }
@@ -2156,7 +2156,7 @@ impl Coinbaseinternational {
         let intervalparamsIntervalVariable: Vec<Value> = self.handle_option_string_and_params(paramsResolved, Value::Str("watchOrderBookForSymbols".into()), Value::Str("interval".into()), &[Value::Str("100ms".into())]).as_array().cloned().unwrap_or_default();
         let mut interval: Option<String> = intervalparamsIntervalVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isPrivate: Value = Value::Bool(interval.as_deref() == Some("raw"));
+        let mut isPrivate: bool = interval.as_deref() == Some("raw");
         let useDepthEndpointparamsDepthEndpointVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsInterval, Value::Str("watchOrderBookForSymbols".into()), Value::Str("useDepthEndpoint".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut useDepthEndpoint: bool = useDepthEndpointparamsDepthEndpointVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsDepthEndpoint: crate::value::Dict = useDepthEndpointparamsDepthEndpointVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2182,7 +2182,7 @@ impl Coinbaseinternational {
             std::sync::Arc::make_mut(&mut channels).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("book.".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into()), descriptor).into()));
         }
         }
-        let mut orderbook: Value = self.subscribe(Value::Arr(channels.clone()), Value::Arr(channels), &[isPrivate, paramsChannel]).await;
+        let mut orderbook: Value = self.subscribe(Value::Arr(channels.clone()), Value::Arr(channels), &[Value::Bool(isPrivate), paramsChannel]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -2383,7 +2383,7 @@ impl Coinbaseinternational {
                         let mut i: i64 = 0;
             let mut __for_first_263: bool = true;
             while { if !__for_first_263 { i += 1; } __for_first_263 = false; (i as f64) < deltasLength } {
-            self.handle_delta(bookside.clone(), self.safe_value(deltas.clone(), Value::Int(i), &[]));
+            self.handle_delta(bookside.clone(), self.safe_list(deltas.clone(), Value::Int(i), &[]));
         }
         }
 }
@@ -2582,7 +2582,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("params".to_string(), Value::Map(paramsAuth));
                 m
             });
-            future = client.reusable_future(messageHash.clone());
+            future = Value::from(client.reusable_future(messageHash.clone()));
             let __ws_arg_5 = self.extend(Value::Map(request), &[paramsResolved]);
             self.watch(&url, &messageHash, __ws_arg_5, &messageHash, Value::Null).await;
             client.add_subscription(&messageHash, future.clone());
@@ -3231,8 +3231,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut paramsResolved: Value = self.parent.handle_route_and_params("setCancelOnDisconnect", &[params]);
-        let mut method: Value = (if (enabled.as_bool() == Some(true)) { Value::Str("private/enable_cancel_on_disconnect".into()) } else { Value::Str("private/disable_cancel_on_disconnect".into()) });
-        return self.request_ws(method, &[paramsResolved, Value::Bool(true)]).await;
+        let mut method: String = (if (enabled.as_bool() == Some(true)) { "private/enable_cancel_on_disconnect".to_string() } else { "private/disable_cancel_on_disconnect".to_string() });
+        return self.request_ws(Value::from(method), &[paramsResolved, Value::Bool(true)]).await;
 
     Value::Null
 }
@@ -3281,8 +3281,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut paramsResolved: Value = self.parent.handle_route_and_params("unsubscribeAllWs", &[params]);
-        let mut method: Value = (if isPrivate.as_bool() == Some(true) { Value::Str("private/unsubscribe_all".into()) } else { Value::Str("public/unsubscribe_all".into()) });
-        return self.request_ws(method, &[paramsResolved, isPrivate]).await;
+        let mut method: String = (if isPrivate.as_bool() == Some(true) { "private/unsubscribe_all".to_string() } else { "public/unsubscribe_all".to_string() });
+        return self.request_ws(Value::from(method), &[paramsResolved, isPrivate]).await;
 
     Value::Null
 }

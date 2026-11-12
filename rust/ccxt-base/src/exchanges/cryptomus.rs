@@ -1516,7 +1516,7 @@ impl Cryptomus {
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut dateTime: Option<String> = self.safe_string_k(order.clone(), "createdAt", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Value = self.parse8601(dateTime.map(Value::from).unwrap_or(Value::Null));
+        let mut timestamp: Option<i64> = self.parse8601(dateTime.map(Value::from).unwrap_or(Value::Null)).as_i64();
         let mut deal: crate::value::Dict = self.safe_dict_k(order.clone(), "deal", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1542,14 +1542,14 @@ impl Cryptomus {
         }
         let mut amount: Option<f64> = self.safe_number_k(order.clone(), "quantity", &[]).as_f64();
         let mut cost: Option<f64> = self.safe_number_k(order.clone(), "value", &[]).as_f64();
-        let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "state", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "state", &[])).as_str());
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
@@ -1564,7 +1564,7 @@ impl Cryptomus {
         m.insert("average".to_string(), Value::from(averageFilledPrice));
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "filledQuantity", &[]));
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);
         m.insert("info".to_string(), order);
@@ -1674,7 +1674,7 @@ impl Cryptomus {
             m
         });
         let mut tiers: indexmap::IndexMap<String, Value> = self.parse_fee_tiers(feeTiers, &[]).as_map().cloned().unwrap_or_default();
-        let mut symbols: Value = self.symbols.clone();
+        let mut symbols: Value = Value::Arr(self.symbols.clone());
         if (symbols == Value::Null) {
             return Value::Map(result);
         }
@@ -1763,16 +1763,16 @@ impl Cryptomus {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), query.map(Value::from).unwrap_or(Value::Null)));
                 }
             }
-            let mut jsonParamsBase64: Value = self.string_to_base64(jsonParams.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut stringToSign: String = format!("{}{}", jsonParamsBase64, self.secret.clone());
-            let mut signature: Value = self.hash(self.encode(Value::from(stringToSign)), Value::Str("md5".into()), &[]);
-            privateHeaders.insert("sign".into(), signature);
-            let mut privateBody: Value = (if (method.as_str() != Some("GET")) { jsonParams.map(Value::from).unwrap_or(Value::Null) } else { Value::Null });
+            let mut jsonParamsBase64: Option<String> = self.string_to_base64(jsonParams.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            let mut stringToSign: String = format!("{}{}", jsonParamsBase64.map(Value::from).unwrap_or(Value::Null), self.secret.clone());
+            let mut signature: Option<String> = self.hash(self.encode(Value::from(stringToSign)), Value::Str("md5".into()), &[]).as_str().map(str::to_owned);
+            privateHeaders.insert("sign".into(), signature.map(Value::from).unwrap_or(Value::Null));
+            let mut privateBody: Option<String> = (if (method.as_str() != Some("GET")) { jsonParams } else { None });
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));
         m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), privateBody);
+        m.insert("body".to_string(), privateBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(privateHeaders));
     m
 });

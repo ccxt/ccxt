@@ -1765,7 +1765,7 @@ impl Bitbns {
         //
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "unit", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
-        let mut timestamp: Value = self.parse8601(self.safe_string2(transaction.clone(), Value::Str("date".into()), Value::Str("timestamp".into()), &[]));
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string2(transaction.clone(), Value::Str("date".into()), Value::Str("timestamp".into()), &[])).as_i64();
         let mut type_var: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut expTime: String = self.safe_string_k(transaction.clone(), "expTime", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut status: Option<String> = None;
@@ -1794,8 +1794,8 @@ impl Bitbns {
         m.insert("info".to_string(), transaction);
         m.insert("id".to_string(), Value::Null);
         m.insert("txid".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), Value::Null);
         m.insert("addressTo".to_string(), Value::Null);
@@ -1907,8 +1907,8 @@ impl Bitbns {
         if (apiName.as_str() != Some("www")) {
             requestHeaders.insert("X-BITBNS-APIKEY".into(), self.apiKey.clone());
         }
-        let mut baseUrl: Value = self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null));
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        let mut baseUrl: Option<String> = self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut nonce: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
         let mut queryLength: f64 = ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64);
@@ -1929,9 +1929,9 @@ impl Bitbns {
                 m
             });
             let mut payload: Value = self.string_to_base64(json_stringify(&Value::Map(auth)), &[]);
-            let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);
+            let mut signature: Option<String> = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]).as_str().map(str::to_owned);
             requestHeaders.insert("X-BITBNS-PAYLOAD".into(), payload);
-            requestHeaders.insert("X-BITBNS-SIGNATURE".into(), signature);
+            requestHeaders.insert("X-BITBNS-SIGNATURE".into(), signature.map(Value::from).unwrap_or(Value::Null));
             requestHeaders.insert("Content-Type".into(), Value::Str("application/x-www-form-urlencoded".into()));
         }
         return Value::Map({

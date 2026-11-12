@@ -1691,7 +1691,7 @@ impl Toobit {
         let mut settleId: Option<String> = self.safe_string_k(market.clone(), "marginToken", &[]).as_str().map(str::to_owned);
         let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut active: Value = (Value::Bool(status.as_deref() == Some("TRADING")));
+        let mut active: bool = status.as_deref() == Some("TRADING");
         let mut filters: Value = self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]);
         let mut filtersByType: crate::value::Dict = self.index_by(filters, Value::Str("filterType".into())).into_dict();
         let mut priceFilter: crate::value::Dict = self.safe_dict_k(&filtersByType, "PRICE_FILTER", &[Value::Map({
@@ -1728,7 +1728,7 @@ impl Toobit {
         m.insert("swap".to_string(), isContract.clone());
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), Value::Bool(active));
         m.insert("contract".to_string(), isContract.clone());
         m.insert("linear".to_string(), (if matches!(&isContract, Value::Bool(true)) { (Value::Bool(inverse != Some(true))) } else { Value::Null }));
         m.insert("inverse".to_string(), (if matches!(&isContract, Value::Bool(true)) { inverse.map_or(Value::Null, Value::Bool) } else { Value::Null }));
@@ -2863,7 +2863,7 @@ impl Toobit {
             rawSideLower = self.safe_string(sideParts, Value::Int(0), &[]).as_str().map(str::to_owned);
         }
         // omitZero already maps '0.0' to undefined
-        let mut triggerPrice: Value = self.omit_zero(self.safe_string_k(order.clone(), "stopPrice", &[]));
+        let mut triggerPrice: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "stopPrice", &[])).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -2880,7 +2880,7 @@ impl Toobit {
         m.insert("postOnly".to_string(), (Value::Bool(rawType.as_deref() == Some("LIMIT_MAKER"))));
         m.insert("side".to_string(), rawSideLower.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "price", &[])));
-        m.insert("triggerPrice".to_string(), triggerPrice);
+        m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "cumulativeQuoteQty", &[])));
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "avgPrice", &[]));
         m.insert("amount".to_string(), self.safe_string_k(order.clone(), "origQty", &[]));
@@ -4189,12 +4189,12 @@ impl Toobit {
         let mut marketId: Option<String> = self.safe_string2(leverage.clone(), Value::Str("symbolId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
         let mut leverageValue: Option<i64> = self.safe_integer_k(leverage.clone(), "leverage", &[]).as_i64();
         let mut marginType: Option<String> = self.safe_string_lower_k(leverage.clone(), "marginType", &[]).as_str().map(str::to_owned);
-        let mut marginMode: Value = (if (marginType.as_deref() == Some("cross")) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
+        let mut marginMode: String = (if (marginType.as_deref() == Some("cross")) { "cross".to_string() } else { "isolated".to_string() });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage);
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]));
-        m.insert("marginMode".to_string(), marginMode);
+        m.insert("marginMode".to_string(), Value::from(marginMode));
         m.insert("longLeverage".to_string(), Value::from(leverageValue));
         m.insert("shortLeverage".to_string(), Value::from(leverageValue));
     m
@@ -4303,8 +4303,8 @@ impl Toobit {
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut baseUrl: Value = baseApiUrl.map(Value::from).unwrap_or(Value::Null);
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        let mut baseUrl: Option<String> = baseApiUrl;
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut isPost: bool = method.as_str() == Some("POST");
         let mut isDelete: bool = method.as_str() == Some("DELETE");
         let mut extraQuery: indexmap::IndexMap<String, Value> = ({

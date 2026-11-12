@@ -567,7 +567,7 @@ impl Bitopro {
         if (base.is_none()) || (quote.is_none()) {
             return;
         }
-        let mut symbol: Value = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)).into()));
+        let mut symbol: Option<String> = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)).into())).as_str().map(str::to_owned);
         let mut messageHash: Option<String> = (match message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (self.myTrades.clone() == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -578,7 +578,7 @@ impl Bitopro {
         trades.append(parsed);
         client.resolve(trades.clone(), messageHash.as_deref());
         if (messageHash.is_some()) {
-            client.resolve(trades, &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash.map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol).into())));
+            client.resolve(trades, &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash.map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())));
         }
 }
 
@@ -746,14 +746,14 @@ impl Bitopro {
         }
         self.check_required_credentials(&[]);
         let mut nonce: i64 = self.milliseconds().as_i64().unwrap_or_default();
-        let mut rawData: Value = self.json(Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("nonce".to_string(), Value::from(nonce));
-                m.insert("identity".to_string(), self.login.clone());
-            m
-        }));
-        let mut payload: Value = self.string_to_base64(rawData, &[]);
-        let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
+        let mut rawData: Option<String> = self.json(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("nonce".to_string(), Value::from(nonce));
+        m.insert("identity".to_string(), self.login.clone());
+    m
+})).as_str().map(str::to_owned);
+        let mut payload: Value = self.string_to_base64(rawData.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut signature: Option<String> = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]).as_str().map(str::to_owned);
         let mut defaultOptions: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ws".to_string(), Value::Map({
@@ -786,7 +786,7 @@ impl Bitopro {
                 m.insert("X-BITOPRO-API".to_string(), Value::Str("ccxt".into()));
                 m.insert("X-BITOPRO-APIKEY".to_string(), self.apiKey.clone());
                 m.insert("X-BITOPRO-PAYLOAD".to_string(), payload);
-                m.insert("X-BITOPRO-SIGNATURE".to_string(), signature);
+                m.insert("X-BITOPRO-SIGNATURE".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
             m
         });
         wsInnerOptions.insert("headers".into(), Value::Map(headers));

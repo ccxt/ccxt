@@ -401,10 +401,10 @@ impl Bullish {
     m
 }));
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private").as_str().map(str::to_owned);
-        let mut token: Value = self.parent.handle_token(&[]).await;
+        let mut token: Option<String> = self.parent.handle_token(&[]).await.as_str().map(str::to_owned);
         let mut cookies: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("JWT_COOKIE".to_string(), token);
+                m.insert("JWT_COOKIE".to_string(), token.map(Value::from).unwrap_or(Value::Null));
             m
         });
         if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("cookies".to_string(), Value::Map(cookies)); } }
@@ -740,9 +740,8 @@ impl Bullish {
             if ((match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null }).as_f64() != Some(0.0)) {
                 continue;
             }
-            let mut price: Option<String> = self.safe_string(&entries, i.clone(), &[]).as_str().map(str::to_owned);
-            result.push(Value::from(vec![price.map(Value::from).unwrap_or(Value::Null), self.safe_string(&entries, (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[])]));
+            let mut price: Value = self.safe_string(&entries, i.clone(), &[]);
+            result.push(Value::from(vec![price, self.safe_string(&entries, (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[])]));
         }
         }
         return Value::from(result);
@@ -893,8 +892,8 @@ impl Bullish {
                                 let mut i: i64 = 0;
                 let mut __for_first_178: bool = true;
                 while { if !__for_first_178 { i += 1; } __for_first_178 = false; i < (keys.len() as i64) } {
-                let mut hashSymbol: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), hashSymbol);
+                let mut hashSymbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), hashSymbol.map(Value::from).unwrap_or(Value::Null));
                 client.resolve(self.orders.clone(), symbolMessageHash.as_str());
             }
             }
@@ -1037,8 +1036,8 @@ impl Bullish {
                                 let mut i: i64 = 0;
                 let mut __for_first_180: bool = true;
                 while { if !__for_first_180 { i += 1; } __for_first_180 = false; i < (keys.len() as i64) } {
-                let mut hashSymbol: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), hashSymbol);
+                let mut hashSymbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), hashSymbol.map(Value::from).unwrap_or(Value::Null));
                 client.resolve(self.myTrades.clone(), symbolMessageHash.as_str());
             }
             }

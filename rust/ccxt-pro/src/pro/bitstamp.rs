@@ -1510,7 +1510,7 @@ impl Bitstamp {
                 crate::exchange_stubs::ws_await_flight(&client.future(messageHash.as_str())).await;
                 return Value::Null;
             }
-            let mut future: Value = client.reusable_future(messageHash.as_str());
+            let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let mut response: crate::value::Dict = self.parent.private_post_websockets_token(&[params]).await.into_dict();
                 //

@@ -486,16 +486,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })); }
         }
         let bookSubscriptionTypeparamsBookSubscriptionTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("bookSubscriptionType".into()), &[Value::Str("SNAPSHOT_AND_UPDATE".into())]).as_array().cloned().unwrap_or_default();
-        let mut bookSubscriptionType: Value = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut bookSubscriptionType: Option<String> = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsBookSubscriptionType: crate::value::Dict = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let bookSubscriptionType2paramsBookSubscriptionType2Variable: Vec<Value> = self.handle_option_string_and_params(&paramsBookSubscriptionType, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookSubscriptionType".into()), &[bookSubscriptionType]).as_array().cloned().unwrap_or_default();
+        let bookSubscriptionType2paramsBookSubscriptionType2Variable: Vec<Value> = self.handle_option_string_and_params(&paramsBookSubscriptionType, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookSubscriptionType".into()), &[bookSubscriptionType.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
         let mut bookSubscriptionType2: Value = bookSubscriptionType2paramsBookSubscriptionType2Variable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsBookSubscriptionType2: Value = bookSubscriptionType2paramsBookSubscriptionType2Variable.get(1).cloned().unwrap_or(Value::Null);
         add_element_to_object(get_value_mut(&mut paramsBookSubscriptionType2, &Value::Str("params".into())), &Value::Str("bookSubscriptionType".into()), bookSubscriptionType2);
         let bookUpdateFrequencyparamsBookUpdateFrequencyVariable: Vec<Value> = self.handle_option_string_and_params(paramsBookSubscriptionType2, Value::Str("watchOrderBook".into()), Value::Str("bookUpdateFrequency".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut bookUpdateFrequency: Value = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut bookUpdateFrequency: Option<String> = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsBookUpdateFrequency: crate::value::Dict = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let bookUpdateFrequency2paramsBookUpdateFrequency2Variable: Vec<Value> = self.handle_option_string_and_params(&paramsBookUpdateFrequency, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookUpdateFrequency".into()), &[bookUpdateFrequency]).as_array().cloned().unwrap_or_default();
+        let bookUpdateFrequency2paramsBookUpdateFrequency2Variable: Vec<Value> = self.handle_option_string_and_params(&paramsBookUpdateFrequency, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookUpdateFrequency".into()), &[bookUpdateFrequency.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
         let mut bookUpdateFrequency2: Value = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsBookUpdateFrequency2: Value = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.get(1).cloned().unwrap_or(Value::Null);
         if (bookUpdateFrequency2 != Value::Null) {
@@ -557,16 +557,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })); }
         }
         let bookSubscriptionTypeparamsBookSubscriptionTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("bookSubscriptionType".into()), &[Value::Str("SNAPSHOT_AND_UPDATE".into())]).as_array().cloned().unwrap_or_default();
-        let mut bookSubscriptionType: Value = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut bookSubscriptionType: Option<String> = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsBookSubscriptionType: crate::value::Dict = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let bookSubscriptionType2paramsBookSubscriptionType2Variable: Vec<Value> = self.handle_option_string_and_params(&paramsBookSubscriptionType, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookSubscriptionType".into()), &[bookSubscriptionType]).as_array().cloned().unwrap_or_default();
+        let bookSubscriptionType2paramsBookSubscriptionType2Variable: Vec<Value> = self.handle_option_string_and_params(&paramsBookSubscriptionType, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookSubscriptionType".into()), &[bookSubscriptionType.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
         let mut bookSubscriptionType2: Value = bookSubscriptionType2paramsBookSubscriptionType2Variable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsBookSubscriptionType2: Value = bookSubscriptionType2paramsBookSubscriptionType2Variable.get(1).cloned().unwrap_or(Value::Null);
         add_element_to_object(get_value_mut(&mut paramsBookSubscriptionType2, &Value::Str("params".into())), &Value::Str("bookSubscriptionType".into()), bookSubscriptionType2);
         let bookUpdateFrequencyparamsBookUpdateFrequencyVariable: Vec<Value> = self.handle_option_string_and_params(paramsBookSubscriptionType2, Value::Str("watchOrderBook".into()), Value::Str("bookUpdateFrequency".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut bookUpdateFrequency: Value = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut bookUpdateFrequency: Option<String> = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsBookUpdateFrequency: crate::value::Dict = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let bookUpdateFrequency2paramsBookUpdateFrequency2Variable: Vec<Value> = self.handle_option_string_and_params(&paramsBookUpdateFrequency, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookUpdateFrequency".into()), &[bookUpdateFrequency]).as_array().cloned().unwrap_or_default();
+        let bookUpdateFrequency2paramsBookUpdateFrequency2Variable: Vec<Value> = self.handle_option_string_and_params(&paramsBookUpdateFrequency, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookUpdateFrequency".into()), &[bookUpdateFrequency.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
         let mut bookUpdateFrequency2: Value = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsBookUpdateFrequency2: Value = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.get(1).cloned().unwrap_or(Value::Null);
         if (bookUpdateFrequency2 != Value::Null) {
@@ -600,7 +600,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_269: bool = true;
             while { if !__for_first_269 { i += 1; } __for_first_269 = false; i < (deltas.len() as i64) } {
-            self.handle_delta(bookside.clone(), self.safe_value(deltas.clone(), Value::Int(i), &[]));
+            self.handle_delta(bookside.clone(), self.safe_list(deltas.clone(), Value::Int(i), &[]));
         }
         }
 }
@@ -846,9 +846,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_271 { i += 1; } __for_first_271 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut currentTopic: Value = Value::Str(format!("{}{}", Value::Str("trade.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into());
+            let mut currentTopic: String = format!("{}{}", Value::Str("trade.".into()), Value::from((market).id.as_deref().unwrap_or("")));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("unsubscribe:trades:".into()), Value::from((market).symbol.clone())).into()));
-            std::sync::Arc::make_mut(&mut topics).push(currentTopic);
+            std::sync::Arc::make_mut(&mut topics).push(Value::from(currentTopic));
         }
         }
         return self.un_watch_public_multiple("trades", symbolsNormalized.map_or(Value::Null, Value::Arr), Value::from(messageHashes), Value::Arr(topics.clone()), Value::Arr(topics), &[params]).await;
@@ -905,7 +905,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut j: i64 = 0;
             let mut __for_first_272: bool = true;
             while { if !__for_first_272 { j += 1; } __for_first_272 = false; j < (parsedTrades.len() as i64) } {
-            stored.append(self.safe_value(parsedTrades.clone(), Value::Int(j), &[]));
+            stored.append(self.safe_dict(parsedTrades.clone(), Value::Int(j), &[]));
         }
         }
         let mut channelReplaced: Value = channel.as_str().zip((Value::Str(format!("{}{}", Value::Str(".".into()), marketId.map(Value::from).unwrap_or(Value::Null)).into())).as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| channel.clone());
@@ -1054,7 +1054,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
-        let mut id: Value = self.incrementing_nonce();
+        let mut id: Option<i64> = self.incrementing_nonce().as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -1063,7 +1063,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("channels".to_string(), messageHashes.clone());
     m
 }));
-                m.insert("nonce".to_string(), id);
+                m.insert("nonce".to_string(), Value::from(id));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
@@ -1259,7 +1259,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
-        let mut id: Value = self.incrementing_nonce();
+        let mut id: Option<i64> = self.incrementing_nonce().as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -1268,7 +1268,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("channels".to_string(), Value::from(topics));
     m
 }));
-                m.insert("nonce".to_string(), id);
+                m.insert("nonce".to_string(), Value::from(id));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -1587,7 +1587,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         self.authenticate(&[]).await;
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private");
-        let mut id: Value = self.incrementing_nonce();
+        let mut id: Option<i64> = self.incrementing_nonce().as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -1596,7 +1596,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("channels".to_string(), Value::from(vec![Value::Str("user.position_balance".into())]));
     m
 }));
-                m.insert("nonce".to_string(), id.clone());
+                m.insert("nonce".to_string(), Value::from(id));
             m
         });
         let mut messageHash: String = "positions".to_string();
@@ -1660,7 +1660,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
-            let mut future: Value = __ch.get_future(&messageHash);
+            let mut future: crate::pro::ws_client::Flight = __ch.get_future(&messageHash);
             future.resolve(cache.clone(), None);
             client.resolve(cache, "positions");
         }
@@ -1873,8 +1873,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("params".to_string(), Value::Map(paramsValue));
             m
         });
-        let mut messageHash: Value = self.incrementing_nonce();
-        return self.watch_private_request(messageHash, &[Value::Map(request)]).await;
+        let mut messageHash: Option<i64> = self.incrementing_nonce().as_i64();
+        return self.watch_private_request(Value::from(messageHash), &[Value::Map(request)]).await;
         Value::Null
         }).await?))
     }
@@ -1920,8 +1920,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("params".to_string(), Value::Map(paramsValue));
             m
         });
-        let mut messageHash: Value = self.incrementing_nonce();
-        return self.watch_private_request(messageHash, &[Value::Map(request)]).await;
+        let mut messageHash: Option<i64> = self.incrementing_nonce().as_i64();
+        return self.watch_private_request(Value::from(messageHash), &[Value::Map(request)]).await;
         Value::Null
         }).await?))
     }
@@ -1985,8 +1985,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("params".to_string(), paramsExtended);
             m
         });
-        let mut messageHash: Value = self.incrementing_nonce();
-        return self.watch_private_request(messageHash, &[Value::Map(request)]).await;
+        let mut messageHash: Option<i64> = self.incrementing_nonce().as_i64();
+        return self.watch_private_request(Value::from(messageHash), &[Value::Map(request)]).await;
         Value::Null
         }).await?))
     }
@@ -2028,8 +2028,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if let Value::Dict(__d) = request.entry("params".into()).or_default() { std::sync::Arc::make_mut(__d).insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id")); }
         }
-        let mut messageHash: Value = self.incrementing_nonce();
-        return self.watch_private_request(messageHash, &[Value::Map(request)]).await;
+        let mut messageHash: Option<i64> = self.incrementing_nonce().as_i64();
+        return self.watch_private_request(Value::from(messageHash), &[Value::Map(request)]).await;
         Value::Null
         }).await?))
     }
@@ -2054,7 +2054,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
-        let mut id: Value = self.incrementing_nonce();
+        let mut id: Option<i64> = self.incrementing_nonce().as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -2063,7 +2063,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("channels".to_string(), Value::from(vec![messageHash.clone()]));
     m
 }));
-                m.insert("nonce".to_string(), id);
+                m.insert("nonce".to_string(), Value::from(id));
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
@@ -2078,7 +2078,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
-        let mut id: Value = self.incrementing_nonce();
+        let mut id: Option<i64> = self.incrementing_nonce().as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -2087,7 +2087,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("channels".to_string(), topics);
     m
 }));
-                m.insert("nonce".to_string(), id);
+                m.insert("nonce".to_string(), Value::from(id));
             m
         });
         let mut message: Value = self.deep_extend(Value::Map(request), &[params]);
@@ -2107,7 +2107,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
-        let mut id: Value = self.incrementing_nonce();
+        let mut id: Option<i64> = self.incrementing_nonce().as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -2116,13 +2116,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("channels".to_string(), topics);
     m
 }));
-                m.insert("nonce".to_string(), id.clone());
-                m.insert("id".to_string(), self.number_to_string(id.clone()));
+                m.insert("nonce".to_string(), Value::from(id));
+                m.insert("id".to_string(), self.number_to_string(Value::from(id)));
             m
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), self.number_to_string(id));
+                m.insert("id".to_string(), self.number_to_string(Value::from(id)));
                 m.insert("topic".to_string(), topic);
                 m.insert("symbols".to_string(), symbols);
                 m.insert("subMessageHashes".to_string(), subMessageHashes);
@@ -2164,7 +2164,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         self.authenticate(&[]).await;
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private").as_str().map(str::to_owned);
-        let mut id: Value = self.incrementing_nonce();
+        let mut id: Option<i64> = self.incrementing_nonce().as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -2173,7 +2173,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("channels".to_string(), Value::from(vec![messageHash.clone()]));
     m
 }));
-                m.insert("nonce".to_string(), id);
+                m.insert("nonce".to_string(), Value::from(id));
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
@@ -2323,21 +2323,21 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private");
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         let mut messageHash: String = "authenticated".to_string();
-        let mut future: Value = client.reusable_future(messageHash.as_str());
+        let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut method: String = "public/auth".to_string();
-            let mut nonceValue: Value = self.incrementing_nonce();
-            let mut nonce: Option<String> = self.number_to_string(nonceValue).as_str().map(str::to_owned);
+            let mut nonceValue: Option<i64> = self.incrementing_nonce().as_i64();
+            let mut nonce: Option<String> = self.number_to_string(Value::from(nonceValue)).as_str().map(str::to_owned);
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, nonce.clone().map(Value::from).unwrap_or(Value::Null)).into()), self.apiKey.clone()).into()), nonce.clone().map(Value::from).unwrap_or(Value::Null));
-            let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), nonce.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("nonce".to_string(), nonce.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("method".to_string(), Value::from(method));
                     m.insert("api_key".to_string(), self.apiKey.clone());
-                    m.insert("sig".to_string(), signature);
+                    m.insert("sig".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                 m
             });
             let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
@@ -2387,9 +2387,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                         let mut j: i64 = 0;
                     let mut __for_first_283: bool = true;
                     while { if !__for_first_283 { j += 1; } __for_first_283 = false; j < (messageHashes.len() as i64) } {
-                    let mut unsubHash: Value = messageHashes.get(j as usize).cloned().unwrap_or(Value::Null);
-                    let mut subHash: Value = subMessageHashes.get(j as usize).cloned().unwrap_or(Value::Null);
-                    self.clean_unsubscription(client.clone(), subHash, unsubHash, &[]);
+                    let mut unsubHash: Option<String> = messageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                    let mut subHash: Option<String> = subMessageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                    self.clean_unsubscription(client.clone(), subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[]);
                 }
                 }
                 self.clean_cache(subscription);

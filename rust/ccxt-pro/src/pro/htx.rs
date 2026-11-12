@@ -1848,14 +1848,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 // inject trade in existing order by faking an order object
                 let mut orderId: Option<String> = self.safe_string_k(parsedTrade.clone(), "order", &[]).as_str().map(str::to_owned);
                 let mut trades: Value = Value::from(vec![parsedTrade]);
-                let mut status: Value = self.parent.parse_order_status((self.safe_string2(data.clone(), Value::Str("orderStatus".into()), Value::Str("status".into()), &[Value::Str("closed".into())])).as_str()).map(Value::from).unwrap_or(Value::Null);
+                let mut status: Option<String> = self.parent.parse_order_status((self.safe_string2(data.clone(), Value::Str("orderStatus".into()), Value::Str("status".into()), &[Value::Str("closed".into())])).as_str());
                 let mut filled: Option<String> = self.safe_string_k(data.clone(), "execAmt", &[]).as_str().map(str::to_owned);
                 let mut remaining: Option<String> = self.safe_string_k(data.clone(), "remainAmt", &[]).as_str().map(str::to_owned);
                 let mut order: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
                         m.insert("trades".to_string(), trades);
-                        m.insert("status".to_string(), status);
+                        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
                         m.insert("lastTradeTimestamp".to_string(), self.safe_integer_k(data.clone(), "tradeTime", &[]));
                         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
                         m.insert("filled".to_string(), self.parse_number(filled.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -2085,7 +2085,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone()]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string2(order.clone(), Value::Str("orderSize".into()), Value::Str("volume".into()), &[]).as_str().map(str::to_owned);
-        let mut status: Value = self.parent.parse_order_status((self.safe_string_n(order.clone(), Value::from(vec![Value::Str("orderStatus".into()), Value::Str("state".into()), Value::Str("status".into())]), &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parent.parse_order_status((self.safe_string_n(order.clone(), Value::from(vec![Value::Str("orderStatus".into()), Value::Str("state".into()), Value::Str("status".into())]), &[])).as_str());
         let mut id: Option<String> = self.safe_string2(order.clone(), Value::Str("orderId".into()), Value::Str("order_id".into()), &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Option<String> = self.safe_string2(order.clone(), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string2(order.clone(), Value::Str("orderPrice".into()), Value::Str("price".into()), &[]).as_str().map(str::to_owned);
@@ -2130,7 +2130,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("timestamp".to_string(), Value::from(created));
         m.insert("datetime".to_string(), self.iso8601(Value::from(created)));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.safe_string_upper_k(order.clone(), "time_in_force", &[]));
@@ -2943,9 +2943,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_395: bool = true;
             while { if !__for_first_395 { i += 1; } __for_first_395 = false; i < (messageHashes.len() as i64) } {
-            let mut unsubHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut subHash: Value = subMessageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
-            self.clean_unsubscription(client.clone(), subHash, unsubHash, &[]);
+            let mut unsubHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut subHash: Option<String> = subMessageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            self.clean_unsubscription(client.clone(), subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[]);
         }
         }
         self.clean_cache(subscription);
@@ -3743,11 +3743,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe::".into()), subMessageHash);
-        let mut isFeed: Value = (Value::Bool(topic.as_str() == Some("orderbook")));
+        let mut isFeed: bool = topic.as_str().unwrap_or_default().to_string() == "orderbook";
         if (market == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unsubscribePublic() market is required".into()))));
         }
-        let mut url: Value = self.get_url_by_market_type(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), &[market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null), Value::Bool(false), isFeed]).map(Value::from).unwrap_or(Value::Null);
+        let mut url: Value = self.get_url_by_market_type(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), &[market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null), Value::Bool(false), Value::Bool(isFeed)]).map(Value::from).unwrap_or(Value::Null);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
@@ -3808,9 +3808,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
         }
-        let mut isLinear: Value = Value::Bool(subtype.as_str() == Some("linear"));
+        let mut isLinear: bool = subtype.as_str().map(str::to_owned).as_deref() == Some("linear");
         let mut isV5: bool = self.safe_bool_k(subscriptionParams, "isV5", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[isLinear, Value::Bool(true), Value::Bool(false), Value::Bool(isV5)]).map(Value::from).unwrap_or(Value::Null);
+        let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[Value::Bool(isLinear), Value::Bool(true), Value::Bool(false), Value::Bool(isV5)]).map(Value::from).unwrap_or(Value::Null);
         let mut hostnames: indexmap::IndexMap<String, Value> = self.safe_dict_k(self.urls.clone(), "hostnames", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3850,7 +3850,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: String = "auth".to_string();
         let mut relativePath: Value = url.as_str().zip((Value::Str(format!("{}{}", Value::Str("wss://".into()), hostname.clone().map(Value::from).unwrap_or(Value::Null)).into())).as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| url.clone());
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
-        let mut future: Value = client.reusable_future(messageHash.as_str());
+        let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut timestamp: Value = self.ymdhms(self.milliseconds(), &[Value::Str("T".into())]);
@@ -3875,9 +3875,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 });
             }
             signatureParams = self.keysort(signatureParams.clone(), &[]);
-            let mut auth: Value = self.urlencode(signatureParams, &[Value::Bool(true)]); // true required in go
+            let mut auth: Option<String> = self.urlencode(signatureParams, &[Value::Bool(true)]).as_str().map(str::to_owned); // true required in go
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("GET".into()), Value::Str("\n".into())).into()), hostname.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("\n".into())).into()),
-                relativePath).into()), Value::Str("\n".into())).into()), auth); // eslint-disable-line quotes
+                relativePath).into()), Value::Str("\n".into())).into()), auth.map(Value::from).unwrap_or(Value::Null)); // eslint-disable-line quotes
             let mut signature: Value = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             let mut request: Value = Value::Null;
             if (type_var.as_deref() == Some("spot")) {

@@ -910,8 +910,8 @@ impl Latoken {
                 if (base.is_none()) || (quote.is_none()) {
                     continue;
                 }
-                let mut lowercaseQuote: Value = quote.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null);
-                let mut capitalizedQuote: Value = self.capitalize(lowercaseQuote);
+                let mut lowercaseQuote: Option<String> = quote.as_deref().map(str::to_lowercase);
+                let mut capitalizedQuote: Value = self.capitalize(lowercaseQuote.map(Value::from).unwrap_or(Value::Null));
                 let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
                 result.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1066,7 +1066,7 @@ impl Latoken {
                         let mut i: i64 = 0;
             let mut __for_first_911: bool = true;
             while { if !__for_first_911 { i += 1; } __for_first_911 = false; i < (rawCurrencies.len() as i64) } {
-            let mut rawCurrency: Value = self.safe_value(&rawCurrencies, Value::Int(i), &[]);
+            let mut rawCurrency: Value = self.safe_dict(&rawCurrencies, Value::Int(i), &[]);
             let mut bindingEntry: crate::value::Dict = self.safe_dict(bindingsById.clone(), self.safe_string_k(rawCurrency.clone(), "id", &[]), &[]).into_dict();
             let mut bindings: Option<crate::value::List> = self.safe_list_k(&bindingEntry, "bindings", &[]).into_opt_list();
             let mut mergedCurrency: Value = rawCurrency.clone();
@@ -1402,12 +1402,12 @@ impl Latoken {
             }
         }
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "lastPrice", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Value = self.safe_integer_omit_zero(ticker.clone(), Value::Str("updateTimestamp".into()), &[]); // sometimes latoken provided '0' ts from /ticker endpoint
+        let mut timestamp: Option<i64> = self.safe_integer_omit_zero(ticker.clone(), Value::Str("updateTimestamp".into()), &[]).as_i64(); // sometimes latoken provided '0' ts from /ticker endpoint
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("low".to_string(), Value::Null);
         m.insert("high".to_string(), Value::Null);
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bestBid", &[]));
@@ -1550,7 +1550,7 @@ impl Latoken {
         }
         let mut isBuy: bool = side.as_deref() == Some("buy");
         let mut isMaker: bool = makerBuyer && isBuy;
-        let mut takerOrMaker: Value = (if isMaker { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+        let mut takerOrMaker: String = (if isMaker { "maker".to_string() } else { "taker".to_string() });
         let mut baseId: Option<String> = self.safe_string_k(trade.clone(), "baseCurrency", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(trade.clone(), "quoteCurrency", &[]).as_str().map(str::to_owned);
         let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -1584,7 +1584,7 @@ impl Latoken {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
-        m.insert("takerOrMaker".to_string(), takerOrMaker);
+        m.insert("takerOrMaker".to_string(), Value::from(takerOrMaker));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
@@ -1898,7 +1898,7 @@ impl Latoken {
             let mut partsLength: i64 = parts.len() as i64;
             side = self.safe_string_lower(parts, Value::Int((partsLength - 1)), &[]).as_str().map(str::to_owned);
         }
-        let mut type_var: Value = self.parse_order_type((self.safe_string_k(order.clone(), "type", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Option<String> = self.parse_order_type((self.safe_string_k(order.clone(), "type", &[])).as_str());
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "quantity", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "filled", &[]).as_str().map(str::to_owned);
@@ -1924,7 +1924,7 @@ impl Latoken {
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), status);
         m.insert("symbol".to_string(), symbol);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2387,7 +2387,7 @@ impl Latoken {
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "timestamp", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
-        let mut status: Value = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
         let mut addressFrom: Option<String> = self.safe_string_k(transaction.clone(), "senderAddress", &[]).as_str().map(str::to_owned);
         let mut addressTo: Option<String> = self.safe_string_k(transaction.clone(), "recipientAddress", &[]).as_str().map(str::to_owned);
@@ -2405,7 +2405,7 @@ impl Latoken {
             fee.insert("cost".into(), Value::from(feeCost));
             fee.insert("currency".into(), code.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut type_var: Value = self.parse_transaction_type((self.safe_string_k(transaction.clone(), "type", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut type_var: Option<String> = self.parse_transaction_type((self.safe_string_k(transaction.clone(), "type", &[])).as_str());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction);
@@ -2420,10 +2420,10 @@ impl Latoken {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), tagTo.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), tagTo.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
@@ -2664,11 +2664,11 @@ impl Latoken {
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", method, request).into()), urlencodedQuery.map(Value::from).unwrap_or(Value::Null));
-            let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);
+            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]).as_str().map(str::to_owned);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-LA-APIKEY".to_string(), self.apiKey.clone());
-                    m.insert("X-LA-SIGNATURE".to_string(), signature);
+                    m.insert("X-LA-SIGNATURE".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                     m.insert("X-LA-DIGEST".to_string(), Value::Str("HMAC-SHA512".into()));
                 m
             });

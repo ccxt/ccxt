@@ -374,8 +374,8 @@ impl Hollaex {
         if (symbol.is_some()) {
             let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
             let mut timestamp: Option<String> = self.safe_string_k(data.clone(), "timestamp", &[]).as_str().map(str::to_owned);
-            let mut timestampMs: Value = self.parse8601(timestamp.map(Value::from).unwrap_or(Value::Null));
-            let mut snapshot: Value = self.parse_order_book(data, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[timestampMs]);
+            let mut timestampMs: Option<i64> = self.parse8601(timestamp.map(Value::from).unwrap_or(Value::Null)).as_i64();
+            let mut snapshot: Value = self.parse_order_book(data, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(timestampMs)]);
             let mut orderbook: Value = Value::Null;
             if !(matches!((&self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 orderbook = self.order_book(&[snapshot.clone()]);
@@ -470,7 +470,7 @@ impl Hollaex {
                         let mut i: i64 = 0;
             let mut __for_first_378: bool = true;
             while { if !__for_first_378 { i += 1; } __for_first_378 = false; i < (parsedTrades.len() as i64) } {
-            stored.append(self.safe_value(parsedTrades.clone(), Value::Int(i), &[]));
+            stored.append(self.safe_dict(parsedTrades.clone(), Value::Int(i), &[]));
         }
         }
         if (channel.is_some()) {
@@ -590,9 +590,9 @@ impl Hollaex {
                         let mut i: i64 = 0;
             let mut __for_first_380: bool = true;
             while { if !__for_first_380 { i += 1; } __for_first_380 = false; i < (keys.len() as i64) } {
-            let mut marketId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (channel.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId);
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId.map(Value::from).unwrap_or(Value::Null));
                 client.resolve(self.myTrades.clone(), messageHash.as_str());
             }
         }
@@ -746,9 +746,9 @@ impl Hollaex {
                         let mut i: i64 = 0;
             let mut __for_first_382: bool = true;
             while { if !__for_first_382 { i += 1; } __for_first_382 = false; i < (keys.len() as i64) } {
-            let mut marketId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (channel.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId);
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId.map(Value::from).unwrap_or(Value::Null));
                 client.resolve(self.orders.clone(), messageHash.as_str());
             }
         }
@@ -869,11 +869,11 @@ impl Hollaex {
         }
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("CONNECT".into()), Value::Str("/stream".into())).into()), expires);
-        let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+        let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
         let mut authParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("api-key".to_string(), self.apiKey.clone());
-                m.insert("api-signature".to_string(), signature);
+                m.insert("api-signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                 m.insert("api-expires".to_string(), expires);
             m
         });

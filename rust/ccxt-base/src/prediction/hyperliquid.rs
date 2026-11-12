@@ -1185,8 +1185,8 @@ impl Hyperliquid {
         let mut topAsk: Option<crate::value::Dict> = self.safe_dict(&rawAsks, Value::Int(0), &[]).into_opt_dict();
         let mut bid: Value = (if (topBid.is_some()) { self.safe_number_k(&topBid, "px", &[]) } else { Value::Null });
         let mut ask: Value = (if (topAsk.is_some()) { self.safe_number_k(&topAsk, "px", &[]) } else { Value::Null });
-        let mut bidVolume: Value = (if (topBid.is_some()) { self.safe_number_k(&topBid, "sz", &[]) } else { Value::Null });
-        let mut askVolume: Value = (if (topAsk.is_some()) { self.safe_number_k(&topAsk, "sz", &[]) } else { Value::Null });
+        let mut bidVolume: Option<f64> = (if (topBid.is_some()) { self.safe_number_k(&topBid, "sz", &[]).as_f64() } else { None });
+        let mut askVolume: Option<f64> = (if (topAsk.is_some()) { self.safe_number_k(&topAsk, "sz", &[]).as_f64() } else { None });
         // Use synthetic mid if no l2Book
         let mut mid: Value = self.safe_number_k(raw.clone(), "mid", &[]);
         if (mid == Value::Null) && (bid != Value::Null) && (ask != Value::Null) {
@@ -1220,9 +1220,9 @@ impl Hyperliquid {
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
         m.insert("bid".to_string(), bid);
-        m.insert("bidVolume".to_string(), bidVolume);
+        m.insert("bidVolume".to_string(), Value::from(bidVolume));
         m.insert("ask".to_string(), ask);
-        m.insert("askVolume".to_string(), askVolume);
+        m.insert("askVolume".to_string(), Value::from(askVolume));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
         m.insert("close".to_string(), mid.clone());
@@ -1447,12 +1447,12 @@ impl Hyperliquid {
     m
 }));
         let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address("fetchBalance", params).as_array().cloned().unwrap_or_default();
-        let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut userAddress: Option<String> = userAddressparamsPublicAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("spotClearinghouseState".into()));
-                m.insert("user".to_string(), userAddress);
+                m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsPublicAddress]);
@@ -1537,12 +1537,12 @@ impl Hyperliquid {
             self.load_outcomes(&[]).await;
         }
         let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address("fetchPositions", params).as_array().cloned().unwrap_or_default();
-        let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut userAddress: Option<String> = userAddressparamsPublicAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("spotClearinghouseState".into()));
-                m.insert("user".to_string(), userAddress);
+                m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
         // outcome positions are spot token balances under the "+<encoding>" coin form; they carry
@@ -1862,7 +1862,7 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut isBuy: bool = (side.as_str().unwrap_or_default().to_string().to_uppercase()) == "BUY";
         let mut isMarket: bool = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("MARKET");
         let mut assetId: Option<i64> = self.safe_integer_k(&outcomeInfo, "assetId", &[]).as_i64();
@@ -1943,11 +1943,11 @@ impl Hyperliquid {
     m
 }));
         }
-        let mut signature: Value = self.sign_l1_action(Value::Map(orderAction.clone()), nonce.clone(), vaultAddress.as_str());
+        let mut signature: Value = self.sign_l1_action(Value::Map(orderAction.clone()), Value::from(nonce), vaultAddress.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(orderAction));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("signature".to_string(), signature);
             m
         });
@@ -2083,7 +2083,7 @@ impl Hyperliquid {
             m
         })]).into_dict();
         let mut assetId: Option<i64> = self.safe_integer_k(&outcomeInfo, "assetId", &[]).as_i64();
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]).into_dict();
         let mut cancelReq: Vec<Value> = vec![];
@@ -2126,11 +2126,11 @@ impl Hyperliquid {
         cancelAction.insert("cancels".into(), Value::Array(cancelReq));
         let mut vaultAddressOption: Value = self.handle_option_string_and_params(&paramsOmitted, Value::Str("cancelOrders".into()), Value::Str("vaultAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut vaultAddress: Value = self.format_vault_address(vaultAddressOption.as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut signature: Value = self.sign_l1_action(Value::Map(cancelAction.clone()), nonce.clone(), vaultAddress.as_str());
+        let mut signature: Value = self.sign_l1_action(Value::Map(cancelAction.clone()), Value::from(nonce), vaultAddress.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(cancelAction));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("signature".to_string(), signature);
             m
         });
@@ -2215,15 +2215,15 @@ impl Hyperliquid {
     m
 }));
         let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address("fetchOpenOrders", params).as_array().cloned().unwrap_or_default();
-        let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut userAddress: Option<String> = userAddressparamsPublicAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPublicAddress, Value::Str("fetchOpenOrders".into()), Value::Str("method".into()), &[Value::Str("frontendOpenOrders".into())]).as_array().cloned().unwrap_or_default();
-        let mut method: Value = methodparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), method);
-                m.insert("user".to_string(), userAddress);
+                m.insert("type".to_string(), method.map(Value::from).unwrap_or(Value::Null));
+                m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsMethod]);
@@ -2283,12 +2283,12 @@ impl Hyperliquid {
     m
 }));
         let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address("fetchOrders", params).as_array().cloned().unwrap_or_default();
-        let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut userAddress: Option<String> = userAddressparamsPublicAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("historicalOrders".into()));
-                m.insert("user".to_string(), userAddress);
+                m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsPublicAddress]);
@@ -2363,13 +2363,13 @@ impl Hyperliquid {
     m
 }));
         let userAddressparamsAddressVariable: Vec<Value> = self.handle_public_address("fetchOrder", params).as_array().cloned().unwrap_or_default();
-        let mut userAddress: Value = userAddressparamsAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut userAddress: Option<String> = userAddressparamsAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAddress: crate::value::Dict = userAddressparamsAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut clientOrderId: Option<String> = self.safe_string_k(&paramsAddress, "clientOrderId", &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("orderStatus".into()));
-                m.insert("user".to_string(), userAddress);
+                m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut paramsValue: Value = Value::from(&paramsAddress);
@@ -2436,7 +2436,7 @@ impl Hyperliquid {
         // }
         //
         let mut entry: Value = self.safe_dict_k(order.clone(), "order", &[order.clone()]); // eslint-disable-line
-        let mut status: Value = self.parse_order_status((self.safe_string2(order.clone(), Value::Str("ccxtStatus".into()), Value::Str("status".into()), &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_order_status((self.safe_string2(order.clone(), Value::Str("ccxtStatus".into()), Value::Str("status".into()), &[])).as_str());
         let mut coin: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
         let mut outcomeObj: crate::value::Dict = self.safe_outcome(coin.map(Value::from).unwrap_or(Value::Null), &[market.clone()]).into_dict();
         let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
@@ -2460,7 +2460,7 @@ impl Hyperliquid {
         let mut tif: Value = self.parse_time_in_force(tifRaw.as_deref()).map(Value::from).unwrap_or(Value::Null);
         let mut postOnly: Value = (Value::Bool(tif.as_str() == Some("PO")));
         let mut isTrigger: bool = self.safe_bool_k(&entry, "isTrigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut triggerPrice: Value = (if isTrigger { self.safe_number_k(&entry, "triggerPx", &[]) } else { Value::Null });
+        let mut triggerPrice: Option<f64> = (if isTrigger { self.safe_number_k(&entry, "triggerPx", &[]).as_f64() } else { None });
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&entry, "oid", &[]));
@@ -2469,7 +2469,7 @@ impl Hyperliquid {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("outcome".to_string(), self.safe_string_k(&outcomeObj, "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string_k(&outcomeObj, "id", &[]));
         m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
@@ -2480,7 +2480,7 @@ impl Hyperliquid {
         m.insert("reduceOnly".to_string(), self.safe_bool_k(&entry, "reduceOnly", &[Value::Bool(false)]));
         m.insert("side".to_string(), Value::from(side));
         m.insert("price".to_string(), self.safe_number_k(&entry, "limitPx", &[]));
-        m.insert("triggerPrice".to_string(), triggerPrice);
+        m.insert("triggerPrice".to_string(), Value::from(triggerPrice));
         m.insert("amount".to_string(), self.parse_number(totalAmount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), self.safe_number_k(&entry, "avgPx", &[]));
@@ -2540,8 +2540,8 @@ impl Hyperliquid {
                 m.insert("alo".to_string(), Value::Str("PO".into()));
             m
         });
-        let mut tifLower: Value = (if ((timeInForce != Value::Null) && (timeInForce.as_str() != Some(""))) { (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }) } else { Value::Null });
-        return self.safe_string(&statuses, tifLower, &[timeInForce]).as_str().map(str::to_owned);
+        let mut tifLower: Option<String> = (if ((timeInForce != Value::Null) && (timeInForce.as_str() != Some(""))) { timeInForce.as_str().map(str::to_owned).as_deref().map(str::to_lowercase) } else { None });
+        return self.safe_string(&statuses, tifLower.map(Value::from).unwrap_or(Value::Null), &[timeInForce]).as_str().map(str::to_owned);
 }
 
 /*
@@ -2630,11 +2630,11 @@ impl Hyperliquid {
             self.load_outcomes(&[]).await;
         }
         let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address("fetchMyTrades", params).as_array().cloned().unwrap_or_default();
-        let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut userAddress: Option<String> = userAddressparamsPublicAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("user".to_string(), userAddress);
+                m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (since != Value::Null) {
@@ -2952,7 +2952,7 @@ impl Hyperliquid {
             }
             title = Some(format!("{}{}", underlying.map(Value::from).unwrap_or(Value::Null), titleSuffix));
         }
-        let mut endValue: Value = (if (expiryMs.is_some()) { Value::from(expiryMs) } else { Value::from(firstExpiry) });
+        let mut endValue: Option<i64> = (if (expiryMs.is_some()) { expiryMs } else { firstExpiry });
         return self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), parentSymbol.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2964,7 +2964,7 @@ impl Hyperliquid {
         m.insert("image".to_string(), Value::Null);
         m.insert("created".to_string(), Value::Null);
         m.insert("createdDatetime".to_string(), Value::Null);
-        m.insert("end".to_string(), endValue);
+        m.insert("end".to_string(), Value::from(endValue));
         m.insert("endDatetime".to_string(), expiryDatetime);
         m.insert("category".to_string(), Value::Str("crypto".into()));
         m.insert("lastUpdatedAt".to_string(), Value::Null);
@@ -3065,8 +3065,8 @@ impl Hyperliquid {
     pub fn action_hash(&self, mut action: Value, vaultAddress: Option<&str>, mut nonce: Value) -> Value {
         let mut vaultAddress: Value = vaultAddress.into();
         let mut dataBinary: Value = self.packb(action, &[]);
-        let mut dataHex: Value = self.binary_to_base16(dataBinary, &[]);
-        let mut data: Value = dataHex;
+        let mut dataHex: Option<String> = self.binary_to_base16(dataBinary, &[]).as_str().map(str::to_owned);
+        let mut data: Value = dataHex.map(Value::from).unwrap_or(Value::Null);
         data = Value::Str(format!("{}{}", data, Value::Str(format!("{}{}", Value::Str("00000".into()), self.int_to_base16(nonce, &[])).into())).into());
         if (vaultAddress == Value::Null) {
             data = Value::Str(format!("{}{}", data, Value::Str("00".into())).into());
@@ -3176,14 +3176,14 @@ impl Hyperliquid {
     pub async fn approve_builder_fee(&mut self, builder: &str, maxFeeRate: &str) -> Value {
         let mut builder: Value = builder.into();
         let mut maxFeeRate: Value = maxFeeRate.into();
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
         let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), (if isSandboxMode { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
                 m.insert("maxFeeRate".to_string(), maxFeeRate);
                 m.insert("builder".to_string(), builder);
-                m.insert("nonce".to_string(), nonce.clone());
+                m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
         let mut sig: Value = self.build_approve_builder_fee_sig(Value::Map(payload.clone()));
@@ -3193,14 +3193,14 @@ impl Hyperliquid {
                 m.insert("signatureChainId".to_string(), Value::Str("0x66eee".into()));
                 m.insert("maxFeeRate".to_string(), payload.get("maxFeeRate").cloned().unwrap_or(Value::Null));
                 m.insert("builder".to_string(), payload.get("builder").cloned().unwrap_or(Value::Null));
-                m.insert("nonce".to_string(), nonce.clone());
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("type".to_string(), Value::Str("approveBuilderFee".into()));
             m
         });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(action));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("signature".to_string(), sig);
                 m.insert("vaultAddress".to_string(), Value::Null);
             m
@@ -3241,9 +3241,9 @@ if _try_result.is_err() {
     pub fn handle_public_address(&self, methodName: &str, mut params: Value) -> Value {
         let mut methodName: Value = methodName.into();
         let userAuxparamsUserVariable: Vec<Value> = self.handle_option_string_and_params2(params, methodName.clone(), Value::Str("user".into()), Value::Str("subAccountAddress".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut userAux: Value = userAuxparamsUserVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut userAux: Option<String> = userAuxparamsUserVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsUser: crate::value::Dict = userAuxparamsUserVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let userparamsAddressVariable: Vec<Value> = self.handle_option_string_and_params(&paramsUser, methodName.clone(), Value::Str("address".into()), &[userAux]).as_array().cloned().unwrap_or_default();
+        let userparamsAddressVariable: Vec<Value> = self.handle_option_string_and_params(&paramsUser, methodName.clone(), Value::Str("address".into()), &[userAux.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
         let mut user: Option<String> = userparamsAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAddress: Value = userparamsAddressVariable.get(1).cloned().unwrap_or(Value::Null);
         if (user.is_some()) && (user.as_deref() != Some("")) {

@@ -2007,21 +2007,21 @@ impl Coinone {
                 nonce = self.number_to_string(self.nonce());
             }
             let __ws_arg_10 = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("access_token".to_string(), self.apiKey.clone());
-                    m.insert("nonce".to_string(), nonce);
-                m
-            }), &[params]);
-            let mut json: Value = self.json(__ws_arg_10);
-            let mut payload: Value = self.string_to_base64(json, &[]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("access_token".to_string(), self.apiKey.clone());
+        m.insert("nonce".to_string(), nonce);
+    m
+}), &[params]);
+            let mut json: Option<String> = self.json(__ws_arg_10).as_str().map(str::to_owned);
+            let mut payload: Value = self.string_to_base64(json.map(Value::from).unwrap_or(Value::Null), &[]);
             requestBody = payload.clone();
             let mut secret: Value = (if let Some(__s) = self.secret.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-            let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(secret), Value::Str("sha512".into()), &[]);
+            let mut signature: Option<String> = self.hmac(self.encode(payload.clone()), self.encode(secret), Value::Str("sha512".into()), &[]).as_str().map(str::to_owned);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("X-COINONE-PAYLOAD".to_string(), payload);
-                    m.insert("X-COINONE-SIGNATURE".to_string(), signature);
+                    m.insert("X-COINONE-SIGNATURE".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                 m
             });
         }

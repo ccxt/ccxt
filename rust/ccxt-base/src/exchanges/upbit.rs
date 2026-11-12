@@ -1421,12 +1421,12 @@ impl Upbit {
         if (symbolsNormalized.is_none()) {
             // ticker/all returns every market of the requested quote currencies with a single request
             let mut quoteIds: crate::value::List = std::sync::Arc::new(Vec::new());
-            let mut marketSymbols: Value = self.symbols.clone();
+            let mut marketSymbols: crate::value::List = self.symbols.clone();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1139: bool = true;
                 while { if !__for_first_1139 { i += 1; } __for_first_1139 = false; i < (marketSymbols.len() as i64) } {
-                let mut market: crate::types::Market = (match self.market((marketSymbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                let mut market: crate::types::Market = (match self.market((marketSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let mut quoteId: Value = Value::from((market).quote_id.as_deref());
                 if !(self.in_array(quoteId.clone(), Value::Arr(quoteIds.clone())).as_bool() == Some(true)) {
                     std::sync::Arc::make_mut(&mut quoteIds).push(quoteId);
@@ -1720,16 +1720,16 @@ impl Upbit {
         //
         let mut askFee: Option<String> = self.safe_string_k(response.clone(), "ask_fee", &[]).as_str().map(str::to_owned);
         let mut bidFee: Option<String> = self.safe_string_k(response.clone(), "bid_fee", &[]).as_str().map(str::to_owned);
-        let mut taker: Value = crate::precise::Precise::stringMax(&askFee.map(Value::from).unwrap_or(Value::Null), &bidFee.map(Value::from).unwrap_or(Value::Null));
+        let mut taker: Option<String> = crate::precise::Precise::stringMax(&askFee.map(Value::from).unwrap_or(Value::Null), &bidFee.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut makerAskFee: Option<String> = self.safe_string_k(response.clone(), "maker_ask_fee", &[]).as_str().map(str::to_owned);
         let mut makerBidFee: Option<String> = self.safe_string_k(response.clone(), "maker_bid_fee", &[]).as_str().map(str::to_owned);
-        let mut maker: Value = crate::precise::Precise::stringMax(&makerAskFee.map(Value::from).unwrap_or(Value::Null), &makerBidFee.map(Value::from).unwrap_or(Value::Null));
+        let mut maker: Option<String> = crate::precise::Precise::stringMax(&makerAskFee.map(Value::from).unwrap_or(Value::Null), &makerBidFee.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
         m.insert("symbol".to_string(), symbol);
-        m.insert("maker".to_string(), self.parse_number(maker, &[]));
-        m.insert("taker".to_string(), self.parse_number(taker, &[]));
+        m.insert("maker".to_string(), self.parse_number(maker.map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("taker".to_string(), self.parse_number(taker.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
     m
@@ -1910,8 +1910,8 @@ impl Upbit {
             }
             let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
             let mut priceString: Option<String> = self.number_to_string(price).as_str().map(str::to_owned);
-            let mut costRequest: Value = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null));
-            quoteAmount = self.cost_to_precision(symbol.clone(), costRequest).as_str().map(str::to_owned);
+            let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }  else {
             if (amount == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" When createMarketBuyOrderRequiresPrice is false, \"amount\" is required and should be the total quote amount to spend.".into()))));
@@ -2471,7 +2471,7 @@ impl Upbit {
         let mut address: Value = Value::Null; // not present in the data structure received from the exchange
         let mut tag: Value = Value::Null; // not present in the data structure received from the exchange
         let mut updatedRaw: Option<String> = self.safe_string_k(transaction.clone(), "done_at", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Value = self.parse8601(self.safe_string_k(transaction.clone(), "created_at", &[updatedRaw.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "created_at", &[updatedRaw.clone().map(Value::from).unwrap_or(Value::Null)])).as_i64();
         let mut type_var: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("withdraw")) {
             type_var = Some("withdrawal".to_string());
@@ -2495,8 +2495,8 @@ impl Upbit {
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), self.parse8601(updatedRaw.map(Value::from).unwrap_or(Value::Null)));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txid", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("internal".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
@@ -2608,8 +2608,8 @@ impl Upbit {
         }
         let mut identifier: Option<String> = self.safe_string_k(order.clone(), "identifier", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string_k(order.clone(), "ord_type", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Value = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[]));
-        let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "state", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[])).as_i64();
+        let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "state", &[])).as_str());
         let mut lastTradeTimestamp: Value = Value::Null;
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "volume", &[]).as_str().map(str::to_owned);
@@ -2679,8 +2679,8 @@ impl Upbit {
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), identifier.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
@@ -2694,7 +2694,7 @@ impl Upbit {
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), trades);
     m
@@ -3168,11 +3168,11 @@ impl Upbit {
         });
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = self.uuid(&[]);
+            let mut nonce: Option<String> = self.uuid(&[]).as_str().map(str::to_owned);
             let mut request: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("access_key".to_string(), self.apiKey.clone());
-                    m.insert("nonce".to_string(), nonce);
+                    m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m
             };
             let mut auth: Option<String> = None;
@@ -3183,8 +3183,8 @@ impl Upbit {
                 auth = self.rawencode(query, &[]).as_str().map(str::to_owned);
             }
             if (auth.is_some()) {
-                let mut hash: Value = self.hash(self.encode(auth.map(Value::from).unwrap_or(Value::Null)), Value::Str("sha512".into()), &[]);
-                request.insert("query_hash".into(), hash);
+                let mut hash: Option<String> = self.hash(self.encode(auth.map(Value::from).unwrap_or(Value::Null)), Value::Str("sha512".into()), &[]).as_str().map(str::to_owned);
+                request.insert("query_hash".into(), hash.map(Value::from).unwrap_or(Value::Null));
                 request.insert("query_hash_alg".into(), Value::Str("SHA512".into()));
             }
             let mut token: Value = jwt(Value::Map(request), self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);

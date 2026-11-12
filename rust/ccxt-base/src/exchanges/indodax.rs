@@ -1130,7 +1130,7 @@ impl Indodax {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(1000) } else { limit.clone() });
+        let mut limitResolved: i64 = limit.as_i64().unwrap_or(1000);
         if (since != Value::Null) {
             request.insert("from".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null));
         }  else {
@@ -1147,7 +1147,7 @@ impl Indodax {
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.public_get_tradingview_history_v2(&[__ws_arg_3]).await;
-        return self.parse_ohlc_vs(self.to_array(response), &[(market).raw.clone(), timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(self.to_array(response), &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -1209,7 +1209,7 @@ impl Indodax {
         //    }
         //
         let mut side: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[Value::Str("open".into())])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[Value::Str("open".into())])).as_str());
         let mut symbol: Value = Value::Null;
         let mut cost: Option<String> = None;
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
@@ -1258,7 +1258,7 @@ impl Indodax {
         m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);
     m
@@ -1501,8 +1501,8 @@ impl Indodax {
                     }
                     let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
                     let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
-                    let mut costRequest: Value = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null));
-                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest);
+                    let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                 }
                 request.insert(crate::runtime::stringify_param(&(Value::from((market).quote_id.as_deref()))), quoteAmount);
             }  else {
@@ -1752,8 +1752,8 @@ impl Indodax {
             m
         });
         if (since != Value::Null) {
-            let mut startTime: Value = self.yyyymmdd(since.clone(), &[]);
-            request.insert("start".into(), startTime);
+            let mut startTime: Option<String> = self.yyyymmdd(since.clone(), &[]).as_str().map(str::to_owned);
+            request.insert("start".into(), startTime.map(Value::from).unwrap_or(Value::Null));
             request.insert("end".into(), self.yyyymmdd(self.milliseconds(), &[]));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);

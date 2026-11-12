@@ -473,7 +473,7 @@ impl Deepcoin {
         let mut suffix = get_arg(optional_args, 2, Value::Str("".into()));
         let mut marketType: String = self.safe_string_k(market.clone(), "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), Value::from(marketType), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut requestId: Value = self.request_id();
+        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
         let mut existingSubscription: Option<crate::value::Dict> = self.safe_dict((client).subscriptions.clone(), messageHash.clone(), &[]).into_opt_dict();
         if (existingSubscription.is_none()) {
@@ -487,7 +487,7 @@ impl Deepcoin {
                 m.insert("subHash".to_string(), messageHash);
                 m.insert("unsubHash".to_string(), Value::from(unsubHash.clone()));
                 m.insert("symbols".to_string(), Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]));
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
             m
         })]).into_dict();
         let __ws_arg_1 = self.deep_extend(request, &[params]);
@@ -502,9 +502,9 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut listenKey: Value = self.authenticate(&[]).await;
+        let mut listenKey: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
         let __ws_arg_2 = self.safe_string(crate::value::get_value_k(&crate::value::get_value_k(&self.urls, "api"), "ws"), Value::Str("private".into()), &[Value::Str("".into())]);
-        return self.watch(&(Value::Str(format!("{}{}", Value::Str(format!("{}{}", __ws_arg_2, Value::Str("?listenKey=".into())).into()), listenKey).into())), &messageHash, Value::Null, "private", params).await;
+        return self.watch(&(Value::Str(format!("{}{}", Value::Str(format!("{}{}", __ws_arg_2, Value::Str("?listenKey=".into())).into()), listenKey.map(Value::from).unwrap_or(Value::Null)).into())), &messageHash, Value::Null, "private", params).await;
 
     Value::Null
 }
@@ -529,7 +529,7 @@ impl Deepcoin {
             crate::exchange_stubs::ws_await_flight(&client.future(messageHash.as_str())).await;
             return self.safe_string_k(self.options.clone(), "listenKey", &[]);
         }
-        let mut future: Value = client.reusable_future(messageHash.as_str());
+        let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut listenKey: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut listenKeyExpiryTimestamp: Value = self.safe_integer_k(self.options.clone(), "listenKeyExpiryTimestamp", &[time.clone()]);
@@ -1167,9 +1167,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str("::".into())).into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]));
         let suffixparamsValueVariable: Vec<Value> = self.order_book_suffix(market.clone(), Value::Str("watchOrderBook".into()), &[params]).as_array().cloned().unwrap_or_default();
-        let mut suffix: Value = suffixparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut suffix: Option<String> = suffixparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsValue: Value = suffixparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut orderbook: Value = self.watch_public(market, messageHash.as_str(), "25", &[paramsValue, suffix]).await;
+        let mut orderbook: Value = self.watch_public(market, messageHash.as_str(), "25", &[paramsValue, suffix.map(Value::from).unwrap_or(Value::Null)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1202,14 +1202,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str("::".into())).into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]));
         let suffixparamsValueVariable: Vec<Value> = self.order_book_suffix(market.clone(), Value::Str("unWatchOrderBook".into()), &[params]).as_array().cloned().unwrap_or_default();
-        let mut suffix: Value = suffixparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut suffix: Option<String> = suffixparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsValue: Value = suffixparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("orderbook".into()));
             m
         });
-        return self.un_watch_public(market, messageHash.as_str(), "25", &[paramsValue, Value::Map(subscription), suffix]).await;
+        return self.un_watch_public(market, messageHash.as_str(), "25", &[paramsValue, Value::Map(subscription), suffix.map(Value::from).unwrap_or(Value::Null)]).await;
         Value::Null
         }).await?))
     }
@@ -1719,7 +1719,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut listenKey: Value = self.authenticate(&[]).await;
+        let mut listenKey: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut messageHash: String = "positions".to_string();
         let mut messageHashes: Vec<Value> = Vec::new();
@@ -1728,15 +1728,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: i64 = 0;
                 let mut __for_first_287: bool = true;
                 while { if !__for_first_287 { i += 1; } __for_first_287 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into());
-                messageHashes.push(symbolMessageHash);
+                let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
+                messageHashes.push(Value::from(symbolMessageHash));
             }
             }
         }  else {
             messageHashes.push(Value::from(messageHash));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]), Value::Str("?listenKey=".into())).into()), listenKey);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]), Value::Str("?listenKey=".into())).into()), listenKey.map(Value::from).unwrap_or(Value::Null));
         let mut positions: Value = self.watch_multiple(url.as_str(), Value::from(messageHashes), params, Value::from(vec![Value::Str("private".into())]), Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
             return positions;

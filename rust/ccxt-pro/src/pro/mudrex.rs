@@ -503,8 +503,8 @@ impl Mudrex {
             return;
         }
         let mut parts: Vec<Value> = Value::Array(if let Some(__s) = stream.as_deref() { __s.split("@").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-        let mut interval: Value = parts.get(1).cloned().unwrap_or(Value::Null);
-        let mut tf: Value = self.find_timeframe(interval, &[]);
+        let mut interval: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
+        let mut tf: Value = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut s: Option<String> = self.safe_string_k(&data, "s", &[]).as_str().map(str::to_owned);
         if (s.is_none()) {

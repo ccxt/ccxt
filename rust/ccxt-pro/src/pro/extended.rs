@@ -754,8 +754,8 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_310: bool = true;
             while { if !__for_first_310 { i += 1; } __for_first_310 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut messageHash: String = format!("{}{}", Value::Str("myTrades:".into()), key);
+            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut messageHash: String = format!("{}{}", Value::Str("myTrades:".into()), key.map(Value::from).unwrap_or(Value::Null));
             client.resolve(stored.clone(), messageHash.as_str());
         }
         }
@@ -955,8 +955,8 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_315: bool = true;
             while { if !__for_first_315 { i += 1; } __for_first_315 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut messageHash: String = format!("{}{}", Value::Str("orders:".into()), key);
+            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut messageHash: String = format!("{}{}", Value::Str("orders:".into()), key.map(Value::from).unwrap_or(Value::Null));
             client.resolve(orders.clone(), messageHash.as_str());
         }
         }
@@ -1310,13 +1310,13 @@ impl Extended {
         let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbolValue).into()), Value::Str(":".into())).into()), timeframe).into()), Value::Str(":".into())).into()), candleType.clone().map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_2 = self.extend(Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("interval".to_string(), interval.map(Value::from).unwrap_or(Value::Null));
-            m
-        }), &[&paramsOmitted]);
-        let mut query: Value = self.urlencode(__ws_arg_2, &[]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("interval".to_string(), interval.map(Value::from).unwrap_or(Value::Null));
+    m
+}), &[&paramsOmitted]);
+        let mut query: Option<String> = self.urlencode(__ws_arg_2, &[]).as_str().map(str::to_owned);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]),
-            Value::Str("/candles/".into())).into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into()), Value::Str("/".into())).into()), candleType.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("?".into())).into()), query);
+            Value::Str("/candles/".into())).into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into()), Value::Str("/".into())).into()), candleType.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("?".into())).into()), query.map(Value::from).unwrap_or(Value::Null));
         let mut ohlcv: Value = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::Str("ohlcv".into()));
@@ -1405,8 +1405,8 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_319: bool = true;
             while { if !__for_first_319 { i += 1; } __for_first_319 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), key, &[]);
+            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), key.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut subscriptionName: Option<String> = self.safe_string_k_opt(subscription.clone(), "name", &[]);
             if (subscriptionName.as_deref() == name.as_str()) {
                 return subscription;

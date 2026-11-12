@@ -475,7 +475,7 @@ impl Grvt {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTickers requires a symbols argument".into()))));
         }
         let channelparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchTickers".into()), Value::Str("channel".into()), &[Value::Str("v1.ticker.s".into())]).as_array().cloned().unwrap_or_default();
-        let mut channel: Value = channelparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut channel: Option<String> = channelparamsChannelVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsChannel: crate::value::Dict = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let intervalOptionparamsIntervalVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsChannel, Value::Str("watchTickers".into()), Value::Str("interval".into()), &[Value::Int(500)]).as_array().cloned().unwrap_or_default();
         let mut intervalOption: Value = intervalOptionparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -498,7 +498,7 @@ impl Grvt {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("stream".to_string(), channel);
+                m.insert("stream".to_string(), channel.map(Value::from).unwrap_or(Value::Null));
                 m.insert("selectors".to_string(), Value::from(rawHashes.clone()));
             m
         });
@@ -892,8 +892,8 @@ impl Grvt {
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut secondPart: String = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut timeframeId: Value = Value::from(secondPart.replace("-TRADE", ""));
-        let mut timeframe: Value = self.find_timeframe(timeframeId, &[]);
+        let mut timeframeId: String = secondPart.replace("-TRADE", "");
+        let mut timeframe: Value = self.find_timeframe(Value::from(timeframeId), &[]);
         if (timeframe == Value::Null) {
             return;
         }
@@ -946,8 +946,8 @@ impl Grvt {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = self.symbol(symbol.clone());
-        return crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols((Value::from(vec![symbolValue])).to_str_vec(), limit.as_i64(), params).await);
+        let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+        return crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols((Value::from(vec![symbolValue.map(Value::from).unwrap_or(Value::Null)])).to_str_vec(), limit.as_i64(), params).await);
         Value::Null
         }).await?))
     }
@@ -1065,7 +1065,7 @@ impl Grvt {
         let mut marketId: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut market: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]).into_dict();
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
-        let mut timestamp: Value = self.safe_integer_product_k(&data, "event_time", Value::Float(0.000001), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_product_k(&data, "event_time", Value::Float(0.000001), &[]).as_i64();
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), symbol);
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
@@ -1076,15 +1076,15 @@ impl Grvt {
         let mut isSnapshotChannel: bool = stream.as_deref() == Some("v1.book.s");
         let mut isSnapshotMessage: bool = sequenceNumber.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64);
         if isSnapshotChannel || isSnapshotMessage {
-            let mut snapshot: Value = self.parse_order_book(Value::from(&data), symbol.clone(), &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
+            let mut snapshot: Value = self.parse_order_book(Value::from(&data), symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
             orderbook.reset(snapshot);
         }  else {
             let mut asks: Value = self.safe_list_k(&data, "asks", &[Value::from(vec![])]);
             let mut bids: Value = self.safe_list_k(&data, "bids", &[Value::from(vec![])]);
             self.handle_deltas_with_keys(orderbook.book_field("asks"), asks, &[Value::Str("price".into()), Value::Str("size".into())]);
             self.handle_deltas_with_keys(orderbook.book_field("bids"), bids, &[Value::Str("price".into()), Value::Str("size".into())]);
-            orderbook.set_book_meta("timestamp", timestamp.clone());
-            orderbook.set_book_meta("datetime", self.iso8601(timestamp));
+            orderbook.set_book_meta("timestamp", Value::from(timestamp));
+            orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         }
         // grvt defaults to the delta channel (v1.book.d); if the very first
         // message is a delta, the freshly-created orderbook has symbol=null

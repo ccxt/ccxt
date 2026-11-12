@@ -1720,11 +1720,11 @@ impl Lbank {
         let mut fee: Value = Value::Null;
         let mut feeCost: Option<String> = self.safe_string_k(trade.clone(), "tradeFee", &[]).as_str().map(str::to_owned);
         if (feeCost.is_some()) {
-            let mut feeCurr: Value = (if (side.as_deref() == Some("buy")) { self.safe_string_k(market.clone(), "base", &[]) } else { self.safe_string_k(market.clone(), "quote", &[]) });
+            let mut feeCurr: Option<String> = (if (side.as_deref() == Some("buy")) { self.safe_string_k(market.clone(), "base", &[]).as_str().map(str::to_owned) } else { self.safe_string_k(market.clone(), "quote", &[]).as_str().map(str::to_owned) });
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCost.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("currency".to_string(), feeCurr);
+                    m.insert("currency".to_string(), feeCurr.map(Value::from).unwrap_or(Value::Null));
                     m.insert("rate".to_string(), self.safe_string_k(trade.clone(), "tradeFeeRate", &[]));
                 m
             });
@@ -2505,8 +2505,8 @@ impl Lbank {
                     }  else {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
                         let mut priceString: Option<String> = self.number_to_string(price).as_str().map(str::to_owned);
-                        let mut costRequest: Value = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null));
-                        quoteAmount = self.cost_to_precision(symbol.clone(), costRequest);
+                        let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                     }
                 }  else {
                     quoteAmount = self.cost_to_precision(symbol, amount);
@@ -4353,16 +4353,16 @@ impl Lbank {
             }  else {
                 signatureMethod = Some("HmacSHA256".to_string());
             }
-            let mut finalSig: Value = signatureMethod.clone().map(Value::from).unwrap_or(Value::Null); // java req
+            let mut finalSig: Option<String> = signatureMethod.clone(); // java req
             let __ws_arg_34 = self.keysort(self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("echostr".to_string(), Value::from(echostr.clone()));
-                    m.insert("signature_method".to_string(), finalSig);
-                    m.insert("timestamp".to_string(), timestamp.clone());
-                m
-            }), &[signedQuery.clone()]), &[]);
-            let mut auth: Value = self.rawencode(__ws_arg_34, &[]);
-            let mut encoded: Value = self.encode(auth);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("echostr".to_string(), Value::from(echostr.clone()));
+        m.insert("signature_method".to_string(), finalSig.map(Value::from).unwrap_or(Value::Null));
+        m.insert("timestamp".to_string(), timestamp.clone());
+    m
+}), &[signedQuery.clone()]), &[]);
+            let mut auth: Option<String> = self.rawencode(__ws_arg_34, &[]).as_str().map(str::to_owned);
+            let mut encoded: Value = self.encode(auth.map(Value::from).unwrap_or(Value::Null));
             let mut uppercaseHash: Value = (self.hash(encoded, Value::Str("md5".into()), &[])).as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
             let mut sign: Value = Value::Str("".into());
             if (signatureMethod.as_deref() == Some("RSA")) {
@@ -4384,7 +4384,7 @@ impl Lbank {
                 sign = self.hmac(self.encode(uppercaseHash), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             }
             if let Value::Dict(__d) = &mut signedQuery { std::sync::Arc::make_mut(__d).insert("sign".into(), sign); }
-            let mut bodySigned: Value = self.urlencode(self.keysort(signedQuery, &[]), &[]);
+            let mut bodySigned: Option<String> = self.urlencode(self.keysort(signedQuery, &[]), &[]).as_str().map(str::to_owned);
             let mut headersSigned: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
@@ -4397,7 +4397,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));
         m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), bodySigned);
+        m.insert("body".to_string(), bodySigned.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersSigned));
     m
 });

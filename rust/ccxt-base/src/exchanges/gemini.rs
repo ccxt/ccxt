@@ -1461,10 +1461,10 @@ impl Gemini {
                         let mut i: i64 = 0;
             let mut __for_first_712: bool = true;
             while { if !__for_first_712 { i += 1; } __for_first_712 = false; i < (fetchUsdtMarkets.len() as i64) } {
-            let mut marketId: Value = fetchUsdtMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut marketId: Option<String> = fetchUsdtMarkets.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), marketId);
+                    m.insert("symbol".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
                 m
             });
             // don't use Promise.all here, for some reason the exchange can't handle it and crashes
@@ -1520,10 +1520,10 @@ impl Gemini {
                                 let mut i: i64 = 0;
                 let mut __for_first_714: bool = true;
                 while { if !__for_first_714 { i += 1; } __for_first_714 = false; i < (marketIds.len() as i64) } {
-                let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut request: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("symbol".to_string(), marketId.clone());
+                        m.insert("symbol".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
                     m
                 });
                 let __ws_arg_1 = self.extend(Value::Map(request), &[params.clone()]);
@@ -2264,20 +2264,20 @@ impl Gemini {
         //
         let mut makerBps: Option<String> = self.safe_string_k(response.clone(), "api_maker_fee_bps", &[]).as_str().map(str::to_owned);
         let mut takerBps: Option<String> = self.safe_string_k(response.clone(), "api_taker_fee_bps", &[]).as_str().map(str::to_owned);
-        let mut makerString: Value = crate::precise::Precise::stringDiv(&makerBps.map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into()));
-        let mut takerString: Value = crate::precise::Precise::stringDiv(&takerBps.map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into()));
-        let mut maker: Value = self.parse_number(makerString, &[]);
-        let mut taker: Value = self.parse_number(takerString, &[]);
+        let mut makerString: Option<String> = crate::precise::Precise::stringDiv(&makerBps.map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())).as_str().map(str::to_owned);
+        let mut takerString: Option<String> = crate::precise::Precise::stringDiv(&takerBps.map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())).as_str().map(str::to_owned);
+        let mut maker: Value = self.parse_number(makerString.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut taker: Value = self.parse_number(takerString.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbols: Value = self.symbols.clone();
+        let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
             let mut __for_first_720: bool = true;
             while { if !__for_first_720 { i += 1; } __for_first_720 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -2631,14 +2631,14 @@ impl Gemini {
             clientOrderId = Some(format!("{}", self.milliseconds().as_i64().unwrap_or_default()));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount);
-        let mut priceString: Value = self.price_to_precision(symbol.clone(), price);
+        let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
+        let mut priceString: Option<String> = self.price_to_precision(symbol.clone(), price).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("client_order_id".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("amount".to_string(), amountString);
-                m.insert("price".to_string(), priceString);
+                m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
+                m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
                 m.insert("side".to_string(), side);
                 m.insert("type".to_string(), Value::Str("exchange limit".into()));
             m
@@ -2799,9 +2799,9 @@ impl Gemini {
     m
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag]);
+        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null)]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3066,10 +3066,10 @@ impl Gemini {
         if (networkCode.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() requires a network parameter".into()))));
         }
-        let mut networkId: Value = self.network_code_to_id(networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[self.safe_string_k(currency, "code", &[])]);
+        let mut networkId: Option<String> = self.network_code_to_id(networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[self.safe_string_k(currency, "code", &[])]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("network".to_string(), networkId);
+                m.insert("network".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
@@ -3104,24 +3104,24 @@ impl Gemini {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" sign() requires an account-key, master-keys are not-supported".into()))));
             }
             // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
-            let mut nonceValue: Value = self.incrementing_nonce();
-            let mut nonce: Option<String> = self.number_to_string(nonceValue).as_str().map(str::to_owned);
-            let mut finalUrl: Value = Value::from(url.clone());
+            let mut nonceValue: Option<i64> = self.incrementing_nonce().as_i64();
+            let mut nonce: Option<String> = self.number_to_string(Value::from(nonceValue)).as_str().map(str::to_owned);
+            let mut finalUrl: String = url.clone();
             let mut request: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("request".to_string(), finalUrl);
+                    m.insert("request".to_string(), Value::from(finalUrl));
                     m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m
             }), &[query.clone()]);
             let mut payload: Value = json_stringify(&request);
             payload = self.string_to_base64(payload.clone(), &[]);
-            let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
+            let mut signature: Option<String> = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]).as_str().map(str::to_owned);
             headersSigned = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("text/plain".into()));
                     m.insert("X-GEMINI-APIKEY".to_string(), self.apiKey.clone());
                     m.insert("X-GEMINI-PAYLOAD".to_string(), payload);
-                    m.insert("X-GEMINI-SIGNATURE".to_string(), signature);
+                    m.insert("X-GEMINI-SIGNATURE".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                 m
             });
         }  else {
