@@ -1118,17 +1118,17 @@ impl Exchange {
         )).collect::<Vec<_>>().join("&")
     }
 
-    pub fn implode_params(&self, path: Value, params: Value) -> Value {
-        let path_str = match &path { Value::Str(s) => s.clone(), _ => return path };
-        let m = match &params { Value::Dict(m) => m, _ => return Value::Str(path_str) };
+    pub fn implode_params(&self, path: Value, params: Value) -> String {
+        let path_str: String = match &path { Value::Str(s) => s.to_string(), Value::Null => return String::new(), other => return other.to_string() };
+        let m = match &params { Value::Dict(m) => m, _ => return path_str };
         let mut out = path_str;
         for (k, v) in m.iter() {
             let needle = format!("{{{k}}}");
             if out.contains(&needle) {
-                out = out.replace(&needle, &crate::runtime::stringify_param(v)).into();
+                out = out.replace(&needle, &crate::runtime::stringify_param(v));
             }
         }
-        Value::Str(out)
+        out
     }
 
     pub fn json_str(&self, v: &Value) -> String {
@@ -1625,9 +1625,9 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn watch_multiple(
         &mut self,
         url: impl Into<Value>,
-        message_hashes: Value,
+        message_hashes: impl Into<Value>,
         optional_args: &[Value],
-    ) -> impl ::std::future::Future<Output = Value> + Send { let url: Value = url.into(); async move {
+    ) -> impl ::std::future::Future<Output = Value> + Send { let (url, message_hashes): (Value, Value) = (url.into(), message_hashes.into()); async move {
         let url_s = match &url { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
         let hashes = ws_string_list(&message_hashes);
         let message = optional_args.get(0).cloned().unwrap_or(Value::Null);
@@ -1805,8 +1805,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             "BadRequest",
             format!("no URL configured for api scope `{scope_lookup}`"),
         ))?;
-        let imploded = self.implode_params(Value::Str(path.to_string().into()), params.clone());
-        let path_str = match &imploded { Value::Str(s) => s.clone(), _ => path.to_string().into() };
+        let path_str = self.implode_params(Value::Str(path.to_string().into()), params.clone());
         let consumed_keys = self.extract_path_params(path);
         let remaining_params = match params {
             Value::Dict(m) => {
