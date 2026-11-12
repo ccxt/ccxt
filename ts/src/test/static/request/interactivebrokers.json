@@ -101,7 +101,7 @@
             {
                 "description": "crypto spot",
                 "method": "fetchCanceledAndClosedOrders",
-                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=filled%2Ccancelled",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?force=true",
                 "input": [
                     "ETH.PAXOS/USD"
                 ],
@@ -278,7 +278,7 @@
             {
                 "description": "spot crypto",
                 "method": "fetchOrders",
-                "url": "https://api.ibkr.com/v1/api/iserver/account/orders",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?force=true",
                 "input": [
                     "ETH.PAXOS/USD"
                 ],
@@ -289,7 +289,7 @@
             {
                 "description": "spot crypto",
                 "method": "fetchOpenOrders",
-                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=pending_submit%2Cpre_submitted%2Csubmitted%2Cpending_cancel%2Cwarn_state",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?force=true",
                 "input": [
                     "ETH.PAXOS/USD"
                 ],
@@ -300,7 +300,7 @@
             {
                 "description": "spot crypto",
                 "method": "fetchClosedOrders",
-                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=filled",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?force=true",
                 "input": [
                     "ETH.PAXOS/USD"
                 ],
@@ -311,7 +311,7 @@
             {
                 "description": "spot crypto",
                 "method": "fetchCanceledOrders",
-                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=cancelled",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?force=true",
                 "input": [
                     "ETH.PAXOS/USD"
                 ],
@@ -320,7 +320,7 @@
             {
                 "description": "spot crypto",
                 "method": "fetchCanceledOrders",
-                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=cancelled",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?force=true",
                 "input": [
                     "ETH.PAXOS/USD"
                 ],

@@ -1341,7 +1341,12 @@ export default class interactivebrokers extends interactivebrokersRest {
         return 'tic';
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleTextMessage (client: Client, message: string) {
+        // plain text frames carry no data, but like every message they prove the connection is alive
+        client.lastPong = this.milliseconds ();
+    }
+
+    override handleMessage (client: Client, message: Dict) {
         //
         // every message (including the 10 second system heartbeats) proves the connection is alive
         //
@@ -1349,9 +1354,6 @@ export default class interactivebrokers extends interactivebrokersRest {
         //     { "topic": "system", "hb": 1702334859712 }
         //
         client.lastPong = this.milliseconds ();
-        if (typeof message === 'string') {
-            return;
-        }
         if (this.handleErrorMessage (client, message)) {
             return;
         }

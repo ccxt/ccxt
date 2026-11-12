@@ -513,7 +513,8 @@ export default class interactivebrokers extends Exchange {
                     'limit': 1000,
                 },
                 'fetchOrders': {
-                    'retryDelay': 500, // the first request of a session may return an incomplete snapshot
+                    'force': true, // refresh the order list before reading it, the cached list misses the orders created after it was built
+                    'retryDelay': 500, // the list is rebuilt asynchronously after a refresh, also the first request of a session may return an incomplete snapshot
                 },
                 'fetchBalance': {
                     'positions': true, // add the holdings of portfolio2/{accountId}/positions with an asset class of positionAssetClasses as balances
@@ -3082,7 +3083,8 @@ export default class interactivebrokers extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.filters] comma-separated status filters, e.g. 'submitted,filled'
+     * @param {string} [params.filters] a single exchange-side status filter, e.g. 'filled'
+     * @param {boolean} [params.force] refresh the cached order list first, default true
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
@@ -3094,7 +3096,8 @@ export default class interactivebrokers extends Exchange {
             market = this.market (symbol);
         }
         const orders = await this.fetchLiveOrdersRaw (params);
-        return this.parseOrders (orders, market, since, limit);
+        const parsed = this.parseOrders (orders, market, undefined, undefined);
+        return this.filterBySymbolSinceLimit (parsed, symbol, since, limit) as Order[];
     }
 
     /**
@@ -3106,11 +3109,12 @@ export default class interactivebrokers extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.filters] comma-separated status filters, default 'pending_submit,pre_submitted,submitted,pending_cancel,warn_state'
+     * @param {string} [params.filters] an exchange-side status filter, by default all orders are fetched and filtered by their unified status
+     * @param {boolean} [params.force] refresh the cached order list first, default true
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
-        return await this.fetchOrdersByStatusFilter ('open', 'pending_submit,pre_submitted,submitted,pending_cancel,warn_state', symbol, since, limit, params);
+        return await this.fetchOrdersByStatusFilter ('open', symbol, since, limit, params);
     }
 
     /**
@@ -3122,11 +3126,12 @@ export default class interactivebrokers extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.filters] comma-separated status filters, default 'filled'
+     * @param {string} [params.filters] an exchange-side status filter, by default all orders are fetched and filtered by their unified status
+     * @param {boolean} [params.force] refresh the cached order list first, default true
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
-        return await this.fetchOrdersByStatusFilter ('closed', 'filled', symbol, since, limit, params);
+        return await this.fetchOrdersByStatusFilter ('closed', symbol, since, limit, params);
     }
 
     /**
@@ -3138,11 +3143,12 @@ export default class interactivebrokers extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.filters] comma-separated status filters, default 'cancelled'
+     * @param {string} [params.filters] an exchange-side status filter, by default all orders are fetched and filtered by their unified status
+     * @param {boolean} [params.force] refresh the cached order list first, default true
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
-        return await this.fetchOrdersByStatusFilter ('canceled', 'cancelled', symbol, since, limit, params);
+        return await this.fetchOrdersByStatusFilter ('canceled', symbol, since, limit, params);
     }
 
     /**
@@ -3154,7 +3160,8 @@ export default class interactivebrokers extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.filters] comma-separated status filters, default 'filled,cancelled'
+     * @param {string} [params.filters] an exchange-side status filter, by default all orders are fetched and filtered by their unified status
+     * @param {boolean} [params.force] refresh the cached order list first, default true
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
@@ -3165,11 +3172,7 @@ export default class interactivebrokers extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const filters = this.safeString (params, 'filters', 'filled,cancelled');
-        const request: Dict = {
-            'filters': filters,
-        };
-        const orders = await this.fetchLiveOrdersRaw (this.extend (request, params));
+        const orders = await this.fetchLiveOrdersRaw (params);
         const parsed = this.parseOrders (orders, market, undefined, undefined);
         const result: Order[] = [];
         for (let i = 0; i < parsed.length; i++) {
@@ -3185,17 +3188,16 @@ export default class interactivebrokers extends Exchange {
     /**
      * @method
      * @name interactivebrokers#fetchOrdersByStatusFilter
-     * @description fetches the live orders filtered by the exchange-side status filters, then keeps only the orders with the given unified status
+     * @description fetches the live orders, then keeps only the orders with the given unified status, the exchange-side filters are not used by default: a comma-separated list of them returns no orders and each filter has its own cached list
      * @ignore
      * @param {string} status unified order status to keep, 'open', 'closed' or 'canceled'
-     * @param {string} defaultFilters comma-separated exchange status filters used when params.filters is not set
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrdersByStatusFilter (status: string, defaultFilters: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+    async fetchOrdersByStatusFilter (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3203,11 +3205,7 @@ export default class interactivebrokers extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const filters = this.safeString (params, 'filters', defaultFilters);
-        const request: Dict = {
-            'filters': filters,
-        };
-        const orders = await this.fetchLiveOrdersRaw (this.extend (request, params));
+        const orders = await this.fetchLiveOrdersRaw (params);
         const parsed = this.parseOrders (orders, market, undefined, undefined);
         const filtered = this.filterBy (parsed, 'status', status);
         return this.filterBySymbolSinceLimit (filtered, symbol, since, limit) as Order[];
@@ -3216,7 +3214,7 @@ export default class interactivebrokers extends Exchange {
     /**
      * @method
      * @name interactivebrokers#fetchLiveOrdersRaw
-     * @description fetches the raw live orders of the current brokerage session, retries once when the first request only starts the order subscription
+     * @description fetches the raw live orders of the current brokerage session, refreshes the cached order list first (options.fetchOrders.force) and retries once when the request only starts the order subscription
      * @ignore
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-open-orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3226,12 +3224,24 @@ export default class interactivebrokers extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const retryDelay = this.safeInteger (this.safeDict (this.options, 'fetchOrders', {}), 'retryDelay', 500);
-        let response = await this.webapiGetV1ApiIserverAccountOrders (params);
+        const options = this.safeDict (this.options, 'fetchOrders', {});
+        const retryDelay = this.safeInteger (options, 'retryDelay', 500);
+        const force = this.safeBool (params, 'force', this.safeBool (options, 'force', true));
+        const query = this.omit (params, 'force');
+        if (force) {
+            // the order list is cached and misses the orders created after it was built,
+            // force = true clears the cache and returns an empty list, the next request returns the fresh list
+            const forceRequest: Dict = {
+                'force': true,
+            };
+            await this.webapiGetV1ApiIserverAccountOrders (forceRequest);
+            await this.sleep (retryDelay);
+        }
+        let response = await this.webapiGetV1ApiIserverAccountOrders (query);
         if (!this.safeBool (response, 'snapshot', true)) {
             // the first request of a session only starts the order subscription
             await this.sleep (retryDelay);
-            response = await this.webapiGetV1ApiIserverAccountOrders (params);
+            response = await this.webapiGetV1ApiIserverAccountOrders (query);
         }
         //
         //    {
@@ -3866,6 +3876,25 @@ export default class interactivebrokers extends Exchange {
         return baseUrl;
     }
 
+    /**
+     * @method
+     * @name interactivebrokers#ibkrIsGatewayRequest
+     * @description tells whether a request is routed to the client portal gateway instead of the oauth api
+     * @ignore
+     * @param {string} path the endpoint path
+     * @returns {boolean} true if the request is sent to the client portal gateway
+     */
+    ibkrIsGatewayRequest (path: string): boolean {
+        // with the client portal gateway signIn () never sets a live session token, so besides options.useGateway
+        // the requests are routed to the gateway when there is no live session token and oauth is not configured
+        // (e.g. public calls like fetchOpenInterests made before any private call)
+        const useGatewayOption = this.safeBool (this.options, 'useGateway', false);
+        const hasLiveSessionToken = this.safeString (this.options, 'liveSessionToken') !== undefined;
+        const oauthConfigured = (this.safeString (this.options, 'encryptionPemPath') !== undefined) && (this.safeString (this.options, 'dhParamPemPath') !== undefined);
+        const isLiveSessionTokenRequest = path.endsWith ('v1/api/oauth/live_session_token');
+        return useGatewayOption || (!hasLiveSessionToken && !oauthConfigured && !isLiveSessionTokenRequest);
+    }
+
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const [ implodedPath, pathParams ] = this.ibkrImplodePath (path, params);
         const apiBase = api[0];
@@ -3876,19 +3905,9 @@ export default class interactivebrokers extends Exchange {
         const isGetOrDelete = (method === 'GET') || (method === 'DELETE');
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
-        // with the client portal gateway signIn () never sets a live session token, so besides options.useGateway
-        // the requests are routed to the gateway when there is no live session token and oauth is not configured
-        // (e.g. public calls like fetchOpenInterests made before any private call)
-        const useGatewayOption = this.safeBool (this.options, 'useGateway', false);
-        const hasLiveSessionToken = this.safeString (this.options, 'liveSessionToken') !== undefined;
-        const oauthConfigured = (this.safeString (this.options, 'encryptionPemPath') !== undefined) && (this.safeString (this.options, 'dhParamPemPath') !== undefined);
         const isLiveSessionTokenRequest = path.endsWith ('v1/api/oauth/live_session_token');
-        if (useGatewayOption || (!hasLiveSessionToken && !oauthConfigured && !isLiveSessionTokenRequest)) {
+        if (this.ibkrIsGatewayRequest (path)) {
             // the client portal gateway holds the authenticated session, requests are sent unsigned
-            if (this.validateServerSsl !== false) {
-                // the gateway serves a self-signed certificate, so its validation is disabled, only in gateway mode (oauth requests to api.ibkr.com are always verified)
-                this.setValidateServerSsl (false);
-            }
             const gatewayUrl = this.safeString (this.options, 'gatewayUrl', 'https://localhost:5000/');
             url = this.ibkrGatewayBaseUrl (this.urls['api'][apiBase], gatewayUrl) + implodedPath;
             if (isGetOrDelete) {
@@ -3954,6 +3973,11 @@ export default class interactivebrokers extends Exchange {
         // right after a new brokerage session is opened, IBKR may still reject trading endpoints with
         // {"error":"Please query /accounts first"} even though iserver/accounts was already called,
         // so iserver/accounts is queried again and the request is retried
+        if (this.ibkrIsGatewayRequest (path) && (this.validateServerSsl !== false)) {
+            // the gateway serves a self-signed certificate, so its validation is disabled, only in gateway mode (oauth requests to api.ibkr.com are always verified)
+            // done here instead of sign (), which cannot change the instance in the statically typed ports
+            this.setValidateServerSsl (false);
+        }
         const isAccountsPath = (path === 'iserver/accounts') || (path === 'v1/api/iserver/accounts');
         const options = this.safeDict (this.options, 'queryAccountsFirst', {});
         const retries = this.safeInteger (options, 'retries', 3);
