@@ -130,7 +130,7 @@ export default class bit2me extends Exchange {
                 '1d': '1440',
             },
             'urls': {
-                'logo': 'https://api.bit2me.com/icon.png', // todo: replace with a github-hosted banner
+                'logo': 'https://github.com/user-attachments/assets/d7c1790a-7e3d-453f-8c31-a7e800f56aaf', // todo: replace with a github-hosted banner
                 'api': {
                     'public': 'https://gateway.bit2me.com',
                     'private': 'https://gateway.bit2me.com',
