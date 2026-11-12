@@ -54,6 +54,8 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 			return
 		}
 		this.UpdateProxySettings() // for now this needs to be here
+		// sign() may return a typed nil pointer (*string) as body; unwrap it, otherwise `body != nil` is true and a literal "null" body is sent (rejected with 403 by cloudfront on GET)
+		body = derefScalar(body)
 
 		// Convert url to string
 		urlStr, ok := url.(string)
