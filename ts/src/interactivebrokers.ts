@@ -1768,13 +1768,14 @@ export default class interactivebrokers extends Exchange {
         // the other FUT contracts (CME and coinbase derivatives dated crypto futures) are unified as futures
         const isCfd = (assetClass === 'CFD');
         const isFut = (assetClass === 'FUT');
+        const expirationDate = this.safeString2 (market, 'expirationDate', 'expiry'); // 20261127
         const isCoinbaseDerivatives = (listingExchange === 'COINDERIV');
-        const isPerpInName = (name.indexOf ('Perpetual') !== -1) || (name.indexOf ('Perp Style') !== -1);
-        const isCoinbasePerp = isCoinbaseDerivatives && isPerpInName;
-        const isPerp = isFut && isCoinbasePerp; // no other perp provides
-        const isFuture = isFut && !isPerp;
-        const isSwap = isCfd || isPerp;
-        const isContract = isSwap || isFuture;
+        // checking for 'Perpetual' or 'Perp Style' in the name is weaker
+        const isCoinbasePerp = isCoinbaseDerivatives && (expirationDate === '20301220'); // five year PERP cycle end
+        const isPerpetual = isCoinbasePerp; // no other perp providers
+        const isPerp = (isFut && isPerpetual) || isCfd;
+        const isFuture = isFut && !isPerpetual;
+        const isContract = isFuture || isPerp;
         const isSpot = !isContract;
         const id = this.safeString (market, 'conid');
         const quoteId = this.safeString (market, 'currency');
@@ -1819,7 +1820,6 @@ export default class interactivebrokers extends Exchange {
                 base = this.safeString (cryptoCmeFutureSymbols, baseTickerId, baseTickerId);
             }
             contractSize = this.safeString (market, 'multiplier'); // 0.1 BTC for MBT, 5 BTC for BRR
-            const expirationDate = this.safeString2 (market, 'expirationDate', 'expiry'); // 20261127
             if (expirationDate !== undefined) {
                 const expiryDatetime = expirationDate.slice (0, 4) + '-' + expirationDate.slice (4, 6) + '-' + expirationDate.slice (6, 8) + 'T00:00:00Z';
                 expiry = this.parse8601 (expiryDatetime);
@@ -1849,7 +1849,7 @@ export default class interactivebrokers extends Exchange {
             }
         }
         let marketType = 'spot';
-        if (isSwap) {
+        if (isPerp) {
             marketType = 'swap';
         } else if (isFuture) {
             marketType = 'future';
@@ -1866,7 +1866,7 @@ export default class interactivebrokers extends Exchange {
             'type': marketType,
             'spot': isSpot,
             'margin': false,
-            'swap': isSwap,
+            'swap': isPerp,
             'future': isFuture,
             'option': false,
             'active': true,
