@@ -629740,6 +629740,9 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async cancelOrder(id, symbol = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (this.safeString(params, 'clientOrderId') === undefined) {
             request['orderId'] = id;
