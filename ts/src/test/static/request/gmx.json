@@ -16,7 +16,7 @@
             {
                 "description": "GMX open interest",
                 "method": "fetchOpenInterest",
-                "url": "https://arbitrum.gmxapi.io/v1/markets/tickers?addresses%5B0%5D=0x47c031236e19d024b42f8ae6780e44a573170703",
+                "url": "https://arbitrum.gmxapi.io/v1/markets/tickers?addresses=0x47c031236e19d024b42f8ae6780e44a573170703",
                 "input": [
                     "BTC/USD:USDC"
                 ],
@@ -36,7 +36,7 @@
             {
                 "description": "GMX funding rate",
                 "method": "fetchFundingRate",
-                "url": "https://arbitrum.gmxapi.io/v1/markets/tickers?addresses%5B0%5D=0x47c031236e19d024b42f8ae6780e44a573170703",
+                "url": "https://arbitrum.gmxapi.io/v1/markets/tickers?addresses=0x47c031236e19d024b42f8ae6780e44a573170703",
                 "input": [
                     "BTC/USD:USDC"
                 ],
@@ -61,7 +61,7 @@
             {
                 "description": "GMX order book",
                 "method": "fetchOrderBook",
-                "url": "https://arbitrum.gmxapi.io/v1/markets/tickers?addresses%5B0%5D=0x47c031236e19d024b42f8ae6780e44a573170703",
+                "url": "https://arbitrum.gmxapi.io/v1/markets/tickers?addresses=0x47c031236e19d024b42f8ae6780e44a573170703",
                 "input": [
                     "BTC/USD:USDC"
                 ],
@@ -81,7 +81,7 @@
             {
                 "description": "GMX ticker",
                 "method": "fetchTicker",
-                "url": "https://arbitrum.gmxapi.io/v1/markets/tickers?addresses%5B0%5D=0x47c031236e19d024b42f8ae6780e44a573170703",
+                "url": "https://arbitrum.gmxapi.io/v1/markets/tickers?addresses=0x47c031236e19d024b42f8ae6780e44a573170703",
                 "input": [
                     "BTC/USD:USDC"
                 ],
