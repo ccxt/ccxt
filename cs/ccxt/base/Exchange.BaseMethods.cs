@@ -2759,17 +2759,7 @@ public partial class BaseExchange
             }
         } else
         {
-            List<object> ids = new List<object>(((IDictionary<string,object>)orders).Keys);
-            for (int i = 0; i < ids.Count; i++)
-            {
-                string? id = ((string)ids[i]);
-                Dictionary<string, object> idExtended = this.extend(new Dictionary<string, object>() {
-                    { "id", id },
-                }, getValue(orders, id));
-                ccxt.Order parsedOrder = this.parseOrder(idExtended, market); // don't  inline these calls
-                Dictionary<string, object> order = this.extend(ccxt.BaseExchange.FromOrder(parsedOrder), parameters);
-                results.Add(order);
-            }
+            return this.parseOrders(this.addKeyInArrayItems(orders, "id"), market, since, limit, parameters);
         }
         results = this.sortBy(results, "timestamp");
         string? symbol = this.safeString(market, "symbol");

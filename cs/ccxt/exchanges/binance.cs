@@ -10064,7 +10064,7 @@ public partial class binance : Exchange
                 request["startTime"] = (untilResolved - oneWeek);
             }
         }
-        object response = null;
+        List<object> response = null;
         if (isOptionType)
         {
             response = await this.eapiPrivateGetHistoryOrders(this.extend(request, paramsPaginate));
@@ -10124,7 +10124,8 @@ public partial class binance : Exchange
                 response = await this.sapiGetMarginAllOrders(this.extend(request, paramsPaginate));
             } else if ((stock == true))
             {
-                response = await this.sapiGetEquityOrderHistory(this.extend(request, paramsPaginate));
+                Dictionary<string, object> equityResponse = await this.sapiGetEquityOrderHistory(this.extend(request, paramsPaginate));
+                response = this.safeList(equityResponse, "rows", new List<object>() {});
             } else
             {
                 response = await this.privateGetAllOrders(this.extend(request, paramsPaginate));
@@ -10336,11 +10337,6 @@ public partial class binance : Exchange
         //         ]
         //     }
         //
-        if ((stock == true))
-        {
-            List<object> result = this.safeList(response, "rows", new List<object>() {});
-            return this.parseOrders(result, market, since, limitResolved);
-        }
         return this.parseOrders(response, market, since, limitResolved);
     }
 

@@ -5580,8 +5580,7 @@ public partial class kucoin : Exchange
         //           },
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        data = this.safeList(data, "data", new List<object>() {});
+        List<object> data = this.safeList(this.safeDict(response, "data", new Dictionary<string, object>() {}), "data", new List<object>() {});
         return this.parseOrders(data);
     }
 

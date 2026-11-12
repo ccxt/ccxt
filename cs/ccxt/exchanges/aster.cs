@@ -2327,7 +2327,7 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(response, symbolsNormalized));
+        return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(this.toArray(response), symbolsNormalized));
     }
 
     /**
