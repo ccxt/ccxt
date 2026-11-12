@@ -1072,7 +1072,15 @@ impl CoinbaseinternationalCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_250: bool = true;
             while { if !__for_first_250 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_250 = false; i.as_f64().unwrap_or(f64::NAN) < positionsLength } {
-            self.positions.append(positions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+            let mut position: Value = get_value(&positions, &i);
+            if (position.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null) == Value::Null) {
+                // flat (direction: zero) position, the cache is keyed by side so reset both sides
+                add_element_to_object(&mut position, &Value::Str("side".into()), Value::Str("long".into()));
+                let mut shortPosition: Value = self.clone_value(position.clone());
+                add_element_to_object(&mut shortPosition, &Value::Str("side".into()), Value::Str("short".into()));
+                self.positions.append(shortPosition);
+            }
+            self.positions.append(position);
         }
         }
         client.resolve(&[self.positions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null)]);
