@@ -5017,7 +5017,7 @@ class binance extends binance$1["default"] {
     parseTickersForRolling(response, symbols) {
         const results = [];
         for (let i = 0; i < response.length; i++) {
-            const marketId = this.safeString(this.safeValue(response, i), 'symbol');
+            const marketId = this.safeString(this.safeDict(response, i), 'symbol');
             const tickerMarket = this.safeMarket(marketId, undefined, undefined, 'spot');
             const parsedTicker = this.parseTicker(this.safeValue(response, i));
             parsedTicker['symbol'] = tickerMarket['symbol'];
@@ -11696,7 +11696,7 @@ class binance extends binance$1["default"] {
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise["default"].stringLt(notionalStringAbs, this.safeValue(bracket, 0))) {
+            if (Precise["default"].stringLt(notionalStringAbs, this.safeString(bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString(bracket, 1);
@@ -11926,7 +11926,7 @@ class binance extends binance$1["default"] {
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise["default"].stringLt(notionalStringAbs, this.safeValue(bracket, 0))) {
+            if (Precise["default"].stringLt(notionalStringAbs, this.safeString(bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString(bracket, 1);

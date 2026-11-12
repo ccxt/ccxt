@@ -1058,7 +1058,7 @@ export default class binance extends binanceRest {
     }
     handleDeltas(bookside, deltas) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta(bookside, this.safeValue(deltas, i));
+            this.handleDelta(bookside, this.safeList(deltas, i));
         }
     }
     handleOrderBookMessage(client, message, orderbook) {
@@ -3506,7 +3506,7 @@ export default class binance extends binanceRest {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
                 market = this.market(symbolsNormalized[0]);
-                payload['symbol'] = this.safeValue(market, 'id');
+                payload['symbol'] = this.safeString(market, 'id');
             }
         }
         let type = this.getMarketType('fetchPositionsWs', market, params);

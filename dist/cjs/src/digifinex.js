@@ -1105,7 +1105,7 @@ class digifinex extends digifinex$1["default"] {
         for (let i = 0; i < tickers.length; i++) {
             const rawTicker = this.extend({
                 'date': date,
-            }, this.safeValue(tickers, i));
+            }, this.safeDict(tickers, i));
             const ticker = this.parseTicker(rawTicker);
             const symbol = ticker['symbol'];
             if (symbol !== undefined) {
