@@ -3835,18 +3835,26 @@ function inferSet(expr: string, locals: Map<string, Local>): VSet | undefined {
     const own = /^(?:crate::runtime::)?(to_string_val|replace_str|replace_all_str|join|pad_end|to_fixed)\(/.exec(e);
     if (own !== null) return own[1] === 'pad_end' ? new Set([ 'str', 'null' ]) : new Set([ 'str' ]);
     if (/^(?:crate::runtime::)?split\(/.test(e)) return new Set([ 'arr' ]);
-    const call = /^(?:crate::value::)?(?:self\.)?(safe_string(?:_k|_2|_lower|_upper|_lower_k|_upper_k)?|safe_bool(?:_k|_2)?|safe_integer(?:_k|_2)?|safe_int|safe_timestamp|safe_float(?:_k)?|safe_number(?:_k|_2)?|parse_int|parse_float|parse_to_int|number_to_string|decimal_to_precision|sum)\(/.exec(e);
+    // `parse_to_int` / `number_to_string` return `Option<i64>` / `Option<String>`, boxed once at a `Value` write.
+    const typed = /^Value::from\(self\.parse_to_int\(/.exec(e) ?? /^self\.number_to_string\(/.exec(e);
+    if (typed !== null) {
+        const open = typed[0].length - 1;
+        const close = stringNativesCloseParen(e, open);
+        const tail = close < 0 ? '' : e.slice(close);
+        if (typed[0].startsWith('Value::from') ? tail === ')' : tail === '.map(Value::from).unwrap_or(Value::Null)') return new Set([ typed[0].startsWith('Value::from') ? 'int' : 'str', 'null' ]);
+        return undefined;
+    }
+    const call = /^(?:crate::value::)?(?:self\.)?(safe_string(?:_k|_2|_lower|_upper|_lower_k|_upper_k)?|safe_bool(?:_k|_2)?|safe_integer(?:_k|_2)?|safe_int|safe_timestamp|safe_float(?:_k)?|safe_number(?:_k|_2)?|parse_int|parse_float|decimal_to_precision|sum)\(/.exec(e);
     if (call !== null) {
         const name = call[1];
         const open = call[0].length - 1;
         if (stringNativesCloseParen(e, open) !== e.length) return undefined;
         if (name === 'decimal_to_precision') return new Set([ 'str' ]);
-        if (name === 'number_to_string') return new Set([ 'str', 'null' ]);
         if (name === 'sum') return new Set([ 'int', 'float', 'str', 'null' ]);
         let own = 'str';
         if (name.startsWith('safe_bool')) own = 'bool';
         else if (name.startsWith('safe_float') || name.startsWith('safe_number') || name === 'parse_float') own = 'float';
-        else if (!name.startsWith('safe_string') && name !== 'parse_to_int') own = 'int';
+        else if (!name.startsWith('safe_string')) own = 'int';
         const out: VSet = new Set([ own ]);
         // `safe_*` fall back to their default: a literal box pins it, `&[]` leaves Null.
         if (name.startsWith('safe')) {
@@ -11976,14 +11984,14 @@ ${fallthrough}
                 arms.push(`            "${name}" => { crate::exchange_stubs::enqueue_spawn("${name}", args.to_vec()); crate::Value::Null },`);
                 continue;
             }
-            if (sig.ret !== 'void' && sig.ret !== 'value') continue;
+            if (sig.ret !== 'void' && sig.ret !== 'value' && !rustDispatch.isKeptReturn(sig.ret)) continue;
             const callArgs = sig.params.map((p, i) => rustDispatch.wsArg(p.kind, i));
             if (callArgs.some(a => a === undefined)) continue;
             seen.add(name);
             const call = `self.${name}(${callArgs.join(', ')})`;
             arms.push(sig.ret === 'void'
                 ? `            "${name}" => { ${call}; crate::Value::Null },`
-                : `            "${name}" => ${call},`);
+                : `            "${name}" => ${rustDispatch.result(call, sig.ret)},`);
         }
         // Emit the dispatcher if there are handler arms OR the (already
         // rewritten) content calls it — otherwise a `.call` rewrite with no

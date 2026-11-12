@@ -520,8 +520,8 @@ impl Transaction {
 /// Unified currency descriptor.
 #[derive(Debug, Clone, Default)]
 pub struct Currency {
-    pub id:        String,
-    pub code:      String,
+    pub id:        Option<String>,
+    pub code:      Option<String>,
     pub name:      Option<String>,
     pub active:    Option<bool>,
     pub precision: Option<f64>,
@@ -532,8 +532,8 @@ impl Currency {
     pub fn from_value(v: Value) -> Self {
         use crate::value::{safe_string, safe_bool, safe_number};
         let mut c = Currency::default();
-        c.id        = safe_string(&v, "id",   None).unwrap_or_default();
-        c.code      = safe_string(&v, "code", None).unwrap_or_default();
+        c.id        = safe_string(&v, "id",   None);
+        c.code      = safe_string(&v, "code", None);
         c.name      = safe_string(&v, "name", None);
         c.active    = safe_bool(&v, "active", None);
         c.precision = safe_number(&v, "precision", None);

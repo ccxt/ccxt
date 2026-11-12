@@ -1096,7 +1096,7 @@ impl Exchange {
     // shape and we reborrow `&mut` via the same helper as `super_set_markets`.
     pub fn set_last_rest_request_timestamp(&self) {
         let me = unsafe { coerce_to_mut_unsafe(self) };
-        me.lastRestRequestTimestamp = self.milliseconds();
+        me.lastRestRequestTimestamp = Value::Int(self.milliseconds());
     }
 
     pub fn set_last_request(&self, request: Value) {
@@ -1981,25 +1981,26 @@ impl Exchange {
         }
     }
 
-    pub fn omit_zero(&self, v: Value) -> Value {
+    pub fn omit_zero(&self, v: Value) -> Option<String> {
         // Mirrors TS `omitZero`: undefined/'' or any value that parses to
         // numeric 0 → undefined. The old `s == "0"` check missed "0.0",
         // "0.00", "0e0" etc. — e.g. gate echoes `gt_fee:"0.0"`, and
         // keeping it as a non-null fee left `safeTrade` with 3 fee
         // entries (so it couldn't collapse to a single `fee`).
+        // The TS parameter is `string | undefined`; any other input reads as its text.
         match &v {
-            Value::Int(0) => Value::Null,
-            Value::Float(f) if *f == 0.0 => Value::Null,
+            Value::Null | Value::Int(0) => None,
+            Value::Float(f) if *f == 0.0 => None,
             Value::Str(s) => {
                 if s.is_empty() {
-                    return Value::Null;
+                    return None;
                 }
                 match s.parse::<f64>() {
-                    Ok(n) if n == 0.0 => Value::Null,
-                    _ => v,
+                    Ok(n) if n == 0.0 => None,
+                    _ => Some(s.to_string()),
                 }
             }
-            _ => v,
+            _ => Some(stringify_param(&v)),
         }
     }
 
@@ -2666,11 +2667,7 @@ impl Exchange {
         let amount = timeframe[..timeframe.len().saturating_sub(1)]
             .parse::<i64>()
             .unwrap_or(0);
-        let secs = match self.parse_timeframe(tf) {
-            Value::Int(s) => s,
-            Value::Float(s) => s as i64,
-            _ => return ts,
-        };
+        let secs = self.parse_timeframe(tf);
         let ms = secs * 1000;
         let t = match &ts {
             Value::Int(i) => *i,
@@ -2972,13 +2969,13 @@ impl Exchange {
 
     // ── string / number formatting ──────────────────────────────────────────
 
-    pub fn number_to_string(&self, n: Value) -> Value {
+    pub fn number_to_string(&self, n: Value) -> Option<String> {
         // TS `numberToString(undefined)` returns undefined — don't
         // stringify a missing value into the literal "null".
         if matches!(n, Value::Null) {
-            return Value::Null;
+            return None;
         }
-        Value::Str(stringify_param(&n).into())
+        Some(stringify_param(&n))
     }
 
     pub fn parse_number(&self, v: Value, optional_args: &[Value]) -> Value {
@@ -2992,11 +2989,11 @@ impl Exchange {
         }
     }
 
-    pub fn parse_timeframe(&self, tf: Value) -> Value {
+    pub fn parse_timeframe(&self, tf: Value) -> i64 {
         let s = stringify_param(&tf);
         let last = s.chars().last().unwrap_or('m');
         let num: i64 = s[..s.len().saturating_sub(1)].parse().unwrap_or(0);
-        Value::Int(match last {
+        match last {
             's' => num,
             'm' => num * 60,
             'h' => num * 3600,
@@ -3005,7 +3002,7 @@ impl Exchange {
             'M' => num * 2592000,
             'y' => num * 31536000,
             _ => 0,
-        })
+        }
     }
 
     /// `precisionFromString(str)` — ports `functions/number.ts`.

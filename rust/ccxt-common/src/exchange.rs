@@ -1277,17 +1277,16 @@ impl Exchange {
 
     // ── time ────────────────────────────────────────────────────────────────
 
-    pub fn milliseconds(&self) -> Value {
-        let n = std::time::SystemTime::now()
+    pub fn milliseconds(&self) -> i64 {
+        std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_millis() as i64).unwrap_or(0);
-        Value::Int(n)
+            .map(|d| d.as_millis() as i64).unwrap_or(0)
     }
     pub fn seconds(&self) -> Value {
-        match self.milliseconds() { Value::Int(n) => Value::Int(n / 1000), v => v }
+        Value::Int(self.milliseconds() / 1000)
     }
     pub fn microseconds(&self) -> Value {
-        match self.milliseconds() { Value::Int(n) => Value::Int(n * 1000), v => v }
+        Value::Int(self.milliseconds() * 1000)
     }
 
     pub fn iso8601(&self, ts: Value) -> Value {
@@ -1305,14 +1304,14 @@ impl Exchange {
             .unwrap_or(Value::Null)
     }
 
-    pub fn parse8601(&self, s: Value) -> Value {
-        let str_val = match s { Value::Str(s) => s, _ => return Value::Null };
+    pub fn parse8601(&self, s: Value) -> Option<i64> {
+        let str_val = match s { Value::Str(s) => s, _ => return None };
         if str_val.is_empty() {
-            return Value::Null;
+            return None;
         }
         // rfc3339 (`T…Z` / `+00:00` offset forms).
         if let Ok(t) = chrono::DateTime::parse_from_rfc3339(&str_val) {
-            return Value::Int(t.timestamp_millis());
+            return Some(t.timestamp_millis());
         }
         // Numeric timezone offset WITHOUT a colon (`+0000`) — not valid
         // rfc3339 but common (e.g. bitso `2024-03-13T10:59:59+0000`). JS
@@ -1322,7 +1321,7 @@ impl Exchange {
             "%Y-%m-%d %H:%M:%S%.f%z", "%Y-%m-%d %H:%M:%S%z",
         ] {
             if let Ok(t) = chrono::DateTime::parse_from_str(&str_val, fmt) {
-                return Value::Int(t.timestamp_millis());
+                return Some(t.timestamp_millis());
             }
         }
         // Lenient fallbacks — naive forms are interpreted as UTC.
@@ -1332,15 +1331,15 @@ impl Exchange {
             "%Y-%m-%d %H:%M", "%Y-%m-%dT%H:%M",
         ] {
             if let Ok(ndt) = chrono::NaiveDateTime::parse_from_str(&str_val, fmt) {
-                return Value::Int(ndt.and_utc().timestamp_millis());
+                return Some(ndt.and_utc().timestamp_millis());
             }
         }
         if let Ok(d) = chrono::NaiveDate::parse_from_str(&str_val, "%Y-%m-%d") {
             if let Some(ndt) = d.and_hms_opt(0, 0, 0) {
-                return Value::Int(ndt.and_utc().timestamp_millis());
+                return Some(ndt.and_utc().timestamp_millis());
             }
         }
-        Value::Null
+        None
     }
 
     // safe_string/safe_number/safe_integer/safe_bool live on the transpiled
@@ -2053,7 +2052,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn super_set_markets(&mut self, markets: Value, currencies: Value) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, markets, &[currencies])
     }
-    fn super_network_id_to_code(&self, optional_args: &[Value]) -> Value {
+    fn super_network_id_to_code(&self, optional_args: &[Value]) -> Option<String> {
         <Self as crate::exchange_generated::ExchangeBase>::network_id_to_code(self, optional_args)
     }
     fn super_network_code_to_id(&self, network_code: Value, optional_args: &[Value]) -> Value {
@@ -3081,7 +3080,8 @@ mod typed_by_id_tests {
         let mut cur = IndexMap::new();
         cur.insert("XBt".to_string(), market("XBt", "BTC"));
         ex.currencies_by_id = Value::Map(cur);
-        assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].id, "XBt");
+        assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].id.as_deref(), Some("XBt"));
+        assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].code, None);
         assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].active, None);
         ex.markets_by_id = Value::Null;
         assert!(ex.markets_by_id_typed().records_by_id("BTCUSDT").is_none());
