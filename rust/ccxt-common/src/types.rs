@@ -49,20 +49,20 @@ pub struct MarketPrecision {
 /// A unified market / symbol descriptor.
 #[derive(Debug, Clone, Default)]
 pub struct Market {
-    pub id:       String,
+    pub id:       Option<String>,
     pub symbol:   String,
     pub base:     String,
     pub quote:    String,
     pub settle:   Option<String>,
-    pub base_id:  String,
-    pub quote_id: String,
+    pub base_id:  Option<String>,
+    pub quote_id: Option<String>,
     pub market_type: String,   // "spot" | "swap" | "future" | "option"
     pub spot:     bool,
-    pub margin:   bool,
+    pub margin:   Option<bool>,
     pub swap:     bool,
     pub future:   bool,
     pub option:   bool,
-    pub active:   bool,
+    pub active:   Option<bool>,
     pub contract: bool,
     pub linear:   Option<bool>,
     pub inverse:  Option<bool>,
@@ -79,23 +79,23 @@ impl Market {
     pub fn from_value(v: Value) -> Self {
         use crate::value::{safe_string, safe_bool, safe_number};
         let mut m = Market::default();
-        m.id      = safe_string(&v, "id",     None).unwrap_or_default();
+        m.id      = safe_string(&v, "id",     None);
         m.symbol  = safe_string(&v, "symbol", None).unwrap_or_default();
         m.base    = safe_string(&v, "base",   None).unwrap_or_default();
         m.quote   = safe_string(&v, "quote",  None).unwrap_or_default();
         m.settle  = safe_string(&v, "settle",  None);
-        m.base_id  = safe_string(&v, "baseId",  None).unwrap_or_default();
-        m.quote_id = safe_string(&v, "quoteId", None).unwrap_or_default();
+        m.base_id  = safe_string(&v, "baseId",  None);
+        m.quote_id = safe_string(&v, "quoteId", None);
         m.market_type = safe_string(&v, "type", None).unwrap_or_else(|| "spot".to_owned());
         m.spot    = safe_bool(&v, "spot",   Some(false)).unwrap_or(false);
-        m.margin  = safe_bool(&v, "margin", Some(false)).unwrap_or(false);
+        m.margin  = safe_bool(&v, "margin", None);
         m.swap    = safe_bool(&v, "swap",   Some(false)).unwrap_or(false);
         m.future  = safe_bool(&v, "future", Some(false)).unwrap_or(false);
         m.option  = safe_bool(&v, "option", Some(false)).unwrap_or(false);
         m.contract = safe_bool(&v, "contract", Some(false)).unwrap_or(false);
         m.linear  = safe_bool(&v, "linear",  None);
         m.inverse = safe_bool(&v, "inverse", None);
-        m.active  = safe_bool(&v, "active", Some(true)).unwrap_or(true);
+        m.active  = safe_bool(&v, "active", None);
         m.taker   = safe_number(&v, "taker", None);
         m.maker   = safe_number(&v, "maker", None);
         let sub = |parent: &Value, key: &str| crate::value::get_value(parent, &Value::Str(key.to_string().into()));
@@ -523,7 +523,7 @@ pub struct Currency {
     pub id:        String,
     pub code:      String,
     pub name:      Option<String>,
-    pub active:    bool,
+    pub active:    Option<bool>,
     pub precision: Option<f64>,
     pub raw:       Value,
 }
@@ -535,7 +535,7 @@ impl Currency {
         c.id        = safe_string(&v, "id",   None).unwrap_or_default();
         c.code      = safe_string(&v, "code", None).unwrap_or_default();
         c.name      = safe_string(&v, "name", None);
-        c.active    = safe_bool(&v, "active", Some(true)).unwrap_or(true);
+        c.active    = safe_bool(&v, "active", None);
         c.precision = safe_number(&v, "precision", None);
         c.raw = v;
         c
@@ -1697,9 +1697,9 @@ mod from_value_tests {
         ]);
         let m = Market::from_value(v);
         assert_eq!(m.settle.as_deref(), Some("USDT"));
-        assert_eq!(m.base_id, "BTC");
-        assert_eq!(m.quote_id, "USDT");
-        assert!(m.margin && m.contract);
+        assert_eq!(m.base_id.as_deref(), Some("BTC"));
+        assert_eq!(m.quote_id.as_deref(), Some("USDT"));
+        assert!(m.margin == Some(true) && m.contract);
         assert_eq!(m.linear, Some(true));
         assert_eq!(m.inverse, Some(false));
     }

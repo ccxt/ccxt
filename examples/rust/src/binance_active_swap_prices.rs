@@ -49,7 +49,7 @@ async fn run() {
 
     // 4. Active only — the `active` flag on the market, no request needed.
     let (active, inactive): (Vec<Market>, Vec<Market>) =
-        swaps.into_iter().partition(|m| m.active);
+        swaps.into_iter().partition(|m| m.active != Some(false));
     println!("  of which active: {} (skipping {} inactive)", active.len(), inactive.len());
     if let Some(m) = inactive.first() {
         println!("  e.g. inactive:   {} ({})", m.symbol, contract_kind(m));

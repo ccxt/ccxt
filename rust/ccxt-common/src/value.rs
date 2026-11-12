@@ -734,6 +734,11 @@ impl KeyRead for &Option<List> {
     fn key_read(&self, _key: &str) -> Value { Value::Null }
     fn read(&self, key: &Value) -> Value { self.as_ref().map_or(Value::Null, |a| get_list_value(a, key)) }
 }
+/// An optional market reads its own map, as the boxed local did (Null when empty).
+impl KeyRead for &Option<crate::types::Market> {
+    fn key_read(&self, key: &str) -> Value { if let Some(m) = self { get_value_k(&m.raw, key) } else { Value::Null } }
+    fn read(&self, key: &Value) -> Value { if let Some(m) = self { get_value(&m.raw, key) } else { Value::Null } }
+}
 
 /// Extra operands of `extend` / `deep_extend`: a `Value` slice, or a dict local lent by reference.
 pub trait MergeOperands {

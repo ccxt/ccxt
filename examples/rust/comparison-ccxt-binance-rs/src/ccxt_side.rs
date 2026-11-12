@@ -82,7 +82,7 @@ fn pick(markets: &[Market], kind: &str, n: usize) -> Vec<String> {
             "swap" => m.swap && m.linear == Some(true),
             _ => false,
         };
-        if is_kind && m.active && m.quote == "USDT" {
+        if is_kind && m.active != Some(false) && m.quote == "USDT" {
             cands.push((m.base.clone(), m.symbol.clone()));
         }
     }
