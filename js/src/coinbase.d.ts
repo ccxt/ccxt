@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbase.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, Conversion, Dict, int, TradingFees, LedgerEntry, DepositAddress, Position, TransferEntry, DepositAddresses } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, Conversion, Dict, NullableDict, int, TradingFees, LedgerEntry, DepositAddress, Position, TransferEntry, DepositAddresses } from './base/types.js';
 /**
  * @class coinbase
  * @augments Exchange
@@ -22,7 +22,7 @@ import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook,
  * signature - pass the PEM exactly as issued.
  */
 export default class coinbase extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name coinbase#fetchTime
@@ -646,10 +646,10 @@ export default class coinbase extends Exchange {
      * @returns {boolean} true if the secret is an Ed25519 key
      */
     isEddsaApiKey(): boolean;
-    createAuthToken(seconds: Int, method?: Str, url?: Str, useEddsa?: boolean): string;
-    nonce(): number;
+    createAuthToken(seconds: int, url: string, method?: Str, useEddsa?: boolean): string;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     /**
      * @method
      * @name coinbase#fetchDepositAddresses

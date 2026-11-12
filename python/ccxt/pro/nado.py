@@ -16,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class nado(ccxt.async_support.nado):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(nado, self).describe(), {
             'has': {
                 'ws': True,
@@ -303,7 +303,7 @@ class nado(ccxt.async_support.nado):
         markets = []
         messageHashes = []
         subscriptionParams = []
-        for i in range(0, len(symbolsAndTimeframes)):
+        for i in range(0, symbolsLength):
             symbolAndTimeframe = self.safe_list(symbolsAndTimeframes, i)
             marketSymbol = self.safe_string(symbolAndTimeframe, 0)
             timeframe = self.safe_string(symbolAndTimeframe, 1, '1m')
@@ -351,7 +351,7 @@ class nado(ccxt.async_support.nado):
         markets = []
         messageHashes = []
         subscriptionParams = []
-        for i in range(0, len(symbolsAndTimeframes)):
+        for i in range(0, symbolsLength):
             symbolAndTimeframe = self.safe_list(symbolsAndTimeframes, i)
             marketSymbol = self.safe_string(symbolAndTimeframe, 0)
             timeframe = self.safe_string(symbolAndTimeframe, 1, '1m')
@@ -409,8 +409,9 @@ class nado(ccxt.async_support.nado):
         if symbolsNormalized is not None:
             symbolsLength = len(symbolsNormalized)
             if symbolsLength == 1:
-                market = self.market(symbolsNormalized[0])
-                messageHash = 'ticker:' + market['symbol']
+                symbolMarket = self.market(symbolsNormalized[0])
+                market = symbolMarket
+                messageHash = 'ticker:' + self.safe_string(symbolMarket, 'symbol', '')
                 streamType = 'best_bid_offer'
         ticker = await self.watch_public(streamType, market, messageHash, params)
         if self.newUpdates:
@@ -441,8 +442,9 @@ class nado(ccxt.async_support.nado):
         if symbolsNormalized is not None:
             symbolsLength = len(symbolsNormalized)
             if symbolsLength == 1:
-                market = self.market(symbolsNormalized[0])
-                messageHash = 'ticker:' + market['symbol']
+                symbolMarket = self.market(symbolsNormalized[0])
+                market = symbolMarket
+                messageHash = 'ticker:' + self.safe_string(symbolMarket, 'symbol', '')
                 streamType = 'best_bid_offer'
         return await self.un_watch_public(streamType, market, messageHash, params)
 
@@ -464,8 +466,9 @@ class nado(ccxt.async_support.nado):
         if symbolsNormalized is not None:
             symbolsLength = len(symbolsNormalized)
             if symbolsLength == 1:
-                market = self.market(symbolsNormalized[0])
-                messageHash = 'bidask:' + market['symbol']
+                symbolMarket = self.market(symbolsNormalized[0])
+                market = symbolMarket
+                messageHash = 'bidask:' + self.safe_string(symbolMarket, 'symbol', '')
                 streamType = 'best_bid_offer'
         ticker = await self.watch_public(streamType, market, messageHash, params)
         if self.newUpdates:
@@ -496,8 +499,9 @@ class nado(ccxt.async_support.nado):
         if symbolsNormalized is not None:
             symbolsLength = len(symbolsNormalized)
             if symbolsLength == 1:
-                market = self.market(symbolsNormalized[0])
-                messageHash = 'bidask:' + market['symbol']
+                symbolMarket = self.market(symbolsNormalized[0])
+                market = symbolMarket
+                messageHash = 'bidask:' + self.safe_string(symbolMarket, 'symbol', '')
                 streamType = 'best_bid_offer'
         return await self.un_watch_public(streamType, market, messageHash, params)
 
@@ -524,8 +528,10 @@ class nado(ccxt.async_support.nado):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = self.safe_string(market, 'symbol')
-            messageHash += ':' + symbolResolved
+            marketSymbol = self.safe_string(market, 'symbol')
+            symbolResolved = marketSymbol
+            if marketSymbol is not None:
+                messageHash += ':' + marketSymbol
             productId = self.parse_to_int(market['id'])
         subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'watchOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
@@ -557,11 +563,11 @@ class nado(ccxt.async_support.nado):
         market = None
         messageHash = 'orders'
         productId = None
-        symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
-            messageHash += ':' + symbolResolved
+            marketSymbol = self.safe_string(market, 'symbol')
+            if marketSymbol is not None:
+                messageHash += ':' + marketSymbol
             productId = self.parse_to_int(market['id'])
         subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'unWatchOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
@@ -595,8 +601,10 @@ class nado(ccxt.async_support.nado):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = self.safe_string(market, 'symbol')
-            messageHash += ':' + symbolResolved
+            marketSymbol = self.safe_string(market, 'symbol')
+            symbolResolved = marketSymbol
+            if marketSymbol is not None:
+                messageHash += ':' + marketSymbol
             productId = self.parse_to_int(market['id'])
         subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'watchMyTrades', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
@@ -628,11 +636,11 @@ class nado(ccxt.async_support.nado):
         market = None
         messageHash = 'myTrades'
         productId = None
-        symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
-            messageHash += ':' + symbolResolved
+            marketSymbol = self.safe_string(market, 'symbol')
+            if marketSymbol is not None:
+                messageHash += ':' + marketSymbol
             productId = self.parse_to_int(market['id'])
         subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'unWatchMyTrades', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
@@ -667,7 +675,9 @@ class nado(ccxt.async_support.nado):
             symbolsLength = len(symbolsNormalized)
             if symbolsLength == 1:
                 market = self.market(symbolsNormalized[0])
-                messageHash += ':' + market['symbol']
+                marketSymbol = self.safe_string(market, 'symbol')
+                if marketSymbol is not None:
+                    messageHash += ':' + marketSymbol
                 productId = self.parse_to_int(market['id'])
         subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'watchPositions', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
@@ -702,7 +712,9 @@ class nado(ccxt.async_support.nado):
             symbolsLength = len(symbolsNormalized)
             if symbolsLength == 1:
                 market = self.market(symbolsNormalized[0])
-                messageHash += ':' + market['symbol']
+                marketSymbol = self.safe_string(market, 'symbol')
+                if marketSymbol is not None:
+                    messageHash += ':' + marketSymbol
                 productId = self.parse_to_int(market['id'])
         subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'unWatchPositions', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
@@ -911,23 +923,21 @@ class nado(ccxt.async_support.nado):
             result.append(self.parse_order(self.extend({'status': 'canceled'}, cancelledOrders[i]), market))
         return result
 
-    async def watch_execute_request(self, requestIdString: Str, request: dict):
+    async def watch_execute_request(self, requestIdString: str, request: dict):
         # the v2 gateway dispatches requests concurrently, so responses arrive
         # in completion order, not send order — every execute carries a unique
         # request id and its response is correlated by the echoed id
-        if requestIdString is None:
-            raise ArgumentsRequired(self.id + ' watchExecuteRequest() requires requestIdString')
-        url = self.urls['api']['ws']['gateway']
+        url = self.safe_string(self.urls['api']['ws'], 'gateway')
         messageHash = 'execute:' + requestIdString
         return await self.watch(url, messageHash, request, messageHash)
 
     async def watch_public(self, streamType: Str, market: object, messageHash: str, params: dict = {}):
-        url = self.urls['api']['ws']['subscriptions']
+        url = self.safe_string(self.urls['api']['ws'], 'subscriptions')
         stream = {
             'type': streamType,
         }
         if market is not None:
-            stream['product_id'] = self.parse_to_int(market['id'])
+            stream['product_id'] = self.parse_to_int(self.safe_string(market, 'id'))
         request = {
             'method': 'subscribe',
             'stream': self.deep_extend(stream, params),
@@ -941,15 +951,14 @@ class nado(ccxt.async_support.nado):
         client = self.client(url)
         clientSubscription = self.safe_value(client.subscriptions, subscribeHash)
         if clientSubscription is None:
-            id = self.safe_string(request, 'id')
-            client.subscriptions['subscription:' + id] = {
+            client.subscriptions['subscription:' + self.safe_string(request, 'id', '')] = {
                 'subscribeHash': subscribeHash,
             }
             self.watch_multiple(url, [subscribeHash], request, [subscribeHash], subscription)
         return await self.watch(url, messageHash)
 
     async def watch_private(self, streamType: Str, stream: dict, messageHash: str, params: dict = {}):
-        url = self.urls['api']['ws']['subscriptions']
+        url = self.safe_string(self.urls['api']['ws'], 'subscriptions')
         client = self.client(url)
         clientSubscription = self.safe_value(client.subscriptions, messageHash)
         if clientSubscription is not None:
@@ -964,14 +973,14 @@ class nado(ccxt.async_support.nado):
         subscription = {
             'streamType': streamType,
         }
-        client.subscriptions['subscription:' + self.number_to_string(id)] = {
+        client.subscriptions['subscription:' + self.safe_string(request, 'id', '')] = {
             'subscribeHash': subscribeHash,
         }
         self.watch_multiple(url, [subscribeHash], request, [messageHash], subscription)
         return await self.watch(url, messageHash)
 
     async def un_watch_private(self, stream: dict, messageHash: str, params: dict = {}):
-        url = self.urls['api']['ws']['subscriptions']
+        url = self.safe_string(self.urls['api']['ws'], 'subscriptions')
         id = self.request_id()
         unsubscribeHash = 'unsubscribe:' + messageHash
         request = {
@@ -984,7 +993,7 @@ class nado(ccxt.async_support.nado):
             'messageHash': messageHash,
         }
         client = self.client(url)
-        client.subscriptions['unsubscription:' + self.number_to_string(id)] = {
+        client.subscriptions['unsubscription:' + self.safe_string(request, 'id', '')] = {
             'messageHash': messageHash,
             'unsubscribeHash': unsubscribeHash,
         }
@@ -992,7 +1001,7 @@ class nado(ccxt.async_support.nado):
 
     async def authenticate(self, params: dict = {}):
         self.check_required_credentials()
-        url = self.urls['api']['ws']['subscriptions']
+        url = self.safe_string(self.urls['api']['ws'], 'subscriptions')
         client = self.client(url)
         messageHash = 'authenticated'
         authenticated = self.safe_value(client.subscriptions, messageHash)
@@ -1022,7 +1031,7 @@ class nado(ccxt.async_support.nado):
             'tx': tx,
             'signature': signature,
         }
-        client.subscriptions['authentication:' + self.number_to_string(id)] = messageHash
+        client.subscriptions['authentication:' + self.safe_string(request, 'id', '')] = messageHash
         return await self.watch(url, messageHash, self.extend(request, paramsSubaccount), messageHash)
 
     def sign_stream_authentication(self, tx: dict, chainId: Str, endpointAddress: Str) -> str:
@@ -1039,15 +1048,14 @@ class nado(ccxt.async_support.nado):
             ],
         }
         encoded = self.eth_encode_structured_data(domain, messageTypes, tx)
-        hash = '0x' + self.hash(encoded, 'keccak', 'hex')
-        return self.signHash(hash, self.privateKey)
+        return self.signHash(self.hash(encoded, 'keccak', 'hex'), self.privateKey)
 
     def create_public_subscription_request(self, method: str, streamType: Str, market: Market = None, id: Int = None, params: dict = {}) -> dict:
         stream = {
             'type': streamType,
         }
         if market is not None:
-            stream['product_id'] = self.parse_to_int(market['id'])
+            stream['product_id'] = self.parse_to_int(self.safe_string(market, 'id'))
         return {
             'method': method,
             'stream': self.deep_extend(stream, params),
@@ -1055,10 +1063,10 @@ class nado(ccxt.async_support.nado):
         }
 
     async def watch_public_multiple(self, streamType: Str, markets: list[Market], messageHashes: list[str], params: dict = {}, subscriptionParams: list[dict] | None = None):
-        url = self.urls['api']['ws']['subscriptions']
+        url = self.safe_string(self.urls['api']['ws'], 'subscriptions')
         client = self.client(url)
         for i in range(0, len(messageHashes)):
-            messageHash = messageHashes[i]
+            messageHash = self.safe_string(messageHashes, i, '')
             clientSubscription = self.safe_value(client.subscriptions, messageHash)
             if clientSubscription is None:
                 market = markets[i]
@@ -1072,14 +1080,14 @@ class nado(ccxt.async_support.nado):
                         'streamType': streamType,
                         'symbol': self.safe_string(market, 'symbol'),
                     }
-                    client.subscriptions['subscription:' + self.number_to_string(id)] = {
+                    client.subscriptions['subscription:' + self.safe_string(request, 'id', '')] = {
                         'subscribeHash': subscribeHash,
                     }
                     self.watch_multiple(url, [subscribeHash], request, [subscribeHash], subscription)
         return await self.watch_multiple(url, messageHashes, None, messageHashes)
 
     async def un_watch_public(self, streamType: Str, market: Market, messageHash: str, params: dict = {}):
-        url = self.urls['api']['ws']['subscriptions']
+        url = self.safe_string(self.urls['api']['ws'], 'subscriptions')
         id = self.request_id()
         request = self.create_public_subscription_request('unsubscribe', streamType, market, id, params)
         subscription = {
@@ -1088,17 +1096,17 @@ class nado(ccxt.async_support.nado):
         }
         unsubscribeHash = 'unsubscribe:' + messageHash
         client = self.client(url)
-        client.subscriptions['unsubscription:' + self.number_to_string(id)] = {
+        client.subscriptions['unsubscription:' + self.safe_string(request, 'id', '')] = {
             'messageHash': messageHash,
             'unsubscribeHash': unsubscribeHash,
         }
         return await self.watch(url, unsubscribeHash, request, unsubscribeHash, subscription)
 
     async def un_watch_public_multiple(self, streamType: Str, markets: list[Market], messageHashes: list[str], params: dict = {}, subscriptionParams: list[dict] | None = None) -> bool:
-        url = self.urls['api']['ws']['subscriptions']
+        url = self.safe_string(self.urls['api']['ws'], 'subscriptions')
         client = self.client(url)
         for i in range(0, len(messageHashes)):
-            messageHash = messageHashes[i]
+            messageHash = self.safe_string(messageHashes, i, '')
             id = self.request_id()
             unsubscribeHash = 'unsubscribe:' + messageHash
             requestParams = params if (subscriptionParams is None) else subscriptionParams[i]
@@ -1107,7 +1115,7 @@ class nado(ccxt.async_support.nado):
                 'id': id,
                 'messageHash': messageHash,
             }
-            client.subscriptions['unsubscription:' + self.number_to_string(id)] = {
+            client.subscriptions['unsubscription:' + self.safe_string(request, 'id', '')] = {
                 'messageHash': messageHash,
                 'unsubscribeHash': unsubscribeHash,
             }
@@ -1219,7 +1227,7 @@ class nado(ccxt.async_support.nado):
     def handle_trade(self, client: Client, message: dict):
         marketId = self.safe_string(message, 'product_id')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'trade:' + symbol
         trades = self.safe_value(self.trades, symbol)
         if trades is None:
@@ -1237,9 +1245,8 @@ class nado(ccxt.async_support.nado):
             self.myTrades = ArrayCacheBySymbolById(limit)
         trades = self.myTrades
         trades.append(trade)
-        symbol = trade['symbol']
         client.resolve(trades, 'myTrades')
-        client.resolve(trades, 'myTrades:' + symbol)
+        client.resolve(trades, 'myTrades:' + self.safe_string(trade, 'symbol', ''))
 
     def handle_ohlcv(self, client: Client, message: dict):
         #
@@ -1257,7 +1264,7 @@ class nado(ccxt.async_support.nado):
         #
         marketId = self.safe_string(message, 'product_id')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         granularity = self.safe_integer(message, 'granularity')
         timeframe = self.find_timeframe(granularity)
         if timeframe is None:
@@ -1341,9 +1348,8 @@ class nado(ccxt.async_support.nado):
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
         orders.append(order)
-        symbol = order['symbol']
         client.resolve(orders, 'orders')
-        client.resolve(orders, 'orders:' + symbol)
+        client.resolve(orders, 'orders:' + self.safe_string(order, 'symbol', ''))
 
     def parse_ws_position(self, position: dict, market: Market = None) -> Position:
         #
@@ -1421,9 +1427,8 @@ class nado(ccxt.async_support.nado):
             positions.append(shortPosition)
         else:
             positions.append(position)
-        symbol = position['symbol']
         client.resolve(positions, 'positions')
-        client.resolve(positions, 'positions:' + symbol)
+        client.resolve(positions, 'positions:' + self.safe_string(position, 'symbol', ''))
 
     def parse_ws_bid_ask(self, bidask: dict, market: Market = None) -> Ticker:
         #
@@ -1465,7 +1470,7 @@ class nado(ccxt.async_support.nado):
         client.resolve(tickers, 'bidask')
         client.resolve(tickers, 'ticker')
 
-    def parse_ws_all_bids_asks(self, message: dict) -> Tickers:
+    def parse_ws_all_bids_asks(self, message: dict) -> dict:
         #
         #     {
         #         "type": "all_bbo",
@@ -1590,6 +1595,8 @@ class nado(ccxt.async_support.nado):
 
     def handle_subscription(self, client: Client, message: dict):
         id = self.safe_string(message, 'id')
+        if id is None:
+            return
         subscription = self.safe_dict(client.subscriptions, 'subscription:' + id)
         if subscription is not None:
             subscribeHash = self.safe_string(subscription, 'subscribeHash')
@@ -1598,6 +1605,8 @@ class nado(ccxt.async_support.nado):
 
     def handle_authentication(self, client: Client, message: dict):
         id = self.safe_string(message, 'id')
+        if id is None:
+            return
         messageHash = self.safe_string(client.subscriptions, 'authentication:' + id)
         if messageHash is not None:
             del client.subscriptions['authentication:' + id]
@@ -1605,7 +1614,7 @@ class nado(ccxt.async_support.nado):
             client.resolve(message, messageHash)
 
     def handle_unsubscription(self, client: Client, message: dict):
-        id = self.safe_string(message, 'id')
+        id = self.safe_string(message, 'id', '')
         unsubscription = self.safe_dict(client.subscriptions, 'unsubscription:' + id)
         if unsubscription is not None:
             messageHash = self.safe_string(unsubscription, 'messageHash')
@@ -1630,9 +1639,7 @@ class nado(ccxt.async_support.nado):
             client.resolve(True, unsubscribeHash)
             return
 
-    def handle_unsubscription_cache(self, messageHash: Str):
-        if messageHash is None:
-            return
+    def handle_unsubscription_cache(self, messageHash: str):
         if messageHash.find('trade:') == 0:
             symbol = messageHash.replace('trade:', '')
             if symbol in self.trades:
@@ -1654,7 +1661,8 @@ class nado(ccxt.async_support.nado):
         elif messageHash == 'ticker':
             symbols = list(self.tickers.keys())
             for i in range(0, len(symbols)):
-                del self.tickers[symbols[i]]
+                tickerSymbol = symbols[i]
+                del self.tickers[tickerSymbol]
         elif messageHash.find('bidask:') == 0:
             symbol = messageHash.replace('bidask:', '')
             if symbol in self.bidsasks:
@@ -1662,7 +1670,8 @@ class nado(ccxt.async_support.nado):
         elif messageHash == 'bidask':
             symbols = list(self.bidsasks.keys())
             for i in range(0, len(symbols)):
-                del self.bidsasks[symbols[i]]
+                bidaskSymbol = symbols[i]
+                del self.bidsasks[bidaskSymbol]
         elif messageHash.find('orders') == 0:
             self.orders = None
         elif messageHash.find('myTrades') == 0:
@@ -1671,7 +1680,7 @@ class nado(ccxt.async_support.nado):
             self.positions = None
 
     def ping(self, client: Client):
-        gatewayUrl = self.urls['api']['ws']['gateway']
+        gatewayUrl = self.safe_string(self.urls['api']['ws'], 'gateway')
         if client.url == gatewayUrl:
             # the v2 gateway is kept alive with protocol-level ping frames,
             # returning undefined makes the client send one instead of a message
@@ -1703,7 +1712,7 @@ class nado(ccxt.async_support.nado):
         if (error is None) and (status != 'failure'):
             return False
         feedback = ExchangeError(self.id + ' ' + self.json(message))
-        id = self.safe_string(message, 'id')
+        id = self.safe_string(message, 'id', '')
         if id is not None:
             executeHash = 'execute:' + id
             executeSubscription = self.safe_value(client.subscriptions, executeHash)

@@ -679,7 +679,7 @@ class bitteam extends bitteam$1["default"] {
             feesByNetworkId[blockChain] = fee;
         }
         else {
-            feesByNetworkId = withdrawCommissionFixed;
+            feesByNetworkId = this.extend(withdrawCommissionFixed, {});
         }
         const statuses = this.safeDict(statusesResponse, numericId, {});
         const deposit = this.safeBool(statuses, 'depositStatus');
@@ -1752,7 +1752,7 @@ class bitteam extends bitteam$1["default"] {
         let bestAskVolume = undefined;
         const bids = this.safeList(ticker, 'bids');
         const asks = this.safeList(ticker, 'asks');
-        if ((bids !== undefined) && (Array.isArray(bids)) && (asks !== undefined) && (Array.isArray(asks))) {
+        if ((bids !== undefined) && (asks !== undefined)) {
             const bestBid = this.safeDict(bids, 0, {});
             bestBidPrice = this.safeString(bestBid, 'price');
             bestBidVolume = this.safeString(bestBid, 'quantity');
@@ -2451,12 +2451,12 @@ class bitteam extends bitteam$1["default"] {
             if (code === 404) {
                 if ((url.indexOf('/ccxt/order/') >= 0) && (method === 'GET')) {
                     const parts = url.split('/order/');
-                    const orderId = this.safeString(parts, 1);
+                    const orderId = this.safeString(parts, 1, '');
                     throw new errors.OrderNotFound(this.id + ' order ' + orderId + ' not found');
                 }
                 if (url.indexOf('/cmc/orderbook/') >= 0) {
                     const parts = url.split('/cmc/orderbook/');
-                    const symbolId = this.safeString(parts, 1);
+                    const symbolId = this.safeString(parts, 1, '');
                     throw new errors.BadSymbol(this.id + ' symbolId ' + symbolId + ' not found');
                 }
             }

@@ -25,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class toobit(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(toobit, self).describe(), {
             'id': 'toobit',
             'name': 'Toobit',
@@ -950,7 +950,7 @@ class toobit(Exchange, ImplicitAPI):
         all = self.array_concat(symbols, contracts)
         result = []
         for i in range(0, len(all)):
-            market = all[i]
+            market = self.safe_dict(all, i, {})
             parsed = self.parse_market(market)
             if parsed is not None:
                 result.append(parsed)
@@ -961,7 +961,7 @@ class toobit(Exchange, ImplicitAPI):
         baseId = self.safe_string(market, 'baseAsset', '')
         quoteId = self.safe_string(market, 'quoteAsset')
         baseParts = baseId.split('-')
-        baseIdClean = baseParts[0]
+        baseIdClean = self.safe_string(baseParts, 0)
         base = self.safe_currency_code(baseIdClean)
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
@@ -976,10 +976,10 @@ class toobit(Exchange, ImplicitAPI):
         lotSizeFilter = self.safe_dict(filtersByType, 'LOT_SIZE', {})
         minNotionalFilter = self.safe_dict(filtersByType, 'MIN_NOTIONAL', {})
         symbol = base + '/' + quote
-        isContract = ('contractMultiplier' in market)
+        isContract = (self.safe_string(market, 'contractMultiplier') is not None)
         inverse = self.safe_bool_2(market, 'isInverse', 'inverse')
         if isContract:
-            symbol += ':' + settle
+            symbol = base + '/' + quote + ':' + settle
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -1160,16 +1160,16 @@ class toobit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(trade, 't', 'time')
         priceString = self.safe_string_2(trade, 'p', 'price')
         amountString = self.safe_string_2(trade, 'q', 'qty')
-        isBuyer = self.safe_bool(trade, 'isBuyer')
+        isBuyer = self.safe_bool(trade, 'isBuyer', False)
         side = None
         isBuyerMaker = self.safe_bool(trade, 'ibm')
         isBuyerTaker = self.safe_bool(trade, 'm')
         if isBuyerMaker is not None:
-            side = 'sell' if (isBuyerMaker is True) else 'buy'
+            side = 'sell' if isBuyerMaker else 'buy'
         elif isBuyerTaker is not None:
-            side = 'buy' if (isBuyerTaker is True) else 'sell'
+            side = 'buy' if isBuyerTaker else 'sell'
         else:
-            if isBuyer is True:
+            if isBuyer:
                 side = 'buy'
             else:
                 side = 'sell'
@@ -1396,7 +1396,7 @@ class toobit(Exchange, ImplicitAPI):
         last = self.safe_string(ticker, 'c')
         baseVolume = self.safe_string(ticker, 'v')
         contractSize = self.safe_number(marketResolved, 'contractSize')
-        if (marketResolved['contract'] is True) and (contractSize is not None):
+        if (self.safe_bool(marketResolved, 'contract', False)) and (contractSize is not None):
             # 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.string_mul(baseVolume, self.number_to_string(contractSize))
         return self.safe_ticker({
@@ -1498,9 +1498,9 @@ class toobit(Exchange, ImplicitAPI):
         #            "t": "1755936610506"
         #        }, ...
         #
-        return self.parse_bids_asks_custom(response, symbolsNormalized)
+        return self.parse_bids_asks_custom(response, symbolsNormalized, {})
 
-    def parse_bids_asks_custom(self, tickers: list[dict], symbols: Strings = None, params: dict = {}) -> Tickers:
+    def parse_bids_asks_custom(self, tickers: list[dict], symbols: Strings, params: dict) -> Tickers:
         results = []
         for i in range(0, len(tickers)):
             parsedTicker = self.parse_bid_ask_custom(tickers[i])
@@ -1677,9 +1677,9 @@ class toobit(Exchange, ImplicitAPI):
             #        ]
             #    }
             #
-        return self.parse_balance(response)
+        return self.parse_balance_list(response)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: object) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1717,7 +1717,7 @@ class toobit(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         response = {}
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             request, paramsRequest = self.create_order_request(symbol, type, side, amount, price, params)
             response = await self.privatePostApiV1SpotOrder(self.extend(request, paramsRequest))
         else:
@@ -1835,7 +1835,7 @@ class toobit(Exchange, ImplicitAPI):
             if triggerPriceType is not None:
                 request['tpTriggerBy'] = self.safe_string(triggerPriceTypes, triggerPriceType, triggerPriceType)
         paramsOmitted = self.omit(paramsTrigger, ['stopLoss', 'takeProfit'])
-        if not ('newClientOrderId' in paramsOmitted):
+        if self.safe_string(paramsOmitted, 'newClientOrderId') is None:
             request['newClientOrderId'] = self.uuid()
         return [request, paramsOmitted]
 
@@ -1980,6 +1980,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         if self.safe_string(params, 'clientOrderId') is None:
             request['orderId'] = id
@@ -2053,9 +2055,8 @@ class toobit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        idsString = ','.join(ids)
         request = {
-            'ids': idsString,
+            'ids': ','.join(ids),
         }
         market = None
         if symbol is not None:
@@ -2111,7 +2112,7 @@ class toobit(Exchange, ImplicitAPI):
         }
         market = self.market(symbol)
         response = {}
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             response = await self.privateGetApiV1SpotOrder(self.extend(request, params))
         else:
             response = await self.privateGetApiV1FuturesOrder(self.extend(request, params))
@@ -2563,9 +2564,10 @@ class toobit(Exchange, ImplicitAPI):
             symbol, paramsSymbol = self.handle_param_string(paramsMarketType, 'symbol')
             if symbol is None:
                 raise BadRequest(self.id + ' fetchTradingFees requires a params["symbol"]')
-            market = self.market(symbol)
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
             request = {
-                'symbol': market['id'],
+                'symbol': symbolMarket['id'],
             }
             response = await self.privateGetApiV1FuturesCommissionRate(self.extend(request, paramsSymbol))
         #
@@ -2578,10 +2580,9 @@ class toobit(Exchange, ImplicitAPI):
         #
         result = {}
         entry = response
-        marketId = self.safe_string(entry, 'symbol')
-        market = self.safe_market(marketId, market)
-        fee = self.parse_trading_fee(entry, market)
-        result[market['symbol']] = fee
+        marketResolved = self.safe_market(self.safe_string(entry, 'symbol'), market)
+        fee = self.parse_trading_fee(entry, marketResolved)
+        result[marketResolved['symbol']] = fee
         return result
 
     def parse_trading_fee(self, data: dict, market: Market = None) -> TradingFeeInterface:
@@ -2633,9 +2634,9 @@ class toobit(Exchange, ImplicitAPI):
             request['coin'] = currency['id']
         if since is not None:
             request['startTime'] = since
-        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
         if limit is not None:
-            requestUntil['limit'] = limit
+            request['limit'] = limit
+        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
         response = []
         if type == 'deposits':
             response = await self.privateGetApiV1AccountDepositOrders(self.extend(requestUntil, paramsUntil))
@@ -3089,7 +3090,7 @@ class toobit(Exchange, ImplicitAPI):
         if apiName != 'private':
             # Public endpoints
             if not isPost:
-                if len(query) > 0:
+                if not self.is_empty(query):
                     url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -3099,7 +3100,7 @@ class toobit(Exchange, ImplicitAPI):
             extraQuery['timestamp'] = str(timestamp)
             queryExtended = self.extend(query, extraQuery)
             queryString = ''
-            privateBody = None
+            privateBody = ''
             if isPost or isDelete:
                 # everything else except Batch-Orders
                 if not isinstance(params, list):
@@ -3109,12 +3110,9 @@ class toobit(Exchange, ImplicitAPI):
                     privateBody = self.json(query)
             else:
                 queryString = self.urlencode(queryExtended)
-            payloadBody = None
-            if isPost or isDelete:
-                payloadBody = privateBody
             payload = queryString
-            if payloadBody is not None:
-                payload = payloadBody + payload
+            if isPost or isDelete:
+                payload = privateBody + queryString
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
             if queryString != '':
                 queryString += '&signature=' + signature
@@ -3133,7 +3131,7 @@ class toobit(Exchange, ImplicitAPI):
             return {'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders}
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         errorCode = self.safe_string(response, 'code')

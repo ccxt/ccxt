@@ -273,10 +273,11 @@ export default class coincheck extends Exchange {
             const code = codes[i];
             const currency = this.currency(code);
             const currencyId = currency['id'];
-            if (currencyId in response) {
+            const free = this.safeString(response, currencyId);
+            if (free !== undefined) {
                 const account = this.account();
                 const reserved = currencyId + '_reserved';
-                account['free'] = this.safeString(response, currencyId);
+                account['free'] = free;
                 account['used'] = this.safeString(response, reserved);
                 result[code] = account;
             }
@@ -560,11 +561,12 @@ export default class coincheck extends Exchange {
         let side = undefined;
         let fee = undefined;
         let orderId = undefined;
-        if ('liquidity' in trade) {
-            if (this.safeString(trade, 'liquidity') === 'T') {
+        const liquidity = this.safeString(trade, 'liquidity');
+        if (liquidity !== undefined) {
+            if (liquidity === 'T') {
                 takerOrMaker = 'taker';
             }
-            else if (this.safeString(trade, 'liquidity') === 'M') {
+            else if (liquidity === 'M') {
                 takerOrMaker = 'maker';
             }
             const funds = this.safeDict(trade, 'funds', {});
@@ -992,8 +994,9 @@ export default class coincheck extends Exchange {
         }
         let url = apiUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
+        const hasQuery = Object.keys(query).length > 0;
         if (apiName === 'public') {
-            if (Object.keys(query).length > 0) {
+            if (hasQuery) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -1002,14 +1005,14 @@ export default class coincheck extends Exchange {
             const nonce = this.nonce().toString();
             let queryString = '';
             if (method === 'GET') {
-                if (Object.keys(query).length > 0) {
+                if (hasQuery) {
                     url += '?' + this.urlencode(this.keysort(query));
                 }
             }
             else {
-                if (Object.keys(query).length > 0) {
-                    bodySigned = this.urlencode(this.keysort(query));
-                    queryString = bodySigned;
+                if (hasQuery) {
+                    queryString = this.urlencode(this.keysort(query));
+                    bodySigned = queryString;
                 }
             }
             const auth = nonce + url + queryString;
@@ -1024,7 +1027,7 @@ export default class coincheck extends Exchange {
         const bodyResolved = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
@@ -1038,7 +1041,7 @@ export default class coincheck extends Exchange {
             const feedback = this.id + ' ' + this.json(response);
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
-            throw new ExchangeError(this.id + ' ' + this.json(response));
+            throw new ExchangeError(feedback);
         }
         return undefined;
     }

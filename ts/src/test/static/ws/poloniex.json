@@ -1025,6 +1025,106 @@
                         }
                     ]
                 ]
+            },
+            {
+                "description": "an unmapped venue channel frame on the same socket must be ignored instead of crashing the dispatcher",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    null,
+                    {
+                        "channel": [
+                            "trades",
+                            "exchange"
+                        ]
+                    }
+                ],
+                "url": "wss://ws.poloniex.com/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "channel": "trades",
+                        "symbols": [
+                            "BTC_USDT"
+                        ]
+                    },
+                    {
+                        "event": "subscribe",
+                        "channel": "exchange",
+                        "symbols": [
+                            "ALL"
+                        ]
+                    },
+                    {
+                        "channel": "exchange",
+                        "data": [
+                            {
+                                "mm": "OFF",
+                                "pom": "OFF"
+                            }
+                        ],
+                        "action": "snapshot"
+                    },
+                    {
+                        "channel": "trades",
+                        "data": [
+                            {
+                                "symbol": "BTC_USDT",
+                                "amount": "171.33903072",
+                                "quantity": "0.002134",
+                                "takerSide": "buy",
+                                "createTime": 1793829948739,
+                                "price": "80290.08",
+                                "id": "253219673",
+                                "ts": 1793829948749
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "channel": [
+                            "trades",
+                            "exchange"
+                        ],
+                        "symbols": [
+                            "BTC_USDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "symbol": "BTC_USDT",
+                                "amount": "171.33903072",
+                                "quantity": "0.002134",
+                                "takerSide": "buy",
+                                "createTime": 1793829948739,
+                                "price": "80290.08",
+                                "id": "253219673",
+                                "ts": 1793829948749
+                            },
+                            "id": "253219673",
+                            "symbol": "BTC/USDT",
+                            "timestamp": 1793829948739,
+                            "datetime": "2026-11-04T22:05:48.739Z",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 80290.08,
+                            "amount": 0.002134,
+                            "cost": 171.33903072,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
             }
         ],
         "watchTicker": [

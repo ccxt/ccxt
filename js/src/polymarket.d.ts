@@ -1,12 +1,12 @@
 import Exchange from './abstract/polymarket.js';
-import type { NullableDict, Dict, Int, Str, Strings, Num, Market, Currencies, Currency, Ticker, Tickers, OrderBook, Trade, OHLCV, FundingRate, FundingRates, FundingRateHistory, OpenInterest, OpenInterests, TradingFees, Status, int, Order, OrderType, OrderSide, OrderRequest, Balances, Position, Transaction, FundingHistory, Leverage, MarginMode, MarginModification } from './base/types.js';
+import type { NullableDict, Dict, Int, Str, Strings, Num, Market, Currencies, Currency, Ticker, Tickers, OrderBook, Trade, OHLCV, FundingRate, FundingRates, FundingRateHistory, OpenInterest, OpenInterests, TradingFees, Status, List, int, Order, OrderType, OrderSide, OrderRequest, Balances, Position, Transaction, FundingHistory, Leverage, MarginMode, MarginModification } from './base/types.js';
 /**
  * @class polymarket
  * @description Polymarket perpetual futures - a hybrid dex with an off-chain order book and on-chain settlement of collateral. The venue trades linear perpetual contracts on crypto, indices, equities and commodities, quoted using USD and collateralized exclusively with pUSD. The prediction-market CLOB is a separate product, integrated separately under ccxt.prediction.polymarket
  * @augments Exchange
  */
 export default class polymarket extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name polymarket#fetchTime
@@ -15,7 +15,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<Int>;
+    fetchTime(params?: Dict): Promise<Int>;
     /**
      * @method
      * @name polymarket#fetchStatus
@@ -24,7 +24,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<Status>;
+    fetchStatus(params?: Dict): Promise<Status>;
     /**
      * @method
      * @name polymarket#fetchCurrencies
@@ -33,7 +33,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    fetchCurrencies(params?: {}): Promise<Currencies>;
+    fetchCurrencies(params?: Dict): Promise<Currencies>;
     /**
      * @method
      * @name polymarket#fetchMarkets
@@ -42,7 +42,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
     parseMarket(market: Dict): Market;
     /**
      * @method
@@ -53,7 +53,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name polymarket#fetchTickers
@@ -63,7 +63,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -74,7 +74,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name polymarket#fetchOrderBook
@@ -85,7 +85,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name polymarket#fetchTrades
@@ -98,7 +98,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -114,7 +114,7 @@ export default class polymarket extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling the endpoint multiple times
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -125,7 +125,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     /**
      * @method
      * @name polymarket#fetchFundingRates
@@ -135,7 +135,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
-    fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
+    fetchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
     /**
      * @method
@@ -150,7 +150,7 @@ export default class polymarket extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling the endpoint multiple times
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
      */
-    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
+    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
     /**
      * @method
      * @name polymarket#fetchOpenInterest
@@ -160,7 +160,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
      */
-    fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
+    fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
     /**
      * @method
      * @name polymarket#fetchOpenInterests
@@ -170,7 +170,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
      */
-    fetchOpenInterests(symbols?: Strings, params?: {}): Promise<OpenInterests>;
+    fetchOpenInterests(symbols?: Strings, params?: Dict): Promise<OpenInterests>;
     parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
@@ -180,7 +180,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
      */
-    fetchTradingFees(params?: {}): Promise<TradingFees>;
+    fetchTradingFees(params?: Dict): Promise<TradingFees>;
     /**
      * @method
      * @ignore
@@ -213,7 +213,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.exp] expiry timestamp of the signed command in ms, bounds how long the gateway may hold the request
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name polymarket#createOrders
@@ -224,7 +224,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.exp] expiry timestamp of the signed command in ms, bounds how long the gateway may hold the request
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name polymarket#cancelOrder
@@ -236,7 +236,7 @@ export default class polymarket extends Exchange {
      * @param {string} [params.clientOrderId] cancel by the client order id instead of the exchange order id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name polymarket#cancelOrders
@@ -248,7 +248,7 @@ export default class polymarket extends Exchange {
      * @param {string[]} [params.clientOrderIds] cancel by client order ids instead of the exchange order ids
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrders(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name polymarket#cancelAllOrders
@@ -258,7 +258,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list with the raw acknowledgement of the venue
      */
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelAllOrders(symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name polymarket#cancelAllOrdersAfter
@@ -268,7 +268,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw acknowledgement of the venue
      */
-    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: Dict): Promise<any>;
     /**
      * @method
      * @name polymarket#editOrder
@@ -283,7 +283,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
@@ -294,7 +294,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     /**
      * @method
      * @name polymarket#fetchPositions
@@ -304,7 +304,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     /**
      * @method
      * @name polymarket#fetchPosition
@@ -314,7 +314,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    fetchPosition(symbol: string, params?: {}): Promise<Position>;
+    fetchPosition(symbol: string, params?: Dict): Promise<Position>;
     parsePosition(position: Dict, market?: Market): Position;
     /**
      * @method
@@ -327,7 +327,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name polymarket#fetchOrders
@@ -341,7 +341,7 @@ export default class polymarket extends Exchange {
      * @param {string} [params.clientOrderId] fetch the order with this client order id only
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name polymarket#fetchOrder
@@ -352,7 +352,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name polymarket#fetchMyTrades
@@ -366,7 +366,7 @@ export default class polymarket extends Exchange {
      * @param {string} [params.cursor] opaque pagination cursor returned by the previous page
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name polymarket#fetchFundingHistory
@@ -379,7 +379,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest funding payment
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
      */
-    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
+    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
     parseTransactionStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
@@ -394,7 +394,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest deposit
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name polymarket#fetchWithdrawals
@@ -407,7 +407,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest withdrawal
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name polymarket#withdraw
@@ -429,7 +429,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     /**
      * @method
@@ -440,7 +440,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
      */
-    fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
+    fetchMarginMode(symbol: string, params?: Dict): Promise<MarginMode>;
     /**
      * @method
      * @name polymarket#setLeverage
@@ -452,7 +452,7 @@ export default class polymarket extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated', the venue keeps the current mode when omitted is not supported - the default is cross
      * @returns {object} the raw acknowledgement of the venue
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<any>;
     /**
      * @method
      * @name polymarket#setMarginMode
@@ -464,7 +464,7 @@ export default class polymarket extends Exchange {
      * @param {float} params.leverage the rate of leverage to set together with the mode
      * @returns {object} the raw acknowledgement of the venue
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: Dict): Promise<any>;
     /**
      * @method
      * @ignore
@@ -487,7 +487,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
      */
-    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     /**
      * @method
      * @name polymarket#reduceMargin
@@ -498,7 +498,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
      */
-    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    reduceMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     hashMessage(message: any): string;
     signHash(hash: any, privateKey: any): string;
     signMessage(message: any, privateKey: any): string;
@@ -529,7 +529,7 @@ export default class polymarket extends Exchange {
      * @param {object} bodyOp the structured operation object transmitted to the venue
      * @returns {object} the signed request body with the op, sig, salt and ts fields
      */
-    signPerpsOp(signable: any, bodyOp: any, params?: Dict): Promise<Dict>;
+    signPerpsOp(signable: List, bodyOp: Dict, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @ignore
@@ -541,7 +541,7 @@ export default class polymarket extends Exchange {
     compactSignable(row: any[]): any[];
     priceToPrecision(symbol: Str, price: any): Str;
     amountToPrecision(symbol: Str, amount: any): Str;
-    calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: {}): any;
+    calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: {}): any;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

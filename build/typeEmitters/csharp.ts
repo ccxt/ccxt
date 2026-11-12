@@ -362,6 +362,9 @@ export function csExprOf (idiom: string, recv: string, key: string, elem: string
     if (idiom === 'safeBool') {
         return 'Exchange.SafeBool(' + recv + ', ' + k + ')';
     }
+    if (idiom === 'definiteBool') {
+        return 'Exchange.SafeBool(' + recv + ', ' + k + ', false) == true';
+    }
     if (idiom === 'safeBoolFalse') {
         return 'Exchange.SafeBool(' + recv + ', ' + k + ', false)';
     }
@@ -499,11 +502,13 @@ export function resolveFields (ir: TypesIR, spec: StructSpec): Record<string, Re
             const named = inlineStructFor (resolved.path);
             elem = named !== undefined ? named : '';
         }
+        // a required bare `boolean` is never undefined: a plain C# bool
+        const definiteBool = !field.optional && (field.tsType.trim () === 'boolean');
         const entry: ResolvedField = {
             'cs': cs,
-            'type': csTypeOf (spec, resolved, cs),
+            'type': definiteBool ? 'bool' : csTypeOf (spec, resolved, cs),
             'key': tsName,
-            'idiom': idiomOf (spec, resolved, cs),
+            'idiom': definiteBool ? 'definiteBool' : idiomOf (spec, resolved, cs),
             'elem': elem,
         };
         out[cs] = entry;

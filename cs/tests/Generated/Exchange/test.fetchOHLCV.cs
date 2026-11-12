@@ -11,25 +11,107 @@ public partial class testMainClass : BaseTest
     {
         string method = "fetchOHLCV";
         List<object> timeframeKeys = new List<object>(((IDictionary<string,object>)exchange.timeframes).Keys);
-        assert(timeframeKeys.Count > 0, add(add(add(exchange.id, " "), method), " - no timeframes found"));
-        // prefer 1m timeframe if available, otherwise return the first one
+        object logText = testSharedMethods.logTemplate(exchange, method, new Dictionary<string, object>() {});
+        assert(timeframeKeys.Count > 0, add(add(add(add(exchange.id, " "), method), " - no timeframes found"), logText)); // prefer 1m timeframe if available, otherwise return the first one
         object chosenTimeframeKey = "1m";
         if (!isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
         {
             chosenTimeframeKey = (timeframeKeys != null && 0 < timeframeKeys.Count ? timeframeKeys[0] : null);
         }
-        int limit = 10;
-        int duration = exchange.parseTimeframe(chosenTimeframeKey);
-        Int64 since = subtract(subtract(exchange.milliseconds(), multiply(multiply(duration, limit), 1000)), 1000);
-        object ohlcvs = await invokeExchangeDynamically(exchange, "fetchOHLCV", symbol, chosenTimeframeKey, since, limit);
-        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, ohlcvs, symbol);
+        Int64 durationMs = (exchange.parseTimeframe(chosenTimeframeKey) * 1000L);
+        //
+        // check for all possible "since" & "limit" combinations, where one of them could be undefined and the other not
+        //
+        List<object> sinceArray = new List<object>() {null, (exchange.milliseconds() - (durationMs * 2800))}; // eg, "since" was a date of 2800 bars back
+        List<object> limitsArray = new List<object>() {null, 50, 25000};
+        for (int i = 0; i < (sinceArray?.Count ?? 0); i++)
+        {
+            object sinceCurrent = sinceArray[i];
+            for (int j = 0; j < (limitsArray?.Count ?? 0); j++)
+            {
+                object limit = limitsArray[j];
+                object ohlcvs = await invokeExchangeDynamically(exchange, "fetchOHLCV", symbol, chosenTimeframeKey, sinceCurrent, limit);
+                // we can't expect array to have values, because requested period might have zero bars for valid reason
+                // testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, ohlcvs, symbol);
+                helperFetchOHLCVChecker(exchange, skippedProperties, symbol, ohlcvs, chosenTimeframeKey, sinceCurrent, limit);
+            }
+        }
+        return true;
+    }
+    public static void helperFetchOHLCVChecker(BaseExchange exchange, object skippedProperties, object symbol, object ohlcvs, object timeframe, object since, object limit)
+    {
+        string method = "fetchOHLCV";
+        object logText = testSharedMethods.logTemplate(exchange, method, new Dictionary<string, object>() {});
+        assert(((ohlcvs is IList<object>) || (ohlcvs.GetType().IsGenericType && ohlcvs.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), logText));
         Int64 now = exchange.milliseconds();
         for (int i = 0; i < getArrayLength(ohlcvs); i++)
         {
             testOHLCV(exchange, skippedProperties, method, getValue(ohlcvs, i), symbol, now);
         }
-        // todo: sorted timestamps check
-        return true;
+        Int64 durationMs = (exchange.parseTimeframe(timeframe) * 1000L);
+        int barsLength = getArrayLength(ohlcvs);
+        // check bars amounts, to be between 0 and limit
+        // less then limit
+        if (!(limit == null))
+        {
+            assert(isLessThanOrEqual(barsLength, limit), ((((((("Returned bars amount (" + ((object)barsLength).ToString()) + ") is more than requested (") + ((object)limit).ToString()) + ")") + (logText)) + "") + exchange.json(ohlcvs)));
+        }
+        // ensure bars amount is more than zero
+        if ((barsLength == 0))
+        {
+            // zero-amount of bars should not be tolerated for major exchanges, because it would indicate implementation issue
+            // so unless the target exchange (probably mostly lower end exchanges) is skipped, we should assert that
+            if (!(inOp(skippedProperties, "compareAmountToZero")))
+            {
+                assert(barsLength > 0, ("Returned bars amount should be more then zero" + (logText)));
+            }
+            // exchange was skipped for zero-bars, then just return and don't do any further check, because there were no ohlcv entries
+            return;
+        }
+        // else we continue and check timestamps
+        for (object i = 0; isLessThan(i, barsLength); postFixIncrement(ref i))
+        {
+            object ohlcv = getValue(ohlcvs, i);
+            object barTs = getValue(ohlcv, 0);
+            // if this is the first bar, then ensure its timestamp is not earlier than requested "since"
+            if (!(inOp(skippedProperties, "compareTimestampToSince")))
+            {
+                if (isEqual(i, 0) && !(since == null))
+                {
+                    assert(isGreaterThanOrEqual(barTs, since), ((((("Returned bars earliest timestamp (" + ((object)barTs).ToString()) + ") is before than requested since (") + ((object)since).ToString()) + ")") + (logText)));
+                }
+            }
+            // if this is the last bar, then check if it's <= now
+            if (isEqual(i, (barsLength - 1)))
+            {
+                if (!(inOp(skippedProperties, "compareToNow")))
+                {
+                    assert(isLessThanOrEqual(barTs, now), ((((("Returned bars latest timestamp (" + ((object)barTs).ToString()) + ") is after than current timestamp (") + ((object)now).ToString()) + ")") + (logText)));
+                }
+                // and ensure the last bar's timestamp does not exceed the requested "since + limit * duration" upper bound
+                if (!(inOp(skippedProperties, "compareTimestampToLimit")))
+                {
+                    if (!(since == null) && !(limit == null))
+                    {
+                        object maxExpectedTs = add(since, (multiply(limit, durationMs)));
+                        assert(isLessThanOrEqual(barTs, maxExpectedTs), ((((("Returned bars latest timestamp (" + ((object)barTs).ToString()) + ") is after than requested since + limit * duration (") + ((object)maxExpectedTs).ToString()) + ")") + (logText)));
+                    }
+                }
+            }
+            // we compare bar durations below (unless skipped), to ensure current bar's timestamp >= previous bar + one duration
+            if (!(inOp(skippedProperties, "compareDuration")))
+            {
+                if (isGreaterThan(i, 0))
+                {
+                    object previousBarTs = getValue(getValue(ohlcvs, subtract(i, 1)), 0);
+                    object diffBetweenCurrentAndPrevious = subtract(barTs, previousBarTs);
+                    assert(isGreaterThan(diffBetweenCurrentAndPrevious, 0), ((((("Difference between current bar timestamp (" + ((object)barTs).ToString()) + ") and previous bar timestamp (") + ((object)previousBarTs).ToString()) + ") should be positive") + (logText)));
+                    // ensure that the difference is one duration or its multiplier (i.e. current minute bar timestamp should be 60*X seconds more than last bar's timestamp)
+                    bool isRoundNumber = exchange.isRoundNumber(divide(diffBetweenCurrentAndPrevious, durationMs));
+                    assert(isRoundNumber, ((((((("Difference between current bar timestamp (" + ((object)barTs).ToString()) + ") and previous bar timestamp (") + ((object)previousBarTs).ToString()) + ") is not multiplier of duration (") + ((object)durationMs).ToString()) + ")") + (logText)));
+                }
+            }
+        }
     }
 
 }

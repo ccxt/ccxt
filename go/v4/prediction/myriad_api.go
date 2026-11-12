@@ -15,7 +15,7 @@ func (this *Myriad) MyriadPublicGetQuestions(args ...any) <-chan ccxt.EndpointRe
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "questions", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "questions", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetQuestionsId returns a channel that yields a JSON object.
@@ -24,7 +24,7 @@ func (this *Myriad) MyriadPublicGetQuestionsId(args ...any) <-chan ccxt.Endpoint
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "questions/{id}", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "questions/{id}", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetMarkets returns a channel that yields a JSON object.
@@ -33,7 +33,7 @@ func (this *Myriad) MyriadPublicGetMarkets(args ...any) <-chan ccxt.EndpointResu
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetMarketsId returns a channel that yields a JSON object.
@@ -42,7 +42,7 @@ func (this *Myriad) MyriadPublicGetMarketsId(args ...any) <-chan ccxt.EndpointRe
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/{id}", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/{id}", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetMarketsNetworkIdId returns a channel that yields a JSON object.
@@ -51,7 +51,7 @@ func (this *Myriad) MyriadPublicGetMarketsNetworkIdId(args ...any) <-chan ccxt.E
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/{networkId}/{id}", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/{networkId}/{id}", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetMarketsIdEvents returns a channel that yields a JSON object.
@@ -60,7 +60,7 @@ func (this *Myriad) MyriadPublicGetMarketsIdEvents(args ...any) <-chan ccxt.Endp
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/{id}/events", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/{id}/events", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetMarketsIdOrderbook returns a channel that yields a JSON object.
@@ -69,7 +69,7 @@ func (this *Myriad) MyriadPublicGetMarketsIdOrderbook(args ...any) <-chan ccxt.E
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/{id}/orderbook", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/{id}/orderbook", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetMarketsIdTrades returns a channel that yields a JSON array.
@@ -78,7 +78,7 @@ func (this *Myriad) MyriadPublicGetMarketsIdTrades(args ...any) <-chan ccxt.Endp
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "markets/{id}/trades", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "markets/{id}/trades", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetMarketsIdHolders returns a channel that yields a JSON object.
@@ -87,7 +87,7 @@ func (this *Myriad) MyriadPublicGetMarketsIdHolders(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/{id}/holders", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/{id}/holders", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetMarketsIdReferrals returns a channel that yields a JSON object.
@@ -96,7 +96,7 @@ func (this *Myriad) MyriadPublicGetMarketsIdReferrals(args ...any) <-chan ccxt.E
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/{id}/referrals", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/{id}/referrals", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetEvents returns a channel that yields a JSON object.
@@ -105,7 +105,7 @@ func (this *Myriad) MyriadPublicGetEvents(args ...any) <-chan ccxt.EndpointResul
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "events", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "events", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetOrders returns a channel that yields a JSON object.
@@ -114,7 +114,7 @@ func (this *Myriad) MyriadPublicGetOrders(args ...any) <-chan ccxt.EndpointResul
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "orders", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "orders", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetOrdersHash returns a channel that yields a JSON object.
@@ -123,7 +123,7 @@ func (this *Myriad) MyriadPublicGetOrdersHash(args ...any) <-chan ccxt.EndpointR
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "orders/{hash}", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "orders/{hash}", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetUsersAddressEvents returns a channel that yields a JSON object.
@@ -132,7 +132,7 @@ func (this *Myriad) MyriadPublicGetUsersAddressEvents(args ...any) <-chan ccxt.E
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "users/{address}/events", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "users/{address}/events", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetUsersAddressReferrals returns a channel that yields a JSON object.
@@ -141,7 +141,7 @@ func (this *Myriad) MyriadPublicGetUsersAddressReferrals(args ...any) <-chan ccx
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "users/{address}/referrals", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "users/{address}/referrals", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetUsersAddressPortfolio returns a channel that yields a JSON object.
@@ -150,7 +150,7 @@ func (this *Myriad) MyriadPublicGetUsersAddressPortfolio(args ...any) <-chan ccx
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "users/{address}/portfolio", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "users/{address}/portfolio", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetUsersAddressMarkets returns a channel that yields a JSON object.
@@ -159,7 +159,7 @@ func (this *Myriad) MyriadPublicGetUsersAddressMarkets(args ...any) <-chan ccxt.
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "users/{address}/markets", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "users/{address}/markets", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetTags returns a channel that yields a JSON object.
@@ -168,7 +168,7 @@ func (this *Myriad) MyriadPublicGetTags(args ...any) <-chan ccxt.EndpointResult[
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "tags", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "tags", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicGetTopics returns a channel that yields a JSON object.
@@ -177,7 +177,7 @@ func (this *Myriad) MyriadPublicGetTopics(args ...any) <-chan ccxt.EndpointResul
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "topics", []string{"myriad", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "topics", []string{"myriad", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostMarketsQuote returns a channel that yields a JSON object.
@@ -186,7 +186,7 @@ func (this *Myriad) MyriadPublicPostMarketsQuote(args ...any) <-chan ccxt.Endpoi
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/quote", []string{"myriad", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/quote", []string{"myriad", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostMarketsClaim returns a channel that yields a JSON object.
@@ -195,7 +195,7 @@ func (this *Myriad) MyriadPublicPostMarketsClaim(args ...any) <-chan ccxt.Endpoi
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/claim", []string{"myriad", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/claim", []string{"myriad", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostOrders returns a channel that yields a JSON object.
@@ -204,7 +204,7 @@ func (this *Myriad) MyriadPublicPostOrders(args ...any) <-chan ccxt.EndpointResu
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "orders", []string{"myriad", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "orders", []string{"myriad", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostOrdersCancelBatch returns a channel that yields a JSON object.
@@ -213,7 +213,7 @@ func (this *Myriad) MyriadPublicPostOrdersCancelBatch(args ...any) <-chan ccxt.E
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "orders/cancel-batch", []string{"myriad", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "orders/cancel-batch", []string{"myriad", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostOrdersCancelAll returns a channel that yields a JSON object.
@@ -222,7 +222,7 @@ func (this *Myriad) MyriadPublicPostOrdersCancelAll(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "orders/cancel-all", []string{"myriad", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "orders/cancel-all", []string{"myriad", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostPositionsSplit returns a channel that yields a JSON object.
@@ -231,7 +231,7 @@ func (this *Myriad) MyriadPublicPostPositionsSplit(args ...any) <-chan ccxt.Endp
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "positions/split", []string{"myriad", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "positions/split", []string{"myriad", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostPositionsMerge returns a channel that yields a JSON object.
@@ -240,7 +240,7 @@ func (this *Myriad) MyriadPublicPostPositionsMerge(args ...any) <-chan ccxt.Endp
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "positions/merge", []string{"myriad", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "positions/merge", []string{"myriad", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostPositionsRedeem returns a channel that yields a JSON object.
@@ -249,7 +249,7 @@ func (this *Myriad) MyriadPublicPostPositionsRedeem(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "positions/redeem", []string{"myriad", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "positions/redeem", []string{"myriad", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostPositionsRedeemVoided returns a channel that yields a JSON object.
@@ -258,7 +258,7 @@ func (this *Myriad) MyriadPublicPostPositionsRedeemVoided(args ...any) <-chan cc
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "positions/redeem-voided", []string{"myriad", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "positions/redeem-voided", []string{"myriad", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostPositionsNegRiskSplit returns a channel that yields a JSON object.
@@ -267,7 +267,7 @@ func (this *Myriad) MyriadPublicPostPositionsNegRiskSplit(args ...any) <-chan cc
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "positions/neg-risk/split", []string{"myriad", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "positions/neg-risk/split", []string{"myriad", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicPostPositionsNegRiskMerge returns a channel that yields a JSON object.
@@ -276,7 +276,7 @@ func (this *Myriad) MyriadPublicPostPositionsNegRiskMerge(args ...any) <-chan cc
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "positions/neg-risk/merge", []string{"myriad", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "positions/neg-risk/merge", []string{"myriad", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPublicDeleteOrdersHash returns a channel that yields a JSON object.
@@ -285,7 +285,7 @@ func (this *Myriad) MyriadPublicDeleteOrdersHash(args ...any) <-chan ccxt.Endpoi
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "orders/{hash}", []string{"myriad", "public"}, "DELETE", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "orders/{hash}", []string{"myriad", "public"}, "DELETE", params, map[string]any{"cost": float64(1)})
 }
 
 // MyriadPrivatePostMarketsQuoteWithFee returns a channel that yields a JSON object.
@@ -294,5 +294,5 @@ func (this *Myriad) MyriadPrivatePostMarketsQuoteWithFee(args ...any) <-chan ccx
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/quote_with_fee", []string{"myriad", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/quote_with_fee", []string{"myriad", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }

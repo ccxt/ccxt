@@ -53,7 +53,6 @@
 Polymarket perpetual futures - a hybrid dex with an off-chain order book and on-chain settlement of collateral. The venue trades linear perpetual contracts on crypto, indices, equities and commodities, quoted using USD and collateralized exclusively with pUSD. The prediction-market CLOB is a separate product, integrated separately under ccxt.prediction.polymarket
 
 
-
 ```javascript
 polymarket.polymarket ()
 ```

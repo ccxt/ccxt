@@ -1,11 +1,11 @@
 import Exchange from './abstract/gate.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, CurrencyInterface, DepositWithdrawFees, MarginLoan, DepositAddresses, Liquidation } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, CurrencyInterface, DepositWithdrawFees, MarginLoan, DepositAddresses, Liquidation } from './base/types.js';
 /**
  * @class gate
  * @augments Exchange
  */
 export default class gate extends Exchange {
-    describe(): any;
+    describe(): Dict;
     setSandboxMode(enable: boolean): void;
     /**
      * @method
@@ -163,7 +163,7 @@ export default class gate extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseFundingHistories(response: any, symbol: Str, since: Int, limit: Int): FundingHistory[];
+    parseFundingHistories(response: List, symbol: Str, since: Int, limit: Int): FundingHistory[];
     parseFundingHistory(info: NullableDict, market?: Market): FundingHistory;
     /**
      * @method
@@ -730,7 +730,7 @@ export default class gate extends Exchange {
      */
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<BorrowInterest[]>;
     parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
-    nonce(): number;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     modifyMarginHelper(symbol: string, amount: Num, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
@@ -960,5 +960,5 @@ export default class gate extends Exchange {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

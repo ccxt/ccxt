@@ -52,7 +52,7 @@ func startSslTestServer(t *testing.T) int {
 
 func newSslTestExchange(config map[string]any) *Exchange {
 	ex := &Exchange{}
-	ex.InitParent(config, ex.Describe().(map[string]any), ex)
+	ex.InitParent(config, ex.Describe(), ex)
 	ex.DerivedExchange = ex
 	return ex
 }
@@ -64,8 +64,8 @@ func sslTestRest(ex *Exchange, url string) AsyncResult[any] {
 func sslTestWs(ex *Exchange, url string) error {
 	client := ex.Client(url)
 	err := client.CreateConnection()
-	if err == nil && client.Connection != nil {
-		client.Connection.Close()
+	if err == nil {
+		client.Close()
 	}
 	return err
 }
