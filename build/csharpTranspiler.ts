@@ -8640,7 +8640,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...negationWithoutWriteBackSelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9214,34 +9214,10 @@ function csharpNullableIntegerComparisonText (helper: string, left, right, leftT
     return nullable (left) ? `(${L} == null || ${core})` : `(${core})`;
 }
 
-// TS `-x` never assigns to x, but the printer spells the negation of a typed numeric local as
-// `(x = -x)` (the in-place contract of `prefixUnaryNeg(ref x)`). The value of the expression is the
-// same; the write-back is not: a later read of x sees the flipped sign. bitfinex's book handlers read
-// `x < 0` again to pick the side, so every ask landed in bids (#31132). ts/src never spells a
-// parenthesised `(x = -x)` itself, so each one here is that artefact and drops the assignment.
-export function csharpNegationWithoutWriteBack (content: string): string {
-    return content.replace (/\(([A-Za-z_]\w*) = -\1\)/g, '(-$1)');
-}
-
-export function negationWithoutWriteBackSelfTest (): string[] {
-    const problems: string[] = [];
-    const cases: [ string, string ][] = [
-        [ 'object size = (!(d >= 0)) ? (d = -d) : d;', 'object size = (!(d >= 0)) ? (-d) : d;' ],
-        [ 'this.numberToString((aski1 = -aski1))', 'this.numberToString((-aski1))' ],
-        [ 'object y = (x = -z);', 'object y = (x = -z);' ],
-        [ 'object y = (xs = -x);', 'object y = (xs = -x);' ],
-    ];
-    for (const [ input, expected ] of cases) {
-        const out = csharpNegationWithoutWriteBack (input);
-        if (out !== expected) problems.push (`negation without write-back self test: ${input} -> ${out}`);
-    }
-    return problems;
-}
-
 // final pass after the declared-helper rewrites: mathMin/mathMax on two declared integers of
 // one kind -> Math.Min/Max, a guarded `Int64?` request value -> `.Value`, `isTrue((x))` on bool/bool?
 export function nativeDeclaredHelperCalls (content: string, objectNull = true): string {
-    const baseOut = csharpNegationWithoutWriteBack (csharpParamsBagGetValue (csharpArithmeticNullableCompare (csharpNonNullDivModNegate (csharpDigitLiteralEquality (csharpObjectNumericLocalRetype (csharpDeclaredGetValue (csharpStringAddEqualityTruth (csharpPureKeyInOp (csharpCounterAndGuardedMath (csharpDeclaredIntMinMaxTruth (csharpNonNullIntCompare (csharpWsAndIndexGetValue (nativeDeclaredHelperCallsBase (content, objectNull))))))))))))));
+    const baseOut = csharpParamsBagGetValue (csharpArithmeticNullableCompare (csharpNonNullDivModNegate (csharpDigitLiteralEquality (csharpObjectNumericLocalRetype (csharpDeclaredGetValue (csharpStringAddEqualityTruth (csharpPureKeyInOp (csharpCounterAndGuardedMath (csharpDeclaredIntMinMaxTruth (csharpNonNullIntCompare (csharpWsAndIndexGetValue (nativeDeclaredHelperCallsBase (content, objectNull)))))))))))));
     const inlineHelperSwitchOut = csharpInlineHelperSwitch (objectNull, baseOut);
     const typedSubMulOut = csharpTypedSubtractMultiply (objectNull, inlineHelperSwitchOut);
     const typedSubMulAgainOut = csharpTypedSubtractMultiply (objectNull, typedSubMulOut);
@@ -10845,7 +10821,7 @@ function declaredGetValueSelfTest (): string[] {
 
 // Retypes `object` numeric locals whose every read hands the box to a helper blind to the typed spelling,
 // so typed twins / native operators apply: (A) `safeInteger(..) - N` read only by multiply/divide -> Int64?;
-// (B) `s = this.sum(s, C)` counters -> Int64 and `for` counters -> `i++`; (C) guarded negation -> `(-x)`.
+// (B) `s = this.sum(s, C)` counters -> Int64 and `for` counters -> `i++`; (C) guarded negation -> `(x = -x)`.
 export function csharpObjectNumericLocalRetype (content: string): string {
     if (!/(?<![\w.])(?:postFixIncrement|prefixUnaryNeg|multiply|divide)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
         return content;
@@ -10932,8 +10908,7 @@ export function csharpObjectNumericLocalRetype (content: string): string {
             if (!counterReadsNormalise (masked, i + 2, blockEnd - 1, loop[4], loop[2])) continue;
             set (i, lines[i].replace ('for (object ' + loop[2] + ' = ', 'for (' + type + ' ' + loop[2] + ' = ').replace ('postFixIncrement(ref ' + loop[2] + '))', loop[2] + '++)'));
         }
-        // (C) guarded negation of a safeNumber local. TS `-x` leaves x untouched, so the native
-        // spelling must not write the negated value back (bitfinex reads the sign of x again)
+        // (C) guarded in-place negation of a safeNumber local
         for (let i = start + 1; i < end; i++) {
             const m = /^[ ]*object ([A-Za-z_]\w*) = (this\.(?:safeNumber2?|safeFloat)\(.*\));[ ]*$/.exec (masked[i]);
             if ((m === null) || (csharpClosingParen (m[2], m[2].indexOf ('(')) !== m[2].length - 1) || (single (m[1]).length !== 1)) continue;
@@ -10958,7 +10933,7 @@ export function csharpObjectNumericLocalRetype (content: string): string {
             if (!ok || (sites === 0)) continue;
             set (i, lines[i].replace ('object ' + x + ' = ', 'double? ' + x + ' = '));
             for (let k = i + 1; k < end; k++) {
-                if (masked[k].includes (site)) set (k, lines[k].split (site).join ('(-' + x + ')'));
+                if (masked[k].includes (site)) set (k, lines[k].split (site).join ('(' + x + ' = -' + x + ')'));
             }
         }
     }
@@ -10982,8 +10957,8 @@ export function objectNumericLocalRetypeSelfTest (): string[] {
     check ('chunk counter read as value keeps helper', chunk.replace ('chunk.Add(getValue(xs, i));', 'chunk.Add(i);'), 'postFixIncrement(ref i)');
     check ('start written otherwise keeps object', chunk.replace ('startIndex = this.sum(startIndex, chunkSize);', 'startIndex = this.sum(startIndex, chunkSize);\n            startIndex = "x";'), 'object startIndex = 0;');
     check ('Int64? start counter -> Int64? i++', '        Int64? c = this.safeInteger(o, "c", 1);\n        Int64? start = (c * 2);\n        object end = add(start, c);\n        for (object i = start; isLessThan(i, end); postFixIncrement(ref i))\n        {\n            object v = getValue(xs, i);\n        }', 'for (Int64? i = start; isLessThan(i, end); i++)');
-    check ('guarded safeNumber negation keeps d', '        object d = this.safeNumber(o, 2);\n        object size = (!(d == null) && isLessThan(d, 0)) ? prefixUnaryNeg(ref d) : d;\n        string side = (!(d == null) && isLessThan(d, 0)) ? "asks" : "bids";',
-        'object size = (!(d == null) && isLessThan(d, 0)) ? (-d) : d;', '(d = -d)');
+    check ('guarded safeNumber negation in place', '        object d = this.safeNumber(o, 2);\n        object size = (!(d == null) && isLessThan(d, 0)) ? prefixUnaryNeg(ref d) : d;\n        string side = (!(d == null) && isLessThan(d, 0)) ? "asks" : "bids";',
+        'object size = (!(d == null) && isLessThan(d, 0)) ? (d = -d) : d;');
     check ('guarded safeNumber retyped', '        object d = this.safeNumber(o, 2);\n        if (!(d == null))\n        {\n            string s = this.numberToString(prefixUnaryNeg(ref d));\n        }', 'double? d = this.safeNumber(o, 2);');
     check ('unguarded safeNumber negation keeps helper', '        object d = this.safeNumber(o, 2);\n        object size = (isLessThan(d, 0)) ? prefixUnaryNeg(ref d) : d;', 'prefixUnaryNeg(ref d)');
     check ('safeNumber cast read keeps helper', '        object d = this.safeNumber(o, 2);\n        if (!(d == null))\n        {\n            string s = this.numberToString(prefixUnaryNeg(ref d));\n            string t = ((string)d);\n        }', 'prefixUnaryNeg(ref d)');
