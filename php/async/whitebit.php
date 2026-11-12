@@ -4435,7 +4435,7 @@ class whitebit extends Exchange {
         $maxLimit = 100;
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate, $maxLimit));
+            return Async\await($this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, $maxLimit));
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4447,7 +4447,7 @@ class whitebit extends Exchange {
         if ($since !== null) {
             $request['startDate'] = (int) round($since / 1000);
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('until_timestamp', $request, $paramsPaginate, 0.001);
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('endDate', $request, $paramsPaginate, 0.001);
         if ($limit !== null) {
             $requestUntil['limit'] = $limit;
         }

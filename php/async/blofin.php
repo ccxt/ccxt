@@ -1167,7 +1167,7 @@ class blofin extends Exchange {
         $query = null;
         list($paginate, $query) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $query, 100));
+            return Async\await($this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $query, 100));
         }
         $market = $this->market($symbol);
         $request = array(

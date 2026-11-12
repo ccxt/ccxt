@@ -8433,19 +8433,21 @@ class gate extends Exchange {
             $quoteValueString = Precise::string_mul($baseValueString, $priceString);
         }
         // --- derive side ---
+        // gate reports the liquidated position (size > 0 or 'long' is a long position), the unified side
+        // is the side of the liquidation order: a long is closed by a sell, a short by a buy
         // 1) options payload has explicit 'side': 'long' | 'short'
         $optPos = $this->safe_string_lower($liquidation, 'side');
         $side = null;
         if ($optPos === 'long') {
-            $side = 'buy';
-        } elseif ($optPos === 'short') {
             $side = 'sell';
+        } elseif ($optPos === 'short') {
+            $side = 'buy';
         } else {
             if ($size !== null) { // 2) futures/perpetual (and fallback for options): infer from size
                 if (Precise::string_gt($size, '0')) {
-                    $side = 'buy';
-                } elseif (Precise::string_lt($size, '0')) {
                     $side = 'sell';
+                } elseif (Precise::string_lt($size, '0')) {
+                    $side = 'buy';
                 }
             }
         }
