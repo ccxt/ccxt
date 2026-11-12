@@ -13509,7 +13509,11 @@ export default class binance extends Exchange {
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if ((body !== undefined) && (body.startsWith ('<!DOCTYPE HTML'))) {
+        // only for http codes without a typed error in httpExceptions (e.g. 414), so 403/502/503/504 html pages keep their retryable errors from handleHttpStatusCode
+        const httpCodeString = code.toString ();
+        const isMappedHttpCode = (httpCodeString in this.httpExceptions);
+        // matching 'DOCTYPE HTML' at index 2 instead of startsWith ('<!DOCTYPE HTML'), because the "!" inside the literal gets transpiled to "not" in python
+        if (!isMappedHttpCode && (body !== undefined) && (body.indexOf ('DOCTYPE HTML') === 2)) {
             throw new ExchangeError (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }
         if ((code >= 400) && (body !== undefined)) {
