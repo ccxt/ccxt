@@ -452,6 +452,74 @@ If you have multiple sub-accounts you need to specify the sub-account you want t
 
 Paper trading is also supported, upon logging in just toggle the option.
 
+#### Symbols
+
+IBKR is a broker, not a single exchange: the same ticker can be listed on many venues (`AAPL` on NASDAQ, on the Mexican exchange, as a CFD, ...) and the same coin is offered by several crypto providers. To keep every market unique, CCXT puts the **listing exchange** in the base part of the symbol, right after the IBKR ticker:
+
+```
+<ticker>.<listingExchange>/<currency>                        // spot: stocks, crypto, forex, bonds
+<ticker>.<listingExchange>/<currency>:<currency>             // swap: cfds and perp-style futures
+<ticker>.<listingExchange>/<currency>:<currency>-<YYMMDD>    // future: dated futures, with the expiry date
+```
+
+For example, the Apple stock is `AAPL.NASDAQ/USD`:
+
+| part | value | meaning |
+|------|-------|---------|
+| ticker | `AAPL` | the IBKR ticker |
+| listing exchange | `NASDAQ` | the venue the contract is listed on |
+| currency | `USD` | the currency the contract is quoted in |
+
+The same pattern for each market type:
+
+| market | example symbol | notes |
+|--------|----------------|-------|
+| stock | `AAPL.NASDAQ/USD`, `IBM.NYSE/USD`, `BRK.B.NYSE/USD` | a space in the IBKR ticker becomes a dot (`BRK B` -> `BRK.B`) |
+| crypto | `BTC.PAXOS/USD`, `BTC.ZEROHASH/USD` | one market per crypto provider |
+| forex | `EUR.OTC/USD` | |
+| cfd | `AAPL.IBUSCFD/USD:USD` | unified as a swap, `IBUSCFD` = US cfds, `IBCFD` = non-US cfds |
+| perp-style future | `BTC.NANO.COINDERIV/USD:USD` | Coinbase Derivatives, unified as a swap |
+| dated future | `BTC.MICRO.CME/USD:USD-261224`, `ETH.CME/USD:USD-261127` | the suffix is the expiry date (2026-12-24) |
+| bond | `US-T-4.125-270131.SMART/USD`, `US-T-270114.SMART/USD` | see below |
+
+Some details:
+
+- **Futures**: the base is the underlying coin instead of the IBKR ticker (`MBT` -> `BTC`, `BIP` -> `BTC`), and the contract size goes in between as `NANO.` / `MICRO.` when the IBKR contract is a nano or micro one, e.g. `BTC.MICRO.CME/USD:USD-261224` is the CME Micro Bitcoin future (0.1 BTC) expiring on 2026-12-24.
+- **Bonds**: every bond of an issuer has the same IBKR ticker (`US-T` for the US treasuries), so the coupon and the maturity date (`YYMMDD`) are added to tell them apart: `US-T-4.125-270131.SMART/USD` is the 4.125% note maturing on 2027-01-31, and a bill (no coupon) is `US-T-270114.SMART/USD`. Bonds are routed across many venues, so the exchange part is always `SMART`.
+- **Collisions**: if two contracts still end up with the same symbol, the later one gets the IBKR conid in place of the exchange (or appended to the base for bonds), e.g. `BTC.150045489/USD:USD`.
+- The market `id` is always the IBKR contract id (`conid`), e.g. `265598` for `AAPL.NASDAQ/USD`, and the raw IBKR contract is available in `market['info']`.
+
+Which markets are loaded is configured in `options.fetchMarkets`, loading only what you need makes `loadMarkets` much faster:
+
+```
+const exchange = new ccxt.interactivebrokers ({
+    'options': {
+        'useGateway': true,
+        'fetchMarkets': {
+            // 'crypto', 'forex', 'swap', 'future', 'cfd', 'stock' are loaded by default, 'bond' is opt-in
+            'types': [ 'stock', 'crypto', 'bond' ],
+            'exchanges': {
+                'STK': [ 'NASDAQ' ], // the stock exchanges to load, the default is NYSE
+            },
+            'cryptoSpotSymbols': [ 'BTC', 'ETH' ], // the coins to load, on every provider
+            'bondSymbols': [ 'US-T' ], // the bond issuers to load, US-T = US treasuries
+            'bondFilters': { '29': 'Notes', '27': '202701' }, // 29 = type (Bills, Notes, Bonds, ...), 27 = maturity month (YYYYMM)
+        },
+    },
+});
+await exchange.loadMarkets ();
+const ticker = await exchange.fetchTicker ('AAPL.NASDAQ/USD');
+```
+
+Since the exchange and the expiry are part of the symbol, the easiest way to find a symbol is to look it up in the loaded markets:
+
+```
+const symbols = exchange.symbols.filter ((symbol) => symbol.startsWith ('BTC.'));
+// [ 'BTC.PAXOS/USD', 'BTC.ZEROHASH/USD', ... ]
+```
+
+Complete examples: [stocks](https://github.com/ccxt/ccxt/blob/master/examples/ts/ibkr-trade-stocks.ts), [crypto](https://github.com/ccxt/ccxt/blob/master/examples/ts/ibkr-trade-crypto.ts) and [bonds](https://github.com/ccxt/ccxt/blob/master/examples/ts/ibkr-trade-bonds.ts).
+
 ## How to use the GRVT Exchange in CCXT?
 
 GRVT works similarly to any other CCXT DEX and only requires the l1 private key of the wallet.
