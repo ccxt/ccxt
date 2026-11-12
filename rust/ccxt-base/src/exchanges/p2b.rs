@@ -1096,7 +1096,7 @@ impl P2bCore {
             m
         });
         if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+            request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_market_kline(&[__ws_arg_3]).await;

@@ -4788,7 +4788,7 @@ class phemex(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports swap contracts only')
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 100)
+            return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 100)
         customSymbol = None
         if isUsdtSettled:
             customSymbol = '.' + self.safe_string(market, 'id', '') + 'FR8H'  # phemex requires a custom symbol for funding rate history

@@ -874,7 +874,7 @@ blofin.setLeverage (leverage, symbol, params?)
 closes open positions for a market
 
 **Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>Array&lt;object&gt;</code> - [A list of position structures](https://docs.ccxt.com/?id=position-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://blofin.com/docs#close-positions  
 

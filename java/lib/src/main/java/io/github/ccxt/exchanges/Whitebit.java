@@ -765,6 +765,7 @@ public class Whitebit extends WhitebitApi
                     put( "limit must be less than or equal to", BadRequest.class );
                     put( "The Price should be less than or equal to", InvalidOrder.class );
                     put( "The Price should be greater than or equal to", InvalidOrder.class );
+                    put( "Price must be a multiple of", InvalidOrder.class );
                     put( "This action is unauthorized", PermissionDenied.class );
                     put( "Given amount is less than min amount", InvalidOrder.class );
                     put( "Min amount step", InvalidOrder.class );

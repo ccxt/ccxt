@@ -1513,9 +1513,10 @@ class backpack(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
+        maxLimit = 2000
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
-        duration = self.parse_timeframe(timeframe)
+        duration = self.parse_timeframe(timeframe) * 1000
         dataRequest = self.stock_data_request('fetchOHLCV', params, market)
         request = {'symbol': self.safe_string(dataRequest, 'symbol'), 'interval': interval}
         until, paramsUntil = self.handle_option_integer_and_params(self.omit(dataRequest, 'symbol'), 'fetchOHLCV', 'until')
@@ -1523,23 +1524,22 @@ class backpack(Exchange, ImplicitAPI):
             request['endTime'] = self.parse_to_int(until / 1000)  # convert milliseconds to seconds
         defaultLimit = 100
         limitResolved = limit
-        if (since is None) and (limit is None):
-            limitResolved = defaultLimit
-        windowLimit = defaultLimit if (limit is None) else limit
-        startTime = None
-        if since is None:
-            endTime = self.seconds()
-            if until is not None and until != 0:
-                endTime = self.parse_to_int(until / 1000)
-            startTime = endTime - (windowLimit * duration)
-        else:
-            startTime = self.parse_to_int(since / 1000)  # convert milliseconds to seconds
-        request['startTime'] = startTime
-        if until is None:
-            currentMs = self.seconds()  # default to current time in seconds
+        if limitResolved is not None:
+            limitResolved = min(limitResolved, maxLimit)
+        windowLimit = defaultLimit if (limitResolved is None) else limitResolved
+        now = self.milliseconds()
+        startTime = since
+        untilValue = until
+        if startTime is None:
+            if untilValue is None:
+                untilValue = now
+            startTime = untilValue - (windowLimit * duration)
+        request['startTime'] = self.parse_to_int(startTime / 1000)
+        # set until value
+        if untilValue is None:
             windowEnd = self.sum(startTime, windowLimit * duration)
-            minTimestamp = min(currentMs, windowEnd)
-            request['endTime'] = self.parse_to_int(minTimestamp)  # default to current time in seconds if until is not specified
+            untilValue = min(now, windowEnd)
+        request['endTime'] = self.parse_to_int(untilValue / 1000)
         price = self.safe_string(paramsUntil, 'price')
         paramsOmitted = self.omit(paramsUntil, 'price') if (price is not None) else paramsUntil
         if price is not None:

@@ -392,7 +392,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
             if (java.util.Objects.equals(symbols, null))
             {
-                throw new NotSupported((this.id + " watchTickers() requires a list of symbols")) ;
+                throw new ArgumentsRequired((this.id + " watchTickers() requires a list of symbols")) ;
             }
             Object ticker = (this.watchMultipleWrapper(true, "tickers", "watchTickers", symbols, parameters)).join();
             if (this.newUpdates)

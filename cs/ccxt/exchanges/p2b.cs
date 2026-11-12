@@ -252,7 +252,7 @@ public partial class p2b : Exchange
                     { "fetchMyTrades", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
-                        { "daysBack", 100000 },
+                        { "daysBack", 90 },
                         { "untilDays", 1 },
                         { "symbolRequired", true },
                     } },
@@ -268,8 +268,8 @@ public partial class p2b : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
-                        { "daysBack", 100000 },
-                        { "daysBackCanceled", ((double)1 / 12) },
+                        { "daysBack", 90 },
+                        { "daysBackCanceled", null },
                         { "untilDays", 1 },
                         { "trigger", false },
                         { "trailing", false },
@@ -816,7 +816,7 @@ public partial class p2b : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = limit;
+            request["limit"] = Math.Min(limit.Value, 500);
         }
         Dictionary<string, object> response = await this.publicGetMarketKline(this.extend(request, parameters));
         //

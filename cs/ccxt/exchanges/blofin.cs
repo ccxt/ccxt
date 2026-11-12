@@ -10,7 +10,7 @@ public partial class blofin : Exchange
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "blofin" },
             { "name", "BloFin" },
-            { "countries", new List<object>() {"US"} },
+            { "countries", new List<object>() {"MH"} },
             { "version", "v1" },
             { "rateLimit", 200 },
             { "pro", true },
@@ -1343,7 +1343,7 @@ public partial class blofin : Exchange
         query = paginatequeryVariable.Item2;
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", query, 100));
+            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, query, 100));
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3799,7 +3799,7 @@ public partial class blofin : Exchange
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
     {

@@ -2316,6 +2316,10 @@ public partial class toobit : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((this.safeString(parameters, "clientOrderId") == null))
         {
