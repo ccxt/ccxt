@@ -1980,6 +1980,8 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         if self.safe_string(params, 'clientOrderId') is None:
             request['orderId'] = id
