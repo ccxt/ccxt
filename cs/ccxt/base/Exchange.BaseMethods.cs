@@ -1571,8 +1571,8 @@ public partial class BaseExchange
     {
         // networksById: inverse of options.networks, explicit options.networksById entries win
         userConfig ??= new Dictionary<string, object>();
-        Dictionary<string, object> networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, "networks", new Dictionary<string, object>() {}));
-        this.options["networksById"] = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new Dictionary<string, object>() {}));
+        Dictionary<string, object> networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeDict(this.options, "networks", new Dictionary<string, object>() {}));
+        this.options["networksById"] = this.extend(networkIdsToCodesGenerated, this.safeDict(this.options, "networksById", new Dictionary<string, object>() {}));
         this.featuresGenerator();
         this.hasAutocorrect();
         // init predefined markets if any

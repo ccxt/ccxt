@@ -1014,11 +1014,11 @@ public partial class bitopro : Exchange
         }
         List<object> result = new List<object>() {};
         List<object> firstCandle = this.safeList(candles, 0, new List<object>() {});
-        object copyFrom = firstCandle;
+        List<object> copyFrom = firstCandle;
         object timestamp = null;
         if ((since == null))
         {
-            timestamp = this.safeValue(firstCandle, 0);
+            timestamp = this.safeInteger(firstCandle, 0);
         } else
         {
             timestamp = since;
@@ -1041,7 +1041,7 @@ public partial class bitopro : Exchange
             }
             timestamp = this.sum(timestamp, distanceInMs);
             resultLength = (result?.Count ?? 0);
-            copyFrom = this.safeValue(result, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(resultLength, 1));
+            copyFrom = this.safeList(result, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(resultLength, 1));
         }
         return result;
     }

@@ -1361,7 +1361,7 @@ public partial class coinbaseexchange : Exchange
         {
             request["start_date"] = this.iso8601(since);
         }
-        object until = this.safeValue2(paramsPaginate, "until", "end_date");
+        Int64? until = this.safeInteger2(paramsPaginate, "until", "end_date");
         if ((until != null))
         {
             request["end_date"] = this.iso8601(until);
@@ -1511,7 +1511,7 @@ public partial class coinbaseexchange : Exchange
         {
             request["granularity"] = timeframeVar;
         }
-        object until = this.safeValue2(paramsPaginate, "until", "end");
+        Int64? until = this.safeInteger2(paramsPaginate, "until", "end");
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
         Int64? cappedLimit = this.parseToInt(((limit == null)) ? 300 : Math.Min(limit.Value, 300));
@@ -1785,7 +1785,7 @@ public partial class coinbaseexchange : Exchange
         {
             request["start_date"] = this.iso8601(since);
         }
-        object until = this.safeValue2(paramsPaginate, "until", "end_date");
+        Int64? until = this.safeInteger2(paramsPaginate, "until", "end_date");
         if ((until != null))
         {
             request["end_date"] = this.iso8601(until);
@@ -2172,7 +2172,7 @@ public partial class coinbaseexchange : Exchange
         {
             request["limit"] = limit; // default 100
         }
-        object until = this.safeValue2(parameters, "until", "end_date");
+        Int64? until = this.safeInteger2(parameters, "until", "end_date");
         if ((until != null))
         {
             request["end_date"] = this.iso8601(until);

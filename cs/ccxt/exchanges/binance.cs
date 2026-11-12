@@ -6663,7 +6663,7 @@ public partial class binance : Exchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            string? marketId = this.safeString(this.safeValue(response, i), "symbol");
+            string? marketId = this.safeString(this.safeDict(response, i), "symbol");
             Dictionary<string, object> tickerMarket = this.safeMarket(marketId, null, null, "spot");
             ccxt.Ticker parsedTicker = this.parseTicker(this.safeValue(response, i));
             parsedTicker.symbol = ccxt.BaseExchange.StructString((tickerMarket != null && tickerMarket.ContainsKey("symbol") ? tickerMarket["symbol"] : null));
@@ -13812,7 +13812,7 @@ public partial class binance : Exchange
         for (int i = 0; i < leverageBracket.Count; i++)
         {
             object bracket = leverageBracket[i];
-            if (Precise.stringLt(notionalStringAbs, this.safeValue(bracket, 0)))
+            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0)))
             {
                 break;
             }
@@ -14055,7 +14055,7 @@ public partial class binance : Exchange
         for (int i = 0; i < leverageBracket.Count; i++)
         {
             object bracket = leverageBracket[i];
-            if (Precise.stringLt(notionalStringAbs, this.safeValue(bracket, 0)))
+            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0)))
             {
                 break;
             }

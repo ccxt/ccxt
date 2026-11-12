@@ -2643,7 +2643,7 @@ public partial class deribit : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        Dictionary<string, object> order = this.extend(this.safeValue(result, "order"), new Dictionary<string, object>() {
+        Dictionary<string, object> order = this.extend(this.safeDict(result, "order"), new Dictionary<string, object>() {
             { "trades", this.safeList(result, "trades", new List<object>() {}) },
         });
         return this.parseOrder(order, market);
@@ -2696,7 +2696,7 @@ public partial class deribit : Exchange
         }
         Dictionary<string, object> response = await this.privateGetEdit(this.extend(request, paramsOmitted));
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        Dictionary<string, object> order = this.extend(this.safeValue(result, "order"), new Dictionary<string, object>() {
+        Dictionary<string, object> order = this.extend(this.safeDict(result, "order"), new Dictionary<string, object>() {
             { "trades", this.safeList(result, "trades", new List<object>() {}) },
         });
         return this.parseOrder(order);

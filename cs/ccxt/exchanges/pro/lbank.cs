@@ -1065,7 +1065,7 @@ public partial class lbank : ccxt.lbank
         //
         string? marketId = this.safeString(message, "pair");
         string? symbol = this.safeSymbol(marketId);
-        object orderBook = this.safeValue(message, "depth", message);
+        IDictionary<string, object> orderBook = this.safeDict(message, "depth", message);
         string? datetime = this.safeString(message, "TS");
         Int64? timestamp = this.parse8601(datetime);
         // let orderbook = this.safeValue (this.orderbooks, symbol);

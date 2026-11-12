@@ -430,8 +430,8 @@ public partial class independentreserve : Exchange
         //     }
         //
         List<object> result = new List<object>() {};
-        IList<object> baseCurrencyIds = this.toArray(this.safeValue(responses, 0));
-        IList<object> quoteCurrencyIds = this.toArray(this.safeValue(responses, 1));
+        IList<object> baseCurrencyIds = this.toArray(this.safeList(responses, 0));
+        IList<object> quoteCurrencyIds = this.toArray(this.safeList(responses, 1));
         for (int i = 0; i < (baseCurrencyIds?.Count ?? 0); i++)
         {
             string baseId = this.safeString(baseCurrencyIds, i, "");

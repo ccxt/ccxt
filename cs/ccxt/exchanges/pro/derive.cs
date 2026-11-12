@@ -1031,7 +1031,7 @@ public partial class derive : ccxt.derive
             ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.safeValue(this.positions, subaccountIdKey));
             for (int i = 0; i < (positionsSnapshot?.Count ?? 0); i++)
             {
-                object snapshotPosition = this.safeValue(positionsSnapshot, i);
+                IDictionary<string, object> snapshotPosition = this.safeDict(positionsSnapshot, i);
                 cache.append(snapshotPosition);
             }
             loadedSnapshots[(string)subaccountIdKey] = true;

@@ -1331,7 +1331,7 @@ public partial class digifinex : Exchange
         {
             Dictionary<string, object> rawTicker = this.extend(new Dictionary<string, object>() {
                 { "date", date },
-            }, this.safeValue(tickers, i));
+            }, this.safeDict(tickers, i));
             ccxt.Ticker ticker = this.parseTicker(rawTicker);
             string? symbol = ticker.symbol;
             if ((symbol != null))

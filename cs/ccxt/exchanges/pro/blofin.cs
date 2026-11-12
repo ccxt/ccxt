@@ -173,7 +173,7 @@ public partial class blofin : ccxt.blofin
         }
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object rawTrade = this.safeValue(data, i);
+            IDictionary<string, object> rawTrade = this.safeDict(data, i, new Dictionary<string, object>() {});
             ccxt.Trade trade = this.parseWsTrade(rawTrade);
             string? symbol = this.safeString(ccxt.BaseExchange.FromTrade(trade), "symbol", "");
             ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
@@ -370,7 +370,7 @@ public partial class blofin : ccxt.blofin
         List<object> data = this.safeList(message, "data");
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            ccxt.Ticker ticker = this.parseWsTicker(this.safeValue(data, i));
+            ccxt.Ticker ticker = this.parseWsTicker(this.safeDict(data, i, new Dictionary<string, object>() {}));
             string? symbol = this.safeString(ccxt.BaseExchange.FromTicker(ticker), "symbol", "");
             this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             if ((channelName != null))
@@ -381,7 +381,7 @@ public partial class blofin : ccxt.blofin
         }
     }
 
-    public virtual ccxt.Ticker parseWsTicker(object ticker, IDictionary<string, object>? market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         return this.parseTicker(ticker, market);
     }
@@ -442,7 +442,7 @@ public partial class blofin : ccxt.blofin
         List<object> data = this.safeList(message, "data");
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            Dictionary<string, object> ticker = this.parseWsBidAsk(this.safeValue(data, i));
+            Dictionary<string, object> ticker = this.parseWsBidAsk(this.safeDict(data, i, new Dictionary<string, object>() {}));
             string? symbol = this.safeString(ticker, "symbol", "");
             string messageHash = ("bidask:" + symbol);
             this.bidsasks[(string)symbol] = ticker;
@@ -450,7 +450,7 @@ public partial class blofin : ccxt.blofin
         }
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         string? marketId = this.safeString(ticker, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
@@ -598,7 +598,7 @@ public partial class blofin : ccxt.blofin
         }
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object candle = this.safeValue(data, i);
+            List<object> candle = this.safeList(data, i);
             IList<object> parsed = this.parseOHLCV(candle, market);
             stored.append(parsed);
         }
@@ -763,7 +763,7 @@ public partial class blofin : ccxt.blofin
         List<object> data = this.safeList(message, "data");
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            ccxt.Order order = this.parseWsOrder(this.safeValue(data, i));
+            ccxt.Order order = this.parseWsOrder(this.safeDict(data, i, new Dictionary<string, object>() {}));
             orders.append(ccxt.BaseExchange.FromOrder(order));
             if ((channelName != null))
             {
@@ -826,7 +826,7 @@ public partial class blofin : ccxt.blofin
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            Dictionary<string, object> position = this.parseWsPosition(this.safeValue(data, i));
+            Dictionary<string, object> position = this.parseWsPosition(this.safeDict(data, i, new Dictionary<string, object>() {}));
             newPositions.Add(position);
             cache.append(position);
             if ((channelName != null))
@@ -836,7 +836,7 @@ public partial class blofin : ccxt.blofin
         }
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)
     {
         return this.parsePosition(position, market);
     }
@@ -938,7 +938,7 @@ public partial class blofin : ccxt.blofin
                 if (isOHLCV)
                 {
                     market = this.market(current);
-                    string? tf = this.safeString(this.safeValue(symbolsArray, i), 1);
+                    string? tf = this.safeString(this.safeList(symbolsArray, i), 1);
                     string? interval = this.safeString(this.timeframes, tf, tf);
                     channel = ((object)(channel == null ? null : channel + interval));
                 } else

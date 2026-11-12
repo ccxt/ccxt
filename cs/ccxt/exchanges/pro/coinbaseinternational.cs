@@ -1556,7 +1556,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         int deltasLength = deltas?.Count ?? 0;
         for (int i = 0; i < deltasLength; i++)
         {
-            this.handleDelta(bookside, this.safeValue(deltas, i));
+            this.handleDelta(bookside, this.safeList(deltas, i));
         }
     }
 
