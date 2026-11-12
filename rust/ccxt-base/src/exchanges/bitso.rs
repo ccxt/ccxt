@@ -825,7 +825,7 @@ impl Bitso {
                 m
             });
         }
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(item.clone(), "created_at", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(item.clone(), "created_at", &[]));
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
@@ -1228,7 +1228,7 @@ impl Bitso {
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_order_book(&[__ws_arg_2]).await.into_dict();
         let mut orderbook: Value = self.safe_dict_k(&response, "payload", &[]);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(orderbook.clone(), "updated_at", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(orderbook.clone(), "updated_at", &[]));
         return self.parse_order_book(orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
         Value::Null
         }).await?))
@@ -1252,7 +1252,7 @@ impl Bitso {
         //     }
         //
         let mut symbol: Option<String> = self.safe_symbol(Value::Null, &[market.clone()]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker.clone(), "created_at", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker.clone(), "created_at", &[]));
         let mut vwap: Option<String> = self.safe_string_k(ticker.clone(), "vwap", &[]).as_str().map(str::to_owned);
         let mut baseVolume: Option<String> = self.safe_string_k(ticker.clone(), "volume", &[]).as_str().map(str::to_owned);
         let mut quoteVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &vwap.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
@@ -1360,16 +1360,16 @@ impl Bitso {
         if (since != Value::Null) {
             request.insert("start".into(), since.clone());
             if (limit != Value::Null) {
-                let mut duration: Value = self.parse_timeframe(timeframe.clone());
+                let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
                 request.insert("end".into(), self.sum(&[since.clone(), (match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                     _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
             }
         }  else {
             if (limit != Value::Null) {
-                let mut now: Value = self.milliseconds();
+                let mut now: Value = Value::Int(self.milliseconds());
                 request.insert("end".into(), now.clone());
-                request.insert("start".into(), (match (&(now), &((match (&((match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
+                request.insert("start".into(), (match (&(now), &((match (&((match (&(Value::Int(self.parse_timeframe(timeframe.clone()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
+                    (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                     _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
             }
         }
@@ -1458,7 +1458,7 @@ impl Bitso {
         //          "maker_side": "sell"
         //      }
         //
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[]));
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "book", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("_".into())]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
@@ -1703,7 +1703,7 @@ impl Bitso {
             let __ws_arg_6 = self.parse_to_int(params.as_map().and_then(|__m| __m.get("marker")).cloned().unwrap_or(Value::Null));
             paramsMarker = self.extend(params, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("marker".to_string(), __ws_arg_6);
+                    m.insert("marker".to_string(), Value::from(__ws_arg_6));
                 m
             })]);
         }
@@ -1966,7 +1966,7 @@ impl Bitso {
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "book", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("_".into())]).as_str().map(str::to_owned);
         let mut orderType: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[]));
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "original_amount", &[]).as_str().map(str::to_owned);
         let mut remaining: Option<String> = self.safe_string_k(order.clone(), "unfilled_amount", &[]).as_str().map(str::to_owned);
@@ -2043,7 +2043,7 @@ impl Bitso {
             let __ws_arg_11 = self.parse_to_int(params.as_map().and_then(|__m| __m.get("marker")).cloned().unwrap_or(Value::Null));
             paramsMarker = self.extend(params, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("marker".to_string(), __ws_arg_11);
+                    m.insert("marker".to_string(), Value::from(__ws_arg_11));
                 m
             })]);
         }
@@ -2770,13 +2770,13 @@ impl Bitso {
         let mut networkId: Option<String> = self.safe_string2(transaction.clone(), Value::Str("network".into()), Value::Str("method".into()), &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.safe_string_k(transaction.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut withdrawId: Option<String> = self.safe_string_k(transaction.clone(), "wid", &[]).as_str().map(str::to_owned);
-        let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), self.safe_string_k(currencyResolved.clone(), "code", &[])]).as_str().map(str::to_owned);
+        let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), self.safe_string_k(currencyResolved.clone(), "code", &[])]);
         let mut networkCodeUpper: Option<String> = (if (networkCode.is_some()) { networkCode.as_deref().map(str::to_uppercase) } else { None });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(transaction.clone(), Value::Str("wid".into()), Value::Str("fid".into()), &[]));
         m.insert("txid".to_string(), self.safe_string_k(&details, "tx_hash", &[]));
-        m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), networkCodeUpper.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), receivingAddress.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2814,7 +2814,7 @@ impl Bitso {
 }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -2845,7 +2845,7 @@ impl Bitso {
         if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             // bitso rejects a nonce that is not higher than the previous one (error 104)
-            let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
+            let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.incrementing_nonce())).into());
             endpoint = format!("{}{}", Value::Str("/api".into()), endpoint);
             let mut request: String = format!("{}{}", Value::Str(format!("{}{}", nonce, method).into()), endpoint);
             if (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE")) {

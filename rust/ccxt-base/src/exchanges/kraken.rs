@@ -1917,13 +1917,13 @@ impl Kraken {
             request.insert("interval".into(), timeframe.clone());
         }
         if (since != Value::Null) {
-            let mut scaledSince: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+            let mut scaledSince: Value = Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
             if (parsedTimeframe == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing parsedTimeframe".into()))));
             }
             let mut timeFrameInSeconds: Value = (match (&(parsedTimeframe), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            request.insert("since".into(), self.number_to_string((match (&(scaledSince), &(timeFrameInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-                _ => Value::Null }))); // expected to be in seconds
+            request.insert("since".into(), Value::from(self.number_to_string((match (&(scaledSince), &(timeFrameInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+                Value::Float(y)) => Value::Float(x - y), _ => Value::Null })))); // expected to be in seconds
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsPaginate]);
         let mut response: crate::value::Dict = self.public_get_ohlc(&[__ws_arg_4]).await.into_dict();
@@ -2067,13 +2067,13 @@ impl Kraken {
             request.insert("asset".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            request.insert("start".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            request.insert("start".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let mut until: Option<String> = self.safe_string2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[]) } else { params }).into_dict();
         if (until.is_some()) {
             let mut untilDivided: Option<String> = crate::precise::Precise::stringDiv(&until.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
-            request.insert("end".into(), self.parse_to_int(crate::precise::Precise::stringAdd(&untilDivided.map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into()))));
+            request.insert("end".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringAdd(&untilDivided.map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())))));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_ledgers(&[__ws_arg_5]).await.into_dict();
@@ -2312,7 +2312,7 @@ impl Kraken {
         if (datetime.is_none()) {
             datetime = self.iso8601(timestamp.clone()).as_str().map(str::to_owned);
         }  else {
-            timestamp = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
+            timestamp = Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2372,7 +2372,7 @@ impl Kraken {
         // https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
         // https://github.com/ccxt/ccxt/issues/5677
         if (since != Value::Null) {
-            request.insert("since".into(), self.number_to_string(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))); // expected to be in seconds
+            request.insert("since".into(), Value::from(self.number_to_string(Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))))); // expected to be in seconds
         }
         if (limit != Value::Null) {
             request.insert("count".into(), limit.clone());
@@ -3155,7 +3155,7 @@ impl Kraken {
         let mut isViqcOrder: bool = (flags.is_some()) && (flags.as_deref().unwrap_or_default().contains("viqc")); // volume in quote currency
         if isMarketOrder && ((cost.is_some()) || isViqcOrder) {
             if (cost.is_none()) && (amount != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("volume".into(), self.cost_to_precision(symbol.clone(), self.number_to_string(amount))); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("volume".into(), self.cost_to_precision(symbol.clone(), Value::from(self.number_to_string(amount)))); }
             }  else {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("volume".into(), self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null))); }
             }
@@ -3194,7 +3194,7 @@ impl Kraken {
             }
             let mut trailingAmountString: Option<String> = (if (trailingAmount.is_some()) { Some(format!("{}{}", Value::Str("+".into()), trailingAmount.clone().map(Value::from).unwrap_or(Value::Null))) } else { None }); // must use + for this
             let mut offset: String = self.safe_string_k(paramsOmitted2.clone(), "offset", &[Value::Str("-".into())]).as_str().unwrap_or("-").to_string(); // can use + or - for this
-            let mut trailingLimitAmountString: Option<String> = (if (trailingLimitAmount.is_some()) { Some(format!("{}{}", offset, self.number_to_string(trailingLimitAmount.clone().map(Value::from).unwrap_or(Value::Null)))) } else { None });
+            let mut trailingLimitAmountString: Option<String> = (if (trailingLimitAmount.is_some()) { Some(format!("{}{}", offset, Value::from(self.number_to_string(trailingLimitAmount.clone().map(Value::from).unwrap_or(Value::Null))))) } else { None });
             let mut trailingActivationPriceType: String = self.safe_string_k(paramsOmitted2.clone(), "trigger", &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trigger".into(), Value::from(trailingActivationPriceType)); }
             if isLimitOrder || (trailingLimitAmount.is_some()) || (trailingLimitPercent.is_some()) {
@@ -3501,7 +3501,7 @@ impl Kraken {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { symbol });
+        let mut symbolResolved: Value = (if (symbol != Value::Null) { Value::from(self.symbol(symbol.clone())) } else { symbol });
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchOrderTrades", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3661,13 +3661,13 @@ impl Kraken {
             m
         });
         if (since != Value::Null) {
-            request.insert("start".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            request.insert("start".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let mut until: Option<String> = self.safe_string2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[]) } else { params }).into_dict();
         if (until.is_some()) {
             let mut untilDivided: Option<String> = crate::precise::Precise::stringDiv(&until.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
-            request.insert("end".into(), self.parse_to_int(crate::precise::Precise::stringAdd(&untilDivided.map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into()))));
+            request.insert("end".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringAdd(&untilDivided.map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())))));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_trades_history(&[__ws_arg_14]).await.into_dict();
@@ -3886,7 +3886,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("timeout".to_string(), (if (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { (self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))) } else { Value::Int(0) }));
+                m.insert("timeout".to_string(), (if (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { (Value::from(self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))) } else { Value::Int(0) }));
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
@@ -3930,7 +3930,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (since != Value::Null) {
-            request.insert("start".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            request.insert("start".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let mut userref: Option<i64> = self.safe_integer_k(params.clone(), "userref", &[]).as_i64();
         let mut paramsOmitted: Value = (if (userref.is_some()) { self.omit(params.clone(), Value::Str("userref".into()), &[]) } else { params });
@@ -4048,7 +4048,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))); }
         }
         let mut userref: Option<i64> = self.safe_integer_k(params.clone(), "userref", &[]).as_i64();
         let mut paramsOmitted: Value = (if (userref.is_some()) { self.omit(params.clone(), Value::Str("userref".into()), &[]) } else { params });
@@ -4340,7 +4340,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("asset".into(), currency.get("id").cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            let mut sinceString: Option<String> = self.number_to_string(since.clone()).as_str().map(str::to_owned);
+            let mut sinceString: Option<String> = self.number_to_string(since.clone());
             request.insert("start".into(), crate::precise::Precise::stringDiv(&sinceString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())));
         }
         let mut until: Option<String> = self.safe_string2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]).as_str().map(str::to_owned);
@@ -4454,7 +4454,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("asset".into(), currency.get("id").cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            let mut sinceString: Option<String> = self.number_to_string(since.clone()).as_str().map(str::to_owned);
+            let mut sinceString: Option<String> = self.number_to_string(since.clone());
             request.insert("start".into(), crate::precise::Precise::stringDiv(&sinceString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())));
         }
         let mut until: Option<String> = self.safe_string2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("till".into()), &[]).as_str().map(str::to_owned);
@@ -5109,7 +5109,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut isBatchOrder: bool = path.as_str() == Some("AddOrderBatch");
             self.check_required_credentials(&[]);
             // kraken rejects a nonce that is not greater than the previous one for the key (EAPI:Invalid nonce)
-            let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
+            let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.incrementing_nonce())).into());
             let mut isJsonBody: bool = isCancelOrderBatch || isTriggerPercent.as_bool() == Some(true) || isBatchOrder;
             // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
             let mut bodySigned: Value = Value::Null;
@@ -5178,7 +5178,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn nonce(&self) -> Value {
-        return (match (&(self.milliseconds()), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return (match (&(Value::Int(self.milliseconds())), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
 
     Value::Null
 }

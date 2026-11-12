@@ -476,7 +476,7 @@ impl Revolutx {
         let mut bodyString: Value = Value::Str("".into());
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut timestamp: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
+            let mut timestamp: String = format!("{}", self.milliseconds());
             if (method.as_str() == Some("GET")) {
                 queryString = self.urlencode(query.clone(), &[]);
                 if (queryString.as_str() != Some("")) {
@@ -1161,7 +1161,7 @@ impl Revolutx {
         }
         let mut defaultLimit: i64 = 1000; // default max limit if not specified
         let mut limitValue: i64 = limit.as_i64().unwrap_or(defaultLimit);
-        let mut duration: i64 = ((self.parse_timeframe(timeframe.clone()).as_i64().unwrap_or_default()) * 1000);
+        let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
         let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("until".into()), &[]);
         if (until != Value::Null) {
             request.insert("until".into(), until.clone());
@@ -1283,7 +1283,7 @@ impl Revolutx {
         if (until.is_some()) {
             request.insert("end_date".into(), Value::from(until));
         }  else if (since != Value::Null) {
-            request.insert("end_date".into(), self.milliseconds());
+            request.insert("end_date".into(), Value::Int(self.milliseconds()));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100)));
@@ -1754,7 +1754,7 @@ impl Revolutx {
             if !singleLeg || (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() limit TP/SL legs require a price, pass it as params.stopLoss.price and params.takeProfit.price when both legs are set".into()))));
             }
-            legPrice = self.number_to_string(price).as_str().map(str::to_owned);
+            legPrice = self.number_to_string(price);
         }
         if (legPrice.is_some()) {
             result.insert("limit_price".into(), self.price_to_precision(symbol, legPrice.map(Value::from).unwrap_or(Value::Null)));
@@ -2036,7 +2036,7 @@ impl Revolutx {
         if (until != Value::Null) {
             request.insert("end_date".into(), until);
         }  else if (since != Value::Null) {
-            let mut now: Value = self.milliseconds();
+            let mut now: Value = Value::Int(self.milliseconds());
             let mut thirtyDaysAgo: Value = (match (&(now), &(thirtyDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             request.insert("end_date".into(), (if (since.as_f64().unwrap_or(f64::NAN) < thirtyDaysAgo.as_f64().unwrap_or(f64::NAN)) { (match (&(since), &(thirtyDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
                 (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) } else { now }));
@@ -2215,7 +2215,7 @@ impl Revolutx {
         if (until != Value::Null) {
             request.insert("end_date".into(), until);
         }  else if (since != Value::Null) {
-            let mut now: Value = self.milliseconds();
+            let mut now: Value = Value::Int(self.milliseconds());
             let mut thirtyDaysAgo: Value = (match (&(now), &(thirtyDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             request.insert("end_date".into(), (if (since.as_f64().unwrap_or(f64::NAN) < thirtyDaysAgo.as_f64().unwrap_or(f64::NAN)) { (match (&(since), &(thirtyDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
                 (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) } else { now }));
@@ -2358,8 +2358,8 @@ impl Revolutx {
     }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
-        let mut statusCode: Value = self.parse_to_int(code);
-        if statusCode.as_f64().unwrap_or(f64::NAN) >= ((400i64) as f64) {
+        let mut statusCode: Option<i64> = self.parse_to_int(code);
+        if statusCode >= Some(400) {
             if (response == Value::Null) {
                 return Value::Null;
             }

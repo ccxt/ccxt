@@ -1749,7 +1749,7 @@ impl Woofipro {
             let mut networkId: Option<String> = self.safe_string_k(&networkEntry, "chain_id", &[]).as_str().map(str::to_owned);
             let mut networkRow: Value = self.safe_dict(&indexedChains, networkId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut networkName: Option<String> = self.safe_string_k(networkRow.clone(), "name", &[networkId.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-            let mut networkCode: Value = self.network_id_to_code(&[networkName.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkName.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (networkCode != Value::Null) {
                 resultingNetworks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3022,7 +3022,7 @@ impl Woofipro {
         //
         let mut timestamp: Option<i64> = self.safe_integer_n(order.clone(), Value::from(vec![Value::Str("timestamp".into()), Value::Str("created_time".into()), Value::Str("createdTime".into())]), &[]).as_i64();
         let mut orderId: Option<String> = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("order_id".into()), Value::Str("orderId".into()), Value::Str("algoOrderId".into())]), &[]).as_str().map(str::to_owned);
-        let mut clientOrderId: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[])).as_str().map(str::to_owned); // Somehow, this always returns 0 for limit order
+        let mut clientOrderId: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[])); // Somehow, this always returns 0 for limit order
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -3037,7 +3037,7 @@ impl Woofipro {
         }
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("total_executed_quantity".into()), Value::Str("totalExecutedQuantity".into()), Value::Str("executed_quantity".into()), Value::Str("executed".into())]), &[]).as_str().map(str::to_owned);
-        let mut average: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("average_executed_price".into()), Value::Str("averageExecutedPrice".into()), &[])).as_str().map(str::to_owned);
+        let mut average: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("average_executed_price".into()), Value::Str("averageExecutedPrice".into()), &[]));
         let mut fee: Value = self.safe_value2(order.clone(), Value::Str("total_fee".into()), Value::Str("totalFee".into()), &[]);
         let mut feeCurrency: Option<String> = self.safe_string2(order.clone(), Value::Str("fee_asset".into()), Value::Str("feeAsset".into()), &[]).as_str().map(str::to_owned);
         let mut transactions: Value = self.safe_list_k(order.clone(), "Transactions", &[]);
@@ -4750,10 +4750,10 @@ impl Woofipro {
         let mut withdrawRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("brokerId".to_string(), self.safe_string_k(self.options.clone(), "keyBrokerId", &[Value::Str("woofi_pro".into())]));
-                m.insert("chainId".to_string(), self.parse_to_int(chainId.map(Value::from).unwrap_or(Value::Null)));
+                m.insert("chainId".to_string(), Value::from(self.parse_to_int(chainId.map(Value::from).unwrap_or(Value::Null))));
                 m.insert("receiver".to_string(), address.clone());
                 m.insert("token".to_string(), Value::from(codeUpper));
-                m.insert("amount".to_string(), self.number_to_string(amount));
+                m.insert("amount".to_string(), Value::from(self.number_to_string(amount)));
                 m.insert("withdrawNonce".to_string(), withdrawNonce);
                 m.insert("timestamp".to_string(), nonce);
             m
@@ -4993,7 +4993,7 @@ impl Woofipro {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("amount".to_string(), self.number_to_string(amount.clone()));
+                m.insert("amount".to_string(), Value::from(self.number_to_string(amount.clone())));
                 m.insert("type".to_string(), type_var.clone());
             m
         });
@@ -5007,7 +5007,7 @@ impl Woofipro {
         //
         let mut modification: indexmap::IndexMap<String, Value> = self.parse_margin_modification(response, &[(market).raw.clone()]).as_map().cloned().unwrap_or_default();
         modification.insert("type".into(), (if (type_var.as_str() == Some("ADD")) { Value::Str("add".into()) } else { Value::Str("reduce".into()) }));
-        modification.insert("amount".into(), self.parse_number(self.number_to_string(amount), &[]));
+        modification.insert("amount".into(), self.parse_number(Value::from(self.number_to_string(amount)), &[]));
         return Value::Map(modification);
 
     Value::Null
@@ -5399,7 +5399,7 @@ impl Woofipro {
     }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }

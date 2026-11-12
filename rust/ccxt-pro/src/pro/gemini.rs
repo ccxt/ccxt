@@ -677,7 +677,7 @@ impl Gemini {
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
         let mut changes: crate::value::List = __pro_message.get("changes").cloned().unwrap_or_default().into_list();
-        let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(timeframeId.clone(), &[]));
         let mut ohlcvsBySymbol: Option<crate::value::Dict> = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]).into_opt_dict();
         if (ohlcvsBySymbol.is_none()) {
             if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
@@ -1170,7 +1170,7 @@ impl Gemini {
         //         "socket_sequence": 7
         //     }
         //
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
         return message;
 
     Value::Null
@@ -1385,7 +1385,7 @@ impl Gemini {
         }
         // handle multimarketdata
         if (type_var == "update") {
-            let mut ts: Option<i64> = self.safe_integer_k(message, "timestampms", &[self.milliseconds()]).as_i64();
+            let mut ts: Option<i64> = self.safe_integer_k(message, "timestampms", &[Value::Int(self.milliseconds())]).as_i64();
             let mut eventId: Option<i64> = (match __pro_message.get("eventId").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
                 Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
             let mut events: Option<crate::value::List> = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
@@ -1457,7 +1457,7 @@ impl Gemini {
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("request".to_string(), request);
-                m.insert("nonce".to_string(), self.incrementing_nonce());
+                m.insert("nonce".to_string(), Value::Int(self.incrementing_nonce()));
             m
         });
         let mut b64: Value = self.string_to_base64(json_stringify(&Value::Map(payload)), &[]);

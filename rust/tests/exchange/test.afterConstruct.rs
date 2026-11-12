@@ -79,7 +79,7 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
             if !is_true(&exchange.in_array(networkCode.clone(), allowedUnifiedAliases.clone())) {
                 assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("networksById")).cloned().unwrap_or(Value::Null), &networkId), &networkCode)))));
                 // check networkIdToCode conversion back
-                let mut networkCodeConverted: Value = exchange.network_id_to_code(&[networkId.clone()]);
+                let mut networkCodeConverted: Value = Value::from(exchange.network_id_to_code(&[networkId.clone()]));
                 assert!(ccxt::runtime::is_true(&((networkCode.as_str() == networkCodeConverted.as_str()))));
             }
         }

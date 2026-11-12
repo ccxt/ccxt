@@ -486,11 +486,11 @@ impl Bitstamp {
         }
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         if (nonce == Value::Null) {
-            let mut cacheLength: Value = self.parse_to_int(get_array_length(&get_value(&storedOrderBook, &Value::Str("cache".into()))));
+            let mut cacheLength: Option<i64> = self.parse_to_int(get_array_length(&get_value(&storedOrderBook, &Value::Str("cache".into()))));
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
-            let mut snapshotDelay: Value = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(6)]));
-            if (cacheLength.as_f64() == snapshotDelay.as_f64()) {
+            let mut snapshotDelay: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(6)]));
+            if (cacheLength == snapshotDelay) {
                 self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), Value::from(messageHash.clone()), symbol.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -658,7 +658,7 @@ impl Bitstamp {
         //
         let mut microtimestamp: i64 = self.safe_integer_k(trade.clone(), "microtimestamp", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Value = self.parse_to_int(Value::Float(((microtimestamp as f64) / 1000.0)));
+        let mut timestamp: Option<i64> = self.parse_to_int(Value::Float(((microtimestamp as f64) / 1000.0)));
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
@@ -671,8 +671,8 @@ impl Bitstamp {
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), Value::Null);
@@ -1051,7 +1051,7 @@ impl Bitstamp {
         // omits for plain spot orderbook fills
         //
         let mut microtimestamp: i64 = self.safe_integer_k(trade.clone(), "microtimestamp", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut timestamp: Value = self.parse_to_int(Value::Float(((microtimestamp as f64) / 1000.0)));
+        let mut timestamp: Option<i64> = self.parse_to_int(Value::Float(((microtimestamp as f64) / 1000.0)));
         let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
         let mut symbol: String = self.safe_string_k(marketResolved.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut feeCost: Option<String> = self.safe_string_k(trade.clone(), "fee", &[]).as_str().map(str::to_owned);
@@ -1069,8 +1069,8 @@ impl Bitstamp {
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("id_str".into()), Value::Str("id".into()), &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order_id", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_k(trade.clone(), "side", &[]));
@@ -1489,7 +1489,7 @@ impl Bitstamp {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut time: Value = self.milliseconds();
+        let mut time: Value = Value::Int(self.milliseconds());
         let mut expiresIn: Value = self.safe_integer_k(self.options.clone(), "expiresIn", &[]);
         if (expiresIn == Value::Null) || (time.as_f64().unwrap_or(f64::NAN) > expiresIn.as_f64().unwrap_or(f64::NAN)) {
             // single-flight leader election on a never-dialed client, see

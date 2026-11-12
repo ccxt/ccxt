@@ -754,7 +754,7 @@ impl Luno {
         if messageSequence.as_f64().unwrap_or(f64::NAN) <= storedNonce.as_f64().unwrap_or(f64::NAN) {
             return Value::Bool(false);
         }
-        let mut expectedSequence: Value = (match (&(self.parse_to_int(storedNonce)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+        let mut expectedSequence: Value = (match (&(Value::from(self.parse_to_int(storedNonce))), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
         if (messageSequence.as_f64() != expectedSequence.as_f64()) {
             // a gap in the sequence means a lost message and the book is
             // unrecoverable on a live connection, because luno only sends

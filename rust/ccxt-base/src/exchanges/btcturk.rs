@@ -1110,11 +1110,11 @@ impl Btcturk {
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[self.milliseconds()]);
-        let mut untilSeconds: Value = self.parse_to_int(((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[Value::Int(self.milliseconds())]);
+        let mut untilSeconds: Value = Value::from(self.parse_to_int(((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         request.insert("to".into(), untilSeconds.clone());
         if (since != Value::Null) {
-            request.insert("from".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            request.insert("from".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let mut limitResolved: Value = Value::Null;
         if (limit != Value::Null) {
@@ -1129,12 +1129,12 @@ impl Btcturk {
             if (timeframe.as_str() == Some("1y")) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"".into()))));
             }
-            let mut seconds: Value = self.parse_timeframe(timeframe.clone());
+            let mut seconds: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
             let mut limitCount: Value = (if (limit == Value::Null) { Value::Int(100) } else { crate::runtime::Math::min(&limit, &Value::Int(11000)) });
-            let mut limitSeconds: Value = self.parse_to_int((match (&(seconds), &(((match (&(limitCount), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x - y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+            let mut limitSeconds: Value = Value::from(self.parse_to_int((match (&(seconds), &(((match (&(limitCount), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+                Value::Float(y)) => Value::Float(x - y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
             if (since != Value::Null) {
-                let mut sinceSeconds: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+                let mut sinceSeconds: Value = Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
                 let mut to: Value = (match (&(sinceSeconds), &(limitSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
                 if to.as_f64().unwrap_or(f64::NAN) < untilSeconds.as_f64().unwrap_or(f64::NAN) {
                     request.insert("to".into(), to);
@@ -1597,7 +1597,7 @@ impl Btcturk {
     }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }

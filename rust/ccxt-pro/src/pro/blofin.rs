@@ -1058,7 +1058,7 @@ impl Blofin {
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut interval: Value = channelName.as_str().map(|__s| Value::Str(__s.replace("candle", "").into())).unwrap_or_else(|| channelName.clone());
-        let mut unifiedTimeframe: Value = self.find_timeframe(interval.clone(), &[]);
+        let mut unifiedTimeframe: Value = Value::from(self.find_timeframe(interval.clone(), &[]));
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1645,7 +1645,7 @@ impl Blofin {
             }));
             self.clean_unsubscription(client.clone(), Value::from(subMessageHash.clone()), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into()), &[]);
         }  else if (channel.starts_with("candle")) {
-            let mut timeframe: Option<String> = self.find_timeframe(Value::from(channel.replace("candle", "")), &[]).as_str().map(str::to_owned);
+            let mut timeframe: Option<String> = self.find_timeframe(Value::from(channel.replace("candle", "")), &[]);
             if (timeframe.is_some()) {
                 self.clean_cache(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1671,7 +1671,7 @@ impl Blofin {
 
     pub fn handle_text_message(&self, mut client: Value, mut message: Value) {
         if (message.as_str() == Some("pong")) {
-            crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+            crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
         }
 }
 
@@ -1736,7 +1736,7 @@ impl Blofin {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut milliseconds: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut milliseconds: i64 = self.milliseconds();
         let mut messageHash: String = "authenticate_hash".to_string();
         let mut timestamp: Value = Value::Str(format!("{}", milliseconds).into());
         let mut nonce: String = format!("{}{}", Value::Str("n_".into()), timestamp);

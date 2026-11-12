@@ -944,7 +944,7 @@ impl Bigone {
             while { if !__for_first_262 { j += 1; } __for_first_262 = false; j < (chains.len() as i64) } {
             let mut chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&chain, "gateway_name", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             let mut deposit: Option<bool> = self.safe_bool_k(&chain, "is_deposit_enabled", &[]).as_bool();
             let mut withdraw: Option<bool> = self.safe_bool_k(&chain, "is_withdrawal_enabled", &[]).as_bool();
             let mut minDepositAmount: Option<String> = self.safe_string_k(&chain, "min_deposit_amount", &[]).as_str().map(str::to_owned);
@@ -1722,7 +1722,7 @@ impl Bigone {
         //         "inserted_at": "2019-04-15T06:20:57Z"
         //     }
         //
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string2(trade.clone(), Value::Str("created_at".into()), Value::Str("inserted_at".into()), &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string2(trade.clone(), Value::Str("created_at".into()), Value::Str("inserted_at".into()), &[]));
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "asset_pair_name", &[]).as_str().map(str::to_owned);
@@ -1906,7 +1906,7 @@ impl Bigone {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::from(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "time", &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
+        return Value::from(vec![Value::from(self.parse8601(self.safe_string_k(ohlcv.clone(), "time", &[]))), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -1953,19 +1953,18 @@ impl Bigone {
         if sinceIsDefined && untilIsDefined {
             defaultLimit = 500;
         }
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::from(defaultLimit) } else { limit });
+        let mut limitResolved: i64 = limit.as_i64().unwrap_or(defaultLimit);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset_pair_name".to_string(), Value::from((market).id.as_deref()));
                 m.insert("period".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
-                m.insert("limit".to_string(), limitResolved.clone());
+                m.insert("limit".to_string(), Value::from(limitResolved));
             m
         });
         if (since != Value::Null) {
             // const start = this.parseToInt (since / 1000);
-            let mut duration: Value = self.parse_timeframe(timeframe.clone());
-            let mut endByLimit: Value = self.parse_to_int(self.sum(&[since.clone(), (match (&((match (&(limitResolved), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+            let mut duration: i64 = self.parse_timeframe(timeframe.clone());
+            let mut endByLimit: Value = Value::from(self.parse_to_int(self.sum(&[since.clone(), Value::Int((((limitResolved * duration)) * 1000))])));
             if (until != Value::Null) {
                 request.insert("time".into(), self.iso8601(crate::runtime::Math::min(&endByLimit, &(match (&(until), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x + y), _ => Value::Null }))));
@@ -2002,7 +2001,7 @@ impl Bigone {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -2110,7 +2109,7 @@ impl Bigone {
         let mut id: Option<String> = self.safe_string_k(order.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "asset_pair_name", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("-".into())]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[]));
         let mut side: Option<String> = self.safe_string_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         if (side.as_deref() == Some("BID")) {
             side = Some("buy".to_string());
@@ -2144,7 +2143,7 @@ impl Bigone {
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "client_order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("lastTradeTimestamp".to_string(), self.parse8601(self.safe_string_k(order.clone(), "updated_at", &[])));
+        m.insert("lastTradeTimestamp".to_string(), Value::from(self.parse8601(self.safe_string_k(order.clone(), "updated_at", &[]))));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2283,8 +2282,8 @@ impl Bigone {
                     if (price == Value::Null) && (cost.is_none()) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".into()))));
                     }  else {
-                        let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-                        let mut priceString: Option<String> = self.number_to_string(price).as_str().map(str::to_owned);
+                        let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                        let mut priceString: Option<String> = self.number_to_string(price);
                         let mut quoteAmount: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)));
                         let mut costRequest: Value = (if (cost.is_some()) { Value::from(cost) } else { quoteAmount });
                         request.insert("amount".into(), self.cost_to_precision(symbol.clone(), costRequest));
@@ -2779,7 +2778,7 @@ impl Bigone {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let mut nonce: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
+            let mut nonce: Option<String> = self.number_to_string(self.nonce());
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("OpenAPIV2".into()));
@@ -2881,7 +2880,7 @@ impl Bigone {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
         m.insert("currency".to_string(), code.clone());
-        m.insert("network".to_string(), self.network_id_to_code(&[selectedNetworkId, code]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[selectedNetworkId, code])));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
     m
@@ -2963,8 +2962,8 @@ impl Bigone {
         let mut id: Option<String> = self.safe_string_k(transaction.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
         let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "state", &[])).as_str());
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "inserted_at", &[])).as_i64();
-        let mut updated: Option<i64> = self.parse8601(self.safe_string2(transaction.clone(), Value::Str("updated_at".into()), Value::Str("completed_at".into()), &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "inserted_at", &[]));
+        let mut updated: Option<i64> = self.parse8601(self.safe_string2(transaction.clone(), Value::Str("updated_at".into()), Value::Str("completed_at".into()), &[]));
         let mut txid: Option<String> = self.safe_string_k(transaction.clone(), "txid", &[]).as_str().map(str::to_owned);
         let mut address: Option<String> = self.safe_string_k(transaction.clone(), "target_address", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = self.safe_string_k(transaction.clone(), "memo", &[]).as_str().map(str::to_owned);

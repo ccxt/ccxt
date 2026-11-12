@@ -197,7 +197,7 @@ impl crate::exchange_generated::ExchangeBase for Deepcoin {
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "request_id" => self.request_id(),
+                "request_id" => crate::Value::from(self.request_id()),
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_public" => self.un_watch_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), &args[3.min(args.len())..]).await,
@@ -252,7 +252,7 @@ impl Deepcoin {
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "request_id" => self.request_id(),
+            "request_id" => crate::Value::from(self.request_id()),
             "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
             "un_watch_order_book" => { crate::exchange_stubs::enqueue_spawn("un_watch_order_book", args.to_vec()); crate::Value::Null },
             "un_watch_public" => { crate::exchange_stubs::enqueue_spawn("un_watch_public", args.to_vec()); crate::Value::Null },
@@ -381,7 +381,7 @@ impl Deepcoin {
     pub fn ping(&self, mut client: Value) -> Value {
         let mut url: Value = client.url();
         if url.as_str().unwrap_or("").contains("private") {
-            crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+            crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
         }
         return Value::Str("ping".into());
 
@@ -389,21 +389,19 @@ impl Deepcoin {
 }
 
     pub fn handle_pong(&self, mut client: Value, mut message: Value) -> Value {
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
         return message;
 
     Value::Null
 }
 
-    pub fn request_id(&mut self) -> Value {
+    pub fn request_id(&mut self) -> i64 {
         self.lock_id(&[]);
         let mut previousValue: i64 = self.safe_integer_k(self.options.clone(), "lastRequestId", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut newValue: Value = Value::Int((previousValue + 1));
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("lastRequestId".into(), newValue.clone()); }
         self.unlock_id(&[]);
-        return newValue;
-
-    Value::Null
+        return newValue.as_i64().unwrap_or_default();
 }
 
     pub fn create_public_request(&self, mut market: Value, mut requestId: Value, mut topicID: Value, optional_args: &[Value]) -> Value {
@@ -445,7 +443,7 @@ impl Deepcoin {
         let mut suffix = get_arg(optional_args, 1, Value::Str("".into()));
         let mut marketType: String = self.safe_string_k(market.clone(), "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), Value::from(marketType), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut request: Value = self.create_public_request(market, Value::from(requestId), topicID, &[suffix]);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -473,7 +471,7 @@ impl Deepcoin {
         let mut suffix = get_arg(optional_args, 2, Value::Str("".into()));
         let mut marketType: String = self.safe_string_k(market.clone(), "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), Value::from(marketType), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
         let mut existingSubscription: Option<crate::value::Dict> = self.safe_dict((client).subscriptions.clone(), messageHash.clone(), &[]).into_opt_dict();
         if (existingSubscription.is_none()) {
@@ -515,7 +513,7 @@ impl Deepcoin {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut time: Value = self.milliseconds();
+        let mut time: Value = Value::Int(self.milliseconds());
         // single-flight leader election on a never-dialed client, see
         // https://github.com/ccxt/ccxt/issues/29393: the key rides the private ws url query string, so racing
         // acquires would mint several keys and losers dial streams keyed to orphaned credentials. the whole
@@ -1111,7 +1109,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("/".into())]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
         let mut interval: Option<String> = self.safe_string_k(data.clone(), "P", &[]).as_str().map(str::to_owned);
-        let mut timeframe: Value = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]));
         if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1244,7 +1242,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a params[\"aggregation\"] price level for ".into())).into()),
                     symbol).into()), Value::Str(" because the market has no price precision".into()))));
             }
-            aggregation = self.number_to_string(Value::from(tickSize)).as_str().map(str::to_owned);
+            aggregation = self.number_to_string(Value::from(tickSize));
         }
         return Value::from(vec![Value::Str(format!("{}{}", Value::Str("_".into()), aggregation.as_deref().unwrap_or("null")).into()), paramsAggregation]);
 
@@ -1443,7 +1441,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+            symbolResolved = Some(self.symbol(symbol.clone()));
             messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str("::".into())).into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())), Value::Str("symbol".into()), &[Value::Str("".into())]));
         }
         let mut trades: Value = self.watch_private(messageHash.as_str(), &[params]).await;
@@ -1547,7 +1545,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+            symbolResolved = Some(self.symbol(symbol.clone()));
             messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str("::".into())).into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())), Value::Str("symbol".into()), &[Value::Str("".into())]));
         }
         let mut orders: Value = self.watch_private(messageHash.as_str(), &[params]).await;
@@ -1828,7 +1826,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("side".to_string(), self.parse_position_side(direction.map(Value::from).unwrap_or(Value::Null)));
         m.insert("notional".to_string(), Value::Null);
-        m.insert("leverage".to_string(), self.omit_zero(self.safe_string_k(position.clone(), "l", &[])));
+        m.insert("leverage".to_string(), Value::from(self.omit_zero(self.safe_string_k(position.clone(), "l", &[]))));
         m.insert("unrealizedPnl".to_string(), Value::Null);
         m.insert("realizedPnl".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);

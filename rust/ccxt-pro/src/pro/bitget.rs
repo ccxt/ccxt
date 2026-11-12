@@ -1185,7 +1185,7 @@ impl Bitget {
             isUta = Some(true);
         }
         let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[]);
-        let mut timeframe: Value = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[timeframes]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[timeframes]));
         if (timeframe == Value::Null) {
             return;
         }
@@ -2885,13 +2885,13 @@ impl Bitget {
             price = self.safe_number_k(order.clone(), "executePrice", &[]);
         }
         let mut avgPriceString: Option<String> = self.safe_string_lower_n(order.clone(), Value::from(vec![Value::Str("priceAvg".into()), Value::Str("fillPrice".into()), Value::Str("avgPrice".into())]), &[]).as_str().map(str::to_owned);
-        let mut avgPrice: Option<String> = (if (avgPriceString.is_none()) { None } else { self.omit_zero(avgPriceString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) });
+        let mut avgPrice: Option<String> = (if (avgPriceString.is_none()) { None } else { self.omit_zero(avgPriceString.clone().map(Value::from).unwrap_or(Value::Null)) });
         let mut side: Option<String> = self.safe_string_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string_k(order.clone(), "orderType", &[]).as_str().map(str::to_owned);
         let mut accBaseVolumeString: Option<String> = self.safe_string2(order.clone(), Value::Str("accBaseVolume".into()), Value::Str("cumExecQty".into()), &[]).as_str().map(str::to_owned);
-        let mut accBaseVolume: Option<String> = self.omit_zero(accBaseVolumeString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut accBaseVolume: Option<String> = self.omit_zero(accBaseVolumeString.map(Value::from).unwrap_or(Value::Null));
         let mut newSizeString: Option<String> = self.safe_string2(order.clone(), Value::Str("newSize".into()), Value::Str("cumExecValue".into()), &[]).as_str().map(str::to_owned);
-        let mut newSizeValue: Option<String> = self.omit_zero(newSizeString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut newSizeValue: Option<String> = self.omit_zero(newSizeString.map(Value::from).unwrap_or(Value::Null));
         let mut isMarketOrder: bool = type_var.as_deref() == Some("market");
         let mut isBuy: bool = side.as_deref() == Some("buy");
         let mut totalAmount: Option<String> = None;
@@ -2925,7 +2925,7 @@ impl Bitget {
             totalAmount = self.safe_string2(order.clone(), Value::Str("size".into()), Value::Str("qty".into()), &[]).as_str().map(str::to_owned);
             cost = self.safe_string_k(order.clone(), "cumExecValue", &[]).as_str().map(str::to_owned);
             if (cost.is_none()) {
-                let mut priceAvgString: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "priceAvg", &[])).as_str().map(str::to_owned);
+                let mut priceAvgString: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "priceAvg", &[]));
                 if (priceAvgString.is_some()) && (totalFilled.is_some()) {
                     cost = crate::precise::Precise::stringMul(&totalFilled.clone().map(Value::from).unwrap_or(Value::Null), &priceAvgString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }
@@ -3862,7 +3862,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub fn handle_pong(&self, mut client: Value, mut message: Value) -> Value {
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
         return message;
 
     Value::Null
@@ -4007,7 +4007,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             isUta = Some(true);
         }
         let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[]);
-        let mut timeframe: Value = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[timeframes]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[timeframes]));
         let mut market: crate::value::Dict = self.safe_market(&[instId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]).into_dict();
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut messageHash: Option<String> = None;

@@ -205,7 +205,7 @@ impl crate::exchange_generated::ExchangeBase for Gate {
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
                 "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "request_id" => self.request_id(),
+                "request_id" => crate::Value::from(self.request_id()),
                 "request_private" => self.request_private(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_str), args.get(3).and_then(crate::Value::as_str)).await,
                 "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_str), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]).await,
                 "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_str), &args[4.min(args.len())..]).await,
@@ -282,7 +282,7 @@ impl Gate {
             "handle_un_subscribe" => { self.handle_un_subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "load_positions_snapshot" => { crate::exchange_stubs::enqueue_spawn("load_positions_snapshot", args.to_vec()); crate::Value::Null },
             "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "request_id" => self.request_id(),
+            "request_id" => crate::Value::from(self.request_id()),
             "request_private" => { crate::exchange_stubs::enqueue_spawn("request_private", args.to_vec()); crate::Value::Null },
             "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); crate::Value::Null },
             "subscribe_private" => { crate::exchange_stubs::enqueue_spawn("subscribe_private", args.to_vec()); crate::Value::Null },
@@ -993,7 +993,7 @@ impl Gate {
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::from(defaultLimit) } else { limit.clone() });
         if (market).spot {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
-            let mut maxSpotLimit: Value = self.parse_to_int(self.handle_option(Value::Str("fetchOrderBook".into()), Value::Str("maxSpotLimit".into()), &[Value::Int(1000)]));
+            let mut maxSpotLimit: Value = Value::from(self.parse_to_int(self.handle_option(Value::Str("fetchOrderBook".into()), Value::Str("maxSpotLimit".into()), &[Value::Int(1000)])));
             limitResolved = crate::runtime::Math::min(&limitResolved, &maxSpotLimit);
         }
         let mut payload: Value = Value::from(vec![]);
@@ -1256,17 +1256,17 @@ impl Gate {
         })])]);
         let mut nonce: Value = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]);
         if (nonce == Value::Null) {
-            let mut cacheLength: Value = self.parse_to_int(Value::Int(0));
+            let mut cacheLength: Option<i64> = self.parse_to_int(Value::Int(0));
             if (storedOrderBook != Value::Null) {
                 let mut storedCacheLength: Value = get_array_length(&get_value(&storedOrderBook, &Value::Str("cache".into())));
                 cacheLength = self.parse_to_int(storedCacheLength);
             }
-            let mut snapshotDelay: Value = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(10)]));
-            let mut waitAmount: Value = self.parse_to_int(Value::Int(0));
+            let mut snapshotDelay: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(10)]));
+            let mut waitAmount: Option<i64> = self.parse_to_int(Value::Int(0));
             if isSpot {
                 waitAmount = snapshotDelay;
             }
-            if (cacheLength.as_f64() == waitAmount.as_f64()) {
+            if (cacheLength == waitAmount) {
                 // max limit is 100
                 let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]).into_dict();
                 let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
@@ -1890,7 +1890,7 @@ impl Gate {
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), interval).into()), Value::Str(":".into())).into()), symbolValue);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:candles:".into()), interval).into()), Value::Str(":".into())).into()), symbolValue);
         let mut url: Value = self.get_url_by_market((market).raw.clone());
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(requestId));
@@ -1908,7 +1908,7 @@ impl Gate {
         // this matters for aliased timeframes such as gate's '1w': '7d';
         // an unsupported timeframe falls back to the caller's key, matching
         // the previous no-op cleanup instead of an undefined cache key
-        let mut cacheTimeframe: Option<String> = self.find_timeframe(interval, &[]).as_str().map(str::to_owned);
+        let mut cacheTimeframe: Option<String> = self.find_timeframe(interval, &[]);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
@@ -1973,7 +1973,7 @@ impl Gate {
             let mut subscription: Value = self.safe_string_k(ohlcv.clone(), "n", &[Value::Str("".into())]);
             let mut parts: Value = Value::Array(if let Some(__s) = subscription.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut timeframeId: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
-            let mut timeframe: Value = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut timeframe: Value = Value::from(self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]));
             let mut prefix: Value = Value::Str(format!("{}{}", timeframe, Value::Str("_".into())).into());
             let mut marketId: Value = subscription.as_str().zip(prefix.as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| subscription.clone());
             let mut symbol: Value = self.safe_symbol(marketId, &[Value::Null, Value::Str("_".into()), Value::from(marketType.clone())]);
@@ -2005,9 +2005,9 @@ impl Gate {
             while { if !__for_first_328 { i += 1; } __for_first_328 = false; i < (keys.len() as i64) } {
             let mut symbol: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timeframe: Value = (if let (Some(__m), Some(__k)) = (marketIds.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            let mut interval: Value = self.find_timeframe(timeframe, &[]);
-            let mut hash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles".into()), Value::Str(":".into())).into()), interval).into()), Value::Str(":".into())).into()), symbol);
-            let mut stored: Value = self.safe_value((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), interval, &[]);
+            let mut interval: Option<String> = self.find_timeframe(timeframe, &[]);
+            let mut hash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles".into()), Value::Str(":".into())).into()), interval.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), symbol);
+            let mut stored: Value = self.safe_value((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), interval.map(Value::from).unwrap_or(Value::Null), &[]);
             client.resolve(stored, hash.as_str());
         }
         }
@@ -3355,15 +3355,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn request_id(&mut self) -> Value {
+    pub fn request_id(&mut self) -> i64 {
         // their support said that reqid must be an int32, not documented
         self.lock_id(&[]);
         let mut reqid: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "reqid", &[Value::Int(0)]), Value::Int(1)]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("reqid".into(), reqid.clone()); }
         self.unlock_id(&[]);
-        return reqid;
-
-    Value::Null
+        return reqid.as_i64().unwrap_or_default();
 }
 
     pub async fn subscribe_public(&mut self, url: Option<&str>, messageHash: &str, mut payload: Value, channel: Option<&str>, optional_args: &[Value]) -> Value {
@@ -3375,7 +3373,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut subscription = get_arg(optional_args, 1, Value::Null);
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut time: i64 = self.seconds().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3406,7 +3404,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut time: i64 = self.seconds().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3431,7 +3429,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut time: i64 = self.seconds().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3491,7 +3489,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.check_required_credentials(&[]);
         // uid is required for some subscriptions only so it's not a part of required credentials
         let mut event: String = "api".to_string();
-        let mut requestIdResolved: Value = (if (requestId == Value::Null) { Value::Str(format!("{}", self.request_id()).into()) } else { requestId });
+        let mut requestIdResolved: Value = (if (requestId == Value::Null) { Value::Str(format!("{}", Value::Int(self.request_id())).into()) } else { requestId });
         let mut messageHash: Value = requestIdResolved.clone();
         let mut time: i64 = self.seconds().as_i64().unwrap_or_default();
         // unfortunately, PHP demands double quotes for the escaped newline symbol
@@ -3557,7 +3555,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("SIGN".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(requestId));

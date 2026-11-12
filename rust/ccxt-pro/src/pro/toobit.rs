@@ -373,7 +373,7 @@ impl Toobit {
     pub fn ping(&self, mut client: Value) -> Value {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ping".to_string(), self.milliseconds());
+        m.insert("ping".to_string(), Value::Int(self.milliseconds()));
     m
 });
 
@@ -780,7 +780,7 @@ impl Toobit {
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut params: crate::value::Dict = __pro_message.get("params").cloned().unwrap_or_default().into_dict();
         let mut timeframeId: Option<String> = self.safe_string_k(&params, "klineType", &[]).as_str().map(str::to_owned);
-        let mut timeframe: Value = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]));
         if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -854,7 +854,7 @@ impl Toobit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = self.symbol(symbol.clone());
+        let mut symbolValue: Value = Value::from(self.symbol(symbol.clone()));
         let mut tickers: Value = crate::types::IntoRaw::into_raw(self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await);
         return (if let (Some(__m), Some(__k)) = (tickers.as_map(), symbolValue.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         Value::Null
@@ -1810,7 +1810,7 @@ impl Toobit {
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("notional".to_string(), self.omit_zero(self.safe_string_k(position.clone(), "pv", &[])));
+        m.insert("notional".to_string(), Value::from(self.omit_zero(self.safe_string_k(position.clone(), "pv", &[]))));
         m.insert("marginMode".to_string(), self.safe_string_lower_k(position.clone(), "mt", &[]));
         m.insert("liquidationPrice".to_string(), self.safe_string_k(position.clone(), "f", &[]));
         m.insert("entryPrice".to_string(), self.safe_string_k(position.clone(), "p", &[]));
@@ -1827,7 +1827,7 @@ impl Toobit {
         m.insert("maintenanceMargin".to_string(), self.safe_string_k(position.clone(), "mm", &[]));
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), self.omit_zero(self.safe_string_k(position.clone(), "m", &[])));
+        m.insert("initialMargin".to_string(), Value::from(self.omit_zero(self.safe_string_k(position.clone(), "m", &[]))));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), self.safe_string_k(position, "v", &[]));
         m.insert("marginRatio".to_string(), Value::Null);
@@ -1842,7 +1842,7 @@ impl Toobit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut time: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut time: i64 = self.milliseconds();
         let mut lastAuthenticatedTime: i64 = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("lastAuthenticatedTime".into()), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut listenKeyRefreshRate: i64 = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("listenKeyRefreshRate".into()), &[Value::Int(1200000)]).as_i64().unwrap_or(1200000);
         let mut delay: i64 = (listenKeyRefreshRate + 10000);
@@ -1921,7 +1921,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.set_ws_options(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("listenKey".to_string(), self.safe_string_k(&response, "listenKey", &[]));
-                    m.insert("lastAuthenticatedTime".to_string(), self.milliseconds());
+                    m.insert("lastAuthenticatedTime".to_string(), Value::Int(self.milliseconds()));
                 m
             }));
          #[allow(unreachable_code)] { Value::Null }})).await;

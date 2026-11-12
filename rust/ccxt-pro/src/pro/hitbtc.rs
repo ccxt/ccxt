@@ -409,8 +409,8 @@ impl Hitbtc {
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
-            let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
-            let mut timestampString: Option<String> = self.number_to_string(Value::from(timestamp)).as_str().map(str::to_owned);
+            let mut timestamp: i64 = self.milliseconds();
+            let mut timestampString: Option<String> = self.number_to_string(Value::from(timestamp));
             let mut timestampEncoded: Option<String> = timestampString.clone();
             if (timestampString.is_none()) {
                 timestampEncoded = Some("".to_string());
@@ -473,7 +473,7 @@ impl Hitbtc {
         }  else {
             std::sync::Arc::make_mut(&mut messageHashes).push(messageHashPrefix);
         }
-        let mut requestId: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut requestId: i64 = self.incrementing_nonce();
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -522,7 +522,7 @@ impl Hitbtc {
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into())); };
         }
         }
-        let mut requestId: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut requestId: i64 = self.incrementing_nonce();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -574,7 +574,7 @@ impl Hitbtc {
         if (symbol != Value::Null) {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHashBase, Value::Str("::".into())).into()), symbol);
         }
-        let mut requestId: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut requestId: i64 = self.incrementing_nonce();
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), name);
@@ -610,8 +610,8 @@ impl Hitbtc {
         self.authenticate().await;
         let mut wsUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "private", &[]).as_str().map(str::to_owned);
-        let mut requestId: Option<i64> = self.incrementing_nonce().as_i64();
-        let mut messageHash: Option<String> = self.number_to_string(Value::from(requestId)).as_str().map(str::to_owned);
+        let mut requestId: i64 = self.incrementing_nonce();
+        let mut messageHash: Option<String> = self.number_to_string(Value::from(requestId));
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), name);
@@ -1511,7 +1511,7 @@ impl Hitbtc {
         let mut channel: String = (match __pro_message.get("ch").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut splitChannel: Value = Value::Array(channel.split("/").map(Value::from).collect());
         let mut period: Option<String> = self.safe_string(splitChannel, Value::Int(1), &[]).as_str().map(str::to_owned);
-        let mut timeframe: Value = self.find_timeframe(period.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(period.map(Value::from).unwrap_or(Value::Null), &[]));
         if (timeframe == Value::Null) {
             return message;
         }

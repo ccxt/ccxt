@@ -197,7 +197,7 @@ impl crate::exchange_generated::ExchangeBase for Modetrade {
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
-                "request_id" => self.request_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "request_id" => crate::Value::from(self.request_id(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_bids_asks" => crate::types::IntoRaw::into_raw(self.watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -250,7 +250,7 @@ impl Modetrade {
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "pong" => { crate::exchange_stubs::enqueue_spawn("pong", args.to_vec()); crate::Value::Null },
-            "request_id" => self.request_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "request_id" => crate::Value::from(self.request_id(args.get(0).cloned().unwrap_or(crate::Value::Null))),
             "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]); crate::Value::Null },
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
             "watch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("watch_bids_asks", args.to_vec()); crate::Value::Null },
@@ -371,7 +371,7 @@ impl Modetrade {
     Value::Null
 }
 
-    pub fn request_id(&self, mut url: Value) -> Value {
+    pub fn request_id(&self, mut url: Value) -> i64 {
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "requestId", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -379,9 +379,7 @@ impl Modetrade {
         let mut previousValue: i64 = self.safe_integer(&options, url.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut newValue: Value = Value::Int((previousValue + 1));
         if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("requestId".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), newValue.clone()); } }
-        return newValue;
-
-    Value::Null
+        return newValue.as_i64().unwrap_or_default();
 }
 
     pub async fn watch_public(&mut self, messageHash: &str, mut message: Value) -> Value {
@@ -403,7 +401,7 @@ impl Modetrade {
         if (self.accountId.clone() != Value::Null) && (self.accountId.as_str() != Some("")) {
             url = format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.accountId.clone());
         }
-        let mut requestId: i64 = self.request_id(Value::from(url.clone())).as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id(Value::from(url.clone()));
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(requestId));
@@ -885,7 +883,7 @@ impl Modetrade {
         let mut market: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]).into_dict();
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut interval: Option<String> = self.safe_string_k(&data, "type", &[]).as_str().map(str::to_owned);
-        let mut timeframe: Value = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]));
         if (timeframe == Value::Null) {
             return;
         }
@@ -1176,7 +1174,7 @@ impl Modetrade {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchPrivate() has no private websocket url".into()))));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.accountId.clone());
-        let mut requestId: i64 = self.request_id(Value::from(url.clone())).as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id(Value::from(url.clone()));
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(requestId));
@@ -1207,7 +1205,7 @@ impl Modetrade {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchPrivateMultiple() has no private websocket url".into()))));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.accountId.clone());
-        let mut requestId: i64 = self.request_id(Value::from(url.clone())).as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id(Value::from(url.clone()));
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(requestId));
@@ -1510,7 +1508,7 @@ impl Modetrade {
                 while { if !__for_first_496 { i += 1; } __for_first_496 = false; (i as f64) < dataListLength } {
                 let mut order: Value = dataList.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut tradeIdStr: Option<String> = self.safe_string_k_opt(data.clone(), "tradeId", &[]);
-                let mut tradeId: Option<String> = (if (tradeIdStr.is_none()) { None } else { self.omit_zero(tradeIdStr.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) });
+                let mut tradeId: Option<String> = (if (tradeIdStr.is_none()) { None } else { self.omit_zero(tradeIdStr.map(Value::from).unwrap_or(Value::Null)) });
                 if (tradeId.is_some()) {
                     self.handle_my_trade(client.clone(), order.clone());
                 }
@@ -1520,7 +1518,7 @@ impl Modetrade {
         }  else {
             // executionreport
             let mut tradeIdStr: Option<String> = self.safe_string_k_opt(data.clone(), "tradeId", &[]);
-            let mut tradeId: Option<String> = (if (tradeIdStr.is_none()) { None } else { self.omit_zero(tradeIdStr.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) });
+            let mut tradeId: Option<String> = (if (tradeIdStr.is_none()) { None } else { self.omit_zero(tradeIdStr.map(Value::from).unwrap_or(Value::Null)) });
             if (tradeId.is_some()) {
                 self.handle_my_trade(client.clone(), data.clone());
             }
@@ -2092,7 +2090,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         // { event: "pong", ts: 1614667590000 }
         //
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
         return message;
 
     Value::Null

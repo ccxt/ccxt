@@ -1429,12 +1429,12 @@ impl Poloniex {
         if (since != Value::Null) && (limit != Value::Null) && (self.safe_integer(requestUntil.clone(), Value::from(keyEnd.clone()), &[]) == Value::Null) {
             // without an end time the exchange returns the latest candles, not the ones starting at since,
             // so end the window at the start of the limit-th candle from the first one at or after since
-            let mut duration: Value = (match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut firstCandle: Value = (match (&(self.parse_to_int(((match ((since).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x),
-                Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            let mut duration: Value = (match (&(Value::Int(self.parse_timeframe(timeframe.clone()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            let mut firstCandle: Value = (match (&(Value::from(self.parse_to_int(((match ((since).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y),
+                (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             let mut endTimeByLimit: Value = self.sum(&[firstCandle, (match (&(duration), &(((match (&(limit), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
                 Value::Float(y)) => Value::Float(x - y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert(keyEnd, crate::runtime::Math::min(&endTimeByLimit, &self.milliseconds())); }
+            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert(keyEnd, crate::runtime::Math::min(&endTimeByLimit, &Value::Int(self.milliseconds()))); }
         }
         if (market).contract {
             let __ws_arg_0 = self.extend(requestUntil.clone(), &[&paramsUntil]);
@@ -1897,7 +1897,7 @@ impl Poloniex {
         let mut contractSize: Option<f64> = self.safe_number_k(marketResolved.clone(), "contractSize", &[]).as_f64();
         if matches!((self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) && (contractSize.is_some()) {
             // 'quantity' counts contracts, and a ticker reports base volume
-            baseVolume = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &self.number_to_string(Value::from(contractSize))).as_str().map(str::to_owned);
+            baseVolume = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(Value::from(contractSize)))).as_str().map(str::to_owned);
         }
         let mut relativeChange: Option<String> = self.safe_string2(ticker.clone(), Value::Str("dailyChange".into()), Value::Str("dc".into()), &[]).as_str().map(str::to_owned);
         let mut percentage: Option<String> = crate::precise::Precise::stringMul(&relativeChange.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
@@ -2049,7 +2049,7 @@ impl Poloniex {
             while { if !__for_first_1084 { j += 1; } __for_first_1084 = false; (j as f64) < chainsLength } {
             let mut chain: Value = self.safe_dict(&chains, Value::Int(j), &[]);
             let mut chainId: Option<String> = self.safe_string_k(chain.clone(), "blockchain", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = self.network_id_to_code(&[chainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[chainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2577,7 +2577,7 @@ impl Poloniex {
         //
         let mut timestamp: Option<i64> = self.safe_integer_n(order.clone(), Value::from(vec![Value::Str("timestamp".into()), Value::Str("createTime".into()), Value::Str("cTime".into())]), &[]).as_i64();
         if (timestamp.is_none()) {
-            timestamp = self.parse8601(self.safe_string_k(order.clone(), "date", &[])).as_i64();
+            timestamp = self.parse8601(self.safe_string_k(order.clone(), "date", &[]));
         }
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Str("_".into())]);
@@ -3191,8 +3191,8 @@ impl Poloniex {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument".into()))));
                     }  else {
-                        let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-                        let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
+                        let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                        let mut priceString: Option<String> = self.number_to_string(price.clone());
                         let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                         quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                     }
@@ -3552,7 +3552,7 @@ impl Poloniex {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut idValue: Option<String> = self.number_to_string(id.clone()).as_str().map(str::to_owned);
+        let mut idValue: Option<String> = self.number_to_string(id.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), idValue.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4080,7 +4080,7 @@ impl Poloniex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress requires a network parameter for ".into())).into()), code).into()), Value::Str(".".into()))));
         }
         let mut exchangeNetworkId: Value = Value::Null;
-        networkCode = self.network_id_to_code(&[networkCode.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]).as_str().map(str::to_owned);
+        networkCode = self.network_id_to_code(&[networkCode.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
         let mut networkEntry: Value = (if (networkCode.is_none()) { Value::Null } else { self.safe_dict(currency.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
         if (networkEntry != Value::Null) {
             exchangeNetworkId = self.safe_string_k(networkEntry.clone(), "id", &[]);
@@ -4397,7 +4397,7 @@ impl Poloniex {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut year: i64 = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         let mut now: i64 = self.seconds().as_i64().unwrap_or_default();
-        let mut start: Value = Value::Int((now - ((10 * year))));
+        let mut start: Option<i64> = Some((now - ((10 * year))));
         if (since != Value::Null) {
             let mut sinceMs: i64 = self.safe_integer(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4408,7 +4408,7 @@ impl Poloniex {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("start".to_string(), start);
+                m.insert("start".to_string(), Value::from(start));
                 m.insert("end".to_string(), Value::from(now));
             m
         });
@@ -4624,7 +4624,7 @@ impl Poloniex {
                         while { if !__for_first_1095 { j += 1; } __for_first_1095 = false; j < (childChains.len() as i64) } {
                         let mut rawNetworkId: Value = self.safe_string(&childChains, Value::Int(j), &[Value::Str("".into())]);
                         let mut networkId: Value = rawNetworkId.as_str().zip(code.as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| rawNetworkId.clone());
-                        let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone(), self.safe_string_k(currency.clone(), "code", &[])]).as_str().map(str::to_owned);
+                        let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone(), self.safe_string_k(currency.clone(), "code", &[])]);
                         let mut networkInfo: crate::value::Dict = self.safe_dict(response.clone(), networkId, &[]).into_dict();
                         let mut networkObject: indexmap::IndexMap<String, Value> = ({
                             let mut m = indexmap::IndexMap::new();
@@ -4694,7 +4694,7 @@ impl Poloniex {
         });
         depositWithdrawFee.insert("withdraw".into(), Value::Map(withdrawResult.clone()));
         depositWithdrawFee.insert("deposit".into(), Value::Map(depositResult.clone()));
-        let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]).as_str().map(str::to_owned);
+        let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
         if (networkCode.is_some()) {
             let mut networks: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -5188,7 +5188,7 @@ impl Poloniex {
         let mut positionMargin: Option<String> = None;
         let mut collateral: Value = Value::Null;
         if (marginMode.as_deref() == Some("isolated")) {
-            positionMargin = self.omit_zero(self.safe_string_k(position.clone(), "mgn", &[])).as_str().map(str::to_owned);
+            positionMargin = self.omit_zero(self.safe_string_k(position.clone(), "mgn", &[]));
             let mut upl: Option<String> = self.safe_string_k(position.clone(), "upl", &[]).as_str().map(str::to_owned);
             collateral = (if ((positionMargin.is_some()) && (upl.is_some())) { crate::precise::Precise::stringAdd(&positionMargin.clone().map(Value::from).unwrap_or(Value::Null), &upl.clone().map(Value::from).unwrap_or(Value::Null)) } else { Value::Null });
         }
@@ -5351,7 +5351,7 @@ impl Poloniex {
     }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -5387,7 +5387,7 @@ impl Poloniex {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let mut timestamp: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
+            let mut timestamp: Option<String> = self.number_to_string(self.nonce());
             let mut auth: String = format!("{}{}", method, Value::Str("\n".into())); // eslint-disable-line quotes
             auth.push_str(&format!("{}{}", Value::Str("/".into()), implodedPath));
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || (method.as_str() == Some("DELETE")) {

@@ -888,7 +888,7 @@ impl Zebpay {
             while { if !__for_first_1202 { j += 1; } __for_first_1202 = false; j < (chains.len() as i64) } {
             let mut chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&chain, "chainId", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             let mut depositAllowed: bool = self.safe_bool_k_opt(&chain, "isDepositEnabled", &[Value::Bool(false)]).unwrap_or(false);
             if depositAllowed {
                 deposit = true;
@@ -2765,7 +2765,7 @@ impl Zebpay {
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(position.clone(), "id", &[]));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("initialMargin".to_string(), Value::from(initialMargin));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
@@ -2934,7 +2934,7 @@ impl Zebpay {
         }
         let mut tail: String = format!("{}{}", Value::Str("/api/".into()), self.implode_params(path.clone(), paramsOmitted.clone()));
         let mut suffix: String = "".to_string();
-        let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
+        let mut timestamp: Value = Value::Str(format!("{}", Value::Int(self.milliseconds())).into());
         let mut signature: Option<String> = Some("".to_string());
         let mut query: Value = self.omit(paramsOmitted.clone(), self.extract_params(path), &[]);
         let mut access: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);

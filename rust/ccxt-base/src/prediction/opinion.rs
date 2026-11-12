@@ -767,7 +767,7 @@ impl Opinion {
             return self.apply_event_fetch_params(Value::from(vec![single]), &[params.clone(), queries.clone()]);
         }
         let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into()), Value::Str("status".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("limit".into())]), &[]).into_dict();
-        let mut pageLimit: Value = self.parse_to_int(self.safe_integer_k(self.options.clone(), "defaultFetchEventsLimit", &[Value::Int(20)]));
+        let mut pageLimit: Value = Value::from(self.parse_to_int(self.safe_integer_k(self.options.clone(), "defaultFetchEventsLimit", &[Value::Int(20)])));
         // bound how many events are actually FETCHED: the user limit when given, otherwise
         // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
         // label can still hold more than one page
@@ -779,7 +779,7 @@ impl Opinion {
             let mut __for_first_1389: bool = true;
             while { if !__for_first_1389 { if let Value::Int(n) = &mut page { *n += 1; } } __for_first_1389 = false; page.as_f64().unwrap_or(f64::NAN) <= maxPages.as_f64().unwrap_or(f64::NAN) } {
             let mut fetchedSoFar: Value = Value::Int(rawEvents.len() as i64);
-            let mut remaining: Value = self.parse_to_int((match (&(fetchCap), &(fetchedSoFar)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            let mut remaining: Value = Value::from(self.parse_to_int((match (&(fetchCap), &(fetchedSoFar)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })));
             let mut reqLimit: Value = (if (remaining.as_f64().unwrap_or(f64::NAN) < pageLimit.as_f64().unwrap_or(f64::NAN)) { remaining } else { pageLimit.clone() });
             if reqLimit.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64) {
                 break;
@@ -1591,7 +1591,7 @@ impl Opinion {
         let mut decimals: Value = decimals.into();
         let mut decimalsStr: String = "1".to_string();
         if (decimals != Value::Null) {
-            let mut decimalsCount: Value = self.parse_to_int(decimals);
+            let mut decimalsCount: Value = Value::from(self.parse_to_int(decimals));
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1397: bool = true;
@@ -1600,7 +1600,7 @@ impl Opinion {
             }
             }
         }
-        let mut amountStr: Option<String> = self.number_to_string(amount).as_str().map(str::to_owned);
+        let mut amountStr: Option<String> = self.number_to_string(amount);
         if isMarket && (side.as_str() == Some("BUY")) {
             let mut marketMakerAmountWei: Option<String> = self.decimal_to_precision(crate::precise::Precise::stringMul(&amountStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(decimalsStr.clone())), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
             return Value::Map({
@@ -1610,7 +1610,7 @@ impl Opinion {
     m
 });
         }
-        let mut priceStr: Value = self.decimal_to_precision(self.number_to_string(price), Value::Int(crate::runtime::ROUND), Value::Int(6), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
+        let mut priceStr: Value = self.decimal_to_precision(Value::from(self.number_to_string(price)), Value::Int(crate::runtime::ROUND), Value::Int(6), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
         let mut priceParts: Value = Value::Array(if let Some(__s) = priceStr.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut priceInt: String = self.safe_string(priceParts.clone(), Value::Int(0), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut priceFrac: Value = self.safe_string(priceParts, Value::Int(1), &[Value::Str("".into())]);
@@ -1690,7 +1690,7 @@ impl Opinion {
         }
         let mut marketOrderPrice: Option<String> = Some("0".to_string());
         if isMarket && (sideStr.as_str() == Some("SELL")) {
-            marketOrderPrice = self.number_to_string(price.clone()).as_str().map(str::to_owned);
+            marketOrderPrice = self.number_to_string(price.clone());
         }
         let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1703,7 +1703,7 @@ impl Opinion {
         let mut makerAmount: Option<String> = self.safe_string_k(amounts.clone(), "makerAmount", &[]).as_str().map(str::to_owned);
         let mut takerAmount: Option<String> = self.safe_string_k(amounts, "takerAmount", &[]).as_str().map(str::to_owned);
         let mut sideInt: i64 = (if (sideStr.as_str() == Some("BUY")) { 0 } else { 1 });
-        let mut salt: Option<String> = self.number_to_string(self.milliseconds()).as_str().map(str::to_owned);
+        let mut salt: Option<String> = self.number_to_string(Value::Int(self.milliseconds()));
         let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("postOnly".into())]), &[]).into_dict();
         let mut maker: Value = self.load_multi_sign_address().await;
@@ -1752,7 +1752,7 @@ impl Opinion {
                 m.insert("contractAddress".to_string(), Value::Str("".into()));
                 m.insert("currencyAddress".to_string(), quoteTokenAddress.map(Value::from).unwrap_or(Value::Null));
                 m.insert("topicId".to_string(), Value::from(topicId));
-                m.insert("price".to_string(), (if isMarket { marketOrderPrice.map(Value::from).unwrap_or(Value::Null) } else { __ws_arg_17 }));
+                m.insert("price".to_string(), (if isMarket { marketOrderPrice.map(Value::from).unwrap_or(Value::Null) } else { Value::from(__ws_arg_17) }));
                 m.insert("tradingMethod".to_string(), (if isMarket { Value::Int(1) } else { Value::Int(2) }));
                 m.insert("timestamp".to_string(), __ws_arg_18);
                 m.insert("safeRate".to_string(), Value::Str("0".into()));
@@ -3300,7 +3300,7 @@ if _try_result.is_err() {
         if (errno.is_some()) && (errno != Some(0)) {
             let mut errmsg: String = self.safe_string_k(response, "errmsg", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), self.number_to_string(Value::from(errno)), Value::from(feedback.clone()));
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::from(self.number_to_string(Value::from(errno))), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), Value::from(errmsg), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
@@ -3358,7 +3358,7 @@ if _try_result.is_err() {
                         m.insert("DELETE".to_string(), Value::Str("delete".into()));
                     m
                 });
-                let mut timestamp: Option<String> = self.number_to_string(self.seconds()).as_str().map(str::to_owned);
+                let mut timestamp: Option<String> = self.number_to_string(self.seconds());
                 add_element_to_object(&mut headersExtended, &Value::Str("OPINION_ADDRESS".into()), self.walletAddress.clone());
                 add_element_to_object(&mut headersExtended, &Value::Str("OPINION_SIGNATURE".into()), self.sign_api_key_auth((self.walletAddress.clone()).as_str().unwrap_or_default(), (self.safe_string(&actionByMethod, method.clone(), &[Value::Str("get".into())])).as_str().unwrap_or_default(), timestamp.as_deref().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null));
                 add_element_to_object(&mut headersExtended, &Value::Str("OPINION_TIMESTAMP".into()), timestamp.map(Value::from).unwrap_or(Value::Null));

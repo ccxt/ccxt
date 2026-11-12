@@ -343,7 +343,7 @@ impl Bitopro {
         if (limit == Value::Null) {
             endPart = Some(marketIdValue.clone());
         }  else {
-            endPart = Some(format!("{}{}", Value::Str(format!("{}{}", marketIdValue, Value::Str(":".into())).into()), self.number_to_string(limit.clone())));
+            endPart = Some(format!("{}{}", Value::Str(format!("{}{}", marketIdValue, Value::Str(":".into())).into()), Value::from(self.number_to_string(limit.clone()))));
         }
         let mut orderbook: Value = self.watch_public("order-books", messageHash.as_str(), endPart.as_deref()).await;
         return orderbook.limit();
@@ -567,7 +567,7 @@ impl Bitopro {
         if (base.is_none()) || (quote.is_none()) {
             return;
         }
-        let mut symbol: Option<String> = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)).into())).as_str().map(str::to_owned);
+        let mut symbol: String = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)).into()));
         let mut messageHash: Option<String> = (match message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (self.myTrades.clone() == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -578,7 +578,7 @@ impl Bitopro {
         trades.append(parsed);
         client.resolve(trades.clone(), messageHash.as_deref());
         if (messageHash.is_some()) {
-            client.resolve(trades, &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash.map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())));
+            client.resolve(trades, &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash.map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol).into())));
         }
 }
 
@@ -612,7 +612,7 @@ impl Bitopro {
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut symbol: Value = Value::Null;
         if (base.is_some()) && (quote.is_some()) {
-            symbol = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)).into()));
+            symbol = Value::from(self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)).into())));
         }
         let mut marketResolved: Value = self.safe_market(&[symbol.clone(), market]);
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
@@ -745,7 +745,7 @@ impl Bitopro {
             return;
         }
         self.check_required_credentials(&[]);
-        let mut nonce: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut nonce: i64 = self.milliseconds();
         let mut rawData: Option<String> = self.json(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("nonce".to_string(), Value::from(nonce));

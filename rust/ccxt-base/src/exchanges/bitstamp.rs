@@ -2113,7 +2113,7 @@ impl Bitstamp {
         if self.is_fiat(code.as_str()).as_bool() == Some(true) {
             currencyType = "fiat".to_string();
         }
-        let mut tickSize: Value = self.parse_number(self.parse_precision(&[self.number_to_string(precision)]), &[]);
+        let mut tickSize: Value = self.parse_number(self.parse_precision(&[Value::from(self.number_to_string(precision))]), &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -2177,7 +2177,7 @@ impl Bitstamp {
 })]).into_dict();
         let mut timestamp: Value = self.safe_integer_k(&options, "timestamp", &[]);
         let mut expires: Value = self.safe_integer_k(&options, "expires", &[Value::Int(1000)]);
-        let mut now: Value = self.milliseconds();
+        let mut now: Value = Value::Int(self.milliseconds());
         if (timestamp == Value::Null) || ((expires != Value::Null) && (((match (&(now), &(timestamp)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
             _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > expires.as_f64().unwrap_or(f64::NAN))) {
             let mut response: Value = self.public_get_markets(&[params]).await;
@@ -2343,8 +2343,8 @@ impl Bitstamp {
         if (microtimestamp == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() missing microtimestamp".into()))));
         }
-        let mut timestamp: Value = self.parse_to_int((match ((microtimestamp).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(response, Value::from((market).symbol.clone()), &[timestamp]).as_map().cloned().unwrap_or_default();
+        let mut timestamp: Option<i64> = self.parse_to_int((match ((microtimestamp).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(response, Value::from((market).symbol.clone()), &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
         orderbook.insert("nonce".into(), microtimestamp);
         return Value::Map(orderbook);
         Value::Null
@@ -2633,10 +2633,10 @@ impl Bitstamp {
         if (datetimeString.is_some()) {
             if datetimeString.as_deref().unwrap_or_default().contains(" ") {
                 // iso8601
-                timestamp = self.parse8601(datetimeString.clone().map(Value::from).unwrap_or(Value::Null));
+                timestamp = Value::from(self.parse8601(datetimeString.clone().map(Value::from).unwrap_or(Value::Null)));
             }  else {
                 // string unix epoch in seconds
-                let mut seconds: Value = self.parse_to_int(datetimeString.map(Value::from).unwrap_or(Value::Null));
+                let mut seconds: Value = Value::from(self.parse_to_int(datetimeString.map(Value::from).unwrap_or(Value::Null)));
                 timestamp = (match (&(seconds), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             }
         }
@@ -2779,17 +2779,17 @@ impl Bitstamp {
                 m.insert("step".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut duration: Value = self.parse_timeframe(timeframe.clone());
+        let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         let mut untilIsDefined: bool = until != Value::Null;
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(1000);
         if (limit != Value::Null) {
             if (since != Value::Null) {
-                let mut start: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+                let mut start: Value = Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
                 request.insert("start".into(), start.clone());
                 if untilIsDefined {
                     // Math.min (start + duration * limit - 1, untilSeconds) on integers
-                    let mut untilSeconds: Value = self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+                    let mut untilSeconds: Value = Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
                     request.insert("end".into(), (if (((match (&(untilSeconds), &(start)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
                         _ => Value::Null })).as_f64().unwrap_or(f64::NAN) < (match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                         Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
@@ -2800,7 +2800,7 @@ impl Bitstamp {
                         _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })]));
                 }
             }  else if untilIsDefined {
-                let mut untilEnd: Value = self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+                let mut untilEnd: Value = Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
                 request.insert("end".into(), untilEnd.clone());
                 request.insert("start".into(), (match (&((match (&(untilEnd), &(((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                     _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x),
@@ -2811,19 +2811,19 @@ impl Bitstamp {
             if (since == Value::Null) {
                 request.insert("limit".into(), Value::Int(1000));
                 if untilIsDefined {
-                    let mut untilEndDefault: Value = self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+                    let mut untilEndDefault: Value = Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
                     request.insert("start".into(), (match (&((match (&(untilEndDefault), &(((match (&(duration), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                         Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
                         &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
                     request.insert("end".into(), untilEndDefault);
                 }
             }  else {
-                let mut startDefault: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-                request.insert("start".into(), startDefault.clone());
+                let mut startDefault: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+                request.insert("start".into(), Value::from(startDefault));
                 if untilIsDefined {
-                    request.insert("end".into(), self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+                    request.insert("end".into(), Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
                 }  else {
-                    request.insert("end".into(), self.sum(&[startDefault, (match (&((match (&(duration), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                    request.insert("end".into(), self.sum(&[Value::from(startDefault), (match (&((match (&(duration), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                         Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })]));
                 }
                 request.insert("limit".into(), Value::Int(1000));
@@ -3159,7 +3159,7 @@ impl Bitstamp {
             let mut __for_first_435: bool = true;
             while { if !__for_first_435 { j += 1; } __for_first_435 = false; j < (feeEntries.len() as i64) } {
             let mut networkEntry: crate::value::Dict = self.safe_dict(&feeEntries, Value::Int(j), &[]).into_dict();
-            let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(&networkEntry, "network", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[self.safe_string_k(&networkEntry, "network", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             let mut withdrawFee: Value = self.safe_number_k(&networkEntry, "fee", &[]);
             result.insert("withdraw".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3782,7 +3782,7 @@ impl Bitstamp {
             m
         });
         if (since != Value::Null) {
-            request.insert("timedelta".into(), (match (&(self.milliseconds()), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            request.insert("timedelta".into(), (match (&(Value::Int(self.milliseconds())), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }  else {
             request.insert("timedelta".into(), Value::Int(50000000)); // use max bitstamp approved value
         }
@@ -3835,7 +3835,7 @@ impl Bitstamp {
         //         "transaction_id": "001743B03B0C79BA166A064AC0142917B050347B4CB23BA2AB4B91B3C5608F4C"
         //     }
         //
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "datetime", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "datetime", &[]));
         let mut currencyId: Value = self.get_currency_id_from_transaction(transaction.clone());
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), &[currency.clone()]).as_str().map(str::to_owned);
         let mut feeCost: Option<String> = self.safe_string_k(transaction.clone(), "fee", &[]).as_str().map(str::to_owned);
@@ -4017,7 +4017,7 @@ impl Bitstamp {
             side = (if (side.as_deref() == Some("1")) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }
         // there is no timestamp from fetchOrder
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "datetime", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "datetime", &[]));
         let mut marketId: Option<String> = self.safe_string_lower_k(order.clone(), "currency_pair", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("/".into())]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str());
@@ -4566,7 +4566,7 @@ impl Bitstamp {
 }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -4617,7 +4617,7 @@ impl Bitstamp {
             self.check_required_credentials(&[]);
             let mut xAuth: String = format!("{}{}", Value::Str("BITSTAMP ".into()), self.apiKey.clone());
             let mut xAuthNonce: Value = self.uuid(&[]);
-            let mut xAuthTimestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
+            let mut xAuthTimestamp: Value = Value::Str(format!("{}", Value::Int(self.milliseconds())).into());
             let mut xAuthVersion: String = "v2".to_string();
             let mut contentType: String = "".to_string();
             privateHeaders = Value::Map({

@@ -569,7 +569,7 @@ impl Coinbase {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut timestamp: Option<String> = self.number_to_string(self.seconds()).as_str().map(str::to_owned);
+        let mut timestamp: Option<String> = self.number_to_string(self.seconds());
         self.check_required_credentials(&[]);
         let mut isCloudAPiKey: bool = (self.apiKey.as_str().unwrap_or("").contains("organizations/")) || (self.secret.as_str().unwrap_or("").starts_with("-----BEGIN"));
         let mut isV2CloudAPiKey: bool = self.parent.is_eddsa_api_key().as_bool().unwrap_or_default();
@@ -583,7 +583,7 @@ impl Coinbase {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".into()))));
             }
             let mut currentToken: Option<String> = self.safe_string_k(self.options.clone(), "wsToken", &[]).as_str().map(str::to_owned);
-            let mut tokenTimestamp: Value = self.parse_to_int(self.safe_integer_k(self.options.clone(), "wsTokenTimestamp", &[Value::Int(0)]));
+            let mut tokenTimestamp: Value = Value::from(self.parse_to_int(self.safe_integer_k(self.options.clone(), "wsTokenTimestamp", &[Value::Int(0)])));
             let mut seconds: Value = self.seconds();
             let mut tokenExpiry: Value = (match (&(tokenTimestamp), &(Value::Int(90))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             if (currentToken.is_none()) || tokenExpiry.as_f64().unwrap_or(f64::NAN) < seconds.as_f64().unwrap_or(f64::NAN) {
@@ -826,7 +826,7 @@ impl Coinbase {
         let mut channel: Option<String> = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut events: crate::value::List = __pro_message.get("events").cloned().unwrap_or_default().into_list();
         let mut datetime: Option<String> = self.safe_string_k(message, "timestamp", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
         let mut newTickers: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -945,12 +945,12 @@ impl Coinbase {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+        let mut symbolValue: String = self.symbol(symbol.clone());
         let mut name: String = "candles".to_string();
-        let mut ohlcv: Value = self.subscribe(name.as_str(), &[Value::Bool(false), symbolValue.clone().map(Value::from).unwrap_or(Value::Null), params]).await;
+        let mut ohlcv: Value = self.subscribe(name.as_str(), &[Value::Bool(false), Value::from(symbolValue.clone()), params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue.as_deref(), limit.as_i64());
+            limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
         return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
@@ -1045,12 +1045,12 @@ impl Coinbase {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+        let mut symbolValue: String = self.symbol(symbol.clone());
         let mut name: String = "market_trades".to_string();
-        let mut trades: Value = self.subscribe(name.as_str(), &[Value::Bool(false), symbolValue.clone().map(Value::from).unwrap_or(Value::Null), params]).await;
+        let mut trades: Value = self.subscribe(name.as_str(), &[Value::Bool(false), Value::from(symbolValue.clone()), params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue.as_deref(), limit.as_i64());
+            limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
         return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
@@ -1217,7 +1217,7 @@ impl Coinbase {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "user".to_string();
-        return self.un_subscribe("orders", name.as_str(), &[Value::Bool(true), self.symbol(symbol.clone())]).await;
+        return self.un_subscribe("orders", name.as_str(), &[Value::Bool(true), Value::from(self.symbol(symbol.clone()))]).await;
         Value::Null
         }).await?))
     }
@@ -1279,9 +1279,9 @@ impl Coinbase {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+        let mut symbolValue: String = self.symbol(symbol.clone());
         let mut name: String = "level2".to_string();
-        return self.un_subscribe("orderbook", name.as_str(), &[Value::Bool(false), symbolValue.map(Value::from).unwrap_or(Value::Null)]).await;
+        return self.un_subscribe("orderbook", name.as_str(), &[Value::Bool(false), Value::from(symbolValue)]).await;
         Value::Null
         }).await?))
     }
@@ -1497,7 +1497,7 @@ impl Coinbase {
         m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("type".to_string(), self.safe_string_k(order.clone(), "order_type", &[]));
@@ -1508,7 +1508,7 @@ impl Coinbase {
         m.insert("stopPrice".to_string(), stopPrice.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), stopPrice.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_string_k(order.clone(), "cumulative_quantity", &[]));
-        m.insert("cost".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "filled_value", &[])));
+        m.insert("cost".to_string(), Value::from(self.omit_zero(self.safe_string_k(order.clone(), "filled_value", &[]))));
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "avg_price", &[]));
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "cumulative_quantity", &[]));
         m.insert("remaining".to_string(), self.safe_string_k(order.clone(), "leaves_quantity", &[]));
@@ -1615,7 +1615,7 @@ impl Coinbase {
                 }));
             }
             self.handle_order_book_helper(orderbook.clone(), updates);
-            orderbook.set_book_meta("timestamp", self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+            orderbook.set_book_meta("timestamp", Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
             orderbook.set_book_meta("datetime", datetime.clone().map(Value::from).unwrap_or(Value::Null));
             orderbook.set_book_meta("symbol", Value::from(symbol));
             client.resolve(orderbook.clone(), messageHash.as_str());

@@ -333,7 +333,7 @@ impl P2b {
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), name);
                 m.insert("params".to_string(), request);
-                m.insert("id".to_string(), self.milliseconds());
+                m.insert("id".to_string(), Value::Int(self.milliseconds()));
             m
         });
         let mut query: crate::value::Dict = self.extend(Value::Map(subscribe), &[params]).into_dict();
@@ -478,7 +478,7 @@ impl P2b {
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str(format!("{}{}", nameOption, Value::Str(".subscribe".into())).into()));
                 m.insert("params".to_string(), Value::from(args));
-                m.insert("id".to_string(), self.milliseconds());
+                m.insert("id".to_string(), Value::Int(self.milliseconds()));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsName]);
@@ -561,7 +561,7 @@ impl P2b {
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("deals.subscribe".into()));
                 m.insert("params".to_string(), marketIds);
-                m.insert("id".to_string(), self.milliseconds());
+                m.insert("id".to_string(), Value::Int(self.milliseconds()));
             m
         });
         let mut query: crate::value::Dict = self.extend(Value::Map(subscribe), &[params]).into_dict();
@@ -647,7 +647,7 @@ impl P2b {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timeframe: Value = self.find_timeframe(channel.clone().map(Value::from).unwrap_or(Value::Null), &[timeframes]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(channel.clone().map(Value::from).unwrap_or(Value::Null), &[timeframes]));
         let mut symbol: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         let mut parsed: Value = self.parse_ohlcv(data.clone().map_or(Value::Null, Value::Arr), &[market]);
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
@@ -915,7 +915,7 @@ impl P2b {
     let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::Str("server.ping".into()));
         m.insert("params".to_string(), Value::from(vec![]));
-        m.insert("id".to_string(), self.milliseconds());
+        m.insert("id".to_string(), Value::Int(self.milliseconds()));
     m
 });
 
@@ -931,7 +931,7 @@ impl P2b {
         //    }
         //
         let __ws_arg_1 = self.milliseconds();
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(message.clone(), "id", &[__ws_arg_1]));
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(message.clone(), "id", &[Value::Int(__ws_arg_1)]));
         return message;
 
     Value::Null

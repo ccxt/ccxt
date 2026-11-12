@@ -1299,7 +1299,7 @@ impl Coinmate {
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txid", &[]));
         m.insert("type".to_string(), self.safe_string_lower_k(transaction.clone(), "transferType", &[]));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "walletType", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "walletType", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)])));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("status".to_string(), self.parse_transaction_status((self.safe_string_k(transaction.clone(), "transferStatus", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -2047,7 +2047,7 @@ impl Coinmate {
     }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -2080,7 +2080,7 @@ impl Coinmate {
         }  else {
             self.check_required_credentials(&[]);
             // coinmate requires each nonce to be greater than the previous one for the key
-            let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
+            let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.incrementing_nonce())).into());
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, self.uid.clone()).into()), self.apiKey.clone());
             let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
             let __ws_arg_10 = self.extend(Value::Map({

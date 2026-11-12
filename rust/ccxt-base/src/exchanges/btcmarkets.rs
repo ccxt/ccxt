@@ -833,8 +833,8 @@ impl Btcmarkets {
         //         "lastUpdate": "2017-07-31T08:50:01.290000Z"
         //     }
         //
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "creationTime", &[])).as_i64();
-        let mut lastUpdate: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "lastUpdate", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "creationTime", &[]));
+        let mut lastUpdate: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "lastUpdate", &[]));
         let mut type_var: Value = self.parse_transaction_type((self.safe_string_lower_k(transaction.clone(), "type", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
         if (type_var.as_str() == Some("withdraw")) {
             type_var = Value::Str("withdrawal".into());
@@ -1034,7 +1034,7 @@ impl Btcmarkets {
     m
 }));
         let mut response: crate::value::Dict = self.public_get_time(&[params]).await.into_dict();
-        return self.parse8601(self.safe_string_k(&response, "timestamp", &[]));
+        return Value::from(self.parse8601(self.safe_string_k(&response, "timestamp", &[])));
         Value::Null
         }).await?))
     }
@@ -1094,7 +1094,7 @@ impl Btcmarkets {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::from(vec![self.parse8601(self.safe_string(ohlcv.clone(), Value::Int(0), &[])), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv, Value::Int(5), &[])]);
+        return Value::from(vec![Value::from(self.parse8601(self.safe_string(ohlcv.clone(), Value::Int(0), &[]))), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv, Value::Int(5), &[])]);
 
     Value::Null
 }
@@ -1227,7 +1227,7 @@ impl Btcmarkets {
         //
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "marketId", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("-".into())]);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker.clone(), "timestamp", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker.clone(), "timestamp", &[]));
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "lastPrice", &[]).as_str().map(str::to_owned);
         let mut baseVolume: Option<String> = self.safe_string_k(ticker.clone(), "volume24h", &[]).as_str().map(str::to_owned);
         let mut quoteVolume: Option<String> = self.safe_string_k(ticker.clone(), "volumeQte24h", &[]).as_str().map(str::to_owned);
@@ -1348,7 +1348,7 @@ impl Btcmarkets {
         //         "clientOrderId": "48"
         //     }
         //
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "timestamp", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "timestamp", &[]));
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "marketId", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("-".into())]);
         let mut feeCurrencyCode: Value = Value::Null;
@@ -1564,7 +1564,7 @@ impl Btcmarkets {
             let mut __for_first_473: bool = true;
             while { if !__for_first_473 { i += 1; } __for_first_473 = false; i < (ids.len() as i64) } {
             // numericIds[i] = parseInt (ids[i]);
-            numericIds.push(self.parse_to_int(self.safe_string(ids.clone(), Value::Int(i), &[])));
+            numericIds.push(Value::from(self.parse_to_int(self.safe_string(ids.clone(), Value::Int(i), &[]))));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1661,13 +1661,13 @@ impl Btcmarkets {
         let mut cost: Value = Value::Null;
         if (Value::from((market).quote.clone()).as_str() == Some("AUD")) {
             currency = Value::from((market).quote.clone()).as_str().map(str::to_owned);
-            cost = self.cost_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&self.number_to_string(amount.clone()), &self.number_to_string(price)));
+            cost = self.cost_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount.clone())), &Value::from(self.number_to_string(price))));
         }  else {
             currency = Value::from((market).base.clone()).as_str().map(str::to_owned);
             cost = self.amount_to_precision(symbol.clone(), amount);
         }
         let mut rate: Value = self.safe_value((market).raw.clone(), takerOrMaker.clone(), &[]);
-        let mut rateCost: Option<String> = crate::precise::Precise::stringMul(&self.number_to_string(rate.clone()), &cost).as_str().map(str::to_owned);
+        let mut rateCost: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(rate.clone())), &cost).as_str().map(str::to_owned);
         let mut feeCost: Option<String> = self.fee_to_precision(symbol, rateCost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         if (feeCost.is_none()) {
             feeCost = Some("0".to_string());
@@ -1724,7 +1724,7 @@ impl Btcmarkets {
         //         "targetAmount": "1000"
         //     }
         //
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "creationTime", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "creationTime", &[]));
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "marketId", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("-".into())]);
         let mut side: Option<String> = self.safe_string_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
@@ -2024,7 +2024,7 @@ impl Btcmarkets {
     }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }

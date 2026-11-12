@@ -440,7 +440,7 @@ impl Hashkey {
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut params: crate::value::Dict = __pro_message.get("params").cloned().unwrap_or_default().into_dict();
         let mut klineType: Option<String> = self.safe_string_k(&params, "klineType", &[]).as_str().map(str::to_owned);
-        let mut timeframe: Value = self.find_timeframe(klineType.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(klineType.map(Value::from).unwrap_or(Value::Null), &[]));
         if (timeframe == Value::Null) {
             return;
         }
@@ -764,7 +764,7 @@ impl Hashkey {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "orders".to_string();
-        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol.clone())) } else { symbol.as_str().map(str::to_owned) });
         if (symbol != Value::Null) {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str(":".into())).into()), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null));
         }
@@ -859,19 +859,19 @@ impl Hashkey {
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "p", &[]));
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "V", &[]));
-        m.insert("amount".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "q", &[])));
+        m.insert("amount".to_string(), Value::from(self.omit_zero(self.safe_string_k(order.clone(), "q", &[]))));
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "z", &[]));
         m.insert("remaining".to_string(), self.safe_string_k(order.clone(), "r", &[]));
         m.insert("stopPrice".to_string(), Value::Null);
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
-        m.insert("cost".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "Z", &[])));
+        m.insert("cost".to_string(), Value::from(self.omit_zero(self.safe_string_k(order.clone(), "Z", &[]))));
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(order.clone(), "N", &[]), &[]));
-        m.insert("amount".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "n", &[])));
+        m.insert("amount".to_string(), Value::from(self.omit_zero(self.safe_string_k(order.clone(), "n", &[]))));
     m
 }));
         m.insert("reduceOnly".to_string(), reduceOnly.map(Value::from).unwrap_or(Value::Null));
@@ -911,7 +911,7 @@ impl Hashkey {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "myTrades".to_string();
-        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol.clone())) } else { symbol.as_str().map(str::to_owned) });
         if (symbol != Value::Null) {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str(":".into())).into()), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null));
         }

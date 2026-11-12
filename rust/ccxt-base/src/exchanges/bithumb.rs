@@ -1596,16 +1596,16 @@ impl Bithumb {
             let mut promises: Vec<Value> = Vec::new();
             // the exchange rejects more than 200 market ids per request
             let mut maxMarketIdsOption: Value = self.safe_integer_k(self.options.clone(), "fetchTickersGeneration2MaxMarketIdsPerRequest", &[Value::Int(200)]);
-            let mut maxMarketIdsPerRequest: Value = self.parse_to_int((if ((maxMarketIdsOption == Value::Null) || (maxMarketIdsOption.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64))) { Value::Int(200) } else { maxMarketIdsOption }));
+            let mut maxMarketIdsPerRequest: Option<i64> = self.parse_to_int((if ((maxMarketIdsOption == Value::Null) || (maxMarketIdsOption.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64))) { Value::Int(200) } else { maxMarketIdsOption }));
             let mut marketIdsChunk: Value = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_397: bool = true;
                 while { if !__for_first_397 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_397 = false; i.as_f64().unwrap_or(f64::NAN) < marketIdsLength.as_f64().unwrap_or(f64::NAN) } {
                 if let Value::Arr(__a) = &mut marketIdsChunk { std::sync::Arc::make_mut(__a).push(marketIds.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)); }
-                let mut marketIdsChunkLength: f64 = ((marketIdsChunk.len() as i64) as f64);
+                let mut marketIdsChunkLength: i64 = marketIdsChunk.len() as i64;
                 let mut isLastMarketId: bool = i.as_f64() == ((match (&(marketIdsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64();
-                if (marketIdsChunkLength >= maxMarketIdsPerRequest.as_f64().unwrap_or(f64::NAN)) || isLastMarketId {
+                if ((maxMarketIdsPerRequest.is_some() && Some(marketIdsChunkLength) >= maxMarketIdsPerRequest)) || isLastMarketId {
                     std::sync::Arc::make_mut(&mut marketIdsChunks).push(marketIdsChunk.clone());
                     request.insert("markets".into(), Value::Str(marketIdsChunk.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
                     let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
@@ -1926,7 +1926,7 @@ impl Bithumb {
         if (matches!(&ohlcv, Value::Arr(_))) {
             timestamp = self.safe_integer2(ohlcv.clone(), Value::Int(0), Value::Str("timestamp".into()), &[]);
         }  else {
-            timestamp = self.parse8601(self.safe_string2(ohlcv.clone(), Value::Str("candle_date_time_utc".into()), Value::Str("candle_date_time_kst".into()), &[]));
+            timestamp = Value::from(self.parse8601(self.safe_string2(ohlcv.clone(), Value::Str("candle_date_time_utc".into()), Value::Str("candle_date_time_kst".into()), &[])));
         }
         return Value::from(vec![timestamp, self.safe_number2(ohlcv.clone(), Value::Int(1), Value::Str("opening_price".into()), &[]), self.safe_number2(ohlcv.clone(), Value::Int(3), Value::Str("high_price".into()), &[]), self.safe_number2(ohlcv.clone(), Value::Int(4), Value::Str("low_price".into()), &[]), self.safe_number2(ohlcv.clone(), Value::Int(2),
             Value::Str("trade_price".into()), &[]), self.safe_number2(ohlcv, Value::Int(5), Value::Str("candle_acc_trade_volume".into()), &[])]);
@@ -2144,7 +2144,7 @@ impl Bithumb {
                 if ((rawTransactionTime.chars().count() as i64)) < 8 {
                     transactionTime = format!("{}{}", Value::Str("0".into()), rawTransactionTime);
                 }
-                let mut kstTimestamp: Value = self.parse8601(Value::Str(format!("{}{}", Value::Str(format!("{}{}", transactionDate.map(Value::from).unwrap_or(Value::Null), Value::Str(" ".into())).into()), transactionTime).into()));
+                let mut kstTimestamp: Value = Value::from(self.parse8601(Value::Str(format!("{}{}", Value::Str(format!("{}{}", transactionDate.map(Value::from).unwrap_or(Value::Null), Value::Str(" ".into())).into()), transactionTime).into())));
                 timestamp = kstTimestamp.clone();
                 if (kstTimestamp != Value::Null) && (!isGenerationTwo) {
                     timestamp = (match (&(kstTimestamp), &((match (&(Value::Int(9)), &(Value::Int(3600000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
@@ -2462,13 +2462,13 @@ impl Bithumb {
                 let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
                 let mut paramsRequiresPrice: Value = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null);
                 paramsOrder = paramsRequiresPrice;
-                let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
+                let mut amountString: Option<String> = self.number_to_string(amount.clone());
                 let mut cost: Option<String> = (if (costParam.is_none()) { amountString.clone() } else { costParam.clone() });
                 if createMarketBuyOrderRequiresPrice {
                     if (price == Value::Null) && (costParam.is_none()) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".into()))));
                     }
-                    cost = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &self.number_to_string(price)).as_str().map(str::to_owned);
+                    cost = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(price))).as_str().map(str::to_owned);
                 }
                 request.insert("price".into(), self.price_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null)));
             }  else {
@@ -2661,7 +2661,7 @@ impl Bithumb {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createTwapOrder() is only supported for the generation 2 API".into()))));
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut durationString: Option<String> = self.number_to_string(duration).as_str().map(str::to_owned);
+        let mut durationString: Option<String> = self.number_to_string(duration);
         let mut durationSeconds: Option<String> = crate::precise::Precise::stringDiv(&durationString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2999,15 +2999,15 @@ impl Bithumb {
         if (datetime != Value::Null) {
             if datetime.as_str().unwrap_or("").contains("+09:00") {
                 let mut normalized: Value = datetime.as_str().map(|__s| Value::Str(__s.replace("+09:00", "Z").into())).unwrap_or_else(|| datetime.clone());
-                let mut normalizedTimestamp: Value = self.parse8601(normalized);
+                let mut normalizedTimestamp: Value = Value::from(self.parse8601(normalized));
                 if (normalizedTimestamp != Value::Null) {
                     timestamp = (match (&(normalizedTimestamp), &((match (&(Value::Int(9)), &(Value::Int(3600000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                         Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                 }  else {
-                    timestamp = self.parse8601(datetime.clone());
+                    timestamp = Value::from(self.parse8601(datetime.clone()));
                 }
             }  else {
-                timestamp = self.parse8601(datetime.clone());
+                timestamp = Value::from(self.parse8601(datetime.clone()));
             }
         }  else {
             timestamp = self.safe_integer_product_k(order.clone(), "order_date", Value::Float(0.001), &[]);
@@ -3649,7 +3649,7 @@ impl Bithumb {
                 }
                 let mut krwRequest: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("amount".to_string(), self.number_to_string(amount.clone()));
+                        m.insert("amount".to_string(), Value::from(self.number_to_string(amount.clone())));
                     m
                 }); // KRW withdraw only accepts amount and two_factor_type parameters
                 let __ws_arg_38 = self.extend(Value::Map(krwRequest), &[&paramsReceiverType]);
@@ -3661,7 +3661,7 @@ impl Bithumb {
                 request.insert("address".into(), address.clone());
                 request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 request.insert("net_type".into(), self.network_code_to_id(network.clone().map(Value::from).unwrap_or(Value::Null), &[code.clone()]));
-                request.insert("amount".into(), self.number_to_string(amount.clone()));
+                request.insert("amount".into(), Value::from(self.number_to_string(amount.clone())));
                 if (destinationRequest.is_some()) {
                     request.insert("secondary_address".into(), destinationRequest.clone().map(Value::from).unwrap_or(Value::Null));
                 }
@@ -3727,10 +3727,10 @@ impl Bithumb {
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut currencyResolved: indexmap::IndexMap<String, Value> = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_map().cloned().unwrap_or_default();
         let mut datetime: Value = self.safe_string_k(transaction.clone(), "created_at", &[]);
-        let mut timestamp: Value = self.parse8601(datetime.clone());
+        let mut timestamp: Value = Value::from(self.parse8601(datetime.clone()));
         if (datetime != Value::Null) && (datetime.as_str().unwrap_or("").contains("+09:00")) {
             let mut normalized: Value = datetime.as_str().map(|__s| Value::Str(__s.replace("+09:00", "Z").into())).unwrap_or_else(|| datetime.clone());
-            let mut normalizedTimestamp: Value = self.parse8601(normalized);
+            let mut normalizedTimestamp: Value = Value::from(self.parse8601(normalized));
             if (normalizedTimestamp != Value::Null) {
                 timestamp = (match (&(normalizedTimestamp), &((match (&(Value::Int(9)), &(Value::Int(3600000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                     _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
@@ -3742,7 +3742,7 @@ impl Bithumb {
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txid", &[]));
         m.insert("timestamp".to_string(), timestamp);
         m.insert("datetime".to_string(), datetime);
-        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "net_type", &[]), currencyResolved.get("code").cloned().unwrap_or(Value::Null)]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "net_type", &[]), currencyResolved.get("code").cloned().unwrap_or(Value::Null)])));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("address".to_string(), Value::Null);
         m.insert("addressTo".to_string(), Value::Null);
@@ -4225,7 +4225,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(response.clone(), "net_type", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(response.clone(), "net_type", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)])));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), self.safe_string_k(response, "secondary_address", &[]));
     m
@@ -4247,7 +4247,7 @@ impl Bithumb {
 }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -4342,7 +4342,7 @@ impl Bithumb {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("access_key".to_string(), self.apiKey.clone());
                         m.insert("nonce".to_string(), self.uuid(&[]));
-                        m.insert("timestamp".to_string(), self.milliseconds());
+                        m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
                     m
                 };
                 let mut auth: Value = Value::Str("".into());
@@ -4372,7 +4372,7 @@ impl Bithumb {
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
                 let mut bodyParts: Value = Value::Array(if let Some(__s) = encodedBody.as_deref() { __s.split("%20").map(Value::from).collect() } else { Vec::new() });
                 requestBody = Value::Str(bodyParts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("+")).unwrap_or_default().into());
-                let mut nonce: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
+                let mut nonce: Option<String> = self.number_to_string(self.nonce());
                 let mut authPayload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", endpoint, Value::Str("\\".into())).into()), requestBody).into()), Value::Str("\\".into())).into()), nonce.clone().map(Value::from).unwrap_or(Value::Null)); // eslint-disable-line quotes
                 let mut signature: Option<String> = self.hmac(self.encode(Value::from(authPayload)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]).as_str().map(str::to_owned);
                 let mut signature64: Option<String> = self.string_to_base64(signature.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);

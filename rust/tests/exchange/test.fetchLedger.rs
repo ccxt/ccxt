@@ -13,7 +13,7 @@ pub async fn testFetchLedger(mut exchange: Value, mut skippedProperties: Value, 
     let mut method: Value = Value::Str("fetchLedger".into());
     let mut items: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ledger", vec![code.clone()]).await;
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), items.clone(), code.clone()]);
-    let mut now: Value = exchange.milliseconds();
+    let mut now: Value = Value::Int(exchange.milliseconds());
     {
                 let mut i: i64 = 0;
         let mut __for_first_1573: bool = true;

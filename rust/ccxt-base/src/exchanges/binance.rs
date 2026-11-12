@@ -6620,7 +6620,7 @@ impl Binance {
         let mut strikeAsString: String = self.safe_string(optionParts.clone(), Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut optionType: String = self.safe_string(optionParts, Value::Int(3), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut datetime: Value = self.convert_expire_date(Value::from(expiry.clone()));
-        let mut timestamp: Option<i64> = self.parse8601(datetime.clone()).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(datetime.clone());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("-".into())).into()), expiry).into()), Value::Str("-".into())).into()), strikeAsString).into()), Value::Str("-".into())).into()), optionType).into()));
@@ -6780,7 +6780,7 @@ impl Binance {
         if (timeDifference == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" nonce() requires a numeric options[\"timeDifference\"]".into()))));
         }
-        return (match (&(self.milliseconds()), &(timeDifference)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return (match (&(Value::Int(self.milliseconds())), &(timeDifference)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
 
     Value::Null
 }
@@ -6809,7 +6809,7 @@ impl Binance {
             let mut m = indexmap::IndexMap::new();
                 m.insert("underlyingAsset".to_string(), underlyingAsset);
                 m.insert("underlyingAssetAmount".to_string(), underlyingAssetAmount);
-                m.insert("timestamp".to_string(), self.milliseconds());
+                m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
@@ -6843,7 +6843,7 @@ impl Binance {
             let mut m = indexmap::IndexMap::new();
                 m.insert("tokenizedAsset".to_string(), tokenizedAsset);
                 m.insert("tokenizedAssetAmount".to_string(), tokenizedAssetAmount);
-                m.insert("timestamp".to_string(), self.milliseconds());
+                m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -6876,7 +6876,7 @@ impl Binance {
             let mut m = indexmap::IndexMap::new();
                 m.insert("issuerRequestId".to_string(), issuerRequestId);
                 m.insert("convertType".to_string(), convertType);
-                m.insert("timestamp".to_string(), self.milliseconds());
+                m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
@@ -6909,7 +6909,7 @@ impl Binance {
 }));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("timestamp".to_string(), self.milliseconds());
+                m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
             m
         });
         if (since != Value::Null) {
@@ -7216,7 +7216,7 @@ impl Binance {
             while { if !__for_first_271 { j += 1; } __for_first_271 = false; j < (networkList.len() as i64) } {
             let mut networkItem: crate::value::Dict = networkList.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut network: Option<String> = self.safe_string_k(&networkItem, "network", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = self.network_id_to_code(&[network.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[network.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             isETF = network.as_deref() == Some("ETF"); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
             // const name = this.safeString (networkItem, 'name');
             let mut withdrawFee: Option<f64> = self.safe_number_k(&networkItem, "withdrawFee", &[]).as_f64();
@@ -7233,7 +7233,7 @@ impl Binance {
             // if (isDefault) {
             //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
             // }
-            let mut withdrawPrecision: Option<String> = self.omit_zero(self.safe_string2(&networkItem, Value::Str("withdrawIntegerMultiple".into()), Value::Str("withdrawInternalMin".into()), &[])).as_str().map(str::to_owned);
+            let mut withdrawPrecision: Option<String> = self.omit_zero(self.safe_string2(&networkItem, Value::Str("withdrawIntegerMultiple".into()), Value::Str("withdrawInternalMin".into()), &[]));
             // zero values happen only on fiat or leveraged(ETF) tokens: https://t.me/binance_api_english/393075
             if (withdrawPrecision.is_none()) && (isFiat == Some(true)) {
                 withdrawPrecision = self.safe_string_k(self.options.clone(), "defaultFiatWithdrawPrecision", &[]).as_str().map(str::to_owned);
@@ -7725,7 +7725,7 @@ impl Binance {
             }  else if future {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), self.yymmdd(Value::from(expiry), &[]));
             }  else if option {
-                strike = self.number_to_string(self.parse_to_numeric(self.safe_string_k(market.clone(), "strikePrice", &[])));
+                strike = Value::from(self.number_to_string(self.parse_to_numeric(self.safe_string_k(market.clone(), "strikePrice", &[]))));
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()),
                     Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), self.yymmdd(Value::from(expiry), &[])).into()), Value::Str("-".into())).into()), strike).into()), Value::Str("-".into())).into()), self.safe_string(optionParts, Value::Int(3), &[]));
             }
@@ -9211,11 +9211,11 @@ impl Binance {
             //
             if ((market).inverse == Some(true)) {
                 if since.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-                    let mut duration: Value = self.parse_timeframe(timeframe.clone());
+                    let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
                     let mut endTime: Value = self.sum(&[since.clone(), (match (&((match (&((match (&(limitValue), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                         Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                         _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })]);
-                    let mut now: Value = self.milliseconds();
+                    let mut now: Value = Value::Int(self.milliseconds());
                     request.insert("endTime".into(), crate::runtime::Math::min(&now, &endTime));
                 }
             }
@@ -9933,8 +9933,8 @@ impl Binance {
                 if (quoteOrderQtyNew != Value::Null) {
                     request.insert("quoteOrderQty".into(), self.decimal_to_precision(quoteOrderQtyNew, Value::Int(crate::runtime::TRUNCATE), precision.clone(), &[self.precisionMode.clone()]));
                 }  else if (price != Value::Null) {
-                    let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-                    let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
+                    let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                    let mut priceString: Option<String> = self.number_to_string(price.clone());
                     let mut quoteOrderQuantity: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     request.insert("quoteOrderQty".into(), self.decimal_to_precision(quoteOrderQuantity.map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::TRUNCATE), precision, &[self.precisionMode.clone()]));
                 }  else {
@@ -10960,7 +10960,7 @@ impl Binance {
         }
         let mut postOnly: Value = Value::Bool((type_var.as_deref() == Some("limit_maker")) || (timeInForce.as_deref() == Some("PO")));
         let mut stopPriceString: Option<String> = self.safe_string2(order.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]).as_str().map(str::to_owned);
-        let mut triggerPrice: Value = self.parse_number(self.omit_zero(stopPriceString.map(Value::from).unwrap_or(Value::Null)), &[]);
+        let mut triggerPrice: Value = self.parse_number(Value::from(self.omit_zero(stopPriceString.map(Value::from).unwrap_or(Value::Null))), &[]);
         // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
         let mut isTakeProfitType: Value = self.in_array(type_var.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::Str("take_profit".into()), Value::Str("take_profit_market".into()), Value::Str("take_profit_limit".into())]));
         let mut takeProfitPrice: Value = (if isTakeProfitType.as_bool() == Some(true) { triggerPrice.clone() } else { Value::Null });
@@ -11662,11 +11662,11 @@ impl Binance {
                     if (quoteOrderQtyNew.is_some()) {
                         notional = quoteOrderQtyNew.map(Value::from).unwrap_or(Value::Null);
                     }  else if (price != Value::Null) {
-                        let mut amountString: Value = self.number_to_string(amount.clone());
-                        let mut priceString: Value = self.number_to_string(price.clone());
+                        let mut amountString: Value = Value::from(self.number_to_string(amount.clone()));
+                        let mut priceString: Value = Value::from(self.number_to_string(price.clone()));
                         notional = crate::precise::Precise::stringMul(&amountString, &priceString);
                     }  else {
-                        notional = self.number_to_string(amount.clone());
+                        notional = Value::from(self.number_to_string(amount.clone()));
                     }
                     if (precision == Value::Null) {
                         request.insert("notional".into(), notional.clone());
@@ -11692,8 +11692,8 @@ impl Binance {
                     if (quoteOrderQtyNew.is_some()) {
                         request.insert("quoteOrderQty".into(), self.decimal_to_precision(quoteOrderQtyNew.map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::TRUNCATE), precision.clone(), &[self.precisionMode.clone()]));
                     }  else if (price != Value::Null) {
-                        let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-                        let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
+                        let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                        let mut priceString: Option<String> = self.number_to_string(price.clone());
                         let mut quoteOrderQuantity: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                         request.insert("quoteOrderQty".into(), self.decimal_to_precision(quoteOrderQuantity.map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::TRUNCATE), precision, &[self.precisionMode.clone()]));
                     }  else {
@@ -12190,7 +12190,7 @@ impl Binance {
             request.insert("endTime".into(), Value::from(until));
         }
         if stock.as_bool() == Some(true) {
-            let mut nowMs: i64 = self.milliseconds().as_i64().unwrap_or_default();
+            let mut nowMs: i64 = self.milliseconds();
             let mut untilResolved: Value = (if (until.is_some()) { Value::from(until) } else { Value::from(nowMs) });
             if (until.is_none()) {
                 request.insert("endTime".into(), untilResolved.clone());
@@ -13344,7 +13344,7 @@ impl Binance {
             // If startTime and endTime are both not sent, then the last 7 days' data will be returned.
             // The time between startTime and endTime cannot be longer than 7 days.
             // The parameter fromId cannot be sent with startTime or endTime.
-            let mut currentTimestamp: Value = self.milliseconds();
+            let mut currentTimestamp: Value = Value::Int(self.milliseconds());
             let mut oneWeek: Value = Value::Int(604800000); // 7 * 24 * 60 * 60 * 1000
             if ((match (&(currentTimestamp), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) >= oneWeek.as_f64().unwrap_or(f64::NAN) {
                 if (endTime == Value::Null) && matches!((self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)])), Value::Bool(true)) {
@@ -13386,7 +13386,7 @@ impl Binance {
                 paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             if stock {
                 // request['endTime'] holds endTime whenever endTime is defined
-                let mut endTimeResolved: Value = self.safe_integer(Value::Map(request.clone()), Value::Str("endTime".into()), &[self.milliseconds()]);
+                let mut endTimeResolved: Value = self.safe_integer(Value::Map(request.clone()), Value::Str("endTime".into()), &[Value::Int(self.milliseconds())]);
                 if (endTime == Value::Null) {
                     request.insert("endTime".into(), endTimeResolved.clone());
                 }
@@ -14107,7 +14107,7 @@ impl Binance {
         let mut timestamp: Option<i64> = None;
         timestamp = self.safe_integer2(transaction.clone(), Value::Str("insertTime".into()), Value::Str("createTime".into()), &[]).as_i64();
         if (timestamp.is_none()) {
-            timestamp = self.parse8601(self.safe_string_k(transaction.clone(), "applyTime", &[])).as_i64();
+            timestamp = self.parse8601(self.safe_string_k(transaction.clone(), "applyTime", &[]));
         }
         let mut updated: Option<i64> = self.safe_integer2(transaction.clone(), Value::Str("successTime".into()), Value::Str("updateTime".into()), &[]).as_i64();
         let mut type_var: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
@@ -14137,7 +14137,7 @@ impl Binance {
             internal = Some(if (internalInteger != Some(0)) { true } else { false });
         }
         let mut networkId: Option<String> = self.safe_string_k(transaction.clone(), "network", &[]).as_str().map(str::to_owned);
-        let mut network: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]).as_str().map(str::to_owned);
+        let mut network: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction);
@@ -14753,7 +14753,7 @@ impl Binance {
                 while { if !__for_first_294 { j += 1; } __for_first_294 = false; j < (networkList.len() as i64) } {
                 let mut networkEntry: crate::value::Dict = self.safe_dict(&networkList, Value::Int(j), &[]).into_dict();
                 let mut networkId: Option<String> = self.safe_string_k(&networkEntry, "network", &[]).as_str().map(str::to_owned);
-                let mut networkCode: Value = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]);
+                let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]));
                 let mut fee: Value = self.safe_number_k(&networkEntry, "withdrawFee", &[]);
                 if (code != Value::Null) && (networkCode != Value::Null) {
                     withdrawFees.entry(crate::runtime::stringify_param(&code)).or_default().insert(crate::runtime::stringify_param(&networkCode), fee);
@@ -14859,7 +14859,7 @@ impl Binance {
             while { if !__for_first_296 { j += 1; } __for_first_296 = false; j < (networkList.len() as i64) } {
             let mut networkEntry: crate::value::Dict = self.safe_dict(&networkList, Value::Int(j), &[]).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&networkEntry, "network", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             let mut withdrawFee: Value = self.safe_number_k(&networkEntry, "withdrawFee", &[]);
             let mut isDefault: bool = self.safe_bool_k(&networkEntry, "isDefault", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if isDefault {
@@ -15776,13 +15776,13 @@ impl Binance {
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Null, Value::Str("contract".into())]);
         let mut symbol: Option<String> = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut leverageString: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "leverage", &[])).as_str().map(str::to_owned); // portfolio-margin accounts may return leverage "0", see #29244
+        let mut leverageString: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "leverage", &[])); // portfolio-margin accounts may return leverage "0", see #29244
         let mut initialMarginString: Option<String> = self.safe_string_k(position.clone(), "initialMargin", &[]).as_str().map(str::to_owned);
         let mut initialMargin: Value = self.parse_number(initialMarginString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut initialMarginPercentageString: Option<String> = None;
         if (leverageString.is_some()) {
             initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &leverageString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(8)).as_str().map(str::to_owned);
-            let mut leverage: Value = self.parse_to_int(leverageString.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut leverage: Value = Value::from(self.parse_to_int(leverageString.clone().map(Value::from).unwrap_or(Value::Null)));
             let mut rational: bool = self.is_round_number((match (&(Value::Int(1000)), &(leverage)) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x),
                 Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_bool() == Some(true);
             if !rational {
@@ -15855,7 +15855,7 @@ impl Binance {
         let mut liquidationPriceStringRaw: Option<String> = None;
         let mut liquidationPrice: Value = Value::Null;
         let mut contractSize: Option<f64> = self.safe_number_k(marketResolved.clone(), "contractSize", &[]).as_f64();
-        let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize)).as_str().map(str::to_owned);
+        let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize));
         if crate::precise::Precise::stringEquals(&notionalString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             entryPrice = Value::Null;
         }  else {
@@ -16067,8 +16067,8 @@ impl Binance {
         let mut contracts: Value = self.parse_number(contractsAbs.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut unrealizedPnlString: Option<String> = self.safe_string_k(position.clone(), "unRealizedProfit", &[]).as_str().map(str::to_owned);
         let mut unrealizedPnl: Value = self.parse_number(unrealizedPnlString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut liquidationPriceString: Value = self.omit_zero(self.safe_string_k(position.clone(), "liquidationPrice", &[]));
-        let mut liquidationPrice: Value = self.parse_number(liquidationPriceString.clone(), &[]);
+        let mut liquidationPriceString: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "liquidationPrice", &[]));
+        let mut liquidationPrice: Value = self.parse_number(liquidationPriceString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut collateralString: Value = Value::Null;
         let mut marginMode: Option<String> = self.safe_string_k(position.clone(), "marginType", &[]).as_str().map(str::to_owned);
         if (marginMode.is_none()) && (isolatedMarginString.is_some()) {
@@ -16083,7 +16083,7 @@ impl Binance {
         let mut entryPriceString: Option<String> = self.safe_string_k(position.clone(), "entryPrice", &[]).as_str().map(str::to_owned);
         let mut entryPrice: Value = self.parse_number(entryPriceString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut contractSize: Option<f64> = self.safe_number_k(marketResolved.clone(), "contractSize", &[]).as_f64();
-        let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize)).as_str().map(str::to_owned);
+        let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize));
         // as oppose to notionalValue
         let mut linear: bool = matches!(&position, Value::Dict(__d) if __d.contains_key("notional"));
         if (marginMode.as_deref() == Some("cross")) {
@@ -16106,7 +16106,7 @@ impl Binance {
                     }  else {
                         onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("-1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null));
                     }
-                    let mut inner: Option<String> = crate::precise::Precise::stringMul(&liquidationPriceString, &onePlusMaintenanceMarginPercentageString).as_str().map(str::to_owned);
+                    let mut inner: Option<String> = crate::precise::Precise::stringMul(&liquidationPriceString.clone().map(Value::from).unwrap_or(Value::Null), &onePlusMaintenanceMarginPercentageString).as_str().map(str::to_owned);
                     let mut leftSide: Value = crate::precise::Precise::stringAdd(&inner.map(Value::from).unwrap_or(Value::Null), &entryPriceSignString);
                     let mut quotePrecision: Value = self.precision_from_string(self.safe_string2(&precision, Value::Str("quote".into()), Value::Str("price".into()), &[]));
                     collateralString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringMul(&leftSide, &contractsAbs.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into()), &quotePrecision);
@@ -16121,7 +16121,7 @@ impl Binance {
                         entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString);
                     }
                     let mut leftSide: Value = crate::precise::Precise::stringMul(&contractsAbs.map(Value::from).unwrap_or(Value::Null), &contractSizeString.map(Value::from).unwrap_or(Value::Null));
-                    let mut rightSide: Option<String> = crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceSignString), &crate::precise::Precise::stringDiv(&onePlusMaintenanceMarginPercentageString, &liquidationPriceString)).as_str().map(str::to_owned);
+                    let mut rightSide: Option<String> = crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceSignString), &crate::precise::Precise::stringDiv(&onePlusMaintenanceMarginPercentageString, &liquidationPriceString.map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
                     let mut basePrecision: Value = self.precision_from_string(self.safe_string_k(&precision, "base", &[]));
                     collateralString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringMul(&leftSide, &rightSide.map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into()), &basePrecision);
                 }
@@ -16131,7 +16131,7 @@ impl Binance {
         }
         collateralString = (if (collateralString == Value::Null) { Value::Str("0".into()) } else { collateralString.clone() });
         let mut collateral: Value = self.parse_number(collateralString.clone(), &[]);
-        let mut markPrice: Value = self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "markPrice", &[])), &[]);
+        let mut markPrice: Value = self.parse_number(Value::from(self.omit_zero(self.safe_string_k(position.clone(), "markPrice", &[]))), &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "updateTime", &[]).as_i64();
         if (timestamp == Some(0)) {
             timestamp = None.clone();
@@ -16145,9 +16145,9 @@ impl Binance {
         let mut maintenanceMargin: Value = self.parse_number(maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut initialMarginString: Option<String> = None;
         let mut initialMarginPercentageString: Option<String> = None;
-        let mut leverageString: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "leverage", &[])).as_str().map(str::to_owned); // portfolio-margin accounts may return leverage "0", see #29244
+        let mut leverageString: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "leverage", &[])); // portfolio-margin accounts may return leverage "0", see #29244
         if (leverageString.is_some()) {
-            let mut leverage: Value = self.parse_to_int(leverageString.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut leverage: Value = Value::from(self.parse_to_int(leverageString.clone().map(Value::from).unwrap_or(Value::Null)));
             let mut rational: bool = self.is_round_number((match (&(Value::Int(1000)), &(leverage)) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x),
                 Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_bool() == Some(true);
             initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &leverageString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(8)).as_str().map(str::to_owned);
@@ -18541,7 +18541,7 @@ if _try_result.is_err() {
             request.insert("startTime".into(), since.clone());
             let mut endTime: Value = (match (&(self.sum(&[since.clone(), Value::Int((limitResolved * 86400000))])), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
                 Value::Float(y)) => Value::Float(x - y), _ => Value::Null }); // required when startTime is further than 93 days in the past
-            let mut now: Value = self.milliseconds();
+            let mut now: Value = Value::Int(self.milliseconds());
             request.insert("endTime".into(), crate::runtime::Math::min(&endTime, &now)); // cannot have an endTime later than current time
         }
         let __ws_arg_194 = self.extend(Value::Map(request), &[params]);
@@ -19170,10 +19170,9 @@ if _try_result.is_err() {
             request.insert("endTime".into(), Value::from(endTime));
         }  else if (since != Value::Null) && (since.as_f64() != Some(0.0)) {
             // exchange default
-            let mut limitDefault: Value = (if (limit == Value::Null) { Value::Int(30) } else { limit.clone() });
-            let mut duration: Value = self.parse_timeframe(timeframe);
-            request.insert("endTime".into(), self.sum(&[since.clone(), (match (&((match (&(duration), &(limitDefault)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+            let mut limitDefault: i64 = limit.as_i64().unwrap_or(30);
+            let mut duration: i64 = self.parse_timeframe(timeframe);
+            request.insert("endTime".into(), self.sum(&[since.clone(), Value::Int((((duration * limitDefault)) * 1000))]));
         }
         let mut response: Value = Value::Null;
         if ((market).inverse == Some(true)) {
@@ -20397,7 +20396,7 @@ if _try_result.is_err() {
         let mut response: Value = Value::Null;
         if (code.as_str() == Some("BUSD")) {
             let mut msInDay: i64 = 86400000;
-            let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
+            let mut now: i64 = self.milliseconds();
             if (code != Value::Null) {
                 let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
                 request.insert("asset".into(), currency.get("id").cloned().unwrap_or(Value::Null));
@@ -20471,7 +20470,7 @@ if _try_result.is_err() {
             m
         });
         let mut msInThirtyDays: Value = Value::Int(2592000000);
-        let mut now: Value = self.milliseconds();
+        let mut now: Value = Value::Int(self.milliseconds());
         let mut startTime: Value = (if (since != Value::Null) { since.clone() } else { ((match (&(now), &(msInThirtyDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) });
         request.insert("startTime".into(), startTime.clone());
         let mut endTime: Option<i64> = self.safe_integer2(params.clone(), Value::Str("endTime".into()), Value::Str("until".into()), &[]).as_i64();

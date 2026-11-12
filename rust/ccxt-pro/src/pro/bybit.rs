@@ -205,7 +205,7 @@ impl crate::exchange_generated::ExchangeBase for Bybit {
                 "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "request_id" => self.request_id(),
+                "request_id" => crate::Value::from(self.request_id()),
                 "un_watch_my_trades" => crate::types::IntoRaw::into_raw(self.un_watch_my_trades(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_ohlcv_for_symbols" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -280,7 +280,7 @@ impl Bybit {
             "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "request_id" => self.request_id(),
+            "request_id" => crate::Value::from(self.request_id()),
             "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]); crate::Value::Null },
             "un_watch_my_trades" => { crate::exchange_stubs::enqueue_spawn("un_watch_my_trades", args.to_vec()); crate::Value::Null },
             "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
@@ -541,14 +541,12 @@ impl Bybit {
     Value::Null
 }
 
-    pub fn request_id(&mut self) -> Value {
+    pub fn request_id(&mut self) -> i64 {
         self.lock_id(&[]);
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
         self.unlock_id(&[]);
-        return requestId;
-
-    Value::Null
+        return requestId.as_i64().unwrap_or_default();
 }
 
     pub async fn get_url_by_market_type(&mut self, symbol: Option<&str>, optional_args: &[Value]) -> Value {
@@ -674,7 +672,7 @@ impl Bybit {
         let mut orderRequest: Value = self.parent.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params, Value::Bool(true)]);
         let mut url: Option<String> = self.implode_hostname(self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), Value::Str("trade".into()), &[Value::Str("".into())])).as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
-        let mut requestId: Value = Value::Str(format!("{}", self.request_id()).into());
+        let mut requestId: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("order.create".into()));
@@ -682,8 +680,8 @@ impl Bybit {
                 m.insert("args".to_string(), Value::from(vec![orderRequest]));
                 m.insert("header".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("X-BAPI-TIMESTAMP".to_string(), Value::Str(format!("{}", self.milliseconds()).into()));
-        m.insert("X-BAPI-RECV-WINDOW".to_string(), self.number_to_string(self.options.as_map().and_then(|__m| __m.get("recvWindow")).cloned().unwrap_or(Value::Null)));
+        m.insert("X-BAPI-TIMESTAMP".to_string(), Value::Str(format!("{}", Value::Int(self.milliseconds())).into()));
+        m.insert("X-BAPI-RECV-WINDOW".to_string(), Value::from(self.number_to_string(self.options.as_map().and_then(|__m| __m.get("recvWindow")).cloned().unwrap_or(Value::Null))));
     m
 }));
             m
@@ -740,7 +738,7 @@ impl Bybit {
         let mut orderRequest: Value = self.parent.edit_order_request(id.as_str(), symbol.as_str(), type_var.as_str(), side.as_str(), &[amount, price, params]);
         let mut url: Option<String> = self.implode_hostname(self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), Value::Str("trade".into()), &[Value::Str("".into())])).as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
-        let mut requestId: Value = Value::Str(format!("{}", self.request_id()).into());
+        let mut requestId: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("order.amend".into()));
@@ -748,8 +746,8 @@ impl Bybit {
                 m.insert("args".to_string(), Value::from(vec![orderRequest]));
                 m.insert("header".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("X-BAPI-TIMESTAMP".to_string(), Value::Str(format!("{}", self.milliseconds()).into()));
-        m.insert("X-BAPI-RECV-WINDOW".to_string(), self.number_to_string(self.options.as_map().and_then(|__m| __m.get("recvWindow")).cloned().unwrap_or(Value::Null)));
+        m.insert("X-BAPI-TIMESTAMP".to_string(), Value::Str(format!("{}", Value::Int(self.milliseconds())).into()));
+        m.insert("X-BAPI-RECV-WINDOW".to_string(), Value::from(self.number_to_string(self.options.as_map().and_then(|__m| __m.get("recvWindow")).cloned().unwrap_or(Value::Null))));
     m
 }));
             m
@@ -793,7 +791,7 @@ impl Bybit {
         let mut orderRequest: Value = self.parent.cancel_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), &[params]);
         let mut url: Option<String> = self.implode_hostname(self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), Value::Str("trade".into()), &[Value::Str("".into())])).as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
-        let mut requestId: Value = Value::Str(format!("{}", self.request_id()).into());
+        let mut requestId: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
         if (matches!(&orderRequest, Value::Dict(__d) if __d.contains_key("orderFilter"))) {
             remove(&mut orderRequest, &Value::Str("orderFilter".into()));
         }
@@ -804,8 +802,8 @@ impl Bybit {
                 m.insert("args".to_string(), Value::from(vec![orderRequest]));
                 m.insert("header".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("X-BAPI-TIMESTAMP".to_string(), Value::Str(format!("{}", self.milliseconds()).into()));
-        m.insert("X-BAPI-RECV-WINDOW".to_string(), self.number_to_string(self.options.as_map().and_then(|__m| __m.get("recvWindow")).cloned().unwrap_or(Value::Null)));
+        m.insert("X-BAPI-TIMESTAMP".to_string(), Value::Str(format!("{}", Value::Int(self.milliseconds())).into()));
+        m.insert("X-BAPI-RECV-WINDOW".to_string(), Value::from(self.number_to_string(self.options.as_map().and_then(|__m| __m.get("recvWindow")).cloned().unwrap_or(Value::Null))));
     m
 }));
             m
@@ -1441,7 +1439,7 @@ impl Bybit {
         let mut topicParts: Value = Value::Array(topic.split(".").map(Value::from).collect());
         let mut topicLength: i64 = topicParts.len() as i64;
         let mut timeframeId: Option<String> = self.safe_string(topicParts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
-        let mut timeframe: Value = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]));
         if (timeframe == Value::Null) {
             return;
         }
@@ -1591,7 +1589,7 @@ impl Bybit {
             while { if !__for_first_190 { i += 1; } __for_first_190 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Value = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.market_id(symbol.clone()).as_str().map(str::to_owned);
-            let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook.".into()), self.number_to_string(Value::from(limitResolved))).into()), Value::Str(".".into())).into()), marketId.map(Value::from).unwrap_or(Value::Null));
+            let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook.".into()), Value::from(self.number_to_string(Value::from(limitResolved)))).into()), Value::Str(".".into())).into()), marketId.map(Value::from).unwrap_or(Value::Null));
             topics.push(Value::from(topic));
             let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
             messageHashes.push(Value::from(messageHash));
@@ -2124,7 +2122,7 @@ impl Bybit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol.clone())) } else { symbol.as_str().map(str::to_owned) });
         if (symbol != Value::Null) {
             messageHash.push_str(&format!("{}{}", Value::Str(":".into()), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null)));
         }
@@ -2814,7 +2812,7 @@ impl Bybit {
         }
         let mut method: String = "watchOrders".to_string();
         let mut messageHash: String = "orders".to_string();
-        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol.clone())) } else { symbol.as_str().map(str::to_owned) });
         if (symbol != Value::Null) {
             messageHash.push_str(&format!("{}{}", Value::Str(":".into()), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null)));
         }
@@ -3469,7 +3467,7 @@ impl Bybit {
         let mut subscription: Value = Value::Null;
         let mut newTopicsLength: i64 = newTopics.len() as i64;
         if newTopicsLength > 0 {
-            let mut reqId: i64 = self.request_id().as_i64().unwrap_or_default();
+            let mut reqId: i64 = self.request_id();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("op".to_string(), Value::Str("subscribe".into()));
@@ -3501,7 +3499,7 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut reqId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut reqId: i64 = self.request_id();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("unsubscribe".into()));
@@ -3537,8 +3535,8 @@ impl Bybit {
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
-            let mut expiresInt: i64 = ((self.milliseconds().as_i64().unwrap_or_default()) + 10000);
-            let mut expires: Option<String> = self.number_to_string(Value::from(expiresInt)).as_str().map(str::to_owned);
+            let mut expiresInt: i64 = ((self.milliseconds()) + 10000);
+            let mut expires: Option<String> = self.number_to_string(Value::from(expiresInt));
             let mut path: String = "GET/realtime".to_string();
             let mut auth: String = format!("{}{}", path, expires.clone().map(Value::from).unwrap_or(Value::Null));
             let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]).as_str().map(str::to_owned);
@@ -3767,7 +3765,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     pub fn ping(&mut self, mut client: Value) -> Value {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("req_id".to_string(), self.request_id());
+        m.insert("req_id".to_string(), Value::Int(self.request_id()));
         m.insert("op".to_string(), Value::Str("ping".into()));
     m
 });
@@ -3795,7 +3793,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //   }
         //
         let __ws_arg_1 = self.milliseconds();
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(message.clone(), "pong", &[__ws_arg_1]));
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(message.clone(), "pong", &[Value::Int(__ws_arg_1)]));
         return message;
 
     Value::Null

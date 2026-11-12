@@ -641,7 +641,7 @@ impl Backpack {
         })]).into_dict();
         let mut url: String = self.safe_string_k(&wsUrls, "private", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut instruction: String = "subscribe".to_string();
-        let mut ts: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
+        let mut ts: Option<String> = self.number_to_string(self.nonce());
         let mut method: String = "SUBSCRIBE".to_string();
         if unwatch {
             method = "UNSUBSCRIBE".to_string();
@@ -776,7 +776,7 @@ impl Backpack {
     m
 }));
         let mut tickers: Value = self.subscribe_ws_tickers("watchTicker", &[Value::from(vec![symbol.clone()]), params]).await;
-        return get_value(&tickers, &self.symbol(symbol.clone()));
+        return get_value(&tickers, &Value::from(self.symbol(symbol.clone())));
         Value::Null
         }).await?))
     }
@@ -956,7 +956,7 @@ impl Backpack {
         //     }
         //
         let mut microseconds: i64 = self.safe_integer_k(ticker.clone(), "E", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut timestamp: Value = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
+        let mut timestamp: Option<i64> = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "s", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone()]).as_str().map(str::to_owned);
@@ -965,8 +965,8 @@ impl Backpack {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_number_k(ticker.clone(), "h", &[]));
         m.insert("low".to_string(), self.safe_number_k(ticker.clone(), "l", &[]));
         m.insert("bid".to_string(), Value::Null);
@@ -1184,7 +1184,7 @@ impl Backpack {
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Option<String> = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut microseconds: i64 = self.safe_integer_k(ticker.clone(), "E", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut timestamp: Value = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
+        let mut timestamp: Option<i64> = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
         let mut ask: Option<String> = self.safe_string_k(ticker.clone(), "a", &[]).as_str().map(str::to_owned);
         let mut askVolume: Option<String> = self.safe_string_k(ticker.clone(), "A", &[]).as_str().map(str::to_owned);
         let mut bid: Option<String> = self.safe_string_k(ticker.clone(), "b", &[]).as_str().map(str::to_owned);
@@ -1192,8 +1192,8 @@ impl Backpack {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("ask".to_string(), ask.map(Value::from).unwrap_or(Value::Null));
         m.insert("askVolume".to_string(), askVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("bid".to_string(), bid.map(Value::from).unwrap_or(Value::Null));
@@ -1432,7 +1432,7 @@ impl Backpack {
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::from(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "t", &[])), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
+        return Value::from(vec![Value::from(self.parse8601(self.safe_string_k(ohlcv.clone(), "t", &[]))), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
 }
@@ -1662,7 +1662,7 @@ impl Backpack {
         //     }
         //
         let mut microseconds: i64 = self.safe_integer_k(trade.clone(), "E", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut timestamp: Value = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
+        let mut timestamp: Option<i64> = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "t", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "s", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
@@ -1689,8 +1689,8 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
@@ -1927,9 +1927,9 @@ impl Backpack {
 
     pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
         let mut microseconds: i64 = self.safe_integer_k(delta.clone(), "T", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut timestamp: Value = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
-        orderbook.set_book_meta("timestamp", timestamp.clone());
-        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
+        let mut timestamp: Option<i64> = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
+        orderbook.set_book_meta("timestamp", Value::from(timestamp));
+        orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         orderbook.set_book_meta("nonce", self.safe_integer_k(delta.clone(), "u", &[]));
         let mut bids: Value = self.safe_list_k(delta.clone(), "b", &[Value::from(vec![])]);
         let mut asks: Value = self.safe_list_k(delta, "a", &[Value::from(vec![])]);
@@ -2164,7 +2164,7 @@ impl Backpack {
         let mut event: String = self.safe_string_k(data.clone(), "e", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut quoteEvent: bool = ((if let (Some(__h), Some(__n)) = (Some(event.as_str()), Some("quote")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0;
         let mut microseconds: i64 = self.safe_integer_k(data.clone(), "E", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut timestamp: Value = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
+        let mut timestamp: Option<i64> = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("rfqId".to_string(), self.safe_string_k(data.clone(), "R", &[]));
@@ -2175,7 +2175,7 @@ impl Backpack {
                 m.insert("quoteQuantity".to_string(), self.safe_string_k(data.clone(), "Q", &[]));
                 m.insert("price".to_string(), self.safe_string_k(data.clone(), "p", &[]));
                 m.insert("status".to_string(), self.safe_string_k(data.clone(), "X", &[]));
-                m.insert("createdAt".to_string(), timestamp);
+                m.insert("createdAt".to_string(), Value::from(timestamp));
                 m.insert("submissionTime".to_string(), self.safe_integer_k(data.clone(), "w", &[]));
                 m.insert("expiryTime".to_string(), self.safe_integer_k(data.clone(), "W", &[]));
                 m.insert("systemOrderType".to_string(), self.safe_string_k(data.clone(), "o", &[]));
@@ -2189,7 +2189,7 @@ impl Backpack {
         if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("info".to_string(), data.clone()); }
         if (event == "rfqFilled") {
             let mut tradeMicroseconds: i64 = self.safe_integer_k(data, "T", &[Value::Int(0)]).as_i64().unwrap_or(0);
-            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("lastTradeTimestamp".to_string(), self.parse_to_int(Value::Float(((tradeMicroseconds as f64) / 1000.0)))); }
+            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("lastTradeTimestamp".to_string(), Value::from(self.parse_to_int(Value::Float(((tradeMicroseconds as f64) / 1000.0))))); }
         }
         return parsed;
 
@@ -2322,9 +2322,9 @@ impl Backpack {
             m
         })]);
         let mut microseconds: i64 = self.safe_integer_k(&data, "E", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut timestamp: Value = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
-        add_element_to_object(&mut parsed, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut parsed, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        let mut timestamp: Option<i64> = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
+        add_element_to_object(&mut parsed, &Value::Str("timestamp".into()), Value::from(timestamp));
+        add_element_to_object(&mut parsed, &Value::Str("datetime".into()), self.iso8601(Value::from(timestamp)));
         if let Value::Dict(__d) = &mut parsed { std::sync::Arc::make_mut(__d).insert("info".into(), Value::Map(assets)); }
         self.balance = parsed.clone();
         client.resolve(parsed, "balance");
@@ -2365,7 +2365,7 @@ impl Backpack {
         let mut id: Option<String> = self.safe_string_k(order.clone(), "i", &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "c", &[]).as_str().map(str::to_owned);
         let mut microseconds: i64 = self.safe_integer_k(order.clone(), "E", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut timestamp: Value = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
+        let mut timestamp: Option<i64> = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
         let mut status: Option<String> = self.parse_ws_order_status(self.safe_string_k(order.clone(), "X", &[]), &[market.clone()]);
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "s", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
@@ -2392,8 +2392,8 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol);
@@ -2575,9 +2575,9 @@ impl Backpack {
         let mut cache: Value = self.positions.clone();
         let mut parsedPosition: Value = self.parse_ws_position(Value::from(&data), &[]);
         let mut microseconds: i64 = self.safe_integer_k(&data, "E", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut timestamp: Value = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
-        if let Value::Dict(__rda) = &mut parsedPosition { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
-        if let Value::Dict(__rda) = &mut parsedPosition { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
+        let mut timestamp: Option<i64> = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
+        if let Value::Dict(__rda) = &mut parsedPosition { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), Value::from(timestamp)); }
+        if let Value::Dict(__rda) = &mut parsedPosition { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(Value::from(timestamp))); }
         cache.append(parsedPosition.clone());
         let mut symbolSpecificMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(parsedPosition.clone(), "symbol", &[Value::Str("".into())]));
         client.resolve(Value::from(vec![parsedPosition.clone()]), messageHash.as_str());
@@ -2629,7 +2629,7 @@ impl Backpack {
             side = None.clone();
         }
         let mut microseconds: i64 = self.safe_integer_k(position.clone(), "E", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut timestamp: Value = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
+        let mut timestamp: Option<i64> = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));
         let mut maintenanceMarginPercentage: Option<f64> = self.safe_number_k(position.clone(), "m", &[]).as_f64();
         let mut initialMarginPercentage: Option<f64> = self.safe_number_k(position.clone(), "f", &[]).as_f64();
         return self.safe_position(Value::Map({
@@ -2649,8 +2649,8 @@ impl Backpack {
         m.insert("markPrice".to_string(), markPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("hedged".to_string(), hedged);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::from(maintenanceMarginPercentage));
         m.insert("collateral".to_string(), Value::Null);

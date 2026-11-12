@@ -785,7 +785,7 @@ impl Coincheck {
         //
         let mut id: Option<String> = self.safe_string_k(order.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[]));
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "pending_amount", &[]).as_str().map(str::to_owned);
         let mut remaining: Option<String> = self.safe_string_k(order.clone(), "pending_amount", &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(order.clone(), "rate", &[]).as_str().map(str::to_owned);
@@ -976,7 +976,7 @@ impl Coincheck {
         //           "side": "buy"
         //      }
         //
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[]));
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "rate", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "pair", &[]).as_str().map(str::to_owned);
@@ -1525,13 +1525,13 @@ impl Coincheck {
         //  }
         //
         let mut id: Option<String> = self.safe_string_k(transaction.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "created_at", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "created_at", &[]));
         let mut address: Option<String> = self.safe_string_k(transaction.clone(), "address", &[]).as_str().map(str::to_owned);
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
-        let mut updated: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "confirmed_at", &[])).as_i64();
+        let mut updated: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "confirmed_at", &[]));
         let mut fee: Value = Value::Null;
         let mut feeCost: Option<f64> = self.safe_number_k(transaction.clone(), "fee", &[]).as_f64();
         if (feeCost.is_some()) {
@@ -1571,7 +1571,7 @@ impl Coincheck {
 }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }

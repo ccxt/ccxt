@@ -197,7 +197,7 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "request_id" => self.request_id(),
+                "request_id" => crate::Value::from(self.request_id()),
                 "un_watch_my_trades" => crate::types::IntoRaw::into_raw(self.un_watch_my_trades(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -250,7 +250,7 @@ impl Pacifica {
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "request_id" => self.request_id(),
+            "request_id" => crate::Value::from(self.request_id()),
             "setup_api_key_headers" => { self.setup_api_key_headers(&args[..]); crate::Value::Null },
             "un_watch_my_trades" => { crate::exchange_stubs::enqueue_spawn("un_watch_my_trades", args.to_vec()); crate::Value::Null },
             "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
@@ -1274,7 +1274,7 @@ impl Pacifica {
         let mut messageHash: String = "myTrades".to_string();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+            symbolResolved = Some(self.symbol(symbol.clone()));
             messageHash = format!("{}{}", Value::Str("myTrades:".into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
@@ -2259,7 +2259,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]).into_dict();
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut interval: Option<String> = (match __pro_message.get("interval").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut timeframe: Value = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]));
         if (timeframe == Value::Null) {
             return;
         }
@@ -2421,19 +2421,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //   }
         //
         let __ws_arg_2 = self.milliseconds();
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(message.clone(), "pong", &[__ws_arg_2]));
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(message.clone(), "pong", &[Value::Int(__ws_arg_2)]));
         return message;
 
     Value::Null
 }
 
-    pub fn request_id(&self) -> Value {
+    pub fn request_id(&self) -> i64 {
         // millisecond timestamp plus 3 random digits stays a safe integer
-        let mut ts: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
+        let mut ts: String = format!("{}", self.milliseconds());
         let mut randomPart: Value = Value::Str(format!("{}", self.rand_number(Value::Int(3))).into());
-        return self.parse_to_int(Value::Str(format!("{}{}", ts, randomPart).into()));
-
-    Value::Null
+        return self.parse_to_int(Value::Str(format!("{}{}", ts, randomPart).into())).unwrap_or_default();
 }
 
     pub fn wrap_as_post_action(&self, mut operationType: Value, mut request: Value) -> Value {

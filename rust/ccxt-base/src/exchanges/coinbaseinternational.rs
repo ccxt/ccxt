@@ -1379,7 +1379,7 @@ impl Coinbaseinternational {
             if (optionType.as_deref() == Some("call")) {
                 optionTypeLetter = "C".to_string();
             }
-            let mut strikeString: Option<String> = self.number_to_string(Value::from(strike)).as_str().map(str::to_owned);
+            let mut strikeString: Option<String> = self.number_to_string(Value::from(strike));
             symbol = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("-".into())).into()), strikeString.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), optionTypeLetter));
         }
         let mut marketStructure: indexmap::IndexMap<String, Value> = ({
@@ -1558,7 +1558,7 @@ impl Coinbaseinternational {
             while { if !__for_first_558 { i += 1; } __for_first_558 = false; i < (rawNetworks.len() as i64) } {
             let mut rawNetwork: Value = rawNetworks.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k(rawNetwork.clone(), "resource_name", &[]).as_str().map(str::to_owned);
-            let mut network: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut network: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (network != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&network), self.safe_network(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1686,14 +1686,15 @@ impl Coinbaseinternational {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments".into()))));
         }
         let mut limitResolved: Option<i64> = limit.as_i64();
-        let mut duration: Value = self.parse_to_int(self.parse_timeframe(timeframe.clone()));
-        let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut duration: Value = Value::from(self.parse_to_int(Value::Int(self.parse_timeframe(timeframe.clone()))));
+        let mut now: i64 = self.milliseconds();
         if (since == Value::Null) {
             if (limitResolved.is_none()) {
                 limitResolved = Some(100);
             }
-            request.insert("start_timestamp".into(), self.sum(&[Value::from(now), (match (&((match (&(self.parse_to_int(Value::from(limitResolved))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
-                (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(-1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+            request.insert("start_timestamp".into(), self.sum(&[Value::from(now), (match (&((match (&(Value::from(self.parse_to_int(Value::from(limitResolved)))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
+                Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(-1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
+                (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
             request.insert("end_timestamp".into(), Value::from(now));
         }  else {
             let mut sinceResolved: Value = crate::runtime::Math::max(&(match (&(since), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &Value::Int(0));
@@ -1701,8 +1702,9 @@ impl Coinbaseinternational {
             if (limitResolved.is_none()) {
                 request.insert("end_timestamp".into(), Value::from(now));
             }  else {
-                request.insert("end_timestamp".into(), self.sum(&[sinceResolved, (match (&((match (&(self.parse_to_int(Value::from(limitResolved))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
-                    (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+                request.insert("end_timestamp".into(), self.sum(&[sinceResolved, (match (&((match (&(Value::from(self.parse_to_int(Value::from(limitResolved)))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
+                    Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
+                    (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
             }
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
@@ -1747,7 +1749,7 @@ impl Coinbaseinternational {
         if isArray {
             return ohlcv;
         }
-        return Value::from(vec![self.parse8601(self.safe_string2(ohlcv.clone(), Value::Str("start".into()), Value::Str("time".into()), &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
+        return Value::from(vec![Value::from(self.parse8601(self.safe_string2(ohlcv.clone(), Value::Str("start".into()), Value::Str("time".into()), &[]))), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -1798,8 +1800,8 @@ impl Coinbaseinternational {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut duration: Value = (match (&(self.parse_timeframe(Value::Str("1h".into()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-        let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut duration: Value = (match (&(Value::Int(self.parse_timeframe(Value::Str("1h".into())))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut now: i64 = self.milliseconds();
         let mut sinceResolved: Value = since.clone();
         if (since == Value::Null) {
             sinceResolved = Value::Int((now - ((((((((30 * 24)) * 60)) * 60)) * 1000))));
@@ -2143,7 +2145,7 @@ impl Coinbaseinternational {
                                         let mut i: i64 = 0;
                     let mut __for_first_560: bool = true;
                     while { if !__for_first_560 { i += 1; } __for_first_560 = false; i < (depths.len() as i64) } {
-                    if limit.as_f64().unwrap_or(f64::NAN) <= self.parse_to_int(depths.get(i as usize).cloned().unwrap_or(Value::Null)).as_f64().unwrap_or(f64::NAN) {
+                    if limit.as_f64().unwrap_or(f64::NAN) <= Value::from(self.parse_to_int(depths.get(i as usize).cloned().unwrap_or(Value::Null))).as_f64().unwrap_or(f64::NAN) {
                         request.insert("depth".into(), self.safe_integer(&depths, Value::Int(i), &[Value::Int(0)]));
                         break;
                     }
@@ -2581,7 +2583,7 @@ impl Coinbaseinternational {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: Value = self.currency(code);
-        let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut now: i64 = self.milliseconds();
         let mut sinceResolved: Value = since.clone();
         if (since == Value::Null) {
             sinceResolved = Value::Int((now - ((((((((30 * 24)) * 60)) * 60)) * 1000))));
@@ -2977,7 +2979,7 @@ impl Coinbaseinternational {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: Value = self.currency(code);
-        let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut now: i64 = self.milliseconds();
         let mut sinceResolved: Value = since.clone();
         if (since == Value::Null) {
             sinceResolved = Value::Int((now - ((((((((30 * 24)) * 60)) * 60)) * 1000))));
@@ -3236,7 +3238,7 @@ impl Coinbaseinternational {
  */
     pub fn get_order_amount(&self, mut market: Value, amount: Option<f64>) -> Option<String> {
         let mut amount: Value = amount.into();
-        let mut exchangeAmount: Option<String> = self.number_to_string(amount).as_str().map(str::to_owned);
+        let mut exchangeAmount: Option<String> = self.number_to_string(amount);
         if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!((self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) {
             exchangeAmount = crate::precise::Precise::stringMul(&exchangeAmount.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(market.clone(), "contractSize", &[])).as_str().map(str::to_owned);
         }
@@ -4150,7 +4152,7 @@ impl Coinbaseinternational {
         let mut response: Option<crate::value::Dict> = None;
         if self.is_native_deribit_credentials().as_bool() == Some(true) && ((since != Value::Null) || (until.is_some())) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), (if (since != Value::Null) { since.clone() } else { Value::Int(0) })); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), (if (until.is_some()) { Value::from(until) } else { self.milliseconds() })); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), (if (until.is_some()) { Value::from(until) } else { Value::Int(self.milliseconds()) })); }
             if self.is_native_deribit_credentials().as_bool() == Some(true) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).shift_remove("include_old"); }
             }
@@ -4451,7 +4453,7 @@ impl Coinbaseinternational {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
-                m.insert("leverage".to_string(), self.number_to_string(leverage));
+                m.insert("leverage".to_string(), Value::from(self.number_to_string(leverage)));
             m
         });
         self.authenticate_v2(&[]).await;
@@ -4511,7 +4513,7 @@ impl Coinbaseinternational {
                 m.insert("sub".to_string(), self.apiKey.clone());
                 m.insert("iss".to_string(), Value::from(iss));
                 m.insert("nbf".to_string(), seconds.clone());
-                m.insert("exp".to_string(), (match (&(self.parse_to_int(seconds.clone())), &(Value::Int(120))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
+                m.insert("exp".to_string(), (match (&(Value::from(self.parse_to_int(seconds.clone()))), &(Value::Int(120))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
                 m.insert("iat".to_string(), seconds);
             m
         });
@@ -4567,10 +4569,10 @@ impl Coinbaseinternational {
         }
         let mut forceRefresh: bool = self.safe_bool_k(paramsResolved.clone(), "forceRefresh", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: Value = self.omit(paramsResolved, Value::Str("forceRefresh".into()), &[]);
-        let mut now: Value = self.milliseconds();
+        let mut now: i64 = self.milliseconds();
         let mut token: Value = self.get_v2_access_token().map(Value::from).unwrap_or(Value::Null);
         let mut tokenExpires: Value = self.safe_integer_k(self.options.clone(), "v2TokenExpires", &[]);
-        if !forceRefresh && (token != Value::Null) && (token.as_str() != Some("")) && (tokenExpires != Value::Null) && (now.as_f64().unwrap_or(f64::NAN) < tokenExpires.as_f64().unwrap_or(f64::NAN)) {
+        if !forceRefresh && (token != Value::Null) && (token.as_str() != Some("")) && (tokenExpires != Value::Null) && ((now as f64) < tokenExpires.as_f64().unwrap_or(f64::NAN)) {
             return token;
         }
         let mut response: crate::value::Dict = self.public_post_auth(&[paramsOmitted]).await.into_dict();
@@ -4599,11 +4601,11 @@ impl Coinbaseinternational {
         }
         let mut ratio: Option<f64> = self.safe_number_k(self.options.clone(), "accessTokenRefreshRatio", &[]).as_f64();
         let mut refreshRatio: Value = (if (ratio.is_none()) { Value::Float(0.8) } else { Value::from(ratio) });
-        let mut tokenRefreshInMilliseconds: Value = self.parse_to_int((match (&((match (&(expiresIn), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(refreshRatio)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+        let mut tokenRefreshInMilliseconds: Value = Value::from(self.parse_to_int((match (&((match (&(expiresIn), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(refreshRatio)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
         self.token = accessToken.clone();
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("v2AccessToken".into(), accessToken.clone()); }
-        { let __be_tmp = self.sum(&[now, tokenRefreshInMilliseconds]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("v2TokenExpires".into(), __be_tmp); } }
+        { let __be_tmp = self.sum(&[Value::Int(now), tokenRefreshInMilliseconds]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("v2TokenExpires".into(), __be_tmp); } }
         return accessToken;
 
     Value::Null
@@ -4665,8 +4667,8 @@ impl Coinbaseinternational {
             }
         }  else if (access.as_str() == Some("private")) && isNativeDeribit {
             self.check_required_credentials(&[]);
-            let mut timestamp: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
-            let mut nonce: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
+            let mut timestamp: String = format!("{}", self.milliseconds());
+            let mut nonce: Option<String> = self.number_to_string(self.nonce());
             let mut signedRequest: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), Value::Str("api/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), access).into()), Value::Str("/".into())).into()), path);
             if ((Value::Array(requestParams.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 signedRequest.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(requestParams.clone(), &[])));

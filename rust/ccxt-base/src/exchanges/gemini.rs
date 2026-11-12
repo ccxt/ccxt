@@ -1196,7 +1196,7 @@ impl Gemini {
         let mut networkId: Option<String> = self.safe_string(rawCurrency.clone(), Value::Int(9), &[]).as_str().map(str::to_owned);
         let mut networkCode: Value = Value::Null;
         if (networkId.is_some()) {
-            networkCode = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            networkCode = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1670,8 +1670,8 @@ impl Gemini {
                     while { if !__for_first_718 { i += 1; } __for_first_718 = false; (i as f64) < get_array_length(&quoteCurrencies).as_f64().unwrap_or(f64::NAN) } {
                     let mut quoteCurrency: Value = self.safe_string(quoteCurrencies.clone(), Value::Int(i), &[Value::Str("".into())]);
                     if (marketIdWithoutPerp.as_str().zip(quoteCurrency.as_str()).is_some_and(|(__s, __p)| __s.ends_with(__p))) {
-                        let mut quoteLength: Value = self.parse_to_int((match (&(Value::Int(-1)), &(Value::Int(quoteCurrency.len() as i64))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                            Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+                        let mut quoteLength: Value = Value::from(self.parse_to_int((match (&(Value::Int(-1)), &(Value::Int(quoteCurrency.len() as i64))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                            Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
                         baseId = (match (&(marketIdWithoutPerp), 0i64, (match &(quoteLength) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
                             __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
                             __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
@@ -2628,7 +2628,7 @@ impl Gemini {
         }
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_none()) {
-            clientOrderId = Some(format!("{}", self.milliseconds().as_i64().unwrap_or_default()));
+            clientOrderId = Some(format!("{}", self.milliseconds()));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
@@ -2764,7 +2764,7 @@ impl Gemini {
             request.insert("limit_trades".into(), limit.clone());
         }
         if (since != Value::Null) {
-            request.insert("timestamp".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            request.insert("timestamp".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_v1_mytrades(&[__ws_arg_9]).await;
@@ -2850,7 +2850,7 @@ impl Gemini {
     pub fn nonce(&self) -> Value {
         let mut nonceMethod: Option<String> = self.safe_string_k(self.options.clone(), "nonce", &[Value::Str("milliseconds".into())]).as_str().map(str::to_owned);
         if (nonceMethod.as_deref() == Some("milliseconds")) {
-            return self.milliseconds();
+            return Value::Int(self.milliseconds());
         }
         return self.seconds();
 
@@ -3104,8 +3104,8 @@ impl Gemini {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" sign() requires an account-key, master-keys are not-supported".into()))));
             }
             // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
-            let mut nonceValue: Option<i64> = self.incrementing_nonce().as_i64();
-            let mut nonce: Option<String> = self.number_to_string(Value::from(nonceValue)).as_str().map(str::to_owned);
+            let mut nonceValue: i64 = self.incrementing_nonce();
+            let mut nonce: Option<String> = self.number_to_string(Value::from(nonceValue));
             let mut finalUrl: String = url.clone();
             let mut request: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();

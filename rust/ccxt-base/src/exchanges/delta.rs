@@ -838,7 +838,7 @@ impl Delta {
         let mut settle: String = quote.clone();
         let mut strike: String = self.safe_string(optionParts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut datetime: Value = self.convert_expire_date(Value::from(expiry.clone()));
-        let mut timestamp: Option<i64> = self.parse8601(datetime.clone()).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(datetime.clone());
         let mut optionTypeUnified: String = "put".to_string();
         if (optionType == "C") {
             optionTypeUnified = "call".to_string();
@@ -1026,7 +1026,7 @@ impl Delta {
         if (underMaintenance.as_deref() == Some("true")) {
             status = "maintenance".to_string();
         }
-        let mut updated: Option<i64> = self.safe_integer_product_k(&result, "server_time", Value::Float(0.001), &[self.milliseconds()]).as_i64();
+        let mut updated: Option<i64> = self.safe_integer_product_k(&result, "server_time", Value::Float(0.001), &[Value::Int(self.milliseconds())]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::from(status));
@@ -1129,7 +1129,7 @@ impl Delta {
             while { if !__for_first_613 { j += 1; } __for_first_613 = false; j < (chains.len() as i64) } {
             let mut chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&chain, "network", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1495,7 +1495,7 @@ impl Delta {
             let mut option: Value = Value::Bool(callOptions || putOptions || moveOptions);
             let mut strike: Option<String> = self.safe_string_k(&market, "strike_price", &[]).as_str().map(str::to_owned);
             let mut expiryDatetime: Option<String> = self.safe_string_k(&market, "settlement_time", &[]).as_str().map(str::to_owned);
-            let mut expiry: Option<i64> = self.parse8601(expiryDatetime.map(Value::from).unwrap_or(Value::Null)).as_i64();
+            let mut expiry: Option<i64> = self.parse8601(expiryDatetime.map(Value::from).unwrap_or(Value::Null));
             let mut contractSize: Option<f64> = self.safe_number_k(&market, "contract_value", &[]).as_f64();
             let mut amountPrecision: Value = Value::Null;
             if matches!(&spot, Value::Bool(true)) {
@@ -1593,7 +1593,7 @@ impl Delta {
 }));
     m
 }));
-        m.insert("created".to_string(), self.parse8601(self.safe_string_k(&market, "launch_time", &[])));
+        m.insert("created".to_string(), Value::from(self.parse8601(self.safe_string_k(&market, "launch_time", &[]))));
         m.insert("info".to_string(), Value::from(&market));
     m
 })]));
@@ -2221,8 +2221,8 @@ impl Delta {
         //
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut orderId: Option<String> = self.safe_string_k(trade.clone(), "order_id", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Value = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[]));
-        timestamp = self.safe_integer_product_k(trade.clone(), "timestamp", Value::Float(0.001), &[timestamp.clone()]);
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[]));
+        timestamp = self.safe_integer_product_k(trade.clone(), "timestamp", Value::Float(0.001), &[Value::from(timestamp)]).as_i64();
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut product: crate::value::Dict = self.safe_dict_k(trade.clone(), "product", &[Value::Map({
@@ -2269,8 +2269,8 @@ impl Delta {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -2381,7 +2381,7 @@ impl Delta {
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut duration: Value = self.parse_timeframe(timeframe.clone());
+        let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
         let mut limitValue: Option<i64> = Some(2000);
         let mut windowSeconds: Value = (match (&(Value::Int(2000)), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         if (limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0)) {
@@ -2392,14 +2392,14 @@ impl Delta {
         if (since == Value::Null) {
             let mut end: Value = self.seconds();
             if (until.is_some()) {
-                end = self.parse_to_int(Value::from(until));
+                end = Value::from(self.parse_to_int(Value::from(until)));
             }
             request.insert("end".into(), end.clone());
             request.insert("start".into(), (match (&(end), &(windowSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }  else {
-            let mut start: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-            request.insert("start".into(), start.clone());
-            request.insert("end".into(), (if (until.is_some()) { Value::from(until) } else { self.sum(&[start, windowSeconds]) }));
+            let mut start: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+            request.insert("start".into(), Value::from(start));
+            request.insert("end".into(), (if (until.is_some()) { Value::from(until) } else { self.sum(&[Value::from(start), windowSeconds]) }));
         }
         let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut marketId: String = self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -2740,7 +2740,7 @@ impl Delta {
         let mut timestamp: Value = Value::Null;
         if (createdAt.is_some()) {
             if createdAt.as_deref().unwrap_or_default().contains("-") {
-                timestamp = self.parse8601(createdAt.map(Value::from).unwrap_or(Value::Null));
+                timestamp = Value::from(self.parse8601(createdAt.map(Value::from).unwrap_or(Value::Null)));
             }  else {
                 timestamp = self.safe_integer_product_k(order.clone(), "created_at", Value::Float(0.001), &[]);
             }
@@ -2947,7 +2947,7 @@ impl Delta {
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), self.parse_to_int(id));
+                m.insert("id".to_string(), Value::from(self.parse_to_int(id)));
                 m.insert("product_id".to_string(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
             m
         });
@@ -2956,7 +2956,7 @@ impl Delta {
             if (sizeString.is_none()) {
                 sizeString = Some("0".to_string());
             }
-            request.insert("size".into(), self.parse_to_int(sizeString.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("size".into(), Value::from(self.parse_to_int(sizeString.map(Value::from).unwrap_or(Value::Null))));
         }
         if (price != Value::Null) {
             request.insert("limit_price".into(), self.price_to_precision(symbol, price));
@@ -3018,7 +3018,7 @@ impl Delta {
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), self.parse_to_int(id));
+                m.insert("id".to_string(), Value::from(self.parse_to_int(id)));
                 m.insert("product_id".to_string(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
             m
         });
@@ -3266,7 +3266,7 @@ impl Delta {
             request.insert("product_ids".into(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null)); // accepts a comma-separated list of ids
         }
         if (since != Value::Null) {
-            request.insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+            request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         if (limit != Value::Null) {
             request.insert("page_size".into(), limit.clone());
@@ -3343,7 +3343,7 @@ impl Delta {
             request.insert("product_ids".into(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null)); // accepts a comma-separated list of ids
         }
         if (since != Value::Null) {
-            request.insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+            request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         if (limit != Value::Null) {
             request.insert("page_size".into(), limit.clone());
@@ -3522,7 +3522,7 @@ impl Delta {
         let mut currencyValue: Value = self.safe_value(&currenciesByNumericId, currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut code: Option<String> = self.safe_string_k(currencyValue.clone(), "code", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(item.clone(), "amount", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(item.clone(), "created_at", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(item.clone(), "created_at", &[]));
         let mut after: Option<String> = self.safe_string_k(item.clone(), "balance", &[]).as_str().map(str::to_owned);
         let mut before: Option<String> = crate::precise::Precise::stringMax(&Value::Str("0".into()), &crate::precise::Precise::stringSub(&after.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
         let mut status: String = "ok".to_string();
@@ -3635,7 +3635,7 @@ impl Delta {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)])));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), self.safe_string_k(depositAddress, "memo", &[]));
     m
@@ -3950,7 +3950,7 @@ impl Delta {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut amountString: Option<String> = self.number_to_string(amount).as_str().map(str::to_owned);
+        let mut amountString: Option<String> = self.number_to_string(amount);
         let mut deltaMargin: Option<String> = (if (type_var.as_str() == Some("reduce")) { crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("-1".into())).as_str().map(str::to_owned) } else { amountString.clone() });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4467,7 +4467,7 @@ impl Delta {
         m.insert("info".to_string(), settlement.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market]));
         m.insert("price".to_string(), self.safe_number_k(settlement, "settlement_price", &[]));
-        m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
     m
 });
@@ -5416,7 +5416,7 @@ impl Delta {
         m.insert("rank".to_string(), self.safe_integer_k(info, "adl_level", &[]));
         m.insert("rating".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
     m
 });

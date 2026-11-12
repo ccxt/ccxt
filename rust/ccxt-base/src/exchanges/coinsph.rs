@@ -1115,7 +1115,7 @@ impl Coinsph {
             while { if !__for_first_573 { j += 1; } __for_first_573 = false; j < (networkList.len() as i64) } {
             let mut networkItem: crate::value::Dict = networkList.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut network: Option<String> = self.safe_string_k(&networkItem, "network", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = self.network_id_to_code(&[network.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[network.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1762,15 +1762,15 @@ impl Coinsph {
             if (until != Value::Null) {
                 request.insert("endTime".into(), until.clone());
             }  else {
-                let mut endTimeByLimit: Value = self.sum(&[since.clone(), Value::Int(((((self.parse_timeframe(timeframe.clone()).as_i64().unwrap_or_default()) * 1000)) * ((limitResolved - 1))))]);
-                let mut now: Value = self.milliseconds();
+                let mut endTimeByLimit: Value = self.sum(&[since.clone(), Value::Int(((((self.parse_timeframe(timeframe.clone())) * 1000)) * ((limitResolved - 1))))]);
+                let mut now: Value = Value::Int(self.milliseconds());
                 request.insert("endTime".into(), crate::runtime::Math::min(&endTimeByLimit, &now));
             }
         }  else if (until != Value::Null) {
             request.insert("endTime".into(), until.clone());
             // since work properly only when it is "younger" than last "limit" candle
-            request.insert("startTime".into(), (match (&(until), &((Value::Int(((((self.parse_timeframe(timeframe.clone()).as_i64().unwrap_or_default()) * 1000)) * ((limitResolved - 1))))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
-                Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            request.insert("startTime".into(), (match (&(until), &((Value::Int(((((self.parse_timeframe(timeframe.clone())) * 1000)) * ((limitResolved - 1))))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64),
+                (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }
         request.insert("limit".into(), Value::from(limitResolved));
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
@@ -2185,8 +2185,8 @@ impl Coinsph {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".into()))));
                     }  else {
-                        let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-                        let mut priceString: Option<String> = self.number_to_string(price).as_str().map(str::to_owned);
+                        let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                        let mut priceString: Option<String> = self.number_to_string(price);
                         let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                         quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                     }
@@ -2822,7 +2822,7 @@ impl Coinsph {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("amount".to_string(), self.number_to_string(amount));
+                m.insert("amount".to_string(), Value::from(self.number_to_string(amount)));
                 m.insert("network".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("address".to_string(), address);
             m
@@ -3020,7 +3020,7 @@ impl Coinsph {
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)])));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
@@ -3194,7 +3194,7 @@ impl Coinsph {
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), endpoint);
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            add_element_to_object(&mut query, &Value::Str("timestamp".into()), self.milliseconds());
+            add_element_to_object(&mut query, &Value::Str("timestamp".into()), Value::Int(self.milliseconds()));
             let mut recvWindow: Option<i64> = self.safe_integer_k(query.clone(), "recvWindow", &[]).as_i64();
             if (recvWindow.is_none()) {
                 let mut defaultRecvWindow: Option<i64> = self.safe_integer_k(self.options.clone(), "recvWindow", &[]).as_i64();

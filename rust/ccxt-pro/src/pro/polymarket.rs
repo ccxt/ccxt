@@ -189,7 +189,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "request_id" => self.request_id(),
+                "request_id" => crate::Value::from(self.request_id()),
                 "send_subscription" => self.send_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -233,7 +233,7 @@ impl Polymarket {
             "load_positions_snapshot" => { crate::exchange_stubs::enqueue_spawn("load_positions_snapshot", args.to_vec()); crate::Value::Null },
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "request_id" => self.request_id(),
+            "request_id" => crate::Value::from(self.request_id()),
             "send_subscription" => self.send_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
             "set_balance_cache" => { self.set_balance_cache(args.get(0).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]); crate::Value::Null },
@@ -340,12 +340,10 @@ impl Polymarket {
     Value::Null
 }
 
-    pub fn request_id(&mut self) -> Value {
+    pub fn request_id(&mut self) -> i64 {
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
-        return requestId;
-
-    Value::Null
+        return requestId.as_i64().unwrap_or_default();
 }
 
 /*
@@ -395,7 +393,7 @@ impl Polymarket {
             });
             return self.extend(Value::Map(emptyRequest), &[params.clone()]);
         }
-        let mut id: Value = self.request_id();
+        let mut id: Value = Value::Int(self.request_id());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.clone());
@@ -1108,7 +1106,7 @@ impl Polymarket {
         let mut interval: Option<String> = self.safe_string(parts, Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-        let mut timeframe: Value = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]));
         if (timeframe == Value::Null) {
             return;
         }
@@ -1161,7 +1159,7 @@ impl Polymarket {
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
-            let mut id: Value = self.request_id();
+            let mut id: Value = Value::Int(self.request_id());
             let mut pending: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("method".to_string(), Value::Str("auth".into()));
@@ -1743,7 +1741,7 @@ impl Polymarket {
                 }
             }
             let __ws_arg_1 = self.milliseconds();
-            crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(message, "ts", &[__ws_arg_1]));
+            crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(message, "ts", &[Value::Int(__ws_arg_1)]));
             return;
         }
         if (id.is_none()) {
@@ -1864,7 +1862,7 @@ impl Polymarket {
     pub fn ping(&mut self, mut client: Value) -> Value {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.request_id());
+        m.insert("id".to_string(), Value::Int(self.request_id()));
         m.insert("req".to_string(), Value::Str("post".into()));
         m.insert("op".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();

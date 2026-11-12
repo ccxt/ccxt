@@ -624,7 +624,7 @@ impl Whitebit {
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut method: String = "market_subscribe".to_string();
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut id: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut id: i64 = self.incrementing_nonce();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut args: Vec<Value> = Vec::new();
         {
@@ -1086,7 +1086,7 @@ impl Whitebit {
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "market", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut id: Option<String> = self.safe_string_k(order.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut clientOrderId: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "client_order_id", &[])).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "client_order_id", &[]));
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "deal_stock", &[]).as_str().map(str::to_owned);
         let mut cost: Option<String> = self.safe_string_k(order.clone(), "deal_money", &[]).as_str().map(str::to_owned);
@@ -1373,7 +1373,7 @@ impl Whitebit {
     m
 }));
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut id: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut id: i64 = self.incrementing_nonce();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(id));
@@ -1400,7 +1400,7 @@ impl Whitebit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut id: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut id: i64 = self.incrementing_nonce();
         let mut client: Value = self.safe_value(self.clients.clone(), url.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut request: Value = Value::Null;
@@ -1480,7 +1480,7 @@ impl Whitebit {
         self.check_required_credentials(&[]);
         self.authenticate(&[]).await;
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut id: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut id: i64 = self.incrementing_nonce();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(id));
@@ -1542,7 +1542,7 @@ impl Whitebit {
             if (token.is_none()) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty websocket_token".into()))));
             }
-            let mut id: Option<i64> = self.incrementing_nonce().as_i64();
+            let mut id: i64 = self.incrementing_nonce();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(id));
@@ -1702,7 +1702,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_pong(&self, mut client: Value, mut message: Value) -> Value {
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
         return message;
 
     Value::Null

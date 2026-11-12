@@ -535,7 +535,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isContract: bool = type_var.as_deref() != Some("spot");
-        let mut id: String = format!("{}{}", Value::Str(format!("{}", self.milliseconds()).into()), name); // call back ID
+        let mut id: String = format!("{}{}", Value::Str(format!("{}", Value::Int(self.milliseconds())).into()), name); // call back ID
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), (if isContract { Value::Str("SUBSCRIBE".into()) } else { Value::Str("subscribe".into()) }));
@@ -623,7 +623,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isContract: bool = type_var.as_deref() != Some("spot");
-        let mut id: String = format!("{}{}", Value::Str(format!("{}", self.milliseconds()).into()), name); // call back ID
+        let mut id: String = format!("{}{}", Value::Str(format!("{}", Value::Int(self.milliseconds())).into()), name); // call back ID
         let mut unsubscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), (if isContract { Value::Str("UNSUBSCRIBE".into()) } else { Value::Str("unsubscribe".into()) }));
@@ -2271,7 +2271,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_text_message(&self, mut client: Value, mut message: Value) {
         if (message.as_str() == Some("pong")) {
-            crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+            crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
         }
 }
 
@@ -2316,7 +2316,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn ping(&self, mut client: Value) -> Value {
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
         return Value::Str("ping".into());
 
     Value::Null

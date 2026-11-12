@@ -1430,7 +1430,7 @@ impl Toobit {
             while { if !__for_first_1130 { j += 1; } __for_first_1130 = false; j < (rawNetworks.len() as i64) } {
             let mut rawNetwork: crate::value::Dict = rawNetworks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&rawNetwork, "chainType", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2054,7 +2054,7 @@ impl Toobit {
             request.insert(endKey, Value::from(until));
         }  else if isPriceKlines && (since != Value::Null) {
             // mark and index klines walk backwards from `to` and ignore a lone `from`
-            let mut duration: Value = self.parse_timeframe(timeframe.clone());
+            let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
             if (limit == Value::Null) {
                 request.insert("to".into(), self.sum(&[since.clone(), (match (&((match (&(duration), &(Value::Int(2000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })])); // exchange default limit
@@ -2193,7 +2193,7 @@ impl Toobit {
         let mut contractSize: Option<f64> = self.safe_number_k(marketResolved.clone(), "contractSize", &[]).as_f64();
         if matches!((self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) && (contractSize.is_some()) {
             // 'v' counts contracts, and a ticker reports base volume
-            baseVolume = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &self.number_to_string(Value::from(contractSize))).as_str().map(str::to_owned);
+            baseVolume = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(Value::from(contractSize)))).as_str().map(str::to_owned);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2863,7 +2863,7 @@ impl Toobit {
             rawSideLower = self.safe_string(sideParts, Value::Int(0), &[]).as_str().map(str::to_owned);
         }
         // omitZero already maps '0.0' to undefined
-        let mut triggerPrice: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "stopPrice", &[])).as_str().map(str::to_owned);
+        let mut triggerPrice: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "stopPrice", &[]));
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -2879,9 +2879,9 @@ impl Toobit {
         m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "timeInForce", &[]));
         m.insert("postOnly".to_string(), (Value::Bool(rawType.as_deref() == Some("LIMIT_MAKER"))));
         m.insert("side".to_string(), rawSideLower.map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "price", &[])));
+        m.insert("price".to_string(), Value::from(self.omit_zero(self.safe_string_k(order.clone(), "price", &[]))));
         m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
-        m.insert("cost".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "cumulativeQuoteQty", &[])));
+        m.insert("cost".to_string(), Value::from(self.omit_zero(self.safe_string_k(order.clone(), "cumulativeQuoteQty", &[]))));
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "avgPrice", &[]));
         m.insert("amount".to_string(), self.safe_string_k(order.clone(), "origQty", &[]));
         m.insert("filled".to_string(), self.safe_string_k(order, "executedQty", &[]));
@@ -4033,7 +4033,7 @@ impl Toobit {
                 m.insert("address".to_string(), address);
                 m.insert("quantity".to_string(), self.currency_to_precision(currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null), amount, &[]));
                 m.insert("chainType".to_string(), self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code]));
-                m.insert("clientOrderId".to_string(), self.milliseconds());
+                m.insert("clientOrderId".to_string(), Value::Int(self.milliseconds()));
             m
         });
         if (tag.is_some()) {
@@ -4321,7 +4321,7 @@ impl Toobit {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
+            let mut timestamp: i64 = self.milliseconds();
             // Add timestamp to parameters for signed endpoints
             extraQuery.insert("recvWindow".into(), self.safe_string_k(self.options.clone(), "recvWindow", &[Value::Str("5000".into())]));
             extraQuery.insert("timestamp".into(), Value::Str(format!("{}", timestamp).into()));

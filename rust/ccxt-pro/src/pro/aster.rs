@@ -1999,7 +1999,7 @@ impl Aster {
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut kline: Value = self.safe_dict_k(data, "k", &[]);
         let mut timeframeId: Option<String> = self.safe_string_k(kline.clone(), "i", &[]).as_str().map(str::to_owned);
-        let mut timeframe: Value = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]));
         if (timeframe == Value::Null) {
             return;
         }
@@ -2035,7 +2035,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut time: Value = self.milliseconds();
+        let mut time: Value = Value::Int(self.milliseconds());
         let mut lastAuthenticatedTimeOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "lastAuthenticatedTime", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

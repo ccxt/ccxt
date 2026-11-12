@@ -1667,7 +1667,7 @@ impl Hashkey {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut minCostString: Option<String> = self.omit_zero(self.safe_string_k(&costFilter, "min_notional", &[])).as_str().map(str::to_owned);
+        let mut minCostString: Option<String> = self.omit_zero(self.safe_string_k(&costFilter, "min_notional", &[]));
         let mut contractSizeString: Option<String> = self.safe_string_k(market.clone(), "contractMultiplier", &[]).as_str().map(str::to_owned);
         let mut amountPrecisionString: Option<String> = self.safe_string_k(&amountFilter, "stepSize", &[]).as_str().map(str::to_owned);
         let mut amountMinLimitString: Option<String> = self.safe_string_k(&amountFilter, "minQty", &[]).as_str().map(str::to_owned);
@@ -1690,8 +1690,8 @@ impl Hashkey {
                     minInitialMargin = maxInitialMargin.clone();
                     maxInitialMargin = initialMarginsSwapped;
                 }
-                minLeverage = self.parse_to_int(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &maxInitialMargin.map(Value::from).unwrap_or(Value::Null)));
-                maxLeverage = self.parse_to_int(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &minInitialMargin.map(Value::from).unwrap_or(Value::Null)));
+                minLeverage = Value::from(self.parse_to_int(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &maxInitialMargin.map(Value::from).unwrap_or(Value::Null))));
+                maxLeverage = Value::from(self.parse_to_int(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &minInitialMargin.map(Value::from).unwrap_or(Value::Null))));
             }
         }
         let mut tradingFees: crate::value::Dict = self.safe_dict_k(self.fees.clone(), "trading", &[]).into_dict();
@@ -1814,7 +1814,7 @@ impl Hashkey {
             while { if !__for_first_726 { j += 1; } __for_first_726 = false; j < (networks.len() as i64) } {
             let mut network: Value = networks.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k(network.clone(), "chainType", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (networkCode != Value::Null) {
                 parsedNetworks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1825,7 +1825,7 @@ impl Hashkey {
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(network.clone(), "minWithdrawQuantity", &[]));
-        m.insert("max".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(network.clone(), "maxWithdrawQuantity", &[])), &[]));
+        m.insert("max".to_string(), self.parse_number(Value::from(self.omit_zero(self.safe_string_k(network.clone(), "maxWithdrawQuantity", &[]))), &[]));
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
@@ -2397,7 +2397,7 @@ impl Hashkey {
         let mut contractSizeValue: Option<String> = self.safe_string_k(marketResolved.clone(), "contractSize", &[]).as_str().map(str::to_owned);
         if matches!((self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) && (contractSizeValue.is_some()) {
             // 'v' counts contracts, and a ticker reports base volume
-            baseVolume = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &self.number_to_string(contractSizeValue.map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
+            baseVolume = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(contractSizeValue.map(Value::from).unwrap_or(Value::Null)))).as_str().map(str::to_owned);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4490,7 +4490,7 @@ impl Hashkey {
         if (priceType.as_deref() == Some("MARKET")) {
             type_var = Value::Str("market".into());
         }
-        let mut price: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "price", &[])).as_str().map(str::to_owned);
+        let mut price: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "price", &[]));
         if (type_var.as_str() == Some("STOP")) {
             if (price.is_none()) {
                 type_var = Value::Str("market".into());
@@ -4501,7 +4501,7 @@ impl Hashkey {
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
         let mut postOnly: Option<bool> = None;
         { let __destr_tmp: Vec<Value> = self.parse_order_type_time_in_force_and_post_only(type_var.as_str(), timeInForce.as_str()).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); timeInForce = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); postOnly = __destr_tmp.get(2).cloned().unwrap_or(Value::Null).as_bool(); }
-        let mut average: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "avgPrice", &[])).as_str().map(str::to_owned);
+        let mut average: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "avgPrice", &[]));
         if (price.is_none()) {
             price = average.clone();
         }
@@ -4527,18 +4527,18 @@ impl Hashkey {
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "origQty", &[])));
+        m.insert("amount".to_string(), Value::from(self.omit_zero(self.safe_string_k(order.clone(), "origQty", &[]))));
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "executedQty", &[]));
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("triggerPrice".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "stopPrice", &[])));
+        m.insert("triggerPrice".to_string(), Value::from(self.omit_zero(self.safe_string_k(order.clone(), "stopPrice", &[]))));
         m.insert("takeProfitPrice".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
-        m.insert("cost".to_string(), self.omit_zero(self.safe_string2(order.clone(), Value::Str("cumulativeQuoteQty".into()), Value::Str("cummulativeQuoteQty".into()), &[])));
+        m.insert("cost".to_string(), Value::from(self.omit_zero(self.safe_string2(order.clone(), Value::Str("cumulativeQuoteQty".into()), Value::Str("cummulativeQuoteQty".into()), &[]))));
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), self.safe_currency_code(feeCurrncyId.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("cost".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "feeAmount", &[])));
+        m.insert("cost".to_string(), Value::from(self.omit_zero(self.safe_string_k(order.clone(), "feeAmount", &[]))));
     m
 }));
         m.insert("reduceOnly".to_string(), reduceOnly.map(Value::from).unwrap_or(Value::Null));
@@ -4640,7 +4640,7 @@ impl Hashkey {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("timestamp".to_string(), self.milliseconds());
+                m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
             m
         });
         let __ws_arg_33 = self.extend(Value::Map(request), &[params]);
@@ -4685,7 +4685,7 @@ impl Hashkey {
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("timestamp".to_string(), self.milliseconds());
+                m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
             m
         });
         let __ws_arg_34 = self.extend(Value::Map(request), &[params]);
@@ -5180,7 +5180,7 @@ impl Hashkey {
         if (side.as_deref() != Some("LONG")) && (side.as_deref() != Some("SHORT")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), type_var).into()), Value::Str("Margin() params[\"side\"] must be either long or short".into()))));
         }
-        let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
+        let mut amountString: Option<String> = self.number_to_string(amount.clone());
         if (type_var.as_str() == Some("reduce")) {
             amountString = crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("-1".into())).as_str().map(str::to_owned);
         }
@@ -5540,7 +5540,7 @@ impl Hashkey {
         let mut query: Value = Value::Null;
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
+            let mut timestamp: i64 = self.milliseconds();
             let mut additionalParams: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), Value::from(timestamp));

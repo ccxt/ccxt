@@ -592,7 +592,7 @@ impl Apex {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default())).into_dict();
             let mut marketId: String = self.safe_string_k(&market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook".into()), self.number_to_string(Value::from(limitValue))).into()), Value::Str(".H.".into())).into()), marketId).into()));
+            topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook".into()), Value::from(self.number_to_string(Value::from(limitValue)))).into()), Value::Str(".H.".into())).into()), marketId).into()));
             let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol.map(Value::from).unwrap_or(Value::Null));
             messageHashes.push(Value::from(messageHash));
         }
@@ -650,7 +650,7 @@ impl Apex {
         // Cache it per exchange instance.
         let mut url: Option<String> = self.safe_string_k(self.options.clone(), "wsPublicUrl", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            let mut timeStamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
+            let mut timeStamp: Value = Value::Str(format!("{}", Value::Int(self.milliseconds())).into());
             let wsEndpoint: String = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[Value::Str("".into())]).unwrap_or_default();
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPublicUrl".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsEndpoint, Value::Str("&timestamp=".into())).into()), timeStamp).into())); }
             url = self.safe_string_k(self.options.clone(), "wsPublicUrl", &[Value::Str("".into())]).as_str().map(str::to_owned);
@@ -663,7 +663,7 @@ impl Apex {
     pub fn get_ws_private_url(&mut self) -> Value {
         let mut url: Option<String> = self.safe_string_k(self.options.clone(), "wsPrivateUrl", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            let mut timeStamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
+            let mut timeStamp: Value = Value::Str(format!("{}", Value::Int(self.milliseconds())).into());
             let wsEndpoint: String = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]).unwrap_or_default();
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPrivateUrl".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsEndpoint, Value::Str("&timestamp=".into())).into()), timeStamp).into())); }
             url = self.safe_string_k(self.options.clone(), "wsPrivateUrl", &[Value::Str("".into())]).as_str().map(str::to_owned);
@@ -1025,7 +1025,7 @@ impl Apex {
         let mut topicParts: Value = Value::Array(if let Some(__s) = topic.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut topicLength: i64 = topicParts.len() as i64;
         let mut timeframeId: Option<String> = self.safe_string(topicParts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
-        let mut timeframe: Value = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]));
         let mut marketId: Option<String> = self.safe_string(topicParts, Value::Int((topicLength - 1)), &[]).as_str().map(str::to_owned);
         let mut isSpot: bool = __ch.url.as_str().unwrap_or("").contains("spot");
         let mut marketType: String = "contract".to_string();
@@ -1095,7 +1095,7 @@ impl Apex {
         }
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+            symbolResolved = Some(self.symbol(symbol.clone()));
             messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str(":".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut url: Option<String> = self.get_ws_private_url().as_str().map(str::to_owned);
@@ -1197,7 +1197,7 @@ impl Apex {
         let mut messageHash: String = "orders".to_string();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+            symbolResolved = Some(self.symbol(symbol.clone()));
             messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str(":".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut url: Option<String> = self.get_ws_private_url().as_str().map(str::to_owned);
@@ -1459,7 +1459,7 @@ impl Apex {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut timestamp: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
+        let mut timestamp: String = format!("{}", self.milliseconds());
         let mut request_path: String = "/ws/accounts".to_string();
         let mut http_method: String = "GET".to_string();
         let mut messageString: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, http_method).into()), request_path);
@@ -1649,7 +1649,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub fn ping(&self, mut client: Value) -> Value {
-        let mut timeStamp: Value = self.milliseconds();
+        let mut timeStamp: Value = Value::Int(self.milliseconds());
         crate::set_value(&mut client, &Value::Str("lastPong".into()), timeStamp.clone());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1665,7 +1665,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         //     {"op": "ping", "args": ["1761069137485"]}
         //
-        let mut timeStamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut timeStamp: i64 = self.milliseconds();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             client.send(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1694,14 +1694,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //   { pong: 1653296711335 }
         //
         let __ws_arg_0 = self.milliseconds();
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(message.clone(), "pong", &[__ws_arg_0]));
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(message.clone(), "pong", &[Value::Int(__ws_arg_0)]));
         return message;
 
     Value::Null
 }
 
     pub fn handle_ping(&mut self, mut client: Value, mut message: Value) {
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
         self.spawn(&[Value::Str("pong".into()).clone(), client, message.clone()]);
 }
 

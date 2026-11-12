@@ -189,7 +189,7 @@ impl crate::exchange_generated::ExchangeBase for Deribit {
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "request_id" => self.request_id(),
+                "request_id" => crate::Value::from(self.request_id()),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_bids_asks" => crate::types::IntoRaw::into_raw(self.watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_multiple_wrapper" => self.watch_multiple_wrapper(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), &args[2.min(args.len())..]).await,
@@ -232,7 +232,7 @@ impl Deribit {
             "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "request_id" => self.request_id(),
+            "request_id" => crate::Value::from(self.request_id()),
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
             "watch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("watch_bids_asks", args.to_vec()); crate::Value::Null },
             "watch_multiple_wrapper" => { crate::exchange_stubs::enqueue_spawn("watch_multiple_wrapper", args.to_vec()); crate::Value::Null },
@@ -346,12 +346,10 @@ impl Deribit {
     Value::Null
 }
 
-    pub fn request_id(&mut self) -> Value {
+    pub fn request_id(&mut self) -> i64 {
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
-        return requestId;
-
-    Value::Null
+        return requestId.as_i64().unwrap_or_default();
 }
 
 /*
@@ -394,7 +392,7 @@ impl Deribit {
         m.insert("channels".to_string(), Value::from(channels));
     m
 }));
-                m.insert("id".to_string(), self.request_id());
+                m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
@@ -510,7 +508,7 @@ impl Deribit {
         m.insert("channels".to_string(), Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), marketId).into()), Value::Str(".".into())).into()), interval).into())]));
     m
 }));
-                m.insert("id".to_string(), self.request_id());
+                m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[&paramsOmitted]);
@@ -571,7 +569,7 @@ impl Deribit {
         m.insert("channels".to_string(), channels.clone());
     m
 }));
-                m.insert("id".to_string(), self.request_id());
+                m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[&paramsOmitted]);
@@ -680,7 +678,7 @@ impl Deribit {
         m.insert("channels".to_string(), channels.clone());
     m
 }));
-                m.insert("id".to_string(), self.request_id());
+                m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
@@ -908,7 +906,7 @@ impl Deribit {
         if (symbol != Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { None });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol.clone())) } else { None });
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut interval: String = self.safe_string_k(params.clone(), "interval", &[Value::Str("raw".into())]).as_str().unwrap_or("raw").to_string();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("interval".into()), &[]).into_dict();
@@ -922,7 +920,7 @@ impl Deribit {
         m.insert("channels".to_string(), Value::from(vec![Value::from(channel.clone())]));
     m
 }));
-                m.insert("id".to_string(), self.request_id());
+                m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[&paramsOmitted]);
@@ -1237,7 +1235,7 @@ impl Deribit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[params.clone()]).await;
-        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { None });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol.clone())) } else { None });
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut currency: String = self.safe_string_k(params.clone(), "currency", &[Value::Str("any".into())]).as_str().unwrap_or("any").to_string();
         let mut interval: String = self.safe_string_k(params.clone(), "interval", &[Value::Str("raw".into())]).as_str().unwrap_or("raw").to_string();
@@ -1253,7 +1251,7 @@ impl Deribit {
         m.insert("channels".to_string(), Value::from(vec![Value::from(channel.clone())]));
     m
 }));
-                m.insert("id".to_string(), self.request_id());
+                m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[&paramsOmitted]);
@@ -1361,7 +1359,7 @@ impl Deribit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = self.symbol(symbol.clone());
+        let mut symbolValue: Value = Value::from(self.symbol(symbol.clone()));
         let mut ohlcvs: Value = crate::types::IntoRaw::into_raw(self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbolValue.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), params).await);
         return get_value(&(if let (Some(__m), Some(__k)) = (ohlcvs.as_map(), symbolValue.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &timeframe);
         Value::Null
@@ -1446,7 +1444,7 @@ impl Deribit {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut unifiedTimeframe: Value = self.find_timeframe(rawTimeframe.map(Value::from).unwrap_or(Value::Null), &[timeframes]);
+        let mut unifiedTimeframe: Value = Value::from(self.find_timeframe(rawTimeframe.map(Value::from).unwrap_or(Value::Null), &[timeframes]));
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1528,7 +1526,7 @@ impl Deribit {
         m.insert("channels".to_string(), Value::from(rawSubscriptions.clone()));
     m
 }));
-                m.insert("id".to_string(), self.request_id());
+                m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
         let mut extendedRequest: Value = self.deep_extend(Value::Map(request), &[params]);
@@ -1676,14 +1674,14 @@ impl Deribit {
 }));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
-        let mut time: i64 = self.milliseconds().as_i64().unwrap_or_default();
-        let mut timeString: Option<String> = self.number_to_string(Value::from(time)).as_str().map(str::to_owned);
+        let mut time: i64 = self.milliseconds();
+        let mut timeString: Option<String> = self.number_to_string(Value::from(time));
         let mut nonce: Option<String> = timeString.clone();
         let mut messageHash: Value = Value::Str("authenticated".into());
         let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
         if (future == Value::Null) {
             self.check_required_credentials(&[]);
-            let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+            let mut requestId: i64 = self.request_id();
             let mut lineBreak: String = "\n".to_string(); // eslint-disable-line quotes
             let mut signature: Option<String> = self.hmac(self.encode(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timeString.map(Value::from).unwrap_or(Value::Null), lineBreak).into()), nonce.clone().map(Value::from).unwrap_or(Value::Null)).into()), lineBreak).into())), self.encode(self.secret.clone()),
                 Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);

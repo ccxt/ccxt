@@ -1164,7 +1164,7 @@ impl Dydx {
         //     "createdAtHeight": "44849951"
         // }
         //
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "createdAt", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "createdAt", &[]));
         let mut symbol: Option<String> = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(trade.clone(), "size", &[]).as_str().map(str::to_owned);
@@ -1252,7 +1252,7 @@ impl Dydx {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::from(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "startedAt", &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "baseTokenVolume", &[])]);
+        return Value::from(vec![Value::from(self.parse8601(self.safe_string_k(ohlcv.clone(), "startedAt", &[]))), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "baseTokenVolume", &[])]);
 
     Value::Null
 }
@@ -1400,7 +1400,7 @@ impl Dydx {
             let mut __for_first_658: bool = true;
             while { if !__for_first_658 { i += 1; } __for_first_658 = false; i < (rows.len() as i64) } {
             let mut entry: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&entry, "effectiveAt", &[])).as_i64();
+            let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&entry, "effectiveAt", &[]));
             let mut marketId: Option<String> = self.safe_string_k(&entry, "ticker", &[]).as_str().map(str::to_owned);
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1470,7 +1470,7 @@ impl Dydx {
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "ticker", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "totalFilled", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "updatedAt", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "updatedAt", &[]));
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.parse_order_type((self.safe_string_upper_k(order.clone(), "type", &[])).as_str());
@@ -1734,7 +1734,7 @@ impl Dydx {
         if (side.as_deref() != Some("long")) {
             quantity = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &quantity.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(position.clone(), "createdAt", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(position.clone(), "createdAt", &[]));
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -2035,7 +2035,7 @@ impl Dydx {
     pub fn pow(&self, n: &str, mut m: Value) -> Value {
         let mut n: Value = n.into();
         let mut r: Option<String> = crate::precise::Precise::stringMul(&n, &Value::Str("1".into())).as_str().map(str::to_owned);
-        let mut c: Value = self.parse_to_int(m);
+        let mut c: Value = Value::from(self.parse_to_int(m));
         {
                         let mut i: Value = Value::Int(1);
             let mut __for_first_659: bool = true;
@@ -2223,11 +2223,12 @@ impl Dydx {
         let mut orderFlags: Value = orderFlags.into();
         let mut clobPairId: Value = clobPairId.into();
         let mut nameSp: String = self.safe_string_k(self.options.clone(), "namespace", &[Value::Str("0f9da948-a6fb-4c45-9edc-4685c3f3317d".into())]).as_str().unwrap_or("0f9da948-a6fb-4c45-9edc-4685c3f3317d").to_string();
-        let mut clientOrderIdString: Option<String> = self.number_to_string(clientOrderId).as_str().map(str::to_owned);
-        let mut clobPairIdString: Option<String> = self.number_to_string(clobPairId).as_str().map(str::to_owned);
-        let mut orderFlagsString: Option<String> = self.number_to_string(orderFlags).as_str().map(str::to_owned);
+        let mut clientOrderIdString: Option<String> = self.number_to_string(clientOrderId);
+        let mut clobPairIdString: Option<String> = self.number_to_string(clobPairId);
+        let mut orderFlagsString: Option<String> = self.number_to_string(orderFlags);
         return self.uuid5(Value::from(nameSp.clone()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.uuid5(Value::from(nameSp), Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str("-".into())).into()),
-            self.number_to_string(subAccountNumber)).into())), Value::Str("-".into())).into()), clientOrderIdString.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), clobPairIdString.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), orderFlagsString.map(Value::from).unwrap_or(Value::Null)).into())).as_str().map(str::to_owned);
+            Value::from(self.number_to_string(subAccountNumber))).into())), Value::Str("-".into())).into()), clientOrderIdString.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), clobPairIdString.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()),
+            orderFlagsString.map(Value::from).unwrap_or(Value::Null)).into())).as_str().map(str::to_owned);
 }
 
     pub async fn fetch_latest_block_height(&mut self, optional_args: &[Value]) -> Value {
@@ -2400,7 +2401,7 @@ impl Dydx {
         if (clientOrderId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.".into()))));
         }
-        let mut idString: Option<String> = self.number_to_string(id.clone()).as_str().map(str::to_owned);
+        let mut idString: Option<String> = self.number_to_string(id.clone());
         if idString.as_deref().unwrap_or_default().contains("-") {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.".into()))));
         }
@@ -2672,7 +2673,7 @@ impl Dydx {
             }
         }
         let mut amount: Option<String> = self.safe_string_k(item.clone(), "size", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(item.clone(), "createdAt", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(item.clone(), "createdAt", &[]));
         let mut sender: crate::value::Dict = self.safe_dict_k(item.clone(), "sender", &[]).into_dict();
         let mut recipient: crate::value::Dict = self.safe_dict_k(item.clone(), "recipient", &[]).into_dict();
         return self.safe_ledger_entry(Value::Map({
@@ -2797,12 +2798,12 @@ impl Dydx {
             denom = self.safe_string_k(&feeDenom, "CHAINTOKEN_DENOM", &[]).as_str().map(str::to_owned);
         }
         let mut gasLimit: Value = (self.parse_to_numeric(crate::precise::Precise::stringMul(&gasUsed.map(Value::from).unwrap_or(Value::Null), &defaultFeeMultiplier.map(Value::from).unwrap_or(Value::Null)))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
-        let mut feeAmount: Option<String> = crate::precise::Precise::stringMul(&self.number_to_string(gasLimit.clone()), &gasPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut feeAmount: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(gasLimit.clone())), &gasPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         if (feeAmount.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" estimateTxFee() missing feeAmount".into()))));
         }
         if feeAmount.as_deref().unwrap_or_default().contains(".") {
-            feeAmount = self.number_to_string((self.parse_to_numeric(feeAmount.clone().map(Value::from).unwrap_or(Value::Null))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            feeAmount = self.number_to_string((self.parse_to_numeric(feeAmount.clone().map(Value::from).unwrap_or(Value::Null))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null));
         }
         let mut feeObj: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2869,7 +2870,7 @@ impl Dydx {
         }
         let mut credentials: Value = self.retrieve_credentials();
         let mut account: Value = self.fetch_dydx_account().await;
-        let mut usd: Value = self.parse_to_int(crate::precise::Precise::stringMul(&self.number_to_string(amount), &Value::Str("1000000".into())));
+        let mut usd: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount)), &Value::Str("1000000".into())));
         let mut payload: Value = Value::Null;
         let mut signingPayload: Value = Value::Null;
         if (fromAccount.as_str() == Some("main")) {
@@ -2887,7 +2888,7 @@ impl Dydx {
     m
 }));
                     m.insert("assetId".to_string(), Value::Int(0));
-                    m.insert("quantums".to_string(), usd.clone());
+                    m.insert("quantums".to_string(), Value::from(usd));
                 m
             });
             signingPayload = Value::Map({
@@ -2914,7 +2915,7 @@ impl Dydx {
     m
 }));
         m.insert("assetId".to_string(), Value::Int(0));
-        m.insert("amount".to_string(), usd);
+        m.insert("amount".to_string(), Value::from(usd));
     m
 }));
                 m
@@ -2971,7 +2972,7 @@ impl Dydx {
         let mut recipient: crate::value::Dict = self.safe_dict_k(transfer.clone(), "recipient", &[]).into_dict();
         let mut fromAccount: Option<String> = self.safe_string_k(&sender, "address", &[]).as_str().map(str::to_owned);
         let mut toAccount: Option<String> = self.safe_string_k(&recipient, "address", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transfer.clone(), "createdAt", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transfer.clone(), "createdAt", &[]));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer);
@@ -3061,7 +3062,7 @@ impl Dydx {
         let mut txid: Option<String> = self.safe_string_k(transaction.clone(), "transactionHash", &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "createdAt", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "createdAt", &[]));
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "size", &[]).as_f64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3132,7 +3133,7 @@ impl Dydx {
         let mut currency: Value = self.currency(code);
         let mut credentials: Value = self.retrieve_credentials();
         let mut account: Value = self.fetch_dydx_account().await;
-        let mut usd: Value = self.parse_to_int(crate::precise::Precise::stringMul(&self.number_to_string(amount), &Value::Str("1000000".into())));
+        let mut usd: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount)), &Value::Str("1000000".into())));
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sender".to_string(), Value::Map({
@@ -3143,7 +3144,7 @@ impl Dydx {
 }));
                 m.insert("recipient".to_string(), address);
                 m.insert("assetId".to_string(), Value::Int(0));
-                m.insert("quantums".to_string(), usd);
+                m.insert("quantums".to_string(), Value::from(usd));
             m
         });
         let mut signingPayload: indexmap::IndexMap<String, Value> = ({
@@ -3579,7 +3580,7 @@ impl Dydx {
         if (timeDifference == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" nonce() requires a numeric options[\"timeDifference\"]".into()))));
         }
-        return (match (&(self.milliseconds()), &(timeDifference)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return (match (&(Value::Int(self.milliseconds())), &(timeDifference)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
 
     Value::Null
 }
@@ -3663,8 +3664,8 @@ impl Dydx {
             errorCode = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
         }
         if (errorCode.is_some()) && (errorCode.as_deref() != Some("")) {
-            let mut errorCodeNum: Value = self.parse_to_int(errorCode.clone().map(Value::from).unwrap_or(Value::Null));
-            if errorCodeNum.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+            let mut errorCodeNum: Option<i64> = self.parse_to_int(errorCode.clone().map(Value::from).unwrap_or(Value::Null));
+            if errorCodeNum > Some(0) {
                 let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, Value::from(feedback.clone()));

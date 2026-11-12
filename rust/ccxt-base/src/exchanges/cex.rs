@@ -728,7 +728,7 @@ impl Cex {
             while { if !__for_first_527 { j += 1; } __for_first_527 = false; j < (keys.len() as i64) } {
             let mut networkId: Value = keys.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut rawNetwork: Value = self.safe_dict(&rawNetworks, networkId.clone(), &[]);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone(), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             let mut deposit: Value = Value::Bool(self.safe_string_k(rawNetwork.clone(), "deposit", &[]).as_str() == Some("enabled"));
             let mut withdraw: Value = Value::Bool(self.safe_string_k(rawNetwork.clone(), "withdrawal", &[]).as_str() == Some("enabled"));
             if (networkCode != Value::Null) {
@@ -1180,7 +1180,7 @@ impl Cex {
         //                },
         //
         let mut dateStr: Option<String> = self.safe_string_k(trade.clone(), "dateISO", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(dateStr.map(Value::from).unwrap_or(Value::Null)).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(dateStr.map(Value::from).unwrap_or(Value::Null));
         let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1318,7 +1318,7 @@ impl Cex {
             request.insert("toISO".into(), self.iso8601(Value::from(until)));
         }  else if (since == Value::Null) {
             // exchange still requires that we provide one of them
-            request.insert("toISO".into(), self.iso8601(self.milliseconds()));
+            request.insert("toISO".into(), self.iso8601(Value::Int(self.milliseconds())));
         }
         if (since != Value::Null) && (until.is_some()) && (limit != Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV does not support fetching candles with both a limit and since/until".into()))));
@@ -1680,11 +1680,11 @@ impl Cex {
             request.insert("serverCreateTimestampFrom".into(), since.clone());
         }  else if isClosedOrders {
             // exchange requires a `since` parameter for closed orders, so set default to allowed 365
-            request.insert("serverCreateTimestampFrom".into(), (match (&(self.milliseconds()), &((match (&((match (&((match (&((match (&(Value::Int(364)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
+            request.insert("serverCreateTimestampFrom".into(), (match (&(Value::Int(self.milliseconds())), &((match (&((match (&((match (&((match (&(Value::Int(364)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
+                Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
                 (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x),
-                Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
+                _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_param_integer2(params, Value::Str("until".into()), Value::Str("till".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Option<i64> = untilparamsUntilVariable.get(0).and_then(Value::as_i64);
@@ -1825,7 +1825,7 @@ impl Cex {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orderId".to_string(), self.parse_to_int(id));
+                m.insert("orderId".to_string(), Value::from(self.parse_to_int(id)));
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
@@ -1863,7 +1863,7 @@ impl Cex {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orderId".to_string(), self.parse_to_int(id));
+                m.insert("orderId".to_string(), Value::from(self.parse_to_int(id)));
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
@@ -2030,7 +2030,7 @@ impl Cex {
                 m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("orderType".to_string(), self.capitalize((if let Some(__s) = type_var.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-                m.insert("timestamp".to_string(), self.milliseconds());
+                m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
                 m.insert("amountCcy1".to_string(), self.amount_to_precision(symbol.clone(), amount));
             m
         });
@@ -2134,9 +2134,9 @@ impl Cex {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orderId".to_string(), self.parse_to_int(id));
-                m.insert("cancelRequestId".to_string(), Value::Str(format!("{}{}", Value::Str("c_".into()), Value::Str(format!("{}", (self.milliseconds())).into())).into()));
-                m.insert("timestamp".to_string(), self.milliseconds());
+                m.insert("orderId".to_string(), Value::from(self.parse_to_int(id)));
+                m.insert("cancelRequestId".to_string(), Value::Str(format!("{}{}", Value::Str("c_".into()), Value::Str(format!("{}", (Value::Int(self.milliseconds()))).into())).into()));
+                m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
@@ -2297,7 +2297,7 @@ impl Cex {
         let mut currencyResolved: Value = self.safe_currency(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currencyResolved.clone()]).as_str().map(str::to_owned);
         let mut timestampString: Option<String> = self.safe_string_k(item.clone(), "timestamp", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(timestampString.map(Value::from).unwrap_or(Value::Null)).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(timestampString.map(Value::from).unwrap_or(Value::Null));
         let mut type_var: Option<String> = self.safe_string_k(item.clone(), "type", &[]).as_str().map(str::to_owned);
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2418,7 +2418,7 @@ impl Cex {
         }
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
         let mut updatedAt: Option<String> = self.safe_string_k(transaction.clone(), "updatedAt", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(updatedAt.map(Value::from).unwrap_or(Value::Null)).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(updatedAt.map(Value::from).unwrap_or(Value::Null));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
@@ -2723,7 +2723,7 @@ impl Cex {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
         m.insert("currency".to_string(), currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
-        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(depositAddress, "blockchain", &[]), self.safe_string_k(currencyResolved, "code", &[])]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(depositAddress, "blockchain", &[]), self.safe_string_k(currencyResolved, "code", &[])])));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), Value::Null);
     m

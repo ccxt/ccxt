@@ -520,12 +520,12 @@ impl Coinbaseexchange {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+        let mut symbolValue: String = self.symbol(symbol.clone());
         let mut name: String = "matches".to_string();
-        let mut trades: Value = self.subscribe(name.as_str(), symbolValue.as_deref(), Some(name.as_str()), &[params]).await;
+        let mut trades: Value = self.subscribe(name.as_str(), Some(symbolValue.as_str()), Some(name.as_str()), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue.as_deref(), limit.as_i64());
+            limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
         return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
@@ -605,15 +605,15 @@ impl Coinbaseexchange {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+        let mut symbolValue: String = self.symbol(symbol.clone());
         let mut name: String = "user".to_string();
         let mut messageHash: String = "myTrades".to_string();
         let mut authentication: Value = self.authenticate();
         let __ws_arg_0 = self.extend(params, &[authentication]);
-        let mut trades: Value = self.subscribe(name.as_str(), symbolValue.as_deref(), Some(messageHash.as_str()), &[__ws_arg_0]).await;
+        let mut trades: Value = self.subscribe(name.as_str(), Some(symbolValue.as_str()), Some(messageHash.as_str()), &[__ws_arg_0]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue.as_deref(), limit.as_i64());
+            limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
         return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
@@ -735,15 +735,15 @@ impl Coinbaseexchange {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+        let mut symbolValue: String = self.symbol(symbol.clone());
         let mut name: String = "user".to_string();
         let mut messageHash: String = "orders".to_string();
         let mut authentication: Value = self.authenticate();
         let __ws_arg_3 = self.extend(params, &[authentication]);
-        let mut orders: Value = self.subscribe(name.as_str(), symbolValue.as_deref(), Some(messageHash.as_str()), &[__ws_arg_3]).await;
+        let mut orders: Value = self.subscribe(name.as_str(), Some(symbolValue.as_str()), Some(messageHash.as_str()), &[__ws_arg_3]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolValue.as_deref(), limit.as_i64());
+            limitResolved = orders.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
         return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
@@ -1247,7 +1247,7 @@ impl Coinbaseexchange {
         let mut price: Option<f64> = self.safe_number_k(order.clone(), "price", &[]).as_f64();
         let mut amount: Option<String> = self.safe_string2(order.clone(), Value::Str("size".into()), Value::Str("funds".into()), &[]).as_str().map(str::to_owned);
         let mut time: Option<String> = self.safe_string_k(order.clone(), "time", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(time.map(Value::from).unwrap_or(Value::Null)).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(time.map(Value::from).unwrap_or(Value::Null));
         let mut reason: Option<String> = self.safe_string_k(order.clone(), "reason", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.parse_ws_order_status(reason.map(Value::from).unwrap_or(Value::Null));
         let mut orderType: Option<String> = self.safe_string_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
@@ -1361,7 +1361,7 @@ impl Coinbaseexchange {
         }
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "product_id", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market, Value::Str("-".into())]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker.clone(), "time", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker.clone(), "time", &[]));
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "price", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1462,7 +1462,7 @@ impl Coinbaseexchange {
             client.resolve(orderbook.clone(), messageHash.as_str());
         }  else if (type_var.as_deref() == Some("l2update")) {
             let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            let mut timestamp: Option<i64> = self.parse8601((match __pro_message.get("time").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })).as_i64();
+            let mut timestamp: Option<i64> = self.parse8601((match __pro_message.get("time").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
             let mut changes: crate::value::List = __pro_message.get("changes").cloned().unwrap_or_default().into_list();
             let mut sides: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

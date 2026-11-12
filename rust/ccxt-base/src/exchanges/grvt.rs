@@ -175,7 +175,7 @@ impl crate::exchange_generated::ExchangeBase for Grvt {
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "request_id" => self.request_id(),
+                "request_id" => crate::Value::from(self.request_id()),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign_in" => self.sign_in(&args[..]).await,
@@ -1289,7 +1289,7 @@ impl Grvt {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut now: Value = self.milliseconds();
+        let mut now: Value = Value::Int(self.milliseconds());
         // expires in 24 hours as CS suggested
         let mut expires: Value = self.safe_integer_k(self.options.clone(), "signInExpiration", &[Value::Int(0)]);
         // if previous sign-in not expired (give 10 seconds margin)
@@ -1326,7 +1326,7 @@ impl Grvt {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut now: Value = self.milliseconds();
+        let mut now: Value = Value::Int(self.milliseconds());
         // expires in 24 hours as CS suggested
         let mut expires: Value = self.safe_integer_k(self.options.clone(), "signInExpiration", &[Value::Int(0)]);
         // if previous sign-in not expired (give 10 seconds margin)
@@ -1905,7 +1905,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&result, "event_time", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&result, "event_time", &[]));
         let mut marketId: Option<String> = self.safe_string_k(&result, "instrument", &[]).as_str().map(str::to_owned);
         return self.parse_order_book(Value::Dict(result), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
         Value::Null
@@ -1950,7 +1950,7 @@ if _try_result.is_err() {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         if (since != Value::Null) {
-            request.insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+            request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[params, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -2134,7 +2134,7 @@ if _try_result.is_err() {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         if (since != Value::Null) {
-            request.insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+            request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[Value::from(&paramsPaginate), Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -2221,7 +2221,7 @@ if _try_result.is_err() {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         if (since != Value::Null) {
-            request.insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+            request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[paramsPaginate, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -2449,7 +2449,7 @@ if _try_result.is_err() {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         if (since != Value::Null) {
-            request.insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+            request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[params, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -2526,7 +2526,7 @@ if _try_result.is_err() {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         if (since != Value::Null) {
-            request.insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+            request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[params, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -2690,12 +2690,12 @@ if _try_result.is_err() {
         let mut addressTo: Option<String> = self.safe_string_k(transaction.clone(), "to_account_id", &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
-        let mut metaData: Option<String> = self.omit_zero(self.safe_string_k(transaction.clone(), "transfer_metadata", &[])).as_str().map(str::to_owned);
+        let mut metaData: Option<String> = self.omit_zero(self.safe_string_k(transaction.clone(), "transfer_metadata", &[]));
         if (metaData.is_some()) {
             let mut parsedMeta: Value = self.parse_json_value(metaData.map(Value::from).unwrap_or(Value::Null));
             direction = self.safe_string_lower_k(parsedMeta.clone(), "direction", &[]).as_str().map(str::to_owned);
             txId = self.safe_string_k(parsedMeta.clone(), "provider_tx_id", &[]).as_str().map(str::to_owned);
-            networkCode = self.network_id_to_code(&[self.safe_string_k(parsedMeta.clone(), "chainid", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            networkCode = Value::from(self.network_id_to_code(&[self.safe_string_k(parsedMeta.clone(), "chainid", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (direction.as_deref() == Some("withdrawal")) {
                 addressTo = self.safe_string_k(parsedMeta.clone(), "endpoint", &[]).as_str().map(str::to_owned);
             }  else if (direction.as_deref() == Some("deposit")) {
@@ -2775,7 +2775,7 @@ if _try_result.is_err() {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         if (since != Value::Null) {
-            request.insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+            request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[paramsPaginate, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -3181,7 +3181,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_none()) {
-            clientOrderId = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}", self.nonce()).into()), Value::Str("000".into())).into()), Value::Str(format!("{}", self.request_id()).into())));
+            clientOrderId = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}", self.nonce()).into()), Value::Str("000".into())).into()), Value::Str(format!("{}", Value::Int(self.request_id())).into())));
         }
         let mut paramsOmitted3: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into())]), &[]);
         let mut isMarketOrder: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
@@ -3371,7 +3371,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     }
 
     pub fn convert_to_big_int_custom(&self, mut x: Value) -> Value {
-        return crate::runtime::parse_int(&self.number_to_string(x));
+        return crate::runtime::parse_int(&Value::from(self.number_to_string(x)));
 
     Value::Null
 }
@@ -3405,12 +3405,12 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut legOrder: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("assetID".to_string(), self.safe_string_k(market.get("info").cloned().unwrap_or(Value::Null), "instrument_hash", &[]));
-                    m.insert("contractSize".to_string(), self.parse_to_int(sizeInteger));
+                    m.insert("contractSize".to_string(), Value::from(self.parse_to_int(sizeInteger)));
                     m.insert("isBuyingContract".to_string(), crate::value::KeyRead::key_read(&&leg, "is_buying_asset"));
                 m
             };
             let mut limitPrice: Option<String> = self.safe_string_k(&leg, "limit_price", &[]).as_str().map(str::to_owned);
-            if (limitPrice.is_some()) && (self.omit_zero(limitPrice.clone().map(Value::from).unwrap_or(Value::Null)) != Value::Null) {
+            if (limitPrice.is_some()) && (Value::from(self.omit_zero(limitPrice.clone().map(Value::from).unwrap_or(Value::Null))) != Value::Null) {
                 let mut price: Value = limitPrice.map(Value::from).unwrap_or(Value::Null);
                 let mut limitParts: Value = Value::Array(if let Some(__s) = price.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
                 let mut limitDec: String = self.safe_string(limitParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -3419,7 +3419,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 denominator = crate::runtime::Math::pow(&Value::Int(10), &limitDecLength);
                 let mut priceInteger: Value = (match (((match (&(priceDigits), &(priceMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                     _ => Value::Null })).as_f64(), (denominator).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
-                legOrder.insert("limitPrice".into(), self.parse_to_int(priceInteger));
+                legOrder.insert("limitPrice".into(), Value::from(self.parse_to_int(priceInteger)));
             }  else {
                 legOrder.insert("limitPrice".into(), Value::Int(0));; // should be zero to validate type-check
             }
@@ -3444,9 +3444,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         });
         if (structureType.as_str() == Some("EIP712_ORDER_WITH_BUILDER_TYPE")) && matches!(self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
             returnValue.insert("builder".into(), order.get("builder").cloned().unwrap_or(Value::Null));
-            returnValue.insert("builderFee".into(), self.parse_to_int((match (&(self.convert_to_big_int_custom(self.fee_amount_multiplier())), &(crate::runtime::parse_float(&(match order.get("builder_fee") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),
+            returnValue.insert("builderFee".into(), Value::from(self.parse_to_int((match (&(self.convert_to_big_int_custom(self.fee_amount_multiplier())), &(crate::runtime::parse_float(&(match order.get("builder_fee") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),
                 Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                _ => Value::Null }))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+                _ => Value::Null })))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }
         return Value::Map(returnValue);
 
@@ -3501,7 +3501,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         if (since != Value::Null) {
-            request.insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+            request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[Value::from(&paramsPaginate), Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -3774,7 +3774,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut m = indexmap::IndexMap::new();
                 m.insert("sub_account_id".to_string(), self.get_sub_account_id(params.clone()).map(Value::from).unwrap_or(Value::Null));
                 m.insert("instrument".to_string(), Value::from((market).id.as_deref()));
-                m.insert("leverage".to_string(), self.number_to_string(leverage));
+                m.insert("leverage".to_string(), Value::from(self.number_to_string(leverage)));
             m
         });
         let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
@@ -3939,7 +3939,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         if (since != Value::Null) {
-            request.insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+            request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[Value::from(&paramsPaginate), Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -4041,7 +4041,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         if (since != Value::Null) {
-            request.insert("start_time".into(), self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+            request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[params, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -4654,7 +4654,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                     m.insert("toAccount".to_string(), request.get("to_account_id").cloned().unwrap_or(Value::Null));
                     m.insert("toSubAccount".to_string(), request.get("to_sub_account_id").cloned().unwrap_or(Value::Null));
                     m.insert("tokenCurrency".to_string(), currencyObj.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
-                    m.insert("numTokens".to_string(), self.parse_to_int(amountInt));
+                    m.insert("numTokens".to_string(), Value::from(self.parse_to_int(amountInt)));
                     m.insert("nonce".to_string(), requestSignature.get("nonce").cloned().unwrap_or(Value::Null));
                     m.insert("expiration".to_string(), requestSignature.get("expiration").cloned().unwrap_or(Value::Null));
                 m
@@ -4669,8 +4669,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                     m.insert("fromAccount".to_string(), request.get("from_account_id").cloned().unwrap_or(Value::Null));
                     m.insert("toEthAddress".to_string(), request.get("to_eth_address").cloned().unwrap_or(Value::Null));
                     m.insert("tokenCurrency".to_string(), currencyObj.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
-                    m.insert("numTokens".to_string(), self.parse_to_int((match (&(request.get("num_tokens").cloned().unwrap_or(Value::Null)), &(amountMultiplier)) { (Value::Int(__x), Value::Int(__y)) => Value::Int(__x * __y), (__a, __b) => match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f),
-                        Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), __b.as_f64()) { (Some(__x), Some(__y)) => Value::Float(__x * __y), _ => Value::Null } })));
+                    m.insert("numTokens".to_string(), Value::from(self.parse_to_int((match (&(request.get("num_tokens").cloned().unwrap_or(Value::Null)), &(amountMultiplier)) { (Value::Int(__x), Value::Int(__y)) => Value::Int(__x * __y), (__a, __b) => match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f),
+                        Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), __b.as_f64()) { (Some(__x), Some(__y)) => Value::Float(__x * __y), _ => Value::Null } }))));
                     m.insert("nonce".to_string(), requestSignature.get("nonce").cloned().unwrap_or(Value::Null));
                     m.insert("expiration".to_string(), requestSignature.get("expiration").cloned().unwrap_or(Value::Null));
                 m
@@ -4683,10 +4683,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 let mut m = indexmap::IndexMap::new();
                     m.insert("mainAccountID".to_string(), request.get("main_account_id").cloned().unwrap_or(Value::Null));
                     m.insert("builderAccountID".to_string(), request.get("builder_account_id").cloned().unwrap_or(Value::Null));
-                    m.insert("maxFutureFeeRate".to_string(), self.parse_to_int((match (&(crate::runtime::parse_float(&self.safe_string(Value::Map(request.clone()), Value::Str("max_futures_fee_rate".into()), &[]))), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
-                        (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
-                    m.insert("maxSpotFeeRate".to_string(), self.parse_to_int((match (&(crate::runtime::parse_float(&self.safe_string(Value::Map(request.clone()), Value::Str("max_spot_fee_rate".into()), &[]))), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
-                        (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+                    m.insert("maxFutureFeeRate".to_string(), Value::from(self.parse_to_int((match (&(crate::runtime::parse_float(&self.safe_string(Value::Map(request.clone()), Value::Str("max_futures_fee_rate".into()), &[]))), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x),
+                        Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
+                    m.insert("maxSpotFeeRate".to_string(), Value::from(self.parse_to_int((match (&(crate::runtime::parse_float(&self.safe_string(Value::Map(request.clone()), Value::Str("max_spot_fee_rate".into()), &[]))), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x),
+                        Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
                     m.insert("nonce".to_string(), requestSignature.get("nonce").cloned().unwrap_or(Value::Null));
                     m.insert("expiration".to_string(), requestSignature.get("expiration").cloned().unwrap_or(Value::Null));
                 m
@@ -4737,7 +4737,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 
     pub fn default_signature(&self) -> Value {
         let mut expirationSeconds: i64 = self.safe_integer_k(self.options.clone(), "expirationSeconds", &[Value::Int(30)]).as_i64().unwrap_or(30);
-        let mut expiration: i64 = ((((self.milliseconds().as_i64().unwrap_or_default()) * 1000000)) + ((((1000000 * expirationSeconds)) * 1000)));
+        let mut expiration: i64 = ((((self.milliseconds()) * 1000000)) + ((((1000000 * expirationSeconds)) * 1000)));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("signer".to_string(), Value::Str("".into()));
@@ -4762,8 +4762,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut multiplier = get_arg(optional_args, 1, Value::Int(1));
         let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), self.number_to_string(self.parse_to_int((match (&(until), &(multiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
-                Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), Value::from(self.number_to_string(Value::from(self.parse_to_int((match (&(until), &(multiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
+                (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))))); }
             return Value::from(vec![request.clone(), self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[])]);
         }
         return Value::from(vec![request.clone(), params]);
@@ -4771,12 +4771,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     Value::Null
 }
 
-    pub fn request_id(&self) -> Value {
+    pub fn request_id(&self) -> i64 {
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
         if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
-        return requestId;
-
-    Value::Null
+        return requestId.as_i64().unwrap_or_default();
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {

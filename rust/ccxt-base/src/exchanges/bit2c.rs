@@ -832,7 +832,7 @@ impl Bit2c {
             m
         });
         if (since != Value::Null) {
-            request.insert("date".into(), self.parse_to_int(since.clone()));
+            request.insert("date".into(), Value::from(self.parse_to_int(since.clone())));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // max 100000
@@ -989,8 +989,8 @@ impl Bit2c {
             }
         }  else {
             request.insert("Price".into(), price.clone());
-            let mut amountString: Option<String> = self.number_to_string(amount).as_str().map(str::to_owned);
-            let mut priceString: Option<String> = self.number_to_string(price).as_str().map(str::to_owned);
+            let mut amountString: Option<String> = self.number_to_string(amount);
+            let mut priceString: Option<String> = self.number_to_string(price);
             request.insert("Total".into(), self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null))));
             request.insert("IsBid".into(), (Value::Bool(side.as_str() == Some("buy"))));
             let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
@@ -1280,7 +1280,7 @@ impl Bit2c {
         }
         request.insert("take".into(), limit.clone());
         if (since != Value::Null) {
-            request.insert("toTime".into(), self.yyyymmdd(self.milliseconds(), &[Value::Str(".".into())]));
+            request.insert("toTime".into(), self.yyyymmdd(Value::Int(self.milliseconds()), &[Value::Str(".".into())]));
             request.insert("fromTime".into(), self.yyyymmdd(since.clone(), &[Value::Str(".".into())]));
         }
         if (symbol != Value::Null) {
@@ -1528,7 +1528,7 @@ impl Bit2c {
 }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -1554,7 +1554,7 @@ impl Bit2c {
         }  else {
             self.check_required_credentials(&[]);
             // bit2c requires an increasing nonce per key
-            let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+            let mut nonce: i64 = self.incrementing_nonce();
             let mut query: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("nonce".to_string(), Value::from(nonce));

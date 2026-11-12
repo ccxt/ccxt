@@ -843,7 +843,7 @@ impl Luno {
             while { if !__for_first_938 { i += 1; } __for_first_938 = false; i < (rawCurrency.len() as i64) } {
             let mut networkEntry: Value = self.safe_dict(rawCurrency.clone(), Value::Int(i), &[]);
             let mut networkId: Option<String> = self.safe_string_k(networkEntry.clone(), "name", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1793,10 +1793,10 @@ impl Luno {
             m
         });
         if (since != Value::Null) {
-            request.insert("since".into(), self.parse_to_int(since.clone()));
+            request.insert("since".into(), Value::from(self.parse_to_int(since.clone())));
         }  else {
-            let mut duration: i64 = (((1000 * 1000)) * (self.parse_timeframe(timeframe.clone()).as_i64().unwrap_or_default()));
-            request.insert("since".into(), Value::Int(((self.milliseconds().as_i64().unwrap_or_default()) - duration)));
+            let mut duration: i64 = (((1000 * 1000)) * (self.parse_timeframe(timeframe.clone())));
+            request.insert("since".into(), Value::Int(((self.milliseconds()) - duration)));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.exchange_private_get_candles(&[__ws_arg_8]).await.into_dict();

@@ -1192,7 +1192,8 @@ impl Bitrue {
 }
 
     pub fn nonce(&self) -> Value {
-        return (match (&(self.milliseconds()), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return (match (&(Value::Int(self.milliseconds())), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
 
     Value::Null
 }
@@ -1350,7 +1351,7 @@ impl Bitrue {
             while { if !__for_first_412 { j += 1; } __for_first_412 = false; j < (networkDetails.len() as i64) } {
             let mut entry: crate::value::Dict = networkDetails.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&entry, "chain", &[]).as_str().map(str::to_owned);
-            let mut network: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut network: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (network != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&network), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2632,7 +2633,7 @@ impl Bitrue {
         if (type_var.as_deref() == Some("limit_maker")) {
             type_var = Some("limit".to_string());
         }
-        let mut triggerPrice: Value = self.parse_number(self.omit_zero(self.safe_string_k(order.clone(), "stopPrice", &[])), &[]);
+        let mut triggerPrice: Value = self.parse_number(Value::from(self.omit_zero(self.safe_string_k(order.clone(), "stopPrice", &[]))), &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
@@ -2786,8 +2787,8 @@ impl Bitrue {
                         Value::Str(" createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add \
                         .options[\"createMarketBuyOrderRequiresPrice\"] = false to supply the cost in the amount argument (the exchange-specific behaviour)".into()))));
                 }  else {
-                    let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-                    let mut priceString: Option<String> = self.number_to_string(price).as_str().map(str::to_owned);
+                    let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                    let mut priceString: Option<String> = self.number_to_string(price);
                     let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     let mut requestAmount: Option<String> = quoteAmount;
                     if (cost.is_some()) {
@@ -3518,7 +3519,7 @@ impl Bitrue {
             currencyId = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut networkId: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
             if (networkId.is_some()) {
-                network = self.network_id_to_code(&[networkId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null)]);
+                network = Value::from(self.network_id_to_code(&[networkId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null)]));
             }
         }
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
@@ -3679,7 +3680,7 @@ impl Bitrue {
                 let mut chainDetail: crate::value::Dict = self.safe_dict(&chainDetails, Value::Int(i), &[]).into_dict();
                 let mut networkId: Option<String> = self.safe_string_k(&chainDetail, "chain", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-                let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), currencyCode.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+                let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), currencyCode.map(Value::from).unwrap_or(Value::Null)]);
                 if (networkCode.is_some()) {
                     networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4177,8 +4178,8 @@ impl Bitrue {
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        let mut statusCode: Value = self.parse_to_int(code);
-        if statusCode.as_f64().unwrap_or(f64::NAN) >= ((400i64) as f64) {
+        let mut statusCode: Option<i64> = self.parse_to_int(code);
+        if statusCode >= Some(400) {
             if body.as_str().unwrap_or("").contains("Price * QTY is zero or less") {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order cost = amount * price is zero or less ".into())).into()), body)));
             }

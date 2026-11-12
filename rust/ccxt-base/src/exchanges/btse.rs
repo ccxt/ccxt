@@ -1360,7 +1360,7 @@ impl Btse {
         }
         if (since != Value::Null) {
             // the endpoint accepts timestamps in seconds
-            request.insert("start".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            request.insert("start".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsPaginate, Value::Str("fetchOHLCV".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1369,14 +1369,14 @@ impl Btse {
             if (since != Value::Null) {
                 // check if the requested time range is too large for one request
                 // if so, just omit until for correct paginated calls for not to get an error from the exchange
-                let mut duration: Value = self.parse_timeframe(timeframe.clone());
+                let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
                 let mut maxDelta: Value = (match (&((match (&(duration), &(maxLimit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })),
                     &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }); // parseTimeframe returns seconds, the difference below is in milliseconds
                 if ((match (&(until), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) < maxDelta.as_f64().unwrap_or(f64::NAN) {
-                    request.insert("end".into(), self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+                    request.insert("end".into(), Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
                 }
             }  else {
-                request.insert("end".into(), self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+                request.insert("end".into(), Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
             }
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsUntil]);
@@ -1513,7 +1513,7 @@ impl Btse {
         if (period.is_none()) {
             period = Some("7D".to_string());
             if (since != Value::Null) {
-                let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
+                let mut now: i64 = self.milliseconds();
                 let mut twoWeeksAgo: i64 = (now - 1209600000); // 14 days in ms
                 let mut oneWeekAgo: i64 = (now - 604800000); // 7 days in ms
                 if (since.as_i64().is_some() && since.as_i64() < Some(twoWeeksAgo)) {
@@ -1997,7 +1997,7 @@ impl Btse {
         if (baseVolume.is_some()) && (marketResolved != Value::Null) && matches!((self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) {
             // for contract markets the amount field is denominated in contracts, verified live -
             // scaling by contractSize converts it into base currency units
-            let mut contractSizeString: Option<String> = self.number_to_string(marketResolved.as_map().and_then(|__m| __m.get("contractSize")).cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut contractSizeString: Option<String> = self.number_to_string(marketResolved.as_map().and_then(|__m| __m.get("contractSize")).cloned().unwrap_or(Value::Null));
             if (contractSizeString.is_some()) {
                 baseVolume = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
@@ -2261,7 +2261,7 @@ impl Btse {
         // interval: a caller annualising a rate divides by it. anything under an
         // hour rounds to the same string, and the vocabulary has no minutes
         if (fundingIntervalMinutes != Value::Null) && (fundingIntervalMinutes.as_f64().unwrap_or(f64::NAN) >= ((60i64) as f64)) {
-            let mut hours: Value = self.parse_to_int((match ((fundingIntervalMinutes).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+            let mut hours: Value = Value::from(self.parse_to_int((match ((fundingIntervalMinutes).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
             interval = Some(format!("{}{}", Value::Str(format!("{}", hours).into()), Value::Str("h".into())));
         }
         return Value::Map({
@@ -2825,12 +2825,12 @@ impl Btse {
                 if (price == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend, alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".into()))));
                 }  else {
-                    let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-                    let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
+                    let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                    let mut priceString: Option<String> = self.number_to_string(price.clone());
                     quoteAmount = self.cost_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)));
                 }
             }  else {
-                quoteAmount = self.cost_to_precision(symbol.clone(), self.number_to_string(amount.clone()));
+                quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(self.number_to_string(amount.clone())));
             }
             request.insert("quoteOrderSize".into(), quoteAmount);
         }  else {
@@ -3698,7 +3698,7 @@ impl Btse {
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduceOnly", &[]));
         m.insert("side".to_string(), self.safe_string_lower2(order.clone(), Value::Str("side".into()), Value::Str("orderSide".into()), &[]));
         m.insert("price".to_string(), self.safe_string2(order.clone(), Value::Str("price".into()), Value::Str("orderPrice".into()), &[]));
-        m.insert("triggerPrice".to_string(), self.omit_zero(self.safe_string2(order.clone(), Value::Str("triggerOriginalPrice".into()), Value::Str("triggerPrice".into()), &[])));
+        m.insert("triggerPrice".to_string(), Value::from(self.omit_zero(self.safe_string2(order.clone(), Value::Str("triggerOriginalPrice".into()), Value::Str("triggerPrice".into()), &[]))));
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_string_n(order.clone(), Value::from(vec![Value::Str("currentOrderBaseSize".into()), Value::Str("currentOrderSize".into()), Value::Str("orderSize".into())]), &[]));
@@ -3707,7 +3707,7 @@ impl Btse {
         m.insert("cost".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
-        m.insert("average".to_string(), self.omit_zero(self.safe_string2(order, Value::Str("avgFilledPrice".into()), Value::Str("averageFillPrice".into()), &[])));
+        m.insert("average".to_string(), Value::from(self.omit_zero(self.safe_string2(order, Value::Str("avgFilledPrice".into()), Value::Str("averageFillPrice".into()), &[]))));
     m
 }), &[marketResolved]);
 
@@ -4093,7 +4093,7 @@ impl Btse {
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)])));
         m.insert("address".to_string(), self.safe_string_k(transaction.clone(), "toAddress", &[]));
         m.insert("addressTo".to_string(), self.safe_string_k(transaction.clone(), "toAddress", &[]));
         m.insert("addressFrom".to_string(), Value::Null);
@@ -5145,7 +5145,7 @@ impl Btse {
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("request-api".to_string(), self.apiKey.clone());
-                    m.insert("request-nonce".to_string(), self.number_to_string(nonce));
+                    m.insert("request-nonce".to_string(), Value::from(self.number_to_string(nonce)));
                     m.insert("request-sign".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("BROKER-ID".to_string(), Value::Str("ccxt".into()));
@@ -5185,7 +5185,8 @@ impl Btse {
 }
 
     pub fn nonce(&self) -> Value {
-        return (match (&(self.milliseconds()), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return (match (&(Value::Int(self.milliseconds())), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
 
     Value::Null
 }

@@ -1011,7 +1011,7 @@ impl Paymium {
 }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -1040,7 +1040,7 @@ impl Paymium {
         }  else {
             self.check_required_credentials(&[]);
             // paymium requires an increasing nonce
-            let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
+            let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.incrementing_nonce())).into());
             let mut auth: String = format!("{}{}", nonce, url);
             let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

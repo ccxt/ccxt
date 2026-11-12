@@ -2253,7 +2253,7 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone(), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             let mut specialNetworkId: Option<String> = self.safe_string_k(&tokenEntry, "token", &[]).as_str().map(str::to_owned);
             if (networkCode != Value::Null) {
                 resultingNetworks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
@@ -2553,7 +2553,7 @@ impl Woo {
         let mut hasStopLoss: bool = stopLoss != Value::Null;
         let mut hasTakeProfit: bool = takeProfit != Value::Null;
         let mut algoType: Option<String> = self.safe_string_k(&paramsMarginMode, "algoType", &[]).as_str().map(str::to_owned);
-        let mut trailingTriggerPrice: Option<String> = self.safe_string2(Value::from(&paramsMarginMode), Value::Str("trailingTriggerPrice".into()), Value::Str("activatedPrice".into()), &[self.number_to_string(price.clone())]).as_str().map(str::to_owned);
+        let mut trailingTriggerPrice: Option<String> = self.safe_string2(Value::from(&paramsMarginMode), Value::Str("trailingTriggerPrice".into()), Value::Str("activatedPrice".into()), &[Value::from(self.number_to_string(price.clone()))]).as_str().map(str::to_owned);
         let mut trailingAmount: Option<String> = self.safe_string2(Value::from(&paramsMarginMode), Value::Str("trailingAmount".into()), Value::Str("callbackValue".into()), &[]).as_str().map(str::to_owned);
         let mut trailingPercent: Option<String> = self.safe_string2(Value::from(&paramsMarginMode), Value::Str("trailingPercent".into()), Value::Str("callbackRate".into()), &[]).as_str().map(str::to_owned);
         let mut isTrailingAmountOrder: bool = trailingAmount.is_some();
@@ -2597,8 +2597,8 @@ impl Woo {
                 if (cost.is_some()) {
                     quoteAmount = self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null));
                 }  else {
-                    let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-                    let mut priceString: Option<String> = self.number_to_string(price).as_str().map(str::to_owned);
+                    let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                    let mut priceString: Option<String> = self.number_to_string(price);
                     let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                 }
@@ -2769,7 +2769,7 @@ impl Woo {
         if (triggerPrice.is_some()) {
             request.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
         }
-        let mut trailingTriggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("trailingTriggerPrice".into()), Value::Str("activatedPrice".into()), &[self.number_to_string(price)]).as_str().map(str::to_owned);
+        let mut trailingTriggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("trailingTriggerPrice".into()), Value::Str("activatedPrice".into()), &[Value::from(self.number_to_string(price))]).as_str().map(str::to_owned);
         let mut trailingAmount: Option<String> = self.safe_string2(params.clone(), Value::Str("trailingAmount".into()), Value::Str("callbackValue".into()), &[]).as_str().map(str::to_owned);
         let mut trailingPercent: Option<String> = self.safe_string2(params.clone(), Value::Str("trailingPercent".into()), Value::Str("callbackRate".into()), &[]).as_str().map(str::to_owned);
         let mut isTrailingAmountOrder: bool = trailingAmount.is_some();
@@ -3355,7 +3355,7 @@ impl Woo {
             timestamp = self.safe_integer_k(order.clone(), "timestamp", &[]).as_i64();
         }
         let mut orderId: Option<String> = self.safe_string2(order.clone(), Value::Str("orderId".into()), Value::Str("algoOrderId".into()), &[]).as_str().map(str::to_owned);
-        let mut clientOrderId: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("clientOrderId".into()), Value::Str("clientAlgoOrderId".into()), &[])).as_str().map(str::to_owned); // Somehow, this always returns 0 for limit order
+        let mut clientOrderId: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("clientOrderId".into()), Value::Str("clientAlgoOrderId".into()), &[])); // Somehow, this always returns 0 for limit order
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Option<String> = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
@@ -3365,7 +3365,7 @@ impl Woo {
         let mut status: Option<String> = self.safe_string2(order.clone(), Value::Str("status".into()), Value::Str("algoStatus".into()), &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string2(order.clone(), Value::Str("executed".into()), Value::Str("totalExecutedQuantity".into()), &[]).as_str().map(str::to_owned);
-        let mut average: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "averageExecutedPrice", &[])).as_str().map(str::to_owned);
+        let mut average: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "averageExecutedPrice", &[]));
         // const remaining = Precise.stringSub (cost, filled);
         let mut fee: Option<f64> = self.safe_number_k(order.clone(), "totalFee", &[]).as_f64();
         let mut feeCurrency: Option<String> = self.safe_string_k(order.clone(), "feeAsset", &[]).as_str().map(str::to_owned);
@@ -4223,7 +4223,7 @@ impl Woo {
         let mut paramsNetworkCode: Value = networkCodeRawparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut networks: crate::value::Dict = currency.get("networks").cloned().unwrap_or_default().into_dict();
         let mut currencyCode: String = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-        let mut networkCode: Option<String> = self.network_id_to_code(&[networkCodeRaw.map(Value::from).unwrap_or(Value::Null), Value::from(currencyCode)]).as_str().map(str::to_owned);
+        let mut networkCode: Option<String> = self.network_id_to_code(&[networkCodeRaw.map(Value::from).unwrap_or(Value::Null), Value::from(currencyCode)]);
         let mut networkEntry: Value = (if (networkCode.is_none()) { Value::Null } else { self.safe_dict(&networks, networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
         if (networkEntry == Value::Null) {
             let mut supportedNetworks: Value = Value::Array(networks.keys().cloned().map(Value::from).collect());
@@ -4247,7 +4247,7 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositEntry.clone());
         m.insert("currency".to_string(), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })])));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), self.safe_string_k(depositEntry, "extra", &[]));
     m
@@ -4625,7 +4625,7 @@ impl Woo {
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
-        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction, "network", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(transaction, "network", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)])));
     m
 });
 
@@ -5035,7 +5035,8 @@ impl Woo {
 }
 
     pub fn nonce(&self) -> Value {
-        return (match (&(self.milliseconds()), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return (match (&(Value::Int(self.milliseconds())), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
 
     Value::Null
 }
@@ -6178,7 +6179,7 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
                 m.insert("sellToken".to_string(), (if let Some(__s) = fromCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("buyToken".to_string(), (if let Some(__s) = toCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-                m.insert("sellQuantity".to_string(), self.number_to_string(amount));
+                m.insert("sellQuantity".to_string(), Value::from(self.number_to_string(amount)));
             m
         });
         let __ws_arg_44 = self.extend(Value::Map(request), &[params]);

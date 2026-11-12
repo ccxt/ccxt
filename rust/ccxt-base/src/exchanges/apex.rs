@@ -945,7 +945,7 @@ impl Apex {
                 let mut tokenName: Option<String> = self.safe_string_k(&token, "token", &[]).as_str().map(str::to_owned);
                 if (tokenName == currencyId) {
                     let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "chainId", &[]).as_str().map(str::to_owned);
-                    let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+                    let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
                     if (networkCode != Value::Null) {
                         networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1407,7 +1407,7 @@ impl Apex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut timestamp: i64 = self.milliseconds();
         let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(Value::from(&data), Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).as_map().cloned().unwrap_or_default();
         orderbook.insert("nonce".into(), self.safe_integer_k(&data, "u", &[]));
         return Value::Map(orderbook);
@@ -1771,7 +1771,7 @@ impl Apex {
         let mut status: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         // const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
-        let mut remaining: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "remainingSize", &[])).as_str().map(str::to_owned);
+        let mut remaining: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "remainingSize", &[]));
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "updatedTime", &[]).as_i64();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1893,8 +1893,8 @@ impl Apex {
         }  else {
             accountId = Value::Str(format!("{}", self.rand_number(Value::Int(12))).into());
         }
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("apexomni-".into()), accountId).into()), Value::Str("-".into())).into()), Value::Str(format!("{}", self.milliseconds()).into())).into()), Value::Str("-".into())).into()), Value::Str(format!("{}",
-            self.rand_number(Value::Int(6))).into())).into()).as_str().map(str::to_owned);
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("apexomni-".into()), accountId).into()), Value::Str("-".into())).into()), Value::Str(format!("{}", Value::Int(self.milliseconds())).into())).into()), Value::Str("-".into())).into()),
+            Value::Str(format!("{}", self.rand_number(Value::Int(6))).into())).into()).as_str().map(str::to_owned);
 }
 
     pub fn add_hyphen_before_usdt(&self, symbol: &str) -> Option<String> {
@@ -1991,8 +1991,8 @@ impl Apex {
         let mut taker: String = self.safe_string_k(&fees, "taker", &[Value::Str("0.0005".into())]).as_str().unwrap_or("0.0005").to_string();
         let mut maker: String = self.safe_string_k(&fees, "maker", &[Value::Str("0.0002".into())]).as_str().unwrap_or("0.0002").to_string();
         let mut pricePrecision: Value = market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null);
-        let mut limitFee: Value = self.decimal_to_precision(crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&orderPrice, &orderSize), &Value::from(taker.clone())), &self.number_to_string(pricePrecision.clone())), Value::Int(crate::runtime::TRUNCATE), pricePrecision, &[self.precisionMode.clone(), self.paddingMode.clone()]);
-        let mut timeNow: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut limitFee: Value = self.decimal_to_precision(crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&orderPrice, &orderSize), &Value::from(taker.clone())), &Value::from(self.number_to_string(pricePrecision.clone()))), Value::Int(crate::runtime::TRUNCATE), pricePrecision, &[self.precisionMode.clone(), self.paddingMode.clone()]);
+        let mut timeNow: i64 = self.milliseconds();
         let mut triggerPrice: Option<String> = self.safe_string_k(params.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
         let mut stopLossPrice: Option<String> = self.safe_string_k(params.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
         let mut takeProfitPrice: Option<String> = self.safe_string_k(params.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
@@ -2051,7 +2051,7 @@ impl Apex {
                 m.insert("size".to_string(), orderSize);
                 m.insert("price".to_string(), finalOrderPrice);
                 m.insert("limitFee".to_string(), limitFee);
-                m.insert("expiration".to_string(), (match (&(self.parse_to_int(Value::Float(((timeNow as f64) / 1000.0)))), &((match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
+                m.insert("expiration".to_string(), (match (&(Value::from(self.parse_to_int(Value::Float(((timeNow as f64) / 1000.0))))), &((match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
                     Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
                     (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
@@ -2173,8 +2173,8 @@ impl Apex {
         let mut mathPowResult: Value = (crate::runtime::Math::pow(&Value::Int(10), &decimalsNumber));
         let mut amountNum: Value = self.parse_number(amount.clone(), &[]);
         let mut amountValue: Value = (if (amountNum == Value::Null) { Value::Int(0) } else { amountNum });
-        let mut amountNumber: Value = self.parse_to_int((match (&(amountValue), &(mathPowResult)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
-        let mut timestampSeconds: Value = self.parse_to_int((match ((self.milliseconds()).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        let mut amountNumber: Value = Value::from(self.parse_to_int((match (&(amountValue), &(mathPowResult)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+        let mut timestampSeconds: Value = Value::from(self.parse_to_int((match ((Value::Int(self.milliseconds())).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         let mut clientOrderId: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
         let mut finalClientOrderId: Value = (if (clientOrderId.is_some()) { clientOrderId.clone().map(Value::from).unwrap_or(Value::Null) } else { self.generate_random_client_id_omni(self.safe_string_k(self.options.clone(), "accountId", &[])).map(Value::from).unwrap_or(Value::Null) });
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
@@ -2215,7 +2215,7 @@ impl Apex {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut currentTime: i64 = self.milliseconds().as_i64().unwrap_or_default();
+            let mut currentTime: i64 = self.milliseconds();
             let mut parsedAmount: Value = self.parse_number(amount.clone(), &[]);
             let __ws_arg_8 = self.parse_transfer(data.clone(), &[self.currency(code.clone())]);
             let __ws_arg_9 = self.iso8601(Value::from(currentTime));
@@ -2246,7 +2246,7 @@ impl Apex {
             let mut ts: Value = timestampSeconds; // java req
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("amount".to_string(), self.number_to_string(amount.clone()));
+                    m.insert("amount".to_string(), Value::from(self.number_to_string(amount.clone())));
                     m.insert("timestamp".to_string(), ts);
                     m.insert("clientTransferId".to_string(), finalClientOrderId);
                     m.insert("signature".to_string(), signature);
@@ -2268,7 +2268,7 @@ impl Apex {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut currentTime: i64 = self.milliseconds().as_i64().unwrap_or_default();
+            let mut currentTime: i64 = self.milliseconds();
             let __ws_arg_11 = self.parse_transfer(data, &[self.currency(code)]);
             let __ws_arg_12 = self.iso8601(Value::from(currentTime));
             let __ws_arg_13 = self.parse_number(amount, &[]);
@@ -2792,7 +2792,7 @@ impl Apex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut leverageString: Option<String> = self.number_to_string(leverage).as_str().map(str::to_owned);
+        let mut leverageString: Option<String> = self.number_to_string(leverage);
         let mut initialMarginRate: Option<String> = crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &leverageString.map(Value::from).unwrap_or(Value::Null), &Value::Int(4)).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2869,7 +2869,7 @@ impl Apex {
         let mut side: Option<String> = self.safe_string_lower_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut quantity: Option<String> = self.safe_string_k(position.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "updatedTime", &[]).as_i64();
-        let mut leverage: Value = Value::Int(20);
+        let mut leverage: Option<i64> = Some(20);
         let mut customInitialMarginRate: String = self.safe_string2(position.clone(), Value::Str("customInitialMarginRate".into()), Value::Str("customImr".into()), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         if (self.precision_from_string(Value::from(customInitialMarginRate.clone())).as_f64() != Some(0.0)) {
             leverage = self.parse_to_int(crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &Value::from(customInitialMarginRate), &Value::Int(4)));
@@ -2894,7 +2894,7 @@ impl Apex {
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
-        m.insert("leverage".to_string(), leverage);
+        m.insert("leverage".to_string(), Value::from(leverage));
         m.insert("liquidationPrice".to_string(), Value::Null);
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
@@ -2940,7 +2940,7 @@ impl Apex {
         }
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut timestamp: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
+            let mut timestamp: String = format!("{}", self.milliseconds());
             let mut messageString: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, (if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).into()), signPath);
             if (signBody.is_some()) {
                 messageString = format!("{}{}", messageString, signBody.as_deref().unwrap_or("null"));

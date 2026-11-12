@@ -11,7 +11,7 @@ use super::*;
 
 pub async fn testFetchPositions(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
     let mut method: Value = Value::Str("fetchPositions".into());
-    let mut now: Value = exchange.milliseconds();
+    let mut now: Value = Value::Int(exchange.milliseconds());
     // without symbol
     let mut positions: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_positions", vec![]).await;
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), positions.clone(), symbol.clone()]);

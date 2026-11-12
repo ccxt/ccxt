@@ -1818,7 +1818,7 @@ impl Bitfinex {
         // numberToString instead of an `as string` cast: the describe() default for this option is the
         // NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
         // InvalidCastException Int32 to String here, breaking bitfinex loadMarkets entirely in C#
-        let mut precision: Option<String> = self.number_to_string(self.handle_option(Value::Str("fetchCurrencies".into()), Value::Str("defaultPrecision".into()), &[Value::from(defaultCurrencyPrecision)])).as_str().map(str::to_owned);
+        let mut precision: Option<String> = self.number_to_string(self.handle_option(Value::Str("fetchCurrencies".into()), Value::Str("defaultPrecision".into()), &[Value::from(defaultCurrencyPrecision)]));
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1835,7 +1835,7 @@ impl Bitfinex {
             if (networkId.is_none()) {
                 continue;
             }
-            let mut network: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut network: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             let mut dwStatuses: crate::value::List = self.safe_list(indexed.get("statuses").cloned().unwrap_or(Value::Null), networkId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
             if (network != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&network), Value::Map({
@@ -2197,7 +2197,7 @@ impl Bitfinex {
         }
         let mut fullRequest: Value = self.extend(Value::Map(request), &[params]);
         let mut orderbook: Value = self.public_get_book_symbol_precision(&[fullRequest.clone()]).await;
-        let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut timestamp: i64 = self.milliseconds();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
@@ -3214,7 +3214,7 @@ impl Bitfinex {
         }  else {
             request = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), self.parse_to_int(id));
+                    m.insert("id".to_string(), Value::from(self.parse_to_int(id)));
                 m
             });
         }
@@ -3370,7 +3370,7 @@ impl Bitfinex {
 }));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), Value::from(vec![self.parse_to_int(id.clone())]));
+                m.insert("id".to_string(), Value::from(vec![Value::from(self.parse_to_int(id.clone()))]));
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
@@ -3409,7 +3409,7 @@ impl Bitfinex {
 }));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), Value::from(vec![self.parse_to_int(id.clone())]));
+                m.insert("id".to_string(), Value::from(vec![Value::from(self.parse_to_int(id.clone()))]));
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
@@ -3670,10 +3670,10 @@ impl Bitfinex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut orderId: Value = self.parse_to_int(id.clone());
+        let mut orderId: Option<i64> = self.parse_to_int(id.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), orderId);
+                m.insert("id".to_string(), Value::from(orderId));
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
@@ -3729,7 +3729,7 @@ impl Bitfinex {
         let mut market: Value = Value::Null;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("end".to_string(), self.milliseconds());
+                m.insert("end".to_string(), Value::Int(self.milliseconds()));
             m
         });
         if (since != Value::Null) {
@@ -3992,13 +3992,13 @@ impl Bitfinex {
             tag = self.safe_string(&data, Value::Int(3), &[]).as_str().map(str::to_owned);
             type_var = Some("withdrawal".to_string());
             let mut networkId: Option<String> = self.safe_string_opt(&data, Value::Int(2), &[]);
-            network = self.network_id_to_code(&[(if let Some(__s) = networkId.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), code.clone()]); // withdraw returns in lowercase
+            network = Value::from(self.network_id_to_code(&[(if let Some(__s) = networkId.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), code.clone()])); // withdraw returns in lowercase
         }  else if (transactionLength == 22) {
             id = self.safe_string(transaction.clone(), Value::Int(0), &[]);
             let mut currencyId: Option<String> = self.safe_string(transaction.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             code = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
             let mut networkId: Option<String> = self.safe_string_opt(transaction.clone(), Value::Int(2), &[]);
-            network = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]);
+            network = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]));
             timestamp = self.safe_integer(transaction.clone(), Value::Int(5), &[]).as_i64();
             updated = self.safe_integer(transaction.clone(), Value::Int(6), &[]).as_i64();
             status = self.parse_transaction_status((self.safe_string(transaction.clone(), Value::Int(9), &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
@@ -4299,7 +4299,7 @@ impl Bitfinex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("wallet".to_string(), Value::from(wallet));
-                m.insert("amount".to_string(), self.number_to_string(amount));
+                m.insert("amount".to_string(), Value::from(self.number_to_string(amount)));
                 m.insert("address".to_string(), address);
             m
         });
@@ -4521,7 +4521,7 @@ impl Bitfinex {
 }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -4558,7 +4558,7 @@ impl Bitfinex {
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             // bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
-            let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
+            let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.incrementing_nonce())).into());
             requestBody = json_stringify(&query).as_str().map(str::to_owned);
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/api/".into()), request).into()), nonce).into()), requestBody.as_deref().unwrap_or("null"));
             let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]).as_str().map(str::to_owned);

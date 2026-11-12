@@ -208,7 +208,7 @@ impl crate::exchange_generated::ExchangeBase for Bitvavo {
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_unsubscription_status" => self.handle_unsubscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "request_id" => self.request_id(),
+                "request_id" => crate::Value::from(self.request_id()),
                 "un_watch_channels" => self.un_watch_channels(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_ohlcv_for_symbols" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -291,7 +291,7 @@ impl Bitvavo {
             "handle_withdraw" => { self.handle_withdraw(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_withdraws" => { self.handle_withdraws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "request_id" => self.request_id(),
+            "request_id" => crate::Value::from(self.request_id()),
             "un_watch_channels" => { crate::exchange_stubs::enqueue_spawn("un_watch_channels", args.to_vec()); crate::Value::Null },
             "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
             "un_watch_ohlcv_for_symbols" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv_for_symbols", args.to_vec()); crate::Value::Null },
@@ -678,11 +678,11 @@ impl Bitvavo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
-        let mut trades: Value = self.watch_public("trades", symbolValue.as_deref().unwrap_or_default(), &[params]).await;
+        let mut symbolValue: String = self.symbol(symbol.clone());
+        let mut trades: Value = self.watch_public("trades", symbolValue.as_str(), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue.as_deref(), limit.as_i64());
+            limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
         return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
@@ -963,7 +963,7 @@ impl Bitvavo {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut interval: String = (match message.get("interval") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         // use a reverse lookup in a static map instead
-        let mut timeframe: Value = self.find_timeframe(Value::from(interval.clone()), &[]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(Value::from(interval.clone()), &[]));
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), (match message.get("market") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),
             Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) })).into()), Value::Str("_".into())).into()), interval);
         let mut candles: crate::value::List = message.get("candle").cloned().unwrap_or_default().into_list();
@@ -1961,7 +1961,7 @@ impl Bitvavo {
         let mut operatorId: Value = operatorIdparamsOperatorIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsOperatorId: crate::value::Dict = operatorIdparamsOperatorIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (operatorId != Value::Null) {
-            request.insert("operatorId".into(), self.parse_to_int(operatorId));
+            request.insert("operatorId".into(), Value::from(self.parse_to_int(operatorId)));
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".into()))));
         }
@@ -2079,18 +2079,16 @@ impl Bitvavo {
         }).await?))
     }
 
-    pub fn request_id(&self) -> Value {
-        let mut ts: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
+    pub fn request_id(&self) -> i64 {
+        let mut ts: String = format!("{}", self.milliseconds());
         let mut randomNumber: Value = self.rand_number(Value::Int(4));
         let mut randomPart: Value = Value::Str(format!("{}", randomNumber).into());
-        return self.parse_to_int(Value::Str(format!("{}{}", ts, randomPart).into()));
-
-    Value::Null
+        return self.parse_to_int(Value::Str(format!("{}{}", ts, randomPart).into())).unwrap_or_default();
 }
 
     pub async fn watch_request(&mut self, action: &str, mut request: Value) -> Value {
         let mut action: Value = action.into();
-        let mut messageHash: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut messageHash: i64 = self.request_id();
         let mut messageHashStr: Value = Value::Str(format!("{}", messageHash).into());
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), action); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(messageHash)); }
@@ -2846,7 +2844,7 @@ impl Bitvavo {
         let mut messageHash: Value = Value::Str("authenticated".into());
         let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
         if (future == Value::Null) {
-            let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
+            let mut timestamp: i64 = self.milliseconds();
             let mut stringTimestamp: Value = Value::Str(format!("{}", timestamp).into());
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", stringTimestamp, Value::Str("GET/".into())).into()), self.version.clone()).into()), Value::Str("/websocket".into()));
             let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);

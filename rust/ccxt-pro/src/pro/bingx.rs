@@ -1352,7 +1352,7 @@ impl Bingx {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut unifiedTimeframe: Value = self.find_timeframe(rawTimeframe.map(Value::from).unwrap_or(Value::Null), &[timeframes]);
+        let mut unifiedTimeframe: Value = Value::from(self.find_timeframe(rawTimeframe.map(Value::from).unwrap_or(Value::Null), &[timeframes]));
         if (self.safe_value((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), unifiedTimeframe.clone(), &[]) == Value::Null) {
             let mut subscriptionHash: String = dataType;
             let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(subscriptionHash), &[]).into_dict();
@@ -2192,7 +2192,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut time: Value = self.milliseconds();
+        let mut time: Value = Value::Int(self.milliseconds());
         let mut lastAuthenticatedTime: Value = self.safe_integer_k(self.options.clone(), "lastAuthenticatedTime", &[Value::Int(0)]);
         let mut listenKeyRefreshRate: Value = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(3600000)]); // 1 hour
         if (listenKeyRefreshRate != Value::Null) && ((match (&(time), &(lastAuthenticatedTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),

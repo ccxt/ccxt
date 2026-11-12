@@ -1724,7 +1724,7 @@ impl Derive {
             optionLetter = self.safe_string_k(&optionDetails, "option_type", &[]);
             if (settle != Value::Null) {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null),
-                    Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), self.yymmdd(Value::from(expiry), &[])).into()), Value::Str("-".into())).into()), self.number_to_string(strike.clone())).into()), Value::Str("-".into())).into()), optionLetter);
+                    Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), self.yymmdd(Value::from(expiry), &[])).into()), Value::Str("-".into())).into()), Value::from(self.number_to_string(strike.clone()))).into()), Value::Str("-".into())).into()), optionLetter);
             }
             if (optionLetter.as_str() == Some("P")) {
                 optionType = Some("put".to_string());
@@ -2688,26 +2688,26 @@ impl Derive {
         let mut paramsPrice: crate::value::Dict = priceTypeparamsPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut until: Value = self.safe_integer_k(&paramsPrice, "until", &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPrice, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
-        let mut duration: Value = self.parse_timeframe(timeframe.clone());
+        let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
         let mut untilSeconds: Value = self.seconds();
         if (until != Value::Null) {
-            untilSeconds = self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+            untilSeconds = Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
         // the venue keeps only the latest 5000 buckets of the requested window
         let mut defaultLimit: i64 = (if (since == Value::Null) { 1000 } else { 5000 });
-        let mut limitResolved: Value = self.parse_to_int(Value::from(defaultLimit));
+        let mut limitResolved: Value = Value::from(self.parse_to_int(Value::from(defaultLimit)));
         if (limit != Value::Null) {
-            limitResolved = self.parse_to_int(limit.clone());
+            limitResolved = Value::from(self.parse_to_int(limit.clone()));
         }
         if limitResolved.as_f64().unwrap_or(f64::NAN) > ((5000i64) as f64) {
-            limitResolved = self.parse_to_int(Value::Int(5000));
+            limitResolved = Value::from(self.parse_to_int(Value::Int(5000)));
         }
-        let mut span: Value = self.parse_to_int((match (&(limitResolved), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
-        let mut windowStart: Value = self.parse_to_int((match (&(untilSeconds), &(span)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+        let mut span: Value = Value::from(self.parse_to_int((match (&(limitResolved), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+        let mut windowStart: Value = Value::from(self.parse_to_int((match (&(untilSeconds), &(span)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })));
         let mut start: Value = windowStart.clone();
         let mut end: Value = untilSeconds;
         if (since != Value::Null) {
-            let mut sinceSeconds: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+            let mut sinceSeconds: Value = Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
             start = sinceSeconds.clone();
             // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
             if sinceSeconds.as_f64().unwrap_or(f64::NAN) < windowStart.as_f64().unwrap_or(f64::NAN) {
@@ -3052,10 +3052,10 @@ impl Derive {
     pub fn nonce_string(&mut self) -> Option<String> {
         // incrementingNonce guarantees unique milliseconds within one instance; the result matches the official derive-ts client nonce format (error 11017 = duplicate nonce)
         // the mutating calls stay hoisted out of other call arguments, nesting them breaks the rust borrow checker (E0502)
-        let mut rawNonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut rawNonce: i64 = self.incrementing_nonce();
         let mut randomPart: Value = self.rand_number(Value::Int(6)); // guards against collisions of different instances with the same wallet
-        let mut milliseconds: Value = self.number_to_string(Value::from(rawNonce));
-        let mut suffix: Value = self.number_to_string(randomPart);
+        let mut milliseconds: Value = Value::from(self.number_to_string(Value::from(rawNonce)));
+        let mut suffix: Value = Value::from(self.number_to_string(randomPart));
         let mut padded: Value = suffix.as_str().map(|__s| Value::Str(format!("{:0>6}", __s).into())).unwrap_or(Value::Null);
         return Value::Str(format!("{}{}", milliseconds, padded).into()).as_str().map(str::to_owned);
 }
@@ -3066,7 +3066,7 @@ impl Derive {
         let mut binaryMessageLength: Value = self.binary_length(binaryMessage.clone(), &[]);
         let mut x19: Value = self.base16_to_binary(Value::Str("19".into()), &[]);
         let mut newline: Value = self.base16_to_binary(Value::Str("0a".into()), &[]);
-        let mut prefix: Value = self.binary_concat(x19, &[self.encode(Value::Str("Ethereum Signed Message:".into())), newline, self.encode(self.number_to_string(binaryMessageLength))]);
+        let mut prefix: Value = self.binary_concat(x19, &[self.encode(Value::Str("Ethereum Signed Message:".into())), newline, self.encode(Value::from(self.number_to_string(binaryMessageLength)))]);
         return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(self.binary_concat(prefix, &[binaryMessage]), Value::Str("keccak".into()), &[Value::Str("hex".into())])).into()).as_str().map(str::to_owned);
 }
 
@@ -3152,7 +3152,7 @@ impl Derive {
             (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
         let mut ACTION_TYPEHASH: Value = self.base16_to_binary(Value::Str("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17".into()), &[]);
         let mut TRADE_MODULE_ADDRESS: String = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b".to_string(); // shared across mainnet and testnet in v3
-        let mut priceString: Option<String> = self.number_to_string(price).as_str().map(str::to_owned);
+        let mut priceString: Option<String> = self.number_to_string(price);
         let mut maxFeeOptionAndParams: Value = self.handle_option_and_params(&paramsDeriveSubaccountId, Value::Str("createOrder".into()), Value::Str("max_fee".into()), &[]);
         let mut maxFeeString: Option<String> = self.safe_string(maxFeeOptionAndParams.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         if (maxFeeString.is_none()) {
@@ -3162,7 +3162,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut amountString: Option<String> = self.number_to_string(amount).as_str().map(str::to_owned);
+        let mut amountString: Option<String> = self.number_to_string(amount);
         let mut marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k((market).raw.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3344,9 +3344,9 @@ impl Derive {
             (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
         let mut ACTION_TYPEHASH: Value = self.base16_to_binary(Value::Str("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17".into()), &[]);
         let mut TRADE_MODULE_ADDRESS: String = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b".to_string(); // shared across mainnet and testnet in v3
-        let mut priceString: Value = self.number_to_string(price);
+        let mut priceString: Value = Value::from(self.number_to_string(price));
         let mut maxFeeString: String = self.safe_string_k(&paramsDeriveSubaccountId, "max_fee", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-        let mut amountString: Option<String> = self.number_to_string(amount).as_str().map(str::to_owned);
+        let mut amountString: Option<String> = self.number_to_string(amount);
         let mut marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k((market).raw.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5118,13 +5118,13 @@ impl Derive {
         if (assetAddress.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() ".into())).into()), code).into()), Value::Str(" has no deposit-enabled spot asset".into()))));
         }
-        let mut fromId: Value = self.parse_to_int(fromAccount);
+        let mut fromId: Option<i64> = self.parse_to_int(fromAccount);
         // the destination is optional on the subaccount-creation path, an undefined must not reach the int conversion
-        let mut toId: Value = self.parse_to_int((if (toAccount == Value::Null) { Value::Int(0) } else { toAccount }));
-        let mut amountString: Option<String> = self.number_to_string(amount).as_str().map(str::to_owned);
+        let mut toId: Option<i64> = self.parse_to_int((if (toAccount == Value::Null) { Value::Int(0) } else { toAccount }));
+        let mut amountString: Option<String> = self.number_to_string(amount);
         let mut maxFeeUsd: String = self.safe_string_k(params.clone(), "max_fee_usd", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut newSubaccountManager: i64 = self.safe_integer_k(params.clone(), "new_subaccount_manager", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        if (toId.as_f64() == Some(0.0)) && (newSubaccountManager == 0) {
+        if (toId == Some(0)) && (newSubaccountManager == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires an existing toAccount or params.new_subaccount_manager to create one".into()))));
         }
         if (newSubaccountManager != 0) && (maxFeeUsd == "0") {
@@ -5136,17 +5136,17 @@ impl Derive {
             Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
         let mut ACTION_TYPEHASH: Value = self.base16_to_binary(Value::Str("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17".into()), &[]);
         let mut TRANSFER_MODULE_ADDRESS: String = "0x01259207A40925b794C8ac320456F7F6c8FE2636".to_string(); // shared across mainnet and testnet in v3
-        let mut transferModuleDataHash: Value = self.hash(self.eth_abi_encode(Value::from(vec![Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("address".into()), Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("uint".into())]), Value::from(vec![toId.clone(), Value::from(newSubaccountManager),
+        let mut transferModuleDataHash: Value = self.hash(self.eth_abi_encode(Value::from(vec![Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("address".into()), Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("uint".into())]), Value::from(vec![Value::from(toId), Value::from(newSubaccountManager),
             assetAddress.map(Value::from).unwrap_or(Value::Null), Value::Int(0), self.convert_to_big_int(self.parse_units(amountString.clone().map(Value::from).unwrap_or(Value::Null), &[]).map(Value::from).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(Value::from(maxFeeUsd.clone()), &[]).map(Value::from).unwrap_or(Value::Null))])),
             Value::Str("keccak".into()), &[Value::Str("binary".into())]);
         let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address("transfer", &paramsOmitted).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsDeriveWalletAddress: crate::value::Dict = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut signature: Option<String> = self.sign_order(Value::from(vec![ACTION_TYPEHASH, fromId.clone(), self.convert_to_big_int(nonce.clone()), Value::from(TRANSFER_MODULE_ADDRESS), transferModuleDataHash, signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.walletAddress.clone()]), (self.privateKey.clone()).as_str().unwrap_or_default());
+        let mut signature: Option<String> = self.sign_order(Value::from(vec![ACTION_TYPEHASH, Value::from(fromId), self.convert_to_big_int(nonce.clone()), Value::from(TRANSFER_MODULE_ADDRESS), transferModuleDataHash, signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.walletAddress.clone()]), (self.privateKey.clone()).as_str().unwrap_or_default());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("subaccount_id".to_string(), fromId.clone());
-                m.insert("to_subaccount_id".to_string(), toId.clone());
+                m.insert("subaccount_id".to_string(), Value::from(fromId));
+                m.insert("to_subaccount_id".to_string(), Value::from(toId));
                 m.insert("new_subaccount_manager".to_string(), Value::from(newSubaccountManager));
                 m.insert("asset_name".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("sub_id".to_string(), Value::Int(0));
@@ -5181,8 +5181,8 @@ impl Derive {
         let mut fillResponseFromRequest: bool = self.safe_bool_k(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if fillResponseFromRequest {
             // normalized through the int ids: the raw arguments arrive as strings in some languages and as numbers in others
-            transferEntry.insert("fromAccount".into(), self.number_to_string(fromId));
-            transferEntry.insert("toAccount".into(), (if (toId.as_f64() != Some(0.0)) { self.number_to_string(toId) } else { Value::Null }));
+            transferEntry.insert("fromAccount".into(), Value::from(self.number_to_string(Value::from(fromId))));
+            transferEntry.insert("toAccount".into(), (if (toId != Some(0)) { Value::from(self.number_to_string(Value::from(toId))) } else { Value::Null }));
             transferEntry.insert("amount".into(), self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]));
         }
         return Value::Map(transferEntry);
@@ -5575,7 +5575,7 @@ impl Derive {
         let mut maxFeeUsd: Value = self.safe_string2(Value::from(&paramsDeriveSubaccountId), Value::Str("max_fee_usd".into()), Value::Str("maxFeeUsd".into()), &[Value::from(defaultMaxFee)]);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsDeriveSubaccountId, Value::from(vec![Value::Str("max_fee_usd".into()), Value::Str("maxFeeUsd".into()), Value::Str("force_batch".into()), Value::Str("forceBatch".into())]), &[]).into_dict();
         // excess decimals are truncated away: a fractional scaled amount cannot be encoded, and the signature must commit to the exact wire amount
-        let mut amountString: Value = self.decimal_to_precision(self.number_to_string(amount), Value::Int(crate::runtime::TRUNCATE), decimals.clone(), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
+        let mut amountString: Value = self.decimal_to_precision(Value::from(self.number_to_string(amount)), Value::Int(crate::runtime::TRUNCATE), decimals.clone(), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
         // the withdrawal amount is the protocol's only non-e18 action value, it is signed at the native decimals of the underlying erc20
         let mut one: Value = Value::Str("1".into());
         let mut scale: Value = pad_end(&one, &(match (&(decimals), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &Value::Str("0".into()));
@@ -5889,7 +5889,7 @@ impl Derive {
         let mut paramsSubaccountId: Value = derivesubAccountIdparamsSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
         if (derivesubAccountId != Value::Null) && (derivesubAccountId.as_str() != Some("")) {
             // the venue rejects a string subaccount_id ("expected i64"), so coerce early
-            let mut subaccountIdInt: Value = self.parse_to_int(derivesubAccountId);
+            let mut subaccountIdInt: Value = Value::from(self.parse_to_int(derivesubAccountId));
             if !(matches!(&self.options, Value::Dict(__d) if __d.contains_key("subaccount_id"))) {
                 // remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
                 if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("subaccount_id".into(), subaccountIdInt.clone()); }
@@ -5898,7 +5898,7 @@ impl Derive {
         }
         let mut optionsWallet: Option<i64> = self.safe_integer_k(self.options.clone(), "subaccount_id", &[]).as_i64();
         if (optionsWallet.is_some()) {
-            return Value::from(vec![self.parse_to_int(Value::from(optionsWallet)), self.extend(paramsSubaccountId, &[])]);
+            return Value::from(vec![Value::from(self.parse_to_int(Value::from(optionsWallet))), self.extend(paramsSubaccountId, &[])]);
         }
         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.".into()))));
 
@@ -5946,7 +5946,8 @@ impl Derive {
 }
 
     pub fn nonce(&self) -> Value {
-        return (match (&(self.milliseconds()), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return (match (&(Value::Int(self.milliseconds())), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
 
     Value::Null
 }
@@ -5973,7 +5974,7 @@ impl Derive {
                 m
             });
             if (apiName.as_deref() == Some("private")) {
-                let mut now: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
+                let mut now: Option<String> = self.number_to_string(self.nonce());
                 let mut signature: Value = self.sign_message(now.as_deref().unwrap_or_default(), (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
                 let mut configuredWalletAddress: Option<String> = self.safe_string_k(self.options.clone(), "deriveWalletAddress", &[]).as_str().map(str::to_owned);
                 // v3: the owner wallet is the user's own EOA

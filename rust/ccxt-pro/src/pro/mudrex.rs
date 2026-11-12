@@ -185,7 +185,7 @@ impl crate::exchange_generated::ExchangeBase for Mudrex {
             match method {
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "request_id" => self.request_id(),
+                "request_id" => crate::Value::from(self.request_id()),
                 "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -207,7 +207,7 @@ impl Mudrex {
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "request_id" => self.request_id(),
+            "request_id" => crate::Value::from(self.request_id()),
             "set_broker_headers" => { self.set_broker_headers(); crate::Value::Null },
             "watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("watch_ohlcv", args.to_vec()); crate::Value::Null },
             "watch_ticker" => { crate::exchange_stubs::enqueue_spawn("watch_ticker", args.to_vec()); crate::Value::Null },
@@ -267,7 +267,7 @@ impl Mudrex {
     pub fn ping(&mut self, mut client: Value) -> Value {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.request_id());
+        m.insert("id".to_string(), Value::Int(self.request_id()));
         m.insert("method".to_string(), Value::Str("PING".into()));
     m
 });
@@ -275,12 +275,10 @@ impl Mudrex {
     Value::Null
 }
 
-    pub fn request_id(&mut self) -> Value {
+    pub fn request_id(&mut self) -> i64 {
         let mut reqid: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "correlationId", &[Value::Int(0)]), Value::Int(1)]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("correlationId".into(), reqid.clone()); }
-        return reqid;
-
-    Value::Null
+        return reqid.as_i64().unwrap_or_default();
 }
 
 /*
@@ -336,7 +334,7 @@ impl Mudrex {
         assetId = format!("{}{}", assetId, Value::from(quoteIdString.to_lowercase()));
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), self.request_id());
+                m.insert("id".to_string(), Value::Int(self.request_id()));
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
                 m.insert("params".to_string(), Value::from(vec![Value::Str("ticker@1s".into())]));
                 m.insert("assets".to_string(), Value::from(vec![Value::from(assetId)]));
@@ -384,7 +382,7 @@ impl Mudrex {
         self.set_broker_headers();
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), self.request_id());
+                m.insert("id".to_string(), Value::Int(self.request_id()));
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
                 m.insert("params".to_string(), Value::from(vec![Value::Str("ticker@1s".into())]));
                 m.insert("assets".to_string(), Value::from(assets));
@@ -445,7 +443,7 @@ impl Mudrex {
         self.set_broker_headers();
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), self.request_id());
+                m.insert("id".to_string(), Value::Int(self.request_id()));
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
                 m.insert("params".to_string(), Value::from(vec![Value::from(stream)]));
             m
@@ -504,7 +502,7 @@ impl Mudrex {
         }
         let mut parts: Vec<Value> = Value::Array(if let Some(__s) = stream.as_deref() { __s.split("@").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut interval: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut tf: Value = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut tf: Value = Value::from(self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]));
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut s: Option<String> = self.safe_string_k(&data, "s", &[]).as_str().map(str::to_owned);
         if (s.is_none()) {
@@ -545,7 +543,7 @@ impl Mudrex {
             }
             let mut market: crate::value::Dict = self.safe_market(&[s.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null)]).into_dict();
             let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-            let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
+            let mut timestamp: i64 = self.milliseconds();
             let mut last: Option<f64> = self.safe_number_k(&t, "p", &[]).as_f64();
             let mut result: Value = self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();

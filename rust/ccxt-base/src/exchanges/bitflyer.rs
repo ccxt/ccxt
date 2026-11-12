@@ -563,7 +563,7 @@ impl Bitflyer {
         if (month.is_none()) {
             return Value::Null;
         }
-        return self.parse8601(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", expiryYear, Value::Str("-".into())).into()), month.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), day).into()), Value::Str("T00:00:00Z".into())).into()));
+        return Value::from(self.parse8601(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", expiryYear, Value::Str("-".into())).into()), month.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), day).into()), Value::Str("T00:00:00Z".into())).into())));
 
     Value::Null
 }
@@ -866,7 +866,7 @@ impl Bitflyer {
         let mut ticker: Value = ticker.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut symbol: Option<String> = self.safe_symbol(Value::Null, &[market.clone()]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker.clone(), "timestamp", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker.clone(), "timestamp", &[]));
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "ltp", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -974,7 +974,7 @@ impl Bitflyer {
         if (order.is_none()) {
             order = self.safe_string_k(trade.clone(), "child_order_acceptance_id", &[]).as_str().map(str::to_owned);
         }
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "exec_date", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "exec_date", &[]));
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "id", &[]).as_str().map(str::to_owned);
@@ -1210,7 +1210,7 @@ impl Bitflyer {
     pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut order: Value = order.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "child_order_date", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "child_order_date", &[]));
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "executed_size", &[]).as_str().map(str::to_owned);
@@ -1698,7 +1698,7 @@ impl Bitflyer {
         let mut address: Option<String> = self.safe_string_k(transaction.clone(), "address", &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "currency_code", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "event_date", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "event_date", &[]));
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
         let mut txId: Option<String> = self.safe_string_k(transaction.clone(), "tx_hash", &[]).as_str().map(str::to_owned);
         let mut rawStatus: Option<String> = self.safe_string_k(transaction.clone(), "status", &[]).as_str().map(str::to_owned);
@@ -1793,7 +1793,7 @@ impl Bitflyer {
         //    }
         //
         let mut nextFundingDatetime: Option<String> = self.safe_string_k(contract.clone(), "next_funding_rate_settledate", &[]).as_str().map(str::to_owned);
-        let mut nextFundingTimestamp: Option<i64> = self.parse8601(nextFundingDatetime.map(Value::from).unwrap_or(Value::Null)).as_i64();
+        let mut nextFundingTimestamp: Option<i64> = self.parse8601(nextFundingDatetime.map(Value::from).unwrap_or(Value::Null));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());

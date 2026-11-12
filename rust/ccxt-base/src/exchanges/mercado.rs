@@ -887,7 +887,7 @@ impl Mercado {
             m
         });
         if (since != Value::Null) {
-            request.insert("from".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            request.insert("from".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let mut to: Option<i64> = self.safe_integer_k(params.clone(), "to", &[]).as_i64();
         let mut response: Value = Value::Null;
@@ -1025,8 +1025,8 @@ impl Mercado {
                 if (price == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount".into()))));
                 }
-                let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-                let mut priceString: Option<String> = self.number_to_string(price).as_str().map(str::to_owned);
+                let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                let mut priceString: Option<String> = self.number_to_string(price);
                 let mut cost: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)));
                 request.insert("cost".into(), self.price_to_precision(Value::from((market).symbol.clone()), cost));
                 let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[params.clone()]);
@@ -1243,7 +1243,7 @@ impl Mercado {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin_pair".to_string(), Value::from((market).id.as_deref()));
-                m.insert("order_id".to_string(), self.parse_to_int(id));
+                m.insert("order_id".to_string(), Value::from(self.parse_to_int(id)));
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
@@ -1438,12 +1438,12 @@ impl Mercado {
         // set some default limit, as it's required if user doesn't provide it
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
-            { let __be_tmp = self.sum(&[crate::value::get_value_k(&request, "from"), Value::Int((limitResolved * (self.parse_timeframe(timeframe.clone()).as_i64().unwrap_or_default())))]); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".into(), __be_tmp); } }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))); }
+            { let __be_tmp = self.sum(&[crate::value::get_value_k(&request, "from"), Value::Int((limitResolved * (self.parse_timeframe(timeframe.clone()))))]); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".into(), __be_tmp); } }
         }  else {
             let mut to: i64 = self.seconds().as_i64().unwrap_or_default();
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".into(), Value::from(to)); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), Value::Int((to - ((limitResolved * (self.parse_timeframe(timeframe.clone()).as_i64().unwrap_or_default())))))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), Value::Int((to - ((limitResolved * (self.parse_timeframe(timeframe.clone()))))))); }
         }
         let __ws_arg_12 = self.extend(request, &[params]);
         let mut response: Value = self.v4_public_net_get_candles(&[__ws_arg_12]).await;
@@ -1619,7 +1619,7 @@ impl Mercado {
 }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -1652,7 +1652,7 @@ impl Mercado {
             self.check_required_credentials(&[]);
             url.push_str(&format!("{}{}", self.version.clone(), Value::Str("/".into())));
             // mercado requires each tonce to be greater than the previous one
-            let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+            let mut nonce: i64 = self.incrementing_nonce();
             let __ws_arg_16 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("tapi_method".to_string(), path);

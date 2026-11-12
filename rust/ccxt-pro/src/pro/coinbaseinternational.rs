@@ -207,7 +207,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbaseinternational {
                 "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "request_id" => self.request_id(),
+                "request_id" => crate::Value::from(self.request_id()),
                 "request_ws" => self.request_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "resubscribe_order_book" => self.resubscribe_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
                 "set_cancel_on_disconnect" => self.set_cancel_on_disconnect(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -295,7 +295,7 @@ impl Coinbaseinternational {
             "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "request_id" => self.request_id(),
+            "request_id" => crate::Value::from(self.request_id()),
             "request_ws" => { crate::exchange_stubs::enqueue_spawn("request_ws", args.to_vec()); crate::Value::Null },
             "resubscribe_order_book" => { crate::exchange_stubs::enqueue_spawn("resubscribe_order_book", args.to_vec()); crate::Value::Null },
             "set_cancel_on_disconnect" => { crate::exchange_stubs::enqueue_spawn("set_cancel_on_disconnect", args.to_vec()); crate::Value::Null },
@@ -463,12 +463,10 @@ impl Coinbaseinternational {
     Value::Null
 }
 
-    pub fn request_id(&mut self) -> Value {
+    pub fn request_id(&mut self) -> i64 {
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
-        return requestId;
-
-    Value::Null
+        return requestId.as_i64().unwrap_or_default();
 }
 
     pub fn get_ws_url(&self, optional_args: &[Value]) -> Value {
@@ -487,11 +485,11 @@ impl Coinbaseinternational {
     pub fn ping(&mut self, mut client: Value) -> Value {
         let mut refreshAt: Option<i64> = self.safe_integer_k(self.options.clone(), "wsAuthRefreshAt", &[]).as_i64();
         let mut isPrivateClient: bool = client.url().as_str() == self.get_ws_url(&[Value::Bool(true)]).as_str();
-        if isPrivateClient && (refreshAt.is_some()) && ((refreshAt.is_some() && Some((self.milliseconds().as_i64().unwrap_or_default())) >= refreshAt)) {
+        if isPrivateClient && (refreshAt.is_some()) && ((refreshAt.is_some() && Some((self.milliseconds())) >= refreshAt)) {
             // re-authenticate in-band before the session expires, also while no watch call is pending
             // retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage
-            { let __be_tmp = self.sum(&[self.milliseconds(), Value::Int(60000)]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsAuthRefreshAt".into(), __be_tmp); } }
-            let mut requestId: Value = self.request_id();
+            { let __be_tmp = self.sum(&[Value::Int(self.milliseconds()), Value::Int(60000)]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsAuthRefreshAt".into(), __be_tmp); } }
+            let mut requestId: Value = Value::Int(self.request_id());
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsAuthRequestId".into(), requestId.clone()); }
             let mut params: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -520,7 +518,7 @@ impl Coinbaseinternational {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
-        m.insert("id".to_string(), self.request_id());
+        m.insert("id".to_string(), Value::Int(self.request_id()));
         m.insert("method".to_string(), Value::Str("public/test".into()));
         m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -572,7 +570,7 @@ impl Coinbaseinternational {
         m.insert("channels".to_string(), channels.clone());
     m
 }));
-                m.insert("id".to_string(), self.request_id());
+                m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
         let mut extendedRequest: Value = self.deep_extend(Value::Map(request), &[paramsResolved]);
@@ -632,7 +630,7 @@ impl Coinbaseinternational {
         m.insert("channels".to_string(), channels.clone());
     m
 }));
-                m.insert("id".to_string(), self.request_id());
+                m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
@@ -1709,7 +1707,7 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolResolved: Value = self.symbol(symbol.clone());
+        let mut symbolResolved: Value = Value::from(self.symbol(symbol.clone()));
         let mut ohlcvs: Value = crate::types::IntoRaw::into_raw(self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbolResolved.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), paramsResolved).await);
         return get_value(&(if let (Some(__m), Some(__k)) = (ohlcvs.as_map(), symbolResolved.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &timeframe);
         Value::Null
@@ -1872,7 +1870,7 @@ impl Coinbaseinternational {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timeframe: Value = self.find_timeframe(resolution.map(Value::from).unwrap_or(Value::Null), &[timeframes]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(resolution.map(Value::from).unwrap_or(Value::Null), &[timeframes]));
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2350,7 +2348,7 @@ impl Coinbaseinternational {
         m.insert("channels".to_string(), Value::from(vec![channel.clone()]));
     m
 }));
-                m.insert("id".to_string(), self.request_id());
+                m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url]));
@@ -2426,7 +2424,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             client.send(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
-                    m.insert("id".to_string(), self.request_id());
+                    m.insert("id".to_string(), Value::Int(self.request_id()));
                     m.insert("method".to_string(), Value::Str("public/test".into()));
                     m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2486,7 +2484,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (requestId.is_some()) {
             let mut result: crate::value::Dict = __pro_message.get("result").cloned().unwrap_or_default().into_dict();
             if (self.safe_string_k(&result, "version", &[]) != Value::Null) {
-                crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+                crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
             }
             let mut authRequestId: Option<String> = self.safe_string_k(self.options.clone(), "wsAuthRequestId", &[]).as_str().map(str::to_owned);
             if (requestId == authRequestId) {
@@ -2519,10 +2517,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut expiresIn: Value = self.safe_integer_k(result.clone(), "expires_in", &[Value::Int(900)]);
         let mut ratio: Option<f64> = self.safe_number_k(self.options.clone(), "wsAuthRefreshRatio", &[]).as_f64();
         let mut refreshRatio: Value = (if (ratio.is_none()) { Value::Float(0.8) } else { Value::from(ratio) });
-        let mut now: Value = self.milliseconds();
-        { let __be_tmp = self.sum(&[now.clone(), self.parse_to_int((match (&((match (&(expiresIn), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+        let mut now: Value = Value::Int(self.milliseconds());
+        { let __be_tmp = self.sum(&[now.clone(), Value::from(self.parse_to_int((match (&((match (&(expiresIn), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(refreshRatio)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-            _ => Value::Null }))]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsAuthRefreshAt".into(), __be_tmp); } }
+            _ => Value::Null })))]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsAuthRefreshAt".into(), __be_tmp); } }
         crate::set_value(&mut client, &Value::Str("lastPong".into()), now);
         client.resolve(result, "authenticated");
 }
@@ -2550,14 +2548,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
         if (future != Value::Null) {
             let mut refreshAt: Option<i64> = self.safe_integer_k(self.options.clone(), "wsAuthRefreshAt", &[]).as_i64();
-            if (refreshAt.is_some()) && ((refreshAt.is_some() && Some((self.milliseconds().as_i64().unwrap_or_default())) >= refreshAt)) && !(client.has_future(&messageHash)) {
+            if (refreshAt.is_some()) && ((refreshAt.is_some() && Some((self.milliseconds())) >= refreshAt)) && !(client.has_future(&messageHash)) {
                 client.remove_subscription(&messageHash);
                 future = Value::Null;
             }
         }
         if (future == Value::Null) {
             self.check_required_credentials(&[]);
-            let mut requestId: Value = self.request_id();
+            let mut requestId: Value = Value::Int(self.request_id());
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsAuthRequestId".into(), requestId.clone()); }
             let mut paramsAuth: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -2614,7 +2612,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isPrivate {
             self.authenticate(&[]).await;
         }
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut messageHash: Value = Value::Str(format!("{}", requestId).into());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3311,7 +3309,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
-                m.insert("id".to_string(), self.request_id());
+                m.insert("id".to_string(), Value::Int(self.request_id()));
                 m.insert("method".to_string(), Value::Str("private/logout".into()));
                 m.insert("params".to_string(), Value::Map(paramsResolved));
             m

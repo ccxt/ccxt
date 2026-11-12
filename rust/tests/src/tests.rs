@@ -303,7 +303,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // others
         let mut timeout: Value = exchange.safe_value(skippedSettingsForExchange.clone(), Value::Str("timeout".into()), &[]);
         if (timeout != Value::Null) {
-            { let __sv_tmp = exchange.parse_to_int(timeout.clone()); ccxt::set_value(&mut exchange, &Value::Str("timeout".into()), __sv_tmp); }
+            { let __sv_tmp = Value::from(exchange.parse_to_int(timeout.clone())); ccxt::set_value(&mut exchange, &Value::Str("timeout".into()), __sv_tmp); }
         }
         if is_true(&getCliArgValue(Value::Str("--useProxy".into()))) {
             { let __sv_tmp = exchange.safe_string(skippedSettingsForExchange.clone(), Value::Str("httpProxy".into()), &[]); ccxt::set_value(&mut exchange, &Value::Str("httpProxy".into()), __sv_tmp); }
@@ -2063,8 +2063,8 @@ if _try_result.is_err() {
                     }
                 }  else {
                     if (self.lang.as_str() == Some("C#")) {
-                        let mut stringifiedNewOutput: Value = exchange.number_to_string(sanitizedNewOutput.clone());
-                        let mut stringifiedStoredOutput: Value = exchange.number_to_string(sanitizedStoredOutput.clone());
+                        let mut stringifiedNewOutput: Value = Value::from(exchange.number_to_string(sanitizedNewOutput.clone()));
+                        let mut stringifiedStoredOutput: Value = Value::from(exchange.number_to_string(sanitizedStoredOutput.clone()));
                         self.assert_static_error(Value::Bool(Value::Str(format!("{}", stringifiedNewOutput).into()).as_str() == Value::Str(format!("{}", stringifiedStoredOutput).into()).as_str()), messageError.clone(), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
                     }  else {
                         let mut numericNewOutput: Value = exchange.parse_to_numeric(newOutputString.clone());
@@ -4657,7 +4657,7 @@ if _try_result.is_err() {
         // pre-seed the gateway access token so createOrder signs the order directly instead of
         // making a prior (offline-unreachable) public/auth network call
         ccxt::set_value(&mut exchange, &Value::Str("token".into()), Value::Str("token".into()));
-        let mut tokenExpires: Value = (match (&(exchange.milliseconds()), &(Value::Int(100000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+        let mut tokenExpires: Value = (match (&(Value::Int(exchange.milliseconds())), &(Value::Int(100000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
         add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("v2TokenExpires".into()), tokenExpires.clone());
         add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("portfolio".into()), Value::Str("random".into()));
         let mut id: Value = Value::Str("ccxt".into());

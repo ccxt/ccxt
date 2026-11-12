@@ -1031,14 +1031,13 @@ impl Bitbank {
         // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
         let mut windowLimit: i64 = limit.as_i64().unwrap_or(1000);
         let mut limitResolved: Option<i64> = (if (since == Value::Null) { Some(windowLimit) } else { limit.as_i64() });
-        let mut duration: Value = self.parse_timeframe(timeframe.clone());
-        let mut windowMs: Value = (match (&((match (&(duration), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })),
-            &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut duration: i64 = self.parse_timeframe(timeframe.clone());
+        let mut windowMs: Value = Value::Int((((duration * 1000)) * 1000));
         if (limit != Value::Null) {
-            windowMs = (match (&((match (&(duration), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })),
-                &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            windowMs = (match (&(Value::Int((duration * 1000))), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         }
-        let mut sinceResolved: Value = (if (since == Value::Null) { (match (&(self.milliseconds()), &(windowMs)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }) } else { since });
+        let mut sinceResolved: Value = (if (since == Value::Null) { (match (&(Value::Int(self.milliseconds())), &(windowMs)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x - y), _ => Value::Null }) } else { since });
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1418,7 +1417,7 @@ impl Bitbank {
             request.insert("count".into(), limit.clone());
         }
         if (since != Value::Null) {
-            request.insert("since".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            request.insert("since".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_user_spot_active_orders(&[__ws_arg_7]).await.into_dict();
@@ -1472,7 +1471,7 @@ impl Bitbank {
             request.insert("count".into(), limit.clone());
         }
         if (since != Value::Null) {
-            request.insert("since".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            request.insert("since".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_user_spot_trade_history(&[__ws_arg_8]).await.into_dict();
@@ -1661,7 +1660,7 @@ impl Bitbank {
 }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -1701,9 +1700,9 @@ impl Bitbank {
             // since bitbank offers no server time endpoint to compensate against
             let mut authMethod: Option<String> = self.safe_string_k(self.options.clone(), "authMethod", &[Value::Str("timeWindow".into())]).as_str().map(str::to_owned);
             let mut isTimeWindow: bool = authMethod.as_deref() == Some("timeWindow");
-            let mut requestTime: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
+            let mut requestTime: String = format!("{}", self.milliseconds());
             let mut timeWindow: String = self.safe_string_k(self.options.clone(), "timeWindow", &[Value::Str("5000".into())]).as_str().unwrap_or("5000").to_string();
-            let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
+            let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.incrementing_nonce())).into());
             let mut auth: Value = nonce.clone();
             if isTimeWindow {
                 auth = Value::Str(format!("{}{}", requestTime, timeWindow).into());

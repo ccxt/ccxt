@@ -1601,7 +1601,7 @@ impl Extended {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut timestamp: i64 = self.milliseconds();
         let mut orderbook: Value = self.parse_order_book(data, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bid".into()), Value::Str("ask".into()), Value::Str("price".into()), Value::Str("qty".into())]);
         if (limit != Value::Null) {
             { let __be_tmp = self.array_slice(crate::value::get_value_k(&orderbook, "bids"), Value::Int(0), &[limit.clone()]); if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("bids".into(), __be_tmp); } };
@@ -2131,7 +2131,7 @@ impl Extended {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
-        let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[self.milliseconds()]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[Value::Int(self.milliseconds())]).as_i64();
         let mut endTime: Value = self.safe_integer_k(&paramsPaginate, "endTime", &[Value::from(until)]);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]).into_dict();
         let mut sinceResolved: Value = since.clone();
@@ -2255,13 +2255,12 @@ impl Extended {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterestHistory() supports 1h and 1d timeframes only".into()))));
         }
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
-        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[self.milliseconds()]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[Value::Int(self.milliseconds())]).as_i64();
         let mut endTime: Value = self.safe_integer_k(params.clone(), "endTime", &[Value::from(until)]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]).into_dict();
         let mut sinceResolved: Value = since.clone();
         if (endTime != Value::Null) && (since == Value::Null) {
-            sinceResolved = (match (&(endTime), &((Value::Int((((limitResolved * (self.parse_timeframe(timeframe).as_i64().unwrap_or_default()))) * 1000))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64),
-                (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            sinceResolved = (match (&(endTime), &((Value::Int((((limitResolved * (self.parse_timeframe(timeframe)))) * 1000))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2877,7 +2876,7 @@ impl Extended {
         //         "data": 1820796462590083072
         //     }
         //
-        let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut now: i64 = self.milliseconds();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -3054,7 +3053,7 @@ impl Extended {
     m
 })]).into_dict();
         let mut validSignature: Option<bool> = self.safe_bool_k(&data, "validSignature", &[]).as_bool();
-        let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut now: i64 = self.milliseconds();
         let mut status: String = "pending".to_string();
         if (validSignature.is_some()) {
             status = (if (validSignature == Some(true)) { "ok".to_string() } else { "failed".to_string() });
@@ -3200,7 +3199,7 @@ impl Extended {
             });
         }
         let mut transactionType: Value = self.parse_transaction_type((self.safe_string_k(transaction.clone(), "type", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut network: Option<String> = self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "chain", &[])]).as_str().map(str::to_owned);
+        let mut network: Option<String> = self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "chain", &[])]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
@@ -3447,7 +3446,7 @@ impl Extended {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
-                m.insert("leverage".to_string(), self.number_to_string(leverage));
+                m.insert("leverage".to_string(), Value::from(self.number_to_string(leverage)));
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
@@ -3763,7 +3762,7 @@ impl Extended {
     pub fn get_extended_stark_amount(&self, mut amount: Value, resolution: Option<i64>, optional_args: &[Value]) -> Value {
         let mut resolution: Value = resolution.into();
         let roundUp: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
-        let mut resolutionString: Option<String> = self.number_to_string(resolution).as_str().map(str::to_owned);
+        let mut resolutionString: Option<String> = self.number_to_string(resolution);
         let mut precise: Option<String> = crate::precise::Precise::stringMul(&amount, &resolutionString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut result: Value = self.decimal_to_precision(precise.clone().map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES), Value::Int(crate::runtime::NO_PADDING)]);
         if roundUp && crate::precise::Precise::stringGt(&precise.map(Value::from).unwrap_or(Value::Null), &result).as_bool() == Some(true) {
@@ -3835,7 +3834,7 @@ impl Extended {
                 m.insert("quoteAmount".to_string(), collateralAmount);
                 m.insert("feeAssetId".to_string(), collateralId.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("feeAmount".to_string(), feeAmount.map(Value::from).unwrap_or(Value::Null));
-                m.insert("expiration".to_string(), self.number_to_string(Value::from(settlementExpiration)));
+                m.insert("expiration".to_string(), Value::from(self.number_to_string(Value::from(settlementExpiration))));
                 m.insert("salt".to_string(), Value::from(nonce));
             m
         });
@@ -3860,10 +3859,10 @@ impl Extended {
         let currency = currency.as_map().unwrap_or(&__currency_empty);
         let __account_empty = indexmap::IndexMap::new();
         let account = account.as_map().unwrap_or(&__account_empty);
-        let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
-        let mut settlementExpiration: Value = self.safe_integer_k(params.clone(), "settlementExpiration", &[(match (&((match (&(self.parse_to_int(Value::Float(((((now + 999)) as f64) / 1000.0)))), &(Value::Int(1209600))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
-            Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
-            (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
+        let mut now: i64 = self.milliseconds();
+        let mut settlementExpiration: Value = self.safe_integer_k(params.clone(), "settlementExpiration", &[(match (&((match (&(Value::from(self.parse_to_int(Value::Float(((((now + 999)) as f64) / 1000.0))))), &(Value::Int(1209600))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y),
+            (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
+            Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
         let mut nonce: Option<i64> = self.safe_integer_k(params.clone(), "nonce", &[self.nonce()]).as_i64();
         let mut positionId: Value = self.safe_string2(params.clone(), Value::Str("positionId".into()), Value::Str("l2Vault".into()), &[(match account.get("l2Vault") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
         let mut recipient: Option<String> = self.safe_string_k(params.clone(), "recipient", &[address]).as_str().map(str::to_owned);
@@ -3913,9 +3912,9 @@ impl Extended {
         let currency = currency.as_map().unwrap_or(&__currency_empty);
         let __account_empty = indexmap::IndexMap::new();
         let account = account.as_map().unwrap_or(&__account_empty);
-        let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
-        let mut settlementExpiration: Value = self.safe_integer_k(params.clone(), "settlementExpiration", &[(match (&(self.parse_to_int(Value::Float(((((now + 999)) as f64) / 1000.0)))), &(Value::Int(1814400))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
-            Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
+        let mut now: i64 = self.milliseconds();
+        let mut settlementExpiration: Value = self.safe_integer_k(params.clone(), "settlementExpiration", &[(match (&(Value::from(self.parse_to_int(Value::Float(((((now + 999)) as f64) / 1000.0))))), &(Value::Int(1814400))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y),
+            (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
         let mut nonce: Option<i64> = self.safe_integer_k(params.clone(), "nonce", &[self.nonce()]).as_i64();
         let mut fromVault: Value = self.safe_string2(params.clone(), Value::Str("fromVault".into()), Value::Str("senderPositionId".into()), &[(match account.get("l2Vault") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
         let mut fromL2Key: Value = self.safe_string2(params.clone(), Value::Str("fromL2Key".into()), Value::Str("senderPublicKey".into()), &[(match account.get("l2Key") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
@@ -4007,13 +4006,13 @@ impl Extended {
         if (builderFeeRate != Value::Null) {
             totalFee = crate::precise::Precise::stringAdd(&fee, &builderFeeRate);
         }
-        let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut now: i64 = self.milliseconds();
         let mut expiryEpochMillis: Value = self.safe_integer_k(paramsBuilder.clone(), "expiryEpochMillis", &[Value::Int((now + 3600000))]);
-        let mut settlementDefault: Value = (if (expiryEpochMillis != Value::Null) { (match (&(self.parse_to_int((match ((((match (&(expiryEpochMillis), &(Value::Int(999))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
-            (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }))).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(Value::Int(1209600))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y),
-            (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) } else { Value::Null });
+        let mut settlementDefault: Value = (if (expiryEpochMillis != Value::Null) { (match (&(Value::from(self.parse_to_int((match ((((match (&(expiryEpochMillis), &(Value::Int(999))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
+            Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }))).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))), &(Value::Int(1209600))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x),
+            Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) } else { Value::Null });
         let mut settlementExpiration: Value = self.safe_integer_k(paramsBuilder.clone(), "settlementExpiration", &[settlementDefault]);
-        let mut nonce: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
+        let mut nonce: Option<String> = self.number_to_string(self.nonce());
         let mut account: Value = self.fetch_extended_account(&[]).await;
         let mut starkKey: Option<String> = self.safe_string_k(account.clone(), "l2Key", &[]).as_str().map(str::to_owned);
         let mut collateralPosition: Option<String> = self.safe_string_k(account, "l2Vault", &[]).as_str().map(str::to_owned);
@@ -4595,7 +4594,7 @@ impl Extended {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("countdownTime".to_string(), (if (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { Value::Int(0) }));
+                m.insert("countdownTime".to_string(), (if (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { Value::from(self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))) } else { Value::Int(0) }));
             m
         });
         let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
@@ -5050,7 +5049,7 @@ impl Extended {
     pub fn get_extended_encode_i64(&self, mut value: Value) -> Value {
         // Cairo prime offset for i64 negative encoding.
         let mut prime: String = "3618502788666131213697322783095070105623107215331596699973092056135872020481".to_string();
-        let mut valueString: Option<String> = self.number_to_string(value.clone()).as_str().map(str::to_owned);
+        let mut valueString: Option<String> = self.number_to_string(value.clone());
         if crate::precise::Precise::stringLt(&valueString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             return crate::precise::Precise::stringAdd(&Value::from(prime), &valueString.map(Value::from).unwrap_or(Value::Null));
         }
@@ -5066,8 +5065,8 @@ impl Extended {
             Value::Str("c".into()), Value::Str("d".into()), Value::Str("e".into()), Value::Str("f".into())]);
         let mut result: String = "".to_string();
         while crate::precise::Precise::stringGt(&decimalString, &Value::Str("0".into())).as_bool() == Some(true) {
-            let mut remainder: Value = self.parse_to_int(crate::precise::Precise::stringMod(&decimalString, &Value::Str("16".into())));
-            let mut hexChar: String = self.safe_string(&hexChars, remainder, &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut remainder: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMod(&decimalString, &Value::Str("16".into())));
+            let mut hexChar: String = self.safe_string(&hexChars, Value::from(remainder), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             result = format!("{}{}", hexChar, result);
             decimalString = crate::precise::Precise::stringDivPrec(&decimalString, &Value::Str("16".into()), &Value::Int(0));
         }

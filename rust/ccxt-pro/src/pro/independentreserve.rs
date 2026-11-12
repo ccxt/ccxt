@@ -387,7 +387,7 @@ impl Independentreserve {
         m.insert("amount".to_string(), self.safe_string_k(trade, "Volume", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }), &[market]);
@@ -422,7 +422,7 @@ impl Independentreserve {
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
-        let mut limitString: Option<String> = self.number_to_string(Value::from(limitResolved)).as_str().map(str::to_owned);
+        let mut limitString: Option<String> = self.number_to_string(Value::from(limitResolved));
         let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() has no websocket url".into()))));
@@ -566,7 +566,7 @@ impl Independentreserve {
         result = replace_str(&result, &Value::Str(".".into()), &Value::Str("".into()));
         // remove leading zeros
         result = self.parse_number(result.clone(), &[]);
-        result = self.number_to_string(result.clone());
+        result = Value::from(self.number_to_string(result.clone()));
         return result;
 
     Value::Null

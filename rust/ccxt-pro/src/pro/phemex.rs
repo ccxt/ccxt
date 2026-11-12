@@ -192,7 +192,7 @@ impl crate::exchange_generated::ExchangeBase for Phemex {
                 "parse_perpetual_ticker" => self.parse_perpetual_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_swap_ticker" => self.parse_swap_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_swap_order" => self.parse_ws_swap_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "request_id" => self.request_id(),
+                "request_id" => crate::Value::from(self.request_id()),
                 "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), &args[2.min(args.len())..]).await,
                 "un_subscribe_public" => self.un_subscribe_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
@@ -238,7 +238,7 @@ impl Phemex {
             "parse_perpetual_ticker" => self.parse_perpetual_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_swap_ticker" => self.parse_swap_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_swap_order" => self.parse_ws_swap_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "request_id" => self.request_id(),
+            "request_id" => crate::Value::from(self.request_id()),
             "subscribe_private" => { crate::exchange_stubs::enqueue_spawn("subscribe_private", args.to_vec()); crate::Value::Null },
             "un_subscribe_public" => { crate::exchange_stubs::enqueue_spawn("un_subscribe_public", args.to_vec()); crate::Value::Null },
             "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
@@ -361,14 +361,12 @@ impl Phemex {
     Value::Null
 }
 
-    pub fn request_id(&mut self) -> Value {
+    pub fn request_id(&mut self) -> i64 {
         self.lock_id(&[]);
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
         self.unlock_id(&[]);
-        return requestId;
-
-    Value::Null
+        return requestId.as_i64().unwrap_or_default();
 }
 
     pub fn parse_swap_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -401,7 +399,7 @@ impl Phemex {
         let mut change: Value = Value::Null;
         let mut percentage: Value = Value::Null;
         let mut average: Value = Value::Null;
-        let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string_k(ticker.clone(), "open", &[]), &[marketValue.clone()])).as_str().map(str::to_owned);
+        let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string_k(ticker.clone(), "open", &[]), &[marketValue.clone()]));
         let mut open: Value = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (openString.is_some()) && (lastString != Value::Null) {
             change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
@@ -467,7 +465,7 @@ impl Phemex {
         let mut change: Value = Value::Null;
         let mut percentage: Value = Value::Null;
         let mut average: Value = Value::Null;
-        let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string(ticker.clone(), Value::Int(1), &[]), &[marketValue.clone()])).as_str().map(str::to_owned);
+        let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string(ticker.clone(), Value::Int(1), &[]), &[marketValue.clone()]));
         let mut open: Value = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (openString.is_some()) && (lastString != Value::Null) {
             change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
@@ -828,7 +826,7 @@ impl Phemex {
         let mut candles: crate::value::List = self.safe_list2(message, Value::Str("kline".into()), Value::Str("kline_p".into()), &[Value::from(vec![])]).into_list();
         let mut first: crate::value::List = self.safe_list(&candles, Value::Int(0), &[Value::from(vec![])]).into_list();
         let mut interval: Option<String> = self.safe_string(&first, Value::Int(1), &[]).as_str().map(str::to_owned);
-        let mut timeframe: Value = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]));
         if (timeframe != Value::Null) {
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol);
             let mut ohlcvs: Value = self.parse_ohlc_vs(&candles, &[market]);
@@ -888,7 +886,7 @@ impl Phemex {
             name = (if settleIsUSDT { "perp_market24h_pack_p".to_string() } else { "market24h".to_string() });
         }
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut subscriptionHash: String = format!("{}{}", name, Value::Str(".subscribe".into()));
         let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolValue);
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
@@ -940,7 +938,7 @@ impl Phemex {
             name = (if settleIsUSDT { "perp_market24h_pack_p".to_string() } else { "market24h".to_string() });
         }
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut subscriptionHash: String = format!("{}{}", name, Value::Str(".subscribe".into()));
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
@@ -1007,7 +1005,7 @@ impl Phemex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut isSwap: bool = (market).swap;
         let mut settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
         let mut isUsdtSwap: bool = (isSwap) && settleIsUSDT;
@@ -1066,7 +1064,7 @@ impl Phemex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut isSwap: bool = (market).swap;
         let mut settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
         let mut isUsdtSwap: bool = (isSwap) && settleIsUSDT;
@@ -1124,7 +1122,7 @@ impl Phemex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut isSwap: bool = (market).swap;
         let mut settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
         let mut isUsdtSwap: bool = (isSwap) && settleIsUSDT;
@@ -1158,7 +1156,7 @@ impl Phemex {
     m
 }));
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1452,7 +1450,7 @@ impl Phemex {
         }
         let mut market: Value = Value::Null;
         let mut messageHash: String = "trades:".to_string();
-        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol.clone())) } else { symbol.as_str().map(str::to_owned) });
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             messageHash = format!("{}{}", Value::Str("trades:".into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]));
@@ -1664,7 +1662,7 @@ impl Phemex {
         }
         let mut messageHash: String = "orders:".to_string();
         let mut market: Value = Value::Null;
-        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol.clone())) } else { symbol.as_str().map(str::to_owned) });
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             messageHash = format!("{}{}", Value::Str("orders:".into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]));
@@ -2337,7 +2335,7 @@ impl Phemex {
         self.check_required_credentials(&[]);
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut messageHash: Value = Value::Str("authenticated".into());
         let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
         if (future == Value::Null) {

@@ -13,7 +13,7 @@ pub async fn testFetchMyTrades(mut exchange: Value, mut skippedProperties: Value
     let mut method: Value = Value::Str("fetchMyTrades".into());
     let mut trades: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_my_trades", vec![symbol.clone()]).await;
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), trades.clone(), symbol.clone()]);
-    let mut now: Value = exchange.milliseconds();
+    let mut now: Value = Value::Int(exchange.milliseconds());
     {
                 let mut i: i64 = 0;
         let mut __for_first_1582: bool = true;

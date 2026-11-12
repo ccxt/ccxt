@@ -1049,7 +1049,7 @@ impl Bitbns {
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
@@ -1409,8 +1409,8 @@ impl Bitbns {
         //
         let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
         let mut orderId: Option<String> = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("tradeId".into()), &[]).as_str().map(str::to_owned);
-        let mut timestamp: Value = self.parse8601(self.safe_string_k(trade.clone(), "date", &[]));
-        timestamp = self.safe_integer_k(trade.clone(), "timestamp", &[timestamp.clone()]);
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "date", &[]));
+        timestamp = self.safe_integer_k(trade.clone(), "timestamp", &[Value::from(timestamp)]).as_i64();
         let mut priceString: Option<String> = self.safe_string2(trade.clone(), Value::Str("rate".into()), Value::Str("price".into()), &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "type", &[]).as_str().map(str::to_owned);
@@ -1444,8 +1444,8 @@ impl Bitbns {
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol);
         m.insert("id".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1765,7 +1765,7 @@ impl Bitbns {
         //
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "unit", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string2(transaction.clone(), Value::Str("date".into()), Value::Str("timestamp".into()), &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string2(transaction.clone(), Value::Str("date".into()), Value::Str("timestamp".into()), &[]));
         let mut type_var: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut expTime: String = self.safe_string_k(transaction.clone(), "expTime", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut status: Option<String> = None;
@@ -1878,7 +1878,7 @@ impl Bitbns {
     }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -1910,7 +1910,7 @@ impl Bitbns {
         let mut baseUrl: Option<String> = self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut nonce: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
+        let mut nonce: Option<String> = self.number_to_string(self.nonce());
         let mut queryLength: f64 = ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64);
         let mut postBody: Option<String> = Some("{}".to_string());
         if queryLength > ((0i64) as f64) {

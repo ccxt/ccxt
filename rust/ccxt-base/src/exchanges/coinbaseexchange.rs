@@ -1126,7 +1126,7 @@ impl Coinbaseexchange {
             while { if !__for_first_550 { j += 1; } __for_first_550 = false; j < (supportedNetworks.len() as i64) } {
             let mut network: crate::value::Dict = supportedNetworks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&network, "id", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1587,7 +1587,7 @@ impl Coinbaseexchange {
         if (matches!(&ticker, Value::Arr(_))) {
             last = self.safe_string(ticker.clone(), Value::Int(4), &[]).as_str().map(str::to_owned);
         }  else {
-            timestamp = self.parse8601(self.safe_string_k(ticker.clone(), "time", &[]));
+            timestamp = Value::from(self.parse8601(self.safe_string_k(ticker.clone(), "time", &[])));
             bid = self.safe_string_k(ticker.clone(), "bid", &[]).as_str().map(str::to_owned);
             ask = self.safe_string_k(ticker.clone(), "ask", &[]).as_str().map(str::to_owned);
             high = self.safe_string_k(ticker.clone(), "high", &[]).as_str().map(str::to_owned);
@@ -1766,7 +1766,7 @@ impl Coinbaseexchange {
         //         "user_id": "595eb864313c2b02ddf2937d"
         //     }
         //
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string2(trade.clone(), Value::Str("time".into()), Value::Str("created_at".into()), &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string2(trade.clone(), Value::Str("time".into()), Value::Str("created_at".into()), &[]));
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "product_id", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("-".into())]);
         let mut feeRate: Option<String> = None;
@@ -2049,7 +2049,7 @@ impl Coinbaseexchange {
         let mut until: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("end".into()), &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
-        let mut cappedLimit: Value = self.parse_to_int((if (limit == Value::Null) { Value::Int(300) } else { crate::runtime::Math::min(&limit, &Value::Int(300)) }));
+        let mut cappedLimit: Value = Value::from(self.parse_to_int((if (limit == Value::Null) { Value::Int(300) } else { crate::runtime::Math::min(&limit, &Value::Int(300)) })));
         let mut limitResolved: Value = (if (since != Value::Null) { cappedLimit.clone() } else { limit });
         if (since != Value::Null) {
             request.insert("start".into(), self.iso8601(since.clone()));
@@ -2139,7 +2139,7 @@ impl Coinbaseexchange {
         //         "settled": false
         //     }
         //
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[]));
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "product_id", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("-".into())]);
         let mut status: Value = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
@@ -2732,7 +2732,7 @@ impl Coinbaseexchange {
         let mut amount: Value = self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut after: Value = self.parse_number(afterString.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut before: Value = self.parse_number(beforeString.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(item.clone(), "created_at", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(item.clone(), "created_at", &[]));
         let mut type_var: Value = self.parse_ledger_entry_type((self.safe_string_k(item.clone(), "type", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
         let mut code: Option<String> = self.safe_currency_code(Value::Null, &[currency.clone()]).as_str().map(str::to_owned);
         let mut details: crate::value::Dict = self.safe_dict_k(item.clone(), "details", &[Value::Map({
@@ -3109,7 +3109,7 @@ impl Coinbaseexchange {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "created_at", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "created_at", &[]));
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
         let mut amountRaw: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
@@ -3144,7 +3144,7 @@ impl Coinbaseexchange {
         m.insert("txid".to_string(), self.safe_string_k(&details, "crypto_transaction_hash", &[]));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)])));
         m.insert("amount".to_string(), amount);
         m.insert("status".to_string(), self.parse_transaction_status(transaction.clone()));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -3155,7 +3155,7 @@ impl Coinbaseexchange {
         m.insert("tag".to_string(), self.safe_string_k(&details, "destination_tag", &[]));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
-        m.insert("updated".to_string(), self.parse8601(self.safe_string_k(transaction, "processed_at", &[])));
+        m.insert("updated".to_string(), Value::from(self.parse8601(self.safe_string_k(transaction, "processed_at", &[]))));
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Bool(false));
         m.insert("fee".to_string(), Value::Map(fee));

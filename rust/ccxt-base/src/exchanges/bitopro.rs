@@ -1288,8 +1288,8 @@ impl Bitopro {
         });
         // we need to have a limit argument because "to" and "from" are required
         // supports slightly more than 75k candles atm, but limit here to avoid errors
-        let mut limitResolved: Value = self.parse_to_int((if (limit == Value::Null) { Value::Int(500) } else { crate::runtime::Math::min(&limit, &Value::Int(75000)) }));
-        let mut timeframeInSeconds: Value = self.parse_timeframe(timeframe.clone());
+        let mut limitResolved: Value = Value::from(self.parse_to_int((if (limit == Value::Null) { Value::Int(500) } else { crate::runtime::Math::min(&limit, &Value::Int(75000)) })));
+        let mut timeframeInSeconds: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
         let mut alignedSince: Value = Value::Null;
         if (since == Value::Null) {
             let mut toSeconds: Value = self.seconds();
@@ -1298,8 +1298,8 @@ impl Bitopro {
                 Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }  else {
             let mut timeframeInMilliseconds: Value = (match (&(timeframeInSeconds), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            alignedSince = (match (&(self.parse_to_int(((match ((since).as_f64(), (timeframeInMilliseconds).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null))), &(timeframeInMilliseconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y),
-                (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            alignedSince = (match (&(Value::from(self.parse_to_int(((match ((since).as_f64(), (timeframeInMilliseconds).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null)))), &(timeframeInMilliseconds)) { (Value::Int(x),
+                Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             let mut fromSeconds: Value = ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null);
             request.insert("from".into(), fromSeconds.clone());
             request.insert("to".into(), self.sum(&[fromSeconds, (match (&(limitResolved), &(timeframeInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
@@ -1589,7 +1589,7 @@ impl Bitopro {
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
                 m.insert("action".to_string(), side);
                 m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount));
-                m.insert("timestamp".to_string(), self.milliseconds());
+                m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
             m
         });
         let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
@@ -2098,7 +2098,7 @@ impl Bitopro {
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txid", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)])));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "total", &[]));
         m.insert("status".to_string(), self.parse_transaction_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -2310,7 +2310,7 @@ impl Bitopro {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("amount".to_string(), self.number_to_string(amount));
+                m.insert("amount".to_string(), Value::from(self.number_to_string(amount)));
                 m.insert("address".to_string(), address);
             m
         });
@@ -2457,7 +2457,7 @@ impl Bitopro {
                 if queryLength > ((0i64) as f64) {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
                 }
-                let mut nonce: i64 = self.milliseconds().as_i64().unwrap_or_default();
+                let mut nonce: i64 = self.milliseconds();
                 let mut rawData: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("nonce".to_string(), Value::from(nonce));
@@ -2496,8 +2496,8 @@ impl Bitopro {
         if (response == Value::Null) {
             return Value::Null;
         }
-        let mut statusCode: Value = self.parse_to_int(code);
-        if statusCode.as_f64().unwrap_or(f64::NAN) >= ((200i64) as f64) && statusCode.as_f64().unwrap_or(f64::NAN) < ((300i64) as f64) {
+        let mut statusCode: Option<i64> = self.parse_to_int(code);
+        if statusCode >= Some(200) && (statusCode.is_some() && statusCode < Some(300)) {
             return Value::Null;
         }
         let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);

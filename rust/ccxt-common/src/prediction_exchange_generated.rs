@@ -1994,12 +1994,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
         // never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
         // outcome-addressed row). prediction is always linear with a contract size of 1.
-        let mut amount: Option<String> = self.omit_zero(self.safe_string_k(outcomeOrder.clone(), "amount", &[])).as_str().map(str::to_owned);
+        let mut amount: Option<String> = self.omit_zero(self.safe_string_k(outcomeOrder.clone(), "amount", &[]));
         let mut filled: Option<String> = self.safe_string_k(outcomeOrder.clone(), "filled", &[]).as_str().map(str::to_owned);
         let mut remaining: Option<String> = self.safe_string_k(outcomeOrder.clone(), "remaining", &[]).as_str().map(str::to_owned);
         let mut cost: Option<String> = self.safe_string_k(outcomeOrder.clone(), "cost", &[]).as_str().map(str::to_owned);
-        let mut average: Option<String> = self.omit_zero(self.safe_string_k(outcomeOrder.clone(), "average", &[])).as_str().map(str::to_owned);
-        let mut price: Value = self.omit_zero(self.safe_string_k(outcomeOrder.clone(), "price", &[]));
+        let mut average: Option<String> = self.omit_zero(self.safe_string_k(outcomeOrder.clone(), "average", &[]));
+        let mut price: Option<String> = self.omit_zero(self.safe_string_k(outcomeOrder.clone(), "price", &[]));
         let mut side: Option<String> = self.safe_string_k(outcomeOrder.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.safe_string_k(outcomeOrder.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut lastTradeTimestamp: Value = self.safe_integer_k(outcomeOrder.clone(), "lastTradeTimestamp", &[]);
@@ -2060,9 +2060,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             average = crate::precise::Precise::stringDiv(&cost.clone().map(Value::from).unwrap_or(Value::Null), &filled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         if (cost.is_none()) && (filled.is_some()) {
-            let mut multiplyPrice: Value = (if (average.is_some()) { average.clone().map(Value::from).unwrap_or(Value::Null) } else { price.clone() });
-            if (multiplyPrice != Value::Null) {
-                cost = crate::precise::Precise::stringMul(&filled.clone().map(Value::from).unwrap_or(Value::Null), &multiplyPrice).as_str().map(str::to_owned);
+            let mut multiplyPrice: Option<String> = (if (average.is_some()) { average.clone() } else { price.clone() });
+            if (multiplyPrice.is_some()) {
+                cost = crate::precise::Precise::stringMul(&filled.clone().map(Value::from).unwrap_or(Value::Null), &multiplyPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
         }
         let mut fee: Value = self.safe_dict_k(outcomeOrder.clone(), "fee", &[]);
@@ -2105,7 +2105,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("type".to_string(), orderType.map(Value::from).unwrap_or(Value::Null));
                 m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
                 m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-                m.insert("price".to_string(), self.parse_number(price, &[]));
+                m.insert("price".to_string(), self.parse_number(price.map(Value::from).unwrap_or(Value::Null), &[]));
                 m.insert("average".to_string(), self.parse_number(average.map(Value::from).unwrap_or(Value::Null), &[]));
                 m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
                 m.insert("filled".to_string(), self.parse_number(filled.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -2173,12 +2173,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // build the prediction ticker directly (no crypto safeTicker, which injects vwap/previousClose/
         // indexPrice/markPrice the type omits). derive change/percentage/average only from open+close —
         // prediction venues report those directly, so the crypto back-derivation from percentage is moot.
-        let mut open: Option<String> = self.omit_zero(self.safe_string_k(ticker.clone(), "open", &[])).as_str().map(str::to_owned);
-        let mut close: Option<String> = self.omit_zero(self.safe_string2(ticker.clone(), Value::Str("close".into()), Value::Str("last".into()), &[])).as_str().map(str::to_owned);
-        let mut last: Option<String> = self.omit_zero(self.safe_string2(ticker.clone(), Value::Str("last".into()), Value::Str("close".into()), &[])).as_str().map(str::to_owned);
+        let mut open: Option<String> = self.omit_zero(self.safe_string_k(ticker.clone(), "open", &[]));
+        let mut close: Option<String> = self.omit_zero(self.safe_string2(ticker.clone(), Value::Str("close".into()), Value::Str("last".into()), &[]));
+        let mut last: Option<String> = self.omit_zero(self.safe_string2(ticker.clone(), Value::Str("last".into()), Value::Str("close".into()), &[]));
         let mut change: Option<String> = self.safe_string_k(ticker.clone(), "change", &[]).as_str().map(str::to_owned);
-        let mut percentage: Option<String> = self.omit_zero(self.safe_string_k(ticker.clone(), "percentage", &[])).as_str().map(str::to_owned);
-        let mut average: Option<String> = self.omit_zero(self.safe_string_k(ticker.clone(), "average", &[])).as_str().map(str::to_owned);
+        let mut percentage: Option<String> = self.omit_zero(self.safe_string_k(ticker.clone(), "percentage", &[]));
+        let mut average: Option<String> = self.omit_zero(self.safe_string_k(ticker.clone(), "average", &[]));
         if (change.is_none()) && (open.is_some()) && (close.is_some()) {
             change = crate::precise::Precise::stringSub(&close.clone().map(Value::from).unwrap_or(Value::Null), &open.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
@@ -2199,9 +2199,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
                 m.insert("high".to_string(), self.safe_number_k(ticker.clone(), "high", &[]));
                 m.insert("low".to_string(), self.safe_number_k(ticker.clone(), "low", &[]));
-                m.insert("bid".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(ticker.clone(), "bid", &[])), &[]));
+                m.insert("bid".to_string(), self.parse_number(Value::from(self.omit_zero(self.safe_string_k(ticker.clone(), "bid", &[]))), &[]));
                 m.insert("bidVolume".to_string(), self.safe_number_k(ticker.clone(), "bidVolume", &[]));
-                m.insert("ask".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(ticker.clone(), "ask", &[])), &[]));
+                m.insert("ask".to_string(), self.parse_number(Value::from(self.omit_zero(self.safe_string_k(ticker.clone(), "ask", &[]))), &[]));
                 m.insert("askVolume".to_string(), self.safe_number_k(ticker.clone(), "askVolume", &[]));
                 m.insert("open".to_string(), self.parse_number(open.map(Value::from).unwrap_or(Value::Null), &[]));
                 m.insert("close".to_string(), self.parse_number(close.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -2526,7 +2526,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Str("".into());
         }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-        let mut byteLength: Value = self.parse_to_int((match ((Value::Int(hex.len() as i64)).as_f64(), (Value::Int(2)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        let mut byteLength: Value = Value::from(self.parse_to_int((match ((Value::Int(hex.len() as i64)).as_f64(), (Value::Int(2)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         if (byteLength.as_f64() == Some(0.0)) {
             return Value::Str("80".into());
         }
@@ -2538,7 +2538,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut lengthHex: Option<String> = Some(self.int_to_base16(byteLength, &[]));
         lengthHex = self.pad_hex_to_even(lengthHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut lengthOfLength: Value = self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0)));
+        let mut lengthOfLength: Value = Value::from(self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0))));
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16((match (&(Value::Int(183)), &(lengthOfLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[]), lengthHex.map(Value::from).unwrap_or(Value::Null)).into()), hex).into());
 
@@ -2554,14 +2554,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             concatenated = format!("{}{}", concatenated, self.safe_string(items.clone(), Value::Int(i), &[Value::Str("".into())]));
         }
         }
-        let mut byteLength: Value = self.parse_to_int(Value::Float(((((concatenated.chars().count() as i64)) as f64) / 2.0)));
+        let mut byteLength: Value = Value::from(self.parse_to_int(Value::Float(((((concatenated.chars().count() as i64)) as f64) / 2.0))));
         if byteLength.as_f64().unwrap_or(f64::NAN) < ((56i64) as f64) {
             return Value::Str(format!("{}{}", self.int_to_base16((match (&(Value::Int(192)), &(byteLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
                 _ => Value::Null }), &[]), concatenated).into());
         }
         let mut lengthHex: Option<String> = Some(self.int_to_base16(byteLength, &[]));
         lengthHex = self.pad_hex_to_even(lengthHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut lengthOfLength: Value = self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0)));
+        let mut lengthOfLength: Value = Value::from(self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0))));
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16((match (&(Value::Int(247)), &(lengthOfLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[]), lengthHex.map(Value::from).unwrap_or(Value::Null)).into()), concatenated).into());
 
@@ -2667,8 +2667,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     fn wait_for_transaction_receipt(&mut self, mut rpcUrl: Value, mut txHash: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut timeout = get_arg(optional_args, 0, Value::Int(60000));
-        let mut start: i64 = self.milliseconds().as_i64().unwrap_or_default();
-        while (Value::Int(((self.milliseconds().as_i64().unwrap_or_default()) - start))).as_f64().unwrap_or(f64::NAN) < timeout.as_f64().unwrap_or(f64::NAN) {
+        let mut start: i64 = self.milliseconds();
+        while (Value::Int(((self.milliseconds()) - start))).as_f64().unwrap_or(f64::NAN) < timeout.as_f64().unwrap_or(f64::NAN) {
             let mut receipt: Value = self.eth_rpc(rpcUrl.clone(), Value::Str("eth_getTransactionReceipt".into()), Value::from(vec![txHash.clone()])).await;
             if (receipt != Value::Null) && (receipt != Value::Null) {
                 return receipt;

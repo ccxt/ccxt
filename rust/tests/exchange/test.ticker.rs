@@ -115,12 +115,12 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     //
     // base & quote volumes
     //
-    let mut baseVolume: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("baseVolume".into()), &[]));
-    let mut quoteVolume: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("quoteVolume".into()), &[]));
-    let mut high: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("high".into()), &[]));
-    let mut low: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("low".into()), &[]));
-    let mut open: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("open".into()), &[]));
-    let mut close: Value = exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("close".into()), &[]));
+    let mut baseVolume: Value = Value::from(exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("baseVolume".into()), &[])));
+    let mut quoteVolume: Value = Value::from(exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("quoteVolume".into()), &[])));
+    let mut high: Value = Value::from(exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("high".into()), &[])));
+    let mut low: Value = Value::from(exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("low".into()), &[])));
+    let mut open: Value = Value::from(exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("open".into()), &[])));
+    let mut close: Value = Value::from(exchange.omit_zero(exchange.safe_string(entry.clone(), Value::Str("close".into()), &[])));
     if !(in_op(&skippedProperties, &Value::Str("compareQuoteVolumeBaseVolume".into()))) {
         // assert!(ccxt::runtime::is_true(&(baseVolumeDefined === quoteVolumeDefined))); // No, exchanges might not report both values
         // skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
@@ -156,7 +156,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
             // each side - big enough to forgive rounding, far too small to
             // hide a real bug like mismatched units or a wrong-field parse
             let mut quoteVolumeDecimals: Value = exchange.precision_from_string(quoteVolume.clone());
-            let mut quoteQuantum: Value = exchange.parse_precision(&[exchange.number_to_string(quoteVolumeDecimals.clone())]);
+            let mut quoteQuantum: Value = exchange.parse_precision(&[Value::from(exchange.number_to_string(quoteVolumeDecimals.clone()))]);
             baseLow = ccxt::precise::Precise::stringSub(&baseLow, &quoteQuantum);
             baseHigh = ccxt::precise::Precise::stringAdd(&baseHigh, &quoteQuantum);
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&quoteVolume, &baseLow))));
@@ -182,7 +182,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
         // instead of letting it widen the window
         let mut changeWindow: Value = pricePart.clone();
         if changeDecimals.as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-            let mut changeQuantum: Value = exchange.parse_precision(&[exchange.number_to_string(changeDecimals.clone())]);
+            let mut changeQuantum: Value = exchange.parse_precision(&[Value::from(exchange.number_to_string(changeDecimals.clone()))]);
             // a change of "0" prints no decimals, so its apparent step is a whole unit
             // and accepts anything on a micro-priced asset. a per cent of the price
             // caps it, and covers whole units on a price in the tens of thousands

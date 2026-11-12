@@ -1202,11 +1202,11 @@ impl Polymarket {
                 m
             })]).into_dict();
             let mut totalResults: Value = self.safe_integer_k(&pagination, "totalResults", &[Value::from(firstEventsLength)]);
-            let mut totalPages: Value = self.parse_to_int(((match ((totalResults).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null));
+            let mut totalPages: Value = Value::from(self.parse_to_int(((match ((totalResults).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)));
             // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
             // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
             if (resultLimit != Value::Null) {
-                let mut limitPages: Value = self.parse_to_int(((match ((resultLimit).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null));
+                let mut limitPages: Value = Value::from(self.parse_to_int(((match ((resultLimit).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)));
                 if limitPages.as_f64().unwrap_or(f64::NAN) < totalPages.as_f64().unwrap_or(f64::NAN) {
                     totalPages = limitPages;
                 }
@@ -1503,7 +1503,7 @@ impl Polymarket {
             let mut tickSize: Value = self.safe_number2(&market, Value::Str("orderPriceMinTickSize".into()), Value::Str("minimumTickSize".into()), &[Value::Float(0.01)]);
             // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
             let mut orderMinSize: Value = self.safe_number_k(&market, "orderMinSize", &[Value::Int(1)]);
-            let mut priceMax: Value = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &self.number_to_string(tickSize.clone())), &[]);
+            let mut priceMax: Value = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(tickSize.clone()))), &[]);
             let mut negRisk: bool = self.safe_bool_k(&market, "negRisk", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut endDate: Value = self.safe_string_k(&market, "endDate", &[self.safe_string_k(&market, "end_date_iso", &[])]);
             // Gamma API returns these arrays as JSON-encoded strings
@@ -1627,7 +1627,7 @@ impl Polymarket {
                     m.insert("linear".to_string(), Value::Null);
                     m.insert("inverse".to_string(), Value::Null);
                     m.insert("contractSize".to_string(), Value::Null);
-                    m.insert("expiry".to_string(), (if ((endDate != Value::Null) && (endDate.as_str() != Some(""))) { self.parse8601(endDate.clone()) } else { Value::Null }));
+                    m.insert("expiry".to_string(), (if ((endDate != Value::Null) && (endDate.as_str() != Some(""))) { Value::from(self.parse8601(endDate.clone())) } else { Value::Null }));
                     m.insert("expiryDatetime".to_string(), endDate);
                     m.insert("strike".to_string(), Value::Null);
                     m.insert("optionType".to_string(), Value::Null);
@@ -2232,7 +2232,7 @@ impl Polymarket {
         let mut startS: Value = Value::Null;
         let mut endS: Value = nowS.clone();
         if (since != Value::Null) {
-            startS = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+            startS = Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
             if (limit != Value::Null) {
                 let mut endBound: Value = self.sum(&[startS.clone(), (match (&((match (&(limit), &(fidelityMin)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                     _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
@@ -2293,8 +2293,8 @@ impl Polymarket {
                 continue;
             }
             let mut rawMs: Value = (match (&(t), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut snappedMs: Value = (match (&(self.parse_to_int((match ((rawMs).as_f64(), (resolutionMs).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(resolutionMs)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
-                Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            let mut snappedMs: Value = (match (&(Value::from(self.parse_to_int((match ((rawMs).as_f64(), (resolutionMs).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))), &(resolutionMs)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
+                (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
             // rather than fabricating a 0, probing s/v in case the field ever appears
             let mut vol: Option<f64> = self.safe_number_k(&item, "s", &[]).as_f64();
@@ -3294,11 +3294,11 @@ impl Polymarket {
 })]);
             if (self.safe_string_k(orderParams.clone(), "salt", &[]) == Value::Null) {
                 // a distinct salt per order so two identical orders don't collide, within a batch or across calls
-                let mut orderSalt: Option<i64> = self.incrementing_nonce().as_i64(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+                let mut orderSalt: i64 = self.incrementing_nonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
                 let __ws_arg_13 = self.number_to_string(Value::from(orderSalt));
                 orderParams = self.extend(orderParams.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("salt".to_string(), __ws_arg_13);
+                        m.insert("salt".to_string(), Value::from(__ws_arg_13));
                     m
                 })]);
             }
@@ -3400,7 +3400,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut tickSize: Option<String> = self.safe_string_k(params.clone(), "tickSize", &[self.number_to_string(self.safe_number_k(&outcomePrecision, "price", &[Value::Float(0.01)]))]).as_str().map(str::to_owned);
+        let mut tickSize: Option<String> = self.safe_string_k(params.clone(), "tickSize", &[Value::from(self.number_to_string(self.safe_number_k(&outcomePrecision, "price", &[Value::Float(0.01)])))]).as_str().map(str::to_owned);
         let mut negRisk: Option<bool> = self.safe_bool_k(params.clone(), "negRisk", &[self.safe_bool(outcomeObj.clone(), Value::Str("negRisk".into()), &[Value::Bool(false)])]).as_bool();
         // maker-only: the CLOB rejects the order if it would immediately take
         let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -3410,9 +3410,9 @@ impl Polymarket {
         let mut eoa: Value = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey.clone(), &[])).map(Value::from).unwrap_or(Value::Null);
         let mut funder: Value = self.eth_checksum_address(self.safe_string2(params.clone(), Value::Str("funder".into()), Value::Str("maker".into()), &[self.safe_string_k(self.options.clone(), "funder", &[self.walletAddress.clone()])])).map(Value::from).unwrap_or(Value::Null);
         // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
-        let mut defaultSalt: Option<i64> = self.incrementing_nonce().as_i64(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
-        let mut salt: Value = self.safe_string_k(params.clone(), "salt", &[self.number_to_string(Value::from(defaultSalt))]);
-        let mut timestamp: Value = self.safe_string_k(params.clone(), "timestamp", &[self.number_to_string(self.milliseconds())]);
+        let mut defaultSalt: i64 = self.incrementing_nonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+        let mut salt: Value = self.safe_string_k(params.clone(), "salt", &[Value::from(self.number_to_string(Value::from(defaultSalt)))]);
+        let mut timestamp: Value = self.safe_string_k(params.clone(), "timestamp", &[Value::from(self.number_to_string(Value::Int(self.milliseconds())))]);
         // GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
         let mut expiration: String = self.safe_string_k(params.clone(), "expiration", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
@@ -3486,7 +3486,7 @@ impl Polymarket {
                 m.insert("postOnly".to_string(), Value::Bool(postOnly));
                 m.insert("order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("salt".to_string(), self.parse_to_int(salt));
+        m.insert("salt".to_string(), Value::from(self.parse_to_int(salt)));
         m.insert("maker".to_string(), maker);
         m.insert("signer".to_string(), signer);
         m.insert("taker".to_string(), Value::Str("0x0000000000000000000000000000000000000000".into()));
@@ -3607,7 +3607,7 @@ impl Polymarket {
         let mut priceDecimals: Option<i64> = self.safe_integer_k(&cfg, "price", &[]).as_i64();
         let mut sizeDecimals: Option<i64> = self.safe_integer_k(&cfg, "size", &[]).as_i64();
         let mut amountDecimals: Option<i64> = self.safe_integer_k(&cfg, "amount", &[]).as_i64();
-        let mut priceStr: Option<String> = self.number_to_string(price).as_str().map(str::to_owned);
+        let mut priceStr: Option<String> = self.number_to_string(price);
         let mut rawPrice: Value = self.decimal_to_precision(priceStr.map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::ROUND), Value::from(priceDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
         let mut makerRaw: Value = Value::Null;
         let mut takerRaw: Value = Value::Null;
@@ -3615,15 +3615,15 @@ impl Polymarket {
             // cost-sized market buy: maker pays `cost` USDC, taker receives cost/price shares.
             // truncate the shares so the implied price (cost/shares) stays >= the limit, otherwise
             // a marketable FOK would round just under the ask and fail to cross
-            let mut costStr: Option<String> = self.number_to_string(cost).as_str().map(str::to_owned);
+            let mut costStr: Option<String> = self.number_to_string(cost);
             makerRaw = self.decimal_to_precision(costStr.map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::TRUNCATE), Value::from(sizeDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
             takerRaw = self.decimal_to_precision(crate::precise::Precise::stringDiv(&makerRaw, &rawPrice), Value::Int(crate::runtime::TRUNCATE), Value::from(amountDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
         }  else if (side.as_str() == Some("BUY")) {
-            let mut sizeStr: Value = self.number_to_string(size.clone());
+            let mut sizeStr: Value = Value::from(self.number_to_string(size.clone()));
             takerRaw = self.decimal_to_precision(sizeStr.clone(), Value::Int(crate::runtime::TRUNCATE), Value::from(sizeDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
             makerRaw = self.decimal_to_precision(crate::precise::Precise::stringMul(&takerRaw, &rawPrice), Value::Int(crate::runtime::ROUND), Value::from(amountDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
         }  else {
-            let mut sizeStr: Value = self.number_to_string(size);
+            let mut sizeStr: Value = Value::from(self.number_to_string(size));
             makerRaw = self.decimal_to_precision(sizeStr, Value::Int(crate::runtime::TRUNCATE), Value::from(sizeDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
             takerRaw = self.decimal_to_precision(crate::precise::Precise::stringMul(&makerRaw, &rawPrice), Value::Int(crate::runtime::ROUND), Value::from(amountDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
         }
@@ -3719,7 +3719,7 @@ impl Polymarket {
         });
         // parseToInt: php types the number param as float, and 3.0 !== 3 (int) is true under
         // strict comparison, which would always wrongly select the EOA path
-        if (self.parse_to_int(sigType).as_f64() != Some(3.0)) {
+        if (Value::from(self.parse_to_int(sigType)).as_f64() != Some(3.0)) {
             // standard EOA EIP-712 order signature
             let mut encoded: Value = self.eth_encode_structured_data(Value::Map(orderDomain.clone()), Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3745,7 +3745,7 @@ impl Polymarket {
         let mut domainTypeHash: Value = self.hash(self.encode(Value::Str("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)".into())), Value::Str("keccak".into()), &[Value::Str("binary".into())]);
         let mut nameHash: Value = self.hash(self.encode(Value::from(domainName)), Value::Str("keccak".into()), &[Value::Str("binary".into())]);
         let mut versionHash: Value = self.hash(self.encode(domainVersion), Value::Str("keccak".into()), &[Value::Str("binary".into())]);
-        let mut appDomainData: Value = self.eth_abi_encode(Value::from(vec![Value::Str("bytes32".into()), Value::Str("bytes32".into()), Value::Str("bytes32".into()), Value::Str("uint256".into()), Value::Str("address".into())]), Value::from(vec![domainTypeHash, nameHash, versionHash, self.convert_to_big_int(self.number_to_string(Value::from(chainIdValue))), exchangeAddress]));
+        let mut appDomainData: Value = self.eth_abi_encode(Value::from(vec![Value::Str("bytes32".into()), Value::Str("bytes32".into()), Value::Str("bytes32".into()), Value::Str("uint256".into()), Value::Str("address".into())]), Value::from(vec![domainTypeHash, nameHash, versionHash, self.convert_to_big_int(Value::from(self.number_to_string(Value::from(chainIdValue)))), exchangeAddress]));
         let mut appDomainSep: Value = Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(appDomainData, Value::Str("keccak".into()), &[Value::Str("hex".into())])).into());
         let mut typedDataSignStruct: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4265,12 +4265,12 @@ impl Polymarket {
         m.insert("active".to_string(), active);
         m.insert("url".to_string(), __ws_arg_21);
         m.insert("image".to_string(), __ws_arg_22);
-        m.insert("created".to_string(), __ws_arg_23);
+        m.insert("created".to_string(), Value::from(__ws_arg_23));
         m.insert("createdDatetime".to_string(), createdAt.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("end".to_string(), __ws_arg_24);
+        m.insert("end".to_string(), Value::from(__ws_arg_24));
         m.insert("endDatetime".to_string(), endDate.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("category".to_string(), __ws_arg_25);
-        m.insert("lastUpdatedAt".to_string(), __ws_arg_26);
+        m.insert("lastUpdatedAt".to_string(), Value::from(__ws_arg_26));
         m.insert("lastUpdatedAtDatetime".to_string(), updatedAt.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("resolutionSource".to_string(), __ws_arg_27);
         m.insert("resolved".to_string(), __ws_arg_28);
@@ -4325,7 +4325,7 @@ impl Polymarket {
 }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -4437,7 +4437,7 @@ impl Polymarket {
                         m.insert("POLY_ADDRESS".to_string(), address.clone());
                         m.insert("POLY_SIGNATURE".to_string(), l1signature.map(Value::from).unwrap_or(Value::Null));
                         m.insert("POLY_TIMESTAMP".to_string(), timestamp.clone());
-                        m.insert("POLY_NONCE".to_string(), __ws_arg_29);
+                        m.insert("POLY_NONCE".to_string(), Value::from(__ws_arg_29));
                     m
                 })]);
             }  else {
@@ -4733,7 +4733,7 @@ if _try_result.is_err() {
         // Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
         // client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
         // base keepalive treats the connection as stale and times it out after maxPingPongMisses.
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
@@ -5067,7 +5067,7 @@ if _try_result.is_err() {
         }
         let mut mid: Value = Value::Null;
         if (bestBid != Value::Null) && (bestAsk != Value::Null) {
-            let mut sum: Option<String> = crate::precise::Precise::stringAdd(&self.number_to_string(bestBid.clone()), &self.number_to_string(bestAsk.clone())).as_str().map(str::to_owned);
+            let mut sum: Option<String> = crate::precise::Precise::stringAdd(&Value::from(self.number_to_string(bestBid.clone())), &Value::from(self.number_to_string(bestAsk.clone()))).as_str().map(str::to_owned);
             mid = self.parse_number(crate::precise::Precise::stringDiv(&sum.map(Value::from).unwrap_or(Value::Null), &Value::Str("2".into())), &[]);
         }  else if (bestBid != Value::Null) {
             mid = bestBid.clone();
@@ -5282,7 +5282,7 @@ if _try_result.is_err() {
         if (raw == Value::Null) {
             return Value::Null;
         }
-        return self.parse_to_int(raw);
+        return Value::from(self.parse_to_int(raw));
 
     Value::Null
 }

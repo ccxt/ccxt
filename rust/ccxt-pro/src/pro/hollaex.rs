@@ -374,7 +374,7 @@ impl Hollaex {
         if (symbol.is_some()) {
             let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
             let mut timestamp: Option<String> = self.safe_string_k(data.clone(), "timestamp", &[]).as_str().map(str::to_owned);
-            let mut timestampMs: Option<i64> = self.parse8601(timestamp.map(Value::from).unwrap_or(Value::Null)).as_i64();
+            let mut timestampMs: Option<i64> = self.parse8601(timestamp.map(Value::from).unwrap_or(Value::Null));
             let mut snapshot: Value = self.parse_order_book(data, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(timestampMs)]);
             let mut orderbook: Value = Value::Null;
             if !(matches!((&self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -860,9 +860,9 @@ impl Hollaex {
         self.check_required_credentials(&[]);
         let mut expires: Value = self.safe_string_k(self.options.clone(), "ws-expires", &[Value::Str("".into())]);
         if (expires.as_str() == Some("")) {
-            let mut timeoutMs: Value = self.parse_to_int(self.timeout.clone());
-            let mut timeout: Value = self.parse_to_int((match ((timeoutMs).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-            expires = self.number_to_string(self.parse_to_int(self.sum(&[self.seconds(), timeout])));
+            let mut timeoutMs: Value = Value::from(self.parse_to_int(self.timeout.clone()));
+            let mut timeout: Option<i64> = self.parse_to_int((match ((timeoutMs).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+            expires = Value::from(self.number_to_string(Value::from(self.parse_to_int(self.sum(&[self.seconds(), Value::from(timeout)])))));
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws-expires".into(), expires.clone()); }
@@ -1039,7 +1039,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_pong(&self, mut client: Value, mut message: Value) -> Value {
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
         return message;
 
     Value::Null

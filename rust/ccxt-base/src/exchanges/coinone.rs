@@ -2004,7 +2004,7 @@ impl Coinone {
             if (apiName.as_deref() == Some("v2_1Private")) {
                 nonce = self.uuid(&[]);
             }  else {
-                nonce = self.number_to_string(self.nonce());
+                nonce = Value::from(self.number_to_string(self.nonce()));
             }
             let __ws_arg_10 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -369,7 +369,7 @@ impl Binance {
 }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -466,14 +466,14 @@ impl Binance {
     m
 }));
         let mut maxTopicsOption: i64 = self.safe_integer_k(self.options.clone(), "maxFetchMarketsLimit", &[Value::Int(200)]).as_i64().unwrap_or(200);
-        let mut maxTopicsResolved: Value = self.parse_to_int(Value::from(maxTopicsOption));
+        let mut maxTopicsResolved: Value = Value::from(self.parse_to_int(Value::from(maxTopicsOption)));
         if (maxTopics != Value::Null) {
-            maxTopicsResolved = self.parse_to_int(maxTopics);
+            maxTopicsResolved = Value::from(self.parse_to_int(maxTopics));
         }
         let mut pageLimitOption: i64 = self.safe_integer_k(self.options.clone(), "marketsPageLimit", &[Value::Int(100)]).as_i64().unwrap_or(100);
-        let mut pageLimit: Value = self.parse_to_int(Value::Int(100));
+        let mut pageLimit: Value = Value::from(self.parse_to_int(Value::Int(100)));
         if pageLimitOption < 100 {
-            pageLimit = self.parse_to_int(Value::from(pageLimitOption));
+            pageLimit = Value::from(self.parse_to_int(Value::from(pageLimitOption)));
         }
         let mut collected: Vec<Value> = Vec::new();
         let mut offset: Value = Value::Int(0);
@@ -780,12 +780,12 @@ impl Binance {
         });
         let mut collected: Value = Value::from(vec![]);
         let mut queriesLength: f64 = ((queries.len() as i64) as f64);
-        let mut limitValue: Value = self.parse_to_int(Value::Int(20));
+        let mut limitValue: Option<i64> = self.parse_to_int(Value::Int(20));
         if (limit != Value::Null) {
             limitValue = self.parse_to_int(limit);
         }
-        let mut limitResolved: Value = limitValue.clone();
-        if limitValue.as_f64().unwrap_or(f64::NAN) > ((50i64) as f64) {
+        let mut limitResolved: Option<i64> = limitValue;
+        if limitValue > Some(50) {
             limitResolved = self.parse_to_int(Value::Int(50));
         }
         {
@@ -797,7 +797,7 @@ impl Binance {
                     m.insert("query".to_string(), queries.get(qi as usize).cloned().unwrap_or(Value::Null));
                 m
             });
-            request.insert("topK".into(), limitResolved.clone());
+            request.insert("topK".into(), Value::from(limitResolved));
             let __ws_arg_3 = self.extend(Value::Map(request), &[rest.clone()]);
             let mut response: crate::value::List = self.sapi_private_get_market_search(&[__ws_arg_3]).await.into_list();
             //
@@ -831,9 +831,9 @@ impl Binance {
         }
         }
         let mut capped: Value = collected.clone();
-        let mut collectedLength: f64 = ((collected.len() as i64) as f64);
-        if collectedLength > limitResolved.as_f64().unwrap_or(f64::NAN) {
-            capped = self.array_slice(collected, Value::Int(0), &[limitResolved]);
+        let mut collectedLength: i64 = collected.len() as i64;
+        if (limitResolved.is_some() && Some(collectedLength) > limitResolved) {
+            capped = self.array_slice(collected, Value::Int(0), &[Value::from(limitResolved)]);
         }
         return self.complete_raw_topics(capped).await;
 
@@ -2297,7 +2297,7 @@ impl Binance {
 })]), Value::Str("price".into()), &[Value::Float(0.0001)]);
         let mut decimals: Value = Value::Int(4);
         if (prec != Value::Null) && (prec.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
-            decimals = self.precision_from_string(self.number_to_string(prec));
+            decimals = self.precision_from_string(Value::from(self.number_to_string(prec)));
         }
         return self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), decimals, &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]);
 
@@ -2312,7 +2312,7 @@ impl Binance {
 })]), Value::Str("amount".into()), &[Value::Float(0.01)]);
         let mut decimals: Value = Value::Int(2);
         if (prec != Value::Null) && (prec.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
-            decimals = self.precision_from_string(self.number_to_string(prec));
+            decimals = self.precision_from_string(Value::from(self.number_to_string(prec)));
         }
         return self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), decimals, &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]);
 
@@ -2366,16 +2366,16 @@ impl Binance {
         let mut defaultSlippage: String = self.safe_string_k(self.options.clone(), "defaultSlippage", &[Value::Str("0.05".into())]).as_str().unwrap_or("0.05").to_string();
         let mut slippage: Option<String> = self.safe_string_k(params.clone(), "slippage", &[Value::from(defaultSlippage)]).as_str().map(str::to_owned);
         let mut cost: Option<String> = self.safe_string_k(params.clone(), "cost", &[]).as_str().map(str::to_owned);
-        let mut slippageBps: Value = self.parse_to_int(crate::precise::Precise::stringMul(&slippage.map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())));
+        let mut slippageBps: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&slippage.map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())));
         let mut commonRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("walletAddress".to_string(), self.safe_string_k(wallet.clone(), "walletAddress", &[]));
                 m.insert("orderType".to_string(), Value::from(typeUpper.clone()));
-                m.insert("slippageBps".to_string(), slippageBps);
+                m.insert("slippageBps".to_string(), Value::from(slippageBps));
             m
         });
-        let mut amountStr: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-        let mut priceStr: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
+        let mut amountStr: Option<String> = self.number_to_string(amount.clone());
+        let mut priceStr: Option<String> = self.number_to_string(price.clone());
         let mut defaultTif: String = "FOK".to_string();
         if (typeUpper == "LIMIT") {
             if (price == Value::Null) {
@@ -2564,7 +2564,7 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_1226: bool = true;
             while { if !__for_first_1226 { i += 1; } __for_first_1226 = false; i < (ids.len() as i64) } {
-            let mut key: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("cancelInfoList[".into()), self.number_to_string(Value::Int(i))).into()), Value::Str("].orderId".into()));
+            let mut key: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("cancelInfoList[".into()), Value::from(self.number_to_string(Value::Int(i)))).into()), Value::Str("].orderId".into()));
             request.insert(key, ids.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }

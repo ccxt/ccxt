@@ -321,7 +321,7 @@ impl Bithumb {
 }
 
     pub fn handle_pong(&self, mut client: Value, mut message: Value) {
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
 }
 
 /*
@@ -668,7 +668,7 @@ impl Bithumb {
             time.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
         let mut timestamp: Value = Value::Null;
-        let mut kstTimestamp: Value = self.parse8601(Value::from(kstDatetime));
+        let mut kstTimestamp: Value = Value::from(self.parse8601(Value::from(kstDatetime)));
         if (kstTimestamp != Value::Null) {
             timestamp = (match (&(kstTimestamp), &(Value::Int(32400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }
@@ -834,7 +834,7 @@ impl Bithumb {
             if (timestampStr.is_none()) {
                 return;
             }
-            let mut legacyTimestamp: Value = self.parse_to_int(timestampStr.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(13); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
+            let mut legacyTimestamp: Option<i64> = self.parse_to_int(timestampStr.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(13); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
             if !(matches!((&self.orderbooks, &legacySymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut ob: Value = self.order_book(&[]);
                 ob.set_book_meta("symbol", legacySymbol.clone());
@@ -842,8 +842,8 @@ impl Bithumb {
             }
             let mut legacyOrderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), legacySymbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             self.handle_book_deltas(legacyOrderbook.clone(), Value::Arr(list));
-            legacyOrderbook.set_book_meta("timestamp", legacyTimestamp.clone());
-            legacyOrderbook.set_book_meta("datetime", self.iso8601(legacyTimestamp));
+            legacyOrderbook.set_book_meta("timestamp", Value::from(legacyTimestamp));
+            legacyOrderbook.set_book_meta("datetime", self.iso8601(Value::from(legacyTimestamp)));
             let mut legacyMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), legacySymbol);
             client.resolve(legacyOrderbook, legacyMessageHash.as_str());
             return;
@@ -867,7 +867,7 @@ impl Bithumb {
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut units: crate::value::List = __pro_message.get("orderbook_units").cloned().unwrap_or_default().into_list();
         let mut gen2TimestampStr: Option<String> = self.safe_string2_opt(message, Value::Str("timestamp".into()), Value::Str("datetime".into()), &[]);
-        let mut timestamp: Value = self.milliseconds();
+        let mut timestamp: Option<i64> = Some(self.milliseconds());
         if (gen2TimestampStr.is_some()) {
             timestamp = self.parse_to_int(gen2TimestampStr.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(13); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
         }
@@ -895,7 +895,7 @@ impl Bithumb {
                 m.insert("bids".to_string(), Value::from(bidsSnapshot));
                 m.insert("asks".to_string(), Value::from(asksSnapshot));
             m
-        }), symbol.clone(), &[timestamp]);
+        }), symbol.clone(), &[Value::from(timestamp)]);
         orderbook.reset(snapshot);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbol);
         client.resolve(orderbook, messageHash.as_str());
@@ -1122,7 +1122,7 @@ impl Bithumb {
         let mut datetime: Option<String> = self.safe_string_k(trade.clone(), "contDtm", &[]).as_str().map(str::to_owned);
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
         let mut timestamp: Value = Value::Null;
-        let mut kstTimestamp: Value = self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null));
+        let mut kstTimestamp: Value = Value::from(self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null)));
         if (kstTimestamp != Value::Null) {
             timestamp = (match (&(kstTimestamp), &(Value::Int(32400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }
@@ -1347,7 +1347,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut m = indexmap::IndexMap::new();
                     m.insert("access_key".to_string(), self.apiKey.clone());
                     m.insert("nonce".to_string(), self.uuid(&[]));
-                    m.insert("timestamp".to_string(), self.milliseconds());
+                    m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
                 m
             });
             let mut jwtToken: Value = jwt(payload, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);

@@ -393,7 +393,7 @@ impl Poloniex {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut timestamp: Option<String> = self.number_to_string(self.milliseconds()).as_str().map(str::to_owned);
+        let mut timestamp: Option<String> = self.number_to_string(Value::Int(self.milliseconds()));
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: Value = Value::Str("authenticated".into());
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
@@ -550,7 +550,7 @@ impl Poloniex {
     m
 }));
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
+        let mut messageHash: Option<String> = self.number_to_string(self.nonce());
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone().map(Value::from).unwrap_or(Value::Null));
@@ -636,8 +636,8 @@ impl Poloniex {
                 if (price == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument".into()))));
                 }  else {
-                    let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-                    let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
+                    let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                    let mut priceString: Option<String> = self.number_to_string(price.clone());
                     let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                 }
@@ -900,9 +900,9 @@ impl Poloniex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = self.symbol(symbol.clone());
-        let mut tickers: crate::types::Tickers = (match self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.safe_value(crate::types::IntoRaw::into_raw(tickers), symbolValue, &[]);
+        let mut symbolValue: String = self.symbol(symbol.clone());
+        let mut tickers: crate::types::Tickers = (match self.watch_tickers((Value::from(vec![Value::from(symbolValue.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return self.safe_value(crate::types::IntoRaw::into_raw(tickers), Value::from(symbolValue), &[]);
         Value::Null
         }).await?))
     }
@@ -1159,7 +1159,7 @@ impl Poloniex {
         }
         let mut name: String = "orders".to_string();
         self.authenticate(&[]).await;
-        let mut symbolResolved: Option<String> = (if (symbol == Value::Null) { None } else { self.symbol(symbol.clone()).as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (symbol == Value::Null) { None } else { Some(self.symbol(symbol.clone())) });
         let mut symbols: Value = (if (symbolResolved.is_none()) { Value::Null } else { Value::from(vec![symbolResolved.clone().map(Value::from).unwrap_or(Value::Null)]) });
         let mut orders: Value = self.subscribe(name.as_str(), name.as_str(), true, &[symbols, params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -1201,7 +1201,7 @@ impl Poloniex {
         let mut name: String = "orders".to_string();
         let mut messageHash: String = "myTrades".to_string();
         self.authenticate(&[]).await;
-        let mut symbolResolved: Option<String> = (if (symbol == Value::Null) { None } else { self.symbol(symbol.clone()).as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (symbol == Value::Null) { None } else { Some(self.symbol(symbol.clone())) });
         let mut symbols: Value = (if (symbolResolved.is_none()) { Value::Null } else { Value::from(vec![symbolResolved.clone().map(Value::from).unwrap_or(Value::Null)]) });
         let mut trades: Value = self.subscribe(name.as_str(), messageHash.as_str(), true, &[symbols, params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -1348,7 +1348,7 @@ impl Poloniex {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timeframe: Value = self.find_timeframe(channel.clone().map(Value::from).unwrap_or(Value::Null), &[timeframes]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(channel.clone().map(Value::from).unwrap_or(Value::Null), &[timeframes]));
         let mut parsed: Value = self.parse_ws_ohlcv(data, &[market]);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1484,8 +1484,8 @@ impl Poloniex {
         m.insert("type".to_string(), self.safe_string_lower_k(trade.clone(), "type", &[]));
         m.insert("side".to_string(), self.safe_string_lower2(trade.clone(), Value::Str("takerSide".into()), Value::Str("side".into()), &[]));
         m.insert("takerOrMaker".to_string(), takerMaker.map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), self.omit_zero(self.safe_string2(trade.clone(), Value::Str("tradePrice".into()), Value::Str("price".into()), &[])));
-        m.insert("amount".to_string(), self.omit_zero(self.safe_string2(trade.clone(), Value::Str("filledQuantity".into()), Value::Str("quantity".into()), &[])));
+        m.insert("price".to_string(), Value::from(self.omit_zero(self.safe_string2(trade.clone(), Value::Str("tradePrice".into()), Value::Str("price".into()), &[]))));
+        m.insert("amount".to_string(), Value::from(self.omit_zero(self.safe_string2(trade.clone(), Value::Str("filledQuantity".into()), Value::Str("quantity".into()), &[]))));
         m.insert("cost".to_string(), self.safe_string2(trade.clone(), Value::Str("amount".into()), Value::Str("filledAmount".into()), &[]));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1664,8 +1664,8 @@ impl Poloniex {
                             let mut m = indexmap::IndexMap::new();
                             m
                         })]).as_map().cloned().unwrap_or_default();
-                        let mut cost: Option<String> = self.number_to_string(previousOrderTrade.get("cost").cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                        let mut amount: Option<String> = self.number_to_string(previousOrderTrade.get("amount").cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        let mut cost: Option<String> = self.number_to_string(previousOrderTrade.get("cost").cloned().unwrap_or(Value::Null));
+                        let mut amount: Option<String> = self.number_to_string(previousOrderTrade.get("amount").cloned().unwrap_or(Value::Null));
                         totalCost = crate::precise::Precise::stringAdd(&totalCost.clone().map(Value::from).unwrap_or(Value::Null), &cost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                         totalAmount = crate::precise::Precise::stringAdd(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &amount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     }
@@ -1675,12 +1675,12 @@ impl Poloniex {
                     }
                     add_element_to_object(&mut previousOrder, &Value::Str("cost".into()), self.parse_number(totalCost.map(Value::from).unwrap_or(Value::Null), &[]));
                     if (previousOrder.as_map().and_then(|__m| __m.get("filled")).cloned().unwrap_or(Value::Null) != Value::Null) {
-                        let mut tradeAmount: Option<String> = self.number_to_string(trade.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                        let mut previousOrderFilled: Option<String> = self.number_to_string(previousOrder.as_map().and_then(|__m| __m.get("filled")).cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        let mut tradeAmount: Option<String> = self.number_to_string(trade.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null));
+                        let mut previousOrderFilled: Option<String> = self.number_to_string(previousOrder.as_map().and_then(|__m| __m.get("filled")).cloned().unwrap_or(Value::Null));
                         previousOrderFilled = crate::precise::Precise::stringAdd(&previousOrderFilled.clone().map(Value::from).unwrap_or(Value::Null), &tradeAmount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                         add_element_to_object(&mut previousOrder, &Value::Str("filled".into()), previousOrderFilled.clone().map(Value::from).unwrap_or(Value::Null));
                         if (previousOrder.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null) != Value::Null) {
-                            let mut previousOrderAmount: Option<String> = self.number_to_string(previousOrder.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                            let mut previousOrderAmount: Option<String> = self.number_to_string(previousOrder.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null));
                             add_element_to_object(&mut previousOrder, &Value::Str("remaining".into()), self.parse_number(crate::precise::Precise::stringSub(&previousOrderAmount.map(Value::from).unwrap_or(Value::Null), &previousOrderFilled.map(Value::from).unwrap_or(Value::Null)), &[]));
                         }
                     }
@@ -1694,8 +1694,8 @@ impl Poloniex {
 }));
                     }
                     if (crate::value::get_value_k(&previousOrder.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), "cost") != Value::Null) && (self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]) != Value::Null) {
-                        let mut stringOrderCost: Value = self.number_to_string(crate::value::get_value_k(&previousOrder.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), "cost"));
-                        let mut stringTradeCost: Value = self.number_to_string(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]));
+                        let mut stringOrderCost: Value = Value::from(self.number_to_string(crate::value::get_value_k(&previousOrder.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), "cost")));
+                        let mut stringTradeCost: Value = Value::from(self.number_to_string(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[])));
                         add_element_to_object(get_value_mut(&mut previousOrder, &Value::Str("fee".into())), &Value::Str("cost".into()), crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost));
                     }
                     let mut rawState: Option<String> = self.safe_string_k(order, "state", &[]).as_str().map(str::to_owned);
@@ -2083,7 +2083,7 @@ impl Poloniex {
 }
 
     pub fn handle_pong(&self, mut client: Value) {
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
@@ -2095,7 +2095,7 @@ impl Poloniex {
         let mut type_var: Option<String> = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (event.as_deref() == Some("pong")) {
-            crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+            crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
         }
         if (event.as_deref() == Some("unsubscribe")) {
             self.handle_unsubscription(client.clone(), message.clone());
@@ -2159,7 +2159,7 @@ impl Poloniex {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timeframe: Option<String> = self.find_timeframe(Value::from(channel.clone()), &[timeframes]).as_str().map(str::to_owned);
+        let mut timeframe: Option<String> = self.find_timeframe(Value::from(channel.clone()), &[timeframes]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_649: bool = true;

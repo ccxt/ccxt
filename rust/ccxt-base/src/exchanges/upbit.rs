@@ -1564,7 +1564,7 @@ impl Upbit {
         let mut orderId: Value = Value::Null;
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         if (timestamp.is_none()) {
-            timestamp = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[])).as_i64();
+            timestamp = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[]));
         }
         let mut side: Option<String> = None;
         let mut askOrBid: String = self.safe_string_lower2(trade.clone(), Value::Str("ask_bid".into()), Value::Str("side".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1791,7 +1791,8 @@ impl Upbit {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::from(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "candle_date_time_utc", &[])), self.safe_number_k(ohlcv.clone(), "opening_price", &[]), self.safe_number_k(ohlcv.clone(), "high_price", &[]), self.safe_number_k(ohlcv.clone(), "low_price", &[]), self.safe_number_k(ohlcv.clone(), "trade_price", &[]), self.safe_number_k(ohlcv, "candle_acc_trade_volume", &[])]);
+        return Value::from(vec![Value::from(self.parse8601(self.safe_string_k(ohlcv.clone(), "candle_date_time_utc", &[]))), self.safe_number_k(ohlcv.clone(), "opening_price", &[]), self.safe_number_k(ohlcv.clone(), "high_price", &[]), self.safe_number_k(ohlcv.clone(), "low_price", &[]), self.safe_number_k(ohlcv.clone(), "trade_price", &[]),
+            self.safe_number_k(ohlcv, "candle_acc_trade_volume", &[])]);
 
     Value::Null
 }
@@ -1827,24 +1828,23 @@ impl Upbit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut timeframePeriod: Value = self.parse_timeframe(timeframe.clone());
+        let mut timeframePeriod: i64 = self.parse_timeframe(timeframe.clone());
         let mut timeframeValue: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(200) } else { limit });
+        let mut limitResolved: i64 = limit.as_i64().unwrap_or(200);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
                 m.insert("timeframe".to_string(), timeframeValue.clone());
-                m.insert("count".to_string(), limitResolved.clone());
+                m.insert("count".to_string(), Value::from(limitResolved));
             m
         });
         let mut response: Value = Value::Null;
         if (since != Value::Null) {
             // convert `since` to `to` value
-            request.insert("to".into(), self.iso8601(self.sum(&[since.clone(), (match (&((match (&(timeframePeriod), &(limitResolved)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })])));
+            request.insert("to".into(), self.iso8601(self.sum(&[since.clone(), Value::Int((((timeframePeriod * limitResolved)) * 1000))])));
         }
         if (timeframeValue.as_str() == Some("minutes")) {
-            let mut numMinutes: Value = ((match ((timeframePeriod).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.round())).unwrap_or(Value::Null);
+            let mut numMinutes: Value = (Value::Float(((timeframePeriod as f64) / 60.0))).as_f64().map(|__x| Value::Float(__x.round())).unwrap_or(Value::Null);
             request.insert("unit".into(), numMinutes);
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.public_get_candles_timeframe_unit(&[__ws_arg_7]).await;
@@ -1883,7 +1883,7 @@ impl Upbit {
         //     ]
         //
         let mut ohlcvs: Value = self.to_array(response);
-        return self.parse_ohlc_vs(ohlcvs, &[(market).raw.clone(), timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(ohlcvs, &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -1908,8 +1908,8 @@ impl Upbit {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(),
                     Value::Str(" createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument".into()))));
             }
-            let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-            let mut priceString: Option<String> = self.number_to_string(price).as_str().map(str::to_owned);
+            let mut amountString: Option<String> = self.number_to_string(amount.clone());
+            let mut priceString: Option<String> = self.number_to_string(price);
             let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }  else {
@@ -2471,7 +2471,7 @@ impl Upbit {
         let mut address: Value = Value::Null; // not present in the data structure received from the exchange
         let mut tag: Value = Value::Null; // not present in the data structure received from the exchange
         let mut updatedRaw: Option<String> = self.safe_string_k(transaction.clone(), "done_at", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "created_at", &[updatedRaw.clone().map(Value::from).unwrap_or(Value::Null)])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "created_at", &[updatedRaw.clone().map(Value::from).unwrap_or(Value::Null)]));
         let mut type_var: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("withdraw")) {
             type_var = Some("withdrawal".to_string());
@@ -2493,7 +2493,7 @@ impl Upbit {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("status".to_string(), self.parse_transaction_status((self.safe_string_lower_k(transaction.clone(), "state", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
-        m.insert("updated".to_string(), self.parse8601(updatedRaw.map(Value::from).unwrap_or(Value::Null)));
+        m.insert("updated".to_string(), Value::from(self.parse8601(updatedRaw.map(Value::from).unwrap_or(Value::Null))));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txid", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
@@ -2608,7 +2608,7 @@ impl Upbit {
         }
         let mut identifier: Option<String> = self.safe_string_k(order.clone(), "identifier", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string_k(order.clone(), "ord_type", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[]));
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "state", &[])).as_str());
         let mut lastTradeTimestamp: Value = Value::Null;
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
@@ -2950,7 +2950,7 @@ impl Upbit {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress);
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)])));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
     m
@@ -3125,7 +3125,7 @@ impl Upbit {
     }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }

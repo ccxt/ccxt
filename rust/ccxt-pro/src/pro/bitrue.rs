@@ -992,7 +992,7 @@ impl Bitrue {
         m.insert("side".to_string(), sideLower.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Str("taker".into()));
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), self.number_to_string(baseAmount));
+        m.insert("amount".to_string(), Value::from(self.number_to_string(baseAmount)));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
@@ -1108,7 +1108,7 @@ impl Bitrue {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timeframe: Value = self.find_timeframe(wsInterval.map(Value::from).unwrap_or(Value::Null), &[futuresTimeframes]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(wsInterval.map(Value::from).unwrap_or(Value::Null), &[futuresTimeframes]));
         if (timeframe == Value::Null) {
             return;
         }

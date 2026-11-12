@@ -186,7 +186,7 @@ impl crate::exchange_generated::ExchangeBase for Bullish {
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "request_id" => self.request_id(),
+                "request_id" => crate::Value::from(self.request_id()),
                 "separate_bids_or_asks" => self.separate_bids_or_asks(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -221,7 +221,7 @@ impl Bullish {
             "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "request_id" => self.request_id(),
+            "request_id" => crate::Value::from(self.request_id()),
             "separate_bids_or_asks" => self.separate_bids_or_asks(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
             "watch_my_trades" => { crate::exchange_stubs::enqueue_spawn("watch_my_trades", args.to_vec()); crate::Value::Null },
@@ -312,18 +312,16 @@ impl Bullish {
     Value::Null
 }
 
-    pub fn request_id(&mut self) -> Value {
+    pub fn request_id(&mut self) -> i64 {
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
-        return requestId;
-
-    Value::Null
+        return requestId.as_i64().unwrap_or_default();
 }
 
     pub fn ping(&mut self, mut client: Value) -> Value {
         // bullish does not support built-in ws protocol-level ping-pong
         // https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--keep-websocket-open
-        let mut id: Value = Value::Str(format!("{}", self.request_id()).into());
+        let mut id: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
@@ -352,7 +350,7 @@ impl Bullish {
         //         }
         //     }
         //
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
         return message;
 
     Value::Null
@@ -369,7 +367,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut id: Value = Value::Str(format!("{}", self.request_id()).into());
+        let mut id: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
@@ -408,7 +406,7 @@ impl Bullish {
             m
         });
         if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("cookies".to_string(), Value::Map(cookies)); } }
-        let mut id: Value = Value::Str(format!("{}", self.request_id()).into());
+        let mut id: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
@@ -781,7 +779,7 @@ impl Bullish {
         let mut messageHash: String = subscribeHash.clone();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+            symbolResolved = Some(self.symbol(symbol.clone()));
             messageHash = format!("{}{}", Value::Str(format!("{}{}", subscribeHash, Value::Str("::".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -932,7 +930,7 @@ impl Bullish {
         let mut messageHash: String = subscribeHash.clone();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+            symbolResolved = Some(self.symbol(symbol.clone()));
             messageHash = format!("{}{}", Value::Str(format!("{}{}", subscribeHash, Value::Str("::".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

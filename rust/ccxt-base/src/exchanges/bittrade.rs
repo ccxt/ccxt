@@ -2668,8 +2668,8 @@ impl Bittrade {
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
                     // we use amountToPrecision here because the exchange requires cost in base precision
-                    let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-                    let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
+                    let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                    let mut priceString: Option<String> = self.number_to_string(price.clone());
                     quoteAmount = self.amount_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)));
                 }
             }  else {
@@ -3124,7 +3124,7 @@ impl Bittrade {
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "tx-hash", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_upper_k(transaction.clone(), "chain", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_upper_k(transaction.clone(), "chain", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)])));
         m.insert("address".to_string(), self.safe_string_k(transaction.clone(), "address", &[]));
         m.insert("addressTo".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), Value::Null);
@@ -3262,7 +3262,7 @@ impl Bittrade {
         let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
         if (apiName.as_deref() == Some("private")) || (apiName.as_deref() == Some("v2Private")) {
             self.check_required_credentials(&[]);
-            let mut timestamp: Option<String> = self.ymdhms(self.milliseconds(), &[Value::Str("T".into())]).as_str().map(str::to_owned);
+            let mut timestamp: Option<String> = self.ymdhms(Value::Int(self.milliseconds()), &[Value::Str("T".into())]).as_str().map(str::to_owned);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("SignatureMethod".to_string(), Value::Str("HmacSHA256".into()));

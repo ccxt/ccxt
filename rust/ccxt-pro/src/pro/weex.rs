@@ -197,7 +197,7 @@ impl crate::exchange_generated::ExchangeBase for Weex {
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
-                "request_id" => self.request_id(),
+                "request_id" => crate::Value::from(self.request_id()),
                 "subscribe_private" => self.subscribe_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str), &args[3.min(args.len())..]).await,
                 "subscribe_public" => self.subscribe_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "un_watch_bids_asks" => crate::types::IntoRaw::into_raw(self.un_watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -264,7 +264,7 @@ impl Weex {
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "pong" => { crate::exchange_stubs::enqueue_spawn("pong", args.to_vec()); crate::Value::Null },
-            "request_id" => self.request_id(),
+            "request_id" => crate::Value::from(self.request_id()),
             "set_balance_cache" => { self.set_balance_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]); crate::Value::Null },
             "subscribe_private" => { crate::exchange_stubs::enqueue_spawn("subscribe_private", args.to_vec()); crate::Value::Null },
@@ -414,14 +414,12 @@ impl Weex {
     Value::Null
 }
 
-    pub fn request_id(&mut self) -> Value {
+    pub fn request_id(&mut self) -> i64 {
         self.lock_id(&[]);
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
         self.unlock_id(&[]);
-        return requestId;
-
-    Value::Null
+        return requestId.as_i64().unwrap_or_default();
 }
 
     pub async fn subscribe_public(&mut self, mut messageHashes: Value, mut channels: Value, optional_args: &[Value]) -> Value {
@@ -434,7 +432,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut id: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut id: i64 = self.request_id();
         let mut method: String = "SUBSCRIBE".to_string();
         let mut unsubscribe: bool = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if unsubscribe {
@@ -486,7 +484,7 @@ impl Weex {
         if unsubscribe {
             method = "UNSUBSCRIBE".to_string();
         }
-        let mut id: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut id: i64 = self.request_id();
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(id));
@@ -585,7 +583,7 @@ impl Weex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = self.symbol(symbol.clone());
+        let mut symbolValue: Value = Value::from(self.symbol(symbol.clone()));
         let mut tickers: Value = crate::types::IntoRaw::into_raw(self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await);
         return (if let (Some(__m), Some(__k)) = (tickers.as_map(), symbolValue.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         Value::Null
@@ -1382,7 +1380,7 @@ impl Weex {
             m
         })]).into_dict();
         let mut interval: Option<String> = self.safe_string_k(&firstEntry, "i", &[]).as_str().map(str::to_owned);
-        let mut timeframe: Value = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]));
         let mut stored: Value = self.safe_value(self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -2432,13 +2430,13 @@ impl Weex {
         }
         let mut rawStatus: Option<String> = self.safe_string_lower_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut rawType: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut triggerPrice: Value = self.omit_zero(self.safe_string_k(order.clone(), "triggerPrice", &[]));
+        let mut triggerPrice: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "triggerPrice", &[]));
         let mut stopLossPrice: Value = Value::Null;
         let mut takeProfitPrice: Value = Value::Null;
         if (rawType.as_deref() == Some("TAKE_PROFIT_MARKET")) || (rawType.as_deref() == Some("TAKE_PROFIT")) {
-            takeProfitPrice = triggerPrice.clone();
+            takeProfitPrice = triggerPrice.clone().map(Value::from).unwrap_or(Value::Null);
         }  else if (rawType.as_deref() == Some("STOP_LOSS")) || (rawType.as_deref() == Some("STOP")) || (rawType.as_deref() == Some("STOP_MARKET")) {
-            stopLossPrice = triggerPrice.clone();
+            stopLossPrice = triggerPrice.clone().map(Value::from).unwrap_or(Value::Null);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2452,7 +2450,7 @@ impl Weex {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_string_k(order.clone(), "size", &[]));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));
-        m.insert("triggerPrice".to_string(), triggerPrice);
+        m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), self.safe_string_k(order.clone(), "cumFillValue", &[]));
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "cumFillSize", &[]));
         m.insert("remaining".to_string(), Value::Null);
@@ -2911,7 +2909,7 @@ impl Weex {
         //
         let mut response: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), self.request_id());
+                m.insert("id".to_string(), Value::Int(self.request_id()));
                 m.insert("method".to_string(), Value::Str("PONG".into()));
             m
         });

@@ -970,7 +970,7 @@ impl Mexc {
         self.check_required_credentials(&[]);
         let mut channel: String = "login".to_string();
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "swap").as_str().map(str::to_owned);
-        let mut timestamp: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
+        let mut timestamp: String = format!("{}", self.milliseconds());
         let mut payload: String = format!("{}{}", self.apiKey.clone(), timestamp);
         let mut signature: Option<String> = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1124,10 +1124,10 @@ impl Mexc {
         let mut symbol: Value = Value::Null;
         let mut timeframe: Value = Value::Null;
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("publicSpotKline"))) {
-            symbol = self.symbol(self.safe_string_k(message.clone(), "symbol", &[]));
+            symbol = Value::from(self.symbol(self.safe_string_k(message.clone(), "symbol", &[])));
             let mut data: crate::value::Dict = __pro_message.get("publicSpotKline").cloned().unwrap_or_default().into_dict();
             let mut timeframeId: Option<String> = self.safe_string_k_opt(&data, "interval", &[]);
-            timeframe = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[self.options.as_map().and_then(|__m| __m.get("timeframes")).cloned().unwrap_or(Value::Null)]);
+            timeframe = Value::from(self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[self.options.as_map().and_then(|__m| __m.get("timeframes")).cloned().unwrap_or(Value::Null)]));
             parsed = self.parse_ws_ohlcv(Value::Dict(data), &[self.safe_market(&[symbol.clone()])]);
         }  else {
             let mut d: crate::value::Dict = self.safe_dict2(message.clone(), Value::Str("d".into()), Value::Str("data".into()), &[Value::Map({
@@ -1140,7 +1140,7 @@ impl Mexc {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            timeframe = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[timeframes]);
+            timeframe = Value::from(self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[timeframes]));
             let mut marketId: Option<String> = self.safe_string2(message, Value::Str("s".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1409,9 +1409,9 @@ impl Mexc {
         let mut nonce: Option<i64> = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]).as_i64();
         let mut shouldReturn: bool = false;
         if (nonce.is_none()) {
-            let mut cacheLength: Value = self.parse_to_int(Value::Int(get_value(&storedOrderBook, &Value::Str("cache".into())).len() as i64));
-            let mut snapshotDelay: Value = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(25)]));
-            if (cacheLength.as_f64() == snapshotDelay.as_f64()) {
+            let mut cacheLength: Option<i64> = self.parse_to_int(Value::Int(get_value(&storedOrderBook, &Value::Str("cache".into())).len() as i64));
+            let mut snapshotDelay: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(25)]));
+            if (cacheLength == snapshotDelay) {
                 self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), Value::from(messageHash.clone()), symbol, Value::from(limit), Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -2826,7 +2826,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }
 
     pub fn handle_pong(&self, mut client: Value, mut message: Value) -> Value {
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
         return message;
 
     Value::Null

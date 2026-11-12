@@ -597,7 +597,7 @@ impl Bitfinex {
         let mut interval: String = self.safe_string(keyParts.clone(), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut marketId: String = self.safe_string(keyParts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut market: Value = self.safe_market(&[Value::from(marketId.clone())]);
-        let mut timeframe: Value = self.find_timeframe(Value::from(interval.clone()), &[]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(Value::from(interval.clone()), &[]));
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), interval).into()), Value::Str(":".into())).into()), marketId);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
@@ -1286,14 +1286,14 @@ impl Bitfinex {
             let mut bid: Option<crate::value::List> = self.safe_list(bids.clone(), Value::Int(i), &[]).into_opt_list();
             let mut ask: Option<crate::value::List> = self.safe_list(asks.clone(), Value::Int(i), &[]).into_opt_list();
             if (bid.is_some()) {
-                stringArray.push(self.number_to_string(self.safe_number(&bid, Value::from(idToCheck), &[])));
-                stringArray.push(self.number_to_string(self.safe_number(&bid, Value::Int(1), &[])));
+                stringArray.push(Value::from(self.number_to_string(self.safe_number(&bid, Value::from(idToCheck), &[]))));
+                stringArray.push(Value::from(self.number_to_string(self.safe_number(&bid, Value::Int(1), &[]))));
             }
             if (ask.is_some()) {
-                stringArray.push(self.number_to_string(self.safe_number(&ask, Value::from(idToCheck), &[])));
+                stringArray.push(Value::from(self.number_to_string(self.safe_number(&ask, Value::from(idToCheck), &[]))));
                 let mut aski1: Value = self.safe_number(&ask, Value::Int(1), &[]);
                 if (aski1 != Value::Null) {
-                    stringArray.push(self.number_to_string((match &(aski1) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null })));
+                    stringArray.push(Value::from(self.number_to_string((match &(aski1) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }))));
                 }
             }
         }
@@ -1577,7 +1577,7 @@ impl Bitfinex {
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             // the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
-            let mut nonce: Value = self.incrementing_nonce();
+            let mut nonce: i64 = self.incrementing_nonce();
             let mut payload: String = format!("{}{}", Value::Str("AUTH".into()), Value::Str(format!("{}", nonce).into()));
             let mut signature: Option<String> = self.hmac(self.encode(Value::from(payload.clone())), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[Value::Str("hex".into())]).as_str().map(str::to_owned);
             let mut event: String = "auth".to_string();
@@ -1585,7 +1585,7 @@ impl Bitfinex {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("apiKey".to_string(), self.apiKey.clone());
                     m.insert("authSig".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("authNonce".to_string(), nonce);
+                    m.insert("authNonce".to_string(), Value::from(nonce));
                     m.insert("authPayload".to_string(), Value::from(payload));
                     m.insert("event".to_string(), Value::from(event));
                 m
@@ -1826,7 +1826,7 @@ impl Bitfinex {
         let mut price: Option<String> = self.safe_string(order.clone(), Value::Int(16), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Int(5), Value::Int(4), &[]).as_i64();
         let mut average: Option<String> = self.safe_string(order.clone(), Value::Int(17), &[]).as_str().map(str::to_owned);
-        let mut stopPrice: Value = self.omit_zero(self.safe_string(order.clone(), Value::Int(18), &[]));
+        let mut stopPrice: Option<String> = self.omit_zero(self.safe_string(order.clone(), Value::Int(18), &[]));
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
@@ -1839,8 +1839,8 @@ impl Bitfinex {
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("side".to_string(), Value::from(side));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("stopPrice".to_string(), stopPrice.clone());
-        m.insert("triggerPrice".to_string(), stopPrice);
+        m.insert("stopPrice".to_string(), stopPrice.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("triggerPrice".to_string(), stopPrice.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));

@@ -1368,7 +1368,7 @@ impl Hitbtc {
 }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -1634,7 +1634,7 @@ impl Hitbtc {
             while { if !__for_first_744 { j += 1; } __for_first_744 = false; j < (rawNetworks.len() as i64) } {
             let mut rawNetwork: crate::value::Dict = rawNetworks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string2(&rawNetwork, Value::Str("protocol".into()), Value::Str("network".into()), &[]).as_str().map(str::to_owned);
-            let mut rawNetworkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            let mut rawNetworkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut networkCodeUpper: Option<String> = (if (rawNetworkCode.is_some()) { rawNetworkCode.as_deref().map(str::to_uppercase) } else { None });
             let mut networkCode: Value = Value::Null;
             if (networkCodeUpper.is_some()) {
@@ -2018,7 +2018,7 @@ impl Hitbtc {
         //       "timestamp": "2021-10-22T07:29:14.585Z"
         //     }
         //
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker.clone(), "timestamp", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker.clone(), "timestamp", &[]));
         let mut symbol: Option<String> = self.safe_symbol(Value::Null, &[market.clone()]).as_str().map(str::to_owned);
         let mut baseVolume: Option<String> = self.safe_string_k(ticker.clone(), "volume", &[]).as_str().map(str::to_owned);
         let mut quoteVolume: Option<String> = self.safe_string_k(ticker.clone(), "volume_quote", &[]).as_str().map(str::to_owned);
@@ -2252,7 +2252,7 @@ impl Hitbtc {
         //      "liquidation": false
         //  }
         //
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "timestamp", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "timestamp", &[]));
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone()]).as_str().map(str::to_owned);
@@ -2403,8 +2403,8 @@ impl Hitbtc {
         //     }
         //
         let mut id: Option<String> = self.safe_string2(transaction.clone(), Value::Str("operation_id".into()), Value::Str("id".into()), &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "created_at", &[])).as_i64();
-        let mut updated: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "updated_at", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "created_at", &[]));
+        let mut updated: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "updated_at", &[]));
         let mut type_var: Option<String> = self.parse_transaction_type((self.safe_string_k(transaction.clone(), "type", &[])).as_str());
         let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
         let mut native: crate::value::Dict = self.safe_dict_k(transaction.clone(), "native", &[Value::Map({
@@ -2607,7 +2607,7 @@ impl Hitbtc {
     m
 })]).into_dict();
             let mut symbol: Value = self.safe_symbol(marketId, &[]);
-            let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&orderbook, "timestamp", &[])).as_i64();
+            let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&orderbook, "timestamp", &[]));
             result.insert(crate::runtime::stringify_param(&symbol), self.parse_order_book(Value::Dict(orderbook), symbol.clone(), &[Value::from(timestamp), Value::Str("bid".into()), Value::Str("ask".into())]));
         }
         }
@@ -2652,7 +2652,7 @@ impl Hitbtc {
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_public_orderbook_symbol(&[__ws_arg_12]).await;
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(response.clone(), "timestamp", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(response.clone(), "timestamp", &[]));
         return self.parse_order_book(response, symbol, &[Value::from(timestamp), Value::Str("bid".into()), Value::Str("ask".into())]);
         Value::Null
         }).await?))
@@ -2902,7 +2902,7 @@ impl Hitbtc {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::from(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "timestamp", &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "max", &[]), self.safe_number_k(ohlcv.clone(), "min", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
+        return Value::from(vec![Value::from(self.parse8601(self.safe_string_k(ohlcv.clone(), "timestamp", &[]))), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "max", &[]), self.safe_number_k(ohlcv.clone(), "min", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -3726,11 +3726,11 @@ impl Hitbtc {
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut average: Option<String> = self.safe_string_k(order.clone(), "price_average", &[]).as_str().map(str::to_owned);
         let mut created: Option<String> = self.safe_string_k(order.clone(), "created_at", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(created.clone().map(Value::from).unwrap_or(Value::Null)).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(created.clone().map(Value::from).unwrap_or(Value::Null));
         let mut updated: Option<String> = self.safe_string_k(order.clone(), "updated_at", &[]).as_str().map(str::to_owned);
         let mut lastTradeTimestamp: Value = Value::Null;
         if (updated != created) {
-            lastTradeTimestamp = self.parse8601(updated.map(Value::from).unwrap_or(Value::Null));
+            lastTradeTimestamp = Value::from(self.parse8601(updated.map(Value::from).unwrap_or(Value::Null)));
         }
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "quantity_cumulative", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str());
@@ -4212,7 +4212,7 @@ impl Hitbtc {
                         m.insert("info".to_string(), Value::Dict(entry));
                         m.insert("symbol".to_string(), symbolInner.map(Value::from).unwrap_or(Value::Null));
                         m.insert("fundingRate".to_string(), Value::from(fundingRate));
-                        m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+                        m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
                         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
                     m
                 }));
@@ -4472,7 +4472,7 @@ impl Hitbtc {
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Null);
         m.insert("hedged".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
@@ -4515,7 +4515,7 @@ impl Hitbtc {
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
         m.insert("openInterestAmount".to_string(), Value::Null);
         m.insert("openInterestValue".to_string(), Value::from(value));
-        m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), interest);
     m
@@ -4701,10 +4701,10 @@ impl Hitbtc {
         m.insert("indexPrice".to_string(), self.safe_number_k(contract.clone(), "index_price", &[]));
         m.insert("interestRate".to_string(), self.safe_number_k(contract.clone(), "interest_rate", &[]));
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "funding_rate", &[]));
-        m.insert("fundingTimestamp".to_string(), self.parse8601(fundingDateTime.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("fundingTimestamp".to_string(), Value::from(self.parse8601(fundingDateTime.clone().map(Value::from).unwrap_or(Value::Null))));
         m.insert("fundingDatetime".to_string(), fundingDateTime.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("nextFundingRate".to_string(), self.safe_number_k(contract, "indicative_funding_rate", &[]));
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
@@ -4737,7 +4737,7 @@ impl Hitbtc {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" modifyMarginHelper() requires a leverage parameter for swap markets".into()))));
             }
         }
-        let mut stringAmount: Option<String> = self.number_to_string(amount).as_str().map(str::to_owned);
+        let mut stringAmount: Option<String> = self.number_to_string(amount);
         let mut amountValue: Option<String> = (if (stringAmount.as_deref() != Some("0")) { self.amount_to_precision(symbol, stringAmount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) } else { Some("0".to_string()) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4830,7 +4830,7 @@ impl Hitbtc {
         m.insert("total".to_string(), Value::Null);
         m.insert("code".to_string(), self.safe_string_k(&currencyInfo, "code", &[]));
         m.insert("status".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
     m
 });
@@ -4863,7 +4863,7 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.number_to_string(amount.clone()).as_str() != Some("0")) {
+        if (Value::from(self.number_to_string(amount.clone())).as_str() != Some("0")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount".into()))));
         }
         return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), Some("reduce"), &[params]).await;
@@ -5101,7 +5101,7 @@ impl Hitbtc {
             let mut networkEntry: crate::value::Dict = self.safe_dict(&networks, Value::Int(j), &[]).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&networkEntry, "network", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-            let mut rawNetworkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            let mut rawNetworkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null)]);
             let mut networkCodeUpper: Option<String> = (if (rawNetworkCode.is_some()) { rawNetworkCode.as_deref().map(str::to_uppercase) } else { None });
             let mut networkCode: Value = Value::Null;
             if (networkCodeUpper.is_some()) {
@@ -5275,7 +5275,7 @@ impl Hitbtc {
         }
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut timestamp: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
+            let mut timestamp: Option<String> = self.number_to_string(self.nonce());
             let mut payloadString: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str("/api/3/".into())).into()), implodedPath).into()), getRequest).into()), bodyString.clone().map(Value::from).unwrap_or(Value::Null)).into()), timestamp.clone().map(Value::from).unwrap_or(Value::Null));
             let mut signature: Option<String> = self.hmac(self.encode(Value::from(payloadString)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]).as_str().map(str::to_owned);
             let mut secondPayload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(":".into())).into()), signature.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), timestamp.map(Value::from).unwrap_or(Value::Null));

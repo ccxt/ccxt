@@ -883,7 +883,7 @@ impl Independentreserve {
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_get_order_book(&[__ws_arg_0]).await;
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(response.clone(), "CreatedTimestampUtc", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(response.clone(), "CreatedTimestampUtc", &[]));
         return self.parse_order_book(response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("BuyOrders".into()), Value::Str("SellOrders".into()), Value::Str("Price".into()), Value::Str("Volume".into())]);
         Value::Null
         }).await?))
@@ -905,7 +905,7 @@ impl Independentreserve {
         //     "SecondaryCurrencyCode":"Usd",
         //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
         // }
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker.clone(), "CreatedTimestampUtc", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker.clone(), "CreatedTimestampUtc", &[]));
         let mut baseId: Option<String> = self.safe_string_k(ticker.clone(), "PrimaryCurrencyCode", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(ticker.clone(), "SecondaryCurrencyCode", &[]).as_str().map(str::to_owned);
         let mut defaultMarketId: Option<String> = None;
@@ -1061,7 +1061,7 @@ impl Independentreserve {
                 orderType = Some("limit".to_string());
             }
         }
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "CreatedTimestampUtc", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "CreatedTimestampUtc", &[]));
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "VolumeFilled", &[]).as_str().map(str::to_owned);
         let mut feeRate: Option<String> = self.safe_string_k(order.clone(), "FeePercent", &[]).as_str().map(str::to_owned);
         let mut feeCost: Option<String> = None;
@@ -1318,7 +1318,7 @@ impl Independentreserve {
     pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut trade: Value = trade.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "TradeTimestampUtc", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "TradeTimestampUtc", &[]));
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "TradeGuid", &[]).as_str().map(str::to_owned);
         let mut orderId: Option<String> = self.safe_string_k(trade.clone(), "OrderGuid", &[]).as_str().map(str::to_owned);
         let mut priceString: Option<String> = self.safe_string2(trade.clone(), Value::Str("Price".into()), Value::Str("SecondaryCurrencyTradePrice".into()), &[]).as_str().map(str::to_owned);
@@ -1746,7 +1746,7 @@ impl Independentreserve {
         m.insert("network".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_k(&amount, "Total", &[]));
         m.insert("status".to_string(), self.safe_string_k(transaction, "Status", &[]));
-        m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
@@ -1771,7 +1771,7 @@ impl Independentreserve {
 }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -1798,8 +1798,8 @@ impl Independentreserve {
         }  else {
             self.check_required_credentials(&[]);
             // independentreserve requires an increasing nonce
-            let mut rawNonce: Option<i64> = self.incrementing_nonce().as_i64();
-            let mut nonce: Value = self.parse_to_int(Value::from(rawNonce));
+            let mut rawNonce: i64 = self.incrementing_nonce();
+            let mut nonce: Value = Value::from(self.parse_to_int(Value::from(rawNonce)));
             let mut auth: Vec<Value> = vec![Value::from(url.clone()), Value::Str(format!("{}{}", Value::Str("apiKey=".into()), self.apiKey.clone()).into()), Value::Str(format!("{}{}", Value::Str("nonce=".into()), Value::Str(format!("{}", nonce).into())).into())];
             let mut paramsDict: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();

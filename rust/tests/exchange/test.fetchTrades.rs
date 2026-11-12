@@ -16,7 +16,7 @@ pub async fn testFetchTrades(mut exchange: Value, mut skippedProperties: Value, 
     //
     // test structure
     //
-    let mut now: Value = exchange.milliseconds();
+    let mut now: Value = Value::Int(exchange.milliseconds());
     let mut isPublicTrade: Value = Value::Bool(true);
     {
                 let mut i: i64 = 0;

@@ -1391,7 +1391,7 @@ impl Coinspot {
         }  else {
             priceString = crate::precise::Precise::stringDiv(&costString, &amountString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut createdString: Option<String> = self.safe_string_k(trade.clone(), "created", &[]).as_str().map(str::to_owned);
-            timestamp = self.parse8601(createdString.map(Value::from).unwrap_or(Value::Null));
+            timestamp = Value::from(self.parse8601(createdString.map(Value::from).unwrap_or(Value::Null)));
             let mut audfeeExGst: Option<String> = self.safe_string_k(trade.clone(), "audfeeExGst", &[]).as_str().map(str::to_owned);
             let mut audGst: Option<String> = self.safe_string_k(trade.clone(), "audGst", &[]).as_str().map(str::to_owned);
             // The transaction fee which consumers pay is inclusive of GST by default
@@ -1553,7 +1553,7 @@ impl Coinspot {
 }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -1586,7 +1586,7 @@ impl Coinspot {
         if (accessType.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             // coinspot requires an increasing nonce
-            let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+            let mut nonce: i64 = self.incrementing_nonce();
             let __ws_arg_7 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("nonce".to_string(), Value::from(nonce));

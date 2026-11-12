@@ -730,7 +730,7 @@ impl Foxbit {
             while { if !__for_first_675 { j += 1; } __for_first_675 = false; j < (networks.len() as i64) } {
             let mut network: crate::value::Dict = self.safe_dict(&networks, Value::Int(j), &[]).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&network, "code", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             let mut networkWithdrawInfo: crate::value::Dict = self.safe_dict_k(&network, "withdraw_info", &[]).into_dict();
             let mut networkDepositInfo: crate::value::Dict = self.safe_dict_k(&network, "deposit_info", &[]).into_dict();
             let mut isWithdrawEnabled: Value = Value::Bool(self.safe_string_k(&networkWithdrawInfo, "status", &[]).as_str() == Some("ENABLED"));
@@ -2216,7 +2216,7 @@ impl Foxbit {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), self.safe_string(&statusMap, statusRaw.clone().map(Value::from).unwrap_or(Value::Null), &[statusRaw.clone().map(Value::from).unwrap_or(Value::Null)]));
-        m.insert("updated".to_string(), self.parse8601(self.safe_string_k(&attributes, "updatedAt", &[])));
+        m.insert("updated".to_string(), Value::from(self.parse8601(self.safe_string_k(&attributes, "updatedAt", &[]))));
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
         m.insert("info".to_string(), response);
@@ -2354,7 +2354,7 @@ impl Foxbit {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency_symbol".to_string(), currency.get("id").cloned().unwrap_or(Value::Null));
-                m.insert("amount".to_string(), self.number_to_string(amount));
+                m.insert("amount".to_string(), Value::from(self.number_to_string(amount)));
                 m.insert("destination_address".to_string(), address);
             m
         });
@@ -2708,7 +2708,7 @@ impl Foxbit {
         let mut network: crate::value::Dict = self.safe_dict_k(depositAddress.clone(), "network", &[]).into_dict();
         let mut networkId: Option<String> = self.safe_string_k(&network, "code", &[]).as_str().map(str::to_owned);
         let mut currencyCode: Option<String> = self.safe_currency_code(Value::Null, &[currency]).as_str().map(str::to_owned);
-        let mut unifiedNetwork: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), currencyCode.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut unifiedNetwork: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), currencyCode.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("address".to_string(), self.safe_string_k(depositAddress.clone(), "address", &[]));
@@ -2783,7 +2783,7 @@ impl Foxbit {
         m.insert("txid".to_string(), self.safe_string_k(&cryptoDetails, "transaction_id", &[]));
         m.insert("timestamp".to_string(), timestamp);
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "network_code", &[]), currencyCode.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "network_code", &[]), currencyCode.clone().map(Value::from).unwrap_or(Value::Null)])));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
@@ -2834,7 +2834,7 @@ impl Foxbit {
         // }
         let mut id: Option<String> = self.safe_string_k(item.clone(), "uuid", &[]).as_str().map(str::to_owned);
         let mut createdAt: Option<String> = self.safe_string_k(item.clone(), "created_at", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(createdAt.map(Value::from).unwrap_or(Value::Null)).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(createdAt.map(Value::from).unwrap_or(Value::Null));
         let mut reasonType: Option<String> = self.safe_string_k(item.clone(), "reason_type", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.parse_ledger_entry_type(reasonType.as_deref());
         let mut exchangeSymbol: Option<String> = self.safe_string_k(item.clone(), "currency_symbol", &[]).as_str().map(str::to_owned);
@@ -2908,7 +2908,7 @@ impl Foxbit {
         }
         let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), fullPath);
         let mut paramsOmitted: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut timestamp: i64 = self.milliseconds();
         let mut query: Option<String> = Some("".to_string());
         let mut signatureQuery: String = "".to_string();
         if (method.as_str() == Some("GET")) {

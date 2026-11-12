@@ -1002,7 +1002,7 @@ impl Zaif {
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
-        m.insert("id".to_string(), self.number_to_string(data.get("order_id").cloned().unwrap_or(Value::Null)));
+        m.insert("id".to_string(), Value::from(self.number_to_string(data.get("order_id").cloned().unwrap_or(Value::Null))));
     m
 }), &[(market).raw.clone()]);
         Value::Null
@@ -1207,7 +1207,7 @@ impl Zaif {
             request.insert("currency_pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            request.insert("since".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            request.insert("since".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         if (limit != Value::Null) {
             request.insert("count".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
@@ -1352,7 +1352,7 @@ impl Zaif {
 }
 
     pub fn custom_nonce(&self) -> Option<String> {
-        let mut nonce: Value = (match ((self.milliseconds()).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
+        let mut nonce: Value = (match ((Value::Int(self.milliseconds())).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
         return Value::str(format!("{:.*}", 8, nonce.as_f64().unwrap_or(0.0))).as_str().map(str::to_owned);
 }
 

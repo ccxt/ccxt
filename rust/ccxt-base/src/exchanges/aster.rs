@@ -3476,7 +3476,7 @@ impl Aster {
         let mut statusId: Option<String> = self.safe_string_upper_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut rawType: Option<String> = self.safe_string_upper_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut stopPriceString: Option<String> = self.safe_string_k(order.clone(), "stopPrice", &[]).as_str().map(str::to_owned);
-        let mut triggerPrice: Value = self.parse_number(self.omit_zero(stopPriceString.map(Value::from).unwrap_or(Value::Null)), &[]);
+        let mut triggerPrice: Value = self.parse_number(Value::from(self.omit_zero(stopPriceString.map(Value::from).unwrap_or(Value::Null))), &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info);
@@ -3957,8 +3957,8 @@ impl Aster {
                     if (quoteOrderQtyNew.is_some()) {
                         request.insert("quoteOrderQty".into(), self.decimal_to_precision(quoteOrderQtyNew.map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::TRUNCATE), precision.clone(), &[self.precisionMode.clone()]));
                     }  else if (price != Value::Null) {
-                        let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-                        let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
+                        let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                        let mut priceString: Option<String> = self.number_to_string(price.clone());
                         let mut quoteOrderQuantity: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                         request.insert("quoteOrderQty".into(), self.decimal_to_precision(quoteOrderQuantity.map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::TRUNCATE), precision, &[self.precisionMode.clone()]));
                     }  else {
@@ -4839,8 +4839,8 @@ impl Aster {
         let mut contracts: Value = self.parse_number(contractsAbs.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut unrealizedPnlString: Option<String> = self.safe_string_k(position.clone(), "unRealizedProfit", &[]).as_str().map(str::to_owned);
         let mut unrealizedPnl: Value = self.parse_number(unrealizedPnlString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut liquidationPriceString: Value = self.omit_zero(self.safe_string_k(position.clone(), "liquidationPrice", &[]));
-        let mut liquidationPrice: Value = self.parse_number(liquidationPriceString.clone(), &[]);
+        let mut liquidationPriceString: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "liquidationPrice", &[]));
+        let mut liquidationPrice: Value = self.parse_number(liquidationPriceString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut collateralString: Option<String> = None;
         let mut marginMode: Option<String> = self.safe_string_k(position.clone(), "marginType", &[]).as_str().map(str::to_owned);
         if (marginMode.is_none()) && (isolatedMarginString.is_some()) {
@@ -4855,7 +4855,7 @@ impl Aster {
         let mut entryPriceString: Option<String> = self.safe_string_k(position.clone(), "entryPrice", &[]).as_str().map(str::to_owned);
         let mut entryPrice: Value = self.parse_number(entryPriceString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut contractSize: Option<f64> = self.safe_number_k(&marketResolved, "contractSize", &[]).as_f64();
-        let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize)).as_str().map(str::to_owned);
+        let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize));
         // as oppose to notionalValue
         let mut linear: bool = matches!(&position, Value::Dict(__d) if __d.contains_key("notional"));
         if (marginMode.as_deref() == Some("cross")) {
@@ -4878,7 +4878,7 @@ impl Aster {
                     }  else {
                         onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("-1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null));
                     }
-                    let mut inner: Option<String> = crate::precise::Precise::stringMul(&liquidationPriceString, &onePlusMaintenanceMarginPercentageString).as_str().map(str::to_owned);
+                    let mut inner: Option<String> = crate::precise::Precise::stringMul(&liquidationPriceString.clone().map(Value::from).unwrap_or(Value::Null), &onePlusMaintenanceMarginPercentageString).as_str().map(str::to_owned);
                     let mut leftSide: Value = crate::precise::Precise::stringAdd(&inner.map(Value::from).unwrap_or(Value::Null), &entryPriceSignString);
                     let mut quotePrecision: Value = self.precision_from_string(self.safe_string2(&precision, Value::Str("quote".into()), Value::Str("price".into()), &[]));
                     collateralString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringMul(&leftSide, &contractsAbs.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into()), &quotePrecision).as_str().map(str::to_owned);
@@ -4893,7 +4893,7 @@ impl Aster {
                         entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString);
                     }
                     let mut leftSide: Value = crate::precise::Precise::stringMul(&contractsAbs.map(Value::from).unwrap_or(Value::Null), &contractSizeString.map(Value::from).unwrap_or(Value::Null));
-                    let mut rightSide: Option<String> = crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceSignString), &crate::precise::Precise::stringDiv(&onePlusMaintenanceMarginPercentageString, &liquidationPriceString)).as_str().map(str::to_owned);
+                    let mut rightSide: Option<String> = crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceSignString), &crate::precise::Precise::stringDiv(&onePlusMaintenanceMarginPercentageString, &liquidationPriceString.map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
                     let mut basePrecision: Value = self.precision_from_string(self.safe_string_k(&precision, "base", &[]));
                     collateralString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringMul(&leftSide, &rightSide.map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into()), &basePrecision).as_str().map(str::to_owned);
                 }
@@ -4905,7 +4905,7 @@ impl Aster {
             collateralString = Some("0".to_string());
         }
         let mut collateral: Value = self.parse_number(collateralString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut markPrice: Value = self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "markPrice", &[])), &[]);
+        let mut markPrice: Value = self.parse_number(Value::from(self.omit_zero(self.safe_string_k(position.clone(), "markPrice", &[]))), &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "updateTime", &[]).as_i64();
         if (timestamp == Some(0)) {
             timestamp = None.clone();
@@ -4921,7 +4921,7 @@ impl Aster {
         let mut initialMarginPercentageString: Option<String> = None;
         let mut leverageString: Option<String> = self.safe_string_k(position.clone(), "leverage", &[]).as_str().map(str::to_owned);
         if (leverageString.is_some()) {
-            let mut leverage: Value = self.parse_to_int(leverageString.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut leverage: Value = Value::from(self.parse_to_int(leverageString.clone().map(Value::from).unwrap_or(Value::Null)));
             let mut rational: bool = self.is_round_number((match (&(Value::Int(1000)), &(leverage)) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x),
                 Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_bool() == Some(true);
             initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &leverageString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(8)).as_str().map(str::to_owned);
@@ -5169,7 +5169,7 @@ impl Aster {
         let mut initialMarginPercentageString: Option<String> = None;
         if (leverageString.is_some()) {
             initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &leverageString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(8)).as_str().map(str::to_owned);
-            let mut leverage: Value = self.parse_to_int(leverageString.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut leverage: Value = Value::from(self.parse_to_int(leverageString.clone().map(Value::from).unwrap_or(Value::Null)));
             let mut rational: bool = self.is_round_number((match (&(Value::Int(1000)), &(leverage)) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x),
                 Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_bool() == Some(true);
             if !rational {
@@ -5245,7 +5245,7 @@ impl Aster {
         let mut liquidationPriceStringRaw: Option<String> = None;
         let mut liquidationPrice: Value = Value::Null;
         let mut contractSize: Option<f64> = self.safe_number_k(&marketResolved, "contractSize", &[]).as_f64();
-        let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize)).as_str().map(str::to_owned);
+        let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize));
         if crate::precise::Precise::stringEquals(&notionalString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             entryPrice = Value::Null;
         }  else {
@@ -5292,7 +5292,7 @@ impl Aster {
             let mut pricePrecision: Value = self.precision_from_string(self.safe_string_k(crate::value::KeyRead::key_read(&&marketResolved, "precision"), "price", &[]));
             let mut pricePrecisionPlusOne: Value = (match (&(pricePrecision), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             // round half up
-            let mut pricePrecisionPlusOneString: Option<String> = self.number_to_string(pricePrecisionPlusOne).as_str().map(str::to_owned);
+            let mut pricePrecisionPlusOneString: Option<String> = self.number_to_string(pricePrecisionPlusOne);
             let mut rounderString: String = format!("{}{}", Value::Str("5e-".into()), pricePrecisionPlusOneString.map(Value::from).unwrap_or(Value::Null));
             let mut liquidationPriceRoundedString: Option<String> = crate::precise::Precise::stringAdd(&Value::from(rounderString), &liquidationPriceStringRaw.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut truncatedLiquidationPrice: Option<String> = crate::precise::Precise::stringDivPrec(&liquidationPriceRoundedString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into()), &pricePrecision).as_str().map(str::to_owned);
@@ -5555,7 +5555,7 @@ impl Aster {
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null)]);
         self.load_markets_and_sign_in().await;
         let mut currency: Value = self.currency(code.clone());
-        let mut nonce: i64 = ((self.milliseconds().as_i64().unwrap_or_default()) * 1000);
+        let mut nonce: i64 = ((self.milliseconds()) * 1000);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -5677,7 +5677,7 @@ impl Aster {
         if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE".into()))));
         }
-        let mut defaultClientTranId: Option<String> = self.number_to_string(self.milliseconds()).as_str().map(str::to_owned);
+        let mut defaultClientTranId: Option<String> = self.number_to_string(Value::Int(self.milliseconds()));
         let mut clientTranId: Value = self.safe_string_k(params.clone(), "clientTranId", &[defaultClientTranId.map(Value::from).unwrap_or(Value::Null)]);
         request.insert("kindType".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         request.insert("clientTranId".into(), clientTranId);
@@ -5724,7 +5724,7 @@ impl Aster {
         let mut binaryMessageLength: Value = self.binary_length(binaryMessage.clone(), &[]);
         let mut x19: Value = self.base16_to_binary(Value::Str("19".into()), &[]);
         let mut newline: Value = self.base16_to_binary(Value::Str("0a".into()), &[]);
-        let mut prefix: Value = self.binary_concat(x19, &[self.encode(Value::Str("Ethereum Signed Message:".into())), newline, self.encode(self.number_to_string(binaryMessageLength))]);
+        let mut prefix: Value = self.binary_concat(x19, &[self.encode(Value::Str("Ethereum Signed Message:".into())), newline, self.encode(Value::from(self.number_to_string(binaryMessageLength)))]);
         return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(self.binary_concat(prefix, &[binaryMessage]), Value::Str("keccak".into()), &[Value::Str("hex".into())])).into()).as_str().map(str::to_owned);
 }
 
@@ -5760,7 +5760,7 @@ impl Aster {
             }
         }  else if (apiName.as_deref() == Some("fapiPrivate")) || (apiName.as_deref() == Some("sapiPrivate")) {
             self.check_required_credentials(&[]);
-            let mut nonce: i64 = ((self.milliseconds().as_i64().unwrap_or_default()) * 1000);
+            let mut nonce: i64 = ((self.milliseconds()) * 1000);
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             let mut zeroAddress: String = self.safe_string_k(self.options.clone(), "zeroAddress", &[Value::Str("0x0000000000000000000000000000000000000000".into())]).as_str().unwrap_or("0x0000000000000000000000000000000000000000").to_string();
             let mut v3ChainId: i64 = self.safe_integer_k(self.options.clone(), "v3ChainId", &[Value::Int(1666)]).as_i64().unwrap_or(1666);

@@ -518,7 +518,7 @@ impl Krakenfutures {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = self.symbol(symbol.clone());
+        let mut symbolValue: Value = Value::from(self.symbol(symbol.clone()));
         let mut tickers: Value = crate::types::IntoRaw::into_raw(self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await);
         return (if let (Some(__m), Some(__k)) = (tickers.as_map(), symbolValue.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         Value::Null
@@ -1318,15 +1318,15 @@ impl Krakenfutures {
                     let mut __for_first_435: bool = true;
                     while { if !__for_first_435 { i += 1; } __for_first_435 = false; i < (trades.len() as i64) } {
                     let mut currentTrade: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-                    totalCost = crate::precise::Precise::stringAdd(&totalCost.clone().map(Value::from).unwrap_or(Value::Null), &self.number_to_string(crate::value::KeyRead::key_read(&&currentTrade, "cost"))).as_str().map(str::to_owned);
-                    totalAmount = crate::precise::Precise::stringAdd(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &self.number_to_string(crate::value::KeyRead::key_read(&&currentTrade, "amount"))).as_str().map(str::to_owned);
+                    totalCost = crate::precise::Precise::stringAdd(&totalCost.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&currentTrade, "cost")))).as_str().map(str::to_owned);
+                    totalAmount = crate::precise::Precise::stringAdd(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&currentTrade, "amount")))).as_str().map(str::to_owned);
                 }
                 }
                 if crate::precise::Precise::stringGt(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                     add_element_to_object(&mut previousOrder, &Value::Str("average".into()), crate::precise::Precise::stringDiv(&totalCost.clone().map(Value::from).unwrap_or(Value::Null), &totalAmount.map(Value::from).unwrap_or(Value::Null)));
                 }
                 add_element_to_object(&mut previousOrder, &Value::Str("cost".into()), totalCost.map(Value::from).unwrap_or(Value::Null));
-                let mut filledString: Option<String> = self.number_to_string(trade.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                let mut filledString: Option<String> = self.number_to_string(trade.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null));
                 let mut stringOrderFilled: String = self.safe_string_k(previousOrder.clone(), "filled", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
                 let mut totalFilled: Option<String> = crate::precise::Precise::stringAdd(&Value::from(stringOrderFilled), &filledString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 add_element_to_object(&mut previousOrder, &Value::Str("filled".into()), totalFilled.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1338,7 +1338,7 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
         m.insert("rate".to_string(), Value::Null);
         m.insert("cost".to_string(), Value::Str("0".into()));
-        m.insert("currency".to_string(), self.number_to_string(self.safe_string(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("currency".into()), &[])));
+        m.insert("currency".to_string(), Value::from(self.number_to_string(self.safe_string(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("currency".into()), &[]))));
     m
 }));
                 }
@@ -1347,8 +1347,8 @@ impl Krakenfutures {
                     m
                 })]).as_map().cloned().unwrap_or_default();
                 if (previousFee.get("cost").cloned().unwrap_or(Value::Null) != Value::Null) && (self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]) != Value::Null) {
-                    let mut stringOrderCost: Value = self.number_to_string(previousFee.get("cost").cloned().unwrap_or(Value::Null));
-                    let mut stringTradeCost: Value = self.number_to_string(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]));
+                    let mut stringOrderCost: Value = Value::from(self.number_to_string(previousFee.get("cost").cloned().unwrap_or(Value::Null)));
+                    let mut stringTradeCost: Value = Value::from(self.number_to_string(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[])));
                     add_element_to_object(get_value_mut(&mut previousOrder, &Value::Str("fee".into())), &Value::Str("cost".into()), crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost));
                 }
                 // update the newUpdates count
@@ -1775,7 +1775,7 @@ impl Krakenfutures {
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "product_id", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]).into_dict();
         let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker.clone(), "lastTime", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker.clone(), "lastTime", &[]));
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2360,7 +2360,7 @@ impl Krakenfutures {
                         let mut i: i64 = 0;
             let mut __for_first_447: bool = true;
             while { if !__for_first_447 { i += 1; } __for_first_447 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut messageHash: Value = self.get_message_hash(unifiedName.clone(), &[Value::Null, self.symbol(symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null))]).map(Value::from).unwrap_or(Value::Null);
+            let mut messageHash: Value = self.get_message_hash(unifiedName.clone(), &[Value::Null, Value::from(self.symbol(symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)))]).map(Value::from).unwrap_or(Value::Null);
             std::sync::Arc::make_mut(&mut messageHashes).push(messageHash.clone());
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if !(self.subscription_exists_for_hash(url.clone(), messageHash).as_bool() == Some(true)) {
@@ -2455,7 +2455,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }  else if (event.as_deref() == Some("alert")) {
             self.handle_error_message(client.clone(), message.clone());
         }  else if (event.as_deref() == Some("pong")) {
-            crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+            crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
         }  else if (event.is_none()) {
             let mut feed: Option<String> = (match __pro_message.get("feed").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             let mut methods: indexmap::IndexMap<String, Value> = ({

@@ -1359,15 +1359,15 @@ impl Deepcoin {
             if (since != Value::Null) {
                 // the exchange do not have a since param for this endpoint
                 // we calculate until (after) for correct pagination
-                let mut duration: Value = self.parse_timeframe(timeframe.clone());
+                let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
                 let mut numberOfCandles: Value = (if (limit == Value::Null) { maxLimit } else { limit.clone() });
-                let mut endTime: Value = self.parse_to_int((match (&(since), &((match (&(((match (&(duration), &(numberOfCandles)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                let mut endTime: Value = Value::from(self.parse_to_int((match (&(since), &((match (&(((match (&(duration), &(numberOfCandles)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                    _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
+                    _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })));
                 if (until != Value::Null) {
                     endTime = crate::runtime::Math::min(&endTime, &until);
                 }
-                let mut now: Value = self.milliseconds();
+                let mut now: Value = Value::Int(self.milliseconds());
                 request.insert("after".into(), crate::runtime::Math::min(&endTime, &now));
             }
         }
@@ -1913,7 +1913,7 @@ impl Deepcoin {
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
         let mut timestamp: Option<i64> = self.safe_timestamp_k(transaction.clone(), "createTime", &[]).as_i64();
         let mut networkId: Option<String> = self.safe_string_k(transaction.clone(), "chainName", &[]).as_str().map(str::to_owned);
-        let mut network: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut network: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2134,7 +2134,7 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("currency".to_string(), Value::Null);
-        m.insert("network".to_string(), self.network_id_to_code(&[chain.map(Value::from).unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[chain.map(Value::from).unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null)])));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), self.safe_string_k(response, "memo", &[]));
     m
@@ -3567,10 +3567,10 @@ impl Deepcoin {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.".into()))));
             }
             if (stopLossPrice.is_some()) {
-                request.insert("slTriggerPx".into(), (if (symbolResolved.as_str() != Some("")) { self.price_to_precision(symbolResolved.clone(), Value::from(stopLossPrice)) } else { self.number_to_string(Value::from(stopLossPrice)) }));
+                request.insert("slTriggerPx".into(), (if (symbolResolved.as_str() != Some("")) { self.price_to_precision(symbolResolved.clone(), Value::from(stopLossPrice)) } else { Value::from(self.number_to_string(Value::from(stopLossPrice))) }));
             }
             if (takeProfitPrice.is_some()) {
-                request.insert("tpTriggerPx".into(), (if (symbolResolved.as_str() != Some("")) { self.price_to_precision(symbolResolved.clone(), Value::from(takeProfitPrice)) } else { self.number_to_string(Value::from(takeProfitPrice)) }));
+                request.insert("tpTriggerPx".into(), (if (symbolResolved.as_str() != Some("")) { self.price_to_precision(symbolResolved.clone(), Value::from(takeProfitPrice)) } else { Value::from(self.number_to_string(Value::from(takeProfitPrice))) }));
             }
             let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).into_dict();
             let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -3580,14 +3580,14 @@ impl Deepcoin {
                 if (symbolResolved != Value::Null) {
                     request.insert("price".into(), self.price_to_precision(symbolResolved.clone(), price.clone()));
                 }  else {
-                    request.insert("price".into(), self.number_to_string(price));
+                    request.insert("price".into(), Value::from(self.number_to_string(price)));
                 }
             }
             if (amount != Value::Null) {
                 if (symbolResolved != Value::Null) {
                     request.insert("volume".into(), self.amount_to_precision(symbolResolved, amount.clone()));
                 }  else {
-                    request.insert("volume".into(), self.number_to_string(amount));
+                    request.insert("volume".into(), Value::from(self.number_to_string(amount)));
                 }
             }
             let __ws_arg_29 = self.extend(Value::Map(request), &[params]);
@@ -3757,7 +3757,7 @@ impl Deepcoin {
         m.insert("amount".to_string(), self.safe_string_k(order.clone(), "sz", &[]));
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "accFillSz", &[]));
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("triggerPrice".to_string(), self.omit_zero(self.safe_string_k(order.clone(), "triggerPx", &[])));
+        m.insert("triggerPrice".to_string(), Value::from(self.omit_zero(self.safe_string_k(order.clone(), "triggerPx", &[]))));
         m.insert("takeProfitPrice".to_string(), self.safe_string2(order.clone(), Value::Str("tpTriggerPx".into()), Value::Str("tpTriggerPrice".into()), &[]));
         m.insert("stopLossPrice".to_string(), self.safe_string2(order.clone(), Value::Str("slTriggerPx".into()), Value::Str("slTriggerPrice".into()), &[]));
         m.insert("cost".to_string(), Value::Null);
@@ -3964,7 +3964,7 @@ impl Deepcoin {
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_k(position.clone(), "posSide", &[]));
         m.insert("notional".to_string(), Value::Null);
-        m.insert("leverage".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "lever", &[])), &[]));
+        m.insert("leverage".to_string(), self.parse_number(Value::from(self.omit_zero(self.safe_string_k(position.clone(), "lever", &[]))), &[]));
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealizedProfit", &[]));
         m.insert("realizedPnl".to_string(), Value::Null);
         m.insert("positionMargin".to_string(), positionMargin);
@@ -4549,7 +4549,7 @@ impl Deepcoin {
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), requestPath);
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
+            let mut timestamp: i64 = self.milliseconds();
             let mut dateTime: Option<String> = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
             let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", dateTime.clone().map(Value::from).unwrap_or(Value::Null), method).into()), Value::Str("/".into())).into()), requestPath).into());
             let mut privateHeaders: indexmap::IndexMap<String, Value> = ({

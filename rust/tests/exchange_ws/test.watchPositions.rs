@@ -11,7 +11,7 @@ use super::*;
 
 pub async fn testWatchPositions(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
     let mut method: Value = Value::Str("watchPositions".into());
-    let mut now: Value = exchange.milliseconds();
+    let mut now: Value = Value::Int(exchange.milliseconds());
     let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
     while now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN) {
         let mut response: Value = Value::Null;
@@ -26,7 +26,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !is_true(&crate::tests_support::shared::is_temporary_failure(e.clone())) {
                 panic!("{}", e);
             }
-            now = exchange.milliseconds();
+            now = Value::Int(exchange.milliseconds());
             // continue;
             success = false;
         }
@@ -35,7 +35,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" watch returned undefined response".into())).into()));
             }
             crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone(), symbol.clone()]);
-            now = exchange.milliseconds();
+            now = Value::Int(exchange.milliseconds());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1608: bool = true;
@@ -57,7 +57,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !is_true(&crate::tests_support::shared::is_temporary_failure(e.clone())) {
                 panic!("{}", e);
             }
-            now = exchange.milliseconds();
+            now = Value::Int(exchange.milliseconds());
             // continue;
             success2 = false;
         }
@@ -65,7 +65,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             assert!(ccxt::runtime::is_true(&((matches!(&positionsForSymbols, Value::Arr(_))))));
             // max theoretical 4 positions: two for one-way-mode and two for two-way mode
             assert!(ccxt::runtime::is_true(&((Value::Int(positionsForSymbols.len() as i64).as_f64().unwrap_or(f64::NAN) <= Value::Int(4).as_f64().unwrap_or(f64::NAN)))));
-            now = exchange.milliseconds();
+            now = Value::Int(exchange.milliseconds());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1609: bool = true;

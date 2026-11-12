@@ -1054,7 +1054,7 @@ impl Btcbox {
         let mut datetimeString: Option<String> = self.safe_string_k(order.clone(), "datetime", &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = Value::Null;
         if (datetimeString.is_some()) {
-            timestamp = self.parse8601(Value::Str(format!("{}{}", datetimeString.map(Value::from).unwrap_or(Value::Null), Value::Str("+09:00".into())).into())); // Tokyo time
+            timestamp = Value::from(self.parse8601(Value::Str(format!("{}{}", datetimeString.map(Value::from).unwrap_or(Value::Null), Value::Str("+09:00".into())).into()))); // Tokyo time
         }
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "amount_original", &[]).as_str().map(str::to_owned);
         let mut remaining: Option<String> = self.safe_string_k(order.clone(), "amount_outstanding", &[]).as_str().map(str::to_owned);
@@ -1248,7 +1248,7 @@ impl Btcbox {
     }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -1277,7 +1277,7 @@ impl Btcbox {
             url = format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(self.urls.clone(), "www", &[Value::Str("".into())]), Value::Str("/".into())).into()), path);
         }  else {
             self.check_required_credentials(&[]);
-            let mut nonce: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
+            let mut nonce: Option<String> = self.number_to_string(self.nonce());
             let mut query: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("key".to_string(), self.apiKey.clone());

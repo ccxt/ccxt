@@ -184,7 +184,7 @@ impl crate::exchange_generated::ExchangeBase for Ndax {
         Box::pin(async move {
             match method {
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "request_id" => self.request_id(),
+                "request_id" => crate::Value::from(self.request_id()),
                 "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -209,7 +209,7 @@ impl Ndax {
             "handle_subscription_status" => { self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "request_id" => self.request_id(),
+            "request_id" => crate::Value::from(self.request_id()),
             "watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("watch_ohlcv", args.to_vec()); crate::Value::Null },
             "watch_order_book" => { crate::exchange_stubs::enqueue_spawn("watch_order_book", args.to_vec()); crate::Value::Null },
             "watch_ticker" => { crate::exchange_stubs::enqueue_spawn("watch_ticker", args.to_vec()); crate::Value::Null },
@@ -262,12 +262,10 @@ impl Ndax {
     Value::Null
 }
 
-    pub fn request_id(&mut self) -> Value {
+    pub fn request_id(&mut self) -> i64 {
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
-        return requestId;
-
-    Value::Null
+        return requestId.as_i64().unwrap_or_default();
 }
 
 /*
@@ -302,7 +300,7 @@ impl Ndax {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), Value::from(omsId));
@@ -404,7 +402,7 @@ impl Ndax {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), Value::from(omsId));
@@ -533,12 +531,12 @@ impl Ndax {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), Value::from(omsId));
                 m.insert("InstrumentId".to_string(), self.safe_integer_k(&market, "id", &[]));
-                m.insert("Interval".to_string(), self.parse_to_int(self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()])));
+                m.insert("Interval".to_string(), Value::from(self.parse_to_int(self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]))));
                 m.insert("IncludeLastCount".to_string(), Value::Int(100));
             m
         });
@@ -616,13 +614,13 @@ impl Ndax {
                 while { if !__for_first_521 { j += 1; } __for_first_521 = false; j < (keys.len() as i64) } {
                 let mut timeframe: Value = keys.get(j as usize).cloned().unwrap_or(Value::Null);
                 let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
-                let mut duration: Value = (match (&(self.parse_to_int(interval)), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+                let mut duration: Value = (match (&(Value::from(self.parse_to_int(interval))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
                 let mut timestamp: Value = self.safe_integer(&ohlcv, Value::Int(0), &[]);
                 if (timestamp == Value::Null) {
                     continue;
                 }
-                let mut candleTimestamp: Value = self.parse_to_int((match (&(((match ((timestamp).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
-                    Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+                let mut candleTimestamp: Value = Value::from(self.parse_to_int((match (&(((match ((timestamp).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
+                    (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
                 let mut parsed: Value = Value::from(vec![candleTimestamp.clone(), self.safe_float(&ohlcv, Value::Int(3), &[]), self.safe_float(&ohlcv, Value::Int(1), &[]), self.safe_float(&ohlcv, Value::Int(2), &[]), self.safe_float(&ohlcv, Value::Int(4), &[]), self.safe_float(&ohlcv, Value::Int(5), &[])]);
                 let mut stored: Value = self.safe_value((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), timeframe.clone(), &[Value::from(vec![])]);
                 let mut length: i64 = Value::Int(stored.len() as i64).as_i64().unwrap_or_default();
@@ -733,7 +731,7 @@ impl Ndax {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
-        let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id();
         let mut limitValue: i64 = limit.as_i64().unwrap_or(100);
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

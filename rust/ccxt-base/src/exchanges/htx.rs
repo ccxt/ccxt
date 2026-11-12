@@ -220,7 +220,7 @@ impl crate::exchange_generated::ExchangeBase for Htx {
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "network_code_to_id" => self.network_code_to_id(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "network_id_to_code" => self.network_id_to_code(&args[..]),
+                "network_id_to_code" => crate::Value::from(self.network_id_to_code(&args[..])),
                 "nonce" => self.nonce(),
                 "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_adl_rank" => self.parse_adl_rank(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -4181,7 +4181,7 @@ impl Htx {
                     let mut monthPart: String = format!("{}{}", self.safe_string(&createdArray, Value::Int(4), &[Value::Str("".into())]), self.safe_string(&createdArray, Value::Int(5), &[Value::Str("".into())]));
                     let mut dayPart: String = format!("{}{}", self.safe_string(&createdArray, Value::Int(6), &[Value::Str("".into())]), self.safe_string(&createdArray, Value::Int(7), &[Value::Str("".into())]));
                     createdDate = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", yearPart, Value::Str("-".into())).into()), monthPart).into()), Value::Str("-".into())).into()), dayPart).into()), Value::Str(" 00:00:00".into())));
-                    created = self.parse8601(createdDate.map(Value::from).unwrap_or(Value::Null));
+                    created = Value::from(self.parse8601(createdDate.map(Value::from).unwrap_or(Value::Null)));
                 }
             }
             result.push(Value::Map({
@@ -5506,7 +5506,7 @@ impl Htx {
         let mut untilParam: Option<i64> = untilParamparamsUntilVariable.get(0).and_then(Value::as_i64);
         let mut paramsUntil: crate::value::Dict = untilParamparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut until: Value = self.safe_integer_k(&paramsOmitted, "until", &[Value::from(untilParam)]);
-        let mut untilSeconds: Value = Value::Null;
+        let mut untilSeconds: Option<i64> = None;
         if (until != Value::Null) {
             untilSeconds = self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         }
@@ -5522,19 +5522,18 @@ impl Htx {
                 request.insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(2000))); // when using limit: from & to are ignored
             }
             if (priceType.is_none()) {
-                let mut duration: Value = self.parse_timeframe(timeframe.clone());
+                let mut duration: i64 = self.parse_timeframe(timeframe.clone());
                 let mut calcualtedEnd: Value = Value::Null;
                 if (since == Value::Null) {
-                    let mut now: Value = self.seconds();
-                    request.insert("from".into(), (match (&(now), &((match (&(duration), &((Value::Int((contractLimit - 1))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                        Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
-                    calcualtedEnd = now;
+                    let mut now: i64 = self.seconds().as_i64().unwrap_or_default();
+                    request.insert("from".into(), Value::Int((now - ((duration * ((contractLimit - 1)))))));
+                    calcualtedEnd = Value::from(now);
                 }  else {
-                    let mut start: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-                    request.insert("from".into(), start.clone());
-                    calcualtedEnd = self.sum(&[start, (match (&(duration), &((Value::Int((contractLimit - 1))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
+                    let mut start: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+                    request.insert("from".into(), Value::from(start));
+                    calcualtedEnd = self.sum(&[Value::from(start), Value::Int((duration * ((contractLimit - 1))))]);
                 }
-                request.insert("to".into(), (if (untilSeconds != Value::Null) { untilSeconds.clone() } else { calcualtedEnd }));
+                request.insert("to".into(), (if (untilSeconds.is_some()) { Value::from(untilSeconds) } else { calcualtedEnd }));
             }
         }
         let mut response: Option<crate::value::Dict> = None;
@@ -5615,10 +5614,10 @@ impl Htx {
             }  else {
                 // "from & to" only available for the this endpoint
                 if (since != Value::Null) {
-                    request.insert("from".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+                    request.insert("from".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
                 }
-                if (untilSeconds != Value::Null) {
-                    request.insert("to".into(), untilSeconds);
+                if (untilSeconds.is_some()) {
+                    request.insert("to".into(), Value::from(untilSeconds));
                 }
                 if (limit != Value::Null) {
                     request.insert("size".into(), crate::runtime::Math::min(&Value::Int(1000), &limit)); // max 1000, otherwise default returns 150
@@ -5890,7 +5889,7 @@ impl Htx {
             if (uniqueChainId.is_some()) {
                 if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("networkNamesByChainIds".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(uniqueChainId.as_deref().unwrap_or("null").to_string(), title); } }
             }
-            let mut networkCode: Value = self.network_id_to_code(&[uniqueChainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[uniqueChainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5964,12 +5963,12 @@ impl Htx {
     Value::Null
 }
 
-    pub fn network_id_to_code(&self, optional_args: &[Value]) -> Value {
+    pub fn network_id_to_code(&self, optional_args: &[Value]) -> Option<String> {
         let mut networkId = get_arg(optional_args, 0, Value::Null);
         let mut currencyCode = get_arg(optional_args, 1, Value::Null);
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         if (networkId == Value::Null) {
-            return Value::Null;
+            return None;
         }
         let mut keys: Vec<Value> = Value::Array((self.options.as_map().and_then(|__m| __m.get("networkNamesByChainIds")).cloned().unwrap_or(Value::Null)).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut keysLength: i64 = keys.len() as i64;
@@ -5978,8 +5977,6 @@ impl Htx {
         }
         let mut networkTitle: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networkNamesByChainIds")).cloned().unwrap_or(Value::Null), networkId.clone(), &[networkId.clone()]).as_str().map(str::to_owned);
         return self.super_network_id_to_code(&[networkTitle.map(Value::from).unwrap_or(Value::Null), currencyCode]);
-
-    Value::Null
 }
 
     pub fn network_code_to_id(&self, mut networkCode: Value, optional_args: &[Value]) -> Value {
@@ -7999,8 +7996,8 @@ impl Htx {
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
                     // we use amountToPrecision here because the exchange requires cost in base precision
-                    let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-                    let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
+                    let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                    let mut priceString: Option<String> = self.number_to_string(price.clone());
                     quoteAmount = self.amount_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)));
                 }
             }  else {
@@ -9343,7 +9340,7 @@ impl Htx {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("timeout".to_string(), (if (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { Value::Int(0) }));
+                m.insert("timeout".to_string(), (if (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { Value::from(self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))) } else { Value::Int(0) }));
             m
         });
         let __ws_arg_110 = self.extend(Value::Map(request), &[params]);
@@ -9377,7 +9374,7 @@ impl Htx {
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)])));
         m.insert("note".to_string(), note.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), depositAddress);
     m
@@ -9755,7 +9752,7 @@ impl Htx {
         m.insert("txid".to_string(), txHash.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)])));
         m.insert("address".to_string(), self.safe_string_k(transaction.clone(), "address", &[]));
         m.insert("addressTo".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), Value::Null);
@@ -9885,7 +9882,7 @@ impl Htx {
             }
             // fee needs to be deducted from whole amount
             let mut feeString: Value = self.currency_to_precision(code.clone(), Value::from(fee), &[networkCode.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut amountString: Option<String> = self.number_to_string(amountValue.clone()).as_str().map(str::to_owned);
+            let mut amountString: Option<String> = self.number_to_string(amountValue.clone());
             let mut amountSubtractedString: Option<String> = crate::precise::Precise::stringSub(&amountString.map(Value::from).unwrap_or(Value::Null), &feeString).as_str().map(str::to_owned);
             let mut amountSubtractedParsed: Option<String> = amountSubtractedString;
             if (amountSubtractedParsed.is_none()) {
@@ -10772,7 +10769,8 @@ impl Htx {
 }
 
     pub fn nonce(&self) -> Value {
-        return (match (&(self.milliseconds()), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return (match (&(Value::Int(self.milliseconds())), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
 
     Value::Null
 }
@@ -11308,7 +11306,7 @@ impl Htx {
         let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         let mut contracts: Option<String> = self.safe_string_k(position.clone(), "volume", &[]).as_str().map(str::to_owned);
         let mut contractSize: Option<f64> = self.safe_number_k(&marketResolved, "contractSize", &[]).as_f64();
-        let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize)).as_str().map(str::to_owned);
+        let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize));
         let mut entryPrice: Option<f64> = self.safe_number2(position.clone(), Value::Str("cost_open".into()), Value::Str("open_avg_price".into()), &[]).as_f64();
         let mut initialMargin: Option<String> = self.safe_string2(position.clone(), Value::Str("position_margin".into()), Value::Str("initial_margin".into()), &[]).as_str().map(str::to_owned);
         let mut rawSide: Option<String> = self.safe_string_k(position.clone(), "direction", &[]).as_str().map(str::to_owned);
@@ -12767,7 +12765,7 @@ impl Htx {
             let mut chainEntry: crate::value::Dict = self.safe_dict(&chains, Value::Int(j), &[]).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&chainEntry, "chain", &[]).as_str().map(str::to_owned);
             let mut withdrawFeeType: Option<String> = self.safe_string_k(&chainEntry, "withdrawFeeType", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             let mut withdrawFee: Value = Value::Null;
             let mut withdrawResult: Value = Value::Null;
             if (withdrawFeeType.as_deref() == Some("fixed")) {

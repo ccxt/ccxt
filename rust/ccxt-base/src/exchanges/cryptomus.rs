@@ -776,7 +776,7 @@ impl Cryptomus {
                 code = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             }
             let mut networkId: Option<String> = self.safe_string_k(networkEntry.clone(), "network_code", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1198,8 +1198,8 @@ impl Cryptomus {
             request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
         let mut sideBuy: bool = side.as_str() == Some("buy");
-        let mut amountToString: Option<String> = self.number_to_string(amount).as_str().map(str::to_owned);
-        let mut priceToString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
+        let mut amountToString: Option<String> = self.number_to_string(amount);
+        let mut priceToString: Option<String> = self.number_to_string(price.clone());
         let mut paramsCost: Value = self.omit(&paramsOmitted, Value::Str("cost".into()), &[]);
         let mut costParam: Option<String> = self.safe_string_k(&paramsOmitted, "cost", &[]).as_str().map(str::to_owned);
         let mut cost: Option<String> = costParam.clone();
@@ -1516,7 +1516,7 @@ impl Cryptomus {
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut dateTime: Option<String> = self.safe_string_k(order.clone(), "createdAt", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(dateTime.map(Value::from).unwrap_or(Value::Null)).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(dateTime.map(Value::from).unwrap_or(Value::Null));
         let mut deal: crate::value::Dict = self.safe_dict_k(order.clone(), "deal", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

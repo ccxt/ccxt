@@ -184,7 +184,7 @@ impl crate::exchange_generated::ExchangeBase for Onetrading {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..]).await,
-                "find_timeframe" => self.find_timeframe(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "find_timeframe" => crate::Value::from(self.find_timeframe(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
                 "handle_authentication_message" => self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_heartbeat" => self.handle_heartbeat(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -215,7 +215,7 @@ impl Onetrading {
         let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
-            "find_timeframe" => self.find_timeframe(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "find_timeframe" => crate::Value::from(self.find_timeframe(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
             "handle_account_update" => { self.handle_account_update(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_authentication_message" => self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_balance_snapshot" => { self.handle_balance_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -577,7 +577,7 @@ impl Onetrading {
             let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "instrument", &[]).as_str().map(str::to_owned);
             let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut parsedTicker: Value = self.parse_ws_ticker(ticker, &[]);
-            let mut timestamp: Option<i64> = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)).as_i64();
+            let mut timestamp: Option<i64> = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
             if let Value::Dict(__rda) = &mut parsedTicker { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), Value::from(timestamp)); }
             if let Value::Dict(__rda) = &mut parsedTicker { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(Value::from(timestamp))); }
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), parsedTicker.clone()); }
@@ -780,7 +780,7 @@ impl Onetrading {
         let mut marketId: Option<String> = (match __pro_message.get("instrument_code").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut dateTime: Option<String> = (match __pro_message.get("time").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.parse8601(dateTime.map(Value::from).unwrap_or(Value::Null)).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(dateTime.map(Value::from).unwrap_or(Value::Null));
         let mut channel: String = format!("{}{}", Value::Str("book:".into()), symbol);
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         if (orderbook == Value::Null) {
@@ -1052,7 +1052,7 @@ impl Onetrading {
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "order_id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "client_id", &[]));
         m.insert("info".to_string(), order.clone());
-        m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -1443,7 +1443,7 @@ impl Onetrading {
                     m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("status".to_string(), status);
-                    m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+                    m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
                     m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
@@ -1685,10 +1685,10 @@ impl Onetrading {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timeframe: Value = self.find_timeframe(timeframeId, &[timeframes]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(timeframeId, &[timeframes]));
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv.".into()), symbol).into()), Value::Str(".".into())).into()), timeframe);
-        let mut parsed: Value = Value::from(vec![self.parse8601(dateTime.map(Value::from).unwrap_or(Value::Null)), (match message.get("open") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null },
-            _ => Value::Null }), (match message.get("high") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }),
+        let mut parsed: Value = Value::from(vec![Value::from(self.parse8601(dateTime.map(Value::from).unwrap_or(Value::Null))), (match message.get("open") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n),
+            Err(_) => Value::Null }, _ => Value::Null }), (match message.get("high") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }),
             (match message.get("low") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }), (match message.get("close") { Some(Value::Float(__f)) => Value::Float(*__f),
             Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }), (match message.get("volume") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64),
             Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null })]);
@@ -1709,7 +1709,7 @@ impl Onetrading {
         client.resolve(stored, channel.as_str());
 }
 
-    pub fn find_timeframe(&self, mut timeframe: Value, optional_args: &[Value]) -> Value {
+    pub fn find_timeframe(&self, mut timeframe: Value, optional_args: &[Value]) -> Option<String> {
         let mut timeframes = get_arg(optional_args, 0, Value::Null);
         let mut timeframesResolved: Value = (if (timeframes == Value::Null) { self.timeframes.clone() } else { timeframes });
         if (timeframesResolved == Value::Null) {
@@ -1720,8 +1720,8 @@ impl Onetrading {
                         let mut i: i64 = 0;
             let mut __for_first_566: bool = true;
             while { if !__for_first_566 { i += 1; } __for_first_566 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut timeframeResolved: indexmap::IndexMap<String, Value> = self.safe_dict(timeframesResolved.clone(), key.clone(), &[Value::Map({
+            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut timeframeResolved: indexmap::IndexMap<String, Value> = self.safe_dict(timeframesResolved.clone(), key.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).as_map().cloned().unwrap_or_default();
@@ -1730,9 +1730,7 @@ impl Onetrading {
             }
         }
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 
     pub fn handle_subscriptions(&self, mut client: Value, mut message: Value) -> Value {

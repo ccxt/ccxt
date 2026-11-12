@@ -1588,7 +1588,7 @@ impl Whitebit {
             let mut __for_first_1148: bool = true;
             while { if !__for_first_1148 { j += 1; } __for_first_1148 = false; j < (allNetworks.len() as i64) } {
             let mut networkId: String = self.safe_string(&allNetworks, Value::Int(j), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut networkCode: Value = self.network_id_to_code(&[Value::from(networkId.clone()), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[Value::from(networkId.clone()), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             let mut networkDepositLimits: crate::value::Dict = self.safe_dict(&depositLimits, Value::from(networkId.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1877,10 +1877,10 @@ impl Whitebit {
                 });
                 if (networkId != Value::Null) {
                     let mut networkLength: i64 = networkId.len() as i64;
-                    let mut networkCode: Value = self.network_id_to_code(&[(match (&(networkId), 1i64, (match &(Value::Int((networkLength - 1))) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
-                        __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
+                    let mut networkCode: Value = Value::from(self.network_id_to_code(&[(match (&(networkId), 1i64, (match &(Value::Int((networkLength - 1))) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv),
+                        __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
                         __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-                        Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }), code.clone()]);
+                        Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }), code.clone()]));
                     if (networkCode != Value::Null) {
                         add_element_to_object(get_value_mut(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("networks".into())), &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3090,15 +3090,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             // the exchange ignores a start alone: it returns the last candles that closed by the end.
             // It refuses an end past its own clock, which may be behind this one, so an end within a
             // timeframe of now is left out, and the latest candles it then returns cover the range
-            let mut duration: Value = self.parse_timeframe(timeframe.clone());
+            let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
             let mut endTime: Value = Value::Null;
             if (until != Value::Null) {
-                endTime = self.sum(&[self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })), duration.clone()]);
+                endTime = self.sum(&[Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), duration.clone()]);
             }
             if (since != Value::Null) {
-                let mut start: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-                request.insert("start".into(), start.clone());
-                let mut rangeEnd: Value = self.sum(&[start, (match (&(duration), &(cappedLimit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
+                let mut start: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+                request.insert("start".into(), Value::from(start));
+                let mut rangeEnd: Value = self.sum(&[Value::from(start), (match (&(duration), &(cappedLimit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
                 if (endTime == Value::Null) || (rangeEnd.as_f64().unwrap_or(f64::NAN) < endTime.as_f64().unwrap_or(f64::NAN)) {
                     endTime = rangeEnd;
                 }
@@ -3526,7 +3526,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
-                m.insert("orderId".to_string(), self.parse_to_int(id));
+                m.insert("orderId".to_string(), Value::from(self.parse_to_int(id)));
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
@@ -3677,7 +3677,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         if isBiggerThanZero {
-            request.insert("timeout".into(), self.number_to_string((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            request.insert("timeout".into(), Value::from(self.number_to_string((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }  else {
             request.insert("timeout".into(), Value::Str("null".into()));
         }
@@ -4079,7 +4079,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orderId".to_string(), self.parse_to_int(id));
+                m.insert("orderId".to_string(), Value::from(self.parse_to_int(id)));
             m
         });
         let mut market: Value = Value::Null;
@@ -4155,7 +4155,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("ticker".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            request.insert("startDate".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            request.insert("startDate".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let mut limitResolved: Value = limit.clone();
         if (limit == Value::Null) || limit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
@@ -4209,7 +4209,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("ticker".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
-            request.insert("startDate".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            request.insert("startDate".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let mut limitResolved: Value = limit.clone();
         if (limit == Value::Null) || limit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
@@ -4715,7 +4715,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "transactionId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "network", &[]), self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currencyResolved.clone()])]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "network", &[]), self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currencyResolved.clone()])])));
         m.insert("addressFrom".to_string(), (if (method.as_deref() == Some("1")) { address.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Null }));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), (if (method.as_deref() == Some("2")) { address.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Null }));
@@ -5072,9 +5072,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = self.symbol(symbol.clone());
-        let mut response: crate::types::FundingRates = (match self.fetch_funding_rates((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut fundingRate: Value = self.safe_dict(crate::types::IntoRaw::into_raw(response), symbolValue, &[]);
+        let mut symbolValue: String = self.symbol(symbol.clone());
+        let mut response: crate::types::FundingRates = (match self.fetch_funding_rates((Value::from(vec![Value::from(symbolValue.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut fundingRate: Value = self.safe_dict(crate::types::IntoRaw::into_raw(response), Value::from(symbolValue), &[]);
         return fundingRate;
         Value::Null
         }).await?))
@@ -5471,7 +5471,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut m = indexmap::IndexMap::new();
                 m.insert("from".to_string(), fromCode);
                 m.insert("to".to_string(), toCode);
-                m.insert("amount".to_string(), self.number_to_string(amount));
+                m.insert("amount".to_string(), Value::from(self.number_to_string(amount)));
                 m.insert("direction".to_string(), Value::Str("from".into()));
             m
         });
@@ -5564,8 +5564,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("fromTicker".into(), code.clone());
         }
         if (since != Value::Null) {
-            let mut start: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-            request.insert("from".into(), self.number_to_string(start));
+            let mut start: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+            request.insert("from".into(), Value::from(self.number_to_string(Value::from(start))));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
@@ -6019,7 +6019,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub fn nonce(&self) -> Value {
-        return (match (&(self.milliseconds()), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return (match (&(Value::Int(self.milliseconds())), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
 
     Value::Null
 }
@@ -6060,7 +6061,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (accessibility.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             // whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
-            let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
+            let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.incrementing_nonce())).into());
             let mut secret: Value = self.encode(self.secret.clone());
             let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), Value::Str("api".into())).into()), Value::Str("/".into())).into()), version).into()), pathWithParams);
             let nonceWindowrequestParamsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("sign".into()), Value::Str("nonceWindow".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();

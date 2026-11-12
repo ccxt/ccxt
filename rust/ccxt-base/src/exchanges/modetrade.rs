@@ -2876,7 +2876,7 @@ impl Modetrade {
         //
         let mut timestamp: Option<i64> = self.safe_integer_n(order.clone(), Value::from(vec![Value::Str("timestamp".into()), Value::Str("created_time".into()), Value::Str("createdTime".into())]), &[]).as_i64();
         let mut orderId: Option<String> = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("order_id".into()), Value::Str("orderId".into()), Value::Str("algoOrderId".into())]), &[]).as_str().map(str::to_owned);
-        let mut clientOrderId: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[])).as_str().map(str::to_owned); // Somehow, this always returns 0 for limit order
+        let mut clientOrderId: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[])); // Somehow, this always returns 0 for limit order
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -2890,9 +2890,9 @@ impl Modetrade {
             status = (if (success == Some(true)) { Some("NEW".to_string()) } else { Some("REJECTED".to_string()) });
         }
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
-        let mut filled: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("executed".into()), Value::Str("totalExecutedQuantity".into()), &[]));
-        let mut average: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("average_executed_price".into()), Value::Str("averageExecutedPrice".into()), &[])).as_str().map(str::to_owned);
-        let mut remaining: Option<String> = crate::precise::Precise::stringSub(&cost.clone().map(Value::from).unwrap_or(Value::Null), &filled).as_str().map(str::to_owned);
+        let mut filled: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("executed".into()), Value::Str("totalExecutedQuantity".into()), &[]));
+        let mut average: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("average_executed_price".into()), Value::Str("averageExecutedPrice".into()), &[]));
+        let mut remaining: Option<String> = crate::precise::Precise::stringSub(&cost.clone().map(Value::from).unwrap_or(Value::Null), &filled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut fee: Option<f64> = self.safe_number2(order.clone(), Value::Str("total_fee".into()), Value::Str("totalFee".into()), &[]).as_f64();
         let mut feeCurrency: Option<String> = self.safe_string2(order.clone(), Value::Str("fee_asset".into()), Value::Str("feeAsset".into()), &[]).as_str().map(str::to_owned);
         let mut transactions: Value = self.safe_list_k(order.clone(), "Transactions", &[]);
@@ -2933,7 +2933,7 @@ impl Modetrade {
         m.insert("stopLossPrice".to_string(), stopLossPrice);
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
-        m.insert("filled".to_string(), filled);
+        m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("trades".to_string(), transactions);
@@ -4675,10 +4675,10 @@ impl Modetrade {
         let mut withdrawRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("brokerId".to_string(), self.safe_string_k(self.options.clone(), "keyBrokerId", &[Value::Str("mode".into())]));
-                m.insert("chainId".to_string(), self.parse_to_int(chainId.map(Value::from).unwrap_or(Value::Null)));
+                m.insert("chainId".to_string(), Value::from(self.parse_to_int(chainId.map(Value::from).unwrap_or(Value::Null))));
                 m.insert("receiver".to_string(), address.clone());
                 m.insert("token".to_string(), Value::from(codeUpper));
-                m.insert("amount".to_string(), self.number_to_string(amount));
+                m.insert("amount".to_string(), Value::from(self.number_to_string(amount)));
                 m.insert("withdrawNonce".to_string(), withdrawNonce);
                 m.insert("timestamp".to_string(), nonce);
             m
@@ -5051,7 +5051,7 @@ impl Modetrade {
     }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }

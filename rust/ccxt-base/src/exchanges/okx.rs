@@ -3796,7 +3796,7 @@ impl Okx {
         let mut strike: String = self.safe_string(optionParts.clone(), Value::Int(3), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut optionType: String = self.safe_string(optionParts, Value::Int(4), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut datetime: Option<String> = (if (expiry == "") { None } else { self.convert_expire_date(Value::from(expiry.clone())).as_str().map(str::to_owned) });
-        let mut timestamp: Option<i64> = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("-".into())).into()), quote).into()), Value::Str("-".into())).into()), expiry).into()),
@@ -4083,7 +4083,7 @@ impl Okx {
         if (timeDifference == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" nonce() requires a numeric options[\"timeDifference\"]".into()))));
         }
-        return (match (&(self.milliseconds()), &(timeDifference)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return (match (&(Value::Int(self.milliseconds())), &(timeDifference)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
 
     Value::Null
 }
@@ -4564,7 +4564,7 @@ impl Okx {
             let mut idParts: Value = Value::Array(networkId.split("-").map(Value::from).collect());
             let mut parts: Value = self.array_slice(idParts, Value::Int(1), &[]);
             let mut chainPart: Value = Value::Str(parts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("-")).unwrap_or_default().into());
-            let mut networkCode: Value = self.network_id_to_code(&[chainPart, code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[chainPart, code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5329,9 +5329,9 @@ impl Okx {
         if (limit != Value::Null) {
             limitResolved = crate::runtime::Math::min(&limit, &requestMaxLimit);
         }
-        let mut duration: Value = self.parse_timeframe(timeframe.clone());
+        let mut duration: i64 = self.parse_timeframe(timeframe.clone());
         let mut bar: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
-        if (timezone == "UTC") && (duration.as_f64().unwrap_or(f64::NAN) >= ((21600i64) as f64)) {
+        if (timezone == "UTC") && (duration >= 21600) {
             bar = Value::Str(format!("{}{}", bar, Value::from(timezone.to_lowercase())).into());
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -5343,8 +5343,8 @@ impl Okx {
         });
         let mut defaultType: Value = Value::Str("Candles".into());
         if (since != Value::Null) {
-            let mut now: Value = self.milliseconds();
-            let mut durationInMilliseconds: Value = (match (&(duration), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            let mut now: Value = Value::Int(self.milliseconds());
+            let mut durationInMilliseconds: Value = Value::Int((duration * 1000));
             // switch to history candles if since is past the cutoff for current candles
             let mut historyBorder: Value = (match (&(now), &(((match (&(Value::Int(1439)), &(durationInMilliseconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                 Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
@@ -5948,8 +5948,8 @@ impl Okx {
                     if createMarketBuyOrderRequiresPrice {
                         if (price != Value::Null) {
                             if (notional == Value::Null) {
-                                let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-                                let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
+                                let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                                let mut priceString: Option<String> = self.number_to_string(price.clone());
                                 let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                                 notional = self.parse_number(quoteAmount.map(Value::from).unwrap_or(Value::Null), &[]);
                             }
@@ -6964,13 +6964,13 @@ impl Okx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut timeOut: Value = Value::Int(0);
+        let mut timeOut: Option<i64> = Some(0);
         if (timeout != Value::Null) && (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
             timeOut = self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("timeOut".to_string(), timeOut);
+                m.insert("timeOut".to_string(), Value::from(timeOut));
             m
         });
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
@@ -8536,7 +8536,7 @@ impl Okx {
             networkData = self.safe_dict2(networksById, Value::Str("USDT-Polygon-Bridge".into()), Value::Str("USDT-Polygon".into()), &[]);
         }
         let mut network: Option<String> = self.safe_string_k(networkData, "network", &[]).as_str().map(str::to_owned);
-        let mut networkCode: Option<String> = self.network_id_to_code(&[network.map(Value::from).unwrap_or(Value::Null), code.clone()]).as_str().map(str::to_owned);
+        let mut networkCode: Option<String> = self.network_id_to_code(&[network.map(Value::from).unwrap_or(Value::Null), code.clone()]);
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8638,7 +8638,7 @@ impl Okx {
         let mut rawNetwork: Option<String> = self.safe_string_k(params.clone(), "network", &[]).as_str().map(str::to_owned); // some networks are like "Dora Vota Mainnet"
         let mut paramsOmitted: Value = self.omit(params, Value::Str("network".into()), &[]);
         let mut codeValue: Value = self.safe_currency_code(code, &[]);
-        let mut network: Option<String> = self.network_id_to_code(&[rawNetwork.map(Value::from).unwrap_or(Value::Null), codeValue.clone()]).as_str().map(str::to_owned);
+        let mut network: Option<String> = self.network_id_to_code(&[rawNetwork.map(Value::from).unwrap_or(Value::Null), codeValue.clone()]);
         let mut responseRaw: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses_by_network(codeValue.as_str().unwrap_or_default(), paramsOmitted).await);
         let mut response: Value = responseRaw;
         if (network.is_some()) {
@@ -8648,7 +8648,7 @@ impl Okx {
             }
             return result;
         }
-        let mut codeNetwork: Value = self.network_id_to_code(&[codeValue.clone(), codeValue.clone()]);
+        let mut codeNetwork: Value = Value::from(self.network_id_to_code(&[codeValue.clone(), codeValue.clone()]));
         if (codeNetwork != Value::Null) && (matches!((&response, &codeNetwork), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return self.safe_dict(response.clone(), codeNetwork.clone(), &[]);
         }
@@ -8703,7 +8703,7 @@ impl Okx {
                 m.insert("ccy".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("toAddr".to_string(), addressWithTag);
                 m.insert("dest".to_string(), Value::Str("4".into()));
-                m.insert("amt".to_string(), self.number_to_string(amount));
+                m.insert("amt".to_string(), Value::from(self.number_to_string(amount)));
             m
         });
         let mut network: Value = self.safe_string_k(&paramsWithdrawTag, "network", &[]); // this line allows the user to specify either ERC20 or ETH
@@ -8724,7 +8724,7 @@ impl Okx {
         let mut fee: Option<String> = self.safe_string_k(&paramsWithdrawTag, "fee", &[]).as_str().map(str::to_owned);
         if (fee.is_none()) {
             // the network fee comes from currencies cached by loadMarkets, the endpoint does not require it
-            let mut networkCodeResolved: Option<String> = self.network_id_to_code(&[network, self.safe_string_k(currency.clone(), "code", &[])]).as_str().map(str::to_owned);
+            let mut networkCodeResolved: Option<String> = self.network_id_to_code(&[network, self.safe_string_k(currency.clone(), "code", &[])]);
             let mut targetNetwork: Value = (if (networkCodeResolved.is_none()) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -8738,7 +8738,7 @@ impl Okx {
             fee = self.safe_string_k(targetNetwork, "fee", &[]).as_str().map(str::to_owned);
         }
         if (fee.is_some()) {
-            request.insert("fee".into(), self.number_to_string(fee.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("fee".into(), Value::from(self.number_to_string(fee.map(Value::from).unwrap_or(Value::Null))));
         }
         let mut query: crate::value::Dict = self.omit(&paramsWithdrawTag, Value::from(omitKeys), &[]).into_dict();
         let __ws_arg_53 = self.extend(Value::Map(request), &[&query]);
@@ -9180,7 +9180,7 @@ impl Okx {
             let mut chainParts: Value = Value::Array(if let Some(__s) = chain.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             let mut networkParts: Value = self.array_slice(chainParts, Value::Int(1), &[]);
             let mut networkId: Value = Value::Str(networkParts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("-")).unwrap_or_default().into());
-            network = self.network_id_to_code(&[networkId, code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            network = Value::from(self.network_id_to_code(&[networkId, code.clone().map(Value::from).unwrap_or(Value::Null)]));
         }
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amt", &[]).as_f64();
         let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "state", &[])).as_str());
@@ -9665,7 +9665,7 @@ impl Okx {
             }
         }
         let mut contractSize: Option<f64> = self.safe_number_k(marketResolved.clone(), "contractSize", &[]).as_f64();
-        let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize)).as_str().map(str::to_owned);
+        let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize));
         let mut markPriceString: Option<String> = self.safe_string_k(position.clone(), "markPx", &[]).as_str().map(str::to_owned);
         let mut notionalString: Option<String> = self.safe_string_k(position.clone(), "notionalUsd", &[]).as_str().map(str::to_owned);
         if matches!(self.safe_bool_k(marketResolved.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -9685,7 +9685,7 @@ impl Okx {
             collateralString = (if (unrealizedPnlString.is_some()) { crate::precise::Precise::stringAdd(&initialMarginString, &unrealizedPnlString.clone().map(Value::from).unwrap_or(Value::Null)) } else { initialMarginString.clone() });
         }  else if (marginMode.as_deref() == Some("isolated")) {
             initialMarginPercentage = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &leverageString.clone().map(Value::from).unwrap_or(Value::Null));
-            let mut isolatedMarginString: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "margin", &[])).as_str().map(str::to_owned);
+            let mut isolatedMarginString: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "margin", &[]));
             if (isolatedMarginString.is_some()) {
                 initialMarginString = isolatedMarginString.clone().map(Value::from).unwrap_or(Value::Null);
                 marginString = isolatedMarginString.clone().map(Value::from).unwrap_or(Value::Null);
@@ -9699,7 +9699,7 @@ impl Okx {
             initialMarginPercentage = self.parse_number(crate::precise::Precise::stringDivPrec(&initialMarginString, &notionalString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(4)), &[]);
         }  else if (initialMarginString == Value::Null) {
             if matches!(self.safe_bool_k(marketResolved, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
-                let mut initialMarginPercentageString: Option<String> = self.number_to_string(initialMarginPercentage.clone()).as_str().map(str::to_owned);
+                let mut initialMarginPercentageString: Option<String> = self.number_to_string(initialMarginPercentage.clone());
                 initialMarginString = crate::precise::Precise::stringMul(&initialMarginPercentageString.map(Value::from).unwrap_or(Value::Null), &notionalString.map(Value::from).unwrap_or(Value::Null));
             }  else {
                 initialMarginString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString.map(Value::from).unwrap_or(Value::Null)), &entryPriceString.clone().map(Value::from).unwrap_or(Value::Null)), &leverageString.clone().map(Value::from).unwrap_or(Value::Null));
@@ -9708,7 +9708,7 @@ impl Okx {
         let mut rounder: String = "0.00005".to_string(); // round to closest 0.01%
         let mut maintenanceMarginPercentage: Value = (if (maintenanceMarginPercentageString.is_some()) { self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(rounder)), &Value::Str("1".into()), &Value::Int(4)), &[]) } else { Value::Null });
         // okx always reports liqPx for open positions; no local estimate (it depends on the account fee tier)
-        let mut liquidationPriceString: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "liqPx", &[])).as_str().map(str::to_owned);
+        let mut liquidationPriceString: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "liqPx", &[]));
         let mut liquidationPrice: Value = (if ((liquidationPriceString.is_some()) && crate::precise::Precise::stringGt(&liquidationPriceString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) { self.parse_number(liquidationPriceString.map(Value::from).unwrap_or(Value::Null), &[]) } else { Value::Null });
         let mut percentageString: Option<String> = self.safe_string_k(position.clone(), "uplRatio", &[]).as_str().map(str::to_owned);
         let mut percentage: Value = self.parse_number(crate::precise::Precise::stringMul(&percentageString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
@@ -10447,7 +10447,7 @@ impl Okx {
             m
         });
         if (limit != Value::Null) {
-            request.insert("limit".into(), self.number_to_string(limit.clone())); // default 100, max 100
+            request.insert("limit".into(), Value::from(self.number_to_string(limit.clone()))); // default 100, max 100
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -11918,9 +11918,9 @@ impl Okx {
     m
 }));
         let mut maxLimit: Value = Value::Int(100);
-        let mut effectiveLimit: Value = self.parse_to_int(Value::Int(100));
+        let mut effectiveLimit: Value = Value::from(self.parse_to_int(Value::Int(100)));
         if (limit != Value::Null) && (((100i64) as f64) > limit.as_f64().unwrap_or(f64::NAN)) {
-            effectiveLimit = self.parse_to_int(limit.clone());
+            effectiveLimit = Value::from(self.parse_to_int(limit.clone()));
         }
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), effectiveLimit.clone()); }
@@ -11945,7 +11945,7 @@ impl Okx {
             if (unit.as_str() == Some("M")) {
                 // calendar months last 28 to 31 days: the window spans limit of the longest months, but no more than 100 of the shortest,
                 // all entries in it are requested and the caller keeps the earliest limit of them
-                let mut months: Value = self.parse_to_int(unitPeriod.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 1).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
+                let mut months: Value = Value::from(self.parse_to_int(unitPeriod.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 1).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)));
                 let mut day: Value = Value::Int(86400000);
                 windowDuration = crate::runtime::Math::min(&(match (&((match (&((match (&(effectiveLimit), &(months)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(31))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
@@ -11955,7 +11955,7 @@ impl Okx {
                     Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), maxLimit); }
             }  else {
-                windowDuration = (match (&((match (&(effectiveLimit), &(self.parse_timeframe((if let Some(__s) = unitPeriod.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
+                windowDuration = (match (&((match (&(effectiveLimit), &(Value::Int(self.parse_timeframe((if let Some(__s) = unitPeriod.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
                     Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
                     (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             }
@@ -12211,7 +12211,7 @@ impl Okx {
                         m.insert("percentage".to_string(), Value::Null);
                     m
                 });
-                let mut networkCode: Value = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]);
+                let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]));
                 if (networkCode != Value::Null) {
                     add_element_to_object(get_value_mut(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("networks".into())), &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -13061,7 +13061,7 @@ impl Okx {
                 m.insert("baseCcy".to_string(), (if let Some(__s) = fromCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("quoteCcy".to_string(), (if let Some(__s) = toCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("rfqSzCcy".to_string(), (if let Some(__s) = fromCode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-                m.insert("rfqSz".to_string(), self.number_to_string(amount));
+                m.insert("rfqSz".to_string(), Value::from(self.number_to_string(amount)));
                 m.insert("side".to_string(), Value::Str("sell".into()));
             m
         });
@@ -13139,7 +13139,7 @@ impl Okx {
                 m.insert("baseCcy".to_string(), fromCode.clone());
                 m.insert("quoteCcy".to_string(), toCode.clone());
                 m.insert("szCcy".to_string(), fromCode.clone());
-                m.insert("sz".to_string(), self.number_to_string(amount));
+                m.insert("sz".to_string(), Value::from(self.number_to_string(amount)));
                 m.insert("side".to_string(), Value::Str("sell".into()));
             m
         });
@@ -13606,7 +13606,7 @@ impl Okx {
             request.insert("endTime".into(), Value::from(until));
         }
         let mut response: Option<crate::value::Dict> = None;
-        let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut now: i64 = self.milliseconds();
         let mut oneWeekAgo: i64 = (now - 604800000);
         let mut threeMonthsAgo: i64 = (now - 7776000000);
         if (since == Value::Null) || (since.as_f64().unwrap_or(f64::NAN) > (oneWeekAgo as f64)) {

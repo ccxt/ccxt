@@ -21,11 +21,11 @@ pub async fn testFetchOHLCV(mut exchange: Value, mut skippedProperties: Value, m
     if !is_true(&exchange.in_array(chosenTimeframeKey.clone(), timeframeKeys.clone())) {
         chosenTimeframeKey = timeframeKeys.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     }
-    let mut durationMs: Value = (match (&(exchange.parse_timeframe(chosenTimeframeKey.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+    let mut durationMs: Value = (match (&(Value::Int(exchange.parse_timeframe(chosenTimeframeKey.clone()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
     //
     // check for all possible "since" & "limit" combinations, where one of them could be undefined and the other not
     //
-    let mut sinceArray: Value = Value::from(vec![Value::Null, (match (&(exchange.milliseconds()), &((match (&(durationMs), &(Value::Int(2800))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+    let mut sinceArray: Value = Value::from(vec![Value::Null, (match (&(Value::Int(exchange.milliseconds())), &((match (&(durationMs), &(Value::Int(2800))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
         Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })]); // eg, "since" was a date of 2800 bars back
     let mut limitsArray: Value = Value::from(vec![Value::Null, Value::Int(50), Value::Int(25000)]);
     {
@@ -57,7 +57,7 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
         m
     }));
     assert!(ccxt::runtime::is_true(&((matches!(&ohlcvs, Value::Arr(_))))));
-    let mut now: Value = exchange.milliseconds();
+    let mut now: Value = Value::Int(exchange.milliseconds());
     {
                 let mut i: i64 = 0;
         let mut __for_first_1585: bool = true;
@@ -65,7 +65,7 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
         testOHLCV(exchange.clone(), skippedProperties.clone(), method.clone(), ohlcvs.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
     }
     }
-    let mut durationMs: Value = (match (&(exchange.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+    let mut durationMs: Value = (match (&(Value::Int(exchange.parse_timeframe(timeframe.clone()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
     let mut barsLength: Value = Value::Int(ohlcvs.len() as i64);
     // check bars amounts, to be between 0 and limit
     // less then limit

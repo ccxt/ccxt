@@ -205,7 +205,7 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "parse_ws_balance" => self.parse_ws_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "request_id" => self.request_id(),
+                "request_id" => crate::Value::from(self.request_id()),
                 "resubscribe_order_book" => self.resubscribe_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
                 "sbe_read_flags" => self.sbe_read_flags(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "sbe_read_int64" => self.sbe_read_int64(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -297,7 +297,7 @@ impl Paradex {
             "parse_ws_balance" => self.parse_ws_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "request_id" => self.request_id(),
+            "request_id" => crate::Value::from(self.request_id()),
             "resubscribe_order_book" => { crate::exchange_stubs::enqueue_spawn("resubscribe_order_book", args.to_vec()); crate::Value::Null },
             "sbe_read_flags" => self.sbe_read_flags(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "sbe_read_int64" => self.sbe_read_int64(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -453,12 +453,10 @@ impl Paradex {
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("order_book.".into()), marketId).into()), Value::Str(".snapshot@15@100ms".into())).into()).as_str().map(str::to_owned);
 }
 
-    pub fn request_id(&mut self) -> Value {
+    pub fn request_id(&mut self) -> i64 {
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
-        return requestId;
-
-    Value::Null
+        return requestId.as_i64().unwrap_or_default();
 }
 
 /*
@@ -473,7 +471,7 @@ impl Paradex {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
-        m.insert("id".to_string(), self.request_id());
+        m.insert("id".to_string(), Value::Int(self.request_id()));
         m.insert("method".to_string(), Value::Str("subscribe".into()));
         m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -498,7 +496,7 @@ impl Paradex {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
-        m.insert("id".to_string(), self.request_id());
+        m.insert("id".to_string(), Value::Int(self.request_id()));
         m.insert("method".to_string(), Value::Str("unsubscribe".into()));
         m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -856,7 +854,7 @@ if _try_result.is_err() {
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut token: Option<String> = self.parent.authenticate_rest(&[]).await.as_str().map(str::to_owned);
-            let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
+            let mut requestId: i64 = self.request_id();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
@@ -1951,7 +1949,7 @@ if _try_result.is_err() {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
-                m.insert("id".to_string(), self.request_id());
+                m.insert("id".to_string(), Value::Int(self.request_id()));
                 m.insert("method".to_string(), Value::Str("modify_subscription".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2036,7 +2034,7 @@ if _try_result.is_err() {
             request = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
-                    m.insert("id".to_string(), self.request_id());
+                    m.insert("id".to_string(), Value::Int(self.request_id()));
                     m.insert("method".to_string(), Value::Str("modify_subscription".into()));
                     m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2310,7 +2308,7 @@ if _try_result.is_err() {
         self.authenticate(&[]).await;
         let mut messageHash: String = "orders".to_string();
         let mut channel: String = "orders.ALL".to_string();
-        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol.clone())) } else { symbol.as_str().map(str::to_owned) });
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             channel = format!("{}{}", Value::Str("orders.".into()), Value::from((market).id.as_deref()));
@@ -2415,7 +2413,7 @@ if _try_result.is_err() {
         self.authenticate(&[]).await;
         let mut messageHash: String = "myTrades".to_string();
         let mut channel: String = "fills.ALL".to_string();
-        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol.clone())) } else { symbol.as_str().map(str::to_owned) });
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             channel = format!("{}{}", Value::Str("fills.".into()), Value::from((market).id.as_deref()));
@@ -3022,55 +3020,55 @@ if _try_result.is_err() {
         // ids this decoder does not know (the schema says to skip them), and malformed frames.
         //
         let mut frameHex: Option<String> = self.binary_to_base16(message, &[]).as_str().map(str::to_owned);
-        let mut frameLength: Value = self.parse_to_int(Value::Float(((((frameHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0)));
+        let mut frameLength: Value = Value::from(self.parse_to_int(Value::Float(((((frameHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0))));
         if frameLength.as_f64().unwrap_or(f64::NAN) < ((8i64) as f64) {
             return Value::Null;
         }
-        let mut blockLength: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone().map(Value::from).unwrap_or(Value::Null), Value::Int(0), Value::Int(2)));
-        let mut templateId: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone().map(Value::from).unwrap_or(Value::Null), Value::Int(2), Value::Int(2)));
-        let mut schemaId: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone().map(Value::from).unwrap_or(Value::Null), Value::Int(4), Value::Int(2)));
-        if (schemaId.as_f64() != Some(1.0)) || (frameLength.as_f64().unwrap_or(f64::NAN) < self.sum(&[blockLength.clone(), Value::Int(8)]).as_f64().unwrap_or(f64::NAN)) {
+        let mut blockLength: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.clone().map(Value::from).unwrap_or(Value::Null), Value::Int(0), Value::Int(2)));
+        let mut templateId: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.clone().map(Value::from).unwrap_or(Value::Null), Value::Int(2), Value::Int(2)));
+        let mut schemaId: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.clone().map(Value::from).unwrap_or(Value::Null), Value::Int(4), Value::Int(2)));
+        if (schemaId != Some(1)) || (frameLength.as_f64().unwrap_or(f64::NAN) < self.sum(&[Value::from(blockLength), Value::Int(8)]).as_f64().unwrap_or(f64::NAN)) {
             return Value::Null;
         }
         let mut channel: Option<String> = None;
         let mut data: Value = Value::Null;
-        if (templateId.as_f64() == Some(1.0)) {
-            data = self.parse_sbe_trade(frameHex.clone().map(Value::from).unwrap_or(Value::Null), blockLength.clone(), frameLength.clone());
+        if (templateId == Some(1)) {
+            data = self.parse_sbe_trade(frameHex.clone().map(Value::from).unwrap_or(Value::Null), Value::from(blockLength), frameLength.clone());
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("trades.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
-        }  else if (templateId.as_f64() == Some(2.0)) {
-            data = self.parse_sbe_bbo(frameHex.clone().map(Value::from).unwrap_or(Value::Null), blockLength.clone(), frameLength.clone());
+        }  else if (templateId == Some(2)) {
+            data = self.parse_sbe_bbo(frameHex.clone().map(Value::from).unwrap_or(Value::Null), Value::from(blockLength), frameLength.clone());
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("bbo.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
-        }  else if (templateId.as_f64() == Some(3.0)) {
+        }  else if (templateId == Some(3)) {
             // the snapshot and deltas feeds send the same frame, handleOrderBook tells them apart by package type
-            data = self.parse_sbe_order_book(frameHex.clone().map(Value::from).unwrap_or(Value::Null), blockLength.clone(), frameLength.clone());
+            data = self.parse_sbe_order_book(frameHex.clone().map(Value::from).unwrap_or(Value::Null), Value::from(blockLength), frameLength.clone());
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("order_book.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
-        }  else if (templateId.as_f64() == Some(4.0)) {
-            data = self.parse_sbe_market_summary(client, frameHex.clone().map(Value::from).unwrap_or(Value::Null), blockLength.clone(), frameLength.clone());
+        }  else if (templateId == Some(4)) {
+            data = self.parse_sbe_market_summary(client, frameHex.clone().map(Value::from).unwrap_or(Value::Null), Value::from(blockLength), frameLength.clone());
             channel = Some("markets_summary".to_string());
-        }  else if (templateId.as_f64() == Some(5.0)) {
-            data = self.parse_sbe_funding_data(frameHex.clone().map(Value::from).unwrap_or(Value::Null), blockLength.clone(), frameLength.clone());
+        }  else if (templateId == Some(5)) {
+            data = self.parse_sbe_funding_data(frameHex.clone().map(Value::from).unwrap_or(Value::Null), Value::from(blockLength), frameLength.clone());
             channel = Some("funding_data".to_string());
-        }  else if (templateId.as_f64() == Some(20.0)) {
-            data = self.parse_sbe_order(frameHex.clone().map(Value::from).unwrap_or(Value::Null), blockLength.clone(), frameLength.clone());
+        }  else if (templateId == Some(20)) {
+            data = self.parse_sbe_order(frameHex.clone().map(Value::from).unwrap_or(Value::Null), Value::from(blockLength), frameLength.clone());
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("orders.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
-        }  else if (templateId.as_f64() == Some(21.0)) {
-            data = self.parse_sbe_fill(frameHex.clone().map(Value::from).unwrap_or(Value::Null), blockLength.clone(), frameLength.clone());
+        }  else if (templateId == Some(21)) {
+            data = self.parse_sbe_fill(frameHex.clone().map(Value::from).unwrap_or(Value::Null), Value::from(blockLength), frameLength.clone());
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("fills.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
-        }  else if (templateId.as_f64() == Some(22.0)) {
-            data = self.parse_sbe_position(frameHex.clone().map(Value::from).unwrap_or(Value::Null), blockLength.clone(), frameLength.clone());
+        }  else if (templateId == Some(22)) {
+            data = self.parse_sbe_position(frameHex.clone().map(Value::from).unwrap_or(Value::Null), Value::from(blockLength), frameLength.clone());
             channel = Some("positions".to_string());
-        }  else if (templateId.as_f64() == Some(23.0)) {
-            data = self.parse_sbe_account(frameHex.map(Value::from).unwrap_or(Value::Null), blockLength, frameLength);
+        }  else if (templateId == Some(23)) {
+            data = self.parse_sbe_account(frameHex.map(Value::from).unwrap_or(Value::Null), Value::from(blockLength), frameLength);
             channel = Some("account".to_string());
         }
         if (data == Value::Null) {
@@ -3094,10 +3092,10 @@ if _try_result.is_err() {
     pub fn sbe_read_uint(&self, mut frameHex: Value, mut offset: Value, mut length: Value) -> Value {
         // a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
         let mut digits: String = "0123456789abcdef".to_string();
-        let mut result: Value = Value::Int(0);
+        let mut result: Option<i64> = Some(0);
         let mut factor: Value = Value::Int(1);
-        let mut count: Value = self.parse_to_int(length);
-        let mut start: Value = self.parse_to_int(offset);
+        let mut count: Value = Value::from(self.parse_to_int(length));
+        let mut start: Value = Value::from(self.parse_to_int(offset));
         let mut position: Value = (match (&(start), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         {
                         let mut i: Value = Value::Int(0);
@@ -3116,29 +3114,29 @@ if _try_result.is_err() {
                 match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
                 __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } },
                 _ => Value::Null })).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 }));
-            result = self.parse_to_int(self.sum(&[result.clone(), (match (&(Value::Int((high * 16))), &(factor)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                _ => Value::Null }), (match (&(low), &(factor)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
-            factor = self.parse_to_int((match (&(factor), &(Value::Int(256))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
-            position = self.parse_to_int(next);
+            result = self.parse_to_int(self.sum(&[Value::from(result), (match (&(Value::Int((high * 16))), &(factor)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(low), &(factor)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+            factor = Value::from(self.parse_to_int((match (&(factor), &(Value::Int(256))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+            position = Value::from(self.parse_to_int(next));
         }
         }
-        return self.parse_to_int(result);
+        return Value::from(self.parse_to_int(Value::from(result)));
 
     Value::Null
 }
 
     pub fn sbe_read_int64(&self, mut frameHex: Value, mut offset: Value) -> Value {
         // a signed int64 as a decimal string, undefined for INT64_MIN which the schema uses as null
-        let mut low: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), offset.clone(), Value::Int(4)));
-        let mut high: Value = self.parse_to_int(self.sbe_read_uint(frameHex, self.sum(&[offset, Value::Int(4)]), Value::Int(4)));
-        if (high.as_f64() == Some(2147483648.0)) && (low.as_f64() == Some(0.0)) {
+        let mut low: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), offset.clone(), Value::Int(4)));
+        let mut high: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex, self.sum(&[offset, Value::Int(4)]), Value::Int(4)));
+        if (high == Some(2147483648)) && (low == Some(0)) {
             return Value::Null;
         }
-        if (high.as_f64() == Some(0.0)) {
-            return self.number_to_string(low.clone());
+        if (high == Some(0)) {
+            return Value::from(self.number_to_string(Value::from(low)));
         }
-        let mut result: Option<String> = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&self.number_to_string(high.clone()), &Value::Str("4294967296".into())), &self.number_to_string(low)).as_str().map(str::to_owned);
-        if high.as_f64().unwrap_or(f64::NAN) >= ((2147483648i64) as f64) {
+        let mut result: Option<String> = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&Value::from(self.number_to_string(Value::from(high))), &Value::Str("4294967296".into())), &Value::from(self.number_to_string(Value::from(low)))).as_str().map(str::to_owned);
+        if high >= Some(2147483648) {
             result = crate::precise::Precise::stringSub(&result.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("18446744073709551616".into())).as_str().map(str::to_owned);
         }
         return result.map(Value::from).unwrap_or(Value::Null);
@@ -3162,19 +3160,19 @@ if _try_result.is_err() {
         if (microseconds.is_none()) {
             return Value::Null;
         }
-        return self.parse_to_int(crate::precise::Precise::stringDivPrec(&microseconds.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into()), &Value::Int(0)));
+        return Value::from(self.parse_to_int(crate::precise::Precise::stringDivPrec(&microseconds.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into()), &Value::Int(0))));
 
     Value::Null
 }
 
     pub fn sbe_read_enum(&self, mut frameHex: Value, mut offset: Value, mut values: Value) -> Option<String> {
-        let mut value: Value = self.parse_to_int(self.sbe_read_uint(frameHex, offset, Value::Int(1)));
-        return self.safe_string(values, self.number_to_string(value), &[]).as_str().map(str::to_owned);
+        let mut value: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex, offset, Value::Int(1)));
+        return self.safe_string(values, Value::from(self.number_to_string(Value::from(value))), &[]).as_str().map(str::to_owned);
 }
 
     pub fn sbe_read_string(&self, mut frameHex: Value, mut offset: Value, mut length: Value) -> Option<String> {
-        let mut first: Value = self.parse_to_int(offset);
-        let mut size: Value = self.parse_to_int(length);
+        let mut first: Value = Value::from(self.parse_to_int(offset));
+        let mut size: Value = Value::from(self.parse_to_int(length));
         let mut start: Value = (match (&(first), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut end: Value = self.sum(&[start.clone(), (match (&(size), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
         return self.binary_to_string(self.base16_to_binary((match (&(frameHex), (match &(start) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(end) { Value::Int(__n) => Some(*__n),
@@ -3185,7 +3183,7 @@ if _try_result.is_err() {
 
     pub fn sbe_read_address(&self, mut frameHex: Value, mut offset: Value) -> Option<String> {
         // a 32-byte big-endian account address, printed without leading zeros like the JSON feed
-        let mut first: Value = self.parse_to_int(offset);
+        let mut first: Value = Value::from(self.parse_to_int(offset));
         let mut rawStart: Value = (match (&(first), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut rawEnd: Value = (match (&(rawStart), &(Value::Int(64))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
         let mut raw: Value = (match (&(frameHex), (match &(rawStart) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(rawEnd) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64),
@@ -3219,9 +3217,9 @@ if _try_result.is_err() {
         // absent, which is how a field appended to var-data reads on a frame from before it.
         // Every caller guards on the count it needs, so an empty list and a short one read alike
         let mut result: Vec<Value> = Vec::new();
-        let mut end: Value = self.parse_to_int(frameLength);
-        let mut total: Value = self.parse_to_int(count);
-        let mut position: Value = self.parse_to_int(offset);
+        let mut end: Value = Value::from(self.parse_to_int(frameLength));
+        let mut total: Value = Value::from(self.parse_to_int(count));
+        let mut position: Value = Value::from(self.parse_to_int(offset));
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_615: bool = true;
@@ -3229,13 +3227,13 @@ if _try_result.is_err() {
             if position.as_f64().unwrap_or(f64::NAN) >= end.as_f64().unwrap_or(f64::NAN) {
                 return Value::from(result);
             }
-            let mut length: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), position.clone(), Value::Int(1)));
-            let mut next: Value = self.parse_to_int(self.sum(&[position.clone(), Value::Int(1), length.clone()]));
+            let mut length: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), position.clone(), Value::Int(1)));
+            let mut next: Value = Value::from(self.parse_to_int(self.sum(&[position.clone(), Value::Int(1), Value::from(length)])));
             if next.as_f64().unwrap_or(f64::NAN) > end.as_f64().unwrap_or(f64::NAN) {
                 return Value::from(vec![]);
             }
             result.push(self.sbe_read_string(frameHex.clone(), (match (&(position), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
-                _ => Value::Null }), length).map(Value::from).unwrap_or(Value::Null));
+                _ => Value::Null }), Value::from(length)).map(Value::from).unwrap_or(Value::Null));
             position = next;
         }
         }
@@ -3245,14 +3243,14 @@ if _try_result.is_err() {
 }
 
     pub fn parse_sbe_trade(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
-        let mut blockSize: Value = self.parse_to_int(blockLength.clone());
+        let mut blockSize: Option<i64> = self.parse_to_int(blockLength.clone());
         //
         // TradeEvent (templateId 1), 50-byte block
         //
         //     ts int64, seq int64, tradeId int64 (deprecated, truncated), side uint8, price int64,
         //     size int64, createdAt int64, tradeType uint8, then market and tradeIdStr strings
         //
-        if blockSize.as_f64().unwrap_or(f64::NAN) < ((50i64) as f64) {
+        if (blockSize.is_some() && blockSize < Some(50)) {
             return Value::Null;
         }
         let mut strings: Vec<Value> = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(2), frameLength).as_array().cloned().unwrap_or_default();
@@ -3292,14 +3290,14 @@ if _try_result.is_err() {
 }
 
     pub fn parse_sbe_bbo(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
-        let mut blockSize: Value = self.parse_to_int(blockLength.clone());
+        let mut blockSize: Option<i64> = self.parse_to_int(blockLength.clone());
         //
         // BboEvent (templateId 2), 48-byte block
         //
         //     ts int64, seq int64, bidPrice int64, bidSize int64, askPrice int64, askSize int64 (each price
         //     and size null on an empty side), then the market string
         //
-        if blockSize.as_f64().unwrap_or(f64::NAN) < ((48i64) as f64) {
+        if (blockSize.is_some() && blockSize < Some(48)) {
             return Value::Null;
         }
         let mut strings: Vec<Value> = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(1), frameLength).as_array().cloned().unwrap_or_default();
@@ -3323,7 +3321,7 @@ if _try_result.is_err() {
 }
 
     pub fn parse_sbe_order_book(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
-        let mut blockSize: Value = self.parse_to_int(blockLength.clone());
+        let mut blockSize: Option<i64> = self.parse_to_int(blockLength.clone());
         //
         // BookEvent (templateId 3), 89-byte block
         //
@@ -3331,17 +3329,17 @@ if _try_result.is_err() {
         //     the bids and asks groups of (price int64, size int64) entries and the market string. A delta
         //     carries the changed levels, a size of 0 removes the level
         //
-        if blockSize.as_f64().unwrap_or(f64::NAN) < ((17i64) as f64) {
+        if (blockSize.is_some() && blockSize < Some(17)) {
             return Value::Null;
         }
-        let mut pkgType: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), Value::Int(24), Value::Int(1)));
-        if (pkgType.as_f64() != Some(0.0)) && (pkgType.as_f64() != Some(1.0)) {
+        let mut pkgType: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), Value::Int(24), Value::Int(1)));
+        if (pkgType != Some(0)) && (pkgType != Some(1)) {
             return Value::Null;
         }
         let mut levels: Value = Value::from(vec![]);
         let mut sides: crate::value::List = std::sync::Arc::new(vec![Value::Str("BUY".into()), Value::Str("SELL".into())]);
-        let mut frameEnd: Value = self.parse_to_int(frameLength.clone());
-        let mut position: Value = self.parse_to_int(self.sum(&[blockLength, Value::Int(8)]));
+        let mut frameEnd: Value = Value::from(self.parse_to_int(frameLength.clone()));
+        let mut position: Value = Value::from(self.parse_to_int(self.sum(&[blockLength, Value::Int(8)])));
         {
                         let mut i: i64 = 0;
             let mut __for_first_617: bool = true;
@@ -3349,12 +3347,12 @@ if _try_result.is_err() {
             if (match (&(position), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) > frameEnd.as_f64().unwrap_or(f64::NAN) {
                 return Value::Null;
             }
-            let mut entryLength: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), position.clone(), Value::Int(2)));
-            let mut numInGroup: Value = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), (match (&(position), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), Value::Int(2)));
-            position = self.parse_to_int((match (&(position), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
-            if (entryLength.as_f64().unwrap_or(f64::NAN) < ((16i64) as f64)) || (self.parse_to_int(self.sum(&[position.clone(), (match (&(numInGroup), &(entryLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
-                (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })])).as_f64().unwrap_or(f64::NAN) > frameEnd.as_f64().unwrap_or(f64::NAN)) {
+            let mut entryLength: Value = Value::from(self.parse_to_int(self.sbe_read_uint(frameHex.clone(), position.clone(), Value::Int(2))));
+            let mut numInGroup: Value = Value::from(self.parse_to_int(self.sbe_read_uint(frameHex.clone(), (match (&(position), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
+                Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), Value::Int(2))));
+            position = Value::from(self.parse_to_int((match (&(position), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })));
+            if (entryLength.as_f64().unwrap_or(f64::NAN) < ((16i64) as f64)) || (Value::from(self.parse_to_int(self.sum(&[position.clone(), (match (&(numInGroup), &(entryLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
+                Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]))).as_f64().unwrap_or(f64::NAN) > frameEnd.as_f64().unwrap_or(f64::NAN)) {
                 return Value::Null;
             }
             {
@@ -3369,7 +3367,7 @@ if _try_result.is_err() {
                             Value::Float(y)) => Value::Float(x + y), _ => Value::Null })).map(Value::from).unwrap_or(Value::Null));
                     m
                 })); }
-                position = self.parse_to_int(self.sum(&[position.clone(), entryLength.clone()]));
+                position = Value::from(self.parse_to_int(self.sum(&[position.clone(), entryLength.clone()])));
             }
             }
         }
@@ -3379,7 +3377,7 @@ if _try_result.is_err() {
         if stringsLength < 1 {
             return Value::Null;
         }
-        let mut isSnapshot: bool = pkgType.as_f64() == Some(0.0);
+        let mut isSnapshot: bool = pkgType == Some(0);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("seq_no".to_string(), self.sbe_read_int64(frameHex.clone(), Value::Int(16)));
@@ -3397,7 +3395,7 @@ if _try_result.is_err() {
 
     pub fn parse_sbe_market_summary(&self, mut client: Value, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let mut blockSize: Value = self.parse_to_int(blockLength.clone());
+        let mut blockSize: Option<i64> = self.parse_to_int(blockLength.clone());
         //
         // MarketSummaryEvent (templateId 4), 248-byte block (240 before 1:3), of which the first
         // 12 int64 fields and settlementTwapEstimate are read
@@ -3406,7 +3404,7 @@ if _try_result.is_err() {
         //     ask, totalVolume, priceChangeRate24h, ..., settlementTwapEstimate (1:3, at 240), then the
         //     market string
         //
-        if blockSize.as_f64().unwrap_or(f64::NAN) < ((96i64) as f64) {
+        if (blockSize.is_some() && blockSize < Some(96)) {
             return Value::Null;
         }
         let mut strings: Vec<Value> = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(1), frameLength).as_array().cloned().unwrap_or_default();
@@ -3423,7 +3421,7 @@ if _try_result.is_err() {
         }
         // appended in 1:3: null outside the pre-expiry settlement window and for undated markets
         let mut settlementTwapEstimate: Value = Value::Null;
-        if blockSize.as_f64().unwrap_or(f64::NAN) >= ((248i64) as f64) {
+        if blockSize >= Some(248) {
             settlementTwapEstimate = self.sbe_read_decimal(frameHex.clone(), Value::Int(248)).map(Value::from).unwrap_or(Value::Null);
         }
         return Value::Map({
@@ -3447,14 +3445,14 @@ if _try_result.is_err() {
 }
 
     pub fn parse_sbe_funding_data(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
-        let mut blockSize: Value = self.parse_to_int(blockLength.clone());
+        let mut blockSize: Option<i64> = self.parse_to_int(blockLength.clone());
         //
         // FundingDataEvent (templateId 5), 66-byte block
         //
         //     ts int64, seq int64, fundingRate int64, fundingIndex int64, createdAt int64,
         //     fundingPremium int64, fundingRate8h int64, fundingPeriodHours int16, ... then the market
         //
-        if blockSize.as_f64().unwrap_or(f64::NAN) < ((58i64) as f64) {
+        if (blockSize.is_some() && blockSize < Some(58)) {
             return Value::Null;
         }
         let mut strings: Vec<Value> = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(1), frameLength).as_array().cloned().unwrap_or_default();
@@ -3478,7 +3476,7 @@ if _try_result.is_err() {
 }
 
     pub fn parse_sbe_order(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
-        let mut blockSize: Value = self.parse_to_int(blockLength.clone());
+        let mut blockSize: Option<i64> = self.parse_to_int(blockLength.clone());
         //
         // OrderEvent (templateId 20), 128-byte block (126 before the 1:2 request fields)
         //
@@ -3487,7 +3485,7 @@ if _try_result.is_err() {
         //     createdAt int64, updatedAt int64, account [32]byte, receivedAt int64, publishedAt int64,
         //     stp uint8, flags uint8, ... then the orderId, clientOrderId, market and cancelReason strings
         //
-        if blockSize.as_f64().unwrap_or(f64::NAN) < ((126i64) as f64) {
+        if (blockSize.is_some() && blockSize < Some(126)) {
             return Value::Null;
         }
         let mut strings: Vec<Value> = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(4), frameLength).as_array().cloned().unwrap_or_default();
@@ -3578,17 +3576,17 @@ if _try_result.is_err() {
         let names = names.as_array().unwrap_or(&__names_empty);
         // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
         let mut flags: Vec<Value> = Vec::new();
-        let mut bits: Value = self.parse_to_int(self.sbe_read_uint(frameHex, offset, Value::Int(1)));
+        let mut bits: Value = Value::from(self.parse_to_int(self.sbe_read_uint(frameHex, offset, Value::Int(1))));
         {
                         let mut i: i64 = 0;
             let mut __for_first_618: bool = true;
             while { if !__for_first_618 { i += 1; } __for_first_618 = false; i < (names.len() as i64) } {
-            let mut bit: Value = self.parse_to_int((match (&(bits), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x),
+            let mut bit: Option<i64> = self.parse_to_int((match (&(bits), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x),
                 Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null }));
-            if (bit.as_f64() == Some(1.0)) && (names.get(i as usize).cloned().unwrap_or(Value::Null).as_str() != Some("")) {
+            if (bit == Some(1)) && (names.get(i as usize).cloned().unwrap_or(Value::Null).as_str() != Some("")) {
                 flags.push(names.get(i as usize).cloned().unwrap_or(Value::Null));
             }
-            bits = self.parse_to_int((match ((bits).as_f64(), (Value::Int(2)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+            bits = Value::from(self.parse_to_int((match ((bits).as_f64(), (Value::Int(2)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
         }
         return Value::from(flags);
@@ -3597,7 +3595,7 @@ if _try_result.is_err() {
 }
 
     pub fn parse_sbe_fill(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
-        let mut blockSize: Value = self.parse_to_int(blockLength.clone());
+        let mut blockSize: Option<i64> = self.parse_to_int(blockLength.clone());
         //
         // FillEvent (templateId 21), 116-byte block (107 before the 1:2 flags and orderbookSeqNo)
         //
@@ -3606,7 +3604,7 @@ if _try_result.is_err() {
         //     underlyingPrice int64, realizedFunding int64, flags uint8, orderbookSeqNo uint64, then the
         //     fillId, orderId, clientOrderId, tradeId, market and feeCurrency (1:2) strings
         //
-        if blockSize.as_f64().unwrap_or(f64::NAN) < ((107i64) as f64) {
+        if (blockSize.is_some() && blockSize < Some(107)) {
             return Value::Null;
         }
         let mut strings: Vec<Value> = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(6), frameLength).as_array().cloned().unwrap_or_default();
@@ -3656,7 +3654,7 @@ if _try_result.is_err() {
                 m.insert("underlying_price".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(99)).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        if blockSize.as_f64().unwrap_or(f64::NAN) >= ((116i64) as f64) {
+        if blockSize >= Some(116) {
             // lowercase, as the JSON feed spells fill flags
             fill.insert("flags".into(), self.sbe_read_flags(frameHex.clone(), Value::Int(115), Value::from(vec![Value::Str("interactive".into()), Value::Str("rpi".into()), Value::Str("fastfill".into()), Value::Str("".into()), Value::Str("".into()), Value::Str("".into()), Value::Str("".into()), Value::Str("unknown".into())])));
             fill.insert("orderbook_seq_no".into(), self.sbe_read_int64(frameHex, Value::Int(116)));
@@ -3667,7 +3665,7 @@ if _try_result.is_err() {
 }
 
     pub fn parse_sbe_position(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
-        let mut blockSize: Value = self.parse_to_int(blockLength.clone());
+        let mut blockSize: Option<i64> = self.parse_to_int(blockLength.clone());
         //
         // PositionEvent (templateId 22), 154-byte block
         //
@@ -3677,7 +3675,7 @@ if _try_result.is_err() {
         //     int64, cost int64, costUsd int64, cachedFundingIndex int64, unrealizedFundingPnl int64,
         //     status uint8, then the market and lastFillId strings
         //
-        if blockSize.as_f64().unwrap_or(f64::NAN) < ((154i64) as f64) {
+        if (blockSize.is_some() && blockSize < Some(154)) {
             return Value::Null;
         }
         let mut strings: Vec<Value> = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(2), frameLength).as_array().cloned().unwrap_or_default();
@@ -3732,7 +3730,7 @@ if _try_result.is_err() {
 }
 
     pub fn parse_sbe_account(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
-        let mut blockSize: Value = self.parse_to_int(blockLength.clone());
+        let mut blockSize: Option<i64> = self.parse_to_int(blockLength.clone());
         //
         // AccountEvent (templateId 23), 121-byte block (113 before the 1:2 lastSeenNotification)
         //
@@ -3741,7 +3739,7 @@ if _try_result.is_err() {
         //     int64, account [32]byte, marginCushion int64, status uint8, lastSeenNotification int64,
         //     then the settlementAsset string
         //
-        if blockSize.as_f64().unwrap_or(f64::NAN) < ((113i64) as f64) {
+        if (blockSize.is_some() && blockSize < Some(113)) {
             return Value::Null;
         }
         let mut strings: Vec<Value> = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(1), frameLength).as_array().cloned().unwrap_or_default();
@@ -3770,7 +3768,7 @@ if _try_result.is_err() {
                 m.insert("updated_at".to_string(), self.sbe_read_timestamp(frameHex.clone(), Value::Int(72)));
             m
         });
-        if blockSize.as_f64().unwrap_or(f64::NAN) >= ((121i64) as f64) {
+        if blockSize >= Some(121) {
             account.insert("last_seen_notification".into(), self.sbe_read_timestamp(frameHex, Value::Int(121)));
         }
         return Value::Map(account);

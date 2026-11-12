@@ -13,7 +13,7 @@ pub async fn testFetchClosedOrders(mut exchange: Value, mut skippedProperties: V
     let mut method: Value = Value::Str("fetchClosedOrders".into());
     let mut orders: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_closed_orders", vec![symbol.clone()]).await;
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), orders.clone(), symbol.clone()]);
-    let mut now: Value = exchange.milliseconds();
+    let mut now: Value = Value::Int(exchange.milliseconds());
     {
                 let mut i: i64 = 0;
         let mut __for_first_1566: bool = true;

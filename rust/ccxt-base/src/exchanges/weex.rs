@@ -1408,7 +1408,8 @@ impl Weex {
 }
 
     pub fn nonce(&self) -> Value {
-        return (match (&(self.milliseconds()), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return (match (&(Value::Int(self.milliseconds())), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
 
     Value::Null
 }
@@ -1519,7 +1520,7 @@ impl Weex {
             while { if !__for_first_1145 { j += 1; } __for_first_1145 = false; j < (chains.len() as i64) } {
             let mut chain: Value = self.safe_dict(&chains, Value::Int(j), &[]);
             let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "network", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2452,22 +2453,23 @@ impl Weex {
             if (priceType.is_some()) {
                 request.insert("priceType".into(), priceType.clone().map(Value::from).unwrap_or(Value::Null));
             }
-            let mut now: Value = self.milliseconds();
+            let mut now: Value = Value::Int(self.milliseconds());
             let mut startTime: Value = since.clone();
             let mut endTime: Value = now.clone();
             if (until != Value::Null) {
                 endTime = until.clone();
             }
             if (since == Value::Null) || (until == Value::Null) {
-                let mut duration: Value = self.parse_to_int((match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+                let mut duration: Value = Value::from(self.parse_to_int((match (&(Value::Int(self.parse_timeframe(timeframe.clone()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
+                    (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
                 // the history endpoint returns at most maxHistoricalLimit candles and serves the
                 // newest ones inside the window, so a wider window would silently drop the candles
                 // right after since, keep the window at what one call can return
-                let mut historyLimit: Value = self.parse_to_int(maxHistoricalLimit.clone());
+                let mut historyLimit: Value = Value::from(self.parse_to_int(maxHistoricalLimit.clone()));
                 if (limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0)) {
-                    historyLimit = self.parse_to_int(crate::runtime::Math::min(&limit, &maxHistoricalLimit));
+                    historyLimit = Value::from(self.parse_to_int(crate::runtime::Math::min(&limit, &maxHistoricalLimit)));
                 }
-                let mut timeDelta: Value = self.parse_to_int((match (&(historyLimit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+                let mut timeDelta: Value = Value::from(self.parse_to_int((match (&(historyLimit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
                 if (since == Value::Null) && (until == Value::Null) {
                     endTime = now.clone();
                     startTime = (match (&(now), &(timeDelta)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
@@ -4360,7 +4362,7 @@ impl Weex {
         let mut marketResolved: Value = self.safe_market(&[(if (market == Value::Null) { orderMarketId } else { Value::Null }), market, Value::Null, Value::from(orderMarketType)]);
         let mut timestamp: Option<i64> = self.safe_integer_n(order.clone(), Value::from(vec![Value::Str("transactTime".into()), Value::Str("time".into()), Value::Str("createTime".into())]), &[]).as_i64();
         let mut rawStatus: Option<String> = self.safe_string_lower2(order.clone(), Value::Str("status".into()), Value::Str("algoStatus".into()), &[]).as_str().map(str::to_owned); // algo (trigger) order payloads carry algoStatus instead of status
-        let mut triggerPrice: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[])).as_str().map(str::to_owned);
+        let mut triggerPrice: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]));
         let mut rawType: Option<String> = self.safe_string_upper2(order.clone(), Value::Str("type".into()), Value::Str("orderType".into()), &[]).as_str().map(str::to_owned);
         let mut isReduceOnly: Option<bool> = self.safe_bool_k(order.clone(), "reduceOnly", &[]).as_bool();
         // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
@@ -4376,10 +4378,10 @@ impl Weex {
             }
         }
         if (takeProfitPrice.is_none()) {
-            takeProfitPrice = self.omit_zero(self.safe_string_k(order.clone(), "tpTriggerPrice", &[])).as_str().map(str::to_owned); // attached take profit of a regular or conditional order
+            takeProfitPrice = self.omit_zero(self.safe_string_k(order.clone(), "tpTriggerPrice", &[])); // attached take profit of a regular or conditional order
         }
         if (stopLossPrice.is_none()) {
-            stopLossPrice = self.omit_zero(self.safe_string_k(order.clone(), "slTriggerPrice", &[])).as_str().map(str::to_owned); // attached stop loss of a regular or conditional order
+            stopLossPrice = self.omit_zero(self.safe_string_k(order.clone(), "slTriggerPrice", &[])); // attached stop loss of a regular or conditional order
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4901,7 +4903,7 @@ impl Weex {
         let mut until: Option<i64> = self.safe_integer2(Value::Dict(paramsPaginate), Value::Str("until".into()), Value::Str("till".into()), &[]).as_i64();
         let mut hasUntil: bool = until.is_some();
         if hasSince && !hasUntil {
-            std::sync::Arc::make_mut(&mut requestUntil).insert("endTime".into(), self.milliseconds());
+            std::sync::Arc::make_mut(&mut requestUntil).insert("endTime".into(), Value::Int(self.milliseconds()));
         }  else if hasUntil && !hasSince {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingHistory() requires since to be set when until is used".into()))));
         }
@@ -5160,12 +5162,12 @@ impl Weex {
         let mut size: Option<String> = self.safe_string_k(position.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut entryPrice: Option<String> = crate::precise::Precise::stringDiv(&notional.clone().map(Value::from).unwrap_or(Value::Null), &size.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut unrealizePnl: Option<String> = self.safe_string_k(position.clone(), "unrealizePnl", &[]).as_str().map(str::to_owned);
-        let mut isolatedMargin: Option<String> = self.omit_zero(self.safe_string2(position.clone(), Value::Str("isolatedMargin".into()), Value::Str("marginSize".into()), &[])).as_str().map(str::to_owned);
+        let mut isolatedMargin: Option<String> = self.omit_zero(self.safe_string2(position.clone(), Value::Str("isolatedMargin".into()), Value::Str("marginSize".into()), &[]));
         let mut collateralString: Value = Value::Null;
         if (marginMode == "isolated") && (isolatedMargin.is_some()) {
             collateralString = (if (unrealizePnl.is_some()) { crate::precise::Precise::stringAdd(&isolatedMargin.clone().map(Value::from).unwrap_or(Value::Null), &unrealizePnl.clone().map(Value::from).unwrap_or(Value::Null)) } else { isolatedMargin.clone().map(Value::from).unwrap_or(Value::Null) });
         }
-        let mut initialMarginString: Option<String> = self.omit_zero(self.safe_string2(position.clone(), Value::Str("marginSize".into()), Value::Str("isolatedMargin".into()), &[])).as_str().map(str::to_owned);
+        let mut initialMarginString: Option<String> = self.omit_zero(self.safe_string2(position.clone(), Value::Str("marginSize".into()), Value::Str("isolatedMargin".into()), &[]));
         let mut marginString: Value = Value::Null;
         if (marginMode == "isolated") {
             marginString = isolatedMargin.map(Value::from).unwrap_or(Value::Null);
@@ -5187,7 +5189,7 @@ impl Weex {
         m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));
         m.insert("entryPrice".to_string(), self.parse_number(entryPrice.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("markPrice".to_string(), Value::Null);
-        m.insert("liquidationPrice".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "liquidatePrice", &[])), &[]));
+        m.insert("liquidationPrice".to_string(), self.parse_number(Value::from(self.omit_zero(self.safe_string_k(position.clone(), "liquidatePrice", &[]))), &[]));
         m.insert("marginMode".to_string(), Value::from(marginMode));
         m.insert("hedged".to_string(), hedged.map(Value::from).unwrap_or(Value::Null));
         m.insert("maintenanceMargin".to_string(), Value::Null);
@@ -5983,7 +5985,7 @@ impl Weex {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), path).into()), Value::Str(" is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets".into()))));
             }
             self.check_required_credentials(&[]);
-            let mut timestamp: Option<String> = self.number_to_string(self.nonce()).as_str().map(str::to_owned);
+            let mut timestamp: Option<String> = self.number_to_string(self.nonce());
             let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp.clone().map(Value::from).unwrap_or(Value::Null), method).into()), Value::Str("/".into())).into()), endpoint).into());
             if hasJsonBody {
                 payload = Value::Str(format!("{}{}", payload, requestBody).into());

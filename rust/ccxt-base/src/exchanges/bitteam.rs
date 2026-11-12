@@ -786,7 +786,7 @@ impl Bitteam {
         }
         let mut active: Option<bool> = self.safe_bool_k(market.clone(), "active", &[]).as_bool();
         let mut timeStart: Option<String> = self.safe_string_k(market.clone(), "timeStart", &[]).as_str().map(str::to_owned);
-        let mut created: Option<i64> = self.parse8601(timeStart.map(Value::from).unwrap_or(Value::Null)).as_i64();
+        let mut created: Option<i64> = self.parse8601(timeStart.map(Value::from).unwrap_or(Value::Null));
         let mut minCost: Value = Value::Null;
         let mut currenciesValuedInUsd: Value = self.handle_option(Value::Str("fetchMarkets".into()), Value::Str("currenciesValuedInUsd".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1069,7 +1069,7 @@ impl Bitteam {
             let mut __for_first_440: bool = true;
             while { if !__for_first_440 { j += 1; } __for_first_440 = false; j < (networkIds.len() as i64) } {
             let mut networkId: Value = networkIds.get(j as usize).cloned().unwrap_or(Value::Null);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone(), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             let mut networkFee: Option<f64> = self.safe_number(feesByNetworkId.clone(), networkId.clone(), &[]).as_f64();
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
@@ -1911,12 +1911,12 @@ impl Bitteam {
         let mut timestamp: Value = Value::Null;
         let mut createdAt: Option<String> = self.safe_string_k(order.clone(), "createdAt", &[]).as_str().map(str::to_owned);
         if (createdAt.is_some()) {
-            timestamp = self.parse8601(createdAt.map(Value::from).unwrap_or(Value::Null));
+            timestamp = Value::from(self.parse8601(createdAt.map(Value::from).unwrap_or(Value::Null)));
         }  else {
             timestamp = self.safe_timestamp_k(order.clone(), "timestamp", &[]);
         }
         let mut updatedAt: Option<String> = self.safe_string_k(order.clone(), "updatedAt", &[]).as_str().map(str::to_owned);
-        let mut lastUpdateTimestamp: Option<i64> = self.parse8601(updatedAt.map(Value::from).unwrap_or(Value::Null)).as_i64();
+        let mut lastUpdateTimestamp: Option<i64> = self.parse8601(updatedAt.map(Value::from).unwrap_or(Value::Null));
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str());
         let mut type_var: Option<String> = self.parse_order_type((self.safe_string_k(order.clone(), "type", &[])).as_str());
         let mut side: Option<String> = self.safe_string_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
@@ -2770,13 +2770,13 @@ impl Bitteam {
                 m.insert("cost".to_string(), feeCost.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut intTs: Value = self.parse_to_int(timestamp.map(Value::from).unwrap_or(Value::Null));
+        let mut intTs: Option<i64> = self.parse_to_int(timestamp.map(Value::from).unwrap_or(Value::Null));
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), order.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), intTs.clone());
-        m.insert("datetime".to_string(), self.iso8601(intTs));
+        m.insert("timestamp".to_string(), Value::from(intTs));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(intTs)));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -3119,7 +3119,7 @@ impl Bitteam {
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)])));
         m.insert("addressFrom".to_string(), addressFrom.map(Value::from).unwrap_or(Value::Null));
         m.insert("address".to_string(), Value::Null);
         m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));

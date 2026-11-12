@@ -19,7 +19,7 @@ pub async fn testFetchLedgerEntry(mut exchange: Value, mut skippedProperties: Va
         let mut id: Value = firstItem.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         if (id != Value::Null) {
             let mut item: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ledger_entry", vec![id.clone()]).await;
-            let mut now: Value = exchange.milliseconds();
+            let mut now: Value = Value::Int(exchange.milliseconds());
             testLedgerEntry(exchange.clone(), skippedProperties.clone(), method.clone(), item.clone(), code.clone(), now.clone());
         }
     }

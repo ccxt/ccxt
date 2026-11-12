@@ -2346,7 +2346,7 @@ impl Mexc {
             while { if !__for_first_947 { j += 1; } __for_first_947 = false; j < (chains.len() as i64) } {
             let mut chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string2(&chain, Value::Str("netWork".into()), Value::Str("network".into()), &[]).as_str().map(str::to_owned);
-            let mut network: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut network: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (network != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&network), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3149,7 +3149,7 @@ impl Mexc {
     m
 })]).into_dict();
         let mut timeframeValue: Option<String> = self.safe_string(&timeframes, timeframe.clone(), &[]).as_str().map(str::to_owned);
-        let mut duration: Value = (match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut duration: Value = (match (&(Value::Int(self.parse_timeframe(timeframe.clone()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
@@ -3170,7 +3170,7 @@ impl Mexc {
             if (since != Value::Null) && (until == Value::Null) {
                 // we have to calculate it assuming we can get at most 2000 entries per request
                 let mut spotWindow: Value = (match (&(Value::Int(500)), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }); // maxLimit is 500 for spot
-                let mut now: Value = self.milliseconds();
+                let mut now: Value = Value::Int(self.milliseconds());
                 let mut latestStart: Value = (match (&(now), &(spotWindow)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                 request.insert("endTime".into(), (if (since.as_f64().unwrap_or(f64::NAN) < latestStart.as_f64().unwrap_or(f64::NAN)) { self.sum(&[since.clone(), spotWindow.clone()]) } else { now }));
             }
@@ -3209,19 +3209,19 @@ impl Mexc {
             candles = self.to_array(response.clone());
         }  else if (market).swap {
             if (since != Value::Null) {
-                request.insert("start".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+                request.insert("start".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
             }
             if (until != Value::Null) {
-                request.insert("end".into(), self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+                request.insert("end".into(), Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
                 if (since == Value::Null) {
                     if (limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0)) {
-                        request.insert("start".into(), self.parse_to_int((match ((((match (&(until), &(((match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                        request.insert("start".into(), Value::from(self.parse_to_int((match ((((match (&(until), &(((match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                             Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-                            _ => Value::Null }))).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+                            _ => Value::Null }))).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
                     }  else {
                         let mut swapWindow: Value = (match (&(Value::Int(2000)), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }); // maxLimit is 2000 for swap
-                        request.insert("start".into(), self.parse_to_int((match ((((match (&(until), &(swapWindow)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                            Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+                        request.insert("start".into(), Value::from(self.parse_to_int((match ((((match (&(until), &(swapWindow)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+                            Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
                     }
                 }
             }
@@ -3788,8 +3788,8 @@ impl Mexc {
                 if (price == Value::Null) {
                     request.insert("quantity".into(), self.amount_to_precision(Value::from(symbol.clone()), amount.clone()));
                 }  else {
-                    let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-                    let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
+                    let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                    let mut priceString: Option<String> = self.number_to_string(price.clone());
                     let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     request.insert("quoteOrderQty".into(), self.cost_to_precision(Value::from(symbol.clone()), quoteAmount.map(Value::from).unwrap_or(Value::Null)));
                 }
@@ -3956,7 +3956,7 @@ impl Mexc {
             Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 2.0) })), &[params]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut orderType: Value = self.parse_to_int(Value::Int(0)); // typed seed, every branch below assigns it
+        let mut orderType: Option<i64> = self.parse_to_int(Value::Int(0)); // typed seed, every branch below assigns it
         if postOnly {
             orderType = self.parse_to_int(Value::Int(2));
         }  else if (type_var.as_str() == Some("limit")) {
@@ -3974,11 +3974,11 @@ impl Mexc {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("vol".to_string(), self.parse_number(volString.map(Value::from).unwrap_or(Value::Null), &[]));
-                m.insert("type".to_string(), orderType.clone());
+                m.insert("type".to_string(), Value::from(orderType));
                 m.insert("openType".to_string(), Value::from(openType));
             m
         });
-        if (orderType.as_f64() != Some(5.0)) && (orderType.as_f64() != Some(6.0)) {
+        if (orderType != Some(5)) && (orderType != Some(6)) {
             let mut priceString: Option<String> = self.price_to_precision(Value::from(symbol.clone()), price).as_str().map(str::to_owned);
             if (priceString.is_none()) {
                 priceString = Some("0".to_string());
@@ -4033,11 +4033,11 @@ impl Mexc {
             request.insert("triggerType".into(), Value::from(triggerType));
             request.insert("executeCycle".into(), self.safe_integer_k(&paramsOmitted, "executeCycle", &[Value::Int(1)]));
             request.insert("trend".into(), self.safe_integer_k(&paramsOmitted, "trend", &[Value::Int(1)]));
-            let mut planOrderType: Value = orderType.clone();
-            if (orderType.as_f64() == Some(6.0)) {
-                planOrderType = Value::Int(5); // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
+            let mut planOrderType: Option<i64> = orderType;
+            if (orderType == Some(6)) {
+                planOrderType = Some(5); // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
             }
-            request.insert("orderType".into(), self.safe_integer_k(&paramsOmitted, "orderType", &[planOrderType]));
+            request.insert("orderType".into(), self.safe_integer_k(&paramsOmitted, "orderType", &[Value::from(planOrderType)]));
             let __ws_arg_16 = self.extend(Value::Map(request.clone()), &[&paramsTriggerDirection]);
             response = self.contract_private_post_planorder_place(&[__ws_arg_16]).await.into_opt_dict();
         }  else {
@@ -6447,7 +6447,7 @@ impl Mexc {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)])));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), self.safe_string_k(depositAddress, "memo", &[]));
     m
@@ -6489,7 +6489,7 @@ impl Mexc {
         let mut networkId: Option<String> = None;
         if (networkCode.is_some()) {
             // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
-            let mut networkUnified: Value = self.network_id_to_code(&[networkCode.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
+            let mut networkUnified: Value = Value::from(self.network_id_to_code(&[networkCode.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]));
             let mut networks: Value = self.safe_dict_k(currency, "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6571,7 +6571,7 @@ impl Mexc {
         }
         // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
         let mut networkId: Option<String> = None;
-        let mut networkUnified: Value = self.network_id_to_code(&[networkCode.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
+        let mut networkUnified: Value = Value::from(self.network_id_to_code(&[networkCode.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]));
         let mut networks: Value = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6628,7 +6628,7 @@ impl Mexc {
         let mut addressStructures: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut key: Option<String> = None;
         if (network.is_some()) {
-            key = self.network_id_to_code(&[network.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]).as_str().map(str::to_owned);
+            key = self.network_id_to_code(&[network.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
         }  else {
             let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "defaultNetworks", &[]).into_dict();
             let mut defaultNetworkForCurrency: Option<String> = self.safe_string(&options, code.clone(), &[]).as_str().map(str::to_owned);
@@ -6833,7 +6833,7 @@ impl Mexc {
         let mut network: Value = Value::Null;
         let mut rawNetwork: Option<String> = self.safe_string_k(transaction.clone(), "network", &[]).as_str().map(str::to_owned);
         if (rawNetwork.is_some()) {
-            network = self.network_id_to_code(&[rawNetwork.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            network = Value::from(self.network_id_to_code(&[rawNetwork.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
         }
         let mut status: Option<String> = self.parse_transaction_status_by_type((self.safe_string_k(transaction.clone(), "status", &[])).as_str(), Some(type_var.as_str()));
         let mut amountString: Option<String> = self.safe_string_k(transaction.clone(), "amount", &[]).as_str().map(str::to_owned);
@@ -7118,7 +7118,7 @@ impl Mexc {
         let mut symbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut contracts: Option<String> = self.safe_string_k(position.clone(), "holdVol", &[]).as_str().map(str::to_owned);
         let mut entryPrice: Option<f64> = self.safe_number_k(position.clone(), "openAvgPrice", &[]).as_f64();
-        let mut initialMargin: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "im", &[])).as_str().map(str::to_owned);
+        let mut initialMargin: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "im", &[]));
         let mut unrealizedPnl: Option<String> = self.safe_string_k(position.clone(), "unRealizedPnl", &[]).as_str().map(str::to_owned);
         let mut rawSide: Option<String> = self.safe_string_k(position.clone(), "positionType", &[]).as_str().map(str::to_owned);
         let mut side: String = (if (rawSide.as_deref() == Some("1")) { "long".to_string() } else { "short".to_string() });
@@ -7135,7 +7135,7 @@ impl Mexc {
             }
         }
         let mut leverage: Option<f64> = self.safe_number_k(position.clone(), "leverage", &[]).as_f64();
-        let mut liquidationPrice: Value = self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "liquidatePrice", &[])), &[]);
+        let mut liquidationPrice: Value = self.parse_number(Value::from(self.omit_zero(self.safe_string_k(position.clone(), "liquidatePrice", &[]))), &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "updateTime", &[]).as_i64();
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7862,7 +7862,7 @@ impl Mexc {
             while { if !__for_first_959 { j += 1; } __for_first_959 = false; j < (networkList.len() as i64) } {
             let mut networkEntry: crate::value::Dict = self.safe_dict(&networkList, Value::Int(j), &[]).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&networkEntry, "network", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]));
             if (networkCode != Value::Null) {
                 if let Value::Dict(__d) = result.entry("networks".into()).or_default() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8171,7 +8171,8 @@ impl Mexc {
     }
 
     pub fn nonce(&self) -> Value {
-        return (match (&(self.milliseconds()), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return (match (&(Value::Int(self.milliseconds())), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
 
     Value::Null
 }

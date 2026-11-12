@@ -1034,7 +1034,7 @@ impl Bitvavo {
             let mut __for_first_453: bool = true;
             while { if !__for_first_453 { j += 1; } __for_first_453 = false; j < (networksArray.len() as i64) } {
             let mut networkId: Value = networksArray.get(j as usize).cloned().unwrap_or(Value::Null);
-            let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone(), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1588,7 +1588,7 @@ impl Bitvavo {
         });
         if (since != Value::Null) {
             // https://github.com/ccxt/ccxt/issues/9227
-            let mut duration: Value = self.parse_timeframe(timeframe);
+            let mut duration: Value = Value::Int(self.parse_timeframe(timeframe));
             request.insert("start".into(), since.clone());
             let mut sinceLimit: Value = (if (limit == Value::Null) { Value::Int(1440) } else { crate::runtime::Math::min(&limit, &Value::Int(1440)) });
             request.insert("end".into(), self.sum(&[since.clone(), (match (&((match (&(sinceLimit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
@@ -1976,7 +1976,7 @@ impl Bitvavo {
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "createdAt", &[]).as_i64();
         if (timestamp.is_none()) {
-            timestamp = self.parse8601(self.safe_string_k(transfer.clone(), "createdAt", &[])).as_i64();
+            timestamp = self.parse8601(self.safe_string_k(transfer.clone(), "createdAt", &[]));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2086,8 +2086,8 @@ impl Bitvavo {
         if isMarketOrder {
             let mut cost: Value = Value::Null;
             if (price != Value::Null) {
-                let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
-                let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
+                let mut priceString: Option<String> = self.number_to_string(price.clone());
+                let mut amountString: Option<String> = self.number_to_string(amount.clone());
                 let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 cost = self.parse_number(quoteAmount.map(Value::from).unwrap_or(Value::Null), &[]);
             }  else {
@@ -2131,7 +2131,7 @@ impl Bitvavo {
         let mut operatorId: Value = operatorIdparamsOperatorIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsOperatorId: crate::value::Dict = operatorIdparamsOperatorIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (operatorId != Value::Null) {
-            request.insert("operatorId".into(), self.parse_to_int(operatorId));
+            request.insert("operatorId".into(), Value::from(self.parse_to_int(operatorId)));
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".into()))));
         }
@@ -2241,7 +2241,7 @@ impl Bitvavo {
         }
         let mut operatorId: Value = self.handle_option_and_params(&paramsOmitted, Value::Str("editOrder".into()), Value::Str("operatorId".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         if (operatorId != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("operatorId".into()), self.parse_to_int(operatorId));
+            add_element_to_object(&mut request, &Value::Str("operatorId".into()), Value::from(self.parse_to_int(operatorId)));
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".into()))));
         }
@@ -2316,7 +2316,7 @@ impl Bitvavo {
         let mut operatorId: Value = operatorIdparamsOperatorIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsOperatorId: crate::value::Dict = operatorIdparamsOperatorIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (operatorId != Value::Null) {
-            request.insert("operatorId".into(), self.parse_to_int(operatorId));
+            request.insert("operatorId".into(), Value::from(self.parse_to_int(operatorId)));
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".into()))));
         }
@@ -2394,7 +2394,7 @@ impl Bitvavo {
         let mut operatorId: Value = operatorIdparamsOperatorIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsOperatorId: crate::value::Dict = operatorIdparamsOperatorIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (operatorId != Value::Null) {
-            request.insert("operatorId".into(), self.parse_to_int(operatorId));
+            request.insert("operatorId".into(), Value::from(self.parse_to_int(operatorId)));
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".into()))));
         }
@@ -2435,7 +2435,7 @@ impl Bitvavo {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("codGroupId".to_string(), codGroupId);
-                m.insert("expiryAfterSeconds".to_string(), (if (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { Value::Int(0) }));
+                m.insert("expiryAfterSeconds".to_string(), (if (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { Value::from(self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))) } else { Value::Int(0) }));
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsCodGroupId]);
@@ -2921,7 +2921,7 @@ impl Bitvavo {
         }
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
-        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(item.clone(), "executedAt", &[])).as_i64();
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(item.clone(), "executedAt", &[]));
         let mut fee: Value = Value::Null;
         let mut feeCost: Option<String> = self.safe_string_k(item.clone(), "feesAmount", &[]).as_str().map(str::to_owned);
         if (feeCost.is_some()) {
@@ -3317,7 +3317,7 @@ impl Bitvavo {
         if (networkId.as_deref() == Some("Mainnet")) {
             networkId = currencyCode.clone();
         }
-        let mut networkCode: Value = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), currencyCode.map(Value::from).unwrap_or(Value::Null)]);
+        let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), currencyCode.map(Value::from).unwrap_or(Value::Null)]));
         if (networkCode != Value::Null) {
             { let __be_tmp = Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3389,7 +3389,7 @@ impl Bitvavo {
                     requestBody = payload.clone().map(Value::from).unwrap_or(Value::Null);
                 }
             }
-            let mut timestamp: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
+            let mut timestamp: String = format!("{}", self.milliseconds());
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), url).into()), payload.map(Value::from).unwrap_or(Value::Null));
             let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
             let mut accessWindow: String = self.safe_string2(self.options.clone(), Value::Str("recvWindow".into()), Value::Str("BITVAVO-ACCESS-WINDOW".into()), &[Value::Str("10000".into())]).as_str().unwrap_or("10000").to_string();

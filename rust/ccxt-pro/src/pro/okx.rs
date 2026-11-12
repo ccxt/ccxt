@@ -203,7 +203,7 @@ impl crate::exchange_generated::ExchangeBase for Okx {
                 "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_my_liquidation" => self.parse_ws_my_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "request_id" => self.request_id(),
+                "request_id" => crate::Value::from(self.request_id()),
                 "subscribe" => self.subscribe(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str), &args[4.min(args.len())..]).await,
                 "subscribe_multiple" => self.subscribe_multiple(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), &args[2.min(args.len())..]).await,
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
@@ -287,7 +287,7 @@ impl Okx {
             "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_my_liquidation" => self.parse_ws_my_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "request_id" => self.request_id(),
+            "request_id" => crate::Value::from(self.request_id()),
             "subscribe" => { crate::exchange_stubs::enqueue_spawn("subscribe", args.to_vec()); crate::Value::Null },
             "subscribe_multiple" => { crate::exchange_stubs::enqueue_spawn("subscribe_multiple", args.to_vec()); crate::Value::Null },
             "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
@@ -842,9 +842,9 @@ impl Okx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = self.symbol(symbol.clone());
-        let mut fr: crate::types::FundingRates = (match self.watch_funding_rates((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.safe_value(crate::types::IntoRaw::into_raw(fr), symbolValue, &[]);
+        let mut symbolValue: String = self.symbol(symbol.clone());
+        let mut fr: crate::types::FundingRates = (match self.watch_funding_rates((Value::from(vec![Value::from(symbolValue.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return self.safe_value(crate::types::IntoRaw::into_raw(fr), Value::from(symbolValue), &[]);
         Value::Null
         }).await?))
     }
@@ -1805,13 +1805,13 @@ impl Okx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Option<String> = self.symbol(symbol.clone()).as_str().map(str::to_owned);
+        let mut symbolValue: String = self.symbol(symbol.clone());
         let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut name: String = format!("{}{}", Value::Str("candle".into()), interval.map(Value::from).unwrap_or(Value::Null));
-        let mut ohlcv: Value = self.subscribe("public", name.as_str(), name.as_str(), symbolValue.as_deref(), &[params]).await;
+        let mut ohlcv: Value = self.subscribe("public", name.as_str(), name.as_str(), Some(symbolValue.as_str()), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue.as_deref(), limit.as_i64());
+            limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
         return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
@@ -2014,7 +2014,7 @@ impl Okx {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut interval: Value = channel.as_str().map(|__s| Value::Str(__s.replace("candle", "").into())).unwrap_or_else(|| channel.clone());
         // use a reverse lookup in a static map instead
-        let mut timeframe: Value = self.find_timeframe(interval, &[]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(interval, &[]));
         {
                         let mut i: i64 = 0;
             let mut __for_first_541: bool = true;
@@ -3333,13 +3333,11 @@ impl Okx {
         }
 }
 
-    pub fn request_id(&self) -> Value {
+    pub fn request_id(&self) -> i64 {
         // millisecond timestamp plus 3 random digits stays a safe integer
-        let mut ts: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
+        let mut ts: String = format!("{}", self.milliseconds());
         let mut randomPart: Value = Value::Str(format!("{}", self.rand_number(Value::Int(3))).into());
-        return self.parse_to_int(Value::Str(format!("{}{}", ts, randomPart).into()));
-
-    Value::Null
+        return self.parse_to_int(Value::Str(format!("{}{}", ts, randomPart).into())).unwrap_or_default();
 }
 
 /*
@@ -3376,7 +3374,7 @@ impl Okx {
         }
         self.authenticate(&[]).await;
         let mut url: Option<String> = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}", self.request_id()).into());
+        let mut messageHash: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
         let opparamsOpVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrderWs".into()), Value::Str("op".into()), &[Value::Str("batch-orders".into())]).as_array().cloned().unwrap_or_default();
         let mut op: Option<String> = opparamsOpVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOp: Value = opparamsOpVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -3487,7 +3485,7 @@ impl Okx {
         }
         self.authenticate(&[]).await;
         let mut url: Option<String> = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}", self.request_id()).into());
+        let mut messageHash: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
         let opparamsOpVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("editOrderWs".into()), Value::Str("op".into()), &[Value::Str("amend-order".into())]).as_array().cloned().unwrap_or_default();
         let mut op: Option<String> = opparamsOpVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOp: crate::value::Dict = opparamsOpVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -3542,7 +3540,7 @@ impl Okx {
         }
         self.authenticate(&[]).await;
         let mut url: Option<String> = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}", self.request_id()).into());
+        let mut messageHash: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clOrdId".into())]), &[]).into_dict();
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
@@ -3603,7 +3601,7 @@ impl Okx {
         }
         self.authenticate(&[]).await;
         let mut url: Option<String> = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}", self.request_id()).into());
+        let mut messageHash: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
         let mut args: Vec<Value> = Vec::new();
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
         let mut instIdCode: Option<i64> = self.safe_integer_k(&market, "instIdCode", &[]).as_i64();
@@ -3670,7 +3668,7 @@ impl Okx {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.".into()))));
         }
         let mut url: Option<String> = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}", self.request_id()).into());
+        let mut messageHash: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
@@ -3768,7 +3766,7 @@ impl Okx {
 }
 
     pub fn handle_pong(&self, mut client: Value, mut message: Value) -> Value {
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
         return message;
 
     Value::Null
@@ -3972,7 +3970,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_unsubscription_ohlcv(&mut self, mut client: Value, mut symbol: Value, mut channel: Value) {
         let mut tf: Value = channel.as_str().map(|__s| Value::Str(__s.replace("candle", "").into())).unwrap_or_else(|| channel.clone());
-        let mut timeframe: Value = self.find_timeframe(tf, &[]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(tf, &[]));
         if (timeframe == Value::Null) {
             return;
         }

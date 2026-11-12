@@ -60,22 +60,22 @@ fn helperTestNetworkIdToCode(mut networksMap: Value) {
         m
     })); exchange.currencies = __sv_tmp; } // go fix + c# uninitialized prop fix
     // always the unified code, never an alias, regardless of currency
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.network_id_to_code(&[Value::Str("Ether".into())]).as_str() == Some("ERC20")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.network_id_to_code(&[Value::Str("Ether".into()), Value::Str("USDC".into())]).as_str() == Some("ERC20")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.network_id_to_code(&[Value::Str("Ether".into()), Value::Str("ETH".into())]).as_str() == Some("ERC20")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.network_id_to_code(&[Value::Str("Tron".into())]).as_str() == Some("TRC20")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.network_id_to_code(&[Value::Str("Tron".into()), Value::Str("TRX".into())]).as_str() == Some("TRC20")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.network_id_to_code(&[Value::Str("Bsc".into())]).as_str() == Some("BEP20")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.network_id_to_code(&[Value::Str("Bsc".into()), Value::Str("BNB".into())]).as_str() == Some("BEP20")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.network_id_to_code(&[Value::Str("Arb".into())]).as_str() == Some("ARBITRUM")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.network_id_to_code(&[Value::Str("Bitcoin".into())]).as_str() == Some("BTC")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.network_id_to_code(&[Value::Str("Bitcoin".into()), Value::Str("BTC".into())]).as_str() == Some("BTC")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.network_id_to_code(&[Value::Str("Brc_20".into())]).as_str() == Some("BRC20")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.network_id_to_code(&[Value::Str("Ether".into())])).as_str() == Some("ERC20")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.network_id_to_code(&[Value::Str("Ether".into()), Value::Str("USDC".into())])).as_str() == Some("ERC20")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.network_id_to_code(&[Value::Str("Ether".into()), Value::Str("ETH".into())])).as_str() == Some("ERC20")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.network_id_to_code(&[Value::Str("Tron".into())])).as_str() == Some("TRC20")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.network_id_to_code(&[Value::Str("Tron".into()), Value::Str("TRX".into())])).as_str() == Some("TRC20")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.network_id_to_code(&[Value::Str("Bsc".into())])).as_str() == Some("BEP20")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.network_id_to_code(&[Value::Str("Bsc".into()), Value::Str("BNB".into())])).as_str() == Some("BEP20")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.network_id_to_code(&[Value::Str("Arb".into())])).as_str() == Some("ARBITRUM")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.network_id_to_code(&[Value::Str("Bitcoin".into())])).as_str() == Some("BTC")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.network_id_to_code(&[Value::Str("Bitcoin".into()), Value::Str("BTC".into())])).as_str() == Some("BTC")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.network_id_to_code(&[Value::Str("Brc_20".into())])).as_str() == Some("BRC20")))));
     // ids missing from options.networks still get unified when they spell an alias
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.network_id_to_code(&[Value::Str("ETH".into())]).as_str() == Some("ERC20")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.network_id_to_code(&[Value::Str("CRONOS".into())]).as_str() == Some("CRC20")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.network_id_to_code(&[Value::Str("Xyz".into())]).as_str() == Some("Xyz")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.network_id_to_code(&[Value::Str("Xyz".into()), Value::Str("SAMPLECOIN".into())]).as_str() == Some("Xyz")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.network_id_to_code(&[Value::Str("ETH".into())])).as_str() == Some("ERC20")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.network_id_to_code(&[Value::Str("CRONOS".into())])).as_str() == Some("CRC20")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.network_id_to_code(&[Value::Str("Xyz".into())])).as_str() == Some("Xyz")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.network_id_to_code(&[Value::Str("Xyz".into()), Value::Str("SAMPLECOIN".into())])).as_str() == Some("Xyz")))));
 }
 fn helperTestNetworkAliases() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -119,7 +119,7 @@ fn helperTestNetworkAliases() {
     }
     }
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&exchange.prop(&&Value::Str("networkAliases".into())), Value::Dict(__d) if __d.contains_key("BTC"))))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.network_id_to_code(&[Value::Str("ETH".into())]).as_str() == Some("ERC20")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.network_id_to_code(&[Value::Str("ETH".into())])).as_str() == Some("ERC20")))));
 }
 pub fn testNetworkMethods() {
     // keyed by alias vs keyed by unified code: both must behave identically

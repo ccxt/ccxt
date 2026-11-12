@@ -347,7 +347,7 @@ impl Hyperliquid {
     }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -363,7 +363,7 @@ impl Hyperliquid {
  */
     pub fn outcome_encoding(&self, outcomeId: f64, mut side: Value) -> Value {
         let mut outcomeId: Value = outcomeId.into();
-        let mut outcomeIdInt: i64 = self.parse_to_int(outcomeId).as_i64().unwrap_or_default();
+        let mut outcomeIdInt: i64 = self.parse_to_int(outcomeId).unwrap_or_default();
         return self.sum(&[Value::Int((10 * outcomeIdInt)), side]);
 
     Value::Null
@@ -561,7 +561,7 @@ impl Hyperliquid {
                     }
                     }
                     let mut thresholdsLength: Value = Value::Int(thresholds.len() as i64);
-                    let mut index: Value = self.parse_to_int(indexStr.map(Value::from).unwrap_or(Value::Null));
+                    let mut index: Value = Value::from(self.parse_to_int(indexStr.map(Value::from).unwrap_or(Value::Null)));
                     if thresholdsLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                         let mut bucketLabel: Value = Value::Null;
                         if index.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64) {
@@ -800,7 +800,7 @@ impl Hyperliquid {
                     let __l = __c.len() as i64; let __i = __l.min(6); let __j = __l.min(8); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("T".into())).into()), hm.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect();
                     let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), hm.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect();
                     let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":00Z".into()));
-                expiryMs = self.parse8601(Value::from(isoStr.clone()));
+                expiryMs = Value::from(self.parse8601(Value::from(isoStr.clone())));
                 expiryDatetime = Value::from(isoStr);
             }
         }
@@ -963,11 +963,11 @@ impl Hyperliquid {
         if midPx.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64) {
             return Value::Float(0.0001);
         }
-        let mut midStr: Option<String> = self.number_to_string(midPx).as_str().map(str::to_owned);
+        let mut midStr: Option<String> = self.number_to_string(midPx);
         let mut parts: Vec<Value> = Value::Array(if let Some(__s) = midStr.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut intPart: Option<String> = parts.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut intPartLength: i64 = (intPart.as_deref().unwrap_or_default().chars().count() as i64);
-        let mut szDecimalsInt: i64 = self.parse_to_int(szDecimals).as_i64().unwrap_or_default();
+        let mut szDecimalsInt: i64 = self.parse_to_int(szDecimals).unwrap_or_default();
         let mut maxDecimals: i64 = (8 - szDecimalsInt);
         // significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
         let mut digitsLeft: i64 = 0;
@@ -1354,14 +1354,13 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[self.milliseconds()]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[Value::Int(self.milliseconds())]).as_i64();
         let mut startTime: Value = since.clone();
         if (since == Value::Null) {
-            let mut tf: Value = self.parse_timeframe(timeframe.clone());
-            let mut candleCount: Value = (if (limit != Value::Null) { limit.clone() } else { Value::Int(100) });
-            let mut startOffset: Value = (match (&((match (&(tf), &(candleCount)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })),
-                &(Value::Int(-1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut shiftedStart: Value = self.sum(&[Value::from(until), startOffset]);
+            let mut tf: i64 = self.parse_timeframe(timeframe.clone());
+            let mut candleCount: i64 = limit.as_i64().unwrap_or(100);
+            let mut startOffset: i64 = (((tf * candleCount)) * -1000);
+            let mut shiftedStart: Value = self.sum(&[Value::from(until), Value::from(startOffset)]);
             startTime = shiftedStart.clone();
             if (startTime == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing startTime".into()))));
@@ -1778,9 +1777,9 @@ impl Hyperliquid {
         }
         if isNumericInput {
             candidates.push(Value::Str(format!("{}{}", Value::Str("#".into()), outcomeInput).into())); // encoding id without #
-            let mut numeric: Value = self.parse_to_int(outcomeInput.clone());
-            candidates.push(self.outcome_coin(self.outcome_encoding(numeric.as_f64().unwrap_or_default(), Value::Int(0))).map(Value::from).unwrap_or(Value::Null)); // raw outcome id -> YES encoding
-            candidates.push(self.outcome_coin(self.outcome_encoding(numeric.as_f64().unwrap_or_default(), Value::Int(1))).map(Value::from).unwrap_or(Value::Null)); // raw outcome id -> NO encoding
+            let mut numeric: Option<i64> = self.parse_to_int(outcomeInput.clone());
+            candidates.push(self.outcome_coin(self.outcome_encoding(Value::from(numeric).as_f64().unwrap_or_default(), Value::Int(0))).map(Value::from).unwrap_or(Value::Null)); // raw outcome id -> YES encoding
+            candidates.push(self.outcome_coin(self.outcome_encoding(Value::from(numeric).as_f64().unwrap_or_default(), Value::Int(1))).map(Value::from).unwrap_or(Value::Null)); // raw outcome id -> NO encoding
         }
         {
                         let mut i: i64 = 0;
@@ -1862,7 +1861,7 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut isBuy: bool = (side.as_str().unwrap_or_default().to_string().to_uppercase()) == "BUY";
         let mut isMarket: bool = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("MARKET");
         let mut assetId: Option<i64> = self.safe_integer_k(&outcomeInfo, "assetId", &[]).as_i64();
@@ -1887,7 +1886,7 @@ impl Hyperliquid {
         }
         let mut px: Value = Value::Null;
         if isMarket {
-            let mut priceStr: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
+            let mut priceStr: Option<String> = self.number_to_string(price.clone());
             px = (if isBuy { crate::precise::Precise::stringMul(&priceStr.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringAdd(&Value::Str("1".into()), &slippage)) } else { crate::precise::Precise::stringMul(&priceStr.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringSub(&Value::Str("1".into()), &slippage)) });
             px = self.price_to_precision(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), px.clone());
         }  else {
@@ -2083,7 +2082,7 @@ impl Hyperliquid {
             m
         })]).into_dict();
         let mut assetId: Option<i64> = self.safe_integer_k(&outcomeInfo, "assetId", &[]).as_i64();
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]).into_dict();
         let mut cancelReq: Vec<Value> = vec![];
@@ -2936,7 +2935,7 @@ impl Hyperliquid {
                     let __l = __c.len() as i64; let __i = __l.min(6); let __j = __l.min(8); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("T".into())).into()), hm.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect();
                     let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), hm.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect();
                     let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":00Z".into()));
-                expiryMs = self.parse8601(Value::from(isoStr.clone())).as_i64();
+                expiryMs = self.parse8601(Value::from(isoStr.clone()));
                 expiryDatetime = Value::from(isoStr);
             }
         }
@@ -2989,7 +2988,7 @@ impl Hyperliquid {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" amountToPrecision() missing prec".into()))));
         }
         if prec.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            decimals = self.precision_from_string(self.number_to_string(prec));
+            decimals = self.precision_from_string(Value::from(self.number_to_string(prec)));
         }
         return self.decimal_to_precision(amount, Value::Int(1), decimals, &[Value::Int(2), self.paddingMode.clone()]);
 
@@ -3007,7 +3006,7 @@ impl Hyperliquid {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" priceToPrecision() missing prec".into()))));
         }
         if prec.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            decimals = self.precision_from_string(self.number_to_string(prec));
+            decimals = self.precision_from_string(Value::from(self.number_to_string(prec)));
         }
         return self.decimal_to_precision(price, Value::Int(1), decimals, &[Value::Int(2), self.paddingMode.clone()]);
 
@@ -3176,7 +3175,7 @@ impl Hyperliquid {
     pub async fn approve_builder_fee(&mut self, builder: &str, maxFeeRate: &str) -> Value {
         let mut builder: Value = builder.into();
         let mut maxFeeRate: Value = maxFeeRate.into();
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

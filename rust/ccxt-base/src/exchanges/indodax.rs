@@ -576,7 +576,8 @@ impl Indodax {
 }
 
     pub fn nonce(&self) -> Value {
-        return (match (&(self.milliseconds()), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return (match (&(Value::Int(self.milliseconds())), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
 
     Value::Null
 }
@@ -1134,7 +1135,7 @@ impl Indodax {
         if (since != Value::Null) {
             request.insert("from".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null));
         }  else {
-            let mut duration: Value = self.parse_timeframe(timeframe.clone());
+            let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
             if (limit == Value::Null) {
                 request.insert("from".into(), (match (&((match (&(now), &((match (&(Value::Int(1000)), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
@@ -1499,8 +1500,8 @@ impl Indodax {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).".into()))));
                     }
-                    let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-                    let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
+                    let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                    let mut priceString: Option<String> = self.number_to_string(price.clone());
                     let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                 }
@@ -1512,7 +1513,7 @@ impl Indodax {
             priceIsRequired = true;
             quantityIsRequired = true;
             if (side.as_str() == Some("buy")) {
-                request.insert(crate::runtime::stringify_param(&(Value::from((market).quote_id.as_deref()))), self.parse_to_numeric(self.cost_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&self.number_to_string(amount.clone()), &self.number_to_string(price.clone())))));
+                request.insert(crate::runtime::stringify_param(&(Value::from((market).quote_id.as_deref()))), self.parse_to_numeric(self.cost_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount.clone())), &Value::from(self.number_to_string(price.clone()))))));
             }
         }
         if priceIsRequired {
@@ -1754,7 +1755,7 @@ impl Indodax {
         if (since != Value::Null) {
             let mut startTime: Option<String> = self.yyyymmdd(since.clone(), &[]).as_str().map(str::to_owned);
             request.insert("start".into(), startTime.map(Value::from).unwrap_or(Value::Null));
-            request.insert("end".into(), self.yyyymmdd(self.milliseconds(), &[]));
+            request.insert("end".into(), self.yyyymmdd(Value::Int(self.milliseconds()), &[]));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_trans_history(&[__ws_arg_12]).await.into_dict();
@@ -1896,7 +1897,7 @@ impl Indodax {
         // Will be passed to callback URL (assigned via website to the API key)
         // so your system can identify the request and confirm it.
         // Alphanumeric, max length 255.
-        let mut requestId: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.milliseconds();
         // Alternatively:
         // let requestId = this.uuid ();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2108,14 +2109,14 @@ impl Indodax {
                                                         let mut j: i64 = 0;
                             let mut __for_first_844: bool = true;
                             while { if !__for_first_844 { j += 1; } __for_first_844 = false; j < (networkIds.len() as i64) } {
-                            let mut _netIdTmp: Value = self.network_id_to_code(&[networkIds.get(j as usize).cloned().unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+                            let mut _netIdTmp: Value = Value::from(self.network_id_to_code(&[networkIds.get(j as usize).cloned().unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
                             if (_netIdTmp != Value::Null) {
                                 if let Value::Arr(__a) = &mut network { std::sync::Arc::make_mut(__a).push((if let Some(__s) = _netIdTmp.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })); };
                             }
                         }
                         }
                     }  else {
-                        let mut _netIdTmp: Value = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+                        let mut _netIdTmp: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
                         if (_netIdTmp != Value::Null) {
                             network = (if let Some(__s) = _netIdTmp.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
                         }

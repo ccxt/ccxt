@@ -14,14 +14,14 @@ pub async fn testWatchOrderBookForSymbols(mut exchange: Value, mut skippedProper
     // as in `watchOrderBook`, a pending subscription can not be cancelled, so the
     // loop has to be bounded by the deadline alone. waiting for every requested
     // symbol to be seen would hang forever whenever one of them stays idle.
-    let mut maxIdleTime: Value = Value::Int(5000);
-    let mut currentTime: Value = exchange.milliseconds();
-    let mut deadline: Value = (match (&(currentTime), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+    let mut maxIdleTime: i64 = 5000;
+    let mut currentTime: i64 = exchange.milliseconds();
+    let mut deadline: i64 = (currentTime + 15000);
     let mut idle: bool = false;
-    while (currentTime.as_f64().unwrap_or(f64::NAN) < deadline.as_f64().unwrap_or(f64::NAN)) && !idle {
+    while (currentTime < deadline) && !idle {
         let mut response: Value = Value::Null;
         let mut succeeded: bool = true;
-        let mut startTime: Value = exchange.milliseconds();
+        let mut startTime: i64 = exchange.milliseconds();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_order_book_for_symbols", vec![symbols.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -36,8 +36,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if succeeded && (response != Value::Null) {
             testOrderBook(exchange.clone(), skippedProperties.clone(), method.clone(), response.clone(), Value::Null);
             crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone(), Value::Str("symbol".into()).clone(), symbols.clone()]);
-            let mut elapsed: Value = (match (&(currentTime), &(startTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            if elapsed.as_f64().unwrap_or(f64::NAN) > maxIdleTime.as_f64().unwrap_or(f64::NAN) {
+            let mut elapsed: i64 = (currentTime - startTime);
+            if elapsed > maxIdleTime {
                 idle = true;
             }
         }

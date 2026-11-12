@@ -718,7 +718,7 @@ impl Hyperliquid {
     }
 
     pub fn nonce(&self) -> Value {
-        return self.milliseconds();
+        return Value::Int(self.milliseconds());
 
     Value::Null
 }
@@ -1280,13 +1280,13 @@ impl Hyperliquid {
         let mut amountPrecision: Value = amountPrecision.into();
         let mut maxDecimals: Value = maxDecimals.into();
         let mut pricePrecision: Value = Value::Int(0);
-        let mut priceStr: Value = self.number_to_string(price);
+        let mut priceStr: Value = Value::from(self.number_to_string(price));
         if (priceStr == Value::Null) {
             return Value::Int(0);
         }
         let mut priceSplitted: Value = Value::Array(if let Some(__s) = priceStr.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
-        let mut maxDecimalsInt: i64 = self.parse_to_int(maxDecimals).as_i64().unwrap_or_default();
-        let mut amountPrecisionInt: i64 = self.parse_to_int(amountPrecision).as_i64().unwrap_or_default();
+        let mut maxDecimalsInt: i64 = self.parse_to_int(maxDecimals).unwrap_or_default();
+        let mut amountPrecisionInt: i64 = self.parse_to_int(amountPrecision).unwrap_or_default();
         let mut decimalsLeft: Value = Value::Int((maxDecimalsInt - amountPrecisionInt));
         if crate::precise::Precise::stringEq(&priceStr, &Value::Str("0".into())).as_bool() == Some(true) {
             // Significant digits is always 5 in this case
@@ -1298,9 +1298,9 @@ impl Hyperliquid {
             // Get the part after the decimal separator
             let mut decimalPart: Value = self.safe_string(priceSplitted.clone(), Value::Int(1), &[Value::Str("".into())]);
             // Count the number of leading zeros in the decimal part
-            let mut leadingZeros: Value = self.parse_to_int(Value::Int(0));
+            let mut leadingZeros: Value = Value::from(self.parse_to_int(Value::Int(0)));
             while (leadingZeros.as_f64().unwrap_or(f64::NAN) <= ((decimalPart.len() as i64) as f64)) && (get_value(&decimalPart, &leadingZeros).as_str() == Some("0")) {
-                leadingZeros = self.parse_to_int((match (&(leadingZeros), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
+                leadingZeros = Value::from(self.parse_to_int((match (&(leadingZeros), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })));
             }
             // Calculate price precision based on leading zeros and significant digits
             pricePrecision = (match (&(leadingZeros), &(significantDigits)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
@@ -1317,7 +1317,7 @@ impl Hyperliquid {
             }
             pricePrecision = crate::runtime::Math::min(&decimalsLeft, &digitsLeft);
         }
-        return self.parse_to_int(pricePrecision);
+        return Value::from(self.parse_to_int(pricePrecision));
 
     Value::Null
 }
@@ -1469,16 +1469,15 @@ impl Hyperliquid {
             let mut innerBaseTokenInfo: crate::value::Dict = self.safe_dict_k(&baseTokenInfo, "spec", &[Value::from(&baseTokenInfo)]).into_dict();
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             let mut amountPrecisionStr: Option<String> = self.safe_string_k(&innerBaseTokenInfo, "szDecimals", &[]).as_str().map(str::to_owned);
-            let mut amountPrecision: Value = self.parse_to_int(amountPrecisionStr.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut amountPrecision: Option<i64> = self.parse_to_int(amountPrecisionStr.clone().map(Value::from).unwrap_or(Value::Null));
             let mut price: Option<f64> = self.safe_number_k(&extraData, "midPx", &[]).as_f64();
             let mut pricePrecision: Value = Value::Int(0);
             if (price.is_some()) {
-                pricePrecision = self.calculate_price_precision(price.unwrap_or_default(), amountPrecision.as_i64().unwrap_or_default(), 8);
+                pricePrecision = self.calculate_price_precision(price.unwrap_or_default(), Value::from(amountPrecision).as_i64().unwrap_or_default(), 8);
             }
-            let mut pricePrecisionStr: Option<String> = self.number_to_string(pricePrecision).as_str().map(str::to_owned);
+            let mut pricePrecisionStr: Option<String> = self.number_to_string(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-            let mut baseId: Option<String> = self.number_to_string((match (&(index), &(Value::Int(10000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
-                _ => Value::Null })).as_str().map(str::to_owned);
+            let mut baseId: Option<String> = self.number_to_string((match (&(index), &(Value::Int(10000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
             let mut entry: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), marketName.map(Value::from).unwrap_or(Value::Null));
@@ -1614,13 +1613,13 @@ impl Hyperliquid {
         let mut taker: Option<f64> = self.safe_number_k(&fees, "taker", &[]).as_f64();
         let mut maker: Option<f64> = self.safe_number_k(&fees, "maker", &[]).as_f64();
         let mut amountPrecisionStr: Option<String> = self.safe_string_k(market.clone(), "szDecimals", &[]).as_str().map(str::to_owned);
-        let mut amountPrecision: Value = self.parse_to_int(amountPrecisionStr.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut amountPrecision: Option<i64> = self.parse_to_int(amountPrecisionStr.clone().map(Value::from).unwrap_or(Value::Null));
         let mut price: Value = self.safe_number_k(market.clone(), "markPx", &[Value::Int(0)]);
         let mut pricePrecision: Value = Value::Int(0);
         if (price != Value::Null) {
-            pricePrecision = self.calculate_price_precision(price.as_f64().unwrap_or_default(), amountPrecision.as_i64().unwrap_or_default(), 6);
+            pricePrecision = self.calculate_price_precision(price.as_f64().unwrap_or_default(), Value::from(amountPrecision).as_i64().unwrap_or_default(), 6);
         }
-        let mut pricePrecisionStr: Option<String> = self.number_to_string(pricePrecision).as_str().map(str::to_owned);
+        let mut pricePrecisionStr: Option<String> = self.number_to_string(pricePrecision);
         let mut isDelisted: Option<bool> = self.safe_bool_k_opt(market.clone(), "isDelisted", &[]);
         let mut active: Value = Value::Bool(true);
         if (isDelisted.is_some()) {
@@ -2152,8 +2151,8 @@ impl Hyperliquid {
         let mut funding: Option<f64> = self.safe_number_k(info.clone(), "funding", &[]).as_f64();
         let mut markPx: Option<f64> = self.safe_number_k(info.clone(), "markPx", &[]).as_f64();
         let mut oraclePx: Option<f64> = self.safe_number_k(info.clone(), "oraclePx", &[]).as_f64();
-        let mut currentHour: Value = self.parse_to_int((match (((match (((match ((self.milliseconds()).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64(),
-            (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        let mut currentHour: Value = Value::from(self.parse_to_int((match (((match (((match ((Value::Int(self.milliseconds())).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y),
+            _ => Value::Null })).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         let mut fundingTimestamp: Value = (match (&((match (&((match (&(((match (&(currentHour), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
             _ => Value::Null }))), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x),
             Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x),
@@ -2255,14 +2254,15 @@ impl Hyperliquid {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[self.milliseconds()]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[Value::Int(self.milliseconds())]).as_i64();
         let mut useTail: Value = Value::Bool(since == Value::Null);
         let mut originalSince: Value = since.clone();
         let mut startTime: Value = since.clone();
         if (since == Value::Null) {
             if (limit != Value::Null) {
                 // optimization if limit is provided
-                let mut timeframeInMilliseconds: Value = (match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+                let mut timeframeInMilliseconds: Value = (match (&(Value::Int(self.parse_timeframe(timeframe.clone()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                    Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
                 startTime = self.sum(&[Value::from(until), (match (&((match (&(timeframeInMilliseconds), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                     _ => Value::Null })), &(Value::Int(-1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
                 if startTime.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
@@ -2415,9 +2415,9 @@ impl Hyperliquid {
         // a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
         // with grouping positionTpsl and size 0, so only reject a positive amount that
         // became zero after rounding, never an explicitly requested zero
-        if crate::precise::Precise::stringEq(&result, &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringGt(&self.number_to_string(amount), &Value::Str("0".into())).as_bool() == Some(true) {
+        if crate::precise::Precise::stringEq(&result, &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringGt(&Value::from(self.number_to_string(amount)), &Value::Str("0".into())).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" amount of ".into())).into()), Value::from((market).symbol.clone())).into()), Value::Str(" must be greater than minimum amount precision of ".into())).into()),
-                self.number_to_string(self.safe_number((market).raw.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), Value::Str("amount".into()), &[])))));
+                Value::from(self.number_to_string(self.safe_number((market).raw.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), Value::Str("amount".into()), &[]))))));
         }
         return result;
 
@@ -2426,7 +2426,7 @@ impl Hyperliquid {
 
     pub fn price_to_precision(&self, mut symbol: Value, mut price: Value) -> Value {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut priceStr: Value = self.number_to_string(price.clone());
+        let mut priceStr: Value = Value::from(self.number_to_string(price.clone()));
         let mut priceStrParts: Vec<Value> = Value::Array(if let Some(__s) = priceStr.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut integerPart: Option<String> = priceStrParts.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut significantDigits: i64 = i64::max(5, ((integerPart.as_deref().unwrap_or_default().chars().count() as i64)));
@@ -2827,7 +2827,7 @@ impl Hyperliquid {
                 m.insert("code".to_string(), self.safe_string_k(self.options.clone(), "ref", &[Value::Str("CCXT1".into())]));
             m
         });
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, None);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2852,7 +2852,7 @@ if _try_result.is_err() {
     pub async fn approve_builder_fee(&mut self, builder: &str, maxFeeRate: &str) -> Value {
         let mut builder: Value = builder.into();
         let mut maxFeeRate: Value = maxFeeRate.into();
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3021,7 +3021,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address("setUserAbstraction", params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Option<String> = userAddressparamsPublicAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut type_var: String = self.safe_string_k(&paramsPublicAddress, "type", &[Value::Str("userSetAbstraction".into())]).as_str().unwrap_or("userSetAbstraction").to_string();
         let mut payload: indexmap::IndexMap<String, Value> = ({
@@ -3074,7 +3074,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address("enableUserDexAbstraction", params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Option<String> = userAddressparamsPublicAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut type_var: String = self.safe_string_k(&paramsPublicAddress, "type", &[Value::Str("userDexAbstraction".into())]).as_str().unwrap_or("userDexAbstraction").to_string();
         let mut payload: indexmap::IndexMap<String, Value> = ({
@@ -3123,7 +3123,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), Value::from(nonce));
@@ -3228,7 +3228,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         self.initialize_client().await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut isBuy: bool = (side.as_str().unwrap_or_default().to_string().to_uppercase()) == "BUY";
         let mut randomize: bool = self.safe_bool_k(params.clone(), "randomize", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("randomize".into()), &[]).into_dict();
@@ -3239,7 +3239,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut durationMins: Value = ((match (((match ((duration).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null); // convert from ms to minutes
         let mut orderObj: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("a".to_string(), self.parse_to_int(Value::from((market).base_id.as_deref())));
+                m.insert("a".to_string(), Value::from(self.parse_to_int(Value::from((market).base_id.as_deref()))));
                 m.insert("b".to_string(), Value::Bool(isBuy));
                 m.insert("s".to_string(), self.amount_to_precision(symbol, amount));
                 m.insert("r".to_string(), self.safe_bool_k(&paramsVault, "reduceOnly", &[Value::Bool(false)]));
@@ -3463,7 +3463,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut orderObj: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("a".to_string(), self.parse_to_int(Value::from((market).base_id.as_deref())));
+                m.insert("a".to_string(), Value::from(self.parse_to_int(Value::from((market).base_id.as_deref()))));
                 m.insert("b".to_string(), Value::Bool(isBuy));
                 m.insert("p".to_string(), px);
                 m.insert("s".to_string(), sz);
@@ -3530,7 +3530,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut params2: Value = self.omit(params, Value::from(vec![Value::Str("slippage".into()), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), Value::Str("slippage".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("timeInForce".into())]), &[]);
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut orderReq: Vec<Value> = Vec::new();
         let mut grouping: String = "na".to_string();
         {
@@ -3793,11 +3793,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut action: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("twapCancel".into()));
-                m.insert("a".to_string(), self.parse_to_int(Value::from((market).base_id.as_deref())));
+                m.insert("a".to_string(), Value::from(self.parse_to_int(Value::from((market).base_id.as_deref()))));
                 m.insert("t".to_string(), self.parse_to_numeric(id.clone()));
             m
         });
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), vaultAddress.as_str(), None);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3868,7 +3868,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
         let mut fast: bool = self.safe_bool_k(params.clone(), "fast", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut params2: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into()), Value::Str("fast".into())]), &[]);
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), Value::from(nonce));
@@ -3964,7 +3964,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), Value::from(nonce));
@@ -4053,7 +4053,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         self.initialize_client().await;
         let mut params2: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]);
-        let mut nonce: Value = self.incrementing_nonce();
+        let mut nonce: Value = Value::Int(self.incrementing_nonce());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), nonce.clone());
@@ -4161,7 +4161,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut isTrigger: bool = (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
             let mut reduceOnly: bool = self.safe_bool_k(orderParams.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             orderParams = self.omit(orderParams, Value::from(vec![Value::Str("slippage".into()), Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into())]), &[]);
-            let mut px: Value = self.number_to_string(price.map(Value::from).unwrap_or(Value::Null));
+            let mut px: Value = Value::from(self.number_to_string(price.map(Value::from).unwrap_or(Value::Null)));
             if isMarket {
                 px = (if isBuy { crate::precise::Precise::stringMul(&px, &crate::precise::Precise::stringAdd(&Value::Str("1".into()), &slippage)) } else { crate::precise::Precise::stringMul(&px, &crate::precise::Precise::stringSub(&Value::Str("1".into()), &slippage)) });
                 px = self.price_to_precision(symbol.clone(), px.clone());
@@ -4204,7 +4204,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut orderReq: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("a".to_string(), self.parse_to_int(Value::from((market).base_id.as_deref())));
+                    m.insert("a".to_string(), Value::from(self.parse_to_int(Value::from((market).base_id.as_deref()))));
                     m.insert("b".to_string(), Value::Bool(isBuy));
                     m.insert("p".to_string(), px);
                     m.insert("s".to_string(), sz);
@@ -4217,14 +4217,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut modifyReq: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("oid".to_string(), self.parse_to_int(id.map(Value::from).unwrap_or(Value::Null)));
+                    m.insert("oid".to_string(), Value::from(self.parse_to_int(id.map(Value::from).unwrap_or(Value::Null))));
                     m.insert("order".to_string(), Value::Map(orderReq));
                 m
             });
             modifies.push(modifyReq);
         }
         }
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut modifyAction: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("batchModify".into()));
@@ -4400,19 +4400,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
-        let mut usd: Value = self.parse_to_int(crate::precise::Precise::stringMul(&self.number_to_string(initialUsd), &Value::Str("1000000".into())));
+        let mut usd: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(initialUsd)), &Value::Str("1000000".into())));
         let mut action: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("createVault".into()));
                 m.insert("name".to_string(), name);
                 m.insert("description".to_string(), description);
-                m.insert("initialUsd".to_string(), usd);
+                m.insert("initialUsd".to_string(), Value::from(usd));
                 m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
@@ -4468,7 +4468,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("startTime".into(), since.clone());
         }  else {
             let mut maxLimit: i64 = limit.as_i64().unwrap_or(500);
-            request.insert("startTime".into(), Value::Int(((self.milliseconds().as_i64().unwrap_or_default()) - ((((((maxLimit * 60)) * 60)) * 1000)))));
+            request.insert("startTime".into(), Value::Int(((self.milliseconds()) - ((((((maxLimit * 60)) * 60)) * 1000)))));
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
@@ -5735,14 +5735,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (leverage.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a leverage parameter".into()))));
         }
-        let mut asset: Value = self.parse_to_int(Value::from((market).base_id.as_deref()));
+        let mut asset: Option<i64> = self.parse_to_int(Value::from((market).base_id.as_deref()));
         let mut isCross: bool = marginMode.as_str().unwrap_or_default().to_string() == "cross";
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut params2: Value = self.omit(params, Value::from(vec![Value::Str("leverage".into())]), &[]);
         let mut updateAction: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("updateLeverage".into()));
-                m.insert("asset".to_string(), asset);
+                m.insert("asset".to_string(), Value::from(asset));
                 m.insert("isCross".to_string(), Value::Bool(isCross));
                 m.insert("leverage".to_string(), Value::from(leverage));
             m
@@ -5802,13 +5802,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marginMode: Option<String> = self.safe_string_k(params.clone(), "marginMode", &[Value::Str("cross".into())]).as_str().map(str::to_owned);
         let mut isCross: bool = marginMode.as_deref() == Some("cross");
-        let mut asset: Value = self.parse_to_int(Value::from((market).base_id.as_deref()));
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut asset: Option<i64> = self.parse_to_int(Value::from((market).base_id.as_deref()));
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut params2: Value = self.omit(params, Value::Str("marginMode".into()), &[]);
         let mut updateAction: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("updateLeverage".into()));
-                m.insert("asset".to_string(), asset);
+                m.insert("asset".to_string(), Value::from(asset));
                 m.insert("isCross".to_string(), Value::Bool(isCross));
                 m.insert("leverage".to_string(), leverage);
             m
@@ -5903,14 +5903,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut asset: Value = self.parse_to_int(Value::from((market).base_id.as_deref()));
-        let mut szAbs: Value = self.parse_to_int(crate::precise::Precise::stringMul(&self.amount_to_precision(symbol, amount), &Value::Str("1000000".into())));
+        let mut asset: Option<i64> = self.parse_to_int(Value::from((market).base_id.as_deref()));
+        let mut szAbs: Value = Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&self.amount_to_precision(symbol, amount), &Value::Str("1000000".into()))));
         let mut sz: Value = (if (type_var.as_str() == Some("reduce")) { (match &(szAbs) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }) } else { szAbs });
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut updateAction: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("updateIsolatedMargin".into()));
-                m.insert("asset".to_string(), asset);
+                m.insert("asset".to_string(), Value::from(asset));
                 m.insert("isBuy".to_string(), Value::Bool(true));
                 m.insert("ntli".to_string(), sz);
             m
@@ -6001,13 +6001,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         if self.in_array(fromAccount.clone(), Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into()), Value::Str("perp".into())])).as_bool() == Some(true) {
             // handle swap <> spot account transfer
             if !(self.in_array(toAccount.clone(), Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into()), Value::Str("perp".into())])).as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" transfer() only support spot <> swap transfer".into()))));
             }
-            let mut strAmount: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
+            let mut strAmount: Option<String> = self.number_to_string(amount.clone());
             let mut vaultAddressRaw: Option<String> = self.safe_string2(params.clone(), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_str().map(str::to_owned);
             if (vaultAddressRaw.is_some()) {
                 strAmount = Some(format!("{}{}", Value::Str(format!("{}{}", strAmount.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(" subaccount:".into())).into()), self.format_vault_address(vaultAddressRaw.as_deref()).map(Value::from).unwrap_or(Value::Null)));
@@ -6098,7 +6098,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("sourceDex".to_string(), sourceDex.clone());
                     m.insert("destinationDex".to_string(), destinationDex.clone());
                     m.insert("token".to_string(), Value::from(sendAssetToken.clone()));
-                    m.insert("amount".to_string(), self.number_to_string(amount.clone()));
+                    m.insert("amount".to_string(), Value::from(self.number_to_string(amount.clone())));
                     m.insert("fromSubAccount".to_string(), (if isDeposit { Value::Str("".into()) } else { subAccountAddress.clone() }));
                     m.insert("nonce".to_string(), Value::from(nonce));
                 m
@@ -6133,13 +6133,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isUsdc: bool = (if let Some(__s) = code.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("USDC");
         if isUsdc && (transferType.as_deref() != Some("spot")) {
             // Transfer USDC with subAccountTransfer
-            let mut usd: Value = self.parse_to_int(crate::precise::Precise::stringMul(&self.number_to_string(amount.clone()), &Value::Str("1000000".into())));
+            let mut usd: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount.clone())), &Value::Str("1000000".into())));
             let mut action: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("subAccountTransfer".into()));
                     m.insert("subAccountUser".to_string(), subAccountAddress.clone());
                     m.insert("isDeposit".to_string(), Value::Bool(isDeposit));
-                    m.insert("usd".to_string(), usd);
+                    m.insert("usd".to_string(), Value::from(usd));
                 m
             });
             let mut sig: Value = self.sign_l1_action(action.clone(), Value::from(nonce), None, None);
@@ -6169,7 +6169,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("subAccountUser".to_string(), subAccountAddress);
                     m.insert("isDeposit".to_string(), Value::Bool(isDeposit));
                     m.insert("token".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&currencyInfo, "name", &[Value::Str("".into())]), Value::Str(":".into())).into()), self.safe_string_k(&currencyInfo, "tokenId", &[Value::Str("".into())])).into()));
-                    m.insert("amount".to_string(), self.number_to_string(amount));
+                    m.insert("amount".to_string(), Value::from(self.number_to_string(amount)));
                 m
             });
             let mut sig: Value = self.sign_l1_action(action.clone(), Value::from(nonce), None, None);
@@ -6244,7 +6244,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut vaultAddressOption: Value = self.handle_option_string_and_params(params, Value::Str("withdraw".into()), Value::Str("vaultAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut vaultAddress: Value = self.format_vault_address(vaultAddressOption.as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut action: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -6266,7 +6266,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                     m.insert("hyperliquidChain".to_string(), (if isSandboxMode { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
                     m.insert("destination".to_string(), address.clone());
-                    m.insert("amount".to_string(), self.number_to_string(amount.clone()));
+                    m.insert("amount".to_string(), Value::from(self.number_to_string(amount.clone())));
                     m.insert("time".to_string(), Value::from(nonce));
                 m
             });
@@ -6276,7 +6276,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("hyperliquidChain".to_string(), payload.get("hyperliquidChain").cloned().unwrap_or(Value::Null));
                     m.insert("signatureChainId".to_string(), Value::Str("0x66eee".into()));
                     m.insert("destination".to_string(), address);
-                    m.insert("amount".to_string(), self.number_to_string(amount));
+                    m.insert("amount".to_string(), Value::from(self.number_to_string(amount)));
                     m.insert("time".to_string(), Value::from(nonce));
                     m.insert("type".to_string(), Value::Str("withdraw3".into()));
                 m
@@ -6876,12 +6876,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolValue: Value = self.symbol(symbol.clone());
+        let mut symbolValue: String = self.symbol(symbol.clone());
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut ois: crate::types::OpenInterests = (match self.fetch_open_interests((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut openInterest: Value = self.safe_dict(crate::types::IntoRaw::into_raw(ois), symbolValue, &[]);
+        let mut ois: crate::types::OpenInterests = (match self.fetch_open_interests((Value::from(vec![Value::from(symbolValue.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut openInterest: Value = self.safe_dict(crate::types::IntoRaw::into_raw(ois), Value::from(symbolValue), &[]);
         return openInterest;
         Value::Null
         }).await?))
@@ -7045,7 +7045,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), Value::from(nonce));
@@ -7081,7 +7081,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut nonce: Option<i64> = self.incrementing_nonce().as_i64();
+        let mut nonce: i64 = self.incrementing_nonce();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), Value::from(nonce));

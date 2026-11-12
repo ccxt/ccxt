@@ -2233,7 +2233,7 @@ impl Phemex {
         if (n == Value::Null) || (scale == Value::Null) {
             return Value::Null;
         }
-        let mut stringN: Value = self.number_to_string(n);
+        let mut stringN: Value = Value::from(self.number_to_string(n));
         let mut precise = Precise::new(stringN);
         { let __sv_tmp = self.sum(&[get_value(&precise, &Value::Str("decimals".into())), (match (&(scale), &(Value::Int(-1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]); crate::set_value(&mut precise, &Value::Str("decimals".into()), __sv_tmp); }
@@ -2386,7 +2386,7 @@ impl Phemex {
         let mut response: Option<crate::value::Dict> = None;
         if ((market).linear == Some(true)) || isStableSettled {
             if (until != Value::Null) || (since != Value::Null) {
-                let mut candleDuration: Value = self.parse_timeframe(timeframe.clone());
+                let mut candleDuration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
                 if (since != Value::Null) {
                     let mut fromSeconds: Value = ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.round())).unwrap_or(Value::Null);
                     sinceSeconds = fromSeconds.clone();
@@ -2395,10 +2395,10 @@ impl Phemex {
                         request.insert("to".into(), ((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.round())).unwrap_or(Value::Null));
                     }  else {
                         // when since is defined 'to' is mandatory
-                        let mut now: Value = self.seconds();
-                        let mut to: Value = self.parse_to_int((match (&(self.parse_to_int(fromSeconds)), &(((match (&(maxLimit), &(candleDuration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                            Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
-                        request.insert("to".into(), (if (to.as_f64().unwrap_or(f64::NAN) > now.as_f64().unwrap_or(f64::NAN)) { now } else { to }));
+                        let mut now: i64 = self.seconds().as_i64().unwrap_or_default();
+                        let mut to: Option<i64> = self.parse_to_int((match (&(Value::from(self.parse_to_int(fromSeconds))), &(((match (&(maxLimit), &(candleDuration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
+                            (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
+                        request.insert("to".into(), (if (to > Some(now)) { Value::from(now) } else { Value::from(to) }));
                     }
                 }  else if (until != Value::Null) {
                     // when 'to' is defined since is mandatory
@@ -2994,13 +2994,13 @@ impl Phemex {
                 priceString = self.safe_string_k(trade.clone(), "execPriceRp", &[]);
                 amountString = self.safe_string_k(trade.clone(), "execQtyRq", &[]);
                 costString = self.safe_string_k(trade.clone(), "execValueRv", &[]);
-                feeCostString = self.omit_zero(self.safe_string_k(trade.clone(), "execFeeRv", &[]));
+                feeCostString = Value::from(self.omit_zero(self.safe_string_k(trade.clone(), "execFeeRv", &[])));
                 feeRateString = self.safe_string_k(trade.clone(), "feeRateRr", &[]);
                 if (feeCostString != Value::Null) {
                     let mut currencyId: Option<String> = self.safe_string_k(trade.clone(), "currency", &[]).as_str().map(str::to_owned);
                     feeCurrencyCode = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 }  else {
-                    let mut ptFeeRv: Option<String> = self.omit_zero(self.safe_string_k(trade.clone(), "ptFeeRv", &[])).as_str().map(str::to_owned);
+                    let mut ptFeeRv: Option<String> = self.omit_zero(self.safe_string_k(trade.clone(), "ptFeeRv", &[]));
                     if (ptFeeRv.is_some()) {
                         feeCostString = ptFeeRv.map(Value::from).unwrap_or(Value::Null);
                         feeCurrencyCode = Some("PT".to_string());
@@ -3017,7 +3017,7 @@ impl Phemex {
                 amountString = self.from_ev(self.safe_string_k(trade.clone(), "execBaseQtyEv", &[]), &[marketResolved.clone()]);
                 amountString = self.safe_string_k(trade.clone(), "execQty", &[amountString.clone()]);
                 costString = self.from_er(self.safe_string2(trade.clone(), Value::Str("execQuoteQtyEv".into()), Value::Str("execValueEv".into()), &[]), &[marketResolved.clone()]);
-                feeCostString = self.from_er(self.omit_zero(self.safe_string_k(trade.clone(), "execFeeEv", &[])), &[marketResolved.clone()]);
+                feeCostString = self.from_er(Value::from(self.omit_zero(self.safe_string_k(trade.clone(), "execFeeEv", &[]))), &[marketResolved.clone()]);
                 if (feeCostString != Value::Null) {
                     feeRateString = self.from_er(self.safe_string_k(trade.clone(), "feeRateEr", &[]), &[marketResolved.clone()]);
                     if matches!(self.safe_bool_k(marketResolved.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -3519,7 +3519,7 @@ impl Phemex {
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut price: Value = self.from_ep(self.safe_string_k(order.clone(), "priceEp", &[]), &[marketResolved.clone()]);
         let mut amount: Value = self.from_ev(self.safe_string_k(order.clone(), "baseQtyEv", &[]), &[marketResolved.clone()]);
-        let mut remaining: Option<String> = self.omit_zero(self.from_ev(self.safe_string_k(order.clone(), "leavesBaseQtyEv", &[]), &[marketResolved.clone()])).as_str().map(str::to_owned);
+        let mut remaining: Option<String> = self.omit_zero(self.from_ev(self.safe_string_k(order.clone(), "leavesBaseQtyEv", &[]), &[marketResolved.clone()]));
         let mut filled: Value = self.from_ev(self.safe_string2(order.clone(), Value::Str("cumBaseQtyEv".into()), Value::Str("cumBaseValueEv".into()), &[]), &[marketResolved.clone()]);
         let mut cost: Value = self.from_er(self.safe_string2(order.clone(), Value::Str("cumQuoteValueEv".into()), Value::Str("quoteQtyEv".into()), &[]), &[marketResolved.clone()]);
         let mut average: Value = self.from_ep(self.safe_string_k(order.clone(), "avgPriceEp", &[]), &[marketResolved.clone()]);
@@ -3538,7 +3538,7 @@ impl Phemex {
             });
         }
         let mut timeInForce: Value = self.parse_time_in_force((self.safe_string_k(order.clone(), "timeInForce", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut triggerPrice: Value = self.parse_number(self.omit_zero(self.from_ep(self.safe_string_k(order.clone(), "stopPxEp", &[]), &[marketResolved.clone()])), &[]);
+        let mut triggerPrice: Value = self.parse_number(Value::from(self.omit_zero(self.from_ep(self.safe_string_k(order.clone(), "stopPxEp", &[]), &[marketResolved.clone()]))), &[]);
         let mut postOnly: Value = (Value::Bool(timeInForce.as_str() == Some("PO")));
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3715,7 +3715,7 @@ impl Phemex {
             lastTradeTimestamp = None.clone();
         }
         let mut timeInForce: Value = self.parse_time_in_force((self.safe_string_k(order.clone(), "timeInForce", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut triggerPrice: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("stopPx".into()), Value::Str("stopPxRp".into()), &[])).as_str().map(str::to_owned);
+        let mut triggerPrice: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("stopPx".into()), Value::Str("stopPxRp".into()), &[]));
         let mut postOnly: Value = (Value::Bool(timeInForce.as_str() == Some("PO")));
         let mut reduceOnly: Option<bool> = self.safe_bool_k(order.clone(), "reduceOnly", &[]).as_bool();
         let mut execInst: Option<String> = self.safe_string_k(order.clone(), "execInst", &[]).as_str().map(str::to_owned);
@@ -3724,8 +3724,8 @@ impl Phemex {
         }
         let mut takeProfit: Option<String> = self.safe_string_k(order.clone(), "takeProfitRp", &[]).as_str().map(str::to_owned);
         let mut stopLoss: Option<String> = self.safe_string_k(order.clone(), "stopLossRp", &[]).as_str().map(str::to_owned);
-        let mut feeValue: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "execFeeRv", &[])).as_str().map(str::to_owned);
-        let mut ptFeeRv: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "ptFeeRv", &[])).as_str().map(str::to_owned);
+        let mut feeValue: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "execFeeRv", &[]));
+        let mut ptFeeRv: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "ptFeeRv", &[]));
         let mut fee: Value = Value::Null;
         if (feeValue.is_some()) {
             fee = Value::Map({
@@ -3882,8 +3882,8 @@ impl Phemex {
                 orderParams = self.omit(orderParams.clone(), Value::Str("cost".into()), &[]);
                 if matches!(self.safe_bool_k(self.options.clone(), "createOrderByQuoteRequiresPrice", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (price != Value::Null) {
-                        let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
-                        let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
+                        let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                        let mut priceString: Option<String> = self.number_to_string(price.clone());
                         let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                         cost = self.parse_number(quoteAmount.map(Value::from).unwrap_or(Value::Null), &[]);
                     }  else if (cost == Value::Null) {
@@ -3923,7 +3923,7 @@ impl Phemex {
             if isStableSettled {
                 request.insert("orderQtyRq".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
             }  else {
-                request.insert("orderQty".into(), self.parse_to_int(self.amount_to_precision(symbol.clone(), amount)));
+                request.insert("orderQty".into(), Value::from(self.parse_to_int(self.amount_to_precision(symbol.clone(), amount))));
             }
             if (triggerPrice.is_some()) {
                 let mut triggerType: String = self.safe_string_k(orderParams.clone(), "triggerType", &[Value::Str("ByMarkPrice".into())]).as_str().unwrap_or("ByMarkPrice").to_string();
@@ -3996,7 +3996,7 @@ impl Phemex {
             if isStableSettled {
                 request.insert("priceRp".into(), self.price_to_precision(symbol.clone(), price.clone()));
             }  else {
-                let mut priceString: Value = self.number_to_string(price);
+                let mut priceString: Value = Value::from(self.number_to_string(price));
                 request.insert("priceEp".into(), self.to_ep(priceString, &[(market).raw.clone()]));
             }
         }
@@ -5196,7 +5196,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("network".to_string(), self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()])));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
@@ -5570,7 +5570,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut markPriceString: Option<String> = self.safe_string2(position.clone(), Value::Str("markPrice".into()), Value::Str("markPriceRp".into()), &[]).as_str().map(str::to_owned);
         let mut contracts: Option<String> = self.safe_string_n(position.clone(), Value::from(vec![Value::Str("size".into()), Value::Str("sizeRq".into()), Value::Str("closedSizeRq".into())]), &[]).as_str().map(str::to_owned);
         let mut contractSize: Option<f64> = self.safe_number_k(&marketResolved, "contractSize", &[]).as_f64();
-        let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize)).as_str().map(str::to_owned);
+        let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize));
         let mut leverage: Value = self.parse_number(crate::precise::Precise::stringAbs(&(self.safe_string2(position.clone(), Value::Str("leverage".into()), Value::Str("leverageRr".into()), &[]))), &[]);
         let mut entryPriceString: Option<String> = self.safe_string_n(position.clone(), Value::from(vec![Value::Str("avgEntryPrice".into()), Value::Str("avgEntryPriceRp".into()), Value::Str("openPrice".into())]), &[]).as_str().map(str::to_owned);
         let mut rawSide: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
@@ -6979,7 +6979,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestampNs: Value = self.safe_integer_k(interest.clone(), "timestamp", &[]);
         let mut timestamp: Value = Value::Null;
         if (timestampNs != Value::Null) {
-            timestamp = self.parse_to_int((match ((timestampNs).as_f64(), (Value::Int(1000000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+            timestamp = Value::from(self.parse_to_int((match ((timestampNs).as_f64(), (Value::Int(1000000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
         let mut id: Option<String> = self.safe_string_k(interest.clone(), "symbol", &[]).as_str().map(str::to_owned);
         return self.safe_open_interest(Value::Map({

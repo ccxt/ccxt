@@ -197,7 +197,7 @@ impl crate::exchange_generated::ExchangeBase for Woofipro {
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
-                "request_id" => self.request_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "request_id" => crate::Value::from(self.request_id(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_bids_asks" => crate::types::IntoRaw::into_raw(self.watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -250,7 +250,7 @@ impl Woofipro {
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "pong" => { crate::exchange_stubs::enqueue_spawn("pong", args.to_vec()); crate::Value::Null },
-            "request_id" => self.request_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "request_id" => crate::Value::from(self.request_id(args.get(0).cloned().unwrap_or(crate::Value::Null))),
             "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]); crate::Value::Null },
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
             "watch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("watch_bids_asks", args.to_vec()); crate::Value::Null },
@@ -371,7 +371,7 @@ impl Woofipro {
     Value::Null
 }
 
-    pub fn request_id(&self, mut url: Value) -> Value {
+    pub fn request_id(&self, mut url: Value) -> i64 {
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "requestId", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -379,9 +379,7 @@ impl Woofipro {
         let mut previousValue: i64 = self.safe_integer(&options, url.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut newValue: Value = Value::Int((previousValue + 1));
         if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("requestId".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), newValue.clone()); } }
-        return newValue;
-
-    Value::Null
+        return newValue.as_i64().unwrap_or_default();
 }
 
     pub async fn watch_public(&mut self, messageHash: &str, mut message: Value) -> Value {
@@ -398,7 +396,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("public".into()), &[Value::Str("".into())]), Value::Str("/".into())).into()), id);
-        let mut requestId: i64 = self.request_id(Value::from(url.clone())).as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id(Value::from(url.clone()));
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(requestId));
@@ -866,7 +864,7 @@ impl Woofipro {
         let mut market: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]).into_dict();
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut interval: Option<String> = self.safe_string_k(&data, "type", &[]).as_str().map(str::to_owned);
-        let mut timeframe: Value = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut timeframe: Value = Value::from(self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]));
         let mut parsed: Value = Value::from(vec![self.safe_integer_k(&data, "startTime", &[]), self.safe_number_k(&data, "open", &[]), self.safe_number_k(&data, "high", &[]), self.safe_number_k(&data, "low", &[]), self.safe_number_k(&data, "close", &[]), self.safe_number_k(&data, "volume", &[])]);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1141,7 +1139,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("private".into()), &[Value::Str("".into())]), Value::Str("/".into())).into()), self.accountId.clone());
-        let mut requestId: i64 = self.request_id(Value::from(url.clone())).as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id(Value::from(url.clone()));
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(requestId));
@@ -1166,7 +1164,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("private".into()), &[Value::Str("".into())]), Value::Str("/".into())).into()), self.accountId.clone());
-        let mut requestId: i64 = self.request_id(Value::from(url.clone())).as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.request_id(Value::from(url.clone()));
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(requestId));
@@ -1468,7 +1466,7 @@ impl Woofipro {
                 let mut __for_first_725: bool = true;
                 while { if !__for_first_725 { i += 1; } __for_first_725 = false; i < (data.len() as i64) } {
                 let mut order: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut tradeId: Option<String> = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[])).as_str().map(str::to_owned);
+                let mut tradeId: Option<String> = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[]));
                 if (tradeId.is_some()) {
                     self.handle_my_trade(client.clone(), order.clone());
                 }
@@ -1477,7 +1475,7 @@ impl Woofipro {
             }
         }  else {
             // executionreport
-            let mut tradeId: Option<String> = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[])).as_str().map(str::to_owned);
+            let mut tradeId: Option<String> = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[]));
             if (tradeId.is_some()) {
                 self.handle_my_trade(client.clone(), data.clone());
             }
@@ -2059,7 +2057,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         // { event: "pong", ts: 1614667590000 }
         //
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
         return message;
 
     Value::Null
