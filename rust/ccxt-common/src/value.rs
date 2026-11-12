@@ -312,30 +312,26 @@ impl Value {
     /// does the work (venue `authenticate` leader election). Await the handle
     /// with `exchange_stubs::ws_await_flight`; the transpiler emits that
     /// wherever the TS source awaits.
-    pub fn future(&self, hash: impl Into<Value>) -> Value {
+    pub fn future(&self, hash: impl Into<Value>) -> crate::pro::ws_client::Flight {
         self.open_flight(hash.into())
     }
     /// `client.reusable_future(messageHash)` — shared flight per hash, i.e. the
     /// same registry and handle as `future`.
-    pub fn reusable_future(&self, hash: impl Into<Value>) -> Value {
+    pub fn reusable_future(&self, hash: impl Into<Value>) -> crate::pro::ws_client::Flight {
         self.open_flight(hash.into())
     }
     /// Shared body of `future` / `reusable_future`: open-or-join the flight on
     /// the client this handle names, and return a handle to it. A non-client
     /// receiver (or a non-string hash) degrades to the old pass-the-hash-back
     /// behaviour so unrelated transpiled code keeps compiling.
-    fn open_flight(&self, msg_hash: Value) -> Value {
+    fn open_flight(&self, msg_hash: Value) -> crate::pro::ws_client::Flight {
         let hash = match &msg_hash {
-            Value::Str(h) => h.clone(),
-            _ => return msg_hash,
+            Value::Str(h) => h.to_string(),
+            _ => return crate::pro::ws_client::Flight::default(),
         };
-        match crate::pro::ws_client::url_of(self) {
-            Some(url) => {
-                let led = crate::pro::ws_client::begin_flight(&url, &hash);
-                crate::pro::ws_client::flight_handle(&url, &hash, led)
-            }
-            None => msg_hash,
-        }
+        let url = crate::pro::ws_client::url_of(self);
+        let led = url.as_deref().is_some_and(|u| crate::pro::ws_client::begin_flight(u, &hash));
+        crate::pro::ws_client::Flight { url, hash: Some(hash), led, entry: false }
     }
     /// Field accessor: `cache.hashmap` — same as the WS Cache marker's
     /// hashmap sub-dict. Some transpiled WS code reads this directly
@@ -461,7 +457,7 @@ impl Value {
             let result = ex.set_markets(markets, &[]);
             crate::runtime::add_element_to_object(self, &Value::Str("markets".into()), ex.markets.clone());
             crate::runtime::add_element_to_object(self, &Value::Str("markets_by_id".into()), ex.markets_by_id.clone());
-            crate::runtime::add_element_to_object(self, &Value::Str("symbols".into()), ex.symbols.clone());
+            crate::runtime::add_element_to_object(self, &Value::Str("symbols".into()), Value::Arr(ex.symbols.clone()));
             return result;
         }
         #[cfg(not(feature = "engine"))]

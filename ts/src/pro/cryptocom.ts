@@ -202,7 +202,7 @@ export default class cryptocom extends cryptocomRest {
 
     override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, this.safeValue (deltas, i));
+            this.handleDelta (bookside, this.safeList (deltas, i));
         }
     }
 
@@ -430,7 +430,7 @@ export default class cryptocom extends cryptocomRest {
         }
         const parsedTrades = this.parseTrades (data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
-            stored.append (this.safeValue (parsedTrades, j));
+            stored.append (this.safeDict (parsedTrades, j));
         }
         const channelReplaced = channel.replace ('.' + marketId, '');
         client.resolve (stored, symbolSpecificMessageHash);

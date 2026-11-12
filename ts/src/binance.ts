@@ -4984,7 +4984,7 @@ export default class binance extends Exchange {
     parseTickersForRolling (response: any, symbols: Strings): Tickers {
         const results: List = [];
         for (let i = 0; i < response.length; i++) {
-            const marketId = this.safeString (this.safeValue (response, i), 'symbol');
+            const marketId = this.safeString (this.safeDict (response, i), 'symbol');
             const tickerMarket = this.safeMarket (marketId, undefined, undefined, 'spot');
             const parsedTicker = this.parseTicker (this.safeValue (response, i));
             parsedTicker['symbol'] = tickerMarket['symbol'];
@@ -11488,7 +11488,7 @@ export default class binance extends Exchange {
         let maintenanceMarginPercentageString: Str = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise.stringLt (notionalStringAbs, this.safeValue (bracket, 0))) {
+            if (Precise.stringLt (notionalStringAbs, this.safeString (bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString (bracket, 1);
@@ -11714,7 +11714,7 @@ export default class binance extends Exchange {
         let maintenanceMarginPercentageString: Str = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise.stringLt (notionalStringAbs, this.safeValue (bracket, 0))) {
+            if (Precise.stringLt (notionalStringAbs, this.safeString (bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString (bracket, 1);

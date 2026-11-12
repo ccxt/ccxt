@@ -433,7 +433,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                     // Lightweight ones still served here so a `__live_id`
                     // snapshot stays fully introspectable through the
                     // same code path.
-                    "symbols"          => core.symbols.clone(),
+                    "symbols"          => Value::Arr(core.symbols.clone()),
                     "codes"            => core.codes.clone(),
                     "ids"              => core.ids.clone(),
                     "has"              => core.has.clone(),

@@ -384,7 +384,7 @@ pub struct Exchange {
     pub commonCurrencies:  Value,
     pub baseCurrencies:    Value,
     pub quoteCurrencies:   Value,
-    pub symbols:           Value,
+    pub symbols:           crate::value::List,
     pub ids:               Value,
     pub codes:             Value,
     pub timeframes:        Value,
@@ -732,7 +732,7 @@ impl Exchange {
             },
             baseCurrencies:    Value::Null,
             quoteCurrencies:   Value::Null,
-            symbols:           Value::Null,
+            symbols:           std::sync::Arc::new(Vec::new()),
             ids:               Value::Null,
             codes:             Value::Null,
             timeframes:        Value::Null,
@@ -999,7 +999,7 @@ impl Exchange {
         self.markets_by_id = Value::Map(
             by_id.into_iter().map(|(k, v)| (k, Value::Array(v))).collect()
         );
-        self.symbols       = Value::Array(symbols);
+        self.symbols       = std::sync::Arc::new(symbols);
     }
 
     // ── http client ─────────────────────────────────────────────────────────

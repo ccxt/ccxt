@@ -943,7 +943,7 @@ export default class derive extends deriveRest {
             const positionsSnapshot = await this.fetchPositions (undefined, snapshotParams);
             const cache = this.safeValue (this.positions, subaccountIdKey);
             for (let i = 0; i < positionsSnapshot.length; i++) {
-                const snapshotPosition = this.safeValue (positionsSnapshot, i);
+                const snapshotPosition = this.safeDict (positionsSnapshot, i);
                 cache.append (snapshotPosition);
             }
             loadedSnapshots[subaccountIdKey] = true;

@@ -600,7 +600,7 @@ export default class latoken extends Exchange {
         const rawCurrencies = this.toArray (response);
         const merged: List = [];
         for (let i = 0; i < rawCurrencies.length; i++) {
-            const rawCurrency = this.safeValue (rawCurrencies, i);
+            const rawCurrency = this.safeDict (rawCurrencies, i);
             const bindingEntry = this.safeDict (bindingsById, this.safeString (rawCurrency, 'id'));
             const bindings = this.safeList (bindingEntry, 'bindings');
             let mergedCurrency = rawCurrency;

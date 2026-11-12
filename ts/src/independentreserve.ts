@@ -345,8 +345,8 @@ export default class independentreserve extends Exchange {
         //     }
         //
         const result: List = [];
-        const baseCurrencyIds: List = this.toArray (this.safeValue (responses, 0));
-        const quoteCurrencyIds: List = this.toArray (this.safeValue (responses, 1));
+        const baseCurrencyIds: List = this.toArray (this.safeList (responses, 0));
+        const quoteCurrencyIds: List = this.toArray (this.safeList (responses, 1));
         for (let i = 0; i < baseCurrencyIds.length; i++) {
             const baseId = this.safeString (baseCurrencyIds, i, '');
             const base = this.safeCurrencyCode (baseId);

@@ -575,8 +575,8 @@ pub(crate) fn next_spawn_due() -> Option<std::time::Duration> {
 /// `client.reusable_future ()` return). Re-exported here because the generated
 /// venue files reach the base through `crate::exchange_stubs::…`, a path that
 /// resolves in both `ccxt-base` and `ccxt-pro`.
-pub async fn ws_await_flight(handle: &Value) -> Value {
-    crate::pro::ws_client::ws_await_flight(handle).await
+pub async fn ws_await_flight(handle: impl Into<crate::pro::ws_client::Flight>) -> Value {
+    crate::pro::ws_client::ws_await_flight(handle.into()).await
 }
 
 /// Queue an async WS handler for the drive loop to run. The sync
@@ -2404,7 +2404,7 @@ impl Exchange {
         put("commonCurrencies", &self.commonCurrencies);
         put("baseCurrencies", &self.baseCurrencies);
         put("quoteCurrencies", &self.quoteCurrencies);
-        put("symbols", &self.symbols);
+        put("symbols", &Value::from(&self.symbols));
         put("ids", &self.ids);
         put("codes", &self.codes);
         put("timeframes", &self.timeframes);

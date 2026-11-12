@@ -924,7 +924,7 @@ export default class whitebit extends Exchange {
             const entry = currencyIds[i];
             const splitEntry = entry.split (' ');
             const currencyId = splitEntry[0];
-            const feeInfo = this.safeValue (response, entry);
+            const feeInfo = this.safeDict (response, entry);
             const code = this.safeCurrencyCode (currencyId);
             if ((code !== undefined) && ((codesValue === undefined) || (this.inArray (code, codesValue)))) {
                 const depositWithdrawFee = this.safeDict (depositWithdrawFees, code);
@@ -2905,7 +2905,7 @@ export default class whitebit extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an amount when the ticker is fiat');
             }
             request['amount'] = amount;
-            const uniqueId = this.safeValue (params, 'uniqueId');
+            const uniqueId = this.safeString (params, 'uniqueId');
             if (uniqueId === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an uniqueId when the ticker is fiat');
             }
@@ -4291,7 +4291,7 @@ export default class whitebit extends Exchange {
         const publicHeaders: Dict = {};
         publicHeaders['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         const pathWithParams = '/' + this.implodeParams (path, params);
-        const apiUrl = this.safeString (this.safeValue (this.urls['api'], version), accessibility);
+        const apiUrl = this.safeString (this.safeDict (this.urls['api'], version), accessibility);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }

@@ -2568,7 +2568,7 @@ export default class ndax extends Exchange {
                 type = 'withdrawal';
             }
         }
-        const templateForm = this.parseJson (this.safeValue2 (transaction, 'TemplateForm', 'DepositInfo'));
+        const templateForm = this.parseJson (this.safeString2 (transaction, 'TemplateForm', 'DepositInfo'));
         let updated = this.safeInteger (transaction, 'LastUpdateTimeStamp');
         if (templateForm !== undefined) {
             updated = this.safeInteger (templateForm, 'LastUpdated', updated);

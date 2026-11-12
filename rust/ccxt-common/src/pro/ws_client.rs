@@ -1068,15 +1068,15 @@ impl ClientHandle {
     /// `key in client.futures`, read from the handle's snapshot.
     pub fn has_future<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(&self.futures, key.into()) }
     /// `client.futures[key]` (Null when absent).
-    pub fn get_future<'k>(&self, key: impl Into<Option<&'k str>>) -> Value { handle_get(&self.futures, key.into()) }
+    pub fn get_future<'k>(&self, key: impl Into<Option<&'k str>>) -> Flight { Flight::from(&handle_get(&self.futures, key.into())) }
     /// `Object.keys(client.futures)`.
     pub fn future_keys(&self) -> Vec<Value> {
         crate::runtime::object_keys(&self.futures).as_array().cloned().unwrap_or_default()
     }
-    pub fn future(&self, hash: impl Into<Value>) -> Value {
+    pub fn future(&self, hash: impl Into<Value>) -> Flight {
         self.value.future(hash)
     }
-    pub fn reusable_future(&self, hash: impl Into<Value>) -> Value {
+    pub fn reusable_future(&self, hash: impl Into<Value>) -> Flight {
         self.value.reusable_future(hash)
     }
 }
@@ -1091,20 +1091,65 @@ pub fn begin_flight(url: &str, hash: &str) -> bool {
 
 
 /// The `Value` a `client.future ()` / `client.reusableFuture ()` call hands
-/// back: enough to find the flight again (its client's url + the hash). TS
-/// returns a real Future object; a `Value` can't hold one, so the port returns
-/// a handle and `ws_await_flight` does the awaiting.
+/// back: enough to find the flight again (its client's url + the hash).
 pub fn flight_handle(url: &str, hash: &str, led: bool) -> Value {
-    let mut m = indexmap::IndexMap::new();
-    m.insert("url".to_string(), Value::Str(url.to_string().into()));
-    m.insert("__ws_flight_hash".to_string(), Value::Str(hash.to_string().into()));
-    // Whether the call that produced this handle opened the flight. A leader
-    // settles its own flight (and TS's `await future` resolves the instant it
-    // does), so it must never block on itself — including when the venue
-    // decides, after taking the lead, that there is no work to do because it
-    // is already subscribed (bitget's `authenticate`).
-    m.insert("__ws_flight_led".to_string(), Value::Bool(led));
-    Value::Map(m)
+    Value::from(Flight { url: Some(url.to_string()), hash: Some(hash.to_string()), led, entry: false })
+}
+
+/// A single-flight handle: what `client.future ()` / `client.reusableFuture ()` open (`entry` false) and what a
+/// `client.futures[hash]` read names (`entry` true). Await it with `ws_await_flight`; only an entry settles its
+/// hash through `resolve` / `reject`. A handle without a url or a hash names no flight.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct Flight {
+    pub url: Option<String>,
+    pub hash: Option<String>,
+    pub led: bool,
+    pub entry: bool,
+}
+
+impl Flight {
+    /// Settles through the same routing as the boxed handle (an entry settles its own hash).
+    pub fn resolve<'k>(&self, value: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value {
+        value_resolve(&Value::from(self), value.into(), hash.into())
+    }
+    pub fn reject<'k>(&self, err: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value {
+        value_reject(&Value::from(self), err.into(), hash.into())
+    }
+}
+
+/// The handle shape untyped code reads: `{url, __ws_flight_hash, __ws_flight_led}` or `{url, __ws_future_hash}`.
+impl From<&Flight> for Value {
+    fn from(f: &Flight) -> Value {
+        let (url, hash) = match (f.url.as_deref(), f.hash.as_deref()) {
+            (Some(u), Some(h)) => (u, h),
+            (_, h) => return Value::from(h),
+        };
+        let mut m = indexmap::IndexMap::new();
+        m.insert("url".to_string(), Value::from(url));
+        if f.entry {
+            m.insert("__ws_future_hash".to_string(), Value::from(hash));
+        } else {
+            m.insert("__ws_flight_hash".to_string(), Value::from(hash));
+            m.insert("__ws_flight_led".to_string(), Value::Bool(f.led));
+        }
+        Value::Map(m)
+    }
+}
+
+impl From<Flight> for Value {
+    fn from(f: Flight) -> Value { Value::from(&f) }
+}
+
+impl From<&Value> for Flight {
+    fn from(v: &Value) -> Flight {
+        let led = matches!(crate::get_value(v, &Value::Str("__ws_flight_led".into())), Value::Bool(true));
+        let entry = crate::get_value(v, &Value::Str("__ws_flight_hash".into())).is_null() && future_hash_of(v).is_some();
+        Flight { url: url_of(v), hash: flight_hash_of(v), led, entry }
+    }
+}
+
+impl From<&Flight> for Flight {
+    fn from(f: &Flight) -> Flight { Flight { url: f.url.as_deref().map(str::to_owned), hash: f.hash.as_deref().map(str::to_owned), led: f.led, entry: f.entry } }
 }
 
 /// The hash a flight handle refers to. Accepts the `futures_value ()` handle
@@ -1124,8 +1169,9 @@ fn flight_hash_of(handle: &Value) -> Option<String> {
 /// Returns the resolved value; a rejected flight panics with the error, which
 /// is how the port rethrows (the drive loop does the same with `take_settled`).
 /// A handle that names no flight returns `Value::Null` rather than hanging.
-pub async fn ws_await_flight(handle: &Value) -> Value {
-    let (url, hash) = match (url_of(handle), flight_hash_of(handle)) {
+pub async fn ws_await_flight(handle: impl Into<Flight>) -> Value {
+    let handle: Flight = handle.into();
+    let (url, hash) = match (handle.url, handle.hash) {
         (Some(u), Some(h)) => (u, h),
         _ => return Value::Null,
     };
@@ -1138,10 +1184,7 @@ pub async fn ws_await_flight(handle: &Value) -> Value {
     // reaches its trailing await, so take the value and go. Waiting here would
     // deadlock the (common) case where the venue took the lead and then found
     // it had nothing to do.
-    let led = matches!(
-        crate::get_value(handle, &Value::Str("__ws_flight_led".into())),
-        Value::Bool(true)
-    );
+    let led = handle.led;
     if led || !client.flight_is_open(&hash) {
         return match settled {
             Some(Ok(v)) => v,
