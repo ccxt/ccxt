@@ -2506,11 +2506,11 @@ impl Bitstamp {
     pub fn get_market_from_trade(&self, mut trade: Value) -> Value {
         let mut tradeOmitted: Value = self.omit(trade, Value::from(vec![Value::Str("fee".into()), Value::Str("price".into()), Value::Str("datetime".into()), Value::Str("tid".into()), Value::Str("type".into()), Value::Str("order_id".into()), Value::Str("side".into())]), &[]);
         let mut currencyIds: Vec<Value> = Value::Array(tradeOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut numCurrencyIds: f64 = ((currencyIds.len() as i64) as f64);
-        if numCurrencyIds > ((2i64) as f64) {
+        let mut numCurrencyIds: i64 = currencyIds.len() as i64;
+        if numCurrencyIds > 2 {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" getMarketFromTrade() too many keys: ".into())).into()), json_stringify(&currencyIds.clone().into())).into()), Value::Str(" in the trade: ".into())).into()), json_stringify(&tradeOmitted))));
         }
-        if (numCurrencyIds == 2.0) {
+        if (numCurrencyIds == 2) {
             let mut firstCurrencyId: String = self.safe_string(&currencyIds, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut secondCurrencyId: String = self.safe_string(&currencyIds, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketId: Value = Value::Str(format!("{}{}", firstCurrencyId, secondCurrencyId).into());
@@ -3736,7 +3736,7 @@ impl Bitstamp {
         if (code != Value::Null) {
             currency = self.currency(code);
         }
-        let mut transactions: Value = self.filter_by_array(response, Value::Str("type".into()), &[Value::from(vec![Value::Str("0".into()), Value::Str("1".into())]), Value::Bool(false)]);
+        let mut transactions: Value = self.filter_by_array(response, Value::Str("type".into()), Value::from(vec![Value::Str("0".into()), Value::Str("1".into())]), &[Value::Bool(false)]);
         return self.parse_transactions(transactions, &[currency, since, limit]);
         Value::Null
         }).await?))

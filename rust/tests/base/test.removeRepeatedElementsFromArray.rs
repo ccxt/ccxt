@@ -41,8 +41,8 @@ pub fn testRemoveRepeatedElementsFromArray() {
     m
 })]);
     let mut res1: Value = exchange.remove_repeated_elements_from_array(array1.clone(), &[Value::Bool(false)]);
-    let mut res1Length: Value = Value::Int(res1.len() as i64);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(res1Length.as_f64() == Some(3.0)))));
+    let mut res1Length: i64 = res1.len() as i64;
+    assert!(ccxt::runtime::is_true(&(Value::Bool(res1Length == 3))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&res1.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &Value::Str("uniq".into())).as_str() == Some("x1")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&res1.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), &Value::Str("uniq".into())).as_str() == Some("x2")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&res1.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null), &Value::Str("uniq".into())).as_str() == Some("x4")))));
@@ -73,8 +73,8 @@ pub fn testRemoveRepeatedElementsFromArray() {
     m
 })]);
     let mut res2: Value = exchange.remove_repeated_elements_from_array(array2.clone(), &[Value::Bool(true)]);
-    let mut res2Length: Value = Value::Int(res2.len() as i64);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(res2Length.as_f64() == Some(3.0)))));
+    let mut res2Length: i64 = res2.len() as i64;
+    assert!(ccxt::runtime::is_true(&(Value::Bool(res2Length == 3))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&res2.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &Value::Str("uniq".into())).as_str() == Some("x1")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&res2.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), &Value::Str("uniq".into())).as_str() == Some("x2")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&res2.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null), &Value::Str("uniq".into())).as_str() == Some("x4")))));

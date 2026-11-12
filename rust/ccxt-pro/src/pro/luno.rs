@@ -335,7 +335,7 @@ impl Luno {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -359,8 +359,8 @@ impl Luno {
         //     }
         //
         let mut rawTrades: crate::value::List = message.get("trade_updates").cloned().unwrap_or_default().into_list();
-        let mut length: f64 = ((rawTrades.len() as i64) as f64);
-        if (length == 0.0) {
+        let mut length: i64 = rawTrades.len() as i64;
+        if (length == 0) {
             return;
         }
         let mut symbol: Value = subscription.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -788,8 +788,8 @@ impl Luno {
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut subscriptions: Vec<Value> = object_values(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
-        let mut subscriptionsLength: f64 = ((subscriptions.len() as i64) as f64);
-        if (subscriptionsLength == 0.0) {
+        let mut subscriptionsLength: i64 = subscriptions.len() as i64;
+        if (subscriptionsLength == 0) {
             return;
         }
         let mut handlers: crate::value::List = std::sync::Arc::new(vec![Value::Str("handle_order_book".into()).clone(), Value::Str("handle_trades".into()).clone()]);

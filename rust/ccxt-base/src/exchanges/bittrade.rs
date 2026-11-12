@@ -1263,8 +1263,8 @@ impl Bittrade {
         //    }
         //
         let mut markets: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut numMarkets: f64 = ((markets.len() as i64) as f64);
-        if numMarkets < ((1i64) as f64) {
+        let mut numMarkets: i64 = markets.len() as i64;
+        if numMarkets < 1 {
             panic!("{}", crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() returned empty response: ".into())).into()), json_stringify(&Value::Arr(markets.clone())))));
         }
         let mut result: Vec<Value> = Vec::new();
@@ -1898,7 +1898,7 @@ impl Bittrade {
         }
         }
         result = self.sort_by(result.clone(), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(result, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(result, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3190,7 +3190,7 @@ impl Bittrade {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3206,7 +3206,7 @@ impl Bittrade {
         if (tagWithdrawTag.is_some()) {
             request.insert("addr-tag".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null)); // only for XRP?
         }
-        let mut network: Value = self.safe_string_upper_k(paramsWithdrawTag.clone(), "network", &[]);
+        let mut network: Value = self.safe_string_upper_k(&paramsWithdrawTag, "network", &[]);
         if (network != Value::Null) {
             network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]); // accepts aliases like ETH for ERC20
         }
@@ -3219,7 +3219,7 @@ impl Bittrade {
                 request.insert("chain".into(), Value::Str(format!("{}{}", network, currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
             }
         }
-        let mut paramsNetwork: Value = (if (network != Value::Null) { self.omit(paramsWithdrawTag.clone(), Value::Str("network".into()), &[]) } else { paramsWithdrawTag });
+        let mut paramsNetwork: Value = (if (network != Value::Null) { self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[]) } else { Value::from(&paramsWithdrawTag) });
         let __ws_arg_19 = self.extend(Value::Map(request), &[paramsNetwork]);
         let mut response: Value = self.private_post_dw_withdraw_api_create(&[__ws_arg_19]).await;
         return self.parse_transaction(response, &[currency]);

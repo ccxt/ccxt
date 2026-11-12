@@ -2146,7 +2146,7 @@ impl Modetrade {
             }));
         }
         }
-        return self.filter_by_symbol_since_limit(self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]), &[symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]), symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2434,7 +2434,7 @@ impl Modetrade {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.v1_public_get_public_futures(&[params]).await.into_dict();
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2460,7 +2460,7 @@ impl Modetrade {
             result.push(self.parse_open_interest(interest, &[]));
         }
         }
-        return self.index_by(self.filter_by_array(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(Value::from(result), Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(false)]), Value::Str("symbol".into()));
         Value::Null
         }).await?))
     }
@@ -2893,8 +2893,8 @@ impl Modetrade {
         if (childOrders.is_some()) {
             let mut first: crate::value::Dict = self.safe_dict(&childOrders, Value::Int(0), &[]).into_dict();
             let mut innerChildOrders: crate::value::List = self.safe_list_k(&first, "childOrders", &[Value::from(vec![])]).into_list();
-            let mut innerChildOrdersLength: f64 = ((innerChildOrders.len() as i64) as f64);
-            if innerChildOrdersLength > ((0i64) as f64) {
+            let mut innerChildOrdersLength: i64 = innerChildOrders.len() as i64;
+            if innerChildOrdersLength > 0 {
                 let mut takeProfitOrder: crate::value::Dict = self.safe_dict(&innerChildOrders, Value::Int(0), &[]).into_dict();
                 let mut stopLossOrder: crate::value::Dict = self.safe_dict(&innerChildOrders, Value::Int(1), &[]).into_dict();
                 takeProfitPrice = self.safe_number_k(&takeProfitOrder, "triggerPrice", &[]);
@@ -3359,9 +3359,9 @@ impl Modetrade {
             if (side != Value::Null) {
                 request.insert("side".into(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             }
-            let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+            let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
             let mut timeInForce: Option<String> = self.safe_string_lower_k(paramsOmitted.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-            let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
+            let mut isMarket: Value = Value::Bool(orderType == "MARKET");
             let mut postOnly: bool = self.is_post_only(isMarket, Value::Null, &[paramsOmitted.clone()]).as_bool() == Some(true);
             if postOnly {
                 request.insert("order_type".into(), Value::Str("POST_ONLY".into()));
@@ -3370,7 +3370,7 @@ impl Modetrade {
             }  else if (timeInForce.as_deref() == Some("ioc")) {
                 request.insert("order_type".into(), Value::Str("IOC".into()));
             }  else {
-                request.insert("order_type".into(), orderType);
+                request.insert("order_type".into(), Value::from(orderType));
             }
             let mut clientOrderId: Option<String> = self.safe_string_n(paramsOmitted.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
             let mut paramsOrder: crate::value::Dict = self.omit(paramsOmitted, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into())]), &[]).into_dict();
@@ -4540,7 +4540,7 @@ impl Modetrade {
             privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
         let mut r: Value = self.safe_string_k(signature.clone(), "r", &[Value::Str("".into())]);
         let mut s: Value = self.safe_string_k(signature.clone(), "s", &[Value::Str("".into())]);
-        let mut v: Value = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
+        let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), v).into()).as_str().map(str::to_owned);
 }
 
@@ -4577,11 +4577,11 @@ impl Modetrade {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.check_address(&[address.clone()]);
-        let mut codeUpper: Value = (if let Some(__s) = code.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        if (codeUpper.as_str() != Some("USDC")) {
+        let mut codeUpper: String = code.as_str().unwrap_or_default().to_string().to_uppercase();
+        if (codeUpper != "USDC") {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".into()))));
         }
-        let mut currency: Value = self.currency(codeUpper.clone());
+        let mut currency: Value = self.currency(Value::from(codeUpper.clone()));
         let mut verifyingContractAddress: Option<String> = self.safe_string_k(self.options.clone(), "verifyingContractAddress", &[]).as_str().map(str::to_owned);
         let mut chainId: Option<String> = self.safe_string_k(params.clone(), "chainId", &[]).as_str().map(str::to_owned);
         let mut currencyNetworks: crate::value::Dict = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
@@ -4654,7 +4654,7 @@ impl Modetrade {
                 m.insert("brokerId".to_string(), self.safe_string_k(self.options.clone(), "keyBrokerId", &[Value::Str("mode".into())]));
                 m.insert("chainId".to_string(), self.parse_to_int(chainId.map(Value::from).unwrap_or(Value::Null)));
                 m.insert("receiver".to_string(), address.clone());
-                m.insert("token".to_string(), codeUpper);
+                m.insert("token".to_string(), Value::from(codeUpper));
                 m.insert("amount".to_string(), self.number_to_string(amount));
                 m.insert("withdrawNonce".to_string(), withdrawNonce);
                 m.insert("timestamp".to_string(), nonce);
@@ -5042,7 +5042,7 @@ impl Modetrade {
         let section = section.as_array().unwrap_or(&__section_empty);
         let mut version: Value = section.get(0).cloned().unwrap_or(Value::Null);
         let mut access: Option<String> = section.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut pathWithParams: Value = self.implode_params(path.clone(), params.clone());
+        let mut pathWithParams: Value = Value::from(self.implode_params(path.clone(), params.clone()));
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), access.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));

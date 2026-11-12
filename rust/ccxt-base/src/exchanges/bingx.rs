@@ -2684,9 +2684,9 @@ impl Bingx {
         let mut maxLimit: Value = (if matches!((self.safe_bool_k((market).raw.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) { Value::Int(1000) } else { Value::Int(1440) });
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), maxLimit.clone()]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), maxLimit.clone()]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2701,8 +2701,8 @@ impl Bingx {
         if (limit != Value::Null) {
             request.insert("limit".into(), requestLimit.clone());
         }
-        let mut until: Option<i64> = self.safe_integer2(paramsPaginate.clone(), Value::Str("until".into()), Value::Str("endTime".into()), &[]).as_i64();
-        let mut paramsUntil: Value = (if (until.is_some()) { self.omit(paramsPaginate.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { paramsPaginate });
+        let mut until: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("endTime".into()), &[]).as_i64();
+        let mut paramsUntil: Value = (if (until.is_some()) { self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]) } else { Value::from(&paramsPaginate) });
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }  else if matches!((self.safe_bool_k((market).raw.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) && (since != Value::Null) {
@@ -3551,9 +3551,9 @@ impl Bingx {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsSubType, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingHistory".into()), &[symbol, since.clone(), limit.clone(), Value::Str("24h".into()), paramsPaginate.clone()]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingHistory".into()), &[symbol, since.clone(), limit.clone(), Value::Str("24h".into()), Value::from(&paramsPaginate)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3569,8 +3569,8 @@ impl Bingx {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let mut until: Option<i64> = self.safe_integer2(paramsPaginate.clone(), Value::Str("until".into()), Value::Str("endTime".into()), &[]).as_i64();
-        let mut paramsUntil: Value = (if (until.is_some()) { self.omit(paramsPaginate.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { paramsPaginate });
+        let mut until: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("endTime".into()), &[]).as_i64();
+        let mut paramsUntil: Value = (if (until.is_some()) { self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]) } else { Value::from(&paramsPaginate) });
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
@@ -3882,16 +3882,16 @@ impl Bingx {
             m
         });
         let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
-        let mut symbolsLength: Value = (if (symbolsNormalized.is_none()) { Value::Int(0) } else { Value::Int(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) });
+        let mut symbolsLength: i64 = (if (symbolsNormalized.is_none()) { 0 } else { symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64 });
         if (type_var.as_deref() == Some("spot")) {
-            if (market != Value::Null) && (symbolsLength.as_f64() == Some(1.0)) {
+            if (market != Value::Null) && (symbolsLength == 1) {
                 request.insert("symbol".into(), self.safe_string_k(market.clone(), "id", &[]));
             }
             let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             let mut response: crate::value::Dict = self.spot_v2_public_get_quote_book_ticker(&[__ws_arg_18]).await.into_dict();
             rows = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         }  else {
-            if (market == Value::Null) || matches!((self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) || (symbolsLength.as_f64() != Some(1.0)) {
+            if (market == Value::Null) || matches!((self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) || (symbolsLength != 1) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchBidsAsks() requires exactly one linear swap symbol for contract markets".into()))));
             }
             request.insert("symbol".into(), self.safe_string_k(market.clone(), "id", &[]));
@@ -3907,7 +3907,7 @@ impl Bingx {
 })])]);
         }
         // a multi-symbol spot response holds every listed pair, the first symbol's market must not label unknown rows
-        let mut rowMarket: Value = (if (symbolsLength.as_f64() == Some(1.0)) { market } else { Value::Null });
+        let mut rowMarket: Value = (if (symbolsLength == 1) { market } else { Value::Null });
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -4526,7 +4526,7 @@ impl Bingx {
         })]).into_dict();
         let mut records: crate::value::List = self.safe_list_k(&data, "positionHistory", &[Value::from(vec![])]).into_list();
         let mut positions: Value = self.parse_positions(&records, &[]);
-        return self.filter_by_symbol_since_limit(positions, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(positions, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4928,7 +4928,7 @@ impl Bingx {
         let mut timeInForce: Option<String> = self.safe_string_upper_k(&paramsMarketType, "timeInForce", &[]).as_str().map(str::to_owned);
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(timeInForce.as_deref() == Some("PostOnly")), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if postOnly || (timeInForce.as_deref() == Some("PostOnly")) {
             request.insert("timeInForce".into(), Value::Str("PostOnly".into()));
         }  else if (timeInForce.as_deref() == Some("IOC")) {
@@ -4938,7 +4938,7 @@ impl Bingx {
         }
         let mut paramsOrder: Value = Value::Null;
         if isSpot {
-            paramsOrder = self.omit(paramsPostOnly.clone(), Value::from(vec![Value::Str("cost".into()), Value::Str("quoteOrderQty".into())]), &[]);
+            paramsOrder = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("cost".into()), Value::Str("quoteOrderQty".into())]), &[]);
             if (cost.is_some()) {
                 request.insert("quoteOrderQty".into(), self.parse_to_numeric(self.cost_to_precision(symbol.clone(), cost.clone().map(Value::from).unwrap_or(Value::Null))));
             }  else {
@@ -4986,26 +4986,26 @@ impl Bingx {
                         m.insert("totalAmount".to_string(), self.parse_to_numeric(self.amount_to_precision(symbol.clone(), amount.clone())));
                     m
                 });
-                return self.extend(Value::Map(twapRequest), &[paramsPostOnly.clone()]);
+                return self.extend(Value::Map(twapRequest), &[&paramsPostOnly]);
             }
             if (timeInForce.as_deref() == Some("FOK")) {
                 request.insert("timeInForce".into(), Value::Str("FOK".into()));
             }
-            let mut trailingAmount: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "trailingAmount", &[]).as_str().map(str::to_owned);
-            let mut trailingPercent: Option<String> = self.safe_string2(paramsPostOnly.clone(), Value::Str("trailingPercent".into()), Value::Str("priceRate".into()), &[]).as_str().map(str::to_owned);
-            let mut trailingType: String = self.safe_string_k(paramsPostOnly.clone(), "trailingType", &[Value::Str("TRAILING_STOP_MARKET".into())]).as_str().unwrap_or("TRAILING_STOP_MARKET").to_string();
-            let mut trailingTriggerPrice: Option<String> = self.safe_string2(paramsPostOnly.clone(), Value::Str("trailingTriggerPrice".into()), Value::Str("activationPrice".into()), &[]).as_str().map(str::to_owned);
+            let mut trailingAmount: Option<String> = self.safe_string_k(&paramsPostOnly, "trailingAmount", &[]).as_str().map(str::to_owned);
+            let mut trailingPercent: Option<String> = self.safe_string2(Value::from(&paramsPostOnly), Value::Str("trailingPercent".into()), Value::Str("priceRate".into()), &[]).as_str().map(str::to_owned);
+            let mut trailingType: String = self.safe_string_k(&paramsPostOnly, "trailingType", &[Value::Str("TRAILING_STOP_MARKET".into())]).as_str().unwrap_or("TRAILING_STOP_MARKET").to_string();
+            let mut trailingTriggerPrice: Option<String> = self.safe_string2(Value::from(&paramsPostOnly), Value::Str("trailingTriggerPrice".into()), Value::Str("activationPrice".into()), &[]).as_str().map(str::to_owned);
             let mut isTrailingAmountOrder: bool = trailingAmount.is_some();
             let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
             let mut isTrailing: bool = isTrailingAmountOrder || isTrailingPercentOrder;
-            let mut stopLossDict: Option<crate::value::Dict> = self.safe_dict_k(paramsPostOnly.clone(), "stopLoss", &[]).into_opt_dict();
-            let mut takeProfitDict: Option<crate::value::Dict> = self.safe_dict_k(paramsPostOnly.clone(), "takeProfit", &[]).into_opt_dict();
+            let mut stopLossDict: Option<crate::value::Dict> = self.safe_dict_k(&paramsPostOnly, "stopLoss", &[]).into_opt_dict();
+            let mut takeProfitDict: Option<crate::value::Dict> = self.safe_dict_k(&paramsPostOnly, "takeProfit", &[]).into_opt_dict();
             let mut hasStopLoss: bool = stopLossDict.is_some();
             let mut hasTakeProfit: bool = takeProfitDict.is_some();
             // only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
-            let mut paramsStopLoss: Value = paramsPostOnly.clone();
+            let mut paramsStopLoss: Value = Value::from(&paramsPostOnly);
             if hasStopLoss {
-                paramsStopLoss = self.omit(paramsPostOnly, Value::Str("stopLoss".into()), &[]);
+                paramsStopLoss = self.omit(&paramsPostOnly, Value::Str("stopLoss".into()), &[]);
             }
             let mut paramsTakeProfit: Value = paramsStopLoss.clone();
             if hasTakeProfit {
@@ -5389,7 +5389,7 @@ impl Bingx {
         }
         }
         let mut symbols: crate::value::List = self.market_symbols(&[Value::from(marketIds), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_list();
-        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
+        let mut symbolsLength: i64 = symbols.len() as i64;
         let mut market: crate::types::Market = (match self.market((symbols.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if ((market).inverse == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() is not supported for inverse swap markets".into()))));
@@ -5400,7 +5400,7 @@ impl Bingx {
         });
         let mut response: Value = Value::Null;
         if (market).swap {
-            if symbolsLength > ((5i64) as f64) {
+            if symbolsLength > 5 {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrders() can not create more than 5 orders at once for swap markets".into()))));
             }
             request.insert("batchOrders".into(), json_stringify(&Value::from(ordersRequests.clone())));
@@ -7568,15 +7568,15 @@ impl Bingx {
         if (Value::from((market).market_type.clone()).as_str() != Some("swap")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() supports swap contracts only".into()))));
         }
-        let mut marginModeUpper: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        let mut marginModeValue: Value = (if (marginModeUpper.as_str() == Some("CROSS")) { Value::Str("CROSSED".into()) } else { marginModeUpper });
-        if (marginModeValue.as_str() != Some("ISOLATED")) && (marginModeValue.as_str() != Some("CROSSED")) {
+        let mut marginModeUpper: String = marginMode.as_str().unwrap_or_default().to_string().to_uppercase();
+        let mut marginModeValue: String = (if (marginModeUpper == "CROSS") { "CROSSED".to_string() } else { marginModeUpper });
+        if (marginModeValue != "ISOLATED") && (marginModeValue != "CROSSED") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode argument should be isolated or cross".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
-                m.insert("marginType".to_string(), marginModeValue);
+                m.insert("marginType".to_string(), Value::from(marginModeValue));
             m
         });
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("setMarginMode".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
@@ -9081,7 +9081,7 @@ impl Bingx {
         if isSandbox && (url == Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have a testnet/sandbox URL for ".into())).into()), type_var).into()), Value::Str(" endpoints".into()))));
         }
-        let mut pathValue: Value = self.implode_params(path, params.clone());
+        let mut pathValue: Value = Value::from(self.implode_params(path, params.clone()));
         let mut versionIsTransfer: bool = version.as_str() == Some("transfer");
         let mut versionIsAsset: bool = version.as_str() == Some("asset");
         if versionIsTransfer || versionIsAsset {

@@ -1318,8 +1318,8 @@ impl Gemini {
             while { if !__for_first_712 { i += 1; } __for_first_712 = false; (i as f64) < numRows } {
             let mut row: Option<String> = rows.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut cells: Value = Value::Array(if let Some(__s) = row.as_deref() { __s.split("</td>\n").map(Value::from).collect() } else { Vec::new() }); // eslint-disable-line quotes
-            let mut numCells: f64 = ((cells.len() as i64) as f64);
-            if numCells < ((5i64) as f64) {
+            let mut numCells: i64 = cells.len() as i64;
+            if numCells < 5 {
                 panic!("{}", crate::exchange_errors::not_supported(error.clone()));
             }
             //     [

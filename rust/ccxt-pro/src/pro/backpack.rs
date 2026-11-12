@@ -546,8 +546,8 @@ impl Backpack {
             }
             client.add_subscription(&subscriptionKey, subscriptions.clone());
             let mut subscriptionHashes: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
-            let mut subscriptionsLength: f64 = ((subscriptionHashes.len() as i64) as f64);
-            if !unwatch || (subscriptionsLength == 0.0) {
+            let mut subscriptionsLength: i64 = subscriptionHashes.len() as i64;
+            if !unwatch || (subscriptionsLength == 0) {
                 if !(self.in_array(Value::from(topic.clone()), topics.clone()).as_bool() == Some(true)) {
                     if let Value::Arr(__a) = &mut topics { std::sync::Arc::make_mut(__a).push(Value::from(topic)); };
                 }
@@ -555,14 +555,14 @@ impl Backpack {
             symbolsResolved.push(symbol);
         }
         }
-        let mut symbolsResolvedLength: f64 = ((symbolsResolved.len() as i64) as f64);
-        if (symbolsResolvedLength == 0.0) {
+        let mut symbolsResolvedLength: i64 = symbolsResolved.len() as i64;
+        if (symbolsResolvedLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires at least one matching market".into()))));
         }
         let mut payload: Value = self.omit(query, Value::from(vec![Value::Str("stock".into()), Value::Str("source".into()), Value::Str("interval".into()), Value::Str("channel".into())]), &[]);
         if unwatch {
-            let mut topicsLength: f64 = ((topics.len() as i64) as f64);
-            if topicsLength > ((0i64) as f64) {
+            let mut topicsLength: i64 = topics.len() as i64;
+            if topicsLength > 0 {
                 let mut request: Value = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
@@ -577,9 +577,9 @@ impl Backpack {
             self.watch_public(topics, Value::from(messageHashes), &[payload]).await;
         }
         if bidAsk.as_bool() == Some(true) {
-            return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::from(symbolsResolved)]);
+            return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), Value::from(symbolsResolved), &[]);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::from(symbolsResolved)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), Value::from(symbolsResolved), &[]);
 
     Value::Null
 }
@@ -1325,7 +1325,7 @@ impl Backpack {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = candles.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(candles, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
         Value::Null
         }).await?))
@@ -1526,8 +1526,8 @@ impl Backpack {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
-        let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".into()))));
         }
         let mut topics: Vec<Value> = Vec::new();
@@ -1550,7 +1550,7 @@ impl Backpack {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        let mut result: Value = self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut result: Value = self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         return self.sort_by(result, Value::Str("timestamp".into()), &[]);
         Value::Null
         }).await?))
@@ -1583,8 +1583,8 @@ impl Backpack {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
-        let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unWatchTradesForSymbols() requires a non-empty array of symbols".into()))));
         }
         let mut topics: Vec<Value> = Vec::new();
@@ -2039,7 +2039,7 @@ impl Backpack {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         if matches!(self.safe_bool_k(query, "stock", &[Value::Bool(false)]), Value::Bool(true)) {
             return self.parent.filter_stock_structures(filtered.clone());
         }
@@ -2487,7 +2487,7 @@ impl Backpack {
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

@@ -1660,9 +1660,9 @@ impl Derive {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut totalCount: Value = self.safe_integer_k(&pagination, "count", &[Value::Int(0)]); // not named count: that collides with the php builtin the length mapping expands to
-            let mut collected: f64 = ((allInstruments.len() as i64) as f64);
-            if collected >= totalCount.as_f64().unwrap_or(f64::NAN) {
+            let mut totalCount: i64 = self.safe_integer_k(&pagination, "count", &[Value::Int(0)]).as_i64().unwrap_or(0); // not named count: that collides with the php builtin the length mapping expands to
+            let mut collected: i64 = allInstruments.len() as i64;
+            if collected >= totalCount {
                 break;
             }
         }
@@ -2226,7 +2226,7 @@ impl Derive {
         let mut expiries: Value = self.safe_list_k(&result, "expiries", &[Value::from(vec![])]);
         let mut settlements: Value = self.parse_settlements(expiries, &[Value::Null]);
         let mut sorted: Value = self.sort_by(settlements, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_since_limit(sorted, &[since, limit]);
+        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -2295,7 +2295,7 @@ impl Derive {
         let mut parsed: Value = self.parse_settlements(settlements, &[market.clone()]);
         let mut sorted: Value = self.sort_by(parsed, Value::Str("timestamp".into()), &[]);
         let mut symbolResolved: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        return self.filter_by_symbol_since_limit(sorted, &[symbolResolved, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbolResolved.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -2630,7 +2630,7 @@ impl Derive {
         }
         result = self.sort_by2(result.clone(), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
         let mut symbol: Option<String> = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(result, &[symbol.map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(result, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -2918,7 +2918,7 @@ impl Derive {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3067,7 +3067,7 @@ impl Derive {
             privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
         let mut r: Value = self.safe_string_k(signature.clone(), "r", &[Value::Str("".into())]);
         let mut s: Value = self.safe_string_k(signature.clone(), "s", &[Value::Str("".into())]);
-        let mut v: Value = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
+        let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), v).into()).as_str().map(str::to_owned);
 }
 
@@ -3685,7 +3685,7 @@ impl Derive {
         if paginate {
             // paginate without a symbol: the venue cannot filter the order history by instrument, so an inner call filtering by symbol could return an empty page and stop the pagination loop prematurely
             let mut allOrders: Value = self.fetch_paginated_call_incremental(Value::Str("fetchCanceledAndClosedOrders".into()), &[Value::Null, since.clone(), Value::Null, Value::from(&paramsPaginate), Value::Str("page".into()), Value::Int(500)]).await;
-            return self.filter_by_symbol_since_limit(allOrders, &[symbol.clone(), since.clone(), limit.clone()]);
+            return self.filter_by_symbol_since_limit(allOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
@@ -3776,7 +3776,7 @@ impl Derive {
         }
         let mut orders: Value = self.safe_list_k(&data, "orders", &[Value::from(vec![])]);
         let mut parsedOrders: Value = self.parse_orders(orders, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
-        return self.filter_by_symbol_since_limit(parsedOrders, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(parsedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3933,7 +3933,7 @@ impl Derive {
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "result", &[]).into_dict();
         let mut orders: Value = self.safe_list_k(&data, "orders", &[Value::from(vec![])]);
         let mut parsedOrders: Value = self.parse_orders(orders, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
-        return self.filter_by_symbol_since_limit(parsedOrders, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(parsedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

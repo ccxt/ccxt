@@ -456,7 +456,7 @@ impl Coinbase {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut productIds: Vec<Value> = Vec::new();
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         {
                         let mut i: i64 = 0;
@@ -466,7 +466,7 @@ impl Coinbase {
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: Value = Value::from((market).id.clone());
             productIds.push(marketId);
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
         }
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
@@ -481,7 +481,7 @@ impl Coinbase {
             let __ws_arg_2 = self.create_ws_auth(name, Value::from(productIds));
             subscribe = self.extend(subscribe.clone(), &[__ws_arg_2]);
         }
-        return self.watch_multiple(url, messageHashes.clone(), &[subscribe, messageHashes.clone()]).await;
+        return self.watch_multiple(url, &messageHashes, &[subscribe, Value::Arr(messageHashes.clone())]).await;
 
     Value::Null
 }
@@ -946,7 +946,7 @@ impl Coinbase {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1046,7 +1046,7 @@ impl Coinbase {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1115,7 +1115,7 @@ impl Coinbase {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1182,7 +1182,7 @@ impl Coinbase {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1653,8 +1653,8 @@ impl Coinbase {
         })]).into_dict();
         let mut isUnsub: bool = firstEvent.contains_key("subscriptions");
         let mut subKeys: Vec<Value> = object_keys(&crate::value::KeyRead::key_read(&&firstEvent, "subscriptions")).as_array().cloned().unwrap_or_default();
-        let mut subKeysLength: f64 = ((subKeys.len() as i64) as f64);
-        if isUnsub && (subKeysLength == 0.0) {
+        let mut subKeysLength: i64 = subKeys.len() as i64;
+        if isUnsub && (subKeysLength == 0) {
             let mut unSubObject: Value = self.safe_dict_k(self.options.clone(), "unSubscription", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

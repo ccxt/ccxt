@@ -485,8 +485,8 @@ impl Cex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut currentSymbol: Option<String> = self.safe_string_opt(self.options.as_map().and_then(|__m| __m.get("watchTrades")).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]);
-        if (currentSymbol.is_some()) && (currentSymbol.as_deref() != symbol.as_str()) {
+        let mut currentSymbol: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("watchTrades")).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
+        if (currentSymbol.is_some()) && (currentSymbol.as_deref() != Some(symbol.as_str().unwrap_or_default().to_string().as_str())) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance".into()))));
         }
         if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("watchTrades".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("symbol".to_string(), symbol.clone()); } }
@@ -527,7 +527,7 @@ impl Cex {
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut trades: Value = self.watch(url.as_str(), messageHash.as_str(), &[request, subscriptionHash]).await;
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -730,7 +730,7 @@ impl Cex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -963,7 +963,7 @@ impl Cex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolValue, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolValue.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1017,7 +1017,7 @@ impl Cex {
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut orders: Value = self.watch(url.as_str(), messageHash.as_str(), &[request.clone(), Value::from(subscriptionHash), request]).await;
-        return self.filter_by_symbol_since_limit(orders, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(orders, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -1475,8 +1475,8 @@ impl Cex {
         }
         }
         let mut messageHash: String = format!("{}{}", Value::Str("orders:".into()), symbol);
-        let mut ordersLength: Value = get_array_length(&myOrders);
-        if ordersLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+        let mut ordersLength: i64 = get_array_length(&myOrders).as_i64().unwrap_or_default();
+        if ordersLength > 0 {
             client.resolve(myOrders, messageHash.as_str());
         }
 }
@@ -1712,7 +1712,7 @@ impl Cex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1847,8 +1847,8 @@ impl Cex {
             stored.append(ohlcv);
         }
         }
-        let mut dataLength: f64 = ((data.len() as i64) as f64);
-        if dataLength > ((0i64) as f64) {
+        let mut dataLength: i64 = data.len() as i64;
+        if dataLength > 0 {
             client.resolve(stored, messageHash.as_str());
         }
 }

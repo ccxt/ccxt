@@ -1886,8 +1886,8 @@ impl Latoken {
         let mut side: Option<String> = None;
         if (orderSide.is_some()) {
             let mut parts: Value = Value::Array(if let Some(__s) = orderSide.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-            let mut partsLength: Value = Value::Int(parts.len() as i64);
-            side = self.safe_string_lower(parts, (match (&(partsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).as_str().map(str::to_owned);
+            let mut partsLength: i64 = parts.len() as i64;
+            side = self.safe_string_lower(parts, Value::Int((partsLength - 1)), &[]).as_str().map(str::to_owned);
         }
         let mut type_var: Value = self.parse_order_type(self.safe_string_k(order.clone(), "type", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
@@ -2141,7 +2141,7 @@ impl Latoken {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut uppercaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2149,13 +2149,13 @@ impl Latoken {
                 m.insert("quoteCurrency".to_string(), Value::from((market).quote_id.clone()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("condition".to_string(), Value::Str("GTC".into()));
-                m.insert("type".to_string(), uppercaseType.clone());
+                m.insert("type".to_string(), Value::from(uppercaseType.clone()));
                 m.insert("clientOrderId".to_string(), self.uuid(&[]));
                 m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
                 m.insert("timestamp".to_string(), self.seconds());
             m
         });
-        if (uppercaseType.as_str() == Some("LIMIT")) {
+        if (uppercaseType == "LIMIT") {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
         }
         let mut triggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);

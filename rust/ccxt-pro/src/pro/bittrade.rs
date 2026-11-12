@@ -351,7 +351,7 @@ impl Bittrade {
                 m.insert("hostname".to_string(), self.hostname.clone());
             m
         });
-        let mut url: Option<String> = self.implode_params(apiWsUrls.get("public").cloned().unwrap_or(Value::Null), Value::Map(hostname)).as_str().map(str::to_owned);
+        let mut url: String = self.implode_params(apiWsUrls.get("public").cloned().unwrap_or(Value::Null), Value::Map(hostname));
         let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -368,7 +368,7 @@ impl Bittrade {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_0, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
+        return self.watch(url.as_str(), &messageHash[..], &[__ws_arg_0, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -466,7 +466,7 @@ impl Bittrade {
                 m.insert("hostname".to_string(), self.hostname.clone());
             m
         });
-        let mut url: Option<String> = self.implode_params(apiWsUrls.get("public").cloned().unwrap_or(Value::Null), Value::Map(hostname)).as_str().map(str::to_owned);
+        let mut url: String = self.implode_params(apiWsUrls.get("public").cloned().unwrap_or(Value::Null), Value::Map(hostname));
         let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -483,12 +483,12 @@ impl Bittrade {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_1, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
+        let mut trades: Value = self.watch(url.as_str(), &messageHash[..], &[__ws_arg_1, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -597,7 +597,7 @@ impl Bittrade {
                 m.insert("hostname".to_string(), self.hostname.clone());
             m
         });
-        let mut url: Option<String> = self.implode_params(apiWsUrls.get("public").cloned().unwrap_or(Value::Null), Value::Map(hostname)).as_str().map(str::to_owned);
+        let mut url: String = self.implode_params(apiWsUrls.get("public").cloned().unwrap_or(Value::Null), Value::Map(hostname));
         let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -615,12 +615,12 @@ impl Bittrade {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_2, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
+        let mut ohlcv: Value = self.watch(url.as_str(), &messageHash[..], &[__ws_arg_2, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -721,7 +721,7 @@ impl Bittrade {
                 m.insert("hostname".to_string(), self.hostname.clone());
             m
         });
-        let mut url: Option<String> = self.implode_params(apiWsUrls.get("public").cloned().unwrap_or(Value::Null), Value::Map(hostname)).as_str().map(str::to_owned);
+        let mut url: String = self.implode_params(apiWsUrls.get("public").cloned().unwrap_or(Value::Null), Value::Map(hostname));
         let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -740,7 +740,7 @@ impl Bittrade {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_3, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
+        let mut orderbook: Value = self.watch(url.as_str(), &messageHash[..], &[__ws_arg_3, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -821,7 +821,7 @@ impl Bittrade {
                     m.insert("hostname".to_string(), self.hostname.clone());
                 m
             });
-            let mut url: Option<String> = self.implode_params(apiWsUrls.get("public").cloned().unwrap_or(Value::Null), Value::Map(hostname)).as_str().map(str::to_owned);
+            let mut url: String = self.implode_params(apiWsUrls.get("public").cloned().unwrap_or(Value::Null), Value::Map(hostname));
             let mut requestId: i64 = self.request_id().as_i64().unwrap_or_default();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -841,7 +841,7 @@ impl Bittrade {
                     m.insert("method".to_string(), Value::Str("handle_order_book_snapshot".into()).clone());
                 m
             });
-            let mut orderbook: Value = self.watch(url.as_deref(), Value::Str(format!("{}", requestId).into()), &[Value::Map(request), Value::Str(format!("{}", requestId).into()), Value::Map(snapshotSubscription)]).await;
+            let mut orderbook: Value = self.watch(url.as_str(), Value::Str(format!("{}", requestId).into()), &[Value::Map(request), Value::Str(format!("{}", requestId).into()), Value::Map(snapshotSubscription)]).await;
             return orderbook.limit();
          #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 

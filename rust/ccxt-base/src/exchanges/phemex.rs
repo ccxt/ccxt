@@ -2952,15 +2952,15 @@ impl Phemex {
         let mut orderId: Option<String> = None;
         let mut takerOrMaker: Option<String> = None;
         if (matches!(&trade, Value::Arr(_))) {
-            let mut tradeLength: Value = Value::Int(trade.len() as i64);
+            let mut tradeLength: i64 = trade.len() as i64;
             timestamp = self.safe_integer_product(trade.clone(), Value::Int(0), Value::Float(0.000001), &[]);
-            if tradeLength.as_f64().unwrap_or(f64::NAN) > ((4i64) as f64) {
-                id = self.safe_string(trade.clone(), (match (&(tradeLength), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).as_str().map(str::to_owned);
+            if tradeLength > 4 {
+                id = self.safe_string(trade.clone(), Value::Int((tradeLength - 4)), &[]).as_str().map(str::to_owned);
             }
-            side = self.safe_string_lower(trade.clone(), (match (&(tradeLength), &(Value::Int(3))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).as_str().map(str::to_owned);
-            priceString = self.safe_string(trade.clone(), (match (&(tradeLength), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
-            amountString = self.safe_string(trade.clone(), (match (&(tradeLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
-            let mut priceAmount: Value = get_value(&trade, &(match (&(tradeLength), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            side = self.safe_string_lower(trade.clone(), Value::Int((tradeLength - 3)), &[]).as_str().map(str::to_owned);
+            priceString = self.safe_string(trade.clone(), Value::Int((tradeLength - 2)), &[]);
+            amountString = self.safe_string(trade.clone(), Value::Int((tradeLength - 1)), &[]);
+            let mut priceAmount: Value = get_value(&trade, &Value::Int((tradeLength - 2)));
             if matches!(&priceAmount, Value::Int(_) | Value::Float(_)) {
                 priceString = self.from_ep(priceString.clone(), &[marketResolved.clone()]);
                 amountString = self.from_ev(amountString.clone(), &[marketResolved.clone()]);
@@ -4388,8 +4388,8 @@ impl Phemex {
         })]);
         let mut order: Value = data.clone();
         if (matches!(&data, Value::Arr(_))) {
-            let mut numOrders: f64 = ((data.len() as i64) as f64);
-            if numOrders < ((1i64) as f64) {
+            let mut numOrders: i64 = data.len() as i64;
+            if numOrders < 1 {
                 if (clientOrderId.is_some()) {
                     panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() ".into())).into()), symbol).into()), Value::Str(" order with clientOrderId ".into())).into()),
                         clientOrderId.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" not found".into()))));
@@ -4403,8 +4403,8 @@ impl Phemex {
 })]);
         }  else if (market).spot {
             let mut rows: crate::value::List = self.safe_list_k(data, "rows", &[Value::from(vec![])]).into_list();
-            let mut numRows: f64 = ((rows.len() as i64) as f64);
-            if numRows < ((1i64) as f64) {
+            let mut numRows: i64 = rows.len() as i64;
+            if numRows < 1 {
                 if (clientOrderId.is_some()) {
                     panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() ".into())).into()), symbol).into()), Value::Str(" order with clientOrderId ".into())).into()),
                         clientOrderId.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" not found".into()))));
@@ -5442,7 +5442,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut positions: Value = self.parse_positions(&data, &[Value::from(vec![symbolValue.clone()])]);
-        return self.filter_by_symbol_since_limit(positions, &[symbolValue, since, limit]);
+        return self.filter_by_symbol_since_limit(positions, symbolValue.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -6015,8 +6015,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !(market).swap {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() supports swap contracts only".into()))));
         }
-        let mut marginModeValue: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        if (marginModeValue.as_str() != Some("isolated")) && (marginModeValue.as_str() != Some("cross")) {
+        let mut marginModeValue: String = marginMode.as_str().unwrap_or_default().to_string().to_lowercase();
+        if (marginModeValue != "isolated") && (marginModeValue != "cross") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode argument should be isolated or cross".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -6024,7 +6024,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
-        let mut isCross: bool = marginModeValue.as_str() == Some("cross");
+        let mut isCross: bool = marginModeValue == "cross";
         if self.in_array(Value::from((market).settle.as_deref()), Value::from(vec![Value::Str("USDT".into()), Value::Str("USDC".into())])).as_bool() == Some(true) {
             let mut currentLeverage: Option<String> = self.safe_string_k(params.clone(), "leverage", &[]).as_str().map(str::to_owned);
             if (currentLeverage.is_none()) {
@@ -6035,7 +6035,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return self.private_put_g_positions_leverage(&[__ws_arg_53]).await;
         }
         let mut leverage: Option<i64> = self.safe_integer_k(params.clone(), "leverage", &[]).as_i64();
-        if (marginModeValue.as_str() == Some("cross")) {
+        if (marginModeValue == "cross") {
             leverage = Some(0);
         }
         if (leverage.is_none()) {
@@ -6774,7 +6774,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

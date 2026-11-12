@@ -1224,7 +1224,7 @@ impl Btcturk {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(results), Value::Int(0), &[]);
-        return self.filter_by_since_limit(sorted, &[since, limit, Value::Int(0), tail]);
+        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[Value::Int(0), tail]);
 
     Value::Null
 }

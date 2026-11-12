@@ -448,23 +448,23 @@ impl Kraken {
         let mut isMarket: Value = (Value::Bool(type_var.as_str() == Some("market")));
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(isMarket, Value::Bool(false), &[params]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if postOnly {
             orderParams.insert("post_only".into(), Value::Bool(true));
         }
-        let mut clientOrderId: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string_k(&paramsPostOnly, "clientOrderId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
             orderParams.insert("cl_ord_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut cost: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "cost", &[]).as_str().map(str::to_owned);
+        let mut cost: Option<String> = self.safe_string_k(&paramsPostOnly, "cost", &[]).as_str().map(str::to_owned);
         if (cost.is_some()) {
             orderParams.insert("order_qty".into(), self.parse_to_numeric(self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null))));
         }
-        let mut stopLoss: crate::value::Dict = self.safe_dict_k(paramsPostOnly.clone(), "stopLoss", &[Value::Map({
+        let mut stopLoss: crate::value::Dict = self.safe_dict_k(&paramsPostOnly, "stopLoss", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut takeProfit: crate::value::Dict = self.safe_dict_k(paramsPostOnly.clone(), "takeProfit", &[Value::Map({
+        let mut takeProfit: crate::value::Dict = self.safe_dict_k(&paramsPostOnly, "takeProfit", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -474,19 +474,19 @@ impl Kraken {
         let mut presetTakeProfitLimit: Option<String> = self.safe_string_k(&takeProfit, "price", &[]).as_str().map(str::to_owned);
         let mut isPresetStopLoss: bool = presetStopLoss.is_some();
         let mut isPresetTakeProfit: bool = presetTakeProfit.is_some();
-        let mut stopLossPrice: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
-        let mut takeProfitPrice: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
+        let mut stopLossPrice: Option<String> = self.safe_string_k(&paramsPostOnly, "stopLossPrice", &[]).as_str().map(str::to_owned);
+        let mut takeProfitPrice: Option<String> = self.safe_string_k(&paramsPostOnly, "takeProfitPrice", &[]).as_str().map(str::to_owned);
         let mut isStopLossPriceOrder: bool = stopLossPrice.is_some();
         let mut isTakeProfitPriceOrder: bool = takeProfitPrice.is_some();
-        let mut trailingAmount: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "trailingAmount", &[]).as_str().map(str::to_owned);
-        let mut trailingPercent: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "trailingPercent", &[]).as_str().map(str::to_owned);
-        let mut trailingLimitAmount: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "trailingLimitAmount", &[]).as_str().map(str::to_owned);
-        let mut trailingLimitPercent: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "trailingLimitPercent", &[]).as_str().map(str::to_owned);
+        let mut trailingAmount: Option<String> = self.safe_string_k(&paramsPostOnly, "trailingAmount", &[]).as_str().map(str::to_owned);
+        let mut trailingPercent: Option<String> = self.safe_string_k(&paramsPostOnly, "trailingPercent", &[]).as_str().map(str::to_owned);
+        let mut trailingLimitAmount: Option<String> = self.safe_string_k(&paramsPostOnly, "trailingLimitAmount", &[]).as_str().map(str::to_owned);
+        let mut trailingLimitPercent: Option<String> = self.safe_string_k(&paramsPostOnly, "trailingLimitPercent", &[]).as_str().map(str::to_owned);
         let mut isTrailingAmountOrder: bool = trailingAmount.is_some();
         let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
         let mut isTrailingLimitAmountOrder: bool = trailingLimitAmount.is_some();
         let mut isTrailingLimitPercentOrder: bool = trailingLimitPercent.is_some();
-        let mut offset: String = self.safe_string_k(paramsPostOnly.clone(), "offset", &[Value::Str("".into())]).as_str().unwrap_or("").to_string(); // can set this to - for minus
+        let mut offset: String = self.safe_string_k(&paramsPostOnly, "offset", &[Value::Str("".into())]).as_str().unwrap_or("").to_string(); // can set this to - for minus
         let mut trailingAmountString: Option<String> = None;
         if (trailingAmount.is_some()) {
             trailingAmountString = Some(format!("{}{}", offset, self.number_to_string(trailingAmount.map(Value::from).unwrap_or(Value::Null))));
@@ -508,11 +508,11 @@ impl Kraken {
             priceType = "pct".to_string();
         }
         if (method.as_str() == Some("createOrderWs")) {
-            let mut reduceOnly: bool = self.safe_bool_k(paramsPostOnly.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut reduceOnly: bool = self.safe_bool_k(&paramsPostOnly, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if reduceOnly {
                 orderParams.insert("reduce_only".into(), Value::Bool(true));
             }
-            let mut timeInForce: Option<String> = self.safe_string_lower_k(paramsPostOnly.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
+            let mut timeInForce: Option<String> = self.safe_string_lower_k(&paramsPostOnly, "timeInForce", &[]).as_str().map(str::to_owned);
             if (timeInForce.is_some()) {
                 orderParams.insert("time_in_force".into(), timeInForce.map(Value::from).unwrap_or(Value::Null));
             }
@@ -611,9 +611,9 @@ impl Kraken {
             }
         }
         let mut isCreateOrder: bool = method.as_str() == Some("createOrderWs");
-        let mut paramsCreate: Value = paramsPostOnly.clone();
+        let mut paramsCreate: Value = Value::from(&paramsPostOnly);
         if isCreateOrder {
-            paramsCreate = self.omit(paramsPostOnly, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("timeInForce".into())]), &[]);
+            paramsCreate = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("timeInForce".into())]), &[]);
         }
         let mut paramsPreset: Value = paramsCreate.clone();
         if isCreateOrder && (isPresetStopLoss || isPresetTakeProfit) {
@@ -1190,8 +1190,8 @@ impl Kraken {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
-        let mut ticker: Value = self.watch_multi_helper(Value::Str("ticker".into()), Value::Str("ticker".into()), &[symbolsNormalized.clone(), Value::Null, params]).await;
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
+        let mut ticker: Value = self.watch_multi_helper(Value::Str("ticker".into()), Value::Str("ticker".into()), &[Value::Arr(symbolsNormalized.clone()), Value::Null, params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1203,7 +1203,7 @@ impl Kraken {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1229,9 +1229,9 @@ impl Kraken {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("event_trigger".into(), Value::Str("bbo".into())); }
-        let mut ticker: Value = self.watch_multi_helper(Value::Str("bidask".into()), Value::Str("ticker".into()), &[symbolsNormalized.clone(), Value::Null, params]).await;
+        let mut ticker: Value = self.watch_multi_helper(Value::Str("bidask".into()), Value::Str("ticker".into()), &[Value::Arr(symbolsNormalized.clone()), Value::Null, params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1243,7 +1243,7 @@ impl Kraken {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1308,7 +1308,7 @@ impl Kraken {
             let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1360,12 +1360,12 @@ impl Kraken {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(false)]).into_opt_list();
-        let mut unsubMessageHashes: Value = Value::from(vec![]);
+        let mut unsubMessageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_419: bool = true;
             while { if !__for_first_419 { i += 1; } __for_first_419 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            if let Value::Arr(__a) = &mut unsubMessageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("trade".into()), &[Value::Null, symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null)).into())); }
+            std::sync::Arc::make_mut(&mut unsubMessageHashes).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("trade".into()), &[Value::Null, symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null)).into()));
         }
         }
         let mut request: Value = Value::Map({
@@ -1382,7 +1382,7 @@ impl Kraken {
         });
         { let __be_tmp = self.deep_extend(crate::value::get_value_k(&request, "params"), &[params]); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("params".into(), __be_tmp); } }
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "publicV2");
-        return self.watch_multiple(url, unsubMessageHashes.clone(), &[request, unsubMessageHashes.clone()]).await;
+        return self.watch_multiple(url, &unsubMessageHashes, &[request, Value::Arr(unsubMessageHashes.clone())]).await;
         Value::Null
         }).await?))
     }
@@ -1509,7 +1509,7 @@ impl Kraken {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1778,8 +1778,8 @@ impl Kraken {
                 let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut bookside: Value = get_value(&orderbook, &key);
                 let mut deltas: crate::value::List = self.safe_list(&first, key, &[Value::from(vec![])]).into_list();
-                let mut deltasLength: f64 = ((deltas.len() as i64) as f64);
-                if deltasLength > ((0i64) as f64) {
+                let mut deltasLength: i64 = deltas.len() as i64;
+                if deltasLength > 0 {
                     self.custom_handle_deltas(bookside, Value::Arr(deltas));
                 }
             }
@@ -1799,9 +1799,9 @@ impl Kraken {
                     let mut __for_first_422: bool = true;
                     while { if !__for_first_422 { i += 1; } __for_first_422 = false; (i as f64) < ((10i64) as f64) } {
                     let mut currentAsk: crate::value::List = self.safe_list(checkAsks.clone(), Value::Int(i), &[Value::from(vec![])]).into_list();
-                    let mut currentAskLength: f64 = ((currentAsk.len() as i64) as f64);
+                    let mut currentAskLength: i64 = currentAsk.len() as i64;
                     let mut formattedAsk: String = "".to_string();
-                    if currentAskLength > ((1i64) as f64) {
+                    if currentAskLength > 1 {
                         formattedAsk = format!("{}{}", self.format_number(currentAsk.get(0).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), self.format_number(currentAsk.get(1).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
                     }
                     payloadArray.push(Value::from(formattedAsk));
@@ -1812,9 +1812,9 @@ impl Kraken {
                     let mut __for_first_423: bool = true;
                     while { if !__for_first_423 { i += 1; } __for_first_423 = false; (i as f64) < ((10i64) as f64) } {
                     let mut currentBid: crate::value::List = self.safe_list(checkBids.clone(), Value::Int(i), &[Value::from(vec![])]).into_list();
-                    let mut currentBidLength: f64 = ((currentBid.len() as i64) as f64);
+                    let mut currentBidLength: i64 = currentBid.len() as i64;
                     let mut formattedBid: String = "".to_string();
-                    if currentBidLength > ((1i64) as f64) {
+                    if currentBidLength > 1 {
                         formattedBid = format!("{}{}", self.format_number(currentBid.get(0).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), self.format_number(currentBid.get(1).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
                     }
                     payloadArray.push(Value::from(formattedBid));
@@ -1979,7 +1979,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = Value::from(result.get_limit(symbolResolved.as_deref(), limit.as_i64()));
         }
-        return self.filter_by_symbol_since_limit(result, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(result, symbolResolved.as_deref(), since.as_i64(), limitResolved.as_i64(), &[Value::Bool(true)]);
 
     Value::Null
 }
@@ -2050,8 +2050,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut allTrades: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut allTradesLength: f64 = ((allTrades.len() as i64) as f64);
-        if allTradesLength > ((0i64) as f64) {
+        let mut allTradesLength: i64 = allTrades.len() as i64;
+        if allTradesLength > 0 {
             if (self.myTrades.clone() == Value::Null) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.myTrades = ArrayCache::new(limit);
@@ -2226,11 +2226,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut allOrders: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut allOrdersLength: f64 = ((allOrders.len() as i64) as f64);
-        if allOrdersLength > ((0i64) as f64) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+        let mut allOrdersLength: i64 = allOrders.len() as i64;
+        if allOrdersLength > 0 {
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             if (self.orders.clone() == Value::Null) {
-                self.orders = ArrayCacheBySymbolById::new(limit.clone());
+                self.orders = ArrayCacheBySymbolById::new(Value::from(limit));
             }
             let mut stored: Value = self.orders.clone();
             let mut symbols: Value = Value::Map({
@@ -2255,8 +2255,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut newRawOrder: Value = self.extend(crate::value::KeyRead::key_read(&&previousOrder, "info"), &[parsed.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null)]);
                     newOrder = self.parse_ws_order(newRawOrder, &[]);
                 }
-                let mut length: Value = get_array_length(&stored);
-                if (length.as_f64() == limit.as_f64()) && (previousOrder.is_none()) {
+                let mut length: i64 = get_array_length(&stored).as_i64().unwrap_or_default();
+                if (length == limit) && (previousOrder.is_none()) {
                     let mut first: Value = get_value(&stored, &Value::Int(0));
                     let mut symbolsByOrderId: Value = self.safe_dict_k(self.options.clone(), "symbolsByOrderId", &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -2379,16 +2379,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbolsNormalized.is_none()) {
             return Value::Null;
         }
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_429: bool = true;
             while { if !__for_first_429 { i += 1; } __for_first_429 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut eventTrigger: Option<String> = self.safe_string_k(params.clone(), "event_trigger", &[]).as_str().map(str::to_owned);
             if (eventTrigger.is_some()) {
-                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(self.get_message_hash(channelName.clone(), &[Value::Null, self.symbol(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))]).map(Value::from).unwrap_or(Value::Null)); }
+                std::sync::Arc::make_mut(&mut messageHashes).push(self.get_message_hash(channelName.clone(), &[Value::Null, self.symbol(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))]).map(Value::from).unwrap_or(Value::Null));
             }  else {
-                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(self.get_message_hash(unifiedName.clone(), &[Value::Null, self.symbol(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))]).map(Value::from).unwrap_or(Value::Null)); }
+                std::sync::Arc::make_mut(&mut messageHashes).push(self.get_message_hash(unifiedName.clone(), &[Value::Null, self.symbol(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))]).map(Value::from).unwrap_or(Value::Null));
             }
         }
         }
@@ -2406,7 +2406,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         { let __be_tmp = self.deep_extend(crate::value::get_value_k(&request, "params"), &[params]); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("params".into(), __be_tmp); } }
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "publicV2");
-        return self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone(), subscriptionArgs]).await;
+        return self.watch_multiple(url, &messageHashes, &[request, Value::Arr(messageHashes.clone()), subscriptionArgs]).await;
 
     Value::Null
 }

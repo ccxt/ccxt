@@ -1456,8 +1456,8 @@ impl Lbank {
         let mut market: Option<crate::types::Market> = None;
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         if (symbolsNormalized.is_some()) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if symbolsLength > ((0i64) as f64) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if symbolsLength > 0 {
                 market = Some(match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             }
         }
@@ -2855,8 +2855,8 @@ impl Lbank {
         //      }
         //
         let mut result: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut numOrders: f64 = ((result.len() as i64) as f64);
-        if (numOrders == 1.0) {
+        let mut numOrders: i64 = result.len() as i64;
+        if (numOrders == 1) {
             return self.parse_order(self.safe_dict(&result, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

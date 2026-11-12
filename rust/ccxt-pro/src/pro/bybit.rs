@@ -914,7 +914,7 @@ impl Bybit {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsValue)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsValue, &[]);
         Value::Null
         }).await?))
     }
@@ -1131,9 +1131,8 @@ impl Bybit {
             symbol = self.safe_string_k(parsed.clone(), "symbol", &[]).as_str().map(str::to_owned);
         }  else if (updateType.as_deref() == Some("delta")) {
             let mut topicParts: Value = Value::Array(topic.split(".").map(Value::from).collect());
-            let mut topicLength: Value = Value::Int(topicParts.len() as i64);
-            let mut marketId: Option<String> = self.safe_string(topicParts, (match (&(topicLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).as_str().map(str::to_owned);
+            let mut topicLength: i64 = topicParts.len() as i64;
+            let mut marketId: Option<String> = self.safe_string(topicParts, Value::Int((topicLength - 1)), &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]);
             symbol = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
             // update the info in place
@@ -1202,7 +1201,7 @@ impl Bybit {
         if self.newUpdates.as_bool() == Some(true) {
             return ticker;
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsValue)]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsValue, &[]);
         Value::Null
         }).await?))
     }
@@ -1320,7 +1319,7 @@ impl Bybit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(stored, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
         Value::Null
         }).await?))
@@ -1440,14 +1439,13 @@ impl Bybit {
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         let mut topic: String = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut topicParts: Value = Value::Array(topic.split(".").map(Value::from).collect());
-        let mut topicLength: Value = Value::Int(topicParts.len() as i64);
+        let mut topicLength: i64 = topicParts.len() as i64;
         let mut timeframeId: Option<String> = self.safe_string(topicParts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut timeframe: Value = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]);
         if (timeframe == Value::Null) {
             return;
         }
-        let mut marketId: Option<String> = self.safe_string(topicParts, (match (&(topicLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-            _ => Value::Null }), &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string(topicParts, Value::Int((topicLength - 1)), &[]).as_str().map(str::to_owned);
         let mut isSpot: bool = __ch.url.as_str().unwrap_or("").contains("spot");
         let mut marketType: String = "contract".to_string();
         if isSpot {
@@ -1561,8 +1559,8 @@ impl Bybit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbols.len() as i64;
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".into()))));
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
@@ -1844,8 +1842,8 @@ impl Bybit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
-        let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".into()))));
         }
         let mut paramsValue: Value = self.clean_params(params);
@@ -1872,7 +1870,7 @@ impl Bybit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2150,7 +2148,7 @@ impl Bybit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2419,14 +2417,14 @@ impl Bybit {
         if ((match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
             Some(__y) if __y == 1.0) })) && ((match &(awaitPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && (cache == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
-            return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
+            return self.filter_by_symbols_since_limit(snapshot, symbolsNormalized.clone(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
         let mut topics: Value = Value::from(vec![Value::Str("position".into())]);
         let mut newPositions: Value = self.watch_topics(url, Value::from(vec![Value::from(messageHash)]), topics, &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(cache, &[symbolsNormalized, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(cache, symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2571,8 +2569,8 @@ impl Bybit {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
-            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
+            let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(positions, messageHash.as_deref());
             }
@@ -2650,16 +2648,16 @@ impl Bybit {
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut url: Value = self.get_url_by_market_type(&[symbolValue.clone(), Value::Bool(false), Value::Str("watchLiquidations".into()), params.clone()]).await;
         let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(self.clean_params(params), Value::Str("watchLiquidations".into()), Value::Str("method".into()), &[Value::Str("allLiquidation".into())]).as_array().cloned().unwrap_or_default();
-        let mut method: Value = methodparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut messageHash: String = format!("{}{}", Value::Str("liquidations::".into()), symbolValue);
         let mut marketId: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", method, Value::Str(".".into())).into()), marketId);
+        let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", method.as_deref().unwrap_or("null"), Value::Str(".".into())).into()), marketId);
         let mut newLiquidation: Value = self.watch_topics(url, Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(topic)]), &[paramsMethod]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newLiquidation;
         }
-        return self.filter_by_symbols_since_limit(self.liquidations.clone(), &[Value::from(vec![symbolValue]), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.liquidations.clone(), Value::from(vec![symbolValue]), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2834,7 +2832,7 @@ impl Bybit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3467,8 +3465,8 @@ impl Bybit {
         }
         let mut message: Value = Value::Null;
         let mut subscription: Value = Value::Null;
-        let mut newTopicsLength: f64 = ((newTopics.len() as i64) as f64);
-        if newTopicsLength > ((0i64) as f64) {
+        let mut newTopicsLength: i64 = newTopics.len() as i64;
+        if newTopicsLength > 0 {
             let mut reqId: i64 = self.request_id().as_i64().unwrap_or_default();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

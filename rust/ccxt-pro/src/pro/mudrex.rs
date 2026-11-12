@@ -363,7 +363,7 @@ impl Mudrex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut assets: Vec<Value> = Vec::new();
         if (symbolsNormalized.is_some()) {
             {
@@ -371,7 +371,7 @@ impl Mudrex {
                 let mut __for_first_501: bool = true;
                 while { if !__for_first_501 { i += 1; } __for_first_501 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.clone())).into())); }
+                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.clone())).into()));
                 let mut baseIdString: String = self.safe_string_k((market).raw.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut quoteIdString: String = self.safe_string_k((market).raw.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut assetId: String = baseIdString.to_lowercase();
@@ -391,7 +391,7 @@ impl Mudrex {
             m
         });
         let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
-        let mut ticker: Value = self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone()]).await;
+        let mut ticker: Value = self.watch_multiple(url, &messageHashes, &[request, Value::Arr(messageHashes.clone())]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -456,7 +456,7 @@ impl Mudrex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

@@ -4111,16 +4111,16 @@ impl Xt {
         let mut timeInForce: Option<String> = None;
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut marginOrSpotRequest: String = "SPOT".to_string();
         if (marginMode.is_some()) {
             marginOrSpotRequest = "LEVER".to_string();
         }
         request.insert("bizType".into(), Value::from(marginOrSpotRequest));
         if (type_var.as_str() == Some("market")) {
-            timeInForce = self.safe_string_upper_k(paramsMarginMode.clone(), "timeInForce", &[Value::Str("FOK".into())]).as_str().map(str::to_owned);
+            timeInForce = self.safe_string_upper_k(&paramsMarginMode, "timeInForce", &[Value::Str("FOK".into())]).as_str().map(str::to_owned);
             if (side.as_str() == Some("buy")) {
-                let mut cost: Option<String> = self.safe_string_k(paramsMarginMode.clone(), "cost", &[]).as_str().map(str::to_owned);
+                let mut cost: Option<String> = self.safe_string_k(&paramsMarginMode, "cost", &[]).as_str().map(str::to_owned);
                 let mut createMarketBuyOrderRequiresPrice: bool = self.safe_bool_k(self.options.clone(), "createMarketBuyOrderRequiresPrice", &[Value::Bool(true)]).as_bool().unwrap_or(true);
                 if createMarketBuyOrderRequiresPrice {
                     if (price == Value::Null) && (cost.is_none()) {
@@ -4143,13 +4143,13 @@ impl Xt {
                 }
             }
         }  else {
-            timeInForce = self.safe_string_upper_k(paramsMarginMode.clone(), "timeInForce", &[Value::Str("GTC".into())]).as_str().map(str::to_owned);
+            timeInForce = self.safe_string_upper_k(&paramsMarginMode, "timeInForce", &[Value::Str("GTC".into())]).as_str().map(str::to_owned);
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
         }
         let mut isMarketBuy: bool = (type_var.as_str() == Some("market")) && (side.as_str() == Some("buy"));
-        let mut paramsWithoutCost: Value = paramsMarginMode.clone();
+        let mut paramsWithoutCost: Value = Value::from(&paramsMarginMode);
         if isMarketBuy {
-            paramsWithoutCost = self.omit(paramsMarginMode, Value::Str("cost".into()), &[]);
+            paramsWithoutCost = self.omit(&paramsMarginMode, Value::Str("cost".into()), &[]);
         }
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(timeInForce.as_deref() == Some("GTX")), &[paramsWithoutCost]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -5102,7 +5102,7 @@ impl Xt {
             // otherwise since/limit could cut off matching rows
             let mut parsedOrders: Value = self.parse_orders(orders.clone(), &[market.clone()]);
             let mut filteredOrders: Value = self.filter_by(parsedOrders, Value::Str("status".into()), status, &[]);
-            return self.filter_by_since_limit(filteredOrders, &[since.clone(), limit.clone()]);
+            return self.filter_by_since_limit(filteredOrders, since.as_i64(), limit.as_i64(), &[]);
         }
         return self.parse_orders(orders, &[market, since, limit]);
 
@@ -6804,7 +6804,7 @@ impl Xt {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -7261,7 +7261,7 @@ impl Xt {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_since_limit(sorted, &[since, limit]);
+        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -7593,8 +7593,8 @@ impl Xt {
         });
         let mut market: Value = Value::Null;
         if (symbolsNormalized.is_some()) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (symbolsLength == 1.0) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (symbolsLength == 1) {
                 market = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
                 request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
@@ -7659,7 +7659,7 @@ impl Xt {
         })]).into_dict();
         let mut items: crate::value::List = self.safe_list_k(&result, "items", &[Value::from(vec![])]).into_list();
         let mut positions: Value = self.parse_positions(&items, &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
-        return self.filter_by_since_limit(positions, &[since, limit]);
+        return self.filter_by_since_limit(positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -7869,11 +7869,11 @@ impl Xt {
         if (market).spot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() supports contract markets only".into()))));
         }
-        let mut marginModeLower: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        if (marginModeLower.as_str() != Some("isolated")) && (marginModeLower.as_str() != Some("cross")) {
+        let mut marginModeLower: String = marginMode.as_str().unwrap_or_default().to_string().to_lowercase();
+        if (marginModeLower != "isolated") && (marginModeLower != "cross") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode argument should be isolated or cross".into()))));
         }
-        let mut positionType: Value = (if (marginModeLower.as_str() == Some("cross")) { Value::Str("CROSSED".into()) } else { Value::Str("ISOLATED".into()) });
+        let mut positionType: Value = (if (marginModeLower == "cross") { Value::Str("CROSSED".into()) } else { Value::Str("ISOLATED".into()) });
         let mut posSide: Option<String> = self.safe_string_upper_k(params.clone(), "positionSide", &[]).as_str().map(str::to_owned);
         self.check_required_argument(Value::Str("setMarginMode".into()), posSide.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("positionSide".into()), &[Value::from(vec![Value::Str("LONG".into()), Value::Str("SHORT".into())])]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("positionSide".into()), &[]);

@@ -1288,8 +1288,8 @@ impl Coinbase {
         })]).into_dict();
         let mut cursor: Option<String> = self.safe_string_k(&pagination, "next_starting_after", &[]).as_str().map(str::to_owned);
         let mut accounts: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut length: Value = Value::Int(accounts.len() as i64);
-        let mut lastIndex: Value = (match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut length: i64 = accounts.len() as i64;
+        let mut lastIndex: Value = Value::Int((length - 1));
         if (cursor.is_some()) && (cursor.as_deref() != Some("")) {
             let __ws_arg_1 = self.safe_dict(accounts.clone(), lastIndex.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1358,10 +1358,10 @@ impl Coinbase {
         //     }
         //
         let mut accounts: Value = self.safe_list_k(&response, "accounts", &[Value::from(vec![])]);
-        let mut accountsLength: Value = Value::Int(accounts.len() as i64);
+        let mut accountsLength: i64 = accounts.len() as i64;
         let mut cursor: Option<String> = self.safe_string_k(&response, "cursor", &[]).as_str().map(str::to_owned);
-        if (accountsLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && (cursor.is_some()) && (cursor.as_deref() != Some("")) {
-            let mut lastIndex: Value = (match (&(accountsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        if (accountsLength > 0) && (cursor.is_some()) && (cursor.as_deref() != Some("")) {
+            let mut lastIndex: Value = Value::Int((accountsLength - 1));
             let __ws_arg_3 = self.safe_dict(accounts.clone(), lastIndex.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1721,7 +1721,7 @@ impl Coinbase {
         let mut paramsCurrencyType: Value = currencyTypeparamsCurrencyTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         if (currencyType.as_deref() == Some("crypto")) {
             let mut results: Value = self.fetch_transactions_with_method(Value::Str("v2PrivateGetAccountsAccountIdTransactions".into()), &[code.clone(), since.clone(), limit.clone(), paramsCurrencyType.clone()]).await;
-            return self.to_array(self.filter_by_array(results, Value::Str("type".into()), &[Value::Str("withdrawal".into()), Value::Bool(false)]));
+            return self.to_array(self.filter_by_array(results, Value::Str("type".into()), Value::Str("withdrawal".into()), &[Value::Bool(false)]));
         }
         return self.fetch_transactions_with_method(Value::Str("v2PrivateGetAccountsAccountIdWithdrawals".into()), &[code, since, limit, paramsCurrencyType]).await;
         Value::Null
@@ -1759,7 +1759,7 @@ impl Coinbase {
         let mut paramsCurrencyType: Value = currencyTypeparamsCurrencyTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         if (currencyType.as_deref() == Some("crypto")) {
             let mut results: Value = self.fetch_transactions_with_method(Value::Str("v2PrivateGetAccountsAccountIdTransactions".into()), &[code.clone(), since.clone(), limit.clone(), paramsCurrencyType.clone()]).await;
-            return self.to_array(self.filter_by_array(results, Value::Str("type".into()), &[Value::Str("deposit".into()), Value::Bool(false)]));
+            return self.to_array(self.filter_by_array(results, Value::Str("type".into()), Value::Str("deposit".into()), &[Value::Bool(false)]));
         }
         return self.fetch_transactions_with_method(Value::Str("v2PrivateGetAccountsAccountIdDeposits".into()), &[code, since, limit, paramsCurrencyType]).await;
         Value::Null
@@ -1794,7 +1794,7 @@ impl Coinbase {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut results: Value = self.fetch_transactions_with_method(Value::Str("v2PrivateGetAccountsAccountIdTransactions".into()), &[code, since, limit, params]).await;
-        return self.to_array(self.filter_by_array(results, Value::Str("type".into()), &[Value::from(vec![Value::Str("deposit".into()), Value::Str("withdrawal".into())]), Value::Bool(false)]));
+        return self.to_array(self.filter_by_array(results, Value::Str("type".into()), Value::from(vec![Value::Str("deposit".into()), Value::Str("withdrawal".into())]), &[Value::Bool(false)]));
         Value::Null
         }).await?))
     }
@@ -2561,8 +2561,8 @@ if _try_result.is_err() {
     m
 })]).into_dict();
             let mut realMarketIds: crate::value::List = self.safe_list_k(&info, "alias_to", &[Value::from(vec![])]).into_list();
-            let mut length: f64 = ((realMarketIds.len() as i64) as f64);
-            if length > ((0i64) as f64) {
+            let mut length: i64 = realMarketIds.len() as i64;
+            if length > 0 {
                 newMarkets.push(self.extend(market.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("alias".to_string(), realMarketIds.get(0).cloned().unwrap_or(Value::Null));
@@ -3904,9 +3904,9 @@ if _try_result.is_err() {
         let mut response: crate::value::Dict = self.v2_private_get_accounts_account_id_transactions(&[__ws_arg_33]).await.into_dict();
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         let mut ledger: Value = self.parse_ledger(data, &[currency, since, limit]);
-        let mut length: Value = Value::Int(ledger.len() as i64);
-        if length.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            let mut lastIndex: Value = (match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut length: i64 = ledger.len() as i64;
+        if length > 0 {
+            let mut lastIndex: Value = Value::Int((length - 1));
             let mut last: Value = self.safe_dict(ledger.clone(), lastIndex.clone(), &[]);
             let mut pagination: crate::value::Dict = self.safe_dict_k(&response, "pagination", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4244,8 +4244,8 @@ if _try_result.is_err() {
         let mut accountId: Value = Value::Null;
         if (path.is_some()) {
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = path.as_deref() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-            let mut numParts: f64 = ((parts.len() as i64) as f64);
-            if numParts > ((3i64) as f64) {
+            let mut numParts: i64 = parts.len() as i64;
+            if numParts > 3 {
                 accountId = parts.get(3).cloned().unwrap_or(Value::Null);
             }
         }
@@ -5164,9 +5164,9 @@ if _try_result.is_err() {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(1000)]).await;
+            return self.fetch_paginated_call_cursor(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(1000)]).await;
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -5185,11 +5185,11 @@ if _try_result.is_err() {
         if (since != Value::Null) {
             request.insert("start_date".into(), self.iso8601(since.clone()));
         }
-        let mut until: Option<i64> = self.safe_integer_k(paramsPaginate.clone(), "until", &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         if (until.is_some()) {
             request.insert("end_date".into(), self.iso8601(Value::from(until)));
         }
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(paramsPaginate.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { paramsPaginate });
+        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]) } else { Value::from(&paramsPaginate) });
         let __ws_arg_41 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: crate::value::Dict = self.v3_private_get_brokerage_orders_historical_batch(&[__ws_arg_41]).await.into_dict();
         //
@@ -5490,8 +5490,8 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut maxLimit: i64 = 300;
-        let mut limitValue: Value = self.parse_to_int(Value::Int(maxLimit.clone()));
-        if (limit != Value::Null) && (limit.as_f64().unwrap_or(f64::NAN) < (maxLimit as f64)) {
+        let mut limitValue: Value = self.parse_to_int(Value::from(maxLimit));
+        if (limit != Value::Null) && ((limit.as_i64().is_some() && limit.as_i64() < Some(maxLimit))) {
             limitValue = self.parse_to_int(limit.clone());
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
@@ -5681,9 +5681,9 @@ if _try_result.is_err() {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(250)]).await;
+            return self.fetch_paginated_call_cursor(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(250)]).await;
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -5702,11 +5702,11 @@ if _try_result.is_err() {
         if (since != Value::Null) {
             request.insert("start_sequence_timestamp".into(), self.iso8601(since.clone()));
         }
-        let mut until: Option<i64> = self.safe_integer_k(paramsPaginate.clone(), "until", &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         if (until.is_some()) {
             request.insert("end_sequence_timestamp".into(), self.iso8601(Value::from(until)));
         }
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(paramsPaginate.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { paramsPaginate });
+        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]) } else { Value::from(&paramsPaginate) });
         let __ws_arg_49 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: crate::value::Dict = self.v3_private_get_brokerage_orders_historical_fills(&[__ws_arg_49]).await.into_dict();
         //
@@ -7431,8 +7431,8 @@ if _try_result.is_err() {
         }
         let mut errors: Value = self.safe_list_k(response.clone(), "errors", &[Value::from(vec![])]);
         if (errors != Value::Null) {
-            let mut numErrors: f64 = ((errors.len() as i64) as f64);
-            if numErrors > ((0i64) as f64) {
+            let mut numErrors: i64 = errors.len() as i64;
+            if numErrors > 0 {
                 errorCode = self.safe_string(errors.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("id".into()), &[]).as_str().map(str::to_owned);
                 let mut errorMessage: Option<String> = self.safe_string(errors.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("message".into()), &[]).as_str().map(str::to_owned);
                 if (errorCode.is_some()) {

@@ -795,8 +795,8 @@ pub trait ExchangeBase:
                 proxyUrl = self.proxy.clone();
             }
         }
-        let mut length: f64 = ((usedProxies.len() as i64) as f64);
-        if length > ((1i64) as f64) {
+        let mut length: i64 = usedProxies.len() as i64;
+        if length > 1 {
             let mut joinedProxyNames: Value = Value::Str(usedProxies.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into());
             panic!("{}", crate::exchange_errors::invalid_proxy_settings(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" you have multiple conflicting proxy settings (".into())).into()), joinedProxyNames).into()), Value::Str("), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback".into()))));
         }
@@ -863,8 +863,8 @@ pub trait ExchangeBase:
             socksProxy = (if issocksProxyCallbackDefined.as_bool() == Some(true) { self.socks_proxy_callback_fn(url.clone(), method.clone(), headers.clone(), body.clone()) } else { self.socks_proxy_callback_fn(url, method, headers, body) });
         }
         // check
-        let mut length: f64 = ((usedProxies.len() as i64) as f64);
-        if length > ((1i64) as f64) {
+        let mut length: i64 = usedProxies.len() as i64;
+        if length > 1 {
             let mut joinedProxyNames: Value = Value::Str(usedProxies.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into());
             panic!("{}", crate::exchange_errors::invalid_proxy_settings(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" you have multiple conflicting proxy settings (".into())).into()), joinedProxyNames).into()),
                 Value::Str("), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback".into()))));
@@ -901,8 +901,8 @@ pub trait ExchangeBase:
             wsSocksProxy = (if isWsSocksProxyDefined.as_bool() == Some(true) { self.wsSocksProxy.clone() } else { self.ws_socks_proxy.clone() });
         }
         // check
-        let mut length: f64 = ((usedProxies.len() as i64) as f64);
-        if length > ((1i64) as f64) {
+        let mut length: i64 = usedProxies.len() as i64;
+        if length > 1 {
             let mut joinedProxyNames: Value = Value::Str(usedProxies.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into());
             panic!("{}", crate::exchange_errors::invalid_proxy_settings(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" you have multiple conflicting proxy settings (".into())).into()), joinedProxyNames).into()), Value::Str("), please use only one from: wsProxy, wssProxy, wsSocksProxy".into()))));
         }
@@ -928,8 +928,8 @@ pub trait ExchangeBase:
         }
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         let mut uniqChars: Value = (self.unique(self.string_to_chars_array(address.clone())));
-        let mut length: f64 = ((uniqChars.len() as i64) as f64); // py transpiler trick
-        if (length == 1.0) || ((address.len() as i64) as f64) < self.minFundingAddressLength.as_f64().unwrap_or(f64::NAN) || address.as_str().unwrap_or("").contains(" ") {
+        let mut length: i64 = uniqChars.len() as i64; // py transpiler trick
+        if (length == 1) || ((address.len() as i64) as f64) < self.minFundingAddressLength.as_f64().unwrap_or(f64::NAN) || address.as_str().unwrap_or("").contains(" ") {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" address is invalid or has less than ".into())).into()), Value::Str(format!("{}", self.minFundingAddressLength.clone()).into())).into()),
                 Value::Str(" characters: \"".into())).into()), Value::Str(format!("{}", address).into())).into()), Value::Str("\"".into()))));
         }
@@ -998,15 +998,13 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn filter_by_since_limit(&self, mut array: Value, optional_args: &[Value]) -> Value {
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
-        let mut key = get_arg(optional_args, 2, Value::Str("timestamp".into()));
-        let mut tail = get_arg(optional_args, 3, Value::Bool(false));
+    fn filter_by_since_limit(&self, mut array: Value, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+        let mut key = get_arg(optional_args, 0, Value::Str("timestamp".into()));
+        let mut tail = get_arg(optional_args, 1, Value::Bool(false));
         if (array == Value::Null) {
             return Value::from(vec![]);
         }
-        let mut sinceIsDefined: bool = (since != Value::Null) && (since != Value::Null);
+        let mut sinceIsDefined: bool = (Value::from(since) != Value::Null) && (Value::from(since) != Value::Null);
         let mut parsedArray: Value = self.to_array(array);
         let mut result: Value = parsedArray.clone();
         if sinceIsDefined {
@@ -1017,19 +1015,19 @@ pub trait ExchangeBase:
                 while { if !__for_first_77 { i += 1; } __for_first_77 = false; i < (parsedArray.len() as i64) } {
                 let mut entry: Value = parsedArray.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut value: Value = self.safe_integer(entry.clone(), key.clone(), &[]);
-                if (value != Value::Null) && (value.as_f64() != Some(0.0)) && (value.as_f64().unwrap_or(f64::NAN) >= since.as_f64().unwrap_or(f64::NAN)) {
+                if (value != Value::Null) && (value.as_f64() != Some(0.0)) && (value.as_f64().unwrap_or(f64::NAN) >= Value::from(since).as_f64().unwrap_or(f64::NAN)) {
                     if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(entry); }
                 }
             }
             }
         }
-        if tail.as_bool() == Some(true) && (limit != Value::Null) {
-            return self.array_slice(result.clone(), (match &(limit) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }), &[]);
+        if tail.as_bool() == Some(true) && (Value::from(limit) != Value::Null) {
+            return self.array_slice(result.clone(), (match &(Value::from(limit)) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }), &[]);
         }
         // if the user provided a 'since' argument
         // we want to limit the result starting from the 'since'
         let mut shouldFilterFromStart: Value = Value::Bool(!is_true(&tail) && sinceIsDefined);
-        return self.filter_by_limit(result, &[limit, key, shouldFilterFromStart]);
+        return self.filter_by_limit(result, &[Value::from(limit), key, shouldFilterFromStart]);
 
     Value::Null
 }
@@ -3026,7 +3024,7 @@ pub trait ExchangeBase:
             let mut keys: Vec<Value> = object_keys(&currencies).as_array().cloned().unwrap_or_default();
             numCurrencies = keys.len() as i64;
         }
-        if (numCurrencies as f64) > ((0i64) as f64) {
+        if numCurrencies > 0 {
             // currencies is always undefined when called in constructor but not when called from loadMarkets
             { let __t = self.map_to_safe_map(self.deep_extend(self.currencies.clone(), &[currencies.clone()])); self.currencies = __t; }
         }  else {
@@ -3152,7 +3150,7 @@ pub trait ExchangeBase:
 }
 
     fn get_describe_for_extended_ws_exchange(&self, mut currentRestInstance: Value, mut parentRestInstance: Value, mut wsBaseDescribe: Value) -> Value {
-        let mut extendedRestDescribe: Value = self.deep_extend(parentRestInstance.describe(), &[currentRestInstance.describe()]);
+        let mut extendedRestDescribe: crate::value::Dict = self.deep_extend(parentRestInstance.describe(), &[currentRestInstance.describe()]).into_dict();
         let mut superWithRestDescribe: Value = self.deep_extend(extendedRestDescribe, &[wsBaseDescribe]);
         return superWithRestDescribe;
 
@@ -3217,8 +3215,8 @@ pub trait ExchangeBase:
         if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("used".into(), Value::Map(usedBalance)); }
         if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("total".into(), Value::Map(totalBalance)); }
         let mut debtBalanceArray: Vec<Value> = Value::Array(debtBalance.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
-        let mut length: f64 = ((debtBalanceArray.len() as i64) as f64);
-        if (length != 0.0) {
+        let mut length: i64 = debtBalanceArray.len() as i64;
+        if (length != 0) {
             if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("debt".into(), Value::Map(debtBalance)); }
         }
         return balance;
@@ -3279,7 +3277,7 @@ pub trait ExchangeBase:
             if isArray {
                 tradesLength = trades.len() as i64;
             }
-            if isArray && ((tradesLength as f64) > ((0i64) as f64)) {
+            if isArray && (tradesLength > 0) {
                 // move properties that are defined in trades up into the order
                 if parseSymbol {
                     add_element_to_object(&mut orderDict, &Value::Str("symbol".into()), crate::value::get_value_k(&trades.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), "symbol"));
@@ -3601,7 +3599,7 @@ pub trait ExchangeBase:
         }
         results = self.sort_by(results.clone(), Value::Str("timestamp".into()), &[]);
         let mut symbol: Option<String> = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(results, &[symbol.map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(results, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -4570,8 +4568,8 @@ pub trait ExchangeBase:
             }
             return symbols;
         }
-        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbols.len() as i64;
+        if (symbolsLength == 0) {
             if !(allowEmpty.as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" empty list of symbols is not supported".into()))));
             }
@@ -4853,9 +4851,9 @@ pub trait ExchangeBase:
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let mut chosenNetworkId: Value = Value::Null;
         let mut availableNetworkIds: Value = object_keys(&indexedNetworkEntries);
-        let mut responseNetworksLength: f64 = ((availableNetworkIds.len() as i64) as f64);
+        let mut responseNetworksLength: i64 = availableNetworkIds.len() as i64;
         if (networkCode != Value::Null) {
-            if (responseNetworksLength == 0.0) {
+            if (responseNetworksLength == 0) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" - ".into())).into()), networkCode).into()), Value::Str(" network did not return any result for ".into())).into()), currencyCode)));
             }  else {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
@@ -4871,7 +4869,7 @@ pub trait ExchangeBase:
                 }
             }
         }  else {
-            if (responseNetworksLength == 0.0) {
+            if (responseNetworksLength == 0) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" - no networks were returned for ".into())).into()), currencyCode)));
             }  else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
@@ -4972,7 +4970,7 @@ pub trait ExchangeBase:
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(results), Value::Int(0), &[]);
-        return self.filter_by_since_limit(sorted, &[since, limit, Value::Int(0), tail]);
+        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[Value::Int(0), tail]);
 
     Value::Null
 }
@@ -4990,7 +4988,7 @@ pub trait ExchangeBase:
         if (symbolsNormalized.is_some()) {
             symbolsLength = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
         }
-        let mut noSymbols: bool = (symbolsNormalized.is_none()) || (((symbolsLength as f64) == 0.0));
+        let mut noSymbols: bool = (symbolsNormalized.is_none()) || (symbolsLength == 0);
         if (matches!(&response, Value::Arr(_))) {
             {
                                 let mut i: i64 = 0;
@@ -5495,7 +5493,7 @@ pub trait ExchangeBase:
         }
         result = self.sort_by2(result.clone(), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
         let mut symbol: Option<String> = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(result, &[symbol.map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(result, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -5773,7 +5771,7 @@ pub trait ExchangeBase:
 }
 
     fn resolve_path(&self, mut path: Value, mut params: Value) -> Value {
-        return Value::from(vec![self.implode_params(path.clone(), params.clone()), self.omit(params, self.extract_params(path), &[])]);
+        return Value::from(vec![Value::from(self.implode_params(path.clone(), params.clone())), self.omit(params, self.extract_params(path), &[])]);
 
     Value::Null
 }
@@ -5813,15 +5811,15 @@ pub trait ExchangeBase:
         if symbolWithUnknownStatus.as_bool() == Some(true) {
             activeStatuses.push(Value::Null);
         }
-        filteredMarkets = self.filter_by_array(filteredMarkets.clone(), Value::Str("active".into()), &[Value::from(activeStatuses), Value::Bool(false)]);
+        filteredMarkets = self.filter_by_array(filteredMarkets.clone(), Value::Str("active".into()), Value::from(activeStatuses), &[Value::Bool(false)]);
         return self.get_list_from_object_values(filteredMarkets, Value::Str("symbol".into()));
 
     Value::Null
 }
 
-    fn filter_by_array(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
-        let mut values = get_arg(optional_args, 0, Value::Null);
-        let mut indexed = get_arg(optional_args, 1, Value::Bool(true));
+    fn filter_by_array(&self, mut objects: Value, mut key: Value, values: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut values: Value = values.into();
+        let mut indexed = get_arg(optional_args, 0, Value::Bool(true));
         let mut objectsValue: Value = self.to_array(objects);
         // return all of them if no values were passed
         if (values == Value::Null) || (values == Value::Null) || ((match &(values) { Value::Bool(__x) => *__x == false, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
@@ -6056,8 +6054,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if openingTime.as_f64().unwrap_or(f64::NAN) < since.as_f64().unwrap_or(f64::NAN) {
                 continue;
             }
-            let mut ohlcv_length: Value = Value::Int(ohlcvs.len() as i64);
-            let mut candle: Value = (match (&(ohlcv_length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            let mut ohlcv_length: i64 = ohlcvs.len() as i64;
+            let mut candle: Value = Value::Int((ohlcv_length - 1));
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" buildOHLCVC() requires a price argument".into()))));
             }
@@ -6229,8 +6227,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (marketId != Value::Null) {
             if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut markets: crate::value::List = self.safe_list(self.markets_by_id.clone(), marketId.clone(), &[Value::from(vec![])]).into_list();
-                let mut numMarkets: f64 = ((markets.len() as i64) as f64);
-                if (numMarkets == 1.0) {
+                let mut numMarkets: i64 = markets.len() as i64;
+                if (numMarkets == 1) {
                     return markets.get(0).cloned().unwrap_or(Value::Null);
                 }  else {
                     if (marketType == Value::Null) && (market == Value::Null) {
@@ -6250,7 +6248,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
             }  else if (delimiter != Value::Null) && (delimiter.as_str() != Some("")) {
                 let mut parts: Value = Value::Array(marketId.as_str().zip(delimiter.as_str()).map(|(__s, __d)| __s.split(__d).map(Value::from).collect()).unwrap_or_default());
-                let mut partsLength: f64 = ((parts.len() as i64) as f64);
+                let mut partsLength: i64 = parts.len() as i64;
                 let mut result: Value = self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketId.clone());
@@ -6260,7 +6258,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if (result == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" safeMarket() failed to build market structure".into()))));
                 }
-                if (partsLength == 2.0) {
+                if (partsLength == 2) {
                     let mut baseId: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
                     let mut quoteId: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
                     let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -7762,8 +7760,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" currency() requires a code argument".into()))));
         }
         let mut keys: Vec<Value> = Value::Array(self.currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut numCurrencies: f64 = ((keys.len() as i64) as f64);
-        if (numCurrencies == 0.0) {
+        let mut numCurrencies: i64 = keys.len() as i64;
+        if (numCurrencies == 0) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" currencies not loaded".into()))));
         }
         if matches!(&code, Value::Str(_)) {
@@ -8077,11 +8075,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 } }
 
     fn implode_hostname(&self, mut url: Value) -> Value {
-        return self.implode_params(url, Value::Map({
+        return Value::from(self.implode_params(url, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("hostname".to_string(), self.hostname.clone());
     m
-}));
+})));
 
     Value::Null
 }
@@ -8134,12 +8132,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn filter_by_symbol_since_limit(&self, mut array: Value, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut tail = get_arg(optional_args, 3, Value::Bool(false));
-        return self.filter_by_value_since_limit(array, Value::Str("symbol".into()), &[symbol, since, limit, Value::Str("timestamp".into()), tail]);
+    fn filter_by_symbol_since_limit(&self, mut array: Value, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+        let mut tail = get_arg(optional_args, 0, Value::Bool(false));
+        return self.filter_by_value_since_limit(array, Value::Str("symbol".into()), &[Value::from(symbol), Value::from(since), Value::from(limit), Value::Str("timestamp".into()), tail]);
 
     Value::Null
 }
@@ -8154,13 +8149,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn filter_by_symbols_since_limit(&self, mut array: Value, optional_args: &[Value]) -> Value {
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut tail = get_arg(optional_args, 3, Value::Bool(false));
-        let mut result: Value = self.filter_by_array(array, Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
-        return self.filter_by_since_limit(result, &[since, limit, Value::Str("timestamp".into()), tail]);
+    fn filter_by_symbols_since_limit(&self, mut array: Value, symbols: impl Into<crate::Value>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+        let mut symbols: Value = symbols.into();
+        let mut tail = get_arg(optional_args, 0, Value::Bool(false));
+        let mut result: Value = self.filter_by_array(array, Value::Str("symbol".into()), symbols, &[Value::Bool(false)]);
+        return self.filter_by_since_limit(result, since, limit, &[Value::Str("timestamp".into()), tail]);
 
     Value::Null
 }
@@ -8211,7 +8204,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             }
         }
-        return self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), &[self.market_symbols(&[symbols]), Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), self.market_symbols(&[symbols]), &[Value::Bool(false)]), Value::Str("symbol".into()));
 
     Value::Null
 }
@@ -8290,10 +8283,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         }
         if (codes != Value::Null) {
-            result = self.to_array(self.filter_by_array(Value::Arr(result.clone()), Value::Str("currency".into()), &[codes, Value::Bool(false)])).into_list();
+            result = self.to_array(self.filter_by_array(Value::Arr(result.clone()), Value::Str("currency".into()), codes, &[Value::Bool(false)])).into_list();
         }
         if indexed.as_bool() == Some(true) {
-            result = self.to_array(self.filter_by_array(Value::Arr(result.clone()), Value::Str("currency".into()), &[Value::Null, indexed])).into_list();
+            result = self.to_array(self.filter_by_array(Value::Arr(result.clone()), Value::Str("currency".into()), Value::Null, &[indexed])).into_list();
         }
         return Value::Arr(result);
 
@@ -8383,7 +8376,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
         let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
-        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -8425,7 +8418,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         }
-        return self.index_by(self.filter_by_array(Value::Map(fundingRates), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(Value::Map(fundingRates), Value::Str("symbol".into()), symbols, &[Value::Bool(false)]), Value::Str("symbol".into()));
 
     Value::Null
 }
@@ -8454,7 +8447,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
         let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
-        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -8490,8 +8483,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             takeProfitPriceStr = self.price_to_precision(symbol, (match &takeProfitPrice { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
         }
-        let mut keysToOmitLength: f64 = ((keysToOmit.len() as i64) as f64);
-        let mut paramsOmitted: Value = (if (keysToOmitLength > ((0i64) as f64)) { self.omit(params.clone(), Value::from(keysToOmit), &[]) } else { params });
+        let mut keysToOmitLength: i64 = keysToOmit.len() as i64;
+        let mut paramsOmitted: Value = (if (keysToOmitLength > 0) { self.omit(params.clone(), Value::from(keysToOmit), &[]) } else { params });
         return Value::from(vec![triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, paramsOmitted]);
 
     Value::Null
@@ -8709,7 +8702,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         }
-        return self.index_by(self.filter_by_array(Value::Map(result), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(Value::Map(result), Value::Str("symbol".into()), symbols, &[Value::Bool(false)]), Value::Str("symbol".into()));
 
     Value::Null
 }
@@ -8730,7 +8723,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut sorted: Value = self.sort_by(Value::from(interests), Value::Str("timestamp".into()), &[]);
         let mut symbol: Option<String> = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol.map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -8991,8 +8984,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {string[]} options a list of options that the argument can be
          * @returns {undefined}
          */
-        let mut optionsLength: f64 = ((options.len() as i64) as f64);
-        if (argument == Value::Null) || ((optionsLength > ((0i64) as f64)) && (!(self.in_array(argument, options.clone()).as_bool() == Some(true)))) {
+        let mut optionsLength: i64 = options.len() as i64;
+        if (argument == Value::Null) || ((optionsLength > 0) && (!(self.in_array(argument, options.clone()).as_bool() == Some(true)))) {
             let mut messageOptions: Value = Value::Str(options.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into());
             let mut message: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a ".into())).into()), argumentName).into()), Value::Str(" argument".into()));
             if (!matches!(&messageOptions, Value::Str(__s15) if __s15 == "")) {
@@ -9167,7 +9160,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
         let mut symbol: Option<String> = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol.map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -9245,14 +9238,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn filter_by_array_positions(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut values = get_arg(optional_args, 0, Value::Null);
-        return self.to_array(self.filter_by_array(objects, key, &[values, Value::Bool(false)]));
+        return self.to_array(self.filter_by_array(objects, key, values, &[Value::Bool(false)]));
 
     Value::Null
 }
 
     fn filter_by_array_tickers(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut values = get_arg(optional_args, 0, Value::Null);
-        return self.index_by(self.filter_by_array(objects, key.clone(), &[values, Value::Bool(false)]), key);
+        return self.index_by(self.filter_by_array(objects, key.clone(), values, &[Value::Bool(false)]), key);
 
     Value::Null
 }
@@ -9260,7 +9253,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     fn filter_by_array_adl_ranks(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut values = get_arg(optional_args, 0, Value::Null);
         let mut indexed = get_arg(optional_args, 1, Value::Bool(true));
-        return self.to_array(self.filter_by_array(objects, key, &[values, indexed]));
+        return self.to_array(self.filter_by_array(objects, key, values, &[indexed]));
 
     Value::Null
 }
@@ -9345,7 +9338,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                             Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
                     }
                     let mut response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (Value::Null).clone(), (maxEntriesPerRequestOption).clone(), (paramsMaxEntriesPerRequest).clone()]).await;
-                    let mut responseLength: Value = get_array_length(&response);
+                    let mut responseLength: i64 = get_array_length(&response).as_i64().unwrap_or_default();
                     if self.verbose.as_bool() == Some(true) {
                         let mut backwardMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Dynamic pagination call ".into()), self.number_to_string((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x),
                             Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }))).into()), Value::Str(" method ".into())).into()), method).into()), Value::Str(" response length ".into())).into()), Value::Str(format!("{}", responseLength).into()));
@@ -9354,7 +9347,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         }
                         self.log(Value::from(backwardMessage));
                     }
-                    if (responseLength.as_f64() == Some(0.0)) {
+                    if (responseLength == 0) {
                         shouldBreak = true;
                         break;
                     }
@@ -9373,7 +9366,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }  else {
                     // do it forwards, starting from the since
                     let mut response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (paginationTimestamp).clone(), (maxEntriesPerRequestOption).clone(), (paramsMaxEntriesPerRequest).clone()]).await;
-                    let mut responseLength: Value = get_array_length(&response);
+                    let mut responseLength: i64 = get_array_length(&response).as_i64().unwrap_or_default();
                     if self.verbose.as_bool() == Some(true) {
                         let mut forwardMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Dynamic pagination call ".into()), self.number_to_string((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x),
                             Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }))).into()), Value::Str(" method ".into())).into()), method).into()), Value::Str(" response length ".into())).into()), Value::Str(format!("{}", responseLength).into()));
@@ -9382,14 +9375,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         }
                         self.log(Value::from(forwardMessage));
                     }
-                    if (responseLength.as_f64() == Some(0.0)) {
+                    if (responseLength == 0) {
                         shouldBreak = true;
                         break;
                     }
                     errors = Value::Int(0);
                     result = self.array_concat(result.clone(), response.clone());
-                    let mut last: crate::value::Dict = self.safe_dict(response, (match (&(responseLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                        Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).into_dict();
+                    let mut last: crate::value::Dict = self.safe_dict(response, Value::Int((responseLength - 1)), &[]).into_dict();
                     let mut lastTimestamp: Value = self.safe_integer_k(&last, "timestamp", &[Value::Int(0)]);
                     if (lastTimestamp == Value::Null) {
                         shouldBreak = true;
@@ -9414,7 +9406,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut key: Value = (if (method.as_str() == Some("fetchOHLCV")) { Value::Int(0) } else { Value::Str("timestamp".into()) });
         let mut sortedRes: Value = self.sort_by(uniqueResults, key.clone(), &[]);
-        return self.filter_by_since_limit(sortedRes, &[since, limit, key]);
+        return self.filter_by_since_limit(sortedRes, since.as_i64(), limit.as_i64(), &[key]);
 
     Value::Null
 } }
@@ -9537,7 +9529,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut uniqueResults: Value = self.remove_repeated_elements_from_array(result, &[]);
         let mut key: Value = (if (method.as_str() == Some("fetchOHLCV")) { Value::Int(0) } else { Value::Str("timestamp".into()) });
-        return self.filter_by_since_limit(uniqueResults, &[since, limit, key]);
+        return self.filter_by_since_limit(uniqueResults, since.as_i64(), limit.as_i64(), &[key]);
 
     Value::Null
 } }
@@ -9659,7 +9651,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut sorted: Value = self.sort_cursor_paginated_result(result);
         let mut key: Value = (if (method.as_str() == Some("fetchOHLCV")) { Value::Int(0) } else { Value::Str("timestamp".into()) });
-        return self.filter_by_since_limit(sorted, &[since, limit, key]);
+        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[key]);
 
     Value::Null
 } }
@@ -9698,14 +9690,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })); }
                 let mut response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (since).clone(), (maxEntriesPerRequestOption).clone(), (paramsMaxEntriesPerRequest).clone()]).await;
                 errors = Value::Int(0);
-                let mut responseLength: Value = get_array_length(&response);
+                let mut responseLength: i64 = get_array_length(&response).as_i64().unwrap_or_default();
                 if self.verbose.as_bool() == Some(true) {
                     let mut iteration: Value = ((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
                     let mut incrementalMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Incremental pagination call ".into()), Value::Str(format!("{}", iteration).into())).into()), Value::Str(" method ".into())).into()), method).into()),
                         Value::Str(" response length ".into())).into()), Value::Str(format!("{}", responseLength).into()));
                     self.log(Value::from(incrementalMessage));
                 }
-                if (responseLength.as_f64() == Some(0.0)) {
+                if (responseLength == 0) {
                     shouldBreak = true;
                     break;
                 }
@@ -9716,7 +9708,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         }
-        return self.filter_by_since_limit(self.sort_cursor_paginated_result(result), &[since, limit, (if (method.as_str() == Some("fetchOHLCV")) { Value::Int(0) } else { Value::Str("timestamp".into()) })]);
+        return self.filter_by_since_limit(self.sort_cursor_paginated_result(result), since.as_i64(), limit.as_i64(), &[(if (method.as_str() == Some("fetchOHLCV")) { Value::Int(0) } else { Value::Str("timestamp".into()) })]);
 
     Value::Null
 } }
@@ -9758,8 +9750,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         }
-        let mut valuesLength: f64 = ((uniqueResult.len() as i64) as f64);
-        if valuesLength > ((0i64) as f64) {
+        let mut valuesLength: i64 = uniqueResult.len() as i64;
+        if valuesLength > 0 {
             return Value::from(uniqueResult);
         }
         return input;
@@ -9899,7 +9891,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
         let mut symbol: Option<String> = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol.map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -9944,7 +9936,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             }
         }
-        return self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), &[self.market_symbols(&[symbols]), Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), self.market_symbols(&[symbols]), &[Value::Bool(false)]), Value::Str("symbol".into()));
 
     Value::Null
 }
@@ -10093,7 +10085,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
         if (code == Value::Null) {
-            return self.filter_by_since_limit(sorted.clone(), &[since.clone(), limit.clone()]);
+            return self.filter_by_since_limit(sorted.clone(), since.as_i64(), limit.as_i64(), &[]);
         }
         let mut currency: Value = self.safe_currency(code, &[]);
         if (currency == Value::Null) {
@@ -10103,7 +10095,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut fromConversion: Value = self.filter_by(sorted.clone(), Value::Str("fromCurrency".into()), currencyCode.clone(), &[]);
         let mut toConversion: Value = self.filter_by(sorted, Value::Str("toCurrency".into()), currencyCode, &[]);
         let mut both: Value = self.array_concat(fromConversion, toConversion);
-        return self.filter_by_since_limit(both, &[since, limit]);
+        return self.filter_by_since_limit(both, since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -10433,7 +10425,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let subscription = subscription.as_map().unwrap_or(&__subscription_empty);
         let mut topic: Option<String> = (match subscription.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut symbols: crate::value::List = subscription.get("symbols").cloned().unwrap_or_default().into_list();
-        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
+        let mut symbolsLength: i64 = symbols.len() as i64;
         if (topic.as_deref() == Some("ohlcv")) {
             let mut symbolsAndTimeframes: crate::value::List = subscription.get("symbolsAndTimeframes").cloned().unwrap_or_default().into_list();
             {
@@ -10456,7 +10448,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
             }
             }
-        }  else if symbolsLength > ((0i64) as f64) {
+        }  else if symbolsLength > 0 {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_182: bool = true;
@@ -13610,17 +13602,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "fetch_web_endpoint" => self.fetch_web_endpoint(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
             "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "fetch_withdrawals_ws" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals_ws(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-            "filter_by_array" => self.filter_by_array(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
+            "filter_by_array" => self.filter_by_array(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
             "filter_by_array_adl_ranks" => self.filter_by_array_adl_ranks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "filter_by_array_positions" => self.filter_by_array_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "filter_by_array_tickers" => self.filter_by_array_tickers(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "filter_by_currency_since_limit" => self.filter_by_currency_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "filter_by_key" => self.filter_by_key(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "filter_by_limit" => self.filter_by_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "filter_by_since_limit" => self.filter_by_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "filter_by_since_limit" => self.filter_by_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..]),
             "filter_by_symbol" => self.filter_by_symbol(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "filter_by_symbol_since_limit" => self.filter_by_symbol_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "filter_by_symbols_since_limit" => self.filter_by_symbols_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "filter_by_symbol_since_limit" => self.filter_by_symbol_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]),
+            "filter_by_symbols_since_limit" => self.filter_by_symbols_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]),
             "filter_by_value_since_limit" => self.filter_by_value_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "filter_out_by_array" => self.filter_out_by_array(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "find_broadly_matched_key" => self.find_broadly_matched_key(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),

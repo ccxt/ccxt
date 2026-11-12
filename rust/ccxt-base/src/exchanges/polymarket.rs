@@ -1603,10 +1603,10 @@ impl Polymarket {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: Value = self.public_get_info_tickers(&[params]).await;
         let mut result: Value = self.parse_funding_rates(response, &[]);
-        return self.index_by(self.filter_by_array(result, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(result, Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(false)]), Value::Str("symbol".into()));
         Value::Null
         }).await?))
     }
@@ -1738,7 +1738,7 @@ impl Polymarket {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -1800,10 +1800,10 @@ impl Polymarket {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: Value = self.public_get_info_tickers(&[params]).await;
         let mut result: Value = self.parse_open_interests(response, &[]);
-        return self.index_by(self.filter_by_array(result, Value::Str("symbol".into()), &[symbolsNormalized, Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(result, Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(false)]), Value::Str("symbol".into()));
         Value::Null
         }).await?))
     }
@@ -2966,8 +2966,8 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut rowId: Option<String> = self.safe_string_k_opt(row.clone(), "order_id", &[]);
-            if (rowId.as_deref() == id.as_str()) {
+            let mut rowId: Option<String> = self.safe_string_k(row.clone(), "order_id", &[]).as_str().map(str::to_owned);
+            if (rowId.as_deref() == Some(id.as_str().unwrap_or_default().to_string().as_str())) {
                 return self.parse_order(row, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
             }
         }
@@ -3142,7 +3142,7 @@ impl Polymarket {
             }));
         }
         }
-        return self.filter_by_symbol_since_limit(Value::from(result), &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(Value::from(result), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3813,7 +3813,7 @@ impl Polymarket {
             Value::Str("secp256k1".into()), Value::Null);
         let mut r: Value = signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null);
         let mut sVal: Value = signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null);
-        let mut v: Value = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
+        let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), sVal.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), v).into());
 
     Value::Null
@@ -4156,7 +4156,7 @@ impl Polymarket {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiType: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut baseUrl: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiType.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut implodedPath: Value = self.implode_params(path.clone(), params.clone());
+        let mut implodedPath: String = self.implode_params(path.clone(), params.clone());
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), implodedPath);
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut headersResolved: indexmap::IndexMap<String, Value> = ({
@@ -4173,8 +4173,8 @@ impl Polymarket {
         }  else {
             if (method.as_str() == Some("GET")) {
                 let mut keys: Vec<Value> = Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-                let mut keysLength: f64 = ((keys.len() as i64) as f64);
-                if keysLength > ((0i64) as f64) {
+                let mut keysLength: i64 = keys.len() as i64;
+                if keysLength > 0 {
                     url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), implodedPath).into()), Value::Str("?".into())).into()), self.urlencode(query, &[]));
                 }
             }

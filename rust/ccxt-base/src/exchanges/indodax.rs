@@ -1433,7 +1433,7 @@ impl Indodax {
         })]).as_map().cloned().unwrap_or_default();
         let mut orders: Value = self.parse_orders(historyResult.get("orders").cloned().unwrap_or(Value::Null), &[(market).raw.clone()]);
         orders = self.filter_by(orders.clone(), Value::Str("status".into()), Value::Str("closed".into()), &[]);
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

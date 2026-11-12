@@ -3129,17 +3129,17 @@ impl Upbit {
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = self.implode_params(baseApiUrl.map(Value::from).unwrap_or(Value::Null), Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("hostname".to_string(), self.hostname.clone());
-            m
-        }));
-        url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into())).into());
+        let mut url: String = self.implode_params(baseApiUrl.map(Value::from).unwrap_or(Value::Null), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("hostname".to_string(), self.hostname.clone());
+    m
+}));
+        url.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
         let mut numQueryKeys: f64 = ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64);
         if (method.as_str() != Some("POST")) {
             if numQueryKeys > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
             }
         }
         let mut hasBody: bool = (apiName.as_deref() == Some("private")) && (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE"));
@@ -3178,7 +3178,7 @@ impl Upbit {
         let mut requestHeaders: Value = (if (apiName.as_deref() == Some("private")) { headers } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody);
         m.insert("headers".to_string(), requestHeaders);

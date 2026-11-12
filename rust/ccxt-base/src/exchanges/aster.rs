@@ -2827,8 +2827,8 @@ impl Aster {
             results.push(priceData);
         }
         }
-        let mut symbolsNormalized2: Value = self.market_symbols(&[symbolsNormalized]);
-        return self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized2, Value::Bool(false)]), Value::Str("symbol".into()));
+        let mut symbolsNormalized2: Option<crate::value::List> = self.market_symbols(&[symbolsNormalized]).into_opt_list();
+        return self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), &symbolsNormalized2, &[Value::Bool(false)]), Value::Str("symbol".into()));
         Value::Null
         }).await?))
     }
@@ -3228,9 +3228,9 @@ impl Aster {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a symbol argument".into()))));
         }
-        let mut marginModeUpper: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        let mut marginModeValue: Value = (if (marginModeUpper.as_str() == Some("CROSS")) { Value::Str("CROSSED".into()) } else { marginModeUpper });
-        if (marginModeValue.as_str() != Some("ISOLATED")) && (marginModeValue.as_str() != Some("CROSSED")) {
+        let mut marginModeUpper: String = marginMode.as_str().unwrap_or_default().to_string().to_uppercase();
+        let mut marginModeValue: String = (if (marginModeUpper == "CROSS") { "CROSSED".to_string() } else { marginModeUpper });
+        if (marginModeValue != "ISOLATED") && (marginModeValue != "CROSSED") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" marginMode must be either isolated or cross".into()))));
         }
         self.load_markets_and_sign_in().await;
@@ -3238,7 +3238,7 @@ impl Aster {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
-                m.insert("marginType".to_string(), marginModeValue);
+                m.insert("marginType".to_string(), Value::from(marginModeValue));
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
@@ -4438,7 +4438,7 @@ impl Aster {
         //     ]
         //
         let mut modifications: Value = self.parse_margin_modifications(self.to_array(response), &[]);
-        return self.filter_by_symbol_since_limit(modifications, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(modifications, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -5710,7 +5710,7 @@ impl Aster {
             privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
         let mut r: Value = signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null);
         let mut s: Value = signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null);
-        let mut v: Value = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
+        let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), v).into()).as_str().map(str::to_owned);
 }
 

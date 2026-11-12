@@ -4384,7 +4384,7 @@ impl Delta {
         let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
         let mut settlements: Value = self.parse_settlements(result, market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default());
         let mut sorted: Value = self.sort_by(settlements, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[])).as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }

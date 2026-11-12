@@ -1921,8 +1921,8 @@ impl Extended {
 })]), &[market.clone()]));
         }
         }
-        let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { self.safe_string_k(market, "symbol", &[]) });
-        return self.filter_by_symbol_since_limit(Value::from(result), &[symbol, since, limit]);
+        let mut symbol: Option<String> = (if (market == Value::Null) { None } else { self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned) });
+        return self.filter_by_symbol_since_limit(Value::from(result), symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -2186,7 +2186,7 @@ impl Extended {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from(symbolValue), sinceResolved, Value::from(limitResolved)]);
+        return self.filter_by_symbol_since_limit(sorted, Some(symbolValue.as_str()), sinceResolved.as_i64(), Some(limitResolved), &[]);
         Value::Null
         }).await?))
     }
@@ -3008,8 +3008,8 @@ impl Extended {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut currency: Value = self.currency(code.clone());
         let mut account: Value = self.fetch_extended_account(&[]).await;
-        let mut currentAccountId: Value = self.safe_string_k(account.clone(), "accountId", &[Value::Str("".into())]);
-        if (fromAccount != Value::Null) && (fromAccount.as_str() != currentAccountId.as_str()) {
+        let mut currentAccountId: String = self.safe_string_k(account.clone(), "accountId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if (fromAccount != Value::Null) && (fromAccount.as_str().unwrap_or_default().to_string() != currentAccountId) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" transfer() can only transfer from the authenticated account".into()))));
         }
         let mut toVault: Option<String> = self.safe_string2(params.clone(), Value::Str("toVault".into()), Value::Str("receiverPositionId".into()), &[]).as_str().map(str::to_owned);
@@ -3021,7 +3021,7 @@ impl Extended {
         let mut settlement: indexmap::IndexMap<String, Value> = self.create_transfer_settlement_data(amountString.clone(), currency.clone(), account, toVault.map(Value::from).unwrap_or(Value::Null), toL2Key.map(Value::from).unwrap_or(Value::Null), &[params.clone()]).as_map().cloned().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("fromAccount".to_string(), currentAccountId.clone());
+                m.insert("fromAccount".to_string(), Value::from(currentAccountId.clone()));
                 m.insert("toAccount".to_string(), toAccount.clone());
                 m.insert("amount".to_string(), amountString.clone());
                 m.insert("transferredAsset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -3059,7 +3059,7 @@ impl Extended {
         m.insert("datetime".to_string(), self.iso8601(Value::from(now)));
         m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amountString, &[]));
-        m.insert("fromAccount".to_string(), currentAccountId);
+        m.insert("fromAccount".to_string(), Value::from(currentAccountId));
         m.insert("toAccount".to_string(), toAccount);
         m.insert("status".to_string(), Value::from(status));
     m
@@ -3670,7 +3670,7 @@ impl Extended {
         }
         }
         let mut positions: Value = self.parse_positions(Value::from(result), &[symbolsList]);
-        return self.filter_by_since_limit(positions, &[since, limit, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(positions, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -4492,8 +4492,8 @@ impl Extended {
         });
         let mut hasOrderIds: bool = ids != Value::Null;
         if hasOrderIds {
-            let mut idsLength: f64 = ((ids.len() as i64) as f64);
-            if idsLength > ((0i64) as f64) {
+            let mut idsLength: i64 = ids.len() as i64;
+            if idsLength > 0 {
                 request.insert("orderIds".into(), ids);
             }
         }
@@ -4502,8 +4502,8 @@ impl Extended {
         }
         let mut hasClientOrderIds: bool = clientOrderIds != Value::Null;
         if (clientOrderIds != Value::Null) {
-            let mut clientOrderIdsLength: f64 = ((clientOrderIds.len() as i64) as f64);
-            if clientOrderIdsLength > ((0i64) as f64) {
+            let mut clientOrderIdsLength: i64 = clientOrderIds.len() as i64;
+            if clientOrderIdsLength > 0 {
                 request.insert("externalOrderIds".into(), clientOrderIds);
             }
         }
@@ -4718,7 +4718,7 @@ impl Extended {
         //
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         let mut orders: Value = self.parse_orders(data, &[market, since.clone(), limit.clone()]);
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4827,7 +4827,7 @@ impl Extended {
         }
         }
         let mut orders: Value = self.parse_orders(Value::from(result), &[market, since.clone(), limit.clone()]);
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4859,7 +4859,7 @@ impl Extended {
 }));
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), None, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut closedOrders: Value = self.filter_by(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::Str("closed".into()), &[]);
-        return self.filter_by_symbol_since_limit(closedOrders, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(closedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4891,7 +4891,7 @@ impl Extended {
 }));
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), None, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut canceledOrders: Value = self.filter_by(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::Str("canceled".into()), &[]);
-        return self.filter_by_symbol_since_limit(canceledOrders, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(canceledOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

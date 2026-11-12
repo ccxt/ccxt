@@ -1647,8 +1647,8 @@ impl Backpack {
                     }
                 }
                 }
-                let mut sessionsLength: f64 = ((sessions.len() as i64) as f64);
-                if sessionsLength > ((0i64) as f64) {
+                let mut sessionsLength: i64 = sessions.len() as i64;
+                if sessionsLength > 0 {
                     amountPrecision = self.parse_number(stepSize.map(Value::from).unwrap_or(Value::Null), &[]);
                     minQuantity = self.parse_number(minimum.map(Value::from).unwrap_or(Value::Null), &[]);
                     maxQuantity = (if unbounded { Value::Null } else { self.parse_number(maximum.map(Value::from).unwrap_or(Value::Null), &[]) });
@@ -2313,7 +2313,7 @@ impl Backpack {
             symbolsLength = symbols.len() as i64;
         }
         let mut symbolsResolved: Value = Value::Array(self.markets.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
-        if (((symbolsLength as f64) != 0.0)) {
+        if (symbolsLength != 0) {
             symbolsResolved = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         }
         let mut hasRfqSymbol: bool = false;
@@ -2535,22 +2535,22 @@ impl Backpack {
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
-        let mut requestLimit: Value = Value::Null;
+        let mut requestLimit: Option<i64> = None;
         if (limit != Value::Null) {
             let mut supportedLimits: crate::value::List = std::sync::Arc::new(vec![Value::Int(5), Value::Int(10), Value::Int(20), Value::Int(50), Value::Int(100), Value::Int(500)]);
-            requestLimit = Value::Int(500);
+            requestLimit = Some(500);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_253: bool = true;
                 while { if !__for_first_253 { i += 1; } __for_first_253 = false; i < (supportedLimits.len() as i64) } {
-                let mut supportedLimit: Value = self.safe_integer(&supportedLimits, Value::Int(i), &[Value::Int(0)]);
-                if limit.as_f64().unwrap_or(f64::NAN) <= supportedLimit.as_f64().unwrap_or(f64::NAN) {
-                    requestLimit = supportedLimit;
+                let mut supportedLimit: i64 = self.safe_integer(&supportedLimits, Value::Int(i), &[Value::Int(0)]).as_i64().unwrap_or(0);
+                if (limit.as_i64().is_some() && limit.as_i64() <= Some(supportedLimit)) {
+                    requestLimit = Some(supportedLimit);
                     break;
                 }
             }
             }
-            request.insert("limit".into(), requestLimit);
+            request.insert("limit".into(), Value::from(requestLimit));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[self.omit(query, Value::Str("source".into()), &[])]);
         let mut response: Value = self.public_get_api_v1_depth(&[__ws_arg_5]).await;
@@ -2616,7 +2616,7 @@ impl Backpack {
         });
         let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(self.omit(dataRequest, Value::Str("symbol".into()), &[]), Value::Str("fetchOHLCV".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (until != Value::Null) {
             request.insert("endTime".into(), self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); // convert milliseconds to seconds
         }
@@ -2644,8 +2644,8 @@ impl Backpack {
             let mut minTimestamp: Value = crate::runtime::Math::min(&currentMs, &windowEnd);
             request.insert("endTime".into(), self.parse_to_int(minTimestamp)); // default to current time in seconds if until is not specified
         }
-        let mut price: Option<String> = self.safe_string_k(paramsUntil.clone(), "price", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = (if (price.is_some()) { self.omit(paramsUntil.clone(), Value::Str("price".into()), &[]) } else { paramsUntil });
+        let mut price: Option<String> = self.safe_string_k(&paramsUntil, "price", &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted: Value = (if (price.is_some()) { self.omit(&paramsUntil, Value::Str("price".into()), &[]) } else { Value::from(&paramsUntil) });
         if (price.is_some()) {
             request.insert("priceType".into(), self.capitalize(price.map(Value::from).unwrap_or(Value::Null)));
         }
@@ -2889,7 +2889,7 @@ impl Backpack {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3055,7 +3055,7 @@ impl Backpack {
             }
             }
             let mut sorted: Value = self.sort_by(Value::from(filtered), Value::Str("timestamp".into()), &[]);
-            return self.filter_by_since_limit(sorted, &[since.clone(), limit.clone()]);
+            return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[]);
         }
         if (since != Value::Null) {
             request.insert("from".into(), since.clone());
@@ -4096,12 +4096,12 @@ impl Backpack {
         }
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[self.omit(query, Value::from(omitKeys), &[])]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if postOnly {
-            add_element_to_object(&mut paramsPostOnly, &Value::Str("postOnly".into()), Value::Bool(true));
+            std::sync::Arc::make_mut(&mut paramsPostOnly).insert("postOnly".into(), Value::Bool(true));
         }
         let mut bracketKeys: Vec<Value> = Vec::new();
-        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsPostOnly.clone(), "takeProfit", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(&paramsPostOnly, "takeProfit", &[]).into_opt_dict();
         if (takeProfit.is_some()) {
             let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k(&takeProfit, "triggerPrice", &[]).as_str().map(str::to_owned);
             if (takeProfitTriggerPrice.is_some()) {
@@ -4113,7 +4113,7 @@ impl Backpack {
             }
             bracketKeys.push(Value::Str("takeProfit".into()));
         }
-        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(paramsPostOnly.clone(), "stopLoss", &[]).into_opt_dict();
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(&paramsPostOnly, "stopLoss", &[]).into_opt_dict();
         if (stopLoss.is_some()) {
             let mut stopLossTriggerPrice: Option<String> = self.safe_string_k(&stopLoss, "triggerPrice", &[]).as_str().map(str::to_owned);
             if (stopLossTriggerPrice.is_some()) {
@@ -4125,7 +4125,7 @@ impl Backpack {
             }
             bracketKeys.push(Value::Str("stopLoss".into()));
         }
-        let selfTradePreventionparamsSelfTradePreventionVariable: Vec<Value> = self.handle_option_string_and_params(self.omit(paramsPostOnly, Value::from(bracketKeys), &[]), Value::Str("createOrder".into()), Value::Str("selfTradePrevention".into()), &[]).as_array().cloned().unwrap_or_default();
+        let selfTradePreventionparamsSelfTradePreventionVariable: Vec<Value> = self.handle_option_string_and_params(self.omit(&paramsPostOnly, Value::from(bracketKeys), &[]), Value::Str("createOrder".into()), Value::Str("selfTradePrevention".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut selfTradePrevention: Option<String> = selfTradePreventionparamsSelfTradePreventionVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSelfTradePrevention: crate::value::Dict = selfTradePreventionparamsSelfTradePreventionVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (selfTradePrevention.is_some()) {
@@ -4218,7 +4218,7 @@ impl Backpack {
         if stock {
             orders = self.filter_stock_structures(orders.clone());
         }
-        return self.filter_by_since_limit(self.sort_by(orders, Value::Str("timestamp".into()), &[]), &[since, limit]);
+        return self.filter_by_since_limit(self.sort_by(orders, Value::Str("timestamp".into()), &[]), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4558,7 +4558,7 @@ impl Backpack {
         if stock {
             orders = self.filter_stock_structures(orders.clone());
         }
-        return self.filter_by_since_limit(self.sort_by(orders, Value::Str("timestamp".into()), &[]), &[since, limit]);
+        return self.filter_by_since_limit(self.sort_by(orders, Value::Str("timestamp".into()), &[]), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

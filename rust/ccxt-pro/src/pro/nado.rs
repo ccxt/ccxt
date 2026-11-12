@@ -451,7 +451,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -507,8 +507,8 @@ impl Nado {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbols.len() as i64;
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".into()))));
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_list();
@@ -530,7 +530,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -556,8 +556,8 @@ impl Nado {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbols.len() as i64;
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unWatchTradesForSymbols() requires a non-empty array of symbols".into()))));
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_list();
@@ -661,8 +661,8 @@ impl Nado {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbols.len() as i64;
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".into()))));
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_list();
@@ -710,8 +710,8 @@ impl Nado {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbols.len() as i64;
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unWatchOrderBookForSymbols() requires a non-empty array of symbols".into()))));
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_list();
@@ -772,7 +772,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(stored, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -835,7 +835,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit(resultSymbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(stored, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(resultSymbol, resultTimeframe, filtered);
         Value::Null
         }).await?))
@@ -1000,8 +1000,8 @@ impl Nado {
         let mut messageHash: String = "ticker".to_string();
         let mut streamType: String = "all_bbo".to_string();
         if (symbolsNormalized.is_some()) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (symbolsLength == 1.0) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (symbolsLength == 1) {
                 let mut symbolMarket: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
                 market = symbolMarket.clone();
                 messageHash = format!("{}{}", Value::Str("ticker:".into()), self.safe_string_k(symbolMarket, "symbol", &[Value::Str("".into())]));
@@ -1011,7 +1011,7 @@ impl Nado {
         let mut ticker: Value = self.watch_public(Value::from(streamType), market, Value::from(messageHash.clone()), &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             if (messageHash == "ticker") {
-                return self.filter_by_array(ticker.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+                return self.filter_by_array(ticker.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
             }
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1023,7 +1023,7 @@ impl Nado {
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1054,8 +1054,8 @@ impl Nado {
         let mut messageHash: String = "ticker".to_string();
         let mut streamType: String = "all_bbo".to_string();
         if (symbolsNormalized.is_some()) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (symbolsLength == 1.0) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (symbolsLength == 1) {
                 let mut symbolMarket: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
                 market = symbolMarket.clone();
                 messageHash = format!("{}{}", Value::Str("ticker:".into()), self.safe_string_k(symbolMarket, "symbol", &[Value::Str("".into())]));
@@ -1093,8 +1093,8 @@ impl Nado {
         let mut messageHash: String = "bidask".to_string();
         let mut streamType: String = "all_bbo".to_string();
         if (symbolsNormalized.is_some()) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (symbolsLength == 1.0) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (symbolsLength == 1) {
                 let mut symbolMarket: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
                 market = symbolMarket.clone();
                 messageHash = format!("{}{}", Value::Str("bidask:".into()), self.safe_string_k(symbolMarket, "symbol", &[Value::Str("".into())]));
@@ -1104,7 +1104,7 @@ impl Nado {
         let mut ticker: Value = self.watch_public(Value::from(streamType), market, Value::from(messageHash.clone()), &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             if (messageHash == "bidask") {
-                return self.filter_by_array(ticker.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+                return self.filter_by_array(ticker.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
             }
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1116,7 +1116,7 @@ impl Nado {
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1147,8 +1147,8 @@ impl Nado {
         let mut messageHash: String = "bidask".to_string();
         let mut streamType: String = "all_bbo".to_string();
         if (symbolsNormalized.is_some()) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (symbolsLength == 1.0) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (symbolsLength == 1) {
                 let mut symbolMarket: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
                 market = symbolMarket.clone();
                 messageHash = format!("{}{}", Value::Str("bidask:".into()), self.safe_string_k(symbolMarket, "symbol", &[Value::Str("".into())]));
@@ -1222,7 +1222,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1344,7 +1344,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1441,8 +1441,8 @@ impl Nado {
         let mut messageHash: String = "positions".to_string();
         let mut productId: Value = Value::Null;
         if (symbolsNormalized.is_some()) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (symbolsLength == 1.0) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (symbolsLength == 1) {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let mut marketSymbol: Option<String> = self.safe_string_k((market).raw.clone(), "symbol", &[]).as_str().map(str::to_owned);
                 if (marketSymbol.is_some()) {
@@ -1466,7 +1466,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1503,8 +1503,8 @@ impl Nado {
         let mut messageHash: String = "positions".to_string();
         let mut productId: Value = Value::Null;
         if (symbolsNormalized.is_some()) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (symbolsLength == 1.0) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (symbolsLength == 1) {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let mut marketSymbol: Option<String> = self.safe_string_k((market).raw.clone(), "symbol", &[]).as_str().map(str::to_owned);
                 if (marketSymbol.is_some()) {

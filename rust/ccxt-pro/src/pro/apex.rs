@@ -395,8 +395,8 @@ impl Apex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
-        let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".into()))));
         }
         let mut url: Value = self.get_ws_public_url();
@@ -421,7 +421,7 @@ impl Apex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -576,8 +576,8 @@ impl Apex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
-        let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".into()))));
         }
         let mut url: Value = self.get_ws_public_url();
@@ -625,9 +625,9 @@ impl Apex {
             }
         }
         }
-        let mut newTopicsLength: f64 = ((newTopics.len() as i64) as f64);
+        let mut newTopicsLength: i64 = newTopics.len() as i64;
         let mut message: Value = Value::Null;
-        if newTopicsLength > ((0i64) as f64) {
+        if newTopicsLength > 0 {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("op".to_string(), Value::Str("subscribe".into()));
@@ -836,7 +836,7 @@ impl Apex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -878,9 +878,8 @@ impl Apex {
             symbol = self.safe_string(Value::Map(parsed.clone()), Value::Str("symbol".into()), &[]);
         }  else if (updateType.as_deref() == Some("delta")) {
             let mut topicParts: Value = Value::Array(topic.split(".").map(Value::from).collect());
-            let mut topicLength: Value = Value::Int(topicParts.len() as i64);
-            let mut marketId: Option<String> = self.safe_string(topicParts, (match (&(topicLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).as_str().map(str::to_owned);
+            let mut topicLength: i64 = topicParts.len() as i64;
+            let mut marketId: Option<String> = self.safe_string(topicParts, Value::Int((topicLength - 1)), &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null]);
             symbol = self.safe_string_k(market, "symbol", &[]);
             let mut ticker: crate::value::Dict = self.safe_dict(self.tickers.clone(), symbol.clone(), &[Value::Map({
@@ -987,7 +986,7 @@ impl Apex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(stored, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
         Value::Null
         }).await?))
@@ -1022,11 +1021,10 @@ impl Apex {
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         let mut topic: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut topicParts: Value = Value::Array(if let Some(__s) = topic.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
-        let mut topicLength: Value = Value::Int(topicParts.len() as i64);
+        let mut topicLength: i64 = topicParts.len() as i64;
         let mut timeframeId: Option<String> = self.safe_string(topicParts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut timeframe: Value = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut marketId: Option<String> = self.safe_string(topicParts, (match (&(topicLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-            _ => Value::Null }), &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string(topicParts, Value::Int((topicLength - 1)), &[]).as_str().map(str::to_owned);
         let mut isSpot: bool = __ch.url.as_str().unwrap_or("").contains("spot");
         let mut marketType: String = "contract".to_string();
         if isSpot {
@@ -1105,7 +1103,7 @@ impl Apex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1155,14 +1153,14 @@ impl Apex {
         let mut cache: Value = self.positions.clone();
         if (cache == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
-            return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized2.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
+            return self.filter_by_symbols_since_limit(snapshot, symbolsNormalized2.clone(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
         let mut topics: Value = Value::from(vec![Value::Str("positions".into())]);
         let mut newPositions: Value = self.watch_topics(url, Value::from(vec![Value::from(messageHash)]), topics, &[params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(cache, &[symbolsNormalized2, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(cache, symbolsNormalized2, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1208,7 +1206,7 @@ impl Apex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1442,8 +1440,8 @@ impl Apex {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Value = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() });
             let mut symbolsString: String = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut symbols: Value = Value::Array(symbolsString.split(",").map(Value::from).collect());
-            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
+            let mut symbols: crate::value::List = Value::Array(symbolsString.split(",").map(Value::from).collect()).into_list();
+            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(positions, messageHash.as_deref());
             }

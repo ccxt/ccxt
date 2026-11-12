@@ -931,8 +931,8 @@ impl Zaif {
         //      ]
         //
         let mut trades: Value = self.to_array(response);
-        let mut numTrades: f64 = ((trades.len() as i64) as f64);
-        if (numTrades == 1.0) {
+        let mut numTrades: i64 = trades.len() as i64;
+        if (numTrades == 1) {
             let mut firstTrade: Value = self.safe_dict(trades.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

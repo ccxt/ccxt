@@ -2354,9 +2354,9 @@ impl Tokocrypto {
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clientId".into()), &[]).as_str().map(str::to_owned);
-        let mut requestedType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut requestedType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut requestedTimeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut isMarketOrder: Value = (Value::Bool(requestedType.as_str() == Some("MARKET")));
+        let mut isMarketOrder: Value = (Value::Bool(requestedType == "MARKET"));
         // GTX is the venue spelling of post only, on top of the two unified spellings
         let mut isPostOnlyTimeInForce: Value = (Value::Bool(requestedTimeInForce.as_deref() == Some("GTX")));
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), isPostOnlyTimeInForce, &[params.clone()]).as_array().cloned().unwrap_or_default();

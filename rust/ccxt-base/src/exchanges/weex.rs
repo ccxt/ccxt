@@ -1553,8 +1553,8 @@ impl Weex {
         }
         }
         let mut networkKeys: Vec<Value> = Value::Array(networks.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
-        let mut networksLength: f64 = ((networkKeys.len() as i64) as f64);
-        let mut emptyChains: bool = networksLength == 0.0; // non-functional coins
+        let mut networksLength: i64 = networkKeys.len() as i64;
+        let mut emptyChains: bool = networksLength == 0; // non-functional coins
         let mut valueForEmpty: Value = (if emptyChains { Value::Bool(false) } else { Value::Null });
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1844,7 +1844,7 @@ impl Weex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (((symbolsLength as f64) == 1.0)) {
+        if (symbolsLength == 1) {
             request.insert("symbol".into(), self.safe_string_k(market, "id", &[]));
         }
         let mut response: Value = Value::Null;
@@ -2788,7 +2788,7 @@ impl Weex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (((symbolsLength as f64) == 1.0)) {
+        if (symbolsLength == 1) {
             let mut market: crate::value::Dict = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_dict();
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
@@ -5921,12 +5921,12 @@ impl Weex {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut endpoint: Value = self.implode_params(path.clone(), params.clone());
+        let mut endpoint: String = self.implode_params(path.clone(), params.clone());
         let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         let mut isBatch: bool = path.as_str().unwrap_or("").contains("batch");
         if !(isBatch) && ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"))) {
             if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
-                endpoint = Value::Str(format!("{}{}", endpoint, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+                endpoint.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
             }
         }
         let mut isPrivate: bool = (apiName.as_deref() == Some("private")) || (apiName.as_deref() == Some("contractPrivate"));

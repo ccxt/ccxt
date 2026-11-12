@@ -645,7 +645,7 @@ impl Weex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -922,7 +922,7 @@ impl Weex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1225,7 +1225,7 @@ impl Weex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(stored, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
         Value::Null
         }).await?))
@@ -1478,7 +1478,7 @@ impl Weex {
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("callerMethodName".into()), &[]).into_dict();
         let mut depth: String = "200".to_string();
         let depthOptionparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(&paramsOmitted, Value::from(callerMethodName), Value::Str("depth".into()), &[Value::from(depth)]).as_array().cloned().unwrap_or_default();
-        let mut depthOption: Value = depthOptionparamsDepthVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut depthOption: Option<String> = depthOptionparamsDepthVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsDepth: Value = depthOptionparamsDepthVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut channels: Vec<Value> = Vec::new();
@@ -1490,7 +1490,7 @@ impl Weex {
             let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default())).into_dict();
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into());
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@depth".into())).into()), depthOption).into());
+            let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@depth".into())).into()), depthOption.as_deref().unwrap_or("null")).into());
             messageHashes.push(messageHash);
             channels.push(channel);
         }
@@ -1568,7 +1568,7 @@ impl Weex {
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("callerMethodName".into()), &[]).into_dict();
         let mut depth: String = "200".to_string();
         let depthOptionparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(&paramsOmitted, Value::from(callerMethodName), Value::Str("depth".into()), &[Value::from(depth)]).as_array().cloned().unwrap_or_default();
-        let mut depthOption: Value = depthOptionparamsDepthVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut depthOption: Option<String> = depthOptionparamsDepthVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsDepth: Value = depthOptionparamsDepthVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut subHashes: Vec<Value> = Vec::new();
         let mut channels: Vec<Value> = Vec::new();
@@ -1581,7 +1581,7 @@ impl Weex {
             let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default())).into_dict();
             let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), symbol.map(Value::from).unwrap_or(Value::Null));
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@depth".into())).into()), depthOption).into());
+            let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@depth".into())).into()), depthOption.as_deref().unwrap_or("null")).into());
             let mut unSubMessageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), messageHash).into());
             subHashes.push(Value::from(messageHash));
             channels.push(channel);
@@ -1725,7 +1725,7 @@ impl Weex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1893,7 +1893,7 @@ impl Weex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2160,7 +2160,7 @@ impl Weex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2490,27 +2490,27 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (type_var == Value::Null) {
+        if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() requires a market type".into()))));
         }
-        let mut isContract: Value = (Value::Bool(type_var.as_str() != Some("spot")));
+        let mut isContract: bool = type_var.as_deref() != Some("spot");
         let mut urlType: String = "spot".to_string();
-        if matches!(&isContract, Value::Bool(true)) {
+        if isContract {
             urlType = "contract".to_string();
         }
         let mut url: String = format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(urlType), &[Value::Str("".into())]), Value::Str("/private".into()));
         self.authenticate(Value::from(url.clone()));
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url)]));
-        self.set_balance_cache(client.as_value(), type_var.clone());
+        self.set_balance_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut awaitBalanceSnapshot: bool = self.safe_bool_k(&options, "awaitBalanceSnapshot", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
-            crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into()))).await;
+            crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), Value::Str(":fetchBalanceSnapshot".into())).into()))).await;
         }
-        return self.subscribe_private(Value::Str(format!("{}{}", type_var, Value::Str(":balance".into())).into()), type_var, Value::Str("account".into()), &[isContract, paramsMarketType]).await;
+        return self.subscribe_private(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), Value::Str(":balance".into())).into()), type_var.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("account".into()), &[Value::Bool(isContract), paramsMarketType]).await;
         Value::Null
         }).await?))
     }
@@ -2706,13 +2706,13 @@ impl Weex {
             Some(__y) if __y == 1.0) })) && ((match &(awaitPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
             Some(__y) if __y == 1.0) })) && (self.positions.clone() == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
-            return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.map_or(Value::Null, Value::Arr), since.clone(), limit.clone(), Value::Bool(true)]);
+            return self.filter_by_symbols_since_limit(snapshot, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
         let mut newPositions: Value = self.subscribe_private(Value::from(messageHash), subscriptionHash, Value::from(channel), &[Value::Bool(true), params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2864,8 +2864,8 @@ impl Weex {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
-            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
+            let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(positions, messageHash.as_deref());
             }

@@ -8710,8 +8710,8 @@ impl Binance {
             m
         });
         if (symbolsNormalized.is_some()) && (self.is_linear(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[subType.clone()]).as_bool() == Some(true) || self.is_inverse(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[subType.clone()]).as_bool() == Some(true)) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (symbolsLength == 1.0) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (symbolsLength == 1) {
                 request.insert("symbol".into(), self.market_id(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)));
             }
         }
@@ -8962,7 +8962,7 @@ impl Binance {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMarkPrice".into()), &[(market).raw.clone(), params, Value::Str("swap".into())]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchMarkPrice".into()), &[(market).raw.clone(), paramsMarketType, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -8976,14 +8976,14 @@ impl Binance {
         if (market).option {
             let __ws_arg_27 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
             response = self.eapi_public_get_mark(&[__ws_arg_27]).await;
-        }  else if self.is_linear(type_var.clone(), &[subType.clone()]).as_bool() == Some(true) {
+        }  else if self.is_linear(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[subType.clone()]).as_bool() == Some(true) {
             let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
             response = self.fapi_public_get_premium_index(&[__ws_arg_28]).await;
-        }  else if self.is_inverse(type_var.clone(), &[subType]).as_bool() == Some(true) {
+        }  else if self.is_inverse(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[subType]).as_bool() == Some(true) {
             let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsSubType]);
             response = self.dapi_public_get_premium_index(&[__ws_arg_29]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkPrice() does not support ".into())).into()), type_var).into()), Value::Str(" markets yet".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkPrice() does not support ".into())).into()), type_var.as_deref().unwrap_or("null")).into()), Value::Str(" markets yet".into()))));
         }
         if (matches!(&response, Value::Arr(_))) {
             return self.parse_ticker(self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
@@ -11765,15 +11765,15 @@ impl Binance {
         }
         // unified stp
         let selfTradePreventionparamsStpVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPapi, Value::Str("createOrder".into()), Value::Str("selfTradePrevention".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut selfTradePrevention: Value = selfTradePreventionparamsStpVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut selfTradePrevention: Option<String> = selfTradePreventionparamsStpVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsStp: crate::value::Dict = selfTradePreventionparamsStpVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (selfTradePrevention != Value::Null) {
+        if (selfTradePrevention.is_some()) {
             let mut warnOnStpForInverse: Value = self.handle_option(Value::Str("createOrder".into()), Value::Str("warnOnSTPForInverse".into()), &[]);
             if matches!((self.safe_bool_k((market).raw.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) && ((match &(warnOnStpForInverse) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
                 Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the .options[\"createOrder\"][\"warnOnSTPForInverse\"] to false.".into()))));
             }
-            request.insert("selfTradePreventionMode".into(), (if let Some(__s) = selfTradePrevention.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })); // binance enums exactly match the unified ccxt enums (but needs uppercase)
+            request.insert("selfTradePreventionMode".into(), selfTradePrevention.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null)); // binance enums exactly match the unified ccxt enums (but needs uppercase)
         }
         // unified iceberg
         let mut icebergAmount: Option<f64> = self.safe_number_k(&paramsPapi, "icebergAmount", &[]).as_f64();
@@ -12886,7 +12886,7 @@ impl Binance {
         }
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), None, paramsStock).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut filteredOrders: Value = self.filter_by(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::Str("closed".into()), &[]);
-        return self.filter_by_since_limit(filteredOrders, &[since, limit]);
+        return self.filter_by_since_limit(filteredOrders, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -12947,7 +12947,7 @@ impl Binance {
         }
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), None, paramsStock).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut filteredOrders: Value = self.filter_by(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::Str("canceled".into()), &[]);
-        return self.filter_by_since_limit(filteredOrders, &[since, limit]);
+        return self.filter_by_since_limit(filteredOrders, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -13011,7 +13011,7 @@ impl Binance {
         let mut closedOrders: Value = self.filter_by(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::Str("closed".into()), &[]);
         let mut filteredOrders: Value = self.array_concat(canceledOrders, closedOrders);
         let mut sortedOrders: Value = self.sort_by(filteredOrders, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_since_limit(sortedOrders, &[since, limit]);
+        return self.filter_by_since_limit(sortedOrders, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -13855,7 +13855,7 @@ impl Binance {
         }
         }
         let mut trades: Value = self.parse_trades(Value::from(data), &[Value::Null, since.clone(), limit.clone()]);
-        return self.filter_by_since_limit(trades, &[since, limit]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -16619,8 +16619,8 @@ impl Binance {
         if (symbolsNormalized != Value::Null) {
             let mut symbol: Value = Value::Null;
             if (matches!(&symbolsNormalized, Value::Arr(_))) {
-                let mut symbolsLength: f64 = ((symbolsNormalized.len() as i64) as f64);
-                if symbolsLength > ((1i64) as f64) {
+                let mut symbolsLength: i64 = symbolsNormalized.len() as i64;
+                if symbolsLength > 1 {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() symbols argument cannot contain more than 1 symbol".into()))));
                 }
                 symbol = symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -17237,11 +17237,11 @@ impl Binance {
         //
         // { "code": 200, "msg": "success" }
         //
-        let mut marginModeValue: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        if (marginModeValue.as_str() == Some("CROSS")) {
-            marginModeValue = Value::Str("CROSSED".into());
+        let mut marginModeValue: String = marginMode.as_str().unwrap_or_default().to_string().to_uppercase();
+        if (marginModeValue == "CROSS") {
+            marginModeValue = "CROSSED".to_string();
         }
-        if (marginModeValue.as_str() != Some("ISOLATED")) && (marginModeValue.as_str() != Some("CROSSED")) {
+        if (marginModeValue != "ISOLATED") && (marginModeValue != "CROSSED") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" marginMode must be either isolated or cross".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -17251,7 +17251,7 @@ impl Binance {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
-                m.insert("marginType".to_string(), marginModeValue);
+                m.insert("marginType".to_string(), Value::from(marginModeValue));
             m
         });
         let mut response: Value = Value::Null;
@@ -17532,7 +17532,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut settlements: Value = self.parse_settlements(response, market);
         let mut sorted: Value = self.sort_by(settlements, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbolResolved, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbolResolved.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -17604,7 +17604,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut settlements: Value = self.parse_settlements(response, market);
         let mut sorted: Value = self.sort_by(settlements, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbolResolved, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbolResolved.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -18095,9 +18095,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         { let __be_tmp = self.encode_uri_component(self.safe_string_k(extendedParams.clone(), "symbol", &[Value::Str("".into())])); if let Value::Dict(__d) = &mut extendedParams { std::sync::Arc::make_mut(__d).insert("symbol".into(), __be_tmp); } }
                     }
                     query = self.rawencode(extendedParams.clone(), &[]);
-                    let mut orderidlistLength: f64 = ((orderidlist.len() as i64) as f64);
+                    let mut orderidlistLength: i64 = orderidlist.len() as i64;
                     let mut origclientorderidlistLength: f64 = ((origclientorderidlist.len() as i64) as f64);
-                    if orderidlistLength > ((0i64) as f64) {
+                    if orderidlistLength > 0 {
                         query = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", query, Value::Str("&".into())).into()), Value::Str("orderidlist=%5B".into())).into()), join(&orderidlist, &Value::Str("%2C".into()))).into()), Value::Str("%5D".into())).into());
                     }
                     if origclientorderidlistLength > ((0i64) as f64) {
@@ -18267,8 +18267,8 @@ if _try_result.is_err() {
         }
         if (matches!(&responseParsed, Value::Arr(_))) {
             // cancelOrders returns an array like this: [{"code":-2011,"msg":"Unknown order sent."}]
-            let mut arrayLength: f64 = ((responseParsed.len() as i64) as f64);
-            if (arrayLength == 1.0) {
+            let mut arrayLength: i64 = responseParsed.len() as i64;
+            if (arrayLength == 1) {
                 let mut element: crate::value::Dict = self.safe_dict(responseParsed.clone(), Value::Int(0), &[]).into_dict();
                 let mut errorCode: Option<String> = self.safe_string_k(&element, "code", &[]).as_str().map(str::to_owned);
                 if (errorCode.is_some()) {
@@ -19796,8 +19796,8 @@ if _try_result.is_err() {
         });
         let mut market: Value = Value::Null;
         if (symbolsNormalized.is_some()) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (symbolsLength == 1.0) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (symbolsLength == 1) {
                 market = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
                 request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
@@ -20267,7 +20267,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" parseMarginModifications() returned empty response".into()))));
         }
         let mut modifications: Value = self.parse_margin_modifications(self.to_array(response), &[]);
-        return self.filter_by_symbol_since_limit(modifications, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(modifications, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

@@ -644,14 +644,14 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut usePerpetualApi: bool = self.safe_string_k(&paramsMarketType, "settle", &[]).as_str() == Some("USDT");
         let mut messageHash: String = "perpetual:balance".to_string();
         if !usePerpetualApi {
-            messageHash = format!("{}{}", type_var, Value::Str(":balance".into()));
+            messageHash = format!("{}{}", type_var.as_deref().unwrap_or("null"), Value::Str(":balance".into()));
         }
-        return self.subscribe_private(type_var, Value::from(messageHash), &[Value::Dict(paramsMarketType)]).await;
+        return self.subscribe_private(type_var.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash), &[Value::Dict(paramsMarketType)]).await;
         Value::Null
         }).await?))
     }
@@ -942,12 +942,12 @@ impl Phemex {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: Value = self.request_id();
         let mut subscriptionHash: String = format!("{}{}", name, Value::Str(".subscribe".into()));
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_611: bool = true;
             while { if !__for_first_611 { i += 1; } __for_first_611 = false; i < (symbolsNormalized.len() as i64) } {
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).into())); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).into()));
         }
         }
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
@@ -958,7 +958,7 @@ impl Phemex {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut ticker: Value = self.watch_multiple(url, messageHashes.clone(), &[request, messageHashes.clone()]).await;
+        let mut ticker: Value = self.watch_multiple(url, &messageHashes, &[request, Value::Arr(messageHashes.clone())]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -970,7 +970,7 @@ impl Phemex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1030,7 +1030,7 @@ impl Phemex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1147,7 +1147,7 @@ impl Phemex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1486,7 +1486,7 @@ impl Phemex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1698,7 +1698,7 @@ impl Phemex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1868,8 +1868,8 @@ impl Phemex {
             let mut closed: Value = self.safe_list_k(message.clone(), "closed", &[Value::from(vec![])]);
             let mut open: Value = self.safe_list_k(message.clone(), "open", &[Value::from(vec![])]);
             let mut orders: crate::value::List = self.array_concat(open, closed).into_list();
-            let mut ordersLength: f64 = ((orders.len() as i64) as f64);
-            if (ordersLength == 0.0) {
+            let mut ordersLength: i64 = orders.len() as i64;
+            if (ordersLength == 0) {
                 return;
             }
             trades = self.safe_list_k(message.clone(), "fills", &[Value::from(vec![])]).into_list();

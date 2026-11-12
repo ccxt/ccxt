@@ -608,7 +608,7 @@ impl Bitget {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsList]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), symbolsList, &[]);
         Value::Null
         }).await?))
     }
@@ -897,7 +897,7 @@ impl Bitget {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsList]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), symbolsList, &[]);
         Value::Null
         }).await?))
     }
@@ -994,8 +994,8 @@ impl Bitget {
         let mut isStockOrUta: bool = isStockSpot || uta.as_bool() == Some(true);
         let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOHLCV".into()), (market).raw.clone(), &[Value::Bool(isStockOrUta.clone()), paramsStock]).as_array().cloned().unwrap_or_default();
         let mut instType: Value = instTypeparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsInstType: Value = instTypeparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut paramsRequest: Value = paramsInstType.clone();
+        let mut paramsInstType: crate::value::Dict = instTypeparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut paramsRequest: Value = Value::from(&paramsInstType);
         if isStockOrUta {
             paramsRequest = self.extend(paramsInstType, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1023,7 +1023,7 @@ impl Bitget {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1069,8 +1069,8 @@ impl Bitget {
         let mut isStockOrUta: Value = (Value::Bool(isStockSpot || (uta.as_bool() == Some(true))));
         let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOHLCV".into()), (market).raw.clone(), &[isStockOrUta.clone(), paramsStock]).as_array().cloned().unwrap_or_default();
         let mut instType: Value = instTypeparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsInstType: Value = instTypeparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut paramsRequest: Value = paramsInstType.clone();
+        let mut paramsInstType: crate::value::Dict = instTypeparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut paramsRequest: Value = Value::from(&paramsInstType);
         if matches!(&isStockOrUta, Value::Bool(true)) {
             paramsRequest = self.extend(paramsInstType, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1319,10 +1319,10 @@ impl Bitget {
         let mut paramsStock: crate::value::Dict = self.omit(params, Value::Str("stock".into()), &[]).into_dict();
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsStock, Value::Str("unWatchOrderBook".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isStockSpot: bool = isStock.as_bool() == Some(true) && (market).spot;
         let mut isStockOrUta: bool = isStockSpot || uta.as_bool() == Some(true);
-        let mut paramsRequest: Value = paramsUta.clone();
+        let mut paramsRequest: Value = Value::from(&paramsUta);
         if isStockOrUta {
             paramsRequest = self.extend(paramsUta, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1363,10 +1363,10 @@ impl Bitget {
         let mut paramsPrivateChannel: Value = privateChannelparamsPrivateChannelVariable.get(1).cloned().unwrap_or(Value::Null);
         let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(methodName, (market).raw.clone(), &[uta.map_or(Value::Null, Value::Bool), paramsPrivateChannel]).as_array().cloned().unwrap_or_default();
         let mut instType: Value = instTypeparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsInstType: Value = instTypeparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut paramsRequest: Value = paramsInstType.clone();
+        let mut paramsInstType: crate::value::Dict = instTypeparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut paramsRequest: Value = Value::from(&paramsInstType);
         if (uta == Some(true)) {
-            let __ws_arg_0 = self.extend(paramsInstType.clone(), &[Value::Map({
+            let __ws_arg_0 = self.extend(&paramsInstType, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("uta".to_string(), Value::Bool(true));
                 m
@@ -1382,7 +1382,7 @@ impl Bitget {
             args.insert("topic".into(), channel.clone());
             args.insert("symbol".into(), Value::from((market).id.clone()));
             if (channel.as_str() == Some("kline")) {
-                args.insert("interval".into(), self.safe_string_k(paramsInstType, "interval", &[Value::Str("1m".into())]));
+                args.insert("interval".into(), self.safe_string_k(&paramsInstType, "interval", &[Value::Str("1m".into())]));
             }
         }  else {
             args.insert("channel".into(), channel);
@@ -1737,8 +1737,8 @@ impl Bitget {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbols.len() as i64;
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -1795,7 +1795,7 @@ impl Bitget {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        let mut result: Value = self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut result: Value = self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         if (match &(self.handle_option(Value::Str("watchTrades".into()), Value::Str("ignoreDuplicates".into()), &[Value::Bool(true)])) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
             Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut filtered: Value = self.remove_repeated_trades_from_array(result.clone());
@@ -2131,7 +2131,7 @@ impl Bitget {
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(newPositions, &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(newPositions, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2250,8 +2250,8 @@ impl Bitget {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
-            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
+            let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(positions, messageHash.as_deref());
             }
@@ -2430,13 +2430,13 @@ impl Bitget {
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchOrders".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsMarketType, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
-        let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         if ((type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin"))) && (symbolResolved.is_none()) {
             marketId = Value::Str("default".into());
         }
         if (productType.is_none()) && (type_var.as_deref() != Some("spot")) && (symbolResolved.is_none()) {
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), subType);
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), subType.as_deref().unwrap_or("null"));
         }  else if (productType.as_deref() == Some("USDT-FUTURES")) {
             messageHash = format!("{}{}", messageHash, Value::Str(":linear".into()));
         }  else if (productType.as_deref() == Some("COIN-FUTURES")) {
@@ -2466,12 +2466,12 @@ impl Bitget {
             channel = "orders-algo".to_string();
         }
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("watchOrders".into()), &[paramsInstType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (marginMode != Value::Null) {
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        if (marginMode.is_some()) {
             instType = Value::Str("MARGIN".into());
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), marginMode);
-            if (marginMode.as_str() == Some("isolated")) {
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), marginMode.as_deref().unwrap_or("null"));
+            if (marginMode.as_deref() == Some("isolated")) {
                 channel = "orders-isolated".to_string();
             }  else {
                 channel = "orders-crossed".to_string();
@@ -2492,7 +2492,7 @@ impl Bitget {
             topicOrChannel = "topic".to_string();
         }
         args.insert(topicOrChannel, Value::from(channel));
-        let mut paramsRequest: Value = paramsMarginMode.clone();
+        let mut paramsRequest: Value = Value::from(&paramsMarginMode);
         if (uta == Some(true)) {
             paramsRequest = self.extend(paramsMarginMode, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2508,7 +2508,7 @@ impl Bitget {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3048,7 +3048,7 @@ impl Bitget {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3261,7 +3261,7 @@ impl Bitget {
         }
         let instTypeOptionparamsInstTypeVariable: Vec<Value> = self.handle_option_string_and_params(&paramsMarginMode, Value::Str("watchBalance".into()), Value::Str("instType".into()), &[instTypeDefault.clone().map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
         let mut instTypeOption: Value = instTypeOptionparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsInstType: Value = instTypeOptionparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsInstType: crate::value::Dict = instTypeOptionparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut instType: Value = instTypeOption;
         if isStockOrUta {
             instType = Value::Str("UTA".into());
@@ -3276,7 +3276,7 @@ impl Bitget {
             topicOrChannel = "topic".to_string();
         }
         args.insert(topicOrChannel, Value::from(channel));
-        let mut paramsRequest: Value = paramsInstType.clone();
+        let mut paramsRequest: Value = Value::from(&paramsInstType);
         if isStockOrUta {
             paramsRequest = self.extend(paramsInstType, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

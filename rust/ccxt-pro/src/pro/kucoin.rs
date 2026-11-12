@@ -817,19 +817,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolValue);
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchTicker".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: bool = utaparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if uta {
             messageHash = format!("{}{}", Value::Str("uta:".into()), messageHash);
             let mut channel: String = "ticker".to_string();
-            return self.subscribe_public_uta(Value::from(messageHash.clone()), Value::from(channel), Value::from(symbolValue), &[paramsUta.clone()]).await;
+            return self.subscribe_public_uta(Value::from(messageHash.clone()), Value::from(channel), Value::from(symbolValue), &[Value::from(&paramsUta)]).await;
         }
         let mut isFuturesMethod: bool = (market).contract;
         let mut url: Value = self.negotiate(Value::Bool(false), &[Value::Bool(isFuturesMethod.clone())]).await;
-        let spotMethodparamsSpotMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsUta.clone(), Value::Str("watchTicker".into()), Value::Str("spotMethod".into()), &[Value::Str("/market/snapshot".into())]).as_array().cloned().unwrap_or_default();
+        let spotMethodparamsSpotMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsUta, Value::Str("watchTicker".into()), Value::Str("spotMethod".into()), &[Value::Str("/market/snapshot".into())]).as_array().cloned().unwrap_or_default();
         let mut spotMethod: Value = spotMethodparamsSpotMethodVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSpotMethod: Value = spotMethodparamsSpotMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut method: Value = (if (isFuturesMethod) { Value::Str("/contractMarket/ticker".into()) } else { spotMethod });
-        let mut query: Value = (if (isFuturesMethod) { paramsUta } else { paramsSpotMethod });
+        let mut query: Value = (if (isFuturesMethod) { Value::Dict(paramsUta) } else { paramsSpotMethod });
         let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", method, Value::Str(":".into())).into()), Value::from((market).id.clone()));
         return self.subscribe(url, Value::from(messageHash), Value::from(topic), &[query]).await;
         Value::Null
@@ -867,7 +867,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isFuturesMethod: bool = (market).contract;
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("unWatchTicker".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: bool = utaparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolValue.clone())]));
@@ -881,14 +881,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             subscription.insert("subMessageHashes".into(), Value::from(vec![Value::from(subMessageHash.clone())]));
             let mut utaMessageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
             subscription.insert("messageHashes".into(), Value::from(vec![Value::from(utaMessageHash.clone())]));
-            return self.subscribe_public_uta(Value::from(utaMessageHash), Value::Str("ticker".into()), Value::from(symbolValue), &[paramsUta.clone(), Value::Map(subscription.clone())]).await;
+            return self.subscribe_public_uta(Value::from(utaMessageHash), Value::Str("ticker".into()), Value::from(symbolValue), &[Value::from(&paramsUta), Value::Map(subscription.clone())]).await;
         }  else {
             let mut url: Value = self.negotiate(Value::Bool(false), &[Value::Bool(isFuturesMethod.clone())]).await;
-            let spotMethodparamsSpotMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsUta.clone(), Value::Str("watchTicker".into()), Value::Str("spotMethod".into()), &[Value::Str("/market/snapshot".into())]).as_array().cloned().unwrap_or_default();
+            let spotMethodparamsSpotMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsUta, Value::Str("watchTicker".into()), Value::Str("spotMethod".into()), &[Value::Str("/market/snapshot".into())]).as_array().cloned().unwrap_or_default();
             let mut spotMethod: Value = spotMethodparamsSpotMethodVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsSpotMethod: Value = spotMethodparamsSpotMethodVariable.get(1).cloned().unwrap_or(Value::Null);
             let mut method: Value = (if (isFuturesMethod) { Value::Str("/contractMarket/ticker".into()) } else { spotMethod });
-            let mut query: Value = (if (isFuturesMethod) { paramsUta } else { paramsSpotMethod });
+            let mut query: Value = (if (isFuturesMethod) { Value::Dict(paramsUta) } else { paramsSpotMethod });
             let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", method, Value::Str(":".into())).into()), Value::from((market).id.clone()));
             let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
             subscription.insert("messageHashes".into(), Value::from(vec![Value::from(messageHash.clone()), Value::from(topic.clone())]));
@@ -934,13 +934,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsMarketType, Value::Str("watchTickers".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: bool = utaparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isFuturesMethod: bool = (marketType.as_deref() != Some("spot")) && (marketType.as_deref() != Some("margin"));
         if (isFuturesMethod || uta) && (symbolsNormalized.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() requires a list of symbols for ".into())).into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" markets and unified trading account (uta)".into()))));
         }
         let mut messageHash: String = "tickers".to_string();
-        let spotMethodparamsSpotMethodVariable: Vec<Value> = self.handle_option_string_and_params2(paramsUta.clone(), Value::Str("watchTickers".into()), Value::Str("method".into()), Value::Str("spotMethod".into()), &[Value::Str("/market/ticker".into())]).as_array().cloned().unwrap_or_default();
+        let spotMethodparamsSpotMethodVariable: Vec<Value> = self.handle_option_string_and_params2(&paramsUta, Value::Str("watchTickers".into()), Value::Str("method".into()), Value::Str("spotMethod".into()), &[Value::Str("/market/ticker".into())]).as_array().cloned().unwrap_or_default();
         let mut spotMethod: Value = spotMethodparamsSpotMethodVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSpotMethod: Value = spotMethodparamsSpotMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut method: Value = spotMethod;
@@ -949,7 +949,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut query: Value = paramsSpotMethod;
         if isFuturesMethod {
-            query = paramsUta;
+            query = Value::Dict(paramsUta);
         }
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut topics: Vec<Value> = Vec::new();
@@ -989,7 +989,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 return Value::Map(newDict);
             }
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1060,7 +1060,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if self.newUpdates.as_bool() == Some(true) {
             return tickers;
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
 
     Value::Null
 }
@@ -1310,14 +1310,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(false)]);
-        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[symbolsNormalized.clone()]).into_dict();
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(false)]).into_list();
+        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[Value::Arr(symbolsNormalized.clone())]).into_dict();
         let mut isFuturesMethod: bool = self.safe_bool_k(&firstMarket, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut channelName: String = "/spotMarket/level1:".to_string();
         if isFuturesMethod {
             channelName = "/contractMarket/tickerV2:".to_string();
         }
-        let mut ticker: Value = self.watch_multi_helper(Value::Str("watchBidsAsks".into()), Value::from(channelName), Value::Bool(isFuturesMethod), &[symbolsNormalized.clone(), params]).await;
+        let mut ticker: Value = self.watch_multi_helper(Value::Str("watchBidsAsks".into()), Value::from(channelName), Value::Bool(isFuturesMethod), &[Value::Arr(symbolsNormalized.clone()), params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1329,7 +1329,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1348,14 +1348,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if length > ((100i64) as f64) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() accepts a maximum of 100 symbols".into()))));
         }
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_452: bool = true;
             while { if !__for_first_452 { i += 1; } __for_first_452 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Value = symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask@".into()), Value::from((market).symbol.clone())).into())); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("bidask@".into()), Value::from((market).symbol.clone())).into()));
         }
         }
         let mut url: Value = self.negotiate(Value::Bool(false), &[isFuturesChannel]).await;
@@ -1371,7 +1371,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch_multiple(url, messageHashes.clone(), &[message, messageHashes.clone()]).await;
+        return self.watch_multiple(url, &messageHashes, &[message, Value::Arr(messageHashes.clone())]).await;
 
     Value::Null
 }
@@ -1530,7 +1530,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1774,7 +1774,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if self.newUpdates.as_bool() == Some(true) {
                 limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
             }
-            return self.filter_by_since_limit(trades, &[since.clone(), Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+            return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         }
         return crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols((Value::from(vec![symbol])).to_str_vec(), since.as_i64(), limit.as_i64(), paramsUta).await);
         Value::Null
@@ -1806,8 +1806,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbols.len() as i64;
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -1842,7 +1842,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2260,8 +2260,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbols.len() as i64;
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".into()))));
         }
         if (limit != Value::Null) {
@@ -2902,7 +2902,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3378,7 +3378,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3976,7 +3976,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut cache: Value = self.positions.clone();
         if (fetchPositionSnapshot.as_bool() == Some(true)) && (awaitPositionSnapshot.as_bool() == Some(true)) && (cache == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
-            return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.map_or(Value::Null, Value::Arr), since.clone(), limit.clone(), Value::Bool(true)]);
+            return self.filter_by_symbols_since_limit(snapshot, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
         let mut channel: String = "positionAll".to_string();
         let mut paramsExtended: Value = self.extend(paramsUta, &[Value::Map({
@@ -3988,7 +3988,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(cache, &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(cache, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

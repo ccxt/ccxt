@@ -458,18 +458,18 @@ impl Hitbtc {
         let mut resolvedPerSymbol: bool = !isBatch || (messageHashPrefix.as_str() == Some("orderbooks")); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
         let mut wsUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         if (symbolsNormalized.is_some()) && resolvedPerSymbol {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_361: bool = true;
                 while { if !__for_first_361 { i += 1; } __for_first_361 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut symbolId: Value = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashPrefix, Value::Str("::".into())).into()), symbolId).into())); }
+                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashPrefix, Value::Str("::".into())).into()), symbolId).into()));
             }
             }
         }  else {
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHashPrefix); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(messageHashPrefix);
         }
         let mut requestId: Value = self.incrementing_nonce();
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
@@ -485,7 +485,7 @@ impl Hitbtc {
                 m.insert("id".to_string(), requestId);
             m
         });
-        return self.watch_multiple(url.as_deref(), messageHashes.clone(), &[request, messageHashes.clone(), Value::Map(subscription)]).await;
+        return self.watch_multiple(url.as_deref(), &messageHashes, &[request, Value::Arr(messageHashes.clone()), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -849,11 +849,11 @@ impl Hitbtc {
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("ticker/{speed}/batch".into())]).as_str().unwrap_or("ticker/{speed}/batch").to_string();
         let mut method: Option<String> = self.safe_string2(Value::from(&paramsMethod), Value::Str("method".into()), Value::Str("defaultMethod".into()), &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut speedValue: String = self.safe_string_k(&paramsMethod, "speed", &[Value::Str("1s".into())]).as_str().unwrap_or("1s").to_string(); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
-        let mut name: Value = self.implode_params(method.map(Value::from).unwrap_or(Value::Null), Value::Map({
+        let mut name: Value = Value::from(self.implode_params(method.map(Value::from).unwrap_or(Value::Null), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("speed".to_string(), Value::from(speedValue));
             m
-        }));
+        })));
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMethod, Value::from(vec![Value::Str("method".into()), Value::Str("defaultMethod".into()), Value::Str("speed".into())]), &[]).into_dict();
         let mut marketIds: Vec<Value> = Vec::new();
         if (symbolsNormalized.is_none()) {
@@ -893,7 +893,7 @@ impl Hitbtc {
                 return Value::Map(tickers);
             }
         }
-        return self.filter_by_array(newTickers, Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array(newTickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1049,18 +1049,18 @@ impl Hitbtc {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBidsAsks", &[]).into_dict();
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("orderbook/top/{speed}/batch".into())]).as_str().unwrap_or("orderbook/top/{speed}/batch").to_string();
         let mut method: Option<String> = self.safe_string2(params.clone(), Value::Str("method".into()), Value::Str("defaultMethod".into()), &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut speedValue: String = self.safe_string_k(params.clone(), "speed", &[Value::Str("100ms".into())]).as_str().unwrap_or("100ms").to_string(); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
-        let mut name: Value = self.implode_params(method.map(Value::from).unwrap_or(Value::Null), Value::Map({
+        let mut name: Value = Value::from(self.implode_params(method.map(Value::from).unwrap_or(Value::Null), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("speed".to_string(), Value::from(speedValue));
             m
-        }));
+        })));
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("method".into()), Value::Str("defaultMethod".into()), Value::Str("speed".into())]), &[]).into_dict();
-        let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
+        let mut marketIds: Value = self.market_ids(&[Value::Arr(symbolsNormalized.clone())]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
@@ -1070,7 +1070,7 @@ impl Hitbtc {
 }));
             m
         });
-        let mut newTickers: Value = self.subscribe_public(name, Value::Str("bidask".into()), &[symbolsNormalized.clone(), self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
+        let mut newTickers: Value = self.subscribe_public(name, Value::Str("bidask".into()), &[Value::Arr(symbolsNormalized.clone()), self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
         if self.newUpdates.as_bool() == Some(true) {
             if !(matches!(&newTickers, Value::Arr(_))) {
                 let mut tickers: indexmap::IndexMap<String, Value> = ({
@@ -1084,7 +1084,7 @@ impl Hitbtc {
                 return Value::Map(tickers);
             }
         }
-        return self.filter_by_array(newTickers, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(newTickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1199,7 +1199,7 @@ impl Hitbtc {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -1334,7 +1334,7 @@ impl Hitbtc {
         }
         result = self.sort_by2(result.clone(), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
         let mut symbol: Option<String> = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(result, &[symbol.map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(result, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -1419,7 +1419,7 @@ impl Hitbtc {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0)]);
         Value::Null
         }).await?))
     }
@@ -1601,7 +1601,7 @@ impl Hitbtc {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, &[since, Value::from(limitResolved), Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -2283,8 +2283,8 @@ impl Hitbtc {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                let mut arrayLength: f64 = ((result.len() as i64) as f64);
-                if (arrayLength == 0.0) || (matches!(&first, Value::Dict(__d) if __d.contains_key("client_order_id"))) {
+                let mut arrayLength: i64 = result.len() as i64;
+                if (arrayLength == 0) || (matches!(&first, Value::Dict(__d) if __d.contains_key("client_order_id"))) {
                     self.handle_order_request(client, message);
                 }
             }

@@ -4024,8 +4024,8 @@ impl Htx {
         //     }
         //
         let mut markets: crate::value::List = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_list();
-        let mut numMarkets: f64 = ((markets.len() as i64) as f64);
-        if numMarkets < ((1i64) as f64) {
+        let mut numMarkets: i64 = markets.len() as i64;
+        if numMarkets < 1 {
             panic!("{}", crate::exchange_errors::operation_failed(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() returned an empty response: ".into())).into()), json_stringify(&response))));
         }
         let mut result: Vec<Value> = Vec::new();
@@ -4171,8 +4171,8 @@ impl Htx {
             let mut createdDate: Option<String> = self.safe_string_k(&market, "create_date", &[]).as_str().map(str::to_owned); // i.e 20230101
             if (createdDate.is_some()) {
                 let mut createdArray: Vec<Value> = self.string_to_chars_array(createdDate.clone().map(Value::from).unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
-                let mut createdLength: f64 = ((createdArray.len() as i64) as f64);
-                if createdLength >= ((8i64) as f64) {
+                let mut createdLength: i64 = createdArray.len() as i64;
+                if createdLength >= 8 {
                     let mut yearPart: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(&createdArray, Value::Int(0), &[Value::Str("".into())]), self.safe_string(&createdArray, Value::Int(1), &[Value::Str("".into())])).into()), self.safe_string(&createdArray, Value::Int(2), &[Value::Str("".into())])).into()),
                         self.safe_string(&createdArray, Value::Int(3), &[Value::Str("".into())]));
                     let mut monthPart: String = format!("{}{}", self.safe_string(&createdArray, Value::Int(4), &[Value::Str("".into())]), self.safe_string(&createdArray, Value::Int(5), &[Value::Str("".into())]));
@@ -5434,7 +5434,7 @@ impl Htx {
         }
         }
         result = self.sort_by(result.clone(), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(result, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(result, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -5961,8 +5961,8 @@ impl Htx {
             return Value::Null;
         }
         let mut keys: Vec<Value> = Value::Array((self.options.as_map().and_then(|__m| __m.get("networkNamesByChainIds")).cloned().unwrap_or(Value::Null)).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut keysLength: f64 = ((keys.len() as i64) as f64);
-        if (keysLength == 0.0) {
+        let mut keysLength: i64 = keys.len() as i64;
+        if (keysLength == 0) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" networkIdToCode() - markets need to be loaded at first".into()))));
         }
         let mut networkTitle: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networkNamesByChainIds")).cloned().unwrap_or(Value::Null), networkId.clone(), &[networkId.clone()]).as_str().map(str::to_owned);
@@ -5980,8 +5980,8 @@ impl Htx {
             return self.super_network_code_to_id(networkCode.clone(), &[]);
         }
         let mut keys: Vec<Value> = Value::Array((self.options.as_map().and_then(|__m| __m.get("networkChainIdsByNames")).cloned().unwrap_or(Value::Null)).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut keysLength: f64 = ((keys.len() as i64) as f64);
-        if (keysLength == 0.0) {
+        let mut keysLength: i64 = keys.len() as i64;
+        if (keysLength == 0) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" networkCodeToId() - markets need to be loaded at first".into()))));
         }
         let mut uniqueNetworkIds: Value = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("networkChainIdsByNames")).cloned().unwrap_or(Value::Null), currencyCode.clone(), &[Value::Map({
@@ -7930,18 +7930,18 @@ impl Htx {
         }
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(orderType.as_str() == Some("market")), Value::Bool(orderType.as_str() == Some("limit-maker")), &[Value::from(&paramsMarginMode)]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if postOnly {
             orderType = Value::Str("limit-maker".into());
         }
-        let mut timeInForce: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "timeInForce", &[Value::Str("GTC".into())]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.safe_string_k(&paramsPostOnly, "timeInForce", &[Value::Str("GTC".into())]).as_str().map(str::to_owned);
         if (timeInForce.as_deref() == Some("FOK")) {
             orderType = Value::Str(format!("{}{}", orderType, Value::Str("-fok".into())).into());
         }  else if (timeInForce.as_deref() == Some("IOC")) {
             orderType = Value::Str("ioc".into());
         }
         request.insert("type".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", sideStr, Value::Str("-".into())).into()), orderType).into()));
-        let mut clientOrderId: Option<String> = self.safe_string2(paramsPostOnly.clone(), Value::Str("clientOrderId".into()), Value::Str("client-order-id".into()), &[]).as_str().map(str::to_owned); // must be 64 chars max and unique within 24 hours
+        let mut clientOrderId: Option<String> = self.safe_string2(Value::from(&paramsPostOnly), Value::Str("clientOrderId".into()), Value::Str("client-order-id".into()), &[]).as_str().map(str::to_owned); // must be 64 chars max and unique within 24 hours
         if (clientOrderId.is_none()) {
             let mut broker: crate::value::Dict = self.safe_dict_k(self.options.clone(), "broker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7960,9 +7960,9 @@ impl Htx {
             request.insert("source".into(), Value::Str("c2c-margin-api".into()));
         }
         let mut isMarketBuy: bool = (orderType.as_str() == Some("market")) && (sideStr.as_str() == Some("buy"));
-        let mut requiresPriceAndParams: Value = self.handle_option_bool_and_params(paramsPostOnly.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]);
+        let mut requiresPriceAndParams: Value = self.handle_option_bool_and_params(&paramsPostOnly, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]);
         let mut cost: Option<f64> = self.safe_number(requiresPriceAndParams.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]).as_f64();
-        let mut paramsCost: Value = paramsPostOnly;
+        let mut paramsCost: Value = Value::Dict(paramsPostOnly);
         if isMarketBuy {
             paramsCost = self.omit(requiresPriceAndParams.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]);
         }
@@ -9826,7 +9826,7 @@ impl Htx {
         }
         let networkCodeparamsNetworkVariable: Vec<Value> = self.handle_network_code_and_params(&paramsTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Option<String> = networkCodeparamsNetworkVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsNetwork: Value = networkCodeparamsNetworkVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsNetwork: crate::value::Dict = networkCodeparamsNetworkVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (networkCode.is_some()) {
             request.insert("chain".into(), self.network_code_to_id(networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[code.clone()]));
         }
@@ -9840,12 +9840,12 @@ impl Htx {
     m
 })]).into_dict();
         let mut includeFee: bool = self.safe_bool_k(&withdrawOptions, "includeFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsFee: Value = paramsNetwork.clone();
+        let mut paramsFee: Value = Value::from(&paramsNetwork);
         if includeFee {
-            paramsFee = self.omit(paramsNetwork.clone(), Value::Str("fee".into()), &[]);
+            paramsFee = self.omit(&paramsNetwork, Value::Str("fee".into()), &[]);
         }
         if includeFee {
-            let mut fee: Option<f64> = self.safe_number_k(paramsNetwork, "fee", &[]).as_f64();
+            let mut fee: Option<f64> = self.safe_number_k(&paramsNetwork, "fee", &[]).as_f64();
             if (fee.is_none()) {
                 let mut currencies: crate::types::Currencies = (match self.fetch_currencies(Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 { let __t = self.map_to_safe_map(self.deep_extend(self.currencies.clone(), &[crate::types::IntoRaw::into_raw(currencies.clone())])); self.currencies = __t; }
@@ -9999,7 +9999,7 @@ impl Htx {
         });
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("transfer".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut fromAccountId: Value = self.convert_type_to_account(fromAccount.clone());
         let mut toAccountId: Value = self.convert_type_to_account(toAccount.clone());
         let mut fromAccountIdStr: Value = fromAccountId.clone();
@@ -10017,26 +10017,26 @@ impl Htx {
         let mut response: Value = Value::Null;
         if fromOrToFuturesAccount {
             let mut type_var: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", fromAccountIdStr, Value::Str("-to-".into())).into()), toAccountIdStr).into());
-            type_var = self.safe_string_k(paramsSubType.clone(), "type", &[type_var.clone()]);
+            type_var = self.safe_string_k(&paramsSubType, "type", &[type_var.clone()]);
             request.insert("type".into(), type_var);
-            let __ws_arg_116 = self.extend(Value::Map(request.clone()), &[paramsSubType.clone()]);
+            let __ws_arg_116 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
             response = self.spot_private_post_v1_futures_transfer(&[__ws_arg_116]).await;
         }  else if fromSpot && toCross {
-            let __ws_arg_117 = self.extend(Value::Map(request.clone()), &[paramsSubType.clone()]);
+            let __ws_arg_117 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
             response = self.private_post_cross_margin_transfer_in(&[__ws_arg_117]).await;
         }  else if fromCross && toSpot {
-            let __ws_arg_118 = self.extend(Value::Map(request.clone()), &[paramsSubType.clone()]);
+            let __ws_arg_118 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
             response = self.private_post_cross_margin_transfer_out(&[__ws_arg_118]).await;
         }  else if fromSpot && toIsolated {
             request.insert("symbol".into(), toAccountId.clone());
-            let __ws_arg_119 = self.extend(Value::Map(request.clone()), &[paramsSubType.clone()]);
+            let __ws_arg_119 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
             response = self.private_post_dw_transfer_in_margin(&[__ws_arg_119]).await;
         }  else if fromIsolated && toSpot {
             request.insert("symbol".into(), fromAccountId.clone());
-            let __ws_arg_120 = self.extend(Value::Map(request.clone()), &[paramsSubType.clone()]);
+            let __ws_arg_120 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
             response = self.private_post_dw_transfer_out_margin(&[__ws_arg_120]).await;
         }  else {
-            let mut query: Value = paramsSubType.clone();
+            let mut query: Value = Value::from(&paramsSubType);
             if (subType.as_deref() == Some("linear")) {
                 if (fromAccountIdStr.as_str() == Some("swap")) || (fromAccount.as_str() == Some("linear-swap")) {
                     fromAccountId = Value::Str("linear-swap".into());
@@ -10044,8 +10044,8 @@ impl Htx {
                     toAccountId = Value::Str("linear-swap".into());
                 }
                 // check if cross-margin or isolated
-                let mut symbol: Option<String> = self.safe_string_k(paramsSubType.clone(), "symbol", &[]).as_str().map(str::to_owned);
-                query = self.omit(paramsSubType, Value::Str("symbol".into()), &[]);
+                let mut symbol: Option<String> = self.safe_string_k(&paramsSubType, "symbol", &[]).as_str().map(str::to_owned);
+                query = self.omit(&paramsSubType, Value::Str("symbol".into()), &[]);
                 if (symbol.is_some()) {
                     symbol = self.market_id(symbol.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     request.insert("margin-account".into(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -10377,7 +10377,7 @@ impl Htx {
             }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -10767,8 +10767,8 @@ impl Htx {
         if !isArrayParams {
             query = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         }
-        let mut apiLength: f64 = ((api.len() as i64) as f64);
-        if (apiLength == 1.0) {
+        let mut apiLength: i64 = api.len() as i64;
+        if (apiLength == 1) {
             // signing implementation for the old endpoints
             let mut apiName: Value = api.as_array().into_iter().flatten().nth(0).cloned().unwrap_or(Value::Null);
             if (apiName.as_str() == Some("public")) || (apiName.as_str() == Some("private")) {
@@ -11393,8 +11393,8 @@ impl Htx {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut market: Option<crate::types::Market> = None;
         if (symbolsNormalized.is_some()) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if symbolsLength > ((0i64) as f64) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if symbolsLength > 0 {
                 let mut first: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
                 market = Some(match self.market(first.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             }
@@ -11975,8 +11975,8 @@ impl Htx {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut market: Option<crate::types::Market> = None;
         if (symbolsNormalized.is_some()) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if symbolsLength > ((0i64) as f64) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if symbolsLength > 0 {
                 let mut first: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
                 market = Some(match self.market(first.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             }
@@ -13216,8 +13216,8 @@ impl Htx {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]).into_opt_list();
         let mut market: Option<crate::types::Market> = None;
         if (symbolsNormalized.is_some()) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if symbolsLength > ((0i64) as f64) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if symbolsLength > 0 {
                 let mut first: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
                 market = Some(match self.market(first.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             }

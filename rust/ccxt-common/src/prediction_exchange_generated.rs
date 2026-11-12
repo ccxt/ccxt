@@ -125,9 +125,9 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut tags: crate::value::List = self.safe_list_k(params.clone(), "tags", &[Value::from(vec![])]).into_list();
         let mut eventId: Option<String> = self.safe_string_k(params.clone(), "eventId", &[]).as_str().map(str::to_owned);
         let mut slug: Option<String> = self.safe_string_k(params.clone(), "slug", &[]).as_str().map(str::to_owned);
-        let mut queriesLength: f64 = ((queries.len() as i64) as f64);
-        let mut tagsLength: f64 = ((tags.len() as i64) as f64);
-        if (query.is_some()) || (queriesLength > ((0i64) as f64)) || (tagsLength > ((0i64) as f64)) || (eventId.is_some()) || (slug.is_some()) {
+        let mut queriesLength: i64 = queries.len() as i64;
+        let mut tagsLength: i64 = tags.len() as i64;
+        if (query.is_some()) || (queriesLength > 0) || (tagsLength > 0) || (eventId.is_some()) || (slug.is_some()) {
             return Value::Null;
         }
         let mut extraScopeParams: crate::value::List = self.safe_list_k(self.options.clone(), "eventScopeParams", &[Value::from(vec![])]).into_list();
@@ -189,7 +189,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (queries != Value::Null) {
             queriesLength = queries.len() as i64;
         }
-        if (queriesLength as f64) > ((0i64) as f64) {
+        if queriesLength > 0 {
             result = self.filter_events_by_search_in(result.clone(), queries, &[(match params.get("searchIn") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
         }
         let mut sort: Option<String> = (match params.get("sort") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
@@ -217,12 +217,12 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (limit.is_some()) {
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
             // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
-            let mut resultLength: Value = Value::Int(result.len() as i64);
-            let mut sliceEnd: Value = Value::from(limit);
-            if sliceEnd.as_f64().unwrap_or(f64::NAN) > resultLength.as_f64().unwrap_or(f64::NAN) {
-                sliceEnd = resultLength;
+            let mut resultLength: i64 = result.len() as i64;
+            let mut sliceEnd: Option<i64> = limit;
+            if sliceEnd > Some(resultLength) {
+                sliceEnd = Some(resultLength);
             }
-            result = self.array_slice(result.clone(), Value::Int(0), &[sliceEnd]);
+            result = self.array_slice(result.clone(), Value::Int(0), &[Value::from(sliceEnd)]);
         }
         return result;
 
@@ -858,12 +858,11 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 if (existing != Value::Null) {
                     let mut existingId: Value = self.safe_string_k(existing, "outcomeId", &[]);
                     if (existingId != Value::Null) && (ocId != Value::Null) && (existingId != ocId) {
-                        let mut idLen: Value = Value::Int(ocId.len() as i64);
+                        let mut idLen: i64 = ocId.len() as i64;
                         let mut suffix: Value = ocId.clone();
-                        if idLen.as_f64().unwrap_or(f64::NAN) > ((6i64) as f64) {
-                            suffix = (match (&(ocId), (match &((match (&(idLen), &(Value::Int(6))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-                                _ => Value::Null })) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(Value::Null) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64),
-                                Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
+                        if idLen > 6 {
+                            suffix = (match (&(ocId), (match &(Value::Int((idLen - 6))) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(Value::Null) { Value::Int(__n) => Some(*__n),
+                                Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
                                 Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
                                 __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
                         }
@@ -1121,8 +1120,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             hasLetters = true;
         }
         }
-        let mut wordsLength: f64 = ((words.len() as i64) as f64);
-        if (wordsLength == 0.0) || !hasLetters {
+        let mut wordsLength: i64 = words.len() as i64;
+        if (wordsLength == 0) || !hasLetters {
             return Value::Null;
         }
         return Value::Str(words.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(" ").into());
@@ -2068,8 +2067,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut fee: Value = self.safe_dict_k(outcomeOrder.clone(), "fee", &[]);
         // own-line length reads so the regex transpiler emits count() (array), not strlen()
-        let mut feeListLength: f64 = ((feeList.len() as i64) as f64);
-        if (fee == Value::Null) && (feeListLength > ((0i64) as f64)) {
+        let mut feeListLength: i64 = feeList.len() as i64;
+        if (fee == Value::Null) && (feeListLength > 0) {
             fee = self.safe_dict(self.reduce_fees_by_currency(Value::from(feeList)), Value::Int(0), &[]);
         }
         // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
@@ -2460,8 +2459,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut tail = get_arg(optional_args, 3, Value::Bool(false));
-        let mut result: Value = self.filter_by_array(array, Value::Str("outcome".into()), &[outcomes, Value::Bool(false)]);
-        return self.filter_by_since_limit(result, &[since, limit, Value::Str("timestamp".into()), tail]);
+        let mut result: Value = self.filter_by_array(array, Value::Str("outcome".into()), outcomes, &[Value::Bool(false)]);
+        return self.filter_by_since_limit(result, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), tail]);
 
     Value::Null
 }
@@ -2537,7 +2536,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if byteLength.as_f64().unwrap_or(f64::NAN) < ((56i64) as f64) {
             return Value::Str(format!("{}{}", self.int_to_base16((match (&(Value::Int(128)), &(byteLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[]), hex).into());
         }
-        let mut lengthHex: Option<String> = self.int_to_base16(byteLength, &[]).as_str().map(str::to_owned);
+        let mut lengthHex: Option<String> = Some(self.int_to_base16(byteLength, &[]));
         lengthHex = self.pad_hex_to_even(lengthHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut lengthOfLength: Value = self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0)));
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16((match (&(Value::Int(183)), &(lengthOfLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
@@ -2560,7 +2559,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Str(format!("{}{}", self.int_to_base16((match (&(Value::Int(192)), &(byteLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
                 _ => Value::Null }), &[]), concatenated).into());
         }
-        let mut lengthHex: Option<String> = self.int_to_base16(byteLength, &[]).as_str().map(str::to_owned);
+        let mut lengthHex: Option<String> = Some(self.int_to_base16(byteLength, &[]));
         lengthHex = self.pad_hex_to_even(lengthHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut lengthOfLength: Value = self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0)));
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16((match (&(Value::Int(247)), &(lengthOfLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
@@ -2577,7 +2576,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (value.as_f64() == Some(0.0)) {
             return Value::Str("".into());
         }
-        let mut hex: Value = self.int_to_base16(value, &[]);
+        let mut hex: Value = Value::from(self.int_to_base16(value, &[]));
         hex = self.pad_hex_to_even(hex.clone());
         return hex;
 

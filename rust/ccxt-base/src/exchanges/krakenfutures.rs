@@ -2377,8 +2377,8 @@ impl Krakenfutures {
         }
         let mut orders: Vec<Value> = Vec::new();
         let mut clientOrderIds: crate::value::List = self.safe_list_k(params.clone(), "clientOrderIds", &[Value::from(vec![])]).into_list();
-        let mut clientOrderIdsLength: f64 = ((clientOrderIds.len() as i64) as f64);
-        if clientOrderIdsLength > ((0i64) as f64) {
+        let mut clientOrderIdsLength: i64 = clientOrderIds.len() as i64;
+        if clientOrderIdsLength > 0 {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_874: bool = true;
@@ -3295,8 +3295,8 @@ impl Krakenfutures {
         }
         let mut orderEvents: crate::value::List = self.safe_list_k(order.clone(), "orderEvents", &[Value::from(vec![])]).into_list();
         let mut errorStatus: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut orderEventsLength: f64 = ((orderEvents.len() as i64) as f64);
-        if (matches!(&order, Value::Dict(__d) if __d.contains_key("orderEvents"))) && (errorStatus.is_some()) && (orderEventsLength == 0.0) {
+        let mut orderEventsLength: i64 = orderEvents.len() as i64;
+        if (matches!(&order, Value::Dict(__d) if __d.contains_key("orderEvents"))) && (errorStatus.is_some()) && (orderEventsLength == 0) {
             return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -3310,7 +3310,7 @@ impl Krakenfutures {
         let mut statusId: Option<String> = None;
         let mut price: Value = Value::Null;
         let mut trades: Value = Value::from(vec![]);
-        if orderEventsLength > ((0i64) as f64) {
+        if orderEventsLength > 0 {
             let mut executions: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
@@ -3366,8 +3366,8 @@ impl Krakenfutures {
         let mut remaining: Option<String> = self.safe_string_k(details.clone(), "unfilledSize", &[]).as_str().map(str::to_owned);
         let mut average: Option<String> = None;
         let mut filled2: Value = Value::Str("0.0".into());
-        let mut tradesLength: f64 = ((trades.len() as i64) as f64);
-        if tradesLength > ((0i64) as f64) {
+        let mut tradesLength: i64 = trades.len() as i64;
+        if tradesLength > 0 {
             let mut vwapSum: Value = Value::Str("0.0".into());
             {
                                 let mut i: i64 = 0;
@@ -3499,9 +3499,9 @@ impl Krakenfutures {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = self.symbol(symbol.clone());
+            symbolResolved = self.symbol(symbol.clone()).as_str().map(str::to_owned);
         }
         // todo: lastFillTime: this.iso8601(end)
         let mut response: crate::value::Dict = self.private_get_fills(&[params]).await.into_dict();
@@ -3528,7 +3528,7 @@ impl Krakenfutures {
         let mut fills: crate::value::List = self.safe_list_k(&response, "fills", &[Value::from(vec![])]).into_list();
         // the endpoint returns the fills of every contract, each row resolves its own market
         let mut trades: Value = self.parse_trades(&fills, &[]);
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limit]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4094,8 +4094,8 @@ impl Krakenfutures {
                 continue;
             }
             let mut splitCode: Vec<Value> = Value::Array(if let Some(__s) = code.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-            let mut codeLength: f64 = ((splitCode.len() as i64) as f64);
-            if codeLength > ((1i64) as f64) {
+            let mut codeLength: i64 = splitCode.len() as i64;
+            if codeLength > 1 {
                 continue;
             }
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -4314,7 +4314,7 @@ impl Krakenfutures {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4416,8 +4416,8 @@ impl Krakenfutures {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: Value = Value::Null;
         if (symbols != Value::Null) {
-            let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-            if (symbolsLength == 1.0) {
+            let mut symbolsLength: i64 = symbols.len() as i64;
+            if (symbolsLength == 1) {
                 market = crate::types::IntoRaw::into_raw(self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
             }
         }
@@ -4485,7 +4485,7 @@ impl Krakenfutures {
         }
         }
         let mut positions: Value = self.parse_positions(Value::from(updates), &[symbols]);
-        return self.filter_by_since_limit(positions, &[since, limit]);
+        return self.filter_by_since_limit(positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

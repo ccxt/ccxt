@@ -501,7 +501,7 @@ if _try_result.is_err() {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -936,7 +936,7 @@ if _try_result.is_err() {
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut trades: Value = self.watch(url, &messageHash[..], &[request.clone(), Value::from(messageHash.clone()), request]).await;
-        let mut result: Value = self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut result: Value = self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         return self.sort_by(result, Value::Str("timestamp".into()), &[]);
         Value::Null
         }).await?))
@@ -1131,7 +1131,7 @@ if _try_result.is_err() {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Option<String> = None;
         let mut pair: Value = Value::Str("all".into());
-        let mut symbolResolved: Value = (if (symbol == Value::Null) { Value::Null } else { self.symbol(symbol.clone()) });
+        let mut symbolResolved: Option<String> = (if (symbol == Value::Null) { None } else { self.symbol(symbol.clone()).as_str().map(str::to_owned) });
         if (symbol == Value::Null) {
             messageHash = Some("orders:all".to_string());
         }  else {
@@ -1149,7 +1149,7 @@ if _try_result.is_err() {
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut orders: Value = self.watch(url, messageHash.clone().map(Value::from).unwrap_or(Value::Null), &[request.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null), request]).await;
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

@@ -384,7 +384,7 @@ impl Whitebit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -625,14 +625,14 @@ impl Whitebit {
         let mut method: String = "market_subscribe".to_string();
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut id: Value = self.incrementing_nonce();
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut args: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_692: bool = true;
             while { if !__for_first_692 { i += 1; } __for_first_692 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.clone())).into())); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.clone())).into()));
             args.push(Value::from((market).id.clone()));
         }
         }
@@ -644,8 +644,8 @@ impl Whitebit {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        self.watch_multiple(url.as_deref(), messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
+        self.watch_multiple(url.as_deref(), &messageHashes, &[__ws_arg_0, Value::Arr(messageHashes.clone())]).await;
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -749,7 +749,7 @@ impl Whitebit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -844,7 +844,7 @@ impl Whitebit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolValue, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolValue.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1001,7 +1001,7 @@ impl Whitebit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolValue, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolValue.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1201,11 +1201,11 @@ impl Whitebit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageHash: String = "wallet:".to_string();
         let mut method: Option<String> = None;
-        if (type_var.as_str() == Some("spot")) {
+        if (type_var.as_deref() == Some("spot")) {
             method = Some("balanceSpot_subscribe".to_string());
             messageHash.push_str("spot");
         }  else {
@@ -1214,7 +1214,7 @@ impl Whitebit {
         }
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.map(Value::from).unwrap_or(Value::Null)]));
-        self.set_balance_cache(client.as_value(), type_var.clone(), Value::from(messageHash.clone()));
+        self.set_balance_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()));
         let fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsMarketType, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut fetchBalanceSnapshot: bool = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsFetchBalanceSnapshot: crate::value::Dict = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -1222,7 +1222,7 @@ impl Whitebit {
         let mut awaitBalanceSnapshot: bool = awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsAwaitBalanceSnapshot: Value = awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable.get(1).cloned().unwrap_or(Value::Null);
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
-            crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into()))).await;
+            crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), Value::Str(":fetchBalanceSnapshot".into())).into()))).await;
         }
         return self.watch_private(Value::from(messageHash), method.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![]), paramsAwaitBalanceSnapshot]).await;
         Value::Null

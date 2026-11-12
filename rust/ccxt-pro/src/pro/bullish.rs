@@ -462,7 +462,7 @@ impl Bullish {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -796,7 +796,7 @@ impl Bullish {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -859,8 +859,8 @@ impl Bullish {
         }  else {
             rawOrders = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list(); // snapshot is a list of orders
         }
-        let mut numRawOrders: f64 = ((rawOrders.len() as i64) as f64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
-        if numRawOrders > ((0i64) as f64) {
+        let mut numRawOrders: i64 = rawOrders.len() as i64; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if numRawOrders > 0 {
             if (self.orders.clone() == Value::Null) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.orders = ArrayCacheBySymbolById::new(limit);
@@ -947,7 +947,7 @@ impl Bullish {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1003,8 +1003,8 @@ impl Bullish {
         }  else {
             rawTrades = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list(); // snapshot is a list of trades
         }
-        let mut numRawTrades: f64 = ((rawTrades.len() as i64) as f64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
-        if numRawTrades > ((0i64) as f64) {
+        let mut numRawTrades: i64 = rawTrades.len() as i64; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if numRawTrades > 0 {
             if (self.myTrades.clone() == Value::Null) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.myTrades = ArrayCacheBySymbolById::new(limit);
@@ -1220,7 +1220,7 @@ impl Bullish {
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }
-        return self.filter_by_symbols_since_limit(positions, &[symbolsNormalized, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(positions, symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1264,8 +1264,8 @@ impl Bullish {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
-            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let mut symbolPositions: Value = self.filter_by_array(Value::Arr(newPositions.clone()), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
+            let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut symbolPositions: Value = self.filter_by_array(Value::Arr(newPositions.clone()), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
             if !(self.is_empty(symbolPositions.clone()).as_bool() == Some(true)) {
                 client.resolve(symbolPositions, messageHash.as_deref());
             }

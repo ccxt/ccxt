@@ -2832,7 +2832,7 @@ impl Digifinex {
          */
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let marketTypeRawparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("createOrderRequest".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut marketTypeRaw: Value = marketTypeRawparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketTypeRaw: Option<String> = marketTypeRawparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeRawparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrderRequest".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -2841,7 +2841,7 @@ impl Digifinex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut swap: bool = (marginMode.is_none()) && (marketTypeRaw.as_str() == Some("swap"));
+        let mut swap: bool = (marginMode.is_none()) && (marketTypeRaw.as_deref() == Some("swap"));
         let mut isMarketOrder: Value = (Value::Bool(type_var.as_str() == Some("market")));
         let mut isLimitOrder: bool = type_var.as_str() == Some("limit");
         let mut marketIdRequest: String = "symbol".to_string();
@@ -2883,7 +2883,7 @@ impl Digifinex {
             paramsRequest = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]);
         }  else {
             postOnlyParsed = (if (postOnly).as_bool() == Some(true) { 1 } else { 2 });
-            request.insert("market".into(), (if (marginMode.is_some()) { Value::Str("margin".into()) } else { marketTypeRaw }));
+            request.insert("market".into(), (if (marginMode.is_some()) { Value::Str("margin".into()) } else { marketTypeRaw.map(Value::from).unwrap_or(Value::Null) }));
             let mut suffix: String = "".to_string();
             if (type_var.as_str() == Some("market")) {
                 suffix = "_market".to_string();
@@ -3059,8 +3059,8 @@ impl Digifinex {
         //
         if isMargin || (marketType.as_deref() == Some("spot")) {
             let mut canceledOrders: crate::value::List = self.safe_list_k(response.clone(), "success", &[Value::from(vec![])]).into_list();
-            let mut numCanceledOrders: f64 = ((canceledOrders.len() as i64) as f64);
-            if (numCanceledOrders != 1.0) {
+            let mut numCanceledOrders: i64 = canceledOrders.len() as i64;
+            if (numCanceledOrders != 1) {
                 panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() ".into())).into()), idValue.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" not found".into()))));
             }
             let mut orders: Value = self.parse_cancel_orders(response.clone(), &[]);
@@ -3251,8 +3251,8 @@ impl Digifinex {
         }
         }
         if (marketType.as_str() == Some("swap")) {
-            let mut numIds: f64 = ((ids.len() as i64) as f64);
-            if numIds > ((20i64) as f64) {
+            let mut numIds: i64 = ids.len() as i64;
+            if numIds > 20 {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelOrdersForSymbols() accepts up to 20 orders for swap markets".into()))));
             }
             let mut ordersRequests: Vec<Value> = Vec::new();
@@ -3445,8 +3445,8 @@ impl Digifinex {
             lastTradeTimestamp = self.safe_timestamp_k(order.clone(), "finished_date", &[]).as_i64();
             if (sideRaw.is_some()) {
                 let mut parts: Vec<Value> = Value::Array(if let Some(__s) = sideRaw.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-                let mut numParts: f64 = ((parts.len() as i64) as f64);
-                if numParts > ((1i64) as f64) {
+                let mut numParts: i64 = parts.len() as i64;
+                if numParts > 1 {
                     side = parts.get(0).and_then(Value::as_str).map(str::to_owned);
                     type_var = parts.get(1).and_then(Value::as_str).map(str::to_owned);
                 }  else {
@@ -5169,7 +5169,7 @@ impl Digifinex {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -5286,8 +5286,8 @@ impl Digifinex {
         if (symbolsNormalized != Value::Null) {
             let mut symbol: Value = Value::Null;
             if (matches!(&symbolsNormalized, Value::Arr(_))) {
-                let mut symbolsLength: f64 = ((symbolsNormalized.len() as i64) as f64);
-                if symbolsLength > ((1i64) as f64) {
+                let mut symbolsLength: i64 = symbolsNormalized.len() as i64;
+                if symbolsLength > 1 {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() symbols argument cannot contain more than 1 symbol".into()))));
                 }
                 symbol = symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -6396,8 +6396,8 @@ impl Digifinex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut marginModeLower: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        let mut marginModeResolved: Value = (if (marginModeLower.as_str() == Some("cross")) { Value::Str("crossed".into()) } else { marginModeLower });
+        let mut marginModeLower: String = marginMode.as_str().unwrap_or_default().to_string().to_lowercase();
+        let mut marginModeResolved: Value = (if (marginModeLower == "cross") { Value::Str("crossed".into()) } else { Value::from(marginModeLower) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_id".to_string(), Value::from((market).id.clone()));

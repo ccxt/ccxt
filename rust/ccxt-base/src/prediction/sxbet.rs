@@ -472,8 +472,8 @@ impl Sxbet {
     m
 }));
         let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into())]), &[]);
-        let mut userLimit: Value = self.safe_integer_k(params, "limit", &[]);
-        let mut rawMarkets: Vec<Value> = self.fetch_raw_markets_paged(&[rest, userLimit.clone()]).await.as_array().cloned().unwrap_or_default();
+        let mut userLimit: Option<i64> = self.safe_integer_k(params, "limit", &[]).as_i64();
+        let mut rawMarkets: Vec<Value> = self.fetch_raw_markets_paged(&[rest, Value::from(userLimit)]).await.as_array().cloned().unwrap_or_default();
         let mut markets: Vec<Value> = Vec::new();
         let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
         {
@@ -483,9 +483,9 @@ impl Sxbet {
             markets.push(self.parse_sxbet_market(rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null)));
         }
         }
-        let mut marketsLength: f64 = ((markets.len() as i64) as f64);
-        if (userLimit != Value::Null) && (marketsLength > userLimit.as_f64().unwrap_or(f64::NAN)) {
-            return self.array_slice(Value::from(markets), Value::Int(0), &[userLimit]);
+        let mut marketsLength: i64 = markets.len() as i64;
+        if (userLimit.is_some()) && ((userLimit.is_some() && Some(marketsLength) > userLimit)) {
+            return self.array_slice(Value::from(markets), Value::Int(0), &[Value::from(userLimit)]);
         }
         return Value::from(markets);
         Value::Null
@@ -807,8 +807,8 @@ impl Sxbet {
             // bound, then filter client-side (the venue's /search covers team names only)
             rawMarkets = self.fetch_raw_markets_paged(&[rest, Value::Null]).await;
         }
-        let mut queriesLength: f64 = ((queries.len() as i64) as f64);
-        if queriesLength > ((0i64) as f64) {
+        let mut queriesLength: i64 = queries.len() as i64;
+        if queriesLength > 0 {
             let mut filtered: Value = Value::from(vec![]);
             let mut preFilterLength: f64 = ((rawMarkets.len() as i64) as f64);
             {
@@ -904,8 +904,8 @@ impl Sxbet {
         let mut rawMarkets: Value = self.fetch_raw_markets_paged(&[__ws_arg_4, Value::Null]).await;
         // enforce the fixture scope client-side — see filterRawMarketsByFixture
         rawMarkets = self.filter_raw_markets_by_fixture(rawMarkets.clone(), id.clone());
-        let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
-        if (rawMarketsLength == 0.0) {
+        let mut rawMarketsLength: i64 = rawMarkets.len() as i64;
+        if (rawMarketsLength == 0) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchEvent() could not find an active fixture ".into())).into()), id)));
         }
         let mut event: Value = self.parse_event(id, rawMarkets);
@@ -1121,7 +1121,7 @@ impl Sxbet {
         let mut sRaw: Value = signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null);
         let mut r: Value = rRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
         let mut s: Value = sRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
-        let mut v: Value = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
+        let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), r).into()), s).into()), v).into()).as_str().map(str::to_owned);
 }
 
@@ -1446,7 +1446,7 @@ impl Sxbet {
         // the request body carries the salt in 32-byte-hex form; the signed struct carries the
         // same value in uint256 form - both parse to one number server-side. assign to bare locals
         // before padStart - see the transpiler notes
-        let mut saltHexRaw: Value = self.int_to_base16(self.parse_to_int(saltNumber.clone()), &[]);
+        let mut saltHexRaw: Value = Value::from(self.int_to_base16(self.parse_to_int(saltNumber.clone()), &[]));
         let mut saltHexPadded: Value = saltHexRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
         let mut saltHex: String = format!("{}{}", Value::Str("0x".into()), saltHexPadded);
         let mut defaultExpirySeconds: i64 = self.safe_integer_k(self.options.clone(), "defaultOrderExpirySeconds", &[Value::Int(86400)]).as_i64().unwrap_or(86400);
@@ -3104,13 +3104,13 @@ impl Sxbet {
         let mut sortedBids: Value = self.safe_list_k(sides.clone(), "bids", &[Value::from(vec![])]);
         let mut sortedAsks: Value = self.safe_list_k(sides, "asks", &[Value::from(vec![])]);
         if (limit != Value::Null) {
-            let mut bidsLength: f64 = ((sortedBids.len() as i64) as f64);
-            if limit.as_f64().unwrap_or(f64::NAN) < bidsLength {
+            let mut bidsLength: i64 = sortedBids.len() as i64;
+            if (limit.as_i64().is_some() && limit.as_i64() < Some(bidsLength)) {
                 sortedBids = self.array_slice(sortedBids.clone(), Value::Int(0), &[limit.clone()]);
             }
-            let mut asksLength: f64 = ((sortedAsks.len() as i64) as f64);
-            if limit.as_f64().unwrap_or(f64::NAN) < asksLength {
-                sortedAsks = self.array_slice(sortedAsks.clone(), Value::Int(0), &[limit]);
+            let mut asksLength: i64 = sortedAsks.len() as i64;
+            if (limit.as_i64().is_some() && limit.as_i64() < Some(asksLength)) {
+                sortedAsks = self.array_slice(sortedAsks.clone(), Value::Int(0), &[limit.clone()]);
             }
         }
         let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
@@ -3344,8 +3344,8 @@ impl Sxbet {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &msg { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut keys: Vec<Value> = object_keys(&msg).as_array().cloned().unwrap_or_default();
-        let mut keysLength: f64 = ((keys.len() as i64) as f64);
-        if (keysLength == 0.0) {
+        let mut keysLength: i64 = keys.len() as i64;
+        if (keysLength == 0) {
             self.spawn(&[Value::Null.clone(), client.clone(), msg.clone()]);
             return;
         }
@@ -3764,7 +3764,7 @@ impl Sxbet {
         let mut sym: String = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), sym);
         let mut trades: Value = self.subscribe_sxbet_channel(Value::from(messageHash), Value::Str("recent_trades_v3:global".into())).await;
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3888,7 +3888,7 @@ impl Sxbet {
         }
         let mut channel: String = format!("{}{}", Value::Str("account:fills_v3_#".into()), self.walletAddress.clone());
         let mut trades: Value = self.subscribe_sxbet_channel(Value::from(messageHash), Value::from(channel)).await;
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3959,7 +3959,7 @@ impl Sxbet {
         }
         let mut channel: String = format!("{}{}", Value::Str("account:orders_v3_#".into()), self.walletAddress.clone());
         let mut orders: Value = self.subscribe_sxbet_channel(Value::from(messageHash), Value::from(channel)).await;
-        return self.filter_by_since_limit(orders, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(orders, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

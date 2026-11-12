@@ -1957,10 +1957,10 @@ impl Poloniex {
         });
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(false)]).into_opt_list();
         if (symbolsNormalized.is_some()) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if symbolsLength > ((0i64) as f64) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if symbolsLength > 0 {
                 market = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
-                if (symbolsLength == 1.0) {
+                if (symbolsLength == 1) {
                     request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 }
             }
@@ -3404,14 +3404,14 @@ impl Poloniex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut idsLength: f64 = ((ids.len() as i64) as f64);
+        let mut idsLength: i64 = ids.len() as i64;
         if (marketType.as_deref() != Some("spot")) {
             if (market == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol argument for ".into())).into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" markets".into()))));
             }
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             // the api ignores clOrdIds when ordIds are also present
-            if idsLength > ((0i64) as f64) {
+            if idsLength > 0 {
                 request.insert("ordIds".into(), ids.clone());
             }  else if (clientOrderIds != Value::Null) {
                 request.insert("clOrdIds".into(), clientOrderIds.clone());
@@ -3431,7 +3431,7 @@ impl Poloniex {
             let mut data: Value = self.safe_list_k(&responseRaw, "data", &[Value::from(vec![])]);
             return self.parse_orders(data, &[market.clone()]);
         }
-        if idsLength > ((0i64) as f64) {
+        if idsLength > 0 {
             request.insert("orderIds".into(), ids);
         }
         if (clientOrderIds != Value::Null) {
@@ -4042,8 +4042,8 @@ impl Poloniex {
         //     }
         //
         let mut keys: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut length: f64 = ((keys.len() as i64) as f64);
-        if length < ((1i64) as f64) {
+        let mut length: i64 = keys.len() as i64;
+        if length < 1 {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"".into()))));
         }
         return self.parse_deposit_address_special(response, currency, networkEntry);
@@ -4602,8 +4602,8 @@ impl Poloniex {
     m
 })]).as_map().cloned().unwrap_or_default();
                 let mut childChains: crate::value::List = self.safe_list_k(feeInfo, "childChains", &[Value::from(vec![])]).into_list();
-                let mut chainsLength: f64 = ((childChains.len() as i64) as f64);
-                if chainsLength > ((0i64) as f64) {
+                let mut chainsLength: i64 = childChains.len() as i64;
+                if chainsLength > 0 {
                     {
                                                 let mut j: i64 = 0;
                         let mut __for_first_1096: bool = true;
@@ -4876,9 +4876,9 @@ impl Poloniex {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (marginMode == Value::Null) {
+        if (marginMode.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a marginMode parameter \"cross\" or \"isolated\"".into()))));
         }
         let hedgedparamsHedgedVariable: Vec<Value> = self.handle_param_bool(&paramsMarginMode, Value::Str("hedged".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
@@ -4892,7 +4892,7 @@ impl Poloniex {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("lever".to_string(), leverage);
-                m.insert("mgnMode".to_string(), (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
+                m.insert("mgnMode".to_string(), marginMode.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
@@ -4931,12 +4931,12 @@ impl Poloniex {
             m
         });
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchLeverage".into()), &[params]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (marginMode == Value::Null) {
+        if (marginMode.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\"".into()))));
         }
-        request.insert("mgnMode".into(), (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
+        request.insert("mgnMode".into(), marginMode.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsMarginMode]);
         let mut response: Value = self.swap_private_get_v3_position_leverages(&[__ws_arg_43]).await;
         return self.parse_leverage(response, &[(market).raw.clone()]);
@@ -5349,7 +5349,7 @@ impl Poloniex {
             { let __be_tmp = self.encode_uri_component(crate::value::get_value_k(&params, "symbol")); add_element_to_object(&mut params, &Value::Str("symbol".into()), __be_tmp); }; // handle symbols like 索拉拉/USDT'
         }
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        let mut implodedPath: Value = self.implode_params(path, params);
+        let mut implodedPath: Value = Value::from(self.implode_params(path, params));
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("spot".into()), &[Value::Str("".into())]), Value::Str("/".into())).into()), implodedPath);
         if self.in_array(apiName.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::Str("swapPublic".into()), Value::Str("swapPrivate".into())])).as_bool() == Some(true) {
             url = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("swap".into()), &[Value::Str("".into())]), Value::Str("/".into())).into()), implodedPath);

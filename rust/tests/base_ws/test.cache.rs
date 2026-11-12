@@ -848,8 +848,8 @@ pub fn testWsCache() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(0)), &Value::Str("contracts".into())), &Value::Int(1)) && is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(0)), &Value::Str("symbol".into())), &symbol)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(1)), &Value::Str("contracts".into())), &Value::Int(3)) && is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(1)), &Value::Str("symbol".into())), &symbol3)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(2)), &Value::Str("contracts".into())), &Value::Int(4)) && is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(2)), &Value::Str("symbol".into())), &symbol2)))));
-    let mut arrayLength: Value = get_array_length(&cacheSymbolSide4);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(arrayLength.as_f64() == Some(3.0)))));
+    let mut arrayLength: i64 = get_array_length(&cacheSymbolSide4).as_i64().unwrap_or_default();
+    assert!(ccxt::runtime::is_true(&(Value::Bool(arrayLength == 3))));
     // ----------------------------------------------------------------------------
     // test clear () really resets ArrayCacheBySymbolById - the hashmap used to keep
     // claiming the cleared ids, so re-appending them merged into orphaned references
@@ -929,8 +929,8 @@ pub fn testWsCache() {
         m
     }));
     cacheClearBySide.clear();
-    let mut clearedBySideLength: Value = get_array_length(&cacheClearBySide);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(clearedBySideLength.as_f64() == Some(0.0)))));
+    let mut clearedBySideLength: i64 = get_array_length(&cacheClearBySide).as_i64().unwrap_or_default();
+    assert!(ccxt::runtime::is_true(&(Value::Bool(clearedBySideLength == 0))));
     cacheClearBySide.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
@@ -945,8 +945,8 @@ pub fn testWsCache() {
             m.insert("contracts".to_string(), Value::Int(4));
         m
     }));
-    let mut reappendedBySideLength: Value = get_array_length(&cacheClearBySide);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(reappendedBySideLength.as_f64() == Some(2.0)))));
+    let mut reappendedBySideLength: i64 = get_array_length(&cacheClearBySide).as_i64().unwrap_or_default();
+    assert!(ccxt::runtime::is_true(&(Value::Bool(reappendedBySideLength == 2))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheClearBySide, &Value::Int(0)), &Value::Str("contracts".into())), &Value::Int(3))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheClearBySide, &Value::Int(1)), &Value::Str("contracts".into())), &Value::Int(4))))));
     // ----------------------------------------------------------------------------
@@ -1163,11 +1163,11 @@ pub fn testWsCache() {
         }));
     }
     }
-    let mut evictedLength: Value = get_array_length(&cacheEvictBuckets);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(evictedLength.as_f64() == Some(3.0)))));
+    let mut evictedLength: i64 = get_array_length(&cacheEvictBuckets).as_i64().unwrap_or_default();
+    assert!(ccxt::runtime::is_true(&(Value::Bool(evictedLength == 3))));
     let mut bucketKeys: Vec<Value> = object_keys(&get_value(&cacheEvictBuckets, &Value::Str("hashmap".into()))).as_array().cloned().unwrap_or_default();
-    let mut bucketCount: Value = Value::Int(bucketKeys.len() as i64);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(bucketCount.as_f64() == Some(3.0))))); // no empty leftover buckets
+    let mut bucketCount: i64 = bucketKeys.len() as i64;
+    assert!(ccxt::runtime::is_true(&(Value::Bool(bucketCount == 3)))); // no empty leftover buckets
     // ----------------------------------------------------------------------------
     // test the symbol-scoped and the global getLimit scopes count independently -
     // deriving the global count from the symbol-scoped seen set double-counts an

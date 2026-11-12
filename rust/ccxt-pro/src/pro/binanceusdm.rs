@@ -206,7 +206,7 @@ impl Binanceusdm {
         let mut restInstance = crate::exchanges::binanceusdm::Binanceusdm::new(None);
         let mut restDescribe: Value = restInstance.describe();
         let mut parentWsDescribe: Value = self.parent.describe_data();
-        let mut extended: Value = self.deep_extend(restDescribe, &[parentWsDescribe]);
+        let mut extended: crate::value::Dict = self.deep_extend(restDescribe, &[parentWsDescribe]).into_dict();
         return self.deep_extend(extended, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("binanceusdm".into()));

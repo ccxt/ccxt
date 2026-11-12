@@ -398,8 +398,8 @@ impl Binance {
     m
 }));
         let mut queries: Vec<Value> = self.parse_search_queries(&[params.clone()]).as_array().cloned().unwrap_or_default();
-        let mut queriesLength: f64 = ((queries.len() as i64) as f64);
-        if queriesLength > ((0i64) as f64) {
+        let mut queriesLength: i64 = queries.len() as i64;
+        if queriesLength > 0 {
             let mut eventParams: Value = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into())]), &[]);
             let mut events: Value = crate::types::IntoRaw::into_raw(self.fetch_events(eventParams).await);
             let mut eventsLength: f64 = ((events.len() as i64) as f64);
@@ -588,16 +588,16 @@ impl Binance {
             while { if !__for_first_1213 { i += 1; } __for_first_1213 = false; (i as f64) < rawTopicsLength } {
             let mut rawTopic: Value = rawTopics.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut rawMarkets: crate::value::List = self.safe_list_k(rawTopic.clone(), "markets", &[Value::from(vec![])]).into_list();
-            let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
+            let mut rawMarketsLength: i64 = rawMarkets.len() as i64;
             let mut hasOutcomes: bool = false;
-            if rawMarketsLength > ((0i64) as f64) {
+            if rawMarketsLength > 0 {
                 let mut firstMarket: crate::value::Dict = self.safe_dict(&rawMarkets, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
                 let mut firstOutcomes: crate::value::List = self.safe_list_k(&firstMarket, "outcomes", &[Value::from(vec![])]).into_list();
-                let mut firstOutcomesLength: f64 = ((firstOutcomes.len() as i64) as f64);
-                hasOutcomes = firstOutcomesLength > ((0i64) as f64);
+                let mut firstOutcomesLength: i64 = firstOutcomes.len() as i64;
+                hasOutcomes = firstOutcomesLength > 0;
             }
             if hasOutcomes {
                 result.push(rawTopic.clone());
@@ -667,7 +667,7 @@ impl Binance {
             allQueries.push(tags.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
-        let mut allQueriesLength: f64 = ((allQueries.len() as i64) as f64);
+        let mut allQueriesLength: i64 = allQueries.len() as i64;
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]);
         // keys dropped before the client-side pass; a server-side sort also drops its own keys
         let mut postOmitKeys: Vec<Value> = vec![Value::Str("tags".into()), Value::Str("l1Category".into()), Value::Str("l2Category".into())];
@@ -684,7 +684,7 @@ impl Binance {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
         let mut rawTopics: Value = Value::from(vec![]);
-        if allQueriesLength > ((0i64) as f64) {
+        if allQueriesLength > 0 {
             rawTopics = self.fetch_events_by_query(Value::from(allQueries), Value::from(fetchCap), &[rest.clone()]).await;
         }  else if (eventId.is_some()) {
             let mut detail: Value = self.fetch_raw_topic_detail(eventId.map(Value::from).unwrap_or(Value::Null), &[rest.clone()]).await;
@@ -1410,7 +1410,7 @@ impl Binance {
     m
 }));
         let type_varparamsTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchBalance".into()), Value::Str("type".into()), &[Value::Str("SPOT".into())]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsType: Value = type_varparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = self.sapi_private_get_balance_payment_options(&[paramsType]).await;
         //
@@ -1435,8 +1435,8 @@ impl Binance {
             let mut __for_first_1223: bool = true;
             while { if !__for_first_1223 { i += 1; } __for_first_1223 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
-            let mut accountType: Option<String> = self.safe_string_k_opt(&balance, "accountType", &[]);
-            if (accountType.as_deref() == type_var.as_str()) {
+            let mut accountType: Option<String> = self.safe_string_k(&balance, "accountType", &[]).as_str().map(str::to_owned);
+            if (accountType == type_var) {
                 let mut free: Option<String> = self.safe_string_k(&balance, "availableBalanceDisplay", &[]).as_str().map(str::to_owned);
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 account.insert("free".into(), free.map(Value::from).unwrap_or(Value::Null));
@@ -2353,8 +2353,8 @@ impl Binance {
         // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
         let mut marketSymbol: Option<String> = self.safe_string_k_opt(&outcomeObj, "market", &[]);
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(marketSymbol.as_deref().unwrap_or_default()));
-        let mut typeUpper: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        let mut sideUpper: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut typeUpper: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
+        let mut sideUpper: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut wallet: Value = self.fetch_wallet(Value::Str("createOrder".into()), &[params.clone()]).await;
         let mut defaultSlippage: String = self.safe_string_k(self.options.clone(), "defaultSlippage", &[Value::Str("0.05".into())]).as_str().unwrap_or("0.05").to_string();
         let mut slippage: Option<String> = self.safe_string_k(params.clone(), "slippage", &[Value::from(defaultSlippage)]).as_str().map(str::to_owned);
@@ -2363,27 +2363,27 @@ impl Binance {
         let mut commonRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("walletAddress".to_string(), self.safe_string_k(wallet.clone(), "walletAddress", &[]));
-                m.insert("orderType".to_string(), typeUpper.clone());
+                m.insert("orderType".to_string(), Value::from(typeUpper.clone()));
                 m.insert("slippageBps".to_string(), slippageBps);
             m
         });
         let mut amountStr: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
         let mut priceStr: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
         let mut defaultTif: String = "FOK".to_string();
-        if (typeUpper.as_str() == Some("LIMIT")) {
+        if (typeUpper == "LIMIT") {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str("createOrder requires price for limit order".into()))));
             }
             commonRequest.insert("priceLimit".into(), self.price_to_precision(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), price.clone()));
             defaultTif = "GTC".to_string();
         }
-        if (sideUpper.as_str() == Some("BUY")) {
+        if (sideUpper == "BUY") {
             if (cost.is_some()) {
                 amountStr = cost;
             }  else {
                 // the amountIn represents USDT for buy order
                 let mut feeRateBps: String = self.safe_string_k(params.clone(), "feeRateBps", &[Value::Str("200".into())]).as_str().unwrap_or("200").to_string();
-                if (typeUpper.as_str() == Some("LIMIT")) {
+                if (typeUpper == "LIMIT") {
                     feeRateBps = "0".to_string();
                 }  else {
                     if (price == Value::Null) {
@@ -2406,7 +2406,7 @@ impl Binance {
         let mut quoteRequest: Value = self.extend(Value::Map(commonRequest.clone()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tokenId".to_string(), crate::value::KeyRead::key_read(&&outcomeObj, "id"));
-                m.insert("side".to_string(), sideUpper);
+                m.insert("side".to_string(), Value::from(sideUpper));
                 m.insert("amountIn".to_string(), crate::precise::Precise::stringMul(&__ws_arg_14, &Value::Str("1000000000000000000".into())));
             m
         })]);

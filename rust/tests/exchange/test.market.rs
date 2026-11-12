@@ -254,8 +254,8 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     }
     // check precisions
     let mut precisionKeys: Vec<Value> = object_keys(&market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
-    let mut precisionKeysLen: Value = Value::Int(precisionKeys.len() as i64);
-    assert!(ccxt::runtime::is_true(&((precisionKeysLen.as_f64().unwrap_or(f64::NAN) >= Value::Int(2).as_f64().unwrap_or(f64::NAN)))));
+    let mut precisionKeysLen: i64 = precisionKeys.len() as i64;
+    assert!(ccxt::runtime::is_true(&((precisionKeysLen >= 2))));
     {
                 let mut i: i64 = 0;
         let mut __for_first_1553: bool = true;
@@ -276,8 +276,8 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     }
     // check limits
     let mut limitsKeys: Vec<Value> = object_keys(&market.as_map().and_then(|__m| __m.get("limits")).cloned().unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
-    let mut limitsKeysLength: Value = Value::Int(limitsKeys.len() as i64);
-    assert!(ccxt::runtime::is_true(&((limitsKeysLength.as_f64().unwrap_or(f64::NAN) >= Value::Int(3).as_f64().unwrap_or(f64::NAN)))));
+    let mut limitsKeysLength: i64 = limitsKeys.len() as i64;
+    assert!(ccxt::runtime::is_true(&((limitsKeysLength >= 3))));
     {
                 let mut i: i64 = 0;
         let mut __for_first_1554: bool = true;

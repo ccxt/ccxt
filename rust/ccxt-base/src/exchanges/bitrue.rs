@@ -1222,9 +1222,9 @@ impl Bitrue {
         //     {}
         //
         let mut keys: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut keysLength: f64 = ((keys.len() as i64) as f64);
+        let mut keysLength: i64 = keys.len() as i64;
         let mut formattedStatus: String = "ok".to_string();
-        if keysLength > ((0i64) as f64) {
+        if keysLength > 0 {
             formattedStatus = "maintenance".to_string();
         }
         return Value::Map({
@@ -2739,21 +2739,21 @@ impl Bitrue {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut uppercaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-                m.insert("type".to_string(), uppercaseType.clone());
+                m.insert("type".to_string(), Value::from(uppercaseType.clone()));
             m
         });
-        if (uppercaseType.as_str() == Some("LIMIT")) {
+        if (uppercaseType == "LIMIT") {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument".into()))));
             }
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
         }
         if (market).swap {
-            let mut isMarket: bool = uppercaseType.as_str() == Some("MARKET");
+            let mut isMarket: bool = uppercaseType == "MARKET";
             let mut timeInForce: Option<String> = self.safe_string_lower_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
             let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[params.clone()]).as_bool() == Some(true);
             if postOnly {
@@ -2766,14 +2766,14 @@ impl Bitrue {
             request.insert("contractName".into(), Value::from((market).id.clone()));
             let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
             let mut createMarketBuyOrderRequiresPrice: Value = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsRequiresPrice: Value = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null);
+            let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut isMarketBuyWithPrice: bool = isMarket && (side.as_str() == Some("buy")) && createMarketBuyOrderRequiresPrice.as_bool() == Some(true);
-            let mut paramsNoCost: Value = paramsRequiresPrice.clone();
+            let mut paramsNoCost: Value = Value::from(&paramsRequiresPrice);
             if isMarketBuyWithPrice {
-                paramsNoCost = self.omit(paramsRequiresPrice.clone(), Value::Str("cost".into()), &[]);
+                paramsNoCost = self.omit(&paramsRequiresPrice, Value::Str("cost".into()), &[]);
             }
             if isMarketBuyWithPrice {
-                let mut cost: Option<String> = self.safe_string_k(paramsRequiresPrice, "cost", &[]).as_str().map(str::to_owned);
+                let mut cost: Option<String> = self.safe_string_k(&paramsRequiresPrice, "cost", &[]).as_str().map(str::to_owned);
                 if (price == Value::Null) && (cost.is_none()) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(),
                         Value::Str(" createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add \
@@ -2814,7 +2814,7 @@ impl Bitrue {
             request.insert("symbol".into(), Value::from((market).id.clone()));
             request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount));
             let mut validOrderTypes: Value = self.safe_list((market).raw.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("orderTypes".into()), &[Value::from(vec![])]);
-            if !(self.in_array(uppercaseType, validOrderTypes).as_bool() == Some(true)) {
+            if !(self.in_array(Value::from(uppercaseType), validOrderTypes).as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" is not a valid order type in market ".into())).into()), symbol)));
             }
             let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("newClientOrderId".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
@@ -4062,7 +4062,7 @@ impl Bitrue {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut endpointPath: Value = self.implode_params(path.clone(), params.clone());
+        let mut endpointPath: Value = Value::from(self.implode_params(path.clone(), params.clone()));
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), endpointPath);
         if !(((type_var.as_deref() == Some("api")) && (version.as_str() == Some("kline"))) || ((type_var.as_deref() == Some("open")) && path.as_str().unwrap_or("").contains("listenKey"))) {
             url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), version).into()), Value::Str("/".into())).into()), endpointPath);

@@ -26,8 +26,8 @@ pub async fn testFetchPositions(mut exchange: Value, mut skippedProperties: Valu
     // with symbol
     let mut positionsForSymbol: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_positions", vec![Value::from(vec![symbol.clone()])]).await;
     assert!(ccxt::runtime::is_true(&((matches!(&positionsForSymbol, Value::Arr(_))))));
-    let mut positionsForSymbolLength: Value = Value::Int(positionsForSymbol.len() as i64);
-    assert!(ccxt::runtime::is_true(&((positionsForSymbolLength.as_f64().unwrap_or(f64::NAN) <= Value::Int(4).as_f64().unwrap_or(f64::NAN)))));
+    let mut positionsForSymbolLength: i64 = positionsForSymbol.len() as i64;
+    assert!(ccxt::runtime::is_true(&((positionsForSymbolLength <= 4))));
     {
                 let mut i: i64 = 0;
         let mut __for_first_1593: bool = true;

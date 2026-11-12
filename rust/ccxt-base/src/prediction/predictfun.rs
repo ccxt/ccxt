@@ -659,14 +659,14 @@ impl Predictfun {
             self.require_event_query(&[params.clone()]);
         }
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);
-        let mut queriesLength: f64 = ((queries.len() as i64) as f64);
+        let mut queriesLength: i64 = queries.len() as i64;
         let mut paramsValue: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]);
         // keys dropped before the client-side pass; the categories listing also drops its limit
         let mut postOmitKeys: Vec<Value> = vec![Value::Str("tags".into())];
         let mut userLimit: Option<i64> = self.safe_integer_k(paramsValue.clone(), "limit", &[]).as_i64();
-        let mut fetchCap: Value = self.safe_integer_k(self.options.clone(), "maxFetchEventsResults", &[Value::Int(100)]);
+        let mut fetchCap: Option<i64> = self.safe_integer_k(self.options.clone(), "maxFetchEventsResults", &[Value::Int(100)]).as_i64();
         if (userLimit.is_some()) {
-            fetchCap = Value::from(userLimit);
+            fetchCap = userLimit;
         }
         let mut slug: Option<String> = self.safe_string2(paramsValue.clone(), Value::Str("slug".into()), Value::Str("eventId".into()), &[]).as_str().map(str::to_owned);
         let mut rest: crate::value::Dict = self.omit(paramsValue.clone(), Value::from(vec![Value::Str("status".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("tags".into()), Value::Str("marketVariant".into())]), &[]).into_dict();
@@ -683,7 +683,7 @@ impl Predictfun {
             let mut response: crate::value::Dict = self.predictfun_get_v1_categories_slug(&[__ws_arg_1]).await.into_dict();
             let mut data: Value = self.safe_dict_k(&response, "data", &[]);
             rawTopics = Value::from(vec![data.clone()]);
-        }  else if queriesLength > ((0i64) as f64) {
+        }  else if queriesLength > 0 {
             // a query/queries scope is answered by the dedicated search endpoint — the categories
             // listing has no text filter, so paging it and matching client-side would both miss
             // the venue's semantic matches and cost one request per page
@@ -869,7 +869,7 @@ impl Predictfun {
             let mut data: Value = self.safe_list_k(rawTopicsResponse.clone(), "data", &[Value::from(vec![])]);
             rawTopics = self.array_concat(rawTopics.clone(), data.clone());
             let mut topicsLength: i64 = rawTopics.len() as i64;
-            while (topicsLength as f64) < fetchCap.as_f64().unwrap_or(f64::NAN) {
+            while Some(topicsLength) < fetchCap {
                 let mut nextPageToken: Option<String> = self.safe_string_k(rawTopicsResponse.clone(), "cursor", &[]).as_str().map(str::to_owned);
                 if (nextPageToken.is_none()) {
                     break;
@@ -880,8 +880,8 @@ impl Predictfun {
                 rawTopics = self.array_concat(rawTopics.clone(), data.clone());
                 topicsLength = rawTopics.len() as i64;
             }
-            if (topicsLength as f64) > fetchCap.as_f64().unwrap_or(f64::NAN) {
-                rawTopics = self.array_slice(rawTopics.clone(), Value::Int(0), &[fetchCap]);
+            if (fetchCap.is_some() && Some(topicsLength) > fetchCap) {
+                rawTopics = self.array_slice(rawTopics.clone(), Value::Int(0), &[Value::from(fetchCap)]);
             }
         }
         let mut rawTopicsLength: f64 = ((rawTopics.len() as i64) as f64);
@@ -2399,7 +2399,7 @@ impl Predictfun {
         let mut r: Value = rRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
         let mut s: Value = sRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
         // ecrecover wants v in {27,28} while the raw recovery id is {0,1}
-        let mut v: Value = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
+        let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
         // assign before toLowerCase so the php regex matches, it only handles a bare identifier
         let mut signatureHex: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), r).into()), s).into()), v);
         return Value::from(signatureHex.to_lowercase()).as_str().map(str::to_owned);
@@ -3117,11 +3117,11 @@ impl Predictfun {
             self.load_outcome(outcome.clone(), &[]).await;
             outcomeObj = self.outcome(outcome.clone());
         }
-        let mut idsLength: f64 = ((ids.len() as i64) as f64);
-        if (idsLength == 0.0) {
+        let mut idsLength: i64 = ids.len() as i64;
+        if (idsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires at least one order hash".into()))));
         }
-        if idsLength > ((100i64) as f64) {
+        if idsLength > 100 {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() takes at most 100 order hashes per call".into()))));
         }
         // the JWT identifies the signer whose orders may be pulled
@@ -3147,8 +3147,8 @@ impl Predictfun {
         //     }
         //
         let mut rejected: crate::value::List = self.safe_list_k(&response, "rejected", &[Value::from(vec![])]).into_list();
-        let mut rejectedLength: f64 = ((rejected.len() as i64) as f64);
-        if rejectedLength > ((0i64) as f64) {
+        let mut rejectedLength: i64 = rejected.len() as i64;
+        if rejectedLength > 0 {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() was refused for ".into())).into()), json_stringify(&Value::Arr(rejected)))));
         }
         // the venue reports hashes only, so each one becomes a row the shared order parser can
@@ -3837,7 +3837,7 @@ impl Predictfun {
             // can hold - it has to stay a string all the way into the bigint
             let mut scaled: Value = crate::precise::Precise::stringMul(&amount.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000".into()));
             let mut amountInt: Value = self.decimal_to_precision(scaled, Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
-            let mut amountBase16: Value = self.int_to_base16(self.convert_to_big_int(amountInt), &[]);
+            let mut amountBase16: Value = Value::from(self.int_to_base16(self.convert_to_big_int(amountInt), &[]));
             amountHex = amountBase16.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
         }
         // approve(spender, amount) -> selector 0x095ea7b3

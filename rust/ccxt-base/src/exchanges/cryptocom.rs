@@ -1816,8 +1816,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbols != Value::Null) {
             let mut symbol: Value = Value::Null;
             if (matches!(&symbols, Value::Arr(_))) {
-                let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-                if symbolsLength > ((1i64) as f64) {
+                let mut symbolsLength: i64 = symbols.len() as i64;
+                if symbolsLength > 1 {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() symbols argument cannot contain more than 1 symbol".into()))));
                 }
                 symbol = self.safe_string(symbols.clone(), Value::Int(0), &[]);
@@ -4527,7 +4527,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut data: Value = self.safe_list_k(&result, "data", &[Value::from(vec![])]);
         let mut settlements: Value = self.parse_settlements(data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         let mut sorted: Value = self.sort_by(settlements, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -4793,7 +4793,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4893,8 +4893,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbolsNormalized != Value::Null) {
             let mut symbol: Value = Value::Null;
             if (matches!(&symbolsNormalized, Value::Arr(_))) {
-                let mut symbolsLength: f64 = ((symbolsNormalized.len() as i64) as f64);
-                if symbolsLength > ((1i64) as f64) {
+                let mut symbolsLength: i64 = symbolsNormalized.len() as i64;
+                if symbolsLength > 1 {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() symbols argument cannot contain more than 1 symbol".into()))));
                 }
                 symbol = symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -5325,7 +5325,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut strSortKey: Value = self.params_to_string(requestParams, Value::Int(0));
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, nonce.clone().map(Value::from).unwrap_or(Value::Null)).into()), self.apiKey.clone()).into()), strSortKey).into()), nonce.clone().map(Value::from).unwrap_or(Value::Null));
             let mut signature: Value = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-            let mut paramsKeysLength: f64 = ((paramsKeys.len() as i64) as f64);
+            let mut paramsKeysLength: i64 = paramsKeys.len() as i64;
             requestBody = self.json(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), nonce.clone().map(Value::from).unwrap_or(Value::Null));
@@ -5341,7 +5341,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // if an array is empty, php will put it in square brackets
             // python and js will put it in curly brackets
             // the code below checks and replaces those brackets in empty requests
-            if (paramsKeysLength == 0.0) {
+            if (paramsKeysLength == 0) {
                 let mut paramsString: String = "{}".to_string();
                 let mut arrayString: String = "[]".to_string();
                 requestBody = match (requestBody.as_str(), Some(arrayString.as_str()), Some(paramsString.as_str())) { (Some(__s), Some(__p), Some(__r)) => Value::Str(__s.replace(__p, __r).into()), _ => requestBody.clone() }

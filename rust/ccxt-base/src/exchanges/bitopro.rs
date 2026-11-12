@@ -1326,8 +1326,8 @@ impl Bitopro {
     pub fn insert_missing_candles(&self, mut candles: Value, mut distanceInMs: Value, mut since: Value, mut limit: Value) -> Value {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
-        let mut length: f64 = ((candles.len() as i64) as f64);
-        if (length == 0.0) {
+        let mut length: i64 = candles.len() as i64;
+        if (length == 0) {
             return candles;
         }
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -1339,14 +1339,14 @@ impl Bitopro {
         }  else {
             timestamp = since;
         }
-        let mut i: Value = Value::Int(0);
-        let mut candleLength: f64 = ((candles.len() as i64) as f64);
+        let mut i: i64 = 0;
+        let mut candleLength: i64 = candles.len() as i64;
         let mut resultLength: Value = Value::Int(0);
-        while (resultLength.as_f64().unwrap_or(f64::NAN) < limit.as_f64().unwrap_or(f64::NAN)) && (i.as_f64().unwrap_or(f64::NAN) < candleLength) {
-            let mut candle: Value = self.safe_list(candles.clone(), i.clone(), &[Value::from(vec![])]);
+        while (resultLength.as_f64().unwrap_or(f64::NAN) < limit.as_f64().unwrap_or(f64::NAN)) && (i < candleLength) {
+            let mut candle: Value = self.safe_list(candles.clone(), Value::from(i), &[Value::from(vec![])]);
             if is_equal(&candle.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &timestamp) {
                 std::sync::Arc::make_mut(&mut result).push(candle.clone());
-                i = self.sum(&[i.clone(), Value::Int(1)]);
+                i = (i + 1);
             }  else {
                 // set open, high, low to close
                 let mut closeValue: Value = self.safe_value(copyFrom.clone(), Value::Int(4), &[]);
@@ -1586,11 +1586,11 @@ impl Bitopro {
                 m.insert("timestamp".to_string(), self.milliseconds());
             m
         });
-        let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        if (orderType.as_str() == Some("LIMIT")) {
+        let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
+        if (orderType == "LIMIT") {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
         }
-        if (orderType.as_str() == Some("STOP_LIMIT")) {
+        if (orderType == "STOP_LIMIT") {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
             let mut triggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
             if (triggerPrice.is_none()) {
@@ -1605,8 +1605,8 @@ impl Bitopro {
                 request.insert("condition".into(), condition.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut paramsOmitted: Value = (if (orderType.as_str() == Some("STOP_LIMIT")) { self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]) } else { params });
-        let mut postOnly: bool = self.is_post_only(Value::Bool(orderType.as_str() == Some("MARKET")), Value::Null, &[paramsOmitted.clone()]).as_bool() == Some(true);
+        let mut paramsOmitted: Value = (if (orderType == "STOP_LIMIT") { self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]) } else { params });
+        let mut postOnly: bool = self.is_post_only(Value::Bool(orderType == "MARKET"), Value::Null, &[paramsOmitted.clone()]).as_bool() == Some(true);
         if postOnly {
             request.insert("timeInForce".into(), Value::Str("POST_ONLY".into()));
         }
@@ -2292,7 +2292,7 @@ impl Bitopro {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2305,17 +2305,17 @@ impl Bitopro {
                 m.insert("address".to_string(), address);
             m
         });
-        let mut hasNetwork: bool = matches!(&paramsWithdrawTag, Value::Dict(__d) if __d.contains_key("network"));
-        let mut paramsOmitted: Value = paramsWithdrawTag.clone();
+        let mut hasNetwork: bool = paramsWithdrawTag.contains_key("network");
+        let mut paramsOmitted: Value = Value::from(&paramsWithdrawTag);
         if hasNetwork {
-            paramsOmitted = self.omit(paramsWithdrawTag.clone(), Value::from(vec![Value::Str("network".into())]), &[]);
+            paramsOmitted = self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("network".into())]), &[]);
         }
         if hasNetwork {
             let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut requestedNetwork: Option<String> = self.safe_string_upper_k(paramsWithdrawTag, "network", &[]).as_str().map(str::to_owned);
+            let mut requestedNetwork: Option<String> = self.safe_string_upper_k(&paramsWithdrawTag, "network", &[]).as_str().map(str::to_owned);
             let mut networkId: Option<String> = (if (requestedNetwork.is_none()) { None } else { self.safe_string(&networks, self.safe_string(self.networkAliases.clone(), requestedNetwork.clone().map(Value::from).unwrap_or(Value::Null), &[requestedNetwork.clone().map(Value::from).unwrap_or(Value::Null)]), &[]).as_str().map(str::to_owned) });
             if (networkId.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid network ".into())).into()), requestedNetwork.map(Value::from).unwrap_or(Value::Null))));

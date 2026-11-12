@@ -1080,8 +1080,8 @@ impl Bithumb {
                     }
                     let mut active: bool = true;
                     if (matches!(&market, Value::Arr(_))) {
-                        let mut numElements: f64 = ((market.len() as i64) as f64);
-                        if (numElements == 0.0) {
+                        let mut numElements: i64 = market.len() as i64;
+                        if (numElements == 0) {
                             active = false;
                         }
                     }
@@ -2134,8 +2134,8 @@ impl Bithumb {
         let mut transactionDatetime: Option<String> = self.safe_string_k(trade.clone(), "transaction_date", &[]).as_str().map(str::to_owned);
         if (transactionDatetime.is_some()) {
             let mut parts: Value = Value::Array(if let Some(__s) = transactionDatetime.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
-            let mut numParts: f64 = ((parts.len() as i64) as f64);
-            if numParts > ((1i64) as f64) {
+            let mut numParts: i64 = parts.len() as i64;
+            if numParts > 1 {
                 let mut transactionDate: Value = parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
                 let mut rawTransactionTime: String = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut transactionTime: String = rawTransactionTime.clone();
@@ -2328,8 +2328,8 @@ impl Bithumb {
         if (generation != Some(2.0)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrders is only supported for the generation 2 API".into()))));
         }
-        let mut ordersCount: f64 = ((orders.len() as i64) as f64);
-        if (ordersCount == 0.0) {
+        let mut ordersCount: i64 = orders.len() as i64;
+        if (ordersCount == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires a non-empty orders array".into()))));
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
@@ -2430,11 +2430,11 @@ impl Bithumb {
         let mut paramsTimeInForce: Value = (if (timeInForceRaw.is_none()) { params.clone() } else { self.omit(params, Value::Str("timeInForce".into()), &[]) });
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[paramsTimeInForce]).as_array().cloned().unwrap_or_default();
         let mut postOnly: Value = postOnlyparamsPostOnlyVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isPostOnly: bool = postOnly.as_bool() == Some(true) || (timeInForce.as_deref() == Some("PO"));
-        let mut paramsOrder: Value = paramsPostOnly.clone();
+        let mut paramsOrder: Value = Value::from(&paramsPostOnly);
         if isPostOnly {
-            paramsOrder = self.omit(paramsPostOnly, Value::Str("postOnly".into()), &[]);
+            paramsOrder = self.omit(&paramsPostOnly, Value::Str("postOnly".into()), &[]);
         }
         if isPostOnly {
             request.insert("time_in_force".into(), Value::Str("post_only".into()));
@@ -3148,7 +3148,7 @@ impl Bithumb {
     m
 })]);
             let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_26).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            return self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), &[since.clone(), limit]);
+            return self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since.as_i64(), limit.as_i64(), &[]);
         }  else {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() requires a symbol argument".into()))));
@@ -3324,7 +3324,7 @@ impl Bithumb {
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("state".into(), Value::Str("done".into())); }
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), &[since, limit]);
+        return self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3359,7 +3359,7 @@ impl Bithumb {
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("state".into(), Value::Str("cancel".into())); }
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), &[since, limit]);
+        return self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3498,7 +3498,7 @@ impl Bithumb {
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("cancelOrders".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
         let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
-        let mut paramsGeneration: Value = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (generation != Some(2.0)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders is only supported for the generation 2 API".into()))));
         }
@@ -3510,8 +3510,8 @@ impl Bithumb {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut clientOrderIds: Value = self.safe_list2(paramsGeneration.clone(), Value::Str("client_order_ids".into()), Value::Str("clientOrderIds".into()), &[]);
-        let mut paramsRequest: Value = (if (clientOrderIds != Value::Null) { self.omit(paramsGeneration.clone(), Value::from(vec![Value::Str("clientOrderIds".into())]), &[]) } else { paramsGeneration });
+        let mut clientOrderIds: Value = self.safe_list2(Value::from(&paramsGeneration), Value::Str("client_order_ids".into()), Value::Str("clientOrderIds".into()), &[]);
+        let mut paramsRequest: Value = (if (clientOrderIds != Value::Null) { self.omit(&paramsGeneration, Value::from(vec![Value::Str("clientOrderIds".into())]), &[]) } else { Value::from(&paramsGeneration) });
         if (clientOrderIds != Value::Null) {
             request.insert("client_order_ids".into(), clientOrderIds);
         }  else {
@@ -4305,8 +4305,8 @@ impl Bithumb {
         let mut url: String = format!("{}{}", self.implode_hostname(apiUrl.clone().map(Value::from).unwrap_or(Value::Null)), endpoint);
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut queryKeys: Vec<Value> = Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut queryKeysLength: f64 = ((queryKeys.len() as i64) as f64);
-        let mut hasQuery: bool = queryKeysLength > ((0i64) as f64);
+        let mut queryKeysLength: i64 = queryKeys.len() as i64;
+        let mut hasQuery: bool = queryKeysLength > 0;
         if (apiName.as_deref() == Some("public")) {
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();

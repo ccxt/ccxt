@@ -1188,7 +1188,7 @@ impl Kraken {
                 taker = self.parse_number(crate::precise::Precise::stringDiv(&firstTakerFeeRate.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
             }
             let mut leverageBuy: crate::value::List = self.safe_list_k(market.clone(), "leverage_buy", &[Value::from(vec![])]).into_list();
-            let mut leverageBuyLength: Value = Value::Int(leverageBuy.len() as i64);
+            let mut leverageBuyLength: i64 = leverageBuy.len() as i64;
             let mut precisionPrice: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "pair_decimals", &[])]), &[]);
             let mut precisionAmount: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "lot_decimals", &[])]), &[]);
             let mut spot: bool = true;
@@ -1224,7 +1224,7 @@ impl Kraken {
                     m.insert("altname".to_string(), self.safe_string_k(market.clone(), "altname", &[]));
                     m.insert("type".to_string(), Value::Str("spot".into()));
                     m.insert("spot".to_string(), Value::Bool(spot));
-                    m.insert("margin".to_string(), (Value::Bool(leverageBuyLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))));
+                    m.insert("margin".to_string(), (Value::Bool(leverageBuyLength > 0)));
                     m.insert("swap".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
@@ -1250,8 +1250,7 @@ impl Kraken {
         m.insert("leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.parse_number(Value::Str("1".into()), &[]));
-        m.insert("max".to_string(), self.safe_number(&leverageBuy, (match (&(leverageBuyLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-            _ => Value::Null }), &[Value::Int(1)]));
+        m.insert("max".to_string(), self.safe_number(&leverageBuy, Value::Int((leverageBuyLength - 1)), &[Value::Int(1)]));
     m
 }));
         m.insert("amount".to_string(), Value::Map({
@@ -2261,8 +2260,8 @@ impl Kraken {
             type_var = (if (self.safe_string(trade.clone(), Value::Int(4), &[]).as_str() == Some("l")) { Value::Str("limit".into()) } else { Value::Str("market".into()) });
             price = self.safe_string(trade.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
             amount = self.safe_string(trade.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
-            let mut tradeLength: f64 = ((trade.len() as i64) as f64);
-            if tradeLength > ((6i64) as f64) {
+            let mut tradeLength: i64 = trade.len() as i64;
+            if tradeLength > 6 {
                 id = self.safe_string(trade.clone(), Value::Int(6), &[]); // artificially added as per #1794
             }
         }  else if matches!(&trade, Value::Str(_)) {
@@ -2392,15 +2391,14 @@ impl Kraken {
         })]).into_dict();
         let mut trades: Value = self.safe_list(&result, id, &[Value::from(vec![])]);
         // trades is a sorted array: last (most recent trade) goes last
-        let mut length: Value = Value::Int(trades.len() as i64);
-        if length.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64) {
+        let mut length: i64 = trades.len() as i64;
+        if length <= 0 {
             return Value::from(vec![]);
         }
-        let mut lastTrade: Value = trades.as_array().and_then(|__arr| match &((match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-            _ => Value::Null })) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null);
+        let mut lastTrade: Value = trades.as_array().and_then(|__arr| match &(Value::Int((length - 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null);
         let mut lastTradeId: Option<String> = self.safe_string_k_opt(&result, "last", &[]);
         if let Value::Arr(__a) = &mut lastTrade { std::sync::Arc::make_mut(__a).push(lastTradeId.map(Value::from).unwrap_or(Value::Null)); };
-        add_element_to_object(&mut trades, &(match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), lastTrade);
+        add_element_to_object(&mut trades, &Value::Int((length - 1)), lastTrade);
         return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -2754,12 +2752,12 @@ impl Kraken {
         let mut baseIdEnd: Value = Value::Int(3);
         let mut quoteIdStart: Value = Value::Int(3);
         let mut quoteIdEnd: Value = Value::Int(6);
-        let mut idLength: f64 = ((id.len() as i64) as f64);
-        if (idLength == 8.0) {
+        let mut idLength: i64 = id.len() as i64;
+        if (idLength == 8) {
             baseIdEnd = Value::Int(4);
             quoteIdStart = Value::Int(4);
             quoteIdEnd = Value::Int(8);
-        }  else if (idLength == 7.0) {
+        }  else if (idLength == 7) {
             baseIdEnd = Value::Int(4);
             quoteIdStart = Value::Int(4);
             quoteIdEnd = Value::Int(7);
@@ -4424,10 +4422,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchWithdrawals".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            if let Value::Dict(__d) = &mut paramsPaginate { std::sync::Arc::make_mut(__d).insert("cursor".into(), Value::Bool(true)); }
-            return self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".into()), &[code.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("next_cursor".into()), Value::Str("cursor".into())]).await;
+            std::sync::Arc::make_mut(&mut paramsPaginate).insert("cursor".into(), Value::Bool(true));
+            return self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".into()), &[code.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("next_cursor".into()), Value::Str("cursor".into())]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4441,8 +4439,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut sinceString: Option<String> = self.number_to_string(since.clone()).as_str().map(str::to_owned);
             request.insert("start".into(), crate::precise::Precise::stringDiv(&sinceString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into())));
         }
-        let mut until: Option<String> = self.safe_string2(paramsPaginate.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(paramsPaginate.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[]) } else { paramsPaginate });
+        let mut until: Option<String> = self.safe_string2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("till".into()), &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[]) } else { Value::from(&paramsPaginate) });
         if (until.is_some()) {
             let mut untilDivided: Value = crate::precise::Precise::stringDiv(&until.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000".into()));
             request.insert("end".into(), crate::precise::Precise::stringAdd(&untilDivided, &Value::Str("1".into())));
@@ -4504,11 +4502,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let result = result.as_map().unwrap_or(&__result_empty);
         let mut cursor: Option<String> = (match result.get("next_cursor") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut data: Value = (match result.get("withdrawals") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut dataLength: Value = Value::Int(data.len() as i64);
-        if (cursor.is_some()) && dataLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            let mut last: Value = get_value(&data, &(match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+        let mut dataLength: i64 = data.len() as i64;
+        if (cursor.is_some()) && dataLength > 0 {
+            let mut last: Value = get_value(&data, &Value::Int((dataLength - 1)));
             add_element_to_object(&mut last, &Value::Str("next_cursor".into()), cursor.map(Value::from).unwrap_or(Value::Null));
-            add_element_to_object(&mut data, &(match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), last);
+            add_element_to_object(&mut data, &Value::Int((dataLength - 1)), last);
         }
         return data;
 

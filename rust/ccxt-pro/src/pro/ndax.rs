@@ -426,7 +426,7 @@ impl Ndax {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -556,7 +556,7 @@ impl Ndax {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -625,10 +625,10 @@ impl Ndax {
                     Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
                 let mut parsed: Value = Value::from(vec![candleTimestamp.clone(), self.safe_float(&ohlcv, Value::Int(3), &[]), self.safe_float(&ohlcv, Value::Int(1), &[]), self.safe_float(&ohlcv, Value::Int(2), &[]), self.safe_float(&ohlcv, Value::Int(4), &[]), self.safe_float(&ohlcv, Value::Int(5), &[])]);
                 let mut stored: Value = self.safe_value((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), timeframe.clone(), &[Value::from(vec![])]);
-                let mut length: Value = Value::Int(stored.len() as i64);
-                let mut previous: Value = self.safe_value(stored.clone(), (match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
+                let mut length: i64 = Value::Int(stored.len() as i64).as_i64().unwrap_or_default();
+                let mut previous: Value = self.safe_value(stored.clone(), Value::Int((length - 1)), &[]);
                 let mut previousTimestamp: Value = self.safe_integer(previous.clone(), Value::Int(0), &[]);
-                if (length.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && (previousTimestamp != Value::Null) && (previousTimestamp.as_f64() == candleTimestamp.as_f64()) {
+                if (length > 0) && (previousTimestamp != Value::Null) && (previousTimestamp.as_f64() == candleTimestamp.as_f64()) {
                     let mut parsedHigh: Value = self.safe_float(&ohlcv, Value::Int(1), &[]);
                     let mut previousHigh: Value = self.safe_float(previous.clone(), Value::Int(1), &[]);
                     let mut high: Value = previousHigh.clone();
@@ -647,20 +647,19 @@ impl Ndax {
                             low = previousLow;
                         }
                     }
-                    add_element_to_object(&mut stored, &(match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }),
-                        Value::from(vec![candleTimestamp.clone(), self.safe_float(previous.clone(), Value::Int(1), &[]), high, low, self.safe_float(&ohlcv, Value::Int(4), &[]), self.sum(&[self.safe_float(&ohlcv, Value::Int(5), &[]), self.safe_float(previous, Value::Int(5), &[])])]));
+                    add_element_to_object(&mut stored, &Value::Int((length - 1)), Value::from(vec![candleTimestamp.clone(), self.safe_float(previous.clone(), Value::Int(1), &[]), high, low, self.safe_float(&ohlcv, Value::Int(4), &[]), self.sum(&[self.safe_float(&ohlcv, Value::Int(5), &[]), self.safe_float(previous, Value::Int(5), &[])])]));
                     if (marketId.is_some()) {
                         marketUpdates.insert(crate::runtime::stringify_param(&timeframe), Value::Bool(true));
                     }
                 }  else {
-                    if length.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+                    if length > 0 {
                         if (previousTimestamp != Value::Null) && (previousTimestamp.as_f64().unwrap_or(f64::NAN) > candleTimestamp.as_f64().unwrap_or(f64::NAN)) {
                             continue;
                         }
                     }
                     if let Value::Arr(__a) = &mut stored { std::sync::Arc::make_mut(__a).push(parsed); };
-                    let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-                    if length.as_f64().unwrap_or(f64::NAN) >= limit.as_f64().unwrap_or(f64::NAN) {
+                    let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+                    if length >= limit {
                         shift(stored.clone());
                     }
                     if (marketId.is_some()) {

@@ -2526,7 +2526,7 @@ impl Woo {
 }));
         let mut reduceOnly: Option<bool> = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into())]), &[]);
-        let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2540,31 +2540,31 @@ impl Woo {
         });
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsOmitted]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marginMode.is_some()) {
             request.insert("marginMode".into(), self.encode_margin_mode(marginMode.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         }
-        let mut triggerPrice: Option<String> = self.safe_string2(paramsMarginMode.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
-        let mut stopLoss: Value = self.safe_value_k(paramsMarginMode.clone(), "stopLoss", &[]);
-        let mut takeProfit: Value = self.safe_value_k(paramsMarginMode.clone(), "takeProfit", &[]);
+        let mut triggerPrice: Option<String> = self.safe_string2(Value::from(&paramsMarginMode), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
+        let mut stopLoss: Value = self.safe_value_k(&paramsMarginMode, "stopLoss", &[]);
+        let mut takeProfit: Value = self.safe_value_k(&paramsMarginMode, "takeProfit", &[]);
         let mut hasStopLoss: bool = stopLoss != Value::Null;
         let mut hasTakeProfit: bool = takeProfit != Value::Null;
-        let mut algoType: Option<String> = self.safe_string_k(paramsMarginMode.clone(), "algoType", &[]).as_str().map(str::to_owned);
-        let mut trailingTriggerPrice: Option<String> = self.safe_string2(paramsMarginMode.clone(), Value::Str("trailingTriggerPrice".into()), Value::Str("activatedPrice".into()), &[self.number_to_string(price.clone())]).as_str().map(str::to_owned);
-        let mut trailingAmount: Option<String> = self.safe_string2(paramsMarginMode.clone(), Value::Str("trailingAmount".into()), Value::Str("callbackValue".into()), &[]).as_str().map(str::to_owned);
-        let mut trailingPercent: Option<String> = self.safe_string2(paramsMarginMode.clone(), Value::Str("trailingPercent".into()), Value::Str("callbackRate".into()), &[]).as_str().map(str::to_owned);
+        let mut algoType: Option<String> = self.safe_string_k(&paramsMarginMode, "algoType", &[]).as_str().map(str::to_owned);
+        let mut trailingTriggerPrice: Option<String> = self.safe_string2(Value::from(&paramsMarginMode), Value::Str("trailingTriggerPrice".into()), Value::Str("activatedPrice".into()), &[self.number_to_string(price.clone())]).as_str().map(str::to_owned);
+        let mut trailingAmount: Option<String> = self.safe_string2(Value::from(&paramsMarginMode), Value::Str("trailingAmount".into()), Value::Str("callbackValue".into()), &[]).as_str().map(str::to_owned);
+        let mut trailingPercent: Option<String> = self.safe_string2(Value::from(&paramsMarginMode), Value::Str("trailingPercent".into()), Value::Str("callbackRate".into()), &[]).as_str().map(str::to_owned);
         let mut isTrailingAmountOrder: bool = trailingAmount.is_some();
         let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
         let mut isTrailing: bool = isTrailingAmountOrder || isTrailingPercentOrder;
-        let mut isConditional: bool = isTrailing || (triggerPrice.is_some()) || hasStopLoss || hasTakeProfit || (self.safe_list_k(paramsMarginMode.clone(), "childOrders", &[]) != Value::Null);
-        let mut isMarket: bool = orderType.as_str() == Some("MARKET");
-        let mut timeInForce: Option<String> = self.safe_string_lower_k(paramsMarginMode.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[paramsMarginMode.clone()]).as_bool() == Some(true);
+        let mut isConditional: bool = isTrailing || (triggerPrice.is_some()) || hasStopLoss || hasTakeProfit || (self.safe_list_k(&paramsMarginMode, "childOrders", &[]) != Value::Null);
+        let mut isMarket: bool = orderType == "MARKET";
+        let mut timeInForce: Option<String> = self.safe_string_lower_k(&paramsMarginMode, "timeInForce", &[]).as_str().map(str::to_owned);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[Value::from(&paramsMarginMode)]).as_bool() == Some(true);
         let mut clientOrderIdKey: String = "clientOrderId".to_string();
         if isConditional {
             clientOrderIdKey = "clientAlgoOrderId".to_string();
         }
-        request.insert("type".into(), orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+        request.insert("type".into(), Value::from(orderType)); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if !(isConditional) {
             if postOnly {
                 request.insert("type".into(), Value::Str("POST_ONLY".into()));
@@ -2581,13 +2581,13 @@ impl Woo {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
         }
         let mut isMarketNotConditional: bool = isMarket && !isConditional;
-        let mut paramsCost: Value = paramsMarginMode.clone();
+        let mut paramsCost: Value = Value::from(&paramsMarginMode);
         if isMarketNotConditional {
-            paramsCost = self.omit(paramsMarginMode.clone(), Value::from(vec![Value::Str("cost".into()), Value::Str("order_amount".into()), Value::Str("orderAmount".into())]), &[]);
+            paramsCost = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("cost".into()), Value::Str("order_amount".into()), Value::Str("orderAmount".into())]), &[]);
         }
         if isMarketNotConditional {
             // for market buy it requires the amount of quote currency to spend
-            let mut cost: Option<String> = self.safe_string_n(paramsMarginMode, Value::from(vec![Value::Str("cost".into()), Value::Str("order_amount".into()), Value::Str("orderAmount".into())]), &[]).as_str().map(str::to_owned);
+            let mut cost: Option<String> = self.safe_string_n(Value::Dict(paramsMarginMode), Value::from(vec![Value::Str("cost".into()), Value::Str("order_amount".into()), Value::Str("orderAmount".into())]), &[]).as_str().map(str::to_owned);
             let mut isPriceProvided: bool = price != Value::Null;
             if matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) && (isPriceProvided || (cost.is_some())) {
                 let mut quoteAmount: Value = Value::Null;
@@ -3659,8 +3659,8 @@ impl Woo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbols != Value::Null) {
-            let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-            if symbolsLength > ((0i64) as f64) {
+            let mut symbolsLength: i64 = symbols.len() as i64;
+            if symbolsLength > 0 {
                 // the type gate throws NotSupported rather than letting marketSymbols raise
                 // BadRequest, so callers (and the live test harness) can tell "wrong market
                 // type" apart from a malformed request, marketSymbols still enforces that the
@@ -4434,10 +4434,10 @@ impl Woo {
             return currency;
         }  else {
             let mut parts: Value = Value::Array(if let Some(__s) = networkizedCode.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-            let mut partsLength: f64 = ((parts.len() as i64) as f64);
+            let mut partsLength: i64 = parts.len() as i64;
             let mut firstPart: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(1), &[firstPart.map(Value::from).unwrap_or(Value::Null)]);
-            if partsLength > ((2i64) as f64) {
+            if partsLength > 2 {
                 currencyId = Value::Str(format!("{}{}", currencyId, Value::Str(format!("{}{}", Value::Str("_".into()), self.safe_string(parts, Value::Int(2), &[Value::Str("".into())])).into())).into());
             }
             return self.safe_currency(currencyId, &[]);
@@ -5036,7 +5036,7 @@ impl Woo {
         let mut requestBody: Option<String> = None;
         let mut version: Value = section.get(0).cloned().unwrap_or(Value::Null);
         let mut access: Option<String> = section.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut pathWithParams: Value = self.implode_params(path.clone(), params.clone());
+        let mut pathWithParams: Value = Value::from(self.implode_params(path.clone(), params.clone()));
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), access.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
@@ -5580,7 +5580,7 @@ impl Woo {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbolValue.map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbolValue.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -5959,8 +5959,8 @@ impl Woo {
             m
         });
         if (symbolsNormalized.is_some()) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (symbolsLength == 1.0) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (symbolsLength == 1) {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 request.insert("symbol".into(), Value::from((market).id.clone()));
             }
@@ -6567,8 +6567,8 @@ impl Woo {
             m
         });
         if (symbolsNormalized.is_some()) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (symbolsLength == 1.0) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (symbolsLength == 1) {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 request.insert("symbol".into(), Value::from((market).id.clone()));
             }

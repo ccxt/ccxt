@@ -935,7 +935,7 @@ impl Gate {
         let __ws_arg_3 = self.extend(newRequest, &[&requestParams]);
         let mut rawOrders: Value = self.request_private(url, __ws_arg_3, Value::from(channel), &[]).await;
         let mut orders: Value = self.parse_orders(rawOrders, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -1511,10 +1511,10 @@ impl Gate {
         let mut messageType: Value = self.get_type_by_market(market.clone());
         let mut marketIds: Value = self.market_ids(&[Value::Arr(symbolsNormalized.clone())]);
         let channelNameparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsCallerMethodName, callerMethodNameOption.clone(), Value::Str("method".into()), &[Value::Str("".into())]).as_array().cloned().unwrap_or_default();
-        let mut channelName: Value = channelNameparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut channelName: Option<String> = channelNameparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: Value = channelNameparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut url: Value = self.get_url_by_market(market);
-        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", messageType, Value::Str(".".into())).into()), channelName);
+        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", messageType, Value::Str(".".into())).into()), channelName.as_deref().unwrap_or("null"));
         if (callerMethodNameOption == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a callerMethodName argument".into()))));
         }
@@ -1545,9 +1545,9 @@ impl Gate {
             return Value::Map(items);
         }
         if isWatchTickers {
-            return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized.clone()), Value::Bool(true)]);
+            return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(true)]);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized), Value::Bool(true)]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(true)]);
 
     Value::Null
 }
@@ -1682,7 +1682,7 @@ impl Gate {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1849,7 +1849,7 @@ impl Gate {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2079,7 +2079,7 @@ impl Gate {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbol, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2108,8 +2108,8 @@ impl Gate {
         // }
         //
         let mut result: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
-        let mut tradesLength: f64 = ((result.len() as i64) as f64);
-        if (tradesLength == 0.0) {
+        let mut tradesLength: i64 = result.len() as i64;
+        if (tradesLength == 0) {
             return;
         }
         let mut cachedTrades: Value = self.myTrades.clone();
@@ -2373,7 +2373,7 @@ impl Gate {
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }
-        return self.filter_by_symbols_since_limit(self.safe_value(self.positions.clone(), type_var.map(Value::from).unwrap_or(Value::Null), &[]), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.safe_value(self.positions.clone(), type_var.map(Value::from).unwrap_or(Value::Null), &[]), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2514,8 +2514,8 @@ impl Gate {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
-            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
+            let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(positions, messageHash.as_deref());
             }
@@ -2612,7 +2612,7 @@ impl Gate {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2802,8 +2802,8 @@ impl Gate {
             messageHash = "myLiquidations".to_string();
             payload.push(Value::Str("!all".into()));
         }  else {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (symbolsLength != 1.0) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (symbolsLength != 1) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several symbols call watchMyLiquidationsForSymbols() several times.".into()))));
             }
             messageHash = format!("{}{}", Value::Str("myLiquidations::".into()), symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null));
@@ -2814,7 +2814,7 @@ impl Gate {
         if self.newUpdates.as_bool() == Some(true) {
             return newLiquidations;
         }
-        return self.filter_by_symbols_since_limit(self.liquidations.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.liquidations.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

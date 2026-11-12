@@ -587,7 +587,7 @@ impl Deribit {
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -696,7 +696,7 @@ impl Deribit {
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -823,7 +823,7 @@ impl Deribit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -908,7 +908,7 @@ impl Deribit {
         if (symbol != Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { Value::Null });
+        let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { self.symbol(symbol.clone()).as_str().map(str::to_owned) } else { None });
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut interval: String = self.safe_string_k(params.clone(), "interval", &[Value::Str("raw".into())]).as_str().unwrap_or("raw").to_string();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("interval".into()), &[]).into_dict();
@@ -927,7 +927,7 @@ impl Deribit {
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[&paramsOmitted]);
         let mut trades: Value = self.watch(url, &channel[..], &[request.clone(), Value::from(channel.clone()), request]).await;
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1053,18 +1053,18 @@ impl Deribit {
         // for more info on useDepthEndpoint, see comment in .options
         let useDepthEndpointparamsUseDepthEndpointVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsInterval, Value::Str("watchOrderBookForSymbols".into()), Value::Str("useDepthEndpoint".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut useDepthEndpoint: bool = useDepthEndpointparamsUseDepthEndpointVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsUseDepthEndpoint: Value = useDepthEndpointparamsUseDepthEndpointVariable.get(1).cloned().unwrap_or(Value::Null);
-        let depthparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(paramsUseDepthEndpoint.clone(), Value::Str("watchOrderBookForSymbols".into()), Value::Str("depth".into()), &[Value::Str("20".into())]).as_array().cloned().unwrap_or_default();
-        let mut depth: Value = depthparamsDepthVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paramsUseDepthEndpoint: crate::value::Dict = useDepthEndpointparamsUseDepthEndpointVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let depthparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(&paramsUseDepthEndpoint, Value::Str("watchOrderBookForSymbols".into()), Value::Str("depth".into()), &[Value::Str("20".into())]).as_array().cloned().unwrap_or_default();
+        let mut depth: Option<String> = depthparamsDepthVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsDepth: crate::value::Dict = depthparamsDepthVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let groupparamsGroupVariable: Vec<Value> = self.handle_option_string_and_params(&paramsDepth, Value::Str("watchOrderBookForSymbols".into()), Value::Str("group".into()), &[Value::Str("none".into())]).as_array().cloned().unwrap_or_default();
-        let mut group: Value = groupparamsGroupVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut group: Option<String> = groupparamsGroupVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsGroup: Value = groupparamsGroupVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut descriptor: Value = interval.clone();
         if useDepthEndpoint {
-            descriptor = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", group, Value::Str(".".into())).into()), depth).into()), Value::Str(".".into())).into()), interval).into());
+            descriptor = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", group.as_deref().unwrap_or("null"), Value::Str(".".into())).into()), depth.as_deref().unwrap_or("null")).into()), Value::Str(".".into())).into()), interval).into());
         }
-        let mut paramsResolved: Value = paramsUseDepthEndpoint;
+        let mut paramsResolved: Value = Value::Dict(paramsUseDepthEndpoint);
         if useDepthEndpoint {
             paramsResolved = paramsGroup;
         }
@@ -1130,8 +1130,8 @@ impl Deribit {
         let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
         let mut parts: Value = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut descriptor: String = "".to_string();
-        let mut partsLength: f64 = ((parts.len() as i64) as f64);
-        let mut isDetailed: bool = partsLength == 5.0;
+        let mut partsLength: i64 = parts.len() as i64;
+        let mut isDetailed: bool = partsLength == 5;
         if isDetailed {
             let mut interval: String = self.safe_string(parts.clone(), Value::Int(4), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             descriptor = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(parts.clone(), Value::Int(2), &[Value::Str("".into())]), Value::Str(".".into())).into()), self.safe_string(parts.clone(), Value::Int(3), &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval);
@@ -1262,7 +1262,7 @@ impl Deribit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1392,8 +1392,8 @@ impl Deribit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsLength: f64 = ((symbolsAndTimeframes.len() as i64) as f64);
-        if (symbolsLength == 0.0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
+        let mut symbolsLength: i64 = symbolsAndTimeframes.len() as i64;
+        if (symbolsLength == 0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]".into()))));
         }
         let mut symboltimeframecandlesVariable = self.watch_multiple_wrapper(Value::Str("chart.trades".into()), Value::Null, &[symbolsAndTimeframes, params]).await;
@@ -1404,7 +1404,7 @@ impl Deribit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = candles.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(candles, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
         Value::Null
         }).await?))

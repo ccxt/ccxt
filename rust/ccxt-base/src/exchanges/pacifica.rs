@@ -3247,7 +3247,7 @@ if _try_result.is_err() {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_since_limit(sorted, &[since, limit, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -3386,8 +3386,8 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), None, None, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) }); // don't filter here because we don't want to catch open orders
-        let mut closedOrders: Value = self.filter_by_array(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), &[Value::from(vec![Value::Str("closed".into())]), Value::Bool(false)]);
-        return self.filter_by_symbol_since_limit(closedOrders, &[symbol, since, limit]);
+        let mut closedOrders: Value = self.filter_by_array(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::from(vec![Value::Str("closed".into())]), &[Value::Bool(false)]);
+        return self.filter_by_symbol_since_limit(closedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3421,8 +3421,8 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), None, None, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) }); // don't filter here because we don't want to catch open orders
-        let mut closedOrders: Value = self.filter_by_array(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), &[Value::from(vec![Value::Str("canceled".into())]), Value::Bool(false)]);
-        return self.filter_by_symbol_since_limit(closedOrders, &[symbol, since, limit]);
+        let mut closedOrders: Value = self.filter_by_array(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::from(vec![Value::Str("canceled".into())]), &[Value::Bool(false)]);
+        return self.filter_by_symbol_since_limit(closedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3456,8 +3456,8 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), None, None, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) }); // don't filter here because we don't want to catch open orders
-        let mut closedOrders: Value = self.filter_by_array(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), &[Value::from(vec![Value::Str("canceled".into()), Value::Str("closed".into()), Value::Str("rejected".into())]), Value::Bool(false)]);
-        return self.filter_by_symbol_since_limit(closedOrders, &[symbol, since, limit]);
+        let mut closedOrders: Value = self.filter_by_array(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::from(vec![Value::Str("canceled".into()), Value::Str("closed".into()), Value::Str("rejected".into())]), &[Value::Bool(false)]);
+        return self.filter_by_symbol_since_limit(closedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3630,9 +3630,9 @@ if _try_result.is_err() {
         let mut data: Value = (match response.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut paginationCursor: Option<String> = (match response.get("next_cursor") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut hasMore: bool = (match response.get("has_more") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) }).as_bool().unwrap_or(false);
-        let mut dataLength: f64 = ((data.len() as i64) as f64);
+        let mut dataLength: i64 = data.len() as i64;
         if hasMore {
-            if (paginationCursor.is_some()) && (dataLength > ((0i64) as f64)) {
+            if (paginationCursor.is_some()) && (dataLength > 0) {
                 let mut first: Value = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
                 add_element_to_object(&mut first, &Value::Str("next_cursor".into()), paginationCursor.map(Value::from).unwrap_or(Value::Null));
                 add_element_to_object(&mut first, &Value::Str("has_more".into()), Value::Bool(hasMore));
@@ -3728,12 +3728,12 @@ if _try_result.is_err() {
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
         let mut sorted: Value = self.sort_by(data, Value::Str("history_id".into()), &[Value::Bool(true)]);
-        let mut lastIdx: f64 = ((sorted.len() as i64) as f64);
+        let mut lastIdx: i64 = sorted.len() as i64;
         let mut lastInfo: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if lastIdx > ((0i64) as f64) {
+        if lastIdx > 0 {
             lastInfo = sorted.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         }
         return self.parse_order(lastInfo, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
@@ -4678,7 +4678,7 @@ if _try_result.is_err() {
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut transactions: Value = self.parse_transactions(&data, &[self.safe_currency(code, &[])]);
         let mut deposits: Value = self.filter_by(transactions, Value::Str("type".into()), Value::Str("deposit".into()), &[]);
-        return self.filter_by_since_limit(deposits, &[since, limit, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(deposits, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -4724,7 +4724,7 @@ if _try_result.is_err() {
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut transactions: Value = self.parse_transactions(&data, &[self.safe_currency(code, &[])]);
         let mut withdrawals: Value = self.filter_by(transactions, Value::Str("type".into()), Value::Str("withdrawal".into()), &[]);
-        return self.filter_by_since_limit(withdrawals, &[since, limit, Value::Str("timestamp".into())]);
+        return self.filter_by_since_limit(withdrawals, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }

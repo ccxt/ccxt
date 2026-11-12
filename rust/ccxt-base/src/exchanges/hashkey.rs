@@ -1680,9 +1680,8 @@ impl Hashkey {
             let mut riskLimits: Option<crate::value::List> = self.safe_list_k(market.clone(), "riskLimits", &[]).into_opt_list();
             if (riskLimits.is_some()) {
                 let mut first: crate::value::Dict = self.safe_dict(&riskLimits, Value::Int(0), &[]).into_dict();
-                let mut arrayLength: Value = Value::Int(riskLimits.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64);
-                let mut last: crate::value::Dict = self.safe_dict(&riskLimits, (match (&(arrayLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).into_dict();
+                let mut arrayLength: i64 = riskLimits.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+                let mut last: crate::value::Dict = self.safe_dict(&riskLimits, Value::Int((arrayLength - 1)), &[]).into_dict();
                 let mut minInitialMargin: Option<String> = self.safe_string_k(&first, "initialMargin", &[]).as_str().map(str::to_owned);
                 let mut maxInitialMargin: Option<String> = self.safe_string_k(&last, "initialMargin", &[]).as_str().map(str::to_owned);
                 if crate::precise::Precise::stringGt(&minInitialMargin.clone().map(Value::from).unwrap_or(Value::Null), &maxInitialMargin.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
@@ -3608,7 +3607,7 @@ impl Hashkey {
         let mut paramsTimeInForce: Value = timeInForceParamparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null);
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(timeInForceParam.as_str() == Some("LIMIT_MAKER")), &[paramsTimeInForce]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut timeInForce: Value = timeInForceParam;
         if postOnly {
             timeInForce = Value::Str("LIMIT_MAKER".into());
@@ -3616,12 +3615,12 @@ impl Hashkey {
         if (timeInForce != Value::Null) {
             request.insert("timeInForce".into(), timeInForce);
         }
-        let mut clientOrderId: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string_k(&paramsPostOnly, "clientOrderId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_none()) {
             request.insert("clientOrderId".into(), self.uuid(&[]));
         }
-        let mut triggerPrice: Option<String> = self.safe_string_k(paramsPostOnly.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = (if (triggerPrice.is_some()) { self.omit(paramsPostOnly.clone(), Value::Str("triggerPrice".into()), &[]) } else { paramsPostOnly });
+        let mut triggerPrice: Option<String> = self.safe_string_k(&paramsPostOnly, "triggerPrice", &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted: Value = (if (triggerPrice.is_some()) { self.omit(&paramsPostOnly, Value::Str("triggerPrice".into()), &[]) } else { Value::from(&paramsPostOnly) });
         if (triggerPrice.is_some()) {
             request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
             request.insert("type".into(), Value::Str("STOP".into()));
@@ -4773,7 +4772,7 @@ impl Hashkey {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_since_limit(sorted, &[since, limit]);
+        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4804,8 +4803,8 @@ impl Hashkey {
         if (symbols == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a symbol argument with one single market symbol".into()))));
         }  else {
-            let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-            if (symbolsLength != 1.0) {
+            let mut symbolsLength: i64 = symbols.len() as i64;
+            if (symbolsLength != 1) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() is supported for a symbol argument with one single market symbol only".into()))));
             }
         }
@@ -5043,9 +5042,9 @@ impl Hashkey {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut marginModeUpper: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        let mut marginModeValue: Value = (if (marginModeUpper.as_str() == Some("CROSSED")) { Value::Str("CROSS".into()) } else { marginModeUpper });
-        if (marginModeValue.as_str() != Some("CROSS")) && (marginModeValue.as_str() != Some("ISOLATED")) {
+        let mut marginModeUpper: String = marginMode.as_str().unwrap_or_default().to_string().to_uppercase();
+        let mut marginModeValue: String = (if (marginModeUpper == "CROSSED") { "CROSS".to_string() } else { marginModeUpper });
+        if (marginModeValue != "CROSS") && (marginModeValue != "ISOLATED") {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode must be either cross or isolated".into()))));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -5055,7 +5054,7 @@ impl Hashkey {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
-                m.insert("marginType".to_string(), marginModeValue);
+                m.insert("marginType".to_string(), Value::from(marginModeValue));
             m
         });
         let __ws_arg_40 = self.extend(Value::Map(request), &[params]);

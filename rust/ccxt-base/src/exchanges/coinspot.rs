@@ -1454,7 +1454,7 @@ impl Coinspot {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
-        let mut sideUpper: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut sideUpper: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
         if (type_var.as_str() == Some("market")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".into()))));
         }
@@ -1467,10 +1467,10 @@ impl Coinspot {
             m
         });
         let mut response: Value = Value::Null;
-        if (sideUpper.as_str() == Some("BUY")) {
+        if (sideUpper == "BUY") {
             let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_post_my_buy(&[__ws_arg_3]).await;
-        }  else if (sideUpper.as_str() == Some("SELL")) {
+        }  else if (sideUpper == "SELL") {
             let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
             response = self.private_post_my_sell(&[__ws_arg_4]).await;
         }  else {
@@ -1564,8 +1564,8 @@ impl Coinspot {
 }));
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Value = Value::Null;
-        let mut apiLength: f64 = ((api.len() as i64) as f64);
-        let mut isVersionedApi: bool = apiLength > ((1i64) as f64);
+        let mut apiLength: i64 = api.len() as i64;
+        let mut isVersionedApi: bool = apiLength > 1;
         let mut accessType: Value = api.as_array().into_iter().flatten().nth(0).cloned().unwrap_or(Value::Null);
         if isVersionedApi {
             accessType = api.as_array().into_iter().flatten().nth(1).cloned().unwrap_or(Value::Null);

@@ -346,7 +346,7 @@ impl Gemini {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -382,7 +382,7 @@ impl Gemini {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -632,7 +632,7 @@ impl Gemini {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1153,7 +1153,7 @@ impl Gemini {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1392,7 +1392,7 @@ impl Gemini {
             let mut orderBookItems: Vec<Value> = Vec::new();
             let mut bidaskItems: Vec<Value> = Vec::new();
             let mut collectedEventsOfTrades: Vec<Value> = Vec::new();
-            let mut eventsLength: f64 = ((events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
+            let mut eventsLength: i64 = events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_352: bool = true;
@@ -1402,7 +1402,7 @@ impl Gemini {
                 let mut side: Option<String> = self.safe_string_k(event.clone(), "side", &[]).as_str().map(str::to_owned);
                 let mut isOrderBook: bool = (eventType.as_deref() == Some("change")) && (side.is_some()) && self.in_array(side.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::Str("ask".into()), Value::Str("bid".into())])).as_bool() == Some(true);
                 let mut eventReason: Option<String> = self.safe_string_k(event.clone(), "reason", &[]).as_str().map(str::to_owned);
-                let mut isBidAsk: bool = (eventReason.as_deref() == Some("top-of-book")) || (isOrderBook && (eventReason.as_deref() == Some("initial")) && (eventsLength == 2.0));
+                let mut isBidAsk: bool = (eventReason.as_deref() == Some("top-of-book")) || (isOrderBook && (eventReason.as_deref() == Some("initial")) && (eventsLength == 2));
                 if isBidAsk {
                     bidaskItems.push(event.clone());
                 }  else if isOrderBook {
@@ -1412,16 +1412,16 @@ impl Gemini {
                 }
             }
             }
-            let mut lengthBa: f64 = ((bidaskItems.len() as i64) as f64);
-            if lengthBa > ((0i64) as f64) {
+            let mut lengthBa: i64 = bidaskItems.len() as i64;
+            if lengthBa > 0 {
                 self.handle_bids_asks_for_multidata(client.clone(), Value::from(bidaskItems), Value::from(ts), Value::from(eventId));
             }
-            let mut lengthOb: f64 = ((orderBookItems.len() as i64) as f64);
-            if lengthOb > ((0i64) as f64) {
+            let mut lengthOb: i64 = orderBookItems.len() as i64;
+            if lengthOb > 0 {
                 self.handle_order_book_for_multidata(client.clone(), Value::from(orderBookItems), Value::from(ts), Value::from(eventId));
             }
-            let mut lengthTrades: f64 = ((collectedEventsOfTrades.len() as i64) as f64);
-            if lengthTrades > ((0i64) as f64) {
+            let mut lengthTrades: i64 = collectedEventsOfTrades.len() as i64;
+            if lengthTrades > 0 {
                 self.handle_trades_for_multidata(client, Value::from(collectedEventsOfTrades), Value::from(ts));
             }
         }

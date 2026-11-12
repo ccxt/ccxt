@@ -1086,9 +1086,9 @@ impl Polymarket {
 }));
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);
         let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]);
-        let mut queriesLength: f64 = ((queries.len() as i64) as f64);
+        let mut queriesLength: i64 = queries.len() as i64;
         let mut rawEvents: Value = Value::from(vec![]);
-        if queriesLength > ((0i64) as f64) {
+        if queriesLength > 0 {
             rawEvents = self.fetch_raw_events_by_search(queries, &[rest.clone()]).await;
         }  else {
             rawEvents = self.fetch_raw_events_list(&[rest]).await;
@@ -1534,9 +1534,9 @@ impl Polymarket {
             if (parsedPrices != Value::Null) && (parsedPricesLength != Value::Null) {
                 outcomePrices = parsedPrices;
             }
-            let mut outcomeLabelsLength: f64 = ((outcomeLabels.len() as i64) as f64);
-            let mut clobTokenIdsLength: f64 = ((clobTokenIds.len() as i64) as f64);
-            if (outcomeLabelsLength == 0.0) || (clobTokenIdsLength == 0.0) {
+            let mut outcomeLabelsLength: i64 = outcomeLabels.len() as i64;
+            let mut clobTokenIdsLength: i64 = clobTokenIds.len() as i64;
+            if (outcomeLabelsLength == 0) || (clobTokenIdsLength == 0) {
                 continue;
             }
             // Market outcome (no outcome suffix)
@@ -1597,7 +1597,7 @@ impl Polymarket {
             }
             }
             let mut baseId: Value = (if (conditionId.is_some()) { conditionId.clone().map(Value::from).unwrap_or(Value::Null) } else { marketId.map(Value::from).unwrap_or(Value::Null) });
-            let mut marketType: Value = (if (outcomeLabelsLength > ((2i64) as f64)) { Value::Str("categorical".into()) } else { Value::Str("binary".into()) });
+            let mut marketType: Value = (if (outcomeLabelsLength > 2) { Value::Str("categorical".into()) } else { Value::Str("binary".into()) });
             // effectively-final copy for the market object literal below (reassigned in the loop)
             let mut marketResolvedOutcome: Value = resolvedOutcome;
             result.push(Value::Map({
@@ -1707,8 +1707,8 @@ impl Polymarket {
                 m
             })]).await;
             let mut rawMarkets: Value = (if (response != Value::Null) { response } else { Value::from(vec![]) });
-            let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
-            if rawMarketsLength > ((0i64) as f64) {
+            let mut rawMarketsLength: i64 = rawMarkets.len() as i64;
+            if rawMarketsLength > 0 {
                 if (self.markets.clone() == Value::Null) {
                     { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
                 }
@@ -2080,13 +2080,11 @@ impl Polymarket {
         let mut mid: Option<f64> = self.safe_number_k(&midpointData, "mid", &[]).as_f64();
         let mut bids: Value = self.safe_list_k(&bookData, "bids", &[Value::from(vec![])]);
         let mut asks: Value = self.safe_list_k(&bookData, "asks", &[Value::from(vec![])]);
-        let mut bidsLength: Value = Value::Int(bids.len() as i64);
-        let mut asksLength: Value = Value::Int(asks.len() as i64);
+        let mut bidsLength: i64 = bids.len() as i64;
+        let mut asksLength: i64 = asks.len() as i64;
         // the CLOB book endpoint returns levels sorted away from the touch (bids ascending, asks descending), so the best level is the last entry
-        let mut bestBid: Value = (if (bidsLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { bids.as_array().and_then(|__arr| match &((match (&(bidsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
-            Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut bestAsk: Value = (if (asksLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { asks.as_array().and_then(|__arr| match &((match (&(asksLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
-            Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut bestBid: Value = (if (bidsLength > 0) { bids.as_array().and_then(|__arr| match &(Value::Int((bidsLength - 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut bestAsk: Value = (if (asksLength > 0) { asks.as_array().and_then(|__arr| match &(Value::Int((asksLength - 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null) } else { Value::Null });
         // book.last_trade_price is market-level and denominated in whichever token traded last —
         // on the complementary token it is the OTHER side's price, so only the per-token
         // last-trade-price endpoint value is usable here; that endpoint reports "0" for a
@@ -2328,8 +2326,8 @@ impl Polymarket {
         }
         }
         let mut candles: Value = self.sort_by(Value::from(unsortedCandles), Value::Int(0), &[]);
-        let mut candlesLength: f64 = ((candles.len() as i64) as f64);
-        if (limit != Value::Null) && (candlesLength > limit.as_f64().unwrap_or(f64::NAN)) {
+        let mut candlesLength: i64 = candles.len() as i64;
+        if (limit != Value::Null) && ((limit.as_i64().is_some() && Some(candlesLength) > limit.as_i64())) {
             return self.array_slice(candles.clone(), (match &(limit) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }), &[]);
         }
         return candles;
@@ -2707,7 +2705,7 @@ impl Polymarket {
             }
         }
         }
-        return self.filter_by_since_limit(Value::from(result), &[since, limit]);
+        return self.filter_by_since_limit(Value::from(result), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2892,7 +2890,7 @@ impl Polymarket {
         let mut positions: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
-        if (((outcomesLength as f64) == 0.0)) {
+        if (outcomesLength == 0) {
             return self.parse_prediction_positions(positions.clone(), &[]);
         }
         let mut parsed: Vec<Value> = self.parse_prediction_positions(positions, &[]).as_array().cloned().unwrap_or_default();
@@ -3430,7 +3428,7 @@ impl Polymarket {
                 if builderFeeEnabled {
                     feeRate = self.safe_integer_k(self.options.clone(), "feeRate", &[Value::Int(0)]).as_i64().unwrap_or(0);
                 }
-                let mut feeHex: Value = self.int_to_base16(Value::from(feeRate), &[]);
+                let mut feeHex: Value = Value::from(self.int_to_base16(Value::from(feeRate), &[]));
                 feeHex = feeHex.as_str().map(|__s| Value::Str(format!("{:0>24}", __s).into())).unwrap_or(Value::Null);
                 let mut addressHex: Value = builderHex.as_str().map(|__s| Value::Str(format!("{:0>40}", __s).into())).unwrap_or(Value::Null);
                 let mut packedHex: String = format!("{}{}", feeHex, addressHex);
@@ -3785,7 +3783,7 @@ impl Polymarket {
         // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
         // orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
         // php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
-        let mut ctLenHex: Value = self.int_to_base16(Value::Int((orderTypeString.chars().count() as i64)), &[]);
+        let mut ctLenHex: Value = Value::from(self.int_to_base16(Value::Int((orderTypeString.chars().count() as i64)), &[]));
         // assign before padStart so the PHP transpiler's str_pad regex (which only matches a
         // simple identifier) picks it up instead of leaking a padStart() function call
         let mut lenHex: Value = ctLenHex.as_str().map(|__s| Value::Str(format!("{:0>4}", __s).into())).unwrap_or(Value::Null);
@@ -3987,7 +3985,7 @@ impl Polymarket {
         if (queries == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".into()))));
         }
-        let mut queriesLength: f64 = ((queries.len() as i64) as f64);
+        let mut queriesLength: i64 = queries.len() as i64;
         let mut rawEvents: Value = Value::from(vec![]);
         if (requestedEventId.is_some()) || (requestedSlug.is_some()) {
             // direct lookup by event id or slug via the events endpoint (returns a list)
@@ -4003,7 +4001,7 @@ impl Polymarket {
             let mut response: Value = self.gamma_public_get_events(&[Value::Map(lookup)]).await;
             let mut responseIsArray: bool = matches!(&response, Value::Arr(_));
             rawEvents = (if (responseIsArray) { response } else { Value::from(vec![]) });
-        }  else if queriesLength > ((0i64) as f64) {
+        }  else if queriesLength > 0 {
             rawEvents = self.fetch_raw_events_by_search(queries.clone(), &[rest.clone()]).await;
         }  else {
             rawEvents = self.fetch_raw_events_list(&[rest]).await;
@@ -4026,8 +4024,8 @@ impl Polymarket {
             let mut rawEvent: Value = rawEvents.as_array().map(Vec::as_slice).unwrap_or_default().get(rei as usize).cloned().unwrap_or(Value::Null);
             let mut eventForParsing: Value = rawEvent.clone();
             let mut ccxtMarkets: Value = self.parse_event_to_markets(eventForParsing.clone());
-            let mut ccxtMarketsLength: f64 = ((ccxtMarkets.len() as i64) as f64);
-            if (ccxtMarketsLength == 0.0) {
+            let mut ccxtMarketsLength: i64 = ccxtMarkets.len() as i64;
+            if (ccxtMarketsLength == 0) {
                 // search results may omit the nested markets, fall back to the detail endpoint
                 let mut eventId: Option<String> = self.safe_string_k(rawEvent.clone(), "id", &[]).as_str().map(str::to_owned);
                 let mut rawEventSlug: Option<String> = self.safe_string_k(rawEvent, "slug", &[]).as_str().map(str::to_owned);
@@ -4070,7 +4068,7 @@ impl Polymarket {
         // eventId/slug/status/tags/searchIn/sort/limit filters, so all five venues behave the same
         self.populate_outcomes();
         let mut effectiveParams: Value = params.clone();
-        if queriesLength > ((0i64) as f64) {
+        if queriesLength > 0 {
             // the gamma search endpoint is fuzzy, so default to refining by active status and a
             // title match (the caller can override); the other venues search exactly and need no
             // such default. inject the defaults as explicit params so the shared pipeline stays
@@ -4345,14 +4343,14 @@ impl Polymarket {
         let mut isArrayBody: bool = false;
         if (matches!(&params, Value::Arr(_))) {
             let mut paramsList: Value = params.clone();
-            let mut paramsListLength: f64 = ((paramsList.len() as i64) as f64);
-            isArrayBody = paramsListLength > ((0i64) as f64);
+            let mut paramsListLength: i64 = paramsList.len() as i64;
+            isArrayBody = paramsListLength > 0;
         }
         let mut query: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if !(isArrayBody) {
+        if !isArrayBody {
             query = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         }
         let mut bodyValue: Value = Value::Null;
@@ -4384,8 +4382,8 @@ impl Polymarket {
             bodyValue = json_stringify(&params);
         }  else {
             let mut queryKeys: Value = object_keys(&query);
-            let mut queryKeysLength: f64 = ((queryKeys.len() as i64) as f64);
-            if queryKeysLength > ((0i64) as f64) {
+            let mut queryKeysLength: i64 = queryKeys.len() as i64;
+            if queryKeysLength > 0 {
                 bodyValue = json_stringify(&query);
             }
         }
@@ -4975,7 +4973,7 @@ if _try_result.is_err() {
         });
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut trades: Value = self.watch(url, messageHash.as_str(), &[Value::Map(subscribeMsg), Value::from(subscribeHash)]).await;
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -5028,21 +5026,21 @@ if _try_result.is_err() {
         let mut asks: Value = crate::value::get_value_k(&orderbook, "asks");
         let mut bestBid: Value = Value::Null;
         let mut bestBidVolume: Value = Value::Null;
-        let mut bidsLength: Value = Value::Int(0);
+        let mut bidsLength: i64 = 0;
         if (bids != Value::Null) {
-            bidsLength = get_array_length(&bids);
+            bidsLength = get_array_length(&bids).as_i64().unwrap_or_default();
         }
-        if (bids != Value::Null) && (bidsLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
+        if (bids != Value::Null) && (bidsLength > 0) {
             bestBid = get_value(&get_value(&bids, &Value::Int(0)), &Value::Int(0));
             bestBidVolume = get_value(&get_value(&bids, &Value::Int(0)), &Value::Int(1));
         }
         let mut bestAsk: Value = Value::Null;
         let mut bestAskVolume: Value = Value::Null;
-        let mut asksLength: Value = Value::Int(0);
+        let mut asksLength: i64 = 0;
         if (asks != Value::Null) {
-            asksLength = get_array_length(&asks);
+            asksLength = get_array_length(&asks).as_i64().unwrap_or_default();
         }
-        if (asks != Value::Null) && (asksLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
+        if (asks != Value::Null) && (asksLength > 0) {
             bestAsk = get_value(&get_value(&asks, &Value::Int(0)), &Value::Int(0));
             bestAskVolume = get_value(&get_value(&asks, &Value::Int(0)), &Value::Int(1));
         }

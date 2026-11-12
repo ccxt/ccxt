@@ -600,14 +600,14 @@ impl Poloniex {
         }
         self.authenticate(&[]).await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut uppercaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         if (side == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() side is required".into()))));
         }
-        let mut uppercaseSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        let mut isPostOnly: Value = self.is_post_only(Value::Bool(uppercaseType.as_str() == Some("MARKET")), Value::Bool(uppercaseType.as_str() == Some("LIMIT_MAKER")), &[params.clone()]);
+        let mut uppercaseSide: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
+        let mut isPostOnly: Value = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(uppercaseType == "LIMIT_MAKER"), &[params.clone()]);
         if isPostOnly.as_bool() == Some(true) {
-            uppercaseType = Value::Str("LIMIT_MAKER".into());
+            uppercaseType = "LIMIT_MAKER".to_string();
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -616,7 +616,7 @@ impl Poloniex {
                 m.insert("type".to_string(), (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             m
         });
-        let mut isMarketBuy: bool = (uppercaseType.as_str() == Some("MARKET")) && (uppercaseSide.as_str() == Some("BUY"));
+        let mut isMarketBuy: bool = (uppercaseType == "MARKET") && (uppercaseSide == "BUY");
         let mut paramsOmitted: Value = params.clone();
         if isMarketBuy {
             let mut quoteAmount: Value = Value::Null;
@@ -827,7 +827,7 @@ impl Poloniex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -926,12 +926,12 @@ impl Poloniex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "ticker".to_string();
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut newTickers: Value = self.subscribe(Value::from(name.clone()), Value::from(name), Value::Bool(false), &[symbolsNormalized.clone(), params]).await;
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut newTickers: Value = self.subscribe(Value::from(name.clone()), Value::from(name), Value::Bool(false), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr), params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newTickers;
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1004,24 +1004,24 @@ impl Poloniex {
             m
         });
         let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         if (symbolsNormalized.is_some()) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_621: bool = true;
                 while { if !__for_first_621 { i += 1; } __for_first_621 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into())); }
+                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
             }
             }
         }
-        let mut trades: Value = self.watch_multiple(url.as_str(), messageHashes.clone(), &[request, messageHashes.clone()]).await;
+        let mut trades: Value = self.watch_multiple(url.as_str(), &messageHashes, &[request, Value::Arr(messageHashes.clone())]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1161,7 +1161,7 @@ impl Poloniex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1203,7 +1203,7 @@ impl Poloniex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1852,8 +1852,8 @@ impl Poloniex {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
-            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let mut tickers: Value = self.filter_by_array(newTickers.clone(), Value::Str("symbol".into()), &[symbols]);
+            let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut tickers: Value = self.filter_by_array(newTickers.clone(), Value::Str("symbol".into()), &symbols, &[]);
             if !(self.is_empty(tickers.clone()).as_bool() == Some(true)) {
                 client.resolve(tickers, messageHash.as_deref());
             }
@@ -2128,8 +2128,8 @@ impl Poloniex {
             self.handle_order_request(client.clone(), message.clone());
         }  else if (method != Value::Null) {
             let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
-            let mut dataLength: f64 = ((data.len() as i64) as f64);
-            if dataLength > ((0i64) as f64) {
+            let mut dataLength: i64 = data.len() as i64;
+            if dataLength > 0 {
                 self.dispatch_ws_handler(&method, &[client, message]);
             }
         }

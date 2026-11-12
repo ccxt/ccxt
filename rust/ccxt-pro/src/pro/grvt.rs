@@ -515,7 +515,7 @@ impl Grvt {
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -705,7 +705,7 @@ impl Grvt {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -855,7 +855,7 @@ impl Grvt {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(stored, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
         Value::Null
         }).await?))
@@ -982,20 +982,20 @@ impl Grvt {
         }
         let channelparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("channel".into()), &[Value::Str("v1.book.d".into())]).as_array().cloned().unwrap_or_default();
         let mut channel: Option<String> = channelparamsChannelVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsChannel: Value = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsChannel: crate::value::Dict = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isSnapshot: bool = channel.as_deref() == Some("v1.book.s");
-        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbols.len() as i64;
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".into()))));
         }
-        let limitOptionparamsLimitOptionVariable: Vec<Value> = self.handle_option_integer_and_params(paramsChannel.clone(), Value::Str("watchOrderBook".into()), Value::Str("limit".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
+        let limitOptionparamsLimitOptionVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsChannel, Value::Str("watchOrderBook".into()), Value::Str("limit".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
         let mut limitOption: Value = limitOptionparamsLimitOptionVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsLimitOption: Value = limitOptionparamsLimitOptionVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut limitResolved: Value = limitOption;
         let mut paramsLimit: Value = paramsLimitOption;
         if (limit != Value::Null) {
             limitResolved = limit.clone();
-            paramsLimit = paramsChannel;
+            paramsLimit = Value::Dict(paramsChannel);
         }
         let intervalparamsIntervalVariable: Vec<Value> = self.handle_option_integer_and_params(paramsLimit, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[Value::Int(500)]).as_array().cloned().unwrap_or_default();
         let mut interval: Value = intervalparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1197,7 +1197,7 @@ impl Grvt {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1319,7 +1319,7 @@ impl Grvt {
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1425,7 +1425,7 @@ impl Grvt {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

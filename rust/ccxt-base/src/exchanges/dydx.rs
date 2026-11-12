@@ -1412,7 +1412,7 @@ impl Dydx {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3586,7 +3586,7 @@ impl Dydx {
         let section = section.as_array().unwrap_or(&__section_empty);
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Value = Value::Null;
-        let mut pathWithParams: Value = self.implode_params(path.clone(), params.clone());
+        let mut pathWithParams: String = self.implode_params(path.clone(), params.clone());
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), section.get(0).cloned().unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));

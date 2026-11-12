@@ -440,7 +440,7 @@ impl Opinion {
     m
 }));
         let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into())]), &[]).into_dict();
-        let mut userLimit: Value = self.safe_integer_k(params, "limit", &[]);
+        let mut userLimit: Option<i64> = self.safe_integer_k(params, "limit", &[]).as_i64();
         let mut pageLimit: Value = self.safe_integer_k(self.options.clone(), "marketsPageLimit", &[Value::Int(20)]);
         let mut maxPages: Value = self.safe_integer_k(self.options.clone(), "maxMarketsPages", &[Value::Int(50)]);
         let mut flatMarkets: Vec<Value> = Vec::new();
@@ -475,7 +475,7 @@ impl Opinion {
             // categorical parents expand into several flatMarkets entries each, so the raw,
             // unflattened row count in 'total' must be compared against fetchedRawCount, not
             // flatMarkets.length - otherwise expansion makes the comparison meaningless
-            let mut total: Value = self.safe_integer_k(&result, "total", &[]);
+            let mut total: Option<i64> = self.safe_integer_k(&result, "total", &[]).as_i64();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1386: bool = true;
@@ -504,17 +504,17 @@ impl Opinion {
                 }
             }
             }
-            let mut collectedLength: f64 = ((flatMarkets.len() as i64) as f64);
-            let mut fetchedRawCount: f64 = ((fetchedRawRows.len() as i64) as f64);
-            if (rawMarketsLength < pageLimit.as_f64().unwrap_or(f64::NAN)) || (page.as_f64().unwrap_or(f64::NAN) >= maxPages.as_f64().unwrap_or(f64::NAN)) || ((total != Value::Null) && (fetchedRawCount >= total.as_f64().unwrap_or(f64::NAN))) || ((userLimit != Value::Null) && (collectedLength >= userLimit.as_f64().unwrap_or(f64::NAN))) {
+            let mut collectedLength: i64 = flatMarkets.len() as i64;
+            let mut fetchedRawCount: i64 = fetchedRawRows.len() as i64;
+            if (rawMarketsLength < pageLimit.as_f64().unwrap_or(f64::NAN)) || (page.as_f64().unwrap_or(f64::NAN) >= maxPages.as_f64().unwrap_or(f64::NAN)) || ((total.is_some()) && ((total.is_some() && Some(fetchedRawCount) >= total))) || ((userLimit.is_some()) && ((userLimit.is_some() && Some(collectedLength) >= userLimit))) {
                 break;
             }
         }
         }
         self.set_events(Value::from(eventsList));
-        let mut flatMarketsLength: f64 = ((flatMarkets.len() as i64) as f64);
-        if (userLimit != Value::Null) && (flatMarketsLength > userLimit.as_f64().unwrap_or(f64::NAN)) {
-            return self.array_slice(Value::from(flatMarkets), Value::Int(0), &[userLimit]);
+        let mut flatMarketsLength: i64 = flatMarkets.len() as i64;
+        if (userLimit.is_some()) && ((userLimit.is_some() && Some(flatMarketsLength) > userLimit)) {
+            return self.array_slice(Value::from(flatMarkets), Value::Int(0), &[Value::from(userLimit)]);
         }
         return Value::from(flatMarkets);
         Value::Null
@@ -1390,7 +1390,7 @@ impl Opinion {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(candles), Value::Int(0), &[]);
-        return self.filter_by_since_limit(sorted, &[since, limit, Value::Int(0)]);
+        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[Value::Int(0)]);
         Value::Null
         }).await?))
     }
@@ -2360,7 +2360,7 @@ impl Opinion {
             m
         })]).into_dict();
         let mut positions: Value = self.safe_list_k(&result, "list", &[Value::from(vec![])]);
-        if (((outcomesLength as f64) == 0.0)) {
+        if (outcomesLength == 0) {
             return self.parse_prediction_positions(positions.clone(), &[]);
         }
         let mut parsed: Vec<Value> = self.parse_prediction_positions(positions, &[]).as_array().cloned().unwrap_or_default();
@@ -2956,7 +2956,7 @@ if _try_result.is_err() {
         let mut sym: Value = self.safe_outcome_symbol(outcome, &[outcomeObj]);
         let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), sym);
         let mut trades: Value = self.subscribe_opinion_channel(Value::from(messageHash), Value::Str("market.last.trade".into()), Value::from(marketId)).await;
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

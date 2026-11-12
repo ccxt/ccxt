@@ -3666,8 +3666,8 @@ impl Bybit {
         let mut result: crate::value::Dict = response.get("result").cloned().unwrap_or_default().into_dict();
         let mut data: Value = self.safe_list_n(&result, Value::from(vec![Value::Str("list".into()), Value::Str("rows".into()), Value::Str("data".into()), Value::Str("dataList".into())]), &[Value::from(vec![])]);
         let mut paginationCursor: Option<String> = self.safe_string2(&result, Value::Str("nextPageCursor".into()), Value::Str("cursor".into()), &[]).as_str().map(str::to_owned);
-        let mut dataLength: f64 = ((data.len() as i64) as f64);
-        if (paginationCursor.is_some()) && (dataLength > ((0i64) as f64)) {
+        let mut dataLength: i64 = data.len() as i64;
+        if (paginationCursor.is_some()) && (dataLength > 0) {
             let mut first: Value = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             add_element_to_object(&mut first, &Value::Str("nextPageCursor".into()), paginationCursor.map(Value::from).unwrap_or(Value::Null));
             add_element_to_object(&mut data, &Value::Int(0), first);
@@ -4526,8 +4526,8 @@ impl Bybit {
                     m
                 })]).into_dict();
                 let mut rawMarkets: crate::value::List = self.safe_list_k(&dataNew, "list", &[Value::from(vec![])]).into_list();
-                let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
-                if (rawMarketsLength == 0.0) {
+                let mut rawMarketsLength: i64 = rawMarkets.len() as i64;
+                if (rawMarketsLength == 0) {
                     break;
                 }
                 markets = self.array_concat(Value::Arr(rawMarkets), markets.clone());
@@ -4769,8 +4769,8 @@ impl Bybit {
                         m
                     })]).into_dict();
                     let mut rawMarkets: crate::value::List = self.safe_list_k(&dataNew, "list", &[Value::from(vec![])]).into_list();
-                    let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
-                    if (rawMarketsLength == 0.0) {
+                    let mut rawMarketsLength: i64 = rawMarkets.len() as i64;
+                    if (rawMarketsLength == 0) {
                         break;
                     }
                     markets = self.array_concat(Value::Arr(rawMarkets), markets.clone());
@@ -5593,8 +5593,8 @@ impl Bybit {
         if (symbolsNormalized.is_some()) {
             let mut symbolMarket: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
             market = symbolMarket.clone();
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (symbolsLength == 1.0) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (symbolsLength == 1) {
                 request.insert("symbol".into(), symbolMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
         }
@@ -5785,7 +5785,7 @@ impl Bybit {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbolValue, since, Value::from(limitResolved)]);
+        return self.filter_by_symbol_since_limit(sorted, symbolValue.as_str(), since.as_i64(), Some(limitResolved), &[]);
         Value::Null
         }).await?))
     }
@@ -8087,13 +8087,13 @@ impl Bybit {
         });
         let __ws_arg_29 = self.extend(Value::Map(request), &[params.clone()]);
         let mut result: Value = self.fetch_orders_classic(&[symbol, Value::Null, Value::Null, __ws_arg_29]).await;
-        let mut length: f64 = ((result.len() as i64) as f64);
-        if (length == 0.0) {
+        let mut length: i64 = result.len() as i64;
+        if (length == 0) {
             let mut isTrigger: bool = self.safe_bool2(params, Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut extra: String = (if isTrigger { "".to_string() } else { " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true".to_string() });
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Order ".into()), Value::Str(format!("{}", id).into())).into()), Value::Str(" was not found.".into())).into()), extra)));
         }
-        if length > ((1i64) as f64) {
+        if length > 1 {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" returned more than one order".into()))));
         }
         return self.safe_dict(result, Value::Int(0), &[]);
@@ -8215,8 +8215,8 @@ impl Bybit {
         let mut innerList: crate::value::List = self.safe_list_k(&result, "list", &[Value::from(vec![])]).into_list();
         // the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
         // see https://github.com/ccxt/ccxt/pull/29602
-        let mut innerListLength: f64 = ((innerList.len() as i64) as f64);
-        if (innerListLength == 0.0) {
+        let mut innerListLength: i64 = innerList.len() as i64;
+        if (innerListLength == 0) {
             let mut extra: String = " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true".to_string();
             if (isTrigger == Some(true)) {
                 extra = "".to_string();
@@ -8396,13 +8396,13 @@ impl Bybit {
         });
         let __ws_arg_32 = self.extend(Value::Map(request), &[params.clone()]);
         let mut result: Value = crate::types::IntoRaw::into_raw(self.fetch_closed_orders(symbol.as_str(), None, None, __ws_arg_32).await);
-        let mut length: f64 = ((result.len() as i64) as f64);
-        if (length == 0.0) {
+        let mut length: i64 = result.len() as i64;
+        if (length == 0) {
             let mut isTrigger: bool = self.safe_bool2(params, Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut extra: String = (if isTrigger { "".to_string() } else { " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true".to_string() });
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Order ".into()), Value::Str(format!("{}", id).into())).into()), Value::Str(" was not found.".into())).into()), extra)));
         }
-        if length > ((1i64) as f64) {
+        if length > 1 {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" returned more than one order".into()))));
         }
         let mut order: Value = self.safe_dict(result, Value::Int(0), &[]);
@@ -8450,13 +8450,13 @@ impl Bybit {
         });
         let __ws_arg_33 = self.extend(Value::Map(request), &[params.clone()]);
         let mut result: Value = crate::types::IntoRaw::into_raw(self.fetch_open_orders(symbol.as_str(), None, None, __ws_arg_33).await);
-        let mut length: f64 = ((result.len() as i64) as f64);
-        if (length == 0.0) {
+        let mut length: i64 = result.len() as i64;
+        if (length == 0) {
             let mut isTrigger: bool = self.safe_bool2(params, Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut extra: String = (if isTrigger { "".to_string() } else { " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true".to_string() });
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Order ".into()), Value::Str(format!("{}", id).into())).into()), Value::Str(" was not found.".into())).into()), extra)));
         }
-        if length > ((1i64) as f64) {
+        if length > 1 {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" returned more than one order".into()))));
         }
         let mut order: Value = self.safe_dict(result, Value::Int(0), &[]);
@@ -9953,10 +9953,10 @@ impl Bybit {
         let mut symbol: Value = Value::Null;
         let mut symbolsNormalized: Value = Value::Null;
         if (symbols != Value::Null) && (matches!(&symbols, Value::Arr(_))) {
-            let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-            if symbolsLength > ((1i64) as f64) {
+            let mut symbolsLength: i64 = symbols.len() as i64;
+            if symbolsLength > 1 {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() does not accept an array with more than one symbol".into()))));
-            }  else if (symbolsLength == 1.0) {
+            }  else if (symbolsLength == 1) {
                 symbol = symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             }
             symbolsNormalized = self.market_symbols(&[symbols.clone()]);
@@ -11997,7 +11997,7 @@ impl Bybit {
         let mut data: Value = self.safe_list_k(&result, "list", &[Value::from(vec![])]);
         let mut settlements: Value = self.parse_settlements(data, market.clone());
         let mut sorted: Value = self.sort_by(settlements, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[self.safe_string_k(market, "symbol", &[]), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (self.safe_string_k(market, "symbol", &[])).as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -12079,7 +12079,7 @@ impl Bybit {
         let mut data: Value = self.safe_list_k(&result, "list", &[Value::from(vec![])]);
         let mut settlements: Value = self.parse_settlements(data, market.clone());
         let mut sorted: Value = self.sort_by(settlements, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[self.safe_string_k(market, "symbol", &[]), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (self.safe_string_k(market, "symbol", &[])).as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -12364,8 +12364,8 @@ impl Bybit {
             m
         });
         if (symbolsNormalized.is_some()) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (symbolsLength == 1.0) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (symbolsLength == 1) {
                 let mut symbolMarket: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 request.insert("symbol".into(), Value::from((symbolMarket).id.clone()));
             }
@@ -12675,8 +12675,8 @@ impl Bybit {
         let mut response: Value = self.public_get_v5_market_risk_limit(&[__ws_arg_75]).await;
         let mut result: Value = self.add_pagination_cursor_to_result(response);
         let mut first: crate::value::Dict = self.safe_dict(result.clone(), Value::Int(0), &[]).into_dict();
-        let mut total: Value = Value::Int(result.len() as i64);
-        let mut lastIndex: Value = (match (&(total), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut total: i64 = result.len() as i64;
+        let mut lastIndex: Value = Value::Int((total - 1));
         let mut last: Value = self.safe_dict(result.clone(), lastIndex.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -12759,9 +12759,9 @@ impl Bybit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut marketIds: Value = self.market_ids(&[symbols]);
+        let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbols]).into_opt_list();
         let mut idKey: Value = (if (marketIdKey == Value::Null) { Value::Str("symbol".into()) } else { marketIdKey });
-        let mut filteredResults: Value = self.filter_by_array(response, idKey.clone(), &[marketIds, Value::Bool(false)]);
+        let mut filteredResults: Value = self.filter_by_array(response, idKey.clone(), &marketIds, &[Value::Bool(false)]);
         let mut grouped: Value = self.group_by(filteredResults, idKey, &[]);
         let mut keys: Vec<Value> = Value::Array(grouped.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
@@ -13225,7 +13225,7 @@ impl Bybit {
         let mut symbolsLength: i64 = 0;
         if (symbols != Value::Null) {
             symbolsLength = symbols.len() as i64;
-            if (symbolsLength as f64) > ((0i64) as f64) {
+            if symbolsLength > 0 {
                 market = Some(match self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             }
         }
@@ -13239,7 +13239,7 @@ impl Bybit {
                 m.insert("category".to_string(), subType);
             m
         });
-        if (symbols != Value::Null) && (((symbolsLength as f64) == 1.0)) {
+        if (symbols != Value::Null) && (symbolsLength == 1) {
             request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
         }
         if (since != Value::Null) {
@@ -13293,7 +13293,7 @@ impl Bybit {
             rawPositionsList = rawPositions;
         }
         let mut positions: Value = self.parse_positions(rawPositionsList, &[symbols, paramsOmitted]);
-        return self.filter_by_since_limit(positions, &[since, limit]);
+        return self.filter_by_since_limit(positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

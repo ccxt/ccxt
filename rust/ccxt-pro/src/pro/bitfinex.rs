@@ -464,7 +464,7 @@ impl Bitfinex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -645,7 +645,7 @@ impl Bitfinex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -711,7 +711,7 @@ impl Bitfinex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbol, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -855,8 +855,8 @@ impl Bitfinex {
             stored = ArrayCache::new(tradesLimit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
-        let mut messageLength: f64 = ((message.len() as i64) as f64);
-        if (messageLength == 2.0) {
+        let mut messageLength: i64 = message.len() as i64;
+        if (messageLength == 2) {
             // initial snapshot
             let mut trades: crate::value::List = self.safe_list(message.clone(), Value::Int(1), &[Value::from(vec![])]).into_list();
             // needs to be reversed to make chronological order
@@ -942,8 +942,8 @@ impl Bitfinex {
         //    ]
         //
         let mut trade: crate::value::List = tradeResult.get("result").cloned().unwrap_or_default().into_list();
-        let mut numFields: f64 = ((trade.len() as i64) as f64);
-        let mut isPublic: bool = numFields <= ((8i64) as f64);
+        let mut numFields: i64 = trade.len() as i64;
+        let mut isPublic: bool = numFields <= 8;
         let mut marketId: Value = Value::Null;
         if !isPublic {
             marketId = self.safe_string(&trade, Value::Int(1), &[]);
@@ -1648,7 +1648,7 @@ impl Bitfinex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1706,8 +1706,8 @@ impl Bitfinex {
             m
         });
         if (messageType.as_deref() == Some("os")) {
-            let mut snapshotLength: f64 = ((data.len() as i64) as f64);
-            if (snapshotLength == 0.0) {
+            let mut snapshotLength: i64 = data.len() as i64;
+            if (snapshotLength == 0) {
                 return;
             }
             {

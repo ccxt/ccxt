@@ -577,9 +577,9 @@ impl Myriad {
 }));
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);
         let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]);
-        let mut queriesLength: f64 = ((queries.len() as i64) as f64);
+        let mut queriesLength: i64 = queries.len() as i64;
         let mut rawMarkets: Value = Value::from(vec![]);
-        if queriesLength > ((0i64) as f64) {
+        if queriesLength > 0 {
             rawMarkets = self.fetch_raw_markets_by_search(queries, &[rest.clone()]).await;
         }  else {
             rawMarkets = self.fetch_raw_markets_list(&[rest]).await;
@@ -690,7 +690,7 @@ impl Myriad {
         let mut limit: Value = self.safe_integer_k(self.options.clone(), "defaultFetchMarketsLimit", &[Value::Int(50)]);
         // scope the listing: without a search query loadMarkets would otherwise page through
         // every open myriad market. Cap the total number of markets collected.
-        let mut maxMarkets: Value = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchMarketsLimit".into()), &[Value::Int(1000)])]);
+        let mut maxMarkets: Option<i64> = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchMarketsLimit".into()), &[Value::Int(1000)])]).as_i64();
         let mut state: Value = self.safe_string2(params.clone(), Value::Str("state".into()), Value::Str("status".into()), &[self.safe_string_k(self.options.clone(), "defaultMarketStatus", &[Value::Str("open".into())])]);
         // include both AMM and order-book markets so order-book trading methods can resolve their markets
         let mut tradingModel: Value = self.safe_string2(params.clone(), Value::Str("tradingModel".into()), Value::Str("trading_model".into()), &[self.safe_string_k(self.options.clone(), "defaultTradingModel", &[Value::Str("all".into())])]);
@@ -720,14 +720,14 @@ impl Myriad {
                                 let mut i: i64 = 0;
                 let mut __for_first_1343: bool = true;
                 while { if !__for_first_1343 { i += 1; } __for_first_1343 = false; (i as f64) < rawMarketsLength } {
-                if (collected as f64) < maxMarkets.as_f64().unwrap_or(f64::NAN) {
+                if Some(collected) < maxMarkets {
                     allRawMarkets.push(rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                     collected = allRawMarkets.len() as i64;
                 }
             }
             }
             page = (page + 1);
-            if rawMarketsLength < limit.as_f64().unwrap_or(f64::NAN) || (collected as f64) >= maxMarkets.as_f64().unwrap_or(f64::NAN) {
+            if rawMarketsLength < limit.as_f64().unwrap_or(f64::NAN) || (maxMarkets.is_some() && Some(collected) >= maxMarkets) {
                 break;
             }
         }
@@ -787,12 +787,12 @@ impl Myriad {
 }));
         // the unified event id is a composite networkId:marketId
         let mut parts: Value = Value::Array(if let Some(__s) = id.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
-        let mut partsLength: f64 = ((parts.len() as i64) as f64);
+        let mut partsLength: i64 = parts.len() as i64;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if partsLength > ((1i64) as f64) {
+        if partsLength > 1 {
             request.insert("network_id".into(), self.safe_string(parts.clone(), Value::Int(0), &[]));
             request.insert("id".into(), self.safe_string(parts, Value::Int(1), &[]));
         }  else {
@@ -938,7 +938,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut limit: Value = self.safe_integer_k(self.options.clone(), "defaultFetchEventsLimit", &[Value::Int(50)]);
-        let mut maxQuestions: Value = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchEventsLimit".into()), &[Value::Int(1000)])]);
+        let mut maxQuestions: Option<i64> = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchEventsLimit".into()), &[Value::Int(1000)])]).as_i64();
         let mut state: Value = self.safe_string2(params.clone(), Value::Str("state".into()), Value::Str("status".into()), &[self.safe_string_k(self.options.clone(), "defaultMarketStatus", &[Value::Str("open".into())])]);
         let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("state".into()), Value::Str("status".into()), Value::Str("limit".into()), Value::Str("tradingModel".into()), Value::Str("trading_model".into())]), &[]).into_dict();
         let mut allRawQuestions: Vec<Value> = Vec::new();
@@ -978,14 +978,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (questionId.is_some()) {
                     seen.insert(questionId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                 }
-                if (collected as f64) < maxQuestions.as_f64().unwrap_or(f64::NAN) {
+                if Some(collected) < maxQuestions {
                     allRawQuestions.push(rawQuestion);
                     collected = allRawQuestions.len() as i64;
                 }
             }
             }
             page = (page + 1);
-            if (rawQuestionsLength < limit.as_f64().unwrap_or(f64::NAN)) || ((collected as f64) >= maxQuestions.as_f64().unwrap_or(f64::NAN)) {
+            if (rawQuestionsLength < limit.as_f64().unwrap_or(f64::NAN)) || ((maxQuestions.is_some() && Some(collected) >= maxQuestions)) {
                 break;
             }
         }
@@ -2326,8 +2326,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         let mut rawOrderKeys: Vec<Value> = Value::Array(rawOrder.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut rawOrderKeysLength: f64 = ((rawOrderKeys.len() as i64) as f64);
-        if (rawOrderKeysLength == 0.0) {
+        let mut rawOrderKeysLength: i64 = rawOrderKeys.len() as i64;
+        if (rawOrderKeysLength == 0) {
             rawOrder = self.safe_dict_k(&fetchedInfo, "order", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2500,8 +2500,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
             let mut rawOrderKeys: Vec<Value> = Value::Array(rawOrder.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-            let mut rawOrderKeysLength: f64 = ((rawOrderKeys.len() as i64) as f64);
-            if (rawOrderKeysLength == 0.0) {
+            let mut rawOrderKeysLength: i64 = rawOrderKeys.len() as i64;
+            if (rawOrderKeysLength == 0) {
                 rawOrder = self.safe_dict_k(&fetchedInfo, "order", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -3212,14 +3212,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (marketTradingModel.as_deref() == Some("amm")) {
             marketExecutionModel = "amm".to_string();
         }
-        let mut outcomesLength: f64 = ((outcomes.len() as i64) as f64);
+        let mut outcomesLength: i64 = outcomes.len() as i64;
         // effectively-final copy for the market object literal below (reassigned in the loop)
         let mut marketResolvedOutcome: Value = resolvedOutcome;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId.clone().map(Value::from).unwrap_or(Value::Null)).into()));
         m.insert("market".to_string(), marketSymbol);
-        m.insert("marketType".to_string(), (if (outcomesLength > ((2i64) as f64)) { Value::Str("categorical".into()) } else { Value::Str("binary".into()) }));
+        m.insert("marketType".to_string(), (if (outcomesLength > 2) { Value::Str("categorical".into()) } else { Value::Str("binary".into()) }));
         m.insert("executionModel".to_string(), Value::from(marketExecutionModel));
         m.insert("base".to_string(), slug.clone());
         m.insert("quote".to_string(), Value::from(quoteCurrency.clone()));
@@ -3889,8 +3889,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut pointsList: Value = self.safe_list_k(chart.clone(), "prices", &[self.safe_list(chart.clone(), Value::Str("data".into()), &[chart])]);
         let mut points: Value = (if (pointsList != Value::Null) { pointsList } else { Value::from(vec![]) });
-        let mut pointsLength: f64 = ((points.len() as i64) as f64);
-        if (pointsLength == 0.0) {
+        let mut pointsLength: i64 = points.len() as i64;
+        if (pointsLength == 0) {
             let mut priceCharts: crate::value::Dict = self.safe_dict_k(&response, "price_charts", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -4221,14 +4221,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (queries == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".into()))));
         }
-        let mut queriesLength: f64 = ((queries.len() as i64) as f64);
+        let mut queriesLength: i64 = queries.len() as i64;
         let mut eventId: Option<String> = self.safe_string_k(params.clone(), "eventId", &[]).as_str().map(str::to_owned);
         // always fetch fresh from the API (never serve the possibly-cold cache): a query searches,
         // an eventId does a direct lookup, and tags map to server-side keyword searches (the
         // markets listing ignores tag filter params, but tag slugs match through keyword=)
         let mut rawMarkets: Value = Value::from(vec![]);
         let mut rawQuestions: Value = Value::from(vec![]);
-        if queriesLength > ((0i64) as f64) {
+        if queriesLength > 0 {
             // some markets are only discoverable through the questions search endpoint
             let mut responses: Value = promise_all(&Value::from(vec![self.fetch_raw_markets_by_search(queries.clone(), &[rest.clone()]).await, self.fetch_raw_questions_by_search(queries.clone(), &[rest.clone()]).await])).await;
             rawMarkets = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]);
@@ -4305,8 +4305,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
             // skip question events that contribute no new markets after de-duplicating by market handle
-            let mut filteredMarketsLength: f64 = ((filteredMarkets.len() as i64) as f64);
-            if (evMarketsLength > ((0i64) as f64)) && (filteredMarketsLength == 0.0) {
+            let mut filteredMarketsLength: i64 = filteredMarkets.len() as i64;
+            if (evMarketsLength > ((0i64) as f64)) && (filteredMarketsLength == 0) {
                 continue;
             }
             add_element_to_object(&mut ev, &Value::Str("markets".into()), filteredMarkets);
@@ -4534,8 +4534,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &msg { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut keys: Vec<Value> = object_keys(&msg).as_array().cloned().unwrap_or_default();
-        let mut keysLength: f64 = ((keys.len() as i64) as f64);
-        if (keysLength == 0.0) {
+        let mut keysLength: i64 = keys.len() as i64;
+        if (keysLength == 0) {
             self.spawn(&[Value::Null.clone(), client.clone(), msg]);
             return;
         }
@@ -4738,7 +4738,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trades:".into()), networkId).into()), Value::Str(":".into())).into()), marketId);
         let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), sym);
         let mut trades: Value = self.subscribe_myriad_channel(Value::from(messageHash), Value::from(channel), &[params]).await;
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -5026,7 +5026,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         let mut tickers: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("tickers".into()))).await;
-        return self.filter_by_array(tickers, Value::Str("outcome".into()), &[Value::from(resolvedSymbols), Value::Bool(true)]);
+        return self.filter_by_array(tickers, Value::Str("outcome".into()), Value::from(resolvedSymbols), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -5071,7 +5071,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 candle.as_array().and_then(|__arr| __arr.get(3)).cloned().unwrap_or(Value::Null), candle.as_array().and_then(|__arr| __arr.get(4)).cloned().unwrap_or(Value::Null), candle.as_array().and_then(|__arr| __arr.get(5)).cloned().unwrap_or(Value::Null)]));
         }
         }
-        return self.filter_by_since_limit(Value::from(result), &[since, limit, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(Value::from(result), since.as_i64(), limit.as_i64(), &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

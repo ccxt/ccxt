@@ -1944,28 +1944,28 @@ impl Onetrading {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut uppercaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_code".to_string(), Value::from((market).id.clone()));
-                m.insert("type".to_string(), uppercaseType.clone());
+                m.insert("type".to_string(), Value::from(uppercaseType.clone()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount));
             m
         });
         let mut priceIsRequired: bool = false;
-        if (uppercaseType.as_str() == Some("LIMIT")) || (uppercaseType.as_str() == Some("STOP")) {
+        if (uppercaseType == "LIMIT") || (uppercaseType == "STOP") {
             priceIsRequired = true;
         }
         let mut triggerPrice: Option<f64> = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("trigger_price".into()), Value::Str("stopPrice".into())]), &[]).as_f64();
         if (triggerPrice.is_some()) {
-            if (uppercaseType.as_str() == Some("MARKET")) {
+            if (uppercaseType == "MARKET") {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() cannot place stop market orders, only stop limit".into()))));
             }
             request.insert("trigger_price".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
             request.insert("type".into(), Value::Str("STOP".into()));
-        }  else if (uppercaseType.as_str() == Some("STOP")) {
+        }  else if (uppercaseType == "STOP") {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice param for ".into())).into()), type_var).into()), Value::Str(" orders".into()))));
         }
         if priceIsRequired {

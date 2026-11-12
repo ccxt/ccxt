@@ -2084,8 +2084,8 @@ impl Bitso {
             m
         })]).await.into_dict();
         let mut payload: crate::value::List = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).into_list();
-        let mut numOrders: f64 = ((payload.len() as i64) as f64);
-        if (numOrders == 1.0) {
+        let mut numOrders: i64 = payload.len() as i64;
+        if (numOrders == 1) {
             return self.parse_order(payload.get(0).cloned().unwrap_or(Value::Null), &[]);
         }
         panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(": The order ".into())).into()), id).into()), Value::Str(" not found.".into()))));

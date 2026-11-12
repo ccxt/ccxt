@@ -1187,15 +1187,15 @@ impl Coinsph {
             return config.get("noSymbolAndNoSymbols").cloned().unwrap_or(Value::Null);
         }  else if (config.contains_key("byNumberOfSymbols")) && hasSymbolsParam {
             let mut symbols: crate::value::List = self.safe_list_k(params, "symbols", &[Value::from(vec![])]).into_list();
-            let mut symbolsAmount: f64 = ((symbols.len() as i64) as f64);
+            let mut symbolsAmount: i64 = symbols.len() as i64;
             let mut byNumberOfSymbols: crate::value::List = config.get("byNumberOfSymbols").cloned().unwrap_or_default().into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_575: bool = true;
                 while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (byNumberOfSymbols.len() as i64) } {
                 let mut entry: Value = byNumberOfSymbols.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut threshold: Value = self.safe_integer(entry.clone(), Value::Int(0), &[]);
-                if (threshold != Value::Null) && symbolsAmount >= threshold.as_f64().unwrap_or(f64::NAN) {
+                let mut threshold: Option<i64> = self.safe_integer(entry.clone(), Value::Int(0), &[]).as_i64();
+                if (threshold.is_some()) && (threshold.is_some() && Some(symbolsAmount) >= threshold) {
                     return self.safe_integer(entry.clone(), Value::Int(1), &[]);
                 }
             }
@@ -3175,7 +3175,7 @@ impl Coinsph {
             let mut m = indexmap::IndexMap::new();
             m
         }), &[__ws_arg_23]);
-        let mut endpoint: Value = self.implode_params(path, params);
+        let mut endpoint: String = self.implode_params(path, params);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), endpoint);
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);

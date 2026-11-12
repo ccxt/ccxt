@@ -446,8 +446,8 @@ impl Krakenfutures {
             if let Value::Arr(__a) = &mut marketIds { std::sync::Arc::make_mut(__a).push(self.market_id(symbol.clone())); }
         }
         }
-        let mut length: f64 = ((symbolsValue.len() as i64) as f64);
-        if (length == 1.0) {
+        let mut length: i64 = symbolsValue.len() as i64;
+        if (length == 1) {
             let mut market: crate::types::Market = (match self.market((marketIds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), Value::from((market).symbol.clone())).into())).into());
         }
@@ -545,8 +545,8 @@ impl Krakenfutures {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
-        let mut ticker: Value = self.watch_multi_helper(Value::Str("ticker".into()), Value::Str("ticker".into()), &[symbolsNormalized.clone(), Value::Null, params]).await;
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
+        let mut ticker: Value = self.watch_multi_helper(Value::Str("ticker".into()), Value::Str("ticker".into()), &[Value::Arr(symbolsNormalized.clone()), Value::Null, params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -558,7 +558,7 @@ impl Krakenfutures {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -595,7 +595,7 @@ impl Krakenfutures {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbols]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), symbols, &[]);
         Value::Null
         }).await?))
     }
@@ -660,7 +660,7 @@ impl Krakenfutures {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -729,7 +729,7 @@ impl Krakenfutures {
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -794,8 +794,8 @@ impl Krakenfutures {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
-            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
+            let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(positions, messageHash.as_deref());
             }
@@ -920,7 +920,7 @@ impl Krakenfutures {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -963,7 +963,7 @@ impl Krakenfutures {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -993,13 +993,13 @@ impl Krakenfutures {
         let mut name: String = "balances".to_string();
         let mut messageHash: String = name.clone();
         let accountparamsAccountVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchBalance".into()), Value::Str("account".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut account: Value = accountparamsAccountVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut account: Option<String> = accountparamsAccountVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAccount: Value = accountparamsAccountVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (account != Value::Null) {
-            if (account.as_str() != Some("futures")) && (account.as_str() != Some("flex_futures")) {
+        if (account.is_some()) {
+            if (account.as_deref() != Some("futures")) && (account.as_deref() != Some("flex_futures")) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchBalance account must be either 'futures' or 'flex_futures'".into()))));
             }
-            messageHash.push_str(&format!("{}{}", Value::Str(":".into()), account));
+            messageHash.push_str(&format!("{}{}", Value::Str(":".into()), account.as_deref().unwrap_or("null")));
         }
         return self.subscribe_private(Value::from(name), Value::from(messageHash), &[paramsAccount]).await;
         Value::Null
@@ -2346,14 +2346,14 @@ impl Krakenfutures {
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         // symbols are required
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(false)]).into_list();
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut rawSubs: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_447: bool = true;
             while { if !__for_first_447 { i += 1; } __for_first_447 = false; i < (symbolsNormalized.len() as i64) } {
             let mut messageHash: Value = self.get_message_hash(unifiedName.clone(), &[Value::Null, self.symbol(symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null))]).map(Value::from).unwrap_or(Value::Null);
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHash.clone()); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(messageHash.clone());
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if !(self.subscription_exists_for_hash(url.clone(), messageHash).as_bool() == Some(true)) {
                 rawSubs.push(Value::from((market).id.clone()));
@@ -2364,8 +2364,8 @@ impl Krakenfutures {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut length: f64 = ((rawSubs.len() as i64) as f64);
-        if length > ((0i64) as f64) {
+        let mut length: i64 = rawSubs.len() as i64;
+        if length > 0 {
             request = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("event".to_string(), Value::Str("subscribe".into()));
@@ -2375,7 +2375,7 @@ impl Krakenfutures {
             });
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_1, messageHashes.clone(), subscriptionArgs]).await;
+        return self.watch_multiple(url, &messageHashes, &[__ws_arg_1, Value::Arr(messageHashes.clone()), subscriptionArgs]).await;
 
     Value::Null
 }

@@ -583,7 +583,7 @@ impl Derive {
         }
         let mut symbolsResolved: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut topics: Vec<Value> = Vec::new();
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_298: bool = true;
@@ -592,7 +592,7 @@ impl Derive {
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker_slim.".into()), marketId).into()), Value::Str(".100".into())).into()));
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), marketSymbol).into())); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), marketSymbol).into()));
         }
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
@@ -615,7 +615,7 @@ impl Derive {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut ticker: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_0, messageHashes.clone(), Value::Map(subscription)]).await;
+        let mut ticker: Value = self.watch_multiple(url, &messageHashes, &[__ws_arg_0, Value::Arr(messageHashes.clone()), Value::Map(subscription)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -625,7 +625,7 @@ impl Derive {
             result.insert(tickerSymbol, ticker);
             return Value::Map(result);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsResolved)]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsResolved, &[]);
         Value::Null
         }).await?))
     }
@@ -966,7 +966,7 @@ impl Derive {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbol, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1128,7 +1128,7 @@ impl Derive {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1335,7 +1335,7 @@ impl Derive {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1529,7 +1529,7 @@ impl Derive {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsResolved: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
+        let mut symbolsResolved: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]).into_opt_list();
         let fetchSnapshotparamsSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut fetchSnapshot: bool = fetchSnapshotparamsSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsSnapshot: crate::value::Dict = fetchSnapshotparamsSnapshotVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -1601,7 +1601,7 @@ impl Derive {
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(self.safe_value(self.positions.clone(), subaccountIdKey, &[]), &[symbolsResolved, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.safe_value(self.positions.clone(), subaccountIdKey, &[]), &symbolsResolved, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1728,8 +1728,8 @@ impl Derive {
             { let __be_tmp = self.safe_balance(subBalance); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&subaccountIdKey), __be_tmp); } }
             client.resolve(self.safe_value(self.balance.clone(), subaccountIdKey, &[]), topic.as_str());
         }
-        let mut positionUpdatesLength: f64 = ((positionUpdates.len() as i64) as f64);
-        if positionUpdatesLength > ((0i64) as f64) {
+        let mut positionUpdatesLength: i64 = positionUpdates.len() as i64;
+        if positionUpdatesLength > 0 {
             client.resolve(Value::Array(positionUpdates), &(Value::Str(format!("{}{}", Value::Str("positions:".into()), topic).into())));
         }
 }
@@ -1862,8 +1862,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let mut messageHash: String = "authenticated".to_string();
         let mut ids: crate::value::List = __pro_message.get("result").cloned().unwrap_or_default().into_list();
-        let mut idsLength: f64 = ((ids.len() as i64) as f64);
-        if idsLength > ((0i64) as f64) {
+        let mut idsLength: i64 = ids.len() as i64;
+        if idsLength > 0 {
             // client.resolve (message, messageHash);
             let mut future: Value = self.safe_value_k(__ch.futures.clone(), "authenticated", &[]);
             future.resolve(Value::Bool(true), None);

@@ -483,8 +483,8 @@ impl Hyperliquid {
         let mut order: Value = orderglobalParamsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut globalParams: Value = orderglobalParamsVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut orders: Value = crate::types::IntoRaw::into_raw(self.create_orders_ws(crate::types::FromRaw::from_raw(Value::from(vec![order])), globalParams).await);
-        let mut ordersLength: f64 = ((orders.len() as i64) as f64);
-        if (ordersLength == 0.0) {
+        let mut ordersLength: i64 = orders.len() as i64;
+        if (ordersLength == 0) {
             return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1074,7 +1074,7 @@ impl Hyperliquid {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1175,7 +1175,7 @@ impl Hyperliquid {
         if self.newUpdates.as_bool() == Some(true) {
             return newLiquidations;
         }
-        return self.filter_by_symbols_since_limit(self.myLiquidations.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.myLiquidations.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1375,8 +1375,8 @@ impl Hyperliquid {
             m
         });
         let mut data: crate::value::List = self.safe_list_k(&entry, "fills", &[Value::from(vec![])]).into_list();
-        let mut dataLength: f64 = ((data.len() as i64) as f64);
-        if (dataLength == 0.0) {
+        let mut dataLength: i64 = data.len() as i64;
+        if (dataLength == 0) {
             return;
         }
         {
@@ -1523,7 +1523,7 @@ impl Hyperliquid {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1593,8 +1593,8 @@ impl Hyperliquid {
         //     }
         //
         let mut entry: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut entryLength: f64 = ((entry.len() as i64) as f64);
-        if (entryLength == 0.0) {
+        let mut entryLength: i64 = entry.len() as i64;
+        if (entryLength == 0) {
             return;
         }
         let mut first: crate::value::Dict = self.safe_dict(&entry, Value::Int(0), &[Value::Map({
@@ -1753,7 +1753,7 @@ impl Hyperliquid {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2224,7 +2224,7 @@ impl Hyperliquid {
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(cache, &[symbolsNormalized, since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(cache, symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2273,8 +2273,8 @@ impl Hyperliquid {
             if (symbolsString.is_none()) {
                 continue;
             }
-            let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
+            let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
             if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                 client.resolve(positions, messageHash.as_deref());
             }
@@ -2397,7 +2397,7 @@ impl Hyperliquid {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2478,8 +2478,8 @@ impl Hyperliquid {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
-        let mut dataLength: f64 = ((data.len() as i64) as f64);
-        if (dataLength == 0.0) {
+        let mut dataLength: i64 = data.len() as i64;
+        if (dataLength == 0) {
             return;
         }
         let mut stored: Value = self.orders.clone();

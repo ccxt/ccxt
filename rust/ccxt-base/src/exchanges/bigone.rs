@@ -983,11 +983,11 @@ impl Bigone {
             }
         }
         }
-        let mut chainLength: f64 = ((chains.len() as i64) as f64);
+        let mut chainLength: i64 = chains.len() as i64;
         let mut type_var: Option<String> = None;
         if matches!(self.safe_bool_k(rawCurrency.clone(), "is_fiat", &[Value::Bool(false)]), Value::Bool(true)) {
             type_var = Some("fiat".to_string());
-        }  else if (chainLength == 0.0) {
+        }  else if (chainLength == 0) {
             if self.is_leveraged_currency(id.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_bool() == Some(true) {
                 type_var = Some("leveraged".to_string());
             }  else {
@@ -2239,12 +2239,12 @@ impl Bigone {
         if isBuy {
             requestSide = "BID".to_string();
         }
-        let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        let mut isLimit: bool = uppercaseType.as_str() == Some("LIMIT");
+        let mut uppercaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
+        let mut isLimit: bool = uppercaseType == "LIMIT";
         let mut exchangeSpecificParam: bool = self.safe_bool_k(params.clone(), "post_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut postOnly: Option<bool> = None;
         let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(uppercaseType.as_str() == Some("MARKET")), Value::Bool(exchangeSpecificParam), &[params]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool(); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(exchangeSpecificParam), &[params]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool(); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut triggerPrice: Option<String> = self.safe_string_n(query.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2253,7 +2253,7 @@ impl Bigone {
                 m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
             m
         });
-        if isLimit || (uppercaseType.as_str() == Some("STOP_LIMIT")) {
+        if isLimit || (uppercaseType == "STOP_LIMIT") {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
             if isLimit {
                 let mut timeInForce: Option<String> = self.safe_string_k(query.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
@@ -2293,12 +2293,12 @@ impl Bigone {
             request.insert("stop_price".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
             request.insert("operator".into(), (if isBuy { Value::Str("GTE".into()) } else { Value::Str("LTE".into()) }));
             if isLimit {
-                uppercaseType = Value::Str("STOP_LIMIT".into());
-            }  else if (uppercaseType.as_str() == Some("MARKET")) {
-                uppercaseType = Value::Str("STOP_MARKET".into());
+                uppercaseType = "STOP_LIMIT".to_string();
+            }  else if (uppercaseType == "MARKET") {
+                uppercaseType = "STOP_MARKET".to_string();
             }
         }
-        request.insert("type".into(), uppercaseType);
+        request.insert("type".into(), Value::from(uppercaseType));
         let mut clientOrderId: Option<String> = self.safe_string_k(query.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
             request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -2856,8 +2856,8 @@ impl Bigone {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_list();
-        let mut dataLength: f64 = ((data.len() as i64) as f64);
-        if dataLength < ((1i64) as f64) {
+        let mut dataLength: i64 = data.len() as i64;
+        if dataLength < 1 {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() returned empty address response".into()))));
         }
         let mut chainsIndexedById: Value = self.index_by(Value::Arr(data), Value::Str("chain".into()));

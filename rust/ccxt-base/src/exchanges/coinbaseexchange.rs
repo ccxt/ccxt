@@ -1854,9 +1854,9 @@ impl Coinbaseexchange {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Int(100)]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Int(100)]).await;
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1873,11 +1873,11 @@ impl Coinbaseexchange {
         if (since != Value::Null) {
             request.insert("start_date".into(), self.iso8601(since.clone()));
         }
-        let mut until: Value = self.safe_value2(paramsPaginate.clone(), Value::Str("until".into()), Value::Str("end_date".into()), &[]);
+        let mut until: Value = self.safe_value2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("end_date".into()), &[]);
         if (until != Value::Null) {
             request.insert("end_date".into(), self.iso8601(until.clone()));
         }
-        let mut paramsUntil: Value = (if (until != Value::Null) { self.omit(paramsPaginate.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { paramsPaginate });
+        let mut paramsUntil: Value = (if (until != Value::Null) { self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]) } else { Value::from(&paramsPaginate) });
         let __ws_arg_9 = self.extend(Value::Map(request), &[paramsUntil]);
         let mut response: Value = self.private_get_fills(&[__ws_arg_9]).await;
         return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
@@ -2349,9 +2349,9 @@ impl Coinbaseexchange {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchOpenOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Int(100)]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchOpenOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Int(100)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2368,11 +2368,11 @@ impl Coinbaseexchange {
         if (since != Value::Null) {
             request.insert("start_date".into(), self.iso8601(since.clone()));
         }
-        let mut until: Value = self.safe_value2(paramsPaginate.clone(), Value::Str("until".into()), Value::Str("end_date".into()), &[]);
+        let mut until: Value = self.safe_value2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("end_date".into()), &[]);
         if (until != Value::Null) {
             request.insert("end_date".into(), self.iso8601(until.clone()));
         }
-        let mut paramsUntil: Value = (if (until != Value::Null) { self.omit(paramsPaginate.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { paramsPaginate });
+        let mut paramsUntil: Value = (if (until != Value::Null) { self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]) } else { Value::from(&paramsPaginate) });
         let __ws_arg_16 = self.extend(Value::Map(request), &[paramsUntil]);
         let mut response: Value = self.private_get_orders(&[__ws_arg_16]).await;
         return self.parse_orders(response, &[market, since, limit]);
@@ -2636,7 +2636,7 @@ impl Coinbaseexchange {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2649,18 +2649,18 @@ impl Coinbaseexchange {
             m
         });
         let mut response: Value = Value::Null;
-        if (matches!(&paramsWithdrawTag, Value::Dict(__d) if __d.contains_key("payment_method_id"))) {
-            let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[paramsWithdrawTag.clone()]);
+        if (paramsWithdrawTag.contains_key("payment_method_id")) {
+            let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[&paramsWithdrawTag]);
             response = self.private_post_withdrawals_payment_method(&[__ws_arg_22]).await;
-        }  else if (matches!(&paramsWithdrawTag, Value::Dict(__d) if __d.contains_key("coinbase_account_id"))) {
-            let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[paramsWithdrawTag.clone()]);
+        }  else if (paramsWithdrawTag.contains_key("coinbase_account_id")) {
+            let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[&paramsWithdrawTag]);
             response = self.private_post_withdrawals_coinbase_account(&[__ws_arg_23]).await;
         }  else {
             request.insert("crypto_address".into(), address);
             if (tagWithdrawTag.is_some()) {
                 request.insert("destination_tag".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
             }
-            let __ws_arg_24 = self.extend(Value::Map(request), &[paramsWithdrawTag]);
+            let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
             response = self.private_post_withdrawals_crypto(&[__ws_arg_24]).await;
         }
         if (response == Value::Null) {

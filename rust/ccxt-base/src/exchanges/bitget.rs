@@ -8200,8 +8200,8 @@ if _try_result.is_err() {
         let mut isStockOrUta: bool = isStock || (uta.as_bool() == Some(true));
         if isStockOrUta {
             if (symbols != Value::Null) {
-                let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-                if (symbolsLength == 1.0) {
+                let mut symbolsLength: i64 = symbols.len() as i64;
+                if (symbolsLength == 1) {
                     request.insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[]));
                 }
             }
@@ -11712,8 +11712,8 @@ if _try_result.is_err() {
             }
         }
         let mut dataList: crate::value::List = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_list();
-        let mut dataListLength: f64 = ((dataList.len() as i64) as f64);
-        if (dataListLength == 0.0) {
+        let mut dataListLength: i64 = dataList.len() as i64;
+        if (dataListLength == 0) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order id ".into())).into()), id).into()), Value::Str(" in ".into())).into()), json_stringify(&response))));
         }
         let mut first: Value = self.safe_dict(&dataList, Value::Int(0), &[Value::Map({
@@ -14217,7 +14217,7 @@ if _try_result.is_err() {
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
         let mut marketSymbol: Option<String> = self.safe_string_k((market).raw.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(sorted, &[marketSymbol.map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, marketSymbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -14623,7 +14623,7 @@ if _try_result.is_err() {
         })]).into_dict();
         let mut bills: Value = self.safe_list2(&data, Value::Str("bills".into()), Value::Str("list".into()), &[Value::from(vec![])]);
         if (uta.as_bool() == Some(true)) {
-            bills = self.filter_by_array(bills.clone(), Value::Str("type".into()), &[Value::from(vec![Value::Str("CONTRACT_MAIN_SETTLE_FEE_USER_IN".into()), Value::Str("CONTRACT_MAIN_SETTLE_FEE_USER_OUT".into())]), Value::Bool(false)]);
+            bills = self.filter_by_array(bills.clone(), Value::Str("type".into()), Value::from(vec![Value::Str("CONTRACT_MAIN_SETTLE_FEE_USER_IN".into()), Value::Str("CONTRACT_MAIN_SETTLE_FEE_USER_OUT".into())]), &[Value::Bool(false)]);
         }
         return self.parse_funding_histories(bills, &[(market).raw.clone(), since, limit]);
         Value::Null
@@ -14698,7 +14698,7 @@ if _try_result.is_err() {
         if (market != Value::Null) {
             symbol = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
         }
-        return self.filter_by_symbol_since_limit(sorted, &[symbol.clone().map(Value::from).unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -15042,11 +15042,11 @@ if _try_result.is_err() {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a symbol argument".into()))));
         }
-        let mut marginModeValue: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        if (marginModeValue.as_str() == Some("cross")) {
-            marginModeValue = Value::Str("crossed".into());
+        let mut marginModeValue: String = marginMode.as_str().unwrap_or_default().to_string().to_lowercase();
+        if (marginModeValue == "cross") {
+            marginModeValue = "crossed".to_string();
         }
-        if (marginModeValue.as_str() != Some("isolated")) && (marginModeValue.as_str() != Some("crossed")) {
+        if (marginModeValue != "isolated") && (marginModeValue != "crossed") {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode must be either isolated or crossed (cross)".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -15060,7 +15060,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("marginCoin".to_string(), (market).raw.as_map().and_then(|__m| __m.get("settleId")).cloned().unwrap_or(Value::Null));
-                m.insert("marginMode".to_string(), marginModeValue);
+                m.insert("marginMode".to_string(), Value::from(marginModeValue));
                 m.insert("productType".to_string(), productType);
             m
         });
@@ -16826,8 +16826,8 @@ if _try_result.is_err() {
         let mut market: Value = Value::Null;
         let mut response: Option<crate::value::Dict> = None;
         if (symbols != Value::Null) {
-            let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-            if symbolsLength > ((0i64) as f64) {
+            let mut symbolsLength: i64 = symbols.len() as i64;
+            if symbolsLength > 0 {
                 market = crate::types::IntoRaw::into_raw(self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
                 request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
@@ -16861,7 +16861,7 @@ if _try_result.is_err() {
         })]).into_dict();
         let mut responseList: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
         let mut positions: Value = self.parse_positions(&responseList, &[symbols, Value::Dict(paramsUTA)]);
-        return self.filter_by_since_limit(positions, &[since, limit]);
+        return self.filter_by_since_limit(positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

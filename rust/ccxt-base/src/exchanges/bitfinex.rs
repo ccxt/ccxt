@@ -2270,7 +2270,7 @@ impl Bitfinex {
         //            FRR_AMOUNT_AVAILABLE
         //     ]
         //
-        let mut length: f64 = ((ticker.len() as i64) as f64);
+        let mut length: i64 = ticker.len() as i64;
         // the list shapes (fetchTickers) carry the market id in slot 0, the singular
         // shapes (fetchTicker) do not. safeNumber is not a portable discriminator here:
         // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
@@ -2290,7 +2290,7 @@ impl Bitfinex {
         }  else {
             marketResolved = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         }
-        let mut isFundingCurrency: bool = length >= ((17i64) as f64);
+        let mut isFundingCurrency: bool = length >= 17;
         symbol = self.safe_symbol(Value::Null, &[marketResolved.clone()]);
         let mut last: Option<String> = None;
         let mut bid: Option<String> = None;
@@ -2459,8 +2459,8 @@ impl Bitfinex {
         //     ]
         //
         let mut tradeList: crate::value::List = trade.get("result").cloned().unwrap_or_default().into_list();
-        let mut tradeLength: f64 = ((tradeList.len() as i64) as f64);
-        let mut isPrivate: bool = tradeLength > ((5i64) as f64);
+        let mut tradeLength: i64 = tradeList.len() as i64;
+        let mut isPrivate: bool = tradeLength > 5;
         let mut id: Option<String> = self.safe_string(&tradeList, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut amountIndex: Value = (if isPrivate { Value::Int(4) } else { Value::Int(2) });
         let mut side: Option<String> = None;
@@ -3942,7 +3942,7 @@ impl Bitfinex {
         //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be: null
         //     ]
         //
-        let mut transactionLength: f64 = ((transaction.len() as i64) as f64);
+        let mut transactionLength: i64 = transaction.len() as i64;
         let mut timestamp: Option<i64> = None;
         let mut updated: Option<i64> = None;
         let mut code: Value = Value::Null;
@@ -3956,7 +3956,7 @@ impl Bitfinex {
         let mut addressTo: Option<String> = None;
         let mut network: Value = Value::Null;
         let mut comment: Option<String> = None;
-        if (transactionLength == 8.0) {
+        if (transactionLength == 8) {
             let mut data: crate::value::List = self.safe_list(transaction.clone(), Value::Int(4), &[Value::from(vec![])]).into_list();
             timestamp = self.safe_integer(transaction.clone(), Value::Int(0), &[]).as_i64();
             if (currency != Value::Null) {
@@ -3978,7 +3978,7 @@ impl Bitfinex {
             type_var = Some("withdrawal".to_string());
             let mut networkId: Option<String> = self.safe_string_opt(&data, Value::Int(2), &[]);
             network = self.network_id_to_code(&[(if let Some(__s) = networkId.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), code.clone()]); // withdraw returns in lowercase
-        }  else if (transactionLength == 22.0) {
+        }  else if (transactionLength == 22) {
             id = self.safe_string(transaction.clone(), Value::Int(0), &[]);
             let mut currencyId: Option<String> = self.safe_string(transaction.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             code = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
@@ -4901,7 +4901,7 @@ impl Bitfinex {
         }
         }
         let mut reversedArray: Vec<Value> = Vec::new();
-        let mut rawRates: Value = self.filter_by_symbol_since_limit(Value::from(rates), &[symbol, since, limit]);
+        let mut rawRates: Value = self.filter_by_symbol_since_limit(Value::from(rates), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         let mut ratesLength: Value = Value::Int(rawRates.len() as i64);
         {
                         let mut i: Value = Value::Int(0);

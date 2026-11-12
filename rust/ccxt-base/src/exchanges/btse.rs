@@ -1515,9 +1515,9 @@ impl Btse {
                 let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
                 let mut twoWeeksAgo: i64 = (now - 1209600000); // 14 days in ms
                 let mut oneWeekAgo: i64 = (now - 604800000); // 7 days in ms
-                if since.as_f64().unwrap_or(f64::NAN) < (twoWeeksAgo as f64) {
+                if (since.as_i64().is_some() && since.as_i64() < Some(twoWeeksAgo)) {
                     period = Some("1M".to_string());
-                }  else if since.as_f64().unwrap_or(f64::NAN) < (oneWeekAgo as f64) {
+                }  else if (since.as_i64().is_some() && since.as_i64() < Some(oneWeekAgo)) {
                     period = Some("2W".to_string());
                 }
             }
@@ -1765,8 +1765,8 @@ impl Btse {
             m
         });
         if (symbolsNormalized.is_some()) {
-            let mut length: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (length == 1.0) {
+            let mut length: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (length == 1) {
                 let mut requestedSymbol: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
                 let mut market: Value = crate::types::IntoRaw::into_raw(self.market(requestedSymbol.as_deref().unwrap_or_default()));
                 request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -4759,13 +4759,13 @@ impl Btse {
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut marginModeValue: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+        let mut marginModeValue: String = marginMode.as_str().unwrap_or_default().to_string().to_lowercase();
         let mut positionMode: String = "ONE_WAY".to_string();
-        if (marginModeValue.as_str() != Some("cross")) && (marginModeValue.as_str() != Some("isolated")) {
+        if (marginModeValue != "cross") && (marginModeValue != "isolated") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode argument should be either cross or isolated".into()))));
         }
         let mut hedged: bool = self.safe_bool_k(params.clone(), "hedged", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        if (marginModeValue.as_str() == Some("cross")) {
+        if (marginModeValue == "cross") {
             if !(matches!(&params, Value::Dict(__d) if __d.contains_key("hedged"))) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a hedged parameter for cross margin mode".into()))));
             }  else if hedged {
@@ -4827,18 +4827,18 @@ impl Btse {
             m
         });
         let orderTypeparamsOrderTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("closePosition".into()), Value::Str("type".into()), &[Value::Str("market".into())]).as_array().cloned().unwrap_or_default();
-        let mut orderType: Value = orderTypeparamsOrderTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOrderType: Value = orderTypeparamsOrderTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut typeUpper: Value = (if let Some(__s) = orderType.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        request.insert("orderType".into(), typeUpper.clone());
-        if (typeUpper.as_str() == Some("LIMIT")) {
-            let mut price: Option<String> = self.safe_string_k(paramsOrderType.clone(), "price", &[]).as_str().map(str::to_owned);
+        let mut orderType: Option<String> = orderTypeparamsOrderTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut paramsOrderType: crate::value::Dict = orderTypeparamsOrderTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut typeUpper: Option<String> = orderType.as_deref().map(str::to_uppercase);
+        request.insert("orderType".into(), typeUpper.clone().map(Value::from).unwrap_or(Value::Null));
+        if (typeUpper.as_deref() == Some("LIMIT")) {
+            let mut price: Option<String> = self.safe_string_k(&paramsOrderType, "price", &[]).as_str().map(str::to_owned);
             if (price.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" closePosition() requires a price parameter for limit orders".into()))));
             }
             request.insert("orderPrice".into(), self.price_to_precision(symbol, price.map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut paramsOmitted: Value = (if (typeUpper.as_str() == Some("LIMIT")) { self.omit(paramsOrderType.clone(), Value::Str("price".into()), &[]) } else { paramsOrderType });
+        let mut paramsOmitted: Value = (if (typeUpper.as_deref() == Some("LIMIT")) { self.omit(&paramsOrderType, Value::Str("price".into()), &[]) } else { Value::from(&paramsOrderType) });
         let __ws_arg_37 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_delete_futures_api_v3_trade_positions(&[__ws_arg_37]).await;
         let mut order: Value = self.safe_dict(response.clone(), Value::Int(0), &[response]);
@@ -4971,10 +4971,10 @@ impl Btse {
         // verified live - a bare call on a cross account silently changes the
         // isolated leverage only, so the unified marginMode param is translated here
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (marginMode != Value::Null) {
-            request.insert("marginMode".into(), (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
+        if (marginMode.is_some()) {
+            request.insert("marginMode".into(), marginMode.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_39 = self.extend(Value::Map(request), &[&paramsMarginMode]);
         let mut response: Value = self.private_post_futures_api_v3_trade_leverage(&[__ws_arg_39]).await;

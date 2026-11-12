@@ -794,8 +794,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut marketsArrayForCurrentCode: Value = exchange.filter_by(currentTypeMarkets.clone(), Value::Str("base".into()), currentCode.clone(), &[]);
                 let mut indexedMkts: Value = exchange.index_by(marketsArrayForCurrentCode.clone(), Value::Str("symbol".into()));
                 let mut symbolsArrayForCurrentCode: Value = object_keys(&indexedMkts);
-                let mut symbolsLength: Value = Value::Int(symbolsArrayForCurrentCode.len() as i64);
-                if symbolsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                let mut symbolsLength: i64 = symbolsArrayForCurrentCode.len() as i64;
+                if symbolsLength > 0 {
                     symbol = self.get_test_symbol(exchange.clone(), spot.clone(), symbolsArrayForCurrentCode.clone());
                     break;
                 }
@@ -817,8 +817,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         if (symbol == Value::Null) {
             let mut values: Value = object_values(&currentTypeMarkets);
-            let mut valuesLength: Value = Value::Int(values.len() as i64);
-            if valuesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            let mut valuesLength: i64 = values.len() as i64;
+            if valuesLength > 0 {
                 let mut first: Value = values.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
                 if (first != Value::Null) {
                     symbol = get_value(&first, &Value::Str("symbol".into()));
@@ -1783,8 +1783,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_1641 { i += 1; } __for_first_1641 = false; i < (parts.len() as i64) } {
             let mut part: Option<String> = parts.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut keyValue: Value = Value::Array(if let Some(__s) = part.as_deref() { __s.split("=").map(Value::from).collect() } else { Vec::new() });
-            let mut keysLength: Value = Value::Int(keyValue.len() as i64);
-            if (keysLength.as_f64() != Some(2.0)) {
+            let mut keysLength: i64 = keyValue.len() as i64;
+            if (keysLength != 2) {
                 continue;
             }
             let mut key: Option<String> = keyValue.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
@@ -1969,9 +1969,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             }
         }  else if (storedOutput != Value::Null) && (newOutput != Value::Null) && (matches!(&storedOutput, Value::Arr(_))) && (matches!(&newOutput, Value::Arr(_))) {
-            let mut storedArrayLength: Value = Value::Int(storedOutput.len() as i64);
-            let mut newArrayLength: Value = Value::Int(newOutput.len() as i64);
-            self.assert_static_error(Value::Bool(storedArrayLength.as_f64() == newArrayLength.as_f64()), Value::Str("output length mismatch".into()), storedOutput.clone(), newOutput.clone(), &[]);
+            let mut storedArrayLength: i64 = storedOutput.len() as i64;
+            let mut newArrayLength: i64 = newOutput.len() as i64;
+            self.assert_static_error(Value::Bool(storedArrayLength == newArrayLength), Value::Str("output length mismatch".into()), storedOutput.clone(), newOutput.clone(), &[]);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1647: bool = true;

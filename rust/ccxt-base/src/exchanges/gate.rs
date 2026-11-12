@@ -3609,7 +3609,7 @@ if _try_result.is_err() {
     m
 })]);
             let mut id: Option<String> = self.safe_string_k_opt(spotMarket.clone(), "id", &[]);
-            let mut marginMarket: Value = self.safe_dict(marginMarkets.clone(), id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut marginMarket: crate::value::Dict = self.safe_dict(marginMarkets.clone(), id.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
             let mut market: Value = self.deep_extend(marginMarket, &[spotMarket.clone()]);
             let mut idParts: Value = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut baseId: Option<String> = self.safe_string(idParts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -5185,7 +5185,7 @@ if _try_result.is_err() {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -6189,7 +6189,7 @@ if _try_result.is_err() {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -7090,11 +7090,11 @@ if _try_result.is_err() {
 }));
         let mut ordersRequests: Vec<Value> = Vec::new();
         let mut orderSymbols: Vec<Value> = Vec::new();
-        let mut ordersLength: f64 = ((orders.len() as i64) as f64);
-        if (ordersLength == 0.0) {
+        let mut ordersLength: i64 = orders.len() as i64;
+        if (ordersLength == 0) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires at least one order".into()))));
         }
-        if ordersLength > ((10i64) as f64) {
+        if ordersLength > 10 {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrders() accepts a maximum of 10 orders at a time".into()))));
         }
         {
@@ -7951,8 +7951,8 @@ if _try_result.is_err() {
                 m
             })); }
         }
-        let mut numFeeCurrencies: f64 = ((fees.len() as i64) as f64);
-        let mut multipleFeeCurrencies: bool = numFeeCurrencies > ((1i64) as f64);
+        let mut numFeeCurrencies: i64 = fees.len() as i64;
+        let mut multipleFeeCurrencies: bool = numFeeCurrencies > 1;
         let mut status: Value = self.parse_order_status(rawStatus.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         let mut remaining: Option<String> = crate::precise::Precise::stringAbs(&remainingString).as_str().map(str::to_owned);
         // handle spot market buy
@@ -8537,7 +8537,7 @@ if _try_result.is_err() {
             result = spotResult;
         }
         let mut orders: Value = self.parse_orders(result, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since.clone(), limit.clone()]);
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limit]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -9308,8 +9308,8 @@ if _try_result.is_err() {
         let mut market: Option<crate::types::Market> = None;
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]).into_opt_list();
         if (symbolsNormalized.is_some()) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if symbolsLength > ((0i64) as f64) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if symbolsLength > 0 {
                 market = Some(match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             }
         }
@@ -10018,7 +10018,7 @@ if _try_result.is_err() {
         let mut authentication: Value = api.get(0).cloned().unwrap_or(Value::Null); // public, private
         let mut type_var: Value = api.get(1).cloned().unwrap_or(Value::Null); // spot, margin, future, delivery
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        let mut pathImploded: Value = Value::Str("".into());
+        let mut pathImploded: String = "".to_string();
         let mut bodyJson: Option<String> = None;
         let mut signedHeaders: Value = Value::Null;
         let mut containsSettle: bool = path.as_str().unwrap_or("").contains("settle");
@@ -10051,7 +10051,7 @@ if _try_result.is_err() {
             pathImploded = self.implode_params(path, params);
         }
         let mut endPart: String = "".to_string();
-        if (pathImploded.as_str() != Some("")) {
+        if (pathImploded != "") {
             endPart = format!("{}{}", Value::Str("/".into()), pathImploded);
         }
         let mut entirePath: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), type_var).into()), endPart);
@@ -10073,7 +10073,7 @@ if _try_result.is_err() {
             let mut rawQueryString: Option<String> = Some("".to_string());
             let mut requiresURLEncoding: bool = false;
             if ((type_var.as_str() == Some("futures")) || (type_var.as_str() == Some("delivery"))) && (method.as_str() == Some("POST")) {
-                let mut pathParts: Value = Value::Array(if let Some(__s) = pathImploded.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
+                let mut pathParts: Value = Value::Array(pathImploded.split("/").map(Value::from).collect());
                 let mut secondPart: Value = self.safe_string(pathParts, Value::Int(1), &[Value::Str("".into())]);
                 requiresURLEncoding = (secondPart.as_str().unwrap_or("").contains("dual")) || (secondPart.as_str().unwrap_or("").contains("positions"));
             }
@@ -10437,7 +10437,7 @@ if _try_result.is_err() {
         //
         let mut settlements: Value = self.parse_settlements(response, &[(market).raw.clone()]);
         let mut sorted: Value = self.sort_by(settlements, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -10542,7 +10542,7 @@ if _try_result.is_err() {
         let mut data: Value = self.safe_list_k(&result, "list", &[Value::from(vec![])]);
         let mut settlements: Value = self.parse_settlements(data, &[market]);
         let mut sorted: Value = self.sort_by(settlements, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbolResolved, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbolResolved.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -10697,7 +10697,7 @@ if _try_result.is_err() {
         });
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchLedger".into()), &[Value::Null, paramsPaginate]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin")) {
             if (code != Value::Null) {
                 currency = self.currency(code);
@@ -10709,13 +10709,13 @@ if _try_result.is_err() {
             if (type_var.as_deref() == Some("swap")) {
                 defaultSettle = "usdt".to_string();
             }
-            let mut settle: Value = self.safe_string_lower_k(paramsMarketType.clone(), "settle", &[Value::from(defaultSettle)]);
+            let mut settle: Value = self.safe_string_lower_k(&paramsMarketType, "settle", &[Value::from(defaultSettle)]);
             request.insert("settle".into(), settle);
         }
         let mut isContract: bool = (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future"));
-        let mut paramsSettle: Value = paramsMarketType.clone();
+        let mut paramsSettle: Value = Value::from(&paramsMarketType);
         if isContract {
-            paramsSettle = self.omit(paramsMarketType, Value::Str("settle".into()), &[]);
+            paramsSettle = self.omit(&paramsMarketType, Value::Str("settle".into()), &[]);
         }
         if (since != Value::Null) {
             request.insert("from".into(), since.clone());
@@ -11640,8 +11640,8 @@ if _try_result.is_err() {
         }
         let mut market: Option<crate::types::Market> = None;
         if (symbols != Value::Null) {
-            let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-            if (symbolsLength == 1.0) {
+            let mut symbolsLength: i64 = symbols.len() as i64;
+            if (symbolsLength == 1) {
                 market = Some(match self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             }
         }

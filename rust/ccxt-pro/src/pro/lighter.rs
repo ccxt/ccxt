@@ -827,7 +827,7 @@ impl Lighter {
         if (symbolsNormalized.is_some()) {
             symbolsLength = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
         }
-        if (symbolsNormalized.is_none()) || (((symbolsLength as f64) == 0.0)) {
+        if (symbolsNormalized.is_none()) || (symbolsLength == 0) {
             messageHashes.push(self.get_message_hash(Value::Str("ticker".into()), &[]).map(Value::from).unwrap_or(Value::Null));
         }  else {
             {
@@ -852,7 +852,7 @@ impl Lighter {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1098,8 +1098,8 @@ impl Lighter {
         //     }
         //
         let mut liquidationData: crate::value::List = __pro_message.get("liquidation_trades").cloned().unwrap_or_default().into_list();
-        let mut liquidationDataLength: f64 = ((liquidationData.len() as i64) as f64);
-        if liquidationDataLength > ((0i64) as f64) {
+        let mut liquidationDataLength: i64 = liquidationData.len() as i64;
+        if liquidationDataLength > 0 {
             self.handle_liquidation(client.clone(), message);
         }
         let mut data: Value = (match __pro_message.get("trades").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
@@ -1165,7 +1165,7 @@ impl Lighter {
         let mut messageHash: Value = self.get_message_hash(Value::Str("trade".into()), &[Value::from((market).symbol.clone())]).map(Value::from).unwrap_or(Value::Null);
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.subscribe_public(messageHash, &[__ws_arg_9]).await;
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1346,8 +1346,8 @@ impl Lighter {
         let mut accountIndex: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut data: crate::value::Dict = message.get("trades").cloned().unwrap_or_default().into_dict();
         let mut marketIds: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
-        let mut idsLength: f64 = ((marketIds.len() as i64) as f64);
-        if (idsLength == 0.0) {
+        let mut idsLength: i64 = marketIds.len() as i64;
+        if (idsLength == 0) {
             return Value::Bool(false);
         }
         if (self.myTrades.clone() == Value::Null) {
@@ -1440,7 +1440,7 @@ impl Lighter {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1855,7 +1855,7 @@ impl Lighter {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2131,8 +2131,8 @@ impl Lighter {
         //
         let mut data: crate::value::Dict = message.get("orders").cloned().unwrap_or_default().into_dict();
         let mut marketIds: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
-        let mut idsLength: f64 = ((marketIds.len() as i64) as f64);
-        if (idsLength == 0.0) {
+        let mut idsLength: i64 = marketIds.len() as i64;
+        if (idsLength == 0) {
             return Value::Bool(false);
         }
         if (self.orders.clone() == Value::Null) {

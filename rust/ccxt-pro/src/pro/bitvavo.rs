@@ -517,10 +517,10 @@ impl Bitvavo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut channel: String = "ticker24h".to_string();
-        let mut tickers: Value = self.watch_public_multiple(Value::from(channel.clone()), Value::from(channel), symbolsNormalized.clone(), &[params]).await;
-        return self.filter_by_array(tickers, Value::Str("symbol".into()), &[symbolsNormalized]);
+        let mut tickers: Value = self.watch_public_multiple(Value::from(channel.clone()), Value::from(channel), Value::Arr(symbolsNormalized.clone()), &[params]).await;
+        return self.filter_by_array(tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -596,10 +596,10 @@ impl Bitvavo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut channel: String = "ticker24h".to_string();
-        let mut tickers: Value = self.watch_public_multiple(Value::Str("bidask".into()), Value::from(channel), symbolsNormalized.clone(), &[params]).await;
-        return self.filter_by_array(tickers, Value::Str("symbol".into()), &[symbolsNormalized]);
+        let mut tickers: Value = self.watch_public_multiple(Value::Str("bidask".into()), Value::from(channel), Value::Arr(symbolsNormalized.clone()), &[params]).await;
+        return self.filter_by_array(tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -680,7 +680,7 @@ impl Bitvavo {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -745,14 +745,14 @@ impl Bitvavo {
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut name: String = "trades".to_string();
         let mut marketIds: Vec<Value> = Vec::new();
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_147: bool = true;
             while { if !__for_first_147 { i += 1; } __for_first_147 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             marketIds.push(Value::from((market).id.clone()));
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])).into())); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])).into()));
         }
         }
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
@@ -768,14 +768,14 @@ impl Bitvavo {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch_multiple(url.as_deref(), messageHashes.clone(), &[message, messageHashes.clone()]).await;
+        let mut trades: Value = self.watch_multiple(url.as_deref(), &messageHashes, &[message, Value::Arr(messageHashes.clone())]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -910,7 +910,7 @@ impl Bitvavo {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1017,7 +1017,7 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "candles".to_string();
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut marketIdsByInterval: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1036,8 +1036,8 @@ impl Bitvavo {
             let mut intervalIds: Value = (if let (Some(__m), Some(__k)) = (marketIdsByInterval.as_map(), interval.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             if let Value::Arr(__a) = &mut intervalIds { std::sync::Arc::make_mut(__a).push(Value::from((market).id.clone())); };
             crate::set_value(&mut marketIdsByInterval, &interval, intervalIds);
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("multi:".into()), name).into()), Value::Str("@".into())).into()), self.safe_string_k((market).raw.clone(), "id",
-                &[Value::Str("".into())])).into()), Value::Str("_".into())).into()), interval).into())); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("multi:".into()), name).into()), Value::Str("@".into())).into()), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])).into()),
+                Value::Str("_".into())).into()), interval).into()));
         }
         }
         let mut channels: Vec<Value> = Vec::new();
@@ -1064,7 +1064,7 @@ impl Bitvavo {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut symboltimeframecandlesVariable = self.watch_multiple(url.as_deref(), messageHashes.clone(), &[message, messageHashes.clone()]).await;
+        let mut symboltimeframecandlesVariable = self.watch_multiple(url.as_deref(), &messageHashes, &[message, Value::Arr(messageHashes.clone())]).await;
         let mut symbol: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(1));
         let mut candles: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(2));
@@ -1072,7 +1072,7 @@ impl Bitvavo {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = candles.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(candles, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        let mut filtered: Value = self.filter_by_since_limit(candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
         Value::Null
         }).await?))
@@ -1265,14 +1265,14 @@ impl Bitvavo {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_opt_list();
         let mut name: String = "book".to_string();
         let mut marketIds: Vec<Value> = Vec::new();
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_154: bool = true;
             while { if !__for_first_154 { i += 1; } __for_first_154 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             marketIds.push(Value::from((market).id.clone()));
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])).into())); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])).into()));
         }
         }
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
@@ -1298,7 +1298,7 @@ impl Bitvavo {
             m
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: Value = self.watch_multiple(url.as_deref(), messageHashes.clone(), &[message, messageHashes.clone(), Value::Map(subscription)]).await;
+        let mut orderbook: Value = self.watch_multiple(url.as_deref(), &messageHashes, &[message, Value::Arr(messageHashes.clone()), Value::Map(subscription)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1742,7 +1742,7 @@ impl Bitvavo {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolValue, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolValue.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1799,7 +1799,7 @@ impl Bitvavo {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolValue, since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolValue.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2070,7 +2070,7 @@ impl Bitvavo {
         self.authenticate(&[]).await;
         let mut request: Value = self.parent.fetch_orders_request(&[symbol.clone(), since.clone(), limit.clone(), params]);
         let mut orders: Value = self.watch_request(Value::Str("privateGetOrders".into()), request).await;
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2133,7 +2133,7 @@ impl Bitvavo {
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut orders: Value = self.watch_request(Value::Str("privateGetOrdersOpen".into()), __ws_arg_3).await;
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2171,7 +2171,7 @@ impl Bitvavo {
         self.authenticate(&[]).await;
         let mut request: Value = self.parent.fetch_my_trades_request(&[symbol.clone(), since.clone(), limit.clone(), params]);
         let mut myTrades: Value = self.watch_request(Value::Str("privateGetTrades".into()), request).await;
-        return self.filter_by_symbol_since_limit(myTrades, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(myTrades, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2368,7 +2368,7 @@ impl Bitvavo {
         let mut request: Value = self.parent.fetch_ohlcv_request(symbol, &[timeframe, since.clone(), limit.clone(), params]);
         let mut action: String = "getCandles".to_string();
         let mut ohlcv: Value = self.watch_request(Value::from(action), request).await;
-        return self.filter_by_since_limit(ohlcv, &[since, limit, Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limit.as_i64(), &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

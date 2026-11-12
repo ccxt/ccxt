@@ -696,7 +696,7 @@ impl Cex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut currenciesIndexed: Value = self.index_by(dataCurrencies, Value::Str("currency".into()));
+        let mut currenciesIndexed: crate::value::Dict = self.index_by(dataCurrencies, Value::Str("currency".into())).into_dict();
         let mut data: Value = self.deep_extend(currenciesIndexed, &[dataNetworks]);
         return self.parse_currencies(self.to_array(data));
         Value::Null

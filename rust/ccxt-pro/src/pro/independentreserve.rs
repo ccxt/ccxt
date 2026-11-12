@@ -315,7 +315,7 @@ impl Independentreserve {
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("?subscribe=ticker-".into())).into()), baseId).into()), Value::Str("-".into())).into()), quoteId);
         let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbolValue);
         let mut trades: Value = self.watch(url.as_str(), &messageHash[..], &[Value::Null, Value::from(messageHash.clone())]).await;
-        return self.filter_by_since_limit(trades, &[since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

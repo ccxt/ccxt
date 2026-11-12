@@ -1279,7 +1279,7 @@ impl Mercado {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1293,18 +1293,18 @@ impl Mercado {
             m
         });
         if (code.as_str() == Some("BRL")) {
-            let mut account_ref: bool = matches!(&paramsWithdrawTag, Value::Dict(__d) if __d.contains_key("account_ref"));
+            let mut account_ref: bool = paramsWithdrawTag.contains_key("account_ref");
             if !account_ref {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires account_ref parameter to withdraw ".into())).into()), code)));
             }
         }  else if (code.as_str() != Some("LTC")) {
-            let mut tx_fee: bool = matches!(&paramsWithdrawTag, Value::Dict(__d) if __d.contains_key("tx_fee"));
+            let mut tx_fee: bool = paramsWithdrawTag.contains_key("tx_fee");
             if !tx_fee {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires tx_fee parameter to withdraw ".into())).into()), code)));
             }
             if (code.as_str() == Some("XRP")) {
                 if (tagWithdrawTag.is_none()) {
-                    if !(matches!(&paramsWithdrawTag, Value::Dict(__d) if __d.contains_key("destination_tag"))) {
+                    if !(paramsWithdrawTag.contains_key("destination_tag")) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a tag or destination_tag parameter to withdraw ".into())).into()), code)));
                     }
                 }  else {
@@ -1312,7 +1312,7 @@ impl Mercado {
                 }
             }
         }
-        let __ws_arg_11 = self.extend(Value::Map(request), &[paramsWithdrawTag]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let mut response: crate::value::Dict = self.private_post_withdraw_coin(&[__ws_arg_11]).await.into_dict();
         //
         //     {
@@ -1586,7 +1586,7 @@ impl Mercado {
         let mut ordersRaw: Value = self.safe_list_k(&responseData, "orders", &[Value::from(vec![])]);
         let mut orders: Value = self.parse_orders(ordersRaw, &[(market).raw.clone(), since.clone(), limit.clone()]);
         let mut trades: Value = self.orders_to_trades(orders);
-        return self.filter_by_symbol_since_limit(trades, &[Value::from((market).symbol.clone()), since, limit]);
+        return self.filter_by_symbol_since_limit(trades, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

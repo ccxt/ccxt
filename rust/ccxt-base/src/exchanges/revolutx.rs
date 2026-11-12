@@ -463,7 +463,7 @@ impl Revolutx {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestHeaders: Value = Value::Null;
-        let mut implodedPath: Value = self.implode_params(path.clone(), params.clone());
+        let mut implodedPath: String = self.implode_params(path.clone(), params.clone());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -1312,7 +1312,7 @@ impl Revolutx {
             result.push(self.parse_trade(trade, &[market.clone()]));
         }
         }
-        return self.filter_by_symbol_since_limit(self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]), &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -1968,7 +1968,7 @@ impl Revolutx {
             result.push(self.parse_order(order, &[]));
         }
         }
-        return self.filter_by_symbol_since_limit(Value::from(result), &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(Value::from(result), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2065,7 +2065,7 @@ impl Revolutx {
             result.push(self.parse_order(order, &[]));
         }
         }
-        return self.filter_by_symbol_since_limit(Value::from(result), &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(Value::from(result), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

@@ -887,11 +887,11 @@ impl Mudrex {
                 items = self.safe_list_k(data.clone(), "items", &[Value::from(vec![])]);
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 let mut itemsLength: i64 = items.len() as i64;
-                if (((itemsLength as f64) == 0.0)) {
+                if (itemsLength == 0) {
                     items = self.safe_list_k(data.clone(), "results", &[Value::from(vec![])]);
                     itemsLength = items.len() as i64;
                 }
-                if (((itemsLength as f64) == 0.0)) && (in_op(&data, &Value::Str("symbol".into()))) {
+                if (itemsLength == 0) && (in_op(&data, &Value::Str("symbol".into()))) {
                     items = Value::from(vec![data.clone()]);
                 }
             }  else {
@@ -1591,7 +1591,7 @@ impl Mudrex {
             orders.push(self.parse_order(rows.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]));
         }
         }
-        return self.filter_by_symbol_since_limit(Value::from(orders), &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(Value::from(orders), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -1796,7 +1796,7 @@ impl Mudrex {
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut positions: Value = self.parse_positions(&data, &[symbolsNormalized]);
-        return self.filter_by_since_limit(positions, &[since, limit]);
+        return self.filter_by_since_limit(positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -1896,8 +1896,8 @@ impl Mudrex {
             if (side != Value::Null) {
                 candidates = self.filter_by(candidates.clone(), Value::Str("side".into()), side, &[]);
             }
-            let mut numCandidates: f64 = ((candidates.len() as i64) as f64);
-            if numCandidates > ((0i64) as f64) {
+            let mut numCandidates: i64 = candidates.len() as i64;
+            if numCandidates > 0 {
                 let mut found: crate::value::Dict = candidates.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_dict();
                 positionId = self.safe_string_k(&found, "id", &[]).as_str().map(str::to_owned);
             }
@@ -1963,8 +1963,8 @@ impl Mudrex {
         if (positionId.is_none()) {
             let mut positions: Vec<crate::types::Position> = (match self.fetch_positions((Value::from(vec![symbol.clone()])).to_opt_str_vec(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut matches: Value = self.filter_by(crate::types::IntoRaw::into_raw(positions), Value::Str("symbol".into()), symbol.clone(), &[]);
-            let mut numMatches: f64 = ((matches.len() as i64) as f64);
-            if numMatches > ((0i64) as f64) {
+            let mut numMatches: i64 = matches.len() as i64;
+            if numMatches > 0 {
                 let mut found: crate::value::Dict = matches.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_dict();
                 positionId = self.safe_string_k(&found, "id", &[]).as_str().map(str::to_owned);
             }

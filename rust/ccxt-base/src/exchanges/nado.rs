@@ -2913,7 +2913,7 @@ impl Nado {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4192,7 +4192,7 @@ impl Nado {
 }
 
     pub fn order_verifying_contract(&self, mut productId: Value) -> Option<String> {
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.pad_hex(self.int_to_base16(productId, &[]), Value::Int(40), &[]).map(Value::from).unwrap_or(Value::Null)).into()).as_str().map(str::to_owned);
+        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.pad_hex(Value::from(self.int_to_base16(productId, &[])), Value::Int(40), &[]).map(Value::from).unwrap_or(Value::Null)).into()).as_str().map(str::to_owned);
 }
 
     pub fn pad_hex(&self, mut value: Value, mut length: Value, optional_args: &[Value]) -> Option<String> {
@@ -4367,7 +4367,7 @@ impl Nado {
         let mut signature: Value = ecdsa(hash, privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
         let mut r: String = self.safe_string_k(signature.clone(), "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut s: String = self.safe_string_k(signature.clone(), "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut v: Value = (self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut v: Value = (Value::from(self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]))).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.pad_hex(Value::from(r), Value::Int(64), &[]).map(Value::from).unwrap_or(Value::Null)).into()), self.pad_hex(Value::from(s), Value::Int(64), &[]).map(Value::from).unwrap_or(Value::Null)).into()), v).into()).as_str().map(str::to_owned);
 }
 

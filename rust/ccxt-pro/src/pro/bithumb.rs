@@ -424,8 +424,8 @@ impl Bithumb {
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isGenerationTwo: bool = generation == Some(2.0);
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
-        let mut symbolsLength: Value = (if (symbolsNormalized == Value::Null) { Value::Int(0) } else { Value::Int(symbolsNormalized.len() as i64) });
-        if isGenerationTwo && (symbolsLength.as_f64() == Some(0.0)) {
+        let mut symbolsLength: i64 = (if (symbolsNormalized == Value::Null) { 0 } else { symbolsNormalized.len() as i64 });
+        if isGenerationTwo && (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() requires symbols for the generation 2 API".into()))));
         }
         let mut symbolsResolved: Value = self.symbols.clone();
@@ -442,7 +442,7 @@ impl Bithumb {
         })]).into_dict();
         let mut url: String = (if isGenerationTwo { self.safe_string_k(&wsUrls, "publicGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() } else { self.safe_string_k(&wsUrls, "public", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() });
         let mut streamMarketIds: Vec<Value> = Vec::new();
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_127: bool = true;
@@ -456,7 +456,7 @@ impl Bithumb {
                 streamMarketId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k((market).raw.clone(), "base", &[Value::Str("".into())]), Value::Str("_".into())).into()), self.safe_string_k((market).raw.clone(), "quote", &[Value::Str("".into())])).into());
             }
             streamMarketIds.push(streamMarketId);
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.clone())).into())); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.clone())).into()));
         }
         }
         let mut tickTypes: String = self.safe_string_k(&paramsGeneration, "tickTypes", &[Value::Str("24H".into())]).as_str().unwrap_or("24H").to_string();
@@ -482,7 +482,7 @@ impl Bithumb {
         }  else {
             message = self.extend(message.clone(), &[&paramsOmitted]);
         }
-        let mut newTicker: Value = self.watch_multiple(url.as_str(), messageHashes.clone(), &[message, messageHashes.clone()]).await;
+        let mut newTicker: Value = self.watch_multiple(url.as_str(), &messageHashes, &[message, Value::Arr(messageHashes.clone())]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -494,7 +494,7 @@ impl Bithumb {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsResolved]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), symbolsResolved, &[]);
         Value::Null
         }).await?))
     }
@@ -991,7 +991,7 @@ impl Bithumb {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1438,7 +1438,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

@@ -511,11 +511,11 @@ impl Htx {
         if (topic == "market.{marketId}.ticker") && (Value::from((market).market_type.clone()).as_str() != Some("spot")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead".into()))));
         }
-        let mut messageHash: Value = self.implode_params(Value::from(topic), Value::Map({
+        let mut messageHash: Value = Value::from(self.implode_params(Value::from(topic), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketId".to_string(), Value::from((market).id.clone()));
             m
-        }));
+        })));
         let mut url: Value = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[(market).linear.map(Value::Bool).unwrap_or_default()]).map(Value::from).unwrap_or(Value::Null);
         return self.subscribe_public(url, symbolValue, messageHash, &[Value::Null, params]).await;
         Value::Null
@@ -556,11 +556,11 @@ impl Htx {
         if (channel == "market.{marketId}.ticker") && (Value::from((market).market_type.clone()).as_str() != Some("spot")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead".into()))));
         }
-        let mut subMessageHash: Value = self.implode_params(Value::from(channel), Value::Map({
+        let mut subMessageHash: Value = Value::from(self.implode_params(Value::from(channel), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketId".to_string(), Value::from((market).id.clone()));
             m
-        }));
+        })));
         return self.unsubscribe_public((market).raw.clone(), subMessageHash, Value::from(topic), &[params]).await;
         Value::Null
         }).await?))
@@ -666,7 +666,7 @@ impl Htx {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -703,11 +703,11 @@ impl Htx {
             m
         })]).into_dict();
         let mut channel: String = self.safe_string_k(&options, "name", &[Value::Str("market.{marketId}.trade.detail".into())]).as_str().unwrap_or("market.{marketId}.trade.detail").to_string();
-        let mut subMessageHash: Value = self.implode_params(Value::from(channel), Value::Map({
+        let mut subMessageHash: Value = Value::from(self.implode_params(Value::from(channel), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketId".to_string(), Value::from((market).id.clone()));
             m
-        }));
+        })));
         return self.unsubscribe_public((market).raw.clone(), subMessageHash, Value::from(topic), &[params]).await;
         Value::Null
         }).await?))
@@ -808,7 +808,7 @@ impl Htx {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1484,7 +1484,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1653,7 +1653,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1873,8 +1873,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             // contract branch
             parsedOrder = self.parse_ws_order(message, &[market.clone()]);
             let mut rawTrades: crate::value::List = __pro_message.get("trade").cloned().unwrap_or_default().into_list();
-            let mut tradesLength: f64 = ((rawTrades.len() as i64) as f64);
-            if tradesLength > ((0i64) as f64) {
+            let mut tradesLength: i64 = rawTrades.len() as i64;
+            if tradesLength > 0 {
                 let mut tradesObject: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("trades".to_string(), Value::Arr(rawTrades));
@@ -2311,7 +2311,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(self.safe_value(self.safe_value(self.positions.clone(), url, &[]), marginMode, &[]), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(false)]);
+        return self.filter_by_symbols_since_limit(self.safe_value(self.safe_value(self.positions.clone(), url, &[]), marginMode, &[]), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(false)]);
         Value::Null
         }).await?))
     }
@@ -2480,8 +2480,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut messageHash: Option<String> = messageHashes.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                 let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
-                let mut symbols: Value = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-                let mut positions: Value = self.filter_by_array(marginModePositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
+                let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
+                let mut positions: Value = self.filter_by_array(marginModePositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
                 if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
                     client.resolve(positions, messageHash.as_deref());
                 }
@@ -2786,8 +2786,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 client.resolve(self.balance.clone(), "account");
                 return;
             }
-            let mut dataLength: f64 = ((data.len() as i64) as f64);
-            if (dataLength == 0.0) {
+            let mut dataLength: i64 = data.len() as i64;
+            if (dataLength == 0) {
                 return;
             }
             let mut first: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
@@ -3662,7 +3662,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     hostnameURL = spotUrls.get("public").cloned().unwrap_or(Value::Null);
                 }
             }
-            url = self.implode_params(hostnameURL, Value::Map(hostname));
+            url = Value::from(self.implode_params(hostnameURL, Value::Map(hostname)));
         }  else {
             let mut typeUrls: crate::value::Dict = self.safe_dict(&typeUrlsByApi, type_var, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

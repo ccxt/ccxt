@@ -14,7 +14,7 @@ pub async fn testWatchTradesForSymbols(mut exchange: Value, mut skippedPropertie
     let mut logText: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" ".into())).into()), method).into()), Value::Str(" [symbols: ".into())).into()), exchange.json(symbols.clone())).into()), Value::Str("] ".into()));
     let mut now: Value = exchange.milliseconds();
     let mut ends: Value = (match (&(now), &(Value::Int(30000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-    let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
+    let mut symbolsLength: i64 = symbols.len() as i64;
     let mut returnedSymbols: Value = Value::from(vec![]);
     let mut allReceived: bool = false;
     while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !allReceived {
@@ -46,14 +46,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }
             }
-            let mut returnedLength: Value = Value::Int(returnedSymbols.len() as i64);
-            if (returnedLength.as_f64() == symbolsLength.as_f64()) {
+            let mut returnedLength: i64 = returnedSymbols.len() as i64;
+            if (returnedLength == symbolsLength) {
                 allReceived = true;
             }
         }
     }
-    let mut receivedLength: Value = Value::Int(returnedSymbols.len() as i64);
-    assert!(ccxt::runtime::is_true(&((receivedLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
+    let mut receivedLength: i64 = returnedSymbols.len() as i64;
+    assert!(ccxt::runtime::is_true(&((receivedLength > 0))));
     if !allReceived {
         // an illiquid symbol may not trade inside the window, that is the market and not a bug
         println_val(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", logText, Value::Str("warning: only received part of symbols before the deadline: ".into())).into()), exchange.json(returnedSymbols.clone())).into()));

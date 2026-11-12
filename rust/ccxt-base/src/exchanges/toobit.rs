@@ -2130,8 +2130,8 @@ impl Toobit {
             if (symbol.is_some()) {
                 market = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
             }
-            let mut length: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (length == 1.0) && (market != Value::Null) {
+            let mut length: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (length == 1) && (market != Value::Null) {
                 request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
         }
@@ -2249,8 +2249,8 @@ impl Toobit {
             m
         });
         if (symbolsNormalized.is_some()) {
-            let mut length: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (length == 1.0) {
+            let mut length: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (length == 1) {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 request.insert("symbol".into(), Value::from((market).id.clone()));
             }
@@ -2310,8 +2310,8 @@ impl Toobit {
             m
         });
         if (symbolsNormalized.is_some()) {
-            let mut length: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (length == 1.0) {
+            let mut length: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (length == 1) {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 request.insert("symbol".into(), Value::from((market).id.clone()));
             }
@@ -2397,8 +2397,8 @@ impl Toobit {
             m
         });
         if (symbolsNormalized.is_some()) {
-            let mut length: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if (length == 1.0) {
+            let mut length: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if (length == 1) {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 request.insert("symbol".into(), Value::from((market).id.clone()));
             }
@@ -4204,8 +4204,8 @@ impl Toobit {
         });
         let mut market: Value = Value::Null;
         if (symbols != Value::Null) {
-            let mut length: f64 = ((symbols.len() as i64) as f64);
-            if length > ((1i64) as f64) {
+            let mut length: i64 = symbols.len() as i64;
+            if length > 1 {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() only accepts an array with a single symbol or without symbols argument".into()))));
             }
             let mut firstSymbol: Option<String> = self.safe_string(symbols.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);

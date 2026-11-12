@@ -3969,7 +3969,7 @@ impl Hitbtc {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3989,7 +3989,7 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut networkInput: Option<String> = self.safe_string_upper_k(paramsWithdrawTag.clone(), "network", &[]).as_str().map(str::to_owned);
+        let mut networkInput: Option<String> = self.safe_string_upper_k(&paramsWithdrawTag, "network", &[]).as_str().map(str::to_owned);
         let mut network: Value = (if (networkInput.is_some()) { self.safe_string(self.networkAliases.clone(), networkInput.clone().map(Value::from).unwrap_or(Value::Null), &[networkInput.clone().map(Value::from).unwrap_or(Value::Null)]) } else { Value::Null });
         if (network != Value::Null) && (code.as_str() == Some("USDT")) {
             let mut parsedNetwork: Option<String> = self.safe_string(&networks, network.clone(), &[]).as_str().map(str::to_owned);
@@ -3997,9 +3997,9 @@ impl Hitbtc {
                 request.insert("network_code".into(), parsedNetwork.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut paramsOmitted: Value = paramsWithdrawTag.clone();
+        let mut paramsOmitted: Value = Value::from(&paramsWithdrawTag);
         if (network != Value::Null) && (code.as_str() == Some("USDT")) {
-            paramsOmitted = self.omit(paramsWithdrawTag, Value::Str("network".into()), &[]);
+            paramsOmitted = self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[]);
         }
         let mut withdrawOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4095,7 +4095,7 @@ impl Hitbtc {
             fundingRates.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(fundingRate));
         }
         }
-        return self.index_by(self.filter_by_array(Value::Map(fundingRates), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(Value::Map(fundingRates), Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(false)]), Value::Str("symbol".into()));
         Value::Null
         }).await?))
     }
@@ -4201,8 +4201,8 @@ impl Hitbtc {
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        let mut symbolResolved: Value = (if (market == Value::Null) { symbol } else { self.safe_string_k(market, "symbol", &[]) });
-        return self.filter_by_symbol_since_limit(sorted, &[symbolResolved, since, limit]);
+        let mut symbolResolved: Option<String> = (if (market == Value::Null) { symbol.as_str().map(str::to_owned) } else { self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned) });
+        return self.filter_by_symbol_since_limit(sorted, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4569,7 +4569,7 @@ impl Hitbtc {
             results.push(self.parse_open_interest(openInterest, &[marketInner]));
         }
         }
-        return self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Bool(false)]), Value::Str("symbol".into()));
+        return self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(false)]), Value::Str("symbol".into()));
         Value::Null
         }).await?))
     }
@@ -4988,11 +4988,11 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-        let mut maxLeverage: Value = self.safe_integer_k(limits.get("leverage").cloned().unwrap_or(Value::Null), "max", &[Value::Int(50)]);
+        let mut maxLeverage: i64 = self.safe_integer_k(limits.get("leverage").cloned().unwrap_or(Value::Null), "max", &[Value::Int(50)]).as_i64().unwrap_or(50);
         if (Value::from((market).market_type.clone()).as_str() != Some("swap")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() supports swap contracts only".into()))));
         }
-        if (leverage.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64)) || (leverage.as_f64().unwrap_or(f64::NAN) > maxLeverage.as_f64().unwrap_or(f64::NAN)) {
+        if (leverage.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64)) || (leverage.as_i64().unwrap_or_default() > maxLeverage) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() leverage should be between 1 and ".into())).into()), Value::Str(format!("{}", maxLeverage).into())).into()), Value::Str(" for ".into())).into()), symbol)));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -5222,7 +5222,7 @@ impl Hitbtc {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        let mut implodedPath: Value = self.implode_params(path, params.clone());
+        let mut implodedPath: String = self.implode_params(path, params.clone());
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));

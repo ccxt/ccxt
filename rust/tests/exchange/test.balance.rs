@@ -41,10 +41,10 @@ pub fn testBalance(mut exchange: Value, mut skippedProperties: Value, mut method
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesUsed.clone(), Value::Str("used".into()).clone()]);
     let mut allCodes: Value = exchange.array_concat(codesTotal.clone(), codesFree.clone());
     allCodes = exchange.array_concat(allCodes.clone(), codesUsed.clone());
-    let mut codesLength: Value = Value::Int(codesTotal.len() as i64);
-    let mut freeLength: Value = Value::Int(codesFree.len() as i64);
-    let mut usedLength: Value = Value::Int(codesUsed.len() as i64);
-    assert!(ccxt::runtime::is_true(&(((codesLength.as_f64() == freeLength.as_f64()) || (codesLength.as_f64() == usedLength.as_f64())))));
+    let mut codesLength: i64 = codesTotal.len() as i64;
+    let mut freeLength: i64 = codesFree.len() as i64;
+    let mut usedLength: i64 = codesUsed.len() as i64;
+    assert!(ccxt::runtime::is_true(&(((codesLength == freeLength) || (codesLength == usedLength)))));
     {
                 let mut i: i64 = 0;
         let mut __for_first_1549: bool = true;

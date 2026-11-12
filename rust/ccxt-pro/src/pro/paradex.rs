@@ -520,8 +520,8 @@ impl Paradex {
             let mut __for_first_583: bool = true;
             while { if !__for_first_583 { if let Value::Int(n) = &mut attempt { *n += 1; } } __for_first_583 = false; attempt.as_f64().unwrap_or(f64::NAN) < channelsLength } {
             let mut pending: Vec<Value> = self.unsubscribed_channels(url.clone(), channels.clone()).as_array().cloned().unwrap_or_default();
-            let mut pendingLength: f64 = ((pending.len() as i64) as f64);
-            if pendingLength < ((2i64) as f64) {
+            let mut pendingLength: i64 = pending.len() as i64;
+            if pendingLength < 2 {
                 break;
             }
             let mut channel: Value = get_value(&channels, &pending.get(0).cloned().unwrap_or(Value::Null));
@@ -531,8 +531,8 @@ impl Paradex {
         }
         // the last one goes with the watch, so that an update sent right after it is not missed
         let mut missing: Vec<Value> = self.unsubscribed_channels(url.clone(), channels.clone()).as_array().cloned().unwrap_or_default();
-        let mut missingLength: f64 = ((missing.len() as i64) as f64);
-        if (missingLength == 0.0) {
+        let mut missingLength: i64 = missing.len() as i64;
+        if (missingLength == 0) {
             return self.watch_multiple(url.clone(), messageHashes.clone(), &[Value::Null, channels.clone()]).await;
         }
         let mut index: Value = missing.get(0).cloned().unwrap_or(Value::Null);
@@ -709,7 +709,7 @@ impl Paradex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -764,7 +764,7 @@ impl Paradex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -805,7 +805,7 @@ impl Paradex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = liquidations.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(liquidations, &[since, Value::from(limitResolved), Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(liquidations, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1319,7 +1319,7 @@ impl Paradex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1367,8 +1367,8 @@ impl Paradex {
             }
         }
         }
-        let mut missingLength: f64 = ((missing.len() as i64) as f64);
-        if (missingLength == 0.0) {
+        let mut missingLength: i64 = missing.len() as i64;
+        if (missingLength == 0) {
             return self.watch_multiple(url.clone(), messageHashes.clone(), &[Value::Null, Value::from(subscribeHashes)]).await;
         }
         let mut request: Value = Value::Null;
@@ -1509,7 +1509,7 @@ impl Paradex {
             result.insert(crate::runtime::stringify_param(&(crate::value::get_value_k(&newBidAsk, "symbol"))), newBidAsk.clone());
             return Value::Map(result);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -1619,7 +1619,7 @@ impl Paradex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1724,7 +1724,7 @@ impl Paradex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1836,7 +1836,7 @@ impl Paradex {
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1882,7 +1882,7 @@ impl Paradex {
         // one position per market, so a fill through zero flips its side: the cache keys by
         // symbol and side, and the opposite side it still holds is flattened here
         let mut side: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
-        let mut cached: Value = self.filter_by_symbol_since_limit(cache.clone(), &[symbol.clone(), Value::Null, Value::Null, Value::Bool(true)]);
+        let mut cached: Value = self.filter_by_symbol_since_limit(cache.clone(), symbol.as_str(), None, None, &[Value::Bool(true)]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_595: bool = true;
@@ -2142,23 +2142,23 @@ impl Paradex {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut channel: String = "funding_data".to_string();
         let mut url: Value = self.get_ws_url();
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         if (symbolsNormalized.is_some()) {
-            let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
-            if symbolsLength > ((0i64) as f64) {
+            let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if symbolsLength > 0 {
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_597: bool = true;
                     while { if !__for_first_597 { i += 1; } __for_first_597 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                     let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into());
-                    if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHash); }
+                    std::sync::Arc::make_mut(&mut messageHashes).push(messageHash);
                 }
                 }
             }  else {
-                if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::from(channel.clone())); }; // if an empty array is passed, subscribe to all funding rates
+                std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(channel.clone())); // if an empty array is passed, subscribe to all funding rates
             }
         }  else {
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::from(channel.clone())); }
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(channel.clone()));
         }
         let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel)).as_map().cloned().unwrap_or_default();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -2167,7 +2167,7 @@ impl Paradex {
             m
         });
         let __ws_arg_11 = self.deep_extend(Value::Map(request), &[params]);
-        let mut newFundingRates: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_11, messageHashes.clone(), Value::Map(subscription)]).await;
+        let mut newFundingRates: Value = self.watch_multiple(url, &messageHashes, &[__ws_arg_11, Value::Arr(messageHashes.clone()), Value::Map(subscription)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -2179,7 +2179,7 @@ impl Paradex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.fundingRates.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array(self.fundingRates.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -2512,8 +2512,8 @@ impl Paradex {
             return Value::Null;
         }
         let mut strings: Vec<Value> = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(2), frameLength).as_array().cloned().unwrap_or_default();
-        let mut stringsLength: f64 = ((strings.len() as i64) as f64);
-        if stringsLength < ((1i64) as f64) {
+        let mut stringsLength: i64 = strings.len() as i64;
+        if stringsLength < 1 {
             return Value::Null;
         }
         let mut sides: Value = Value::Map({
@@ -2559,8 +2559,8 @@ impl Paradex {
             return Value::Null;
         }
         let mut strings: Vec<Value> = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(1), frameLength).as_array().cloned().unwrap_or_default();
-        let mut stringsLength: f64 = ((strings.len() as i64) as f64);
-        if stringsLength < ((1i64) as f64) {
+        let mut stringsLength: i64 = strings.len() as i64;
+        if stringsLength < 1 {
             return Value::Null;
         }
         return Value::Map({
@@ -2631,8 +2631,8 @@ impl Paradex {
         }
         }
         let mut strings: Vec<Value> = self.sbe_read_var_strings(frameHex.clone(), position, Value::Int(1), frameLength).as_array().cloned().unwrap_or_default();
-        let mut stringsLength: f64 = ((strings.len() as i64) as f64);
-        if stringsLength < ((1i64) as f64) {
+        let mut stringsLength: i64 = strings.len() as i64;
+        if stringsLength < 1 {
             return Value::Null;
         }
         let mut isSnapshot: bool = pkgType.as_f64() == Some(0.0);
@@ -2666,8 +2666,8 @@ impl Paradex {
             return Value::Null;
         }
         let mut strings: Vec<Value> = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(1), frameLength).as_array().cloned().unwrap_or_default();
-        let mut stringsLength: f64 = ((strings.len() as i64) as f64);
-        if stringsLength < ((1i64) as f64) {
+        let mut stringsLength: i64 = strings.len() as i64;
+        if stringsLength < 1 {
             return Value::Null;
         }
         // the market is read first, so that a frame for a market nobody subscribed to is dropped before its
@@ -2714,8 +2714,8 @@ impl Paradex {
             return Value::Null;
         }
         let mut strings: Vec<Value> = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(1), frameLength).as_array().cloned().unwrap_or_default();
-        let mut stringsLength: f64 = ((strings.len() as i64) as f64);
-        if stringsLength < ((1i64) as f64) {
+        let mut stringsLength: i64 = strings.len() as i64;
+        if stringsLength < 1 {
             return Value::Null;
         }
         return Value::Map({
@@ -2747,8 +2747,8 @@ impl Paradex {
             return Value::Null;
         }
         let mut strings: Vec<Value> = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(4), frameLength).as_array().cloned().unwrap_or_default();
-        let mut stringsLength: f64 = ((strings.len() as i64) as f64);
-        if stringsLength < ((4i64) as f64) {
+        let mut stringsLength: i64 = strings.len() as i64;
+        if stringsLength < 4 {
             return Value::Null;
         }
         let mut statuses: Value = Value::Map({
@@ -2866,8 +2866,8 @@ impl Paradex {
             return Value::Null;
         }
         let mut strings: Vec<Value> = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(6), frameLength).as_array().cloned().unwrap_or_default();
-        let mut stringsLength: f64 = ((strings.len() as i64) as f64);
-        if stringsLength < ((5i64) as f64) {
+        let mut stringsLength: i64 = strings.len() as i64;
+        if stringsLength < 5 {
             return Value::Null;
         }
         let mut fillTypes: Value = Value::Map({
@@ -2937,8 +2937,8 @@ impl Paradex {
             return Value::Null;
         }
         let mut strings: Vec<Value> = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(2), frameLength).as_array().cloned().unwrap_or_default();
-        let mut stringsLength: f64 = ((strings.len() as i64) as f64);
-        if stringsLength < ((1i64) as f64) {
+        let mut stringsLength: i64 = strings.len() as i64;
+        if stringsLength < 1 {
             return Value::Null;
         }
         let mut sides: Value = Value::Map({
@@ -3001,8 +3001,8 @@ impl Paradex {
             return Value::Null;
         }
         let mut strings: Vec<Value> = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(1), frameLength).as_array().cloned().unwrap_or_default();
-        let mut stringsLength: f64 = ((strings.len() as i64) as f64);
-        if stringsLength < ((1i64) as f64) {
+        let mut stringsLength: i64 = strings.len() as i64;
+        if stringsLength < 1 {
             return Value::Null;
         }
         let mut statuses: Value = Value::Map({

@@ -1548,8 +1548,8 @@ impl Alpaca {
                                         let mut i: Value = Value::Int(1);
                     let mut __for_first_220: bool = true;
                     while { if !__for_first_220 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_220 = false; i.as_f64().unwrap_or(f64::NAN) < paginationCalls.as_f64().unwrap_or(f64::NAN) } {
-                    let mut ohlcvsLength: f64 = ((ohlcvs.len() as i64) as f64);
-                    if (pageToken.is_none()) || ((limit != Value::Null) && (ohlcvsLength >= limit.as_f64().unwrap_or(f64::NAN))) {
+                    let mut ohlcvsLength: i64 = ohlcvs.len() as i64;
+                    if (pageToken.is_none()) || ((limit != Value::Null) && ((limit.as_i64().is_some() && Some(ohlcvsLength) >= limit.as_i64()))) {
                         break;
                     }
                     request.insert("page_token".into(), pageToken.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1560,8 +1560,8 @@ impl Alpaca {
     m
 })]);
                     let mut page: crate::value::List = self.safe_list(bars.clone(), marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
-                    let mut pageLength: f64 = ((page.len() as i64) as f64);
-                    if (pageLength == 0.0) {
+                    let mut pageLength: i64 = page.len() as i64;
+                    if (pageLength == 0) {
                         break;
                     }
                     ohlcvs = self.array_concat(ohlcvs.clone(), Value::Arr(page));
@@ -1818,11 +1818,11 @@ impl Alpaca {
         let mut uuid: Option<String> = self.uuid(&[]).as_str().map(str::to_owned);
         let mut parts: Value = Value::Array(if let Some(__s) = uuid.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
         let mut random_id: Value = Value::Str(parts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("")).unwrap_or_default().into());
-        let mut defaultClientId: Value = self.implode_params(clientOrderIdprefix.map(Value::from).unwrap_or(Value::Null), Value::Map({
+        let mut defaultClientId: Value = Value::from(self.implode_params(clientOrderIdprefix.map(Value::from).unwrap_or(Value::Null), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), random_id);
             m
-        }));
+        })));
         let mut clientOrderId: Value = (match params.get("clientOrderId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => defaultClientId });
         return clientOrderId.as_str().map(str::to_owned);
 }
@@ -2002,10 +2002,10 @@ impl Alpaca {
         }
         let mut paramsCost: crate::value::Dict = (if (cost.is_some()) { self.omit(params.clone(), Value::Str("cost".into()), &[]) } else { params }).into_dict();
         let defaultTIFparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(&paramsCost, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut defaultTIF: Value = defaultTIFparamsTimeInForceVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut defaultTIF: Option<String> = defaultTIFparamsTimeInForceVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTimeInForce: crate::value::Dict = defaultTIFparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
-        request.insert("time_in_force".into(), (if (defaultTIF != Value::Null) { (if let Some(__s) = defaultTIF.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }) } else { defaultTIF }));
+        request.insert("time_in_force".into(), (if (defaultTIF.is_some()) { defaultTIF.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null) } else { defaultTIF.clone().map(Value::from).unwrap_or(Value::Null) }));
         let mut paramsOmitted: Value = self.omit(&paramsTimeInForce, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into())]), &[]);
         request.insert("client_order_id".into(), self.generate_client_order_id(paramsOmitted.clone()).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
@@ -2318,11 +2318,11 @@ impl Alpaca {
             request.insert("limit_price".into(), self.price_to_precision(symbol, price));
         }
         let timeInForceparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(&paramsTrigger, Value::Str("editOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("gtc".into())]).as_array().cloned().unwrap_or_default();
-        let mut timeInForce: Value = timeInForceparamsTimeInForceVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut timeInForce: Option<String> = timeInForceparamsTimeInForceVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTimeInForce: crate::value::Dict = timeInForceparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (timeInForce != Value::Null) {
+        if (timeInForce.is_some()) {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
-            request.insert("time_in_force".into(), (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
+            request.insert("time_in_force".into(), timeInForce.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
         }
         request.insert("client_order_id".into(), self.generate_client_order_id(Value::from(&paramsTimeInForce)).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(&paramsTimeInForce, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);

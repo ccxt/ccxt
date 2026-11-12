@@ -639,7 +639,7 @@ impl Modetrade {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut name: String = "tickers".to_string();
         let mut topic: Value = Value::from(name);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -650,7 +650,7 @@ impl Modetrade {
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut tickers: Value = self.watch_public(topic, message).await;
-        return self.filter_by_array(tickers, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -723,7 +723,7 @@ impl Modetrade {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut name: String = "bbos".to_string();
         let mut topic: Value = Value::from(name);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -734,7 +734,7 @@ impl Modetrade {
         });
         let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut tickers: Value = self.watch_public(topic, message).await;
-        return self.filter_by_array(tickers, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -852,7 +852,7 @@ impl Modetrade {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, &[since, Value::from(limitResolved), Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -946,7 +946,7 @@ impl Modetrade {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, &[Value::from((market).symbol.clone()), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1270,7 +1270,7 @@ impl Modetrade {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1329,7 +1329,7 @@ impl Modetrade {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1664,7 +1664,7 @@ impl Modetrade {
         let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]);
         if (fetchPositionsSnapshot.as_bool() == Some(true)) && (awaitPositionsSnapshot.as_bool() == Some(true)) && (self.positions.clone() == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
-            return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.map_or(Value::Null, Value::Arr), since.clone(), limit.clone(), Value::Bool(true)]);
+            return self.filter_by_symbols_since_limit(snapshot, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1676,7 +1676,7 @@ impl Modetrade {
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), since, limit, Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(self.positions.clone(), &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -2036,8 +2036,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 return;
             }
             let mut splitTopic: Value = Value::Array(if let Some(__s) = topic.as_deref() { __s.split("@").map(Value::from).collect() } else { Vec::new() });
-            let mut splitLength: f64 = ((splitTopic.len() as i64) as f64);
-            if (splitLength == 2.0) {
+            let mut splitLength: i64 = splitTopic.len() as i64;
+            if (splitLength == 2) {
                 let mut name: Option<String> = self.safe_string_opt(splitTopic.clone(), Value::Int(1), &[]);
                 if (name.is_none()) {
                     return;
@@ -2048,8 +2048,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     return;
                 }
                 let mut splitName: Value = Value::Array(if let Some(__s) = name.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-                let mut splitNameLength: f64 = ((splitTopic.len() as i64) as f64);
-                if (splitNameLength == 2.0) {
+                let mut splitNameLength: i64 = splitTopic.len() as i64;
+                if (splitNameLength == 2) {
                     let mut splitNameFirst: Option<String> = self.safe_string(splitName, Value::Int(0), &[]).as_str().map(str::to_owned);
                     method = (if (splitNameFirst.is_none()) { Value::Null } else { self.safe_value(&methods, splitNameFirst.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
                     if (method != Value::Null) {

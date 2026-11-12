@@ -845,8 +845,8 @@ impl Btcmarkets {
         let mut tag: Value = Value::Null;
         if (addressRaw.is_some()) {
             let mut addressParts: Vec<Value> = Value::Array(if let Some(__s) = addressRaw.as_deref() { __s.split("?dt=").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-            let mut numParts: f64 = ((addressParts.len() as i64) as f64);
-            if numParts > ((1i64) as f64) {
+            let mut numParts: i64 = addressParts.len() as i64;
+            if numParts > 1 {
                 address = addressParts.get(0).cloned().unwrap_or(Value::Null);
                 tag = addressParts.get(1).cloned().unwrap_or(Value::Null);
             }  else {
@@ -1471,7 +1471,7 @@ impl Btcmarkets {
                 m.insert("side".to_string(), (if (side.as_str() == Some("buy")) { Value::Str("Bid".into()) } else { Value::Str("Ask".into()) }));
             m
         });
-        let mut lowercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+        let mut lowercaseType: String = type_var.as_str().unwrap_or_default().to_string().to_lowercase();
         let mut orderTypes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "orderTypes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("limit".to_string(), Value::Str("Limit".into()));
@@ -1481,17 +1481,17 @@ impl Btcmarkets {
         m.insert("take profit".to_string(), Value::Str("Take Profit".into()));
     m
 })]).into_dict();
-        request.insert("type".into(), self.safe_string(&orderTypes, lowercaseType.clone(), &[type_var.clone()]));
+        request.insert("type".into(), self.safe_string(&orderTypes, Value::from(lowercaseType.clone()), &[type_var.clone()]));
         let mut priceIsRequired: bool = false;
         let mut triggerPriceIsRequired: bool = false;
-        if (lowercaseType.as_str() == Some("limit")) {
+        if (lowercaseType == "limit") {
             priceIsRequired = true;
-        }  else if (lowercaseType.as_str() == Some("stop limit")) {
+        }  else if (lowercaseType == "stop limit") {
             triggerPriceIsRequired = true;
             priceIsRequired = true;
-        }  else if (lowercaseType.as_str() == Some("take profit")) {
+        }  else if (lowercaseType == "take profit") {
             triggerPriceIsRequired = true;
-        }  else if (lowercaseType.as_str() == Some("stop")) {
+        }  else if (lowercaseType == "stop") {
             triggerPriceIsRequired = true;
         }
         if priceIsRequired {

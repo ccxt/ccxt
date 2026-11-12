@@ -928,8 +928,8 @@ impl Bitbns {
             while { if !__for_first_339 { i += 1; } __for_first_339 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Value = Value::Array(if let Some(__s) = key.as_deref() { __s.split("availableorder").map(Value::from).collect() } else { Vec::new() });
-            let mut numParts: f64 = ((parts.len() as i64) as f64);
-            if numParts > ((1i64) as f64) {
+            let mut numParts: i64 = parts.len() as i64;
+            if numParts > 1 {
                 let mut usedCurrencyId: String = self.safe_string(parts.clone(), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut currencyId: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
                 // note that "Money" stands for INR - the only fiat in bitbns

@@ -2569,9 +2569,9 @@ impl Deribit {
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), Value::Int(5000)]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), Value::Int(5000)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2602,8 +2602,8 @@ impl Deribit {
                     Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
             }
         }
-        let mut until: Option<i64> = self.safe_integer_k(paramsPaginate.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(paramsPaginate.clone(), Value::Str("until".into()), &[]) } else { paramsPaginate });
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
+        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(&paramsPaginate, Value::Str("until".into()), &[]) } else { Value::from(&paramsPaginate) });
         if (until.is_some()) {
             request.insert("end_timestamp".into(), Value::from(until));
         }
@@ -4866,12 +4866,12 @@ impl Deribit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut maxEntriesPerRequest: i64 = 744; // seems exchange returns max 744 items per request
         let mut eachItemDuration: String = "1h".to_string();
         if paginate {
             // fix for: https://github.com/ccxt/ccxt/issues/25040
-            let mut paginationParams: Value = self.extend(paramsPaginate.clone(), &[Value::Map({
+            let mut paginationParams: Value = self.extend(&paramsPaginate, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("isDeribitPaginationCall".to_string(), Value::Bool(true));
                 m
@@ -4896,8 +4896,8 @@ impl Deribit {
                 m.insert("start_timestamp".to_string(), (match (&(sinceResolved), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
             m
         });
-        let mut until: Option<i64> = self.safe_integer2(paramsPaginate.clone(), Value::Str("until".into()), Value::Str("end_timestamp".into()), &[]).as_i64();
-        let mut paramsUntil: Value = (if (until.is_some()) { self.omit(paramsPaginate.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { paramsPaginate });
+        let mut until: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("end_timestamp".into()), &[]).as_i64();
+        let mut paramsUntil: Value = (if (until.is_some()) { self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]) } else { Value::from(&paramsPaginate) });
         let mut endTimestamp: Value = time;
         if (until.is_some()) {
             endTimestamp = self.parse_to_int(Value::from(until));
@@ -4943,7 +4943,7 @@ impl Deribit {
             rates.push(rate);
         }
         }
-        return self.filter_by_symbol_since_limit(Value::from(rates), &[symbol, sinceResolved, limit]);
+        return self.filter_by_symbol_since_limit(Value::from(rates), symbol.as_str(), sinceResolved.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -5087,20 +5087,20 @@ impl Deribit {
 
     pub fn add_pagination_cursor_to_result(&self, mut cursor: Value, mut data: Value) -> Value {
         if (cursor != Value::Null) {
-            let mut dataLength: Value = Value::Int(data.len() as i64);
-            if dataLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+            let mut dataLength: i64 = data.len() as i64;
+            if dataLength > 0 {
                 let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut last: Value = self.safe_dict(data.clone(), (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[Value::Map({
+                let mut last: Value = self.safe_dict(data.clone(), Value::Int((dataLength - 1)), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
                 if let Value::Dict(__d) = &mut first { std::sync::Arc::make_mut(__d).insert("continuation".into(), cursor.clone()); }
                 if let Value::Dict(__d) = &mut last { std::sync::Arc::make_mut(__d).insert("continuation".into(), cursor); }
                 add_element_to_object(&mut data, &Value::Int(0), first);
-                add_element_to_object(&mut data, &(match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), last);
+                add_element_to_object(&mut data, &Value::Int((dataLength - 1)), last);
             }
         }
         return data;
