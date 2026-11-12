@@ -1,4 +1,4 @@
-import Transpiler from "ast-transpiler";
+import Transpiler, { rustDispatch } from "ast-transpiler";
 import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename } from 'path';
@@ -4384,70 +4384,6 @@ function plainDictChains(content: string): string {
     return plainDictRunPass(content);
 }
 
-// ---- native-map param dispatch ----
-// Dynamic dispatch for a method whose parameter prints as a native map: the dispatcher receives `Value`s, so it
-// hands the method an owned map copy built from the argument; every other parameter keeps its shape.
-
-const MAP_PARAM_RE = /:\s*&mut\s+indexmap::IndexMap<String, Value>/;
-
-/** `'map'` for a printed native-map parameter, undefined for any other shape. */
-function mapParamKind(printedParam: string): 'map' | undefined {
-    return MAP_PARAM_RE.test(printedParam) ? 'map' : undefined;
-}
-
-/** Dispatch argument for a native-map parameter (position `index` in `args`). The temp is built on the arm's
- *  own line so a generated dispatch arm stays within the 400-char line budget. */
-// Typed unified-method parameters (printer `typedUnified`) and their `args[i]` dispatch lowering.
-const TYPED_PARAM_KINDS = new Set(['str', 'optstr', 'f64', 'optf64', 'opti64', 'i64', 'optstrvec', 'strvecvec', 'orderreqs', 'params', 'flag']);
-
-function typedParamKind(param: string): string | undefined {
-    if (/:\s*&str$/.test(param)) return 'str';
-    if (/:\s*Option<&str>$/.test(param)) return 'optstr';
-    if (/:\s*f64$/.test(param)) return 'f64';
-    if (/:\s*Option<f64>$/.test(param)) return 'optf64';
-    if (/:\s*Option<i64>$/.test(param)) return 'opti64';
-    if (/:\s*i64$/.test(param)) return 'i64';
-    if (/:\s*Option<Vec<String>>$/.test(param)) return 'optstrvec';
-    if (/:\s*Vec<Vec<String>>$/.test(param)) return 'strvecvec';
-    // `OrderRequest[]` / `CancellationRequest[]` / `Order` decode through `types::FromRaw`
-    if (/:\s*(?:Vec<crate::types::\w+>|crate::types::\w+)$/.test(param)) return 'orderreqs';
-    if (/:\s*impl Into<crate::Params>/.test(param)) return 'params';
-    if (/:\s*bool$/.test(param)) return 'flag';
-    return undefined;
-}
-
-function typedDispatchArg(kind: string, i: number): string {
-    const arg = `args.get(${i}).cloned().unwrap_or_default()`;
-    return kind === 'str' ? `args.get(${i}).and_then(crate::Value::as_str).unwrap_or_default()`
-        : kind === 'optstr' ? `args.get(${i}).and_then(crate::Value::as_str)`
-        : kind === 'f64' ? `args.get(${i}).and_then(crate::Value::as_f64).unwrap_or_default()`
-        : kind === 'optf64' ? `args.get(${i}).and_then(crate::Value::as_f64)`
-        : kind === 'opti64' ? `args.get(${i}).and_then(crate::Value::as_i64)`
-        : kind === 'i64' ? `args.get(${i}).and_then(crate::Value::as_i64).unwrap_or_default()`
-        : kind === 'optstrvec' ? `${arg}.to_opt_str_vec()`
-        : kind === 'strvecvec' ? `${arg}.to_str_vec_vec()`
-        : kind === 'orderreqs' ? `crate::types::FromRaw::from_raw(${arg})`
-        : kind === 'flag' ? `args.get(${i}).is_some_and(crate::Value::is_truthy)`
-        : arg;
-}
-
-/** The typed parameter `kind` read from the boxed `Value` expression `v` (a `DerivedExchange` slot argument). */
-function typedFromValue(kind: string, v: string): string {
-    return kind === 'str' ? `${v}.as_str().unwrap_or_default()`
-        : kind === 'optstr' ? `${v}.as_str()`
-        : kind === 'flag' ? `${v}.is_truthy()`
-        : v;
-}
-
-// A typed method's `Result<T>` boxed back to the dispatcher's `Value`.
-function typedResult(call: string, isTyped: boolean | undefined): string {
-    return isTyped ? `crate::types::IntoRaw::into_raw(${call})` : call;
-}
-
-function mapParamDispatchArg(index: number): string {
-    return `&mut { let mut __m = args.get(${index}).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();\n                    __m }`;
-}
-
 /** Split a printed parameter list on top-level commas: a generic argument list
  *  (`IndexMap<String, Value>`) carries its own. */
 function mapParamSplitArgs(argList: string): string[] {
@@ -4494,10 +4430,7 @@ function refMapParamNames(content: string): Set<string> {
 const MAP_PARAM_CASES: Array<{ name: string, got: () => any, want: any }> = [
     { name: 'split keeps a generic argument list whole', got: () => mapParamSplitTopLevel('&self, a: Value, p: &mut indexmap::IndexMap<String, Value>, optional_args: &[Value]'), want: ['&self', ' a: Value', ' p: &mut indexmap::IndexMap<String, Value>', ' optional_args: &[Value]'] },
     { name: 'split handles a plain list', got: () => mapParamSplitTopLevel('&self, a: Value, b: bool'), want: ['&self', ' a: Value', ' b: bool'] },
-    { name: 'a map parameter is classified', got: () => mapParamKind('p: &mut indexmap::IndexMap<String, Value>'), want: 'map' },
-    { name: 'a Value parameter is not', got: () => mapParamKind('p: Value'), want: undefined },
     { name: 'a file\'s map-parameter names are collected', got: () => Array.from(refMapParamNames('fn f(&self, a: Value, p: &mut indexmap::IndexMap<String, Value>) {}').values()), want: ['p'] },
-    { name: 'the dispatch argument builds an owned map', got: () => mapParamDispatchArg(4), want: '&mut { let mut __m = args.get(4).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();\n                    __m }' },
 ];
 
 function mapParamDispatchSelfTest(): number {
@@ -6578,7 +6511,9 @@ export class RustTranspilerBuilder {
                 'fetchFundingRate', 'fetchFundingRates', 'fetchFundingRateHistory', 'fetchFundingHistory', 'fetchLeverage', 'fetchLeverages', 'setLeverage', 'setMarginMode', 'fetchMarginMode', 'fetchMarginModes', 'addMargin', 'reduceMargin', 'fetchOpenInterest', 'fetchOpenInterestHistory', 'fetchMarkPrice', 'fetchMarkPrices', 'fetchLiquidations', 'fetchMyLiquidations', 'fetchPositionsHistory', 'closePosition', 'closeAllPositions', 'fetchLeverageTiers', 'fetchMarketLeverageTiers', 'fetchGreeks', 'fetchOption', 'fetchOptionChain', 'fetchBidsAsks', 'fetchLastPrices', 'fetchStatus', 'fetchTime',
                 'watchTradesForSymbols', 'watchOrderBookForSymbols', 'watchOHLCVForSymbols', 'watchMyTrades', 'watchMyTradesForSymbols', 'watchOrdersForSymbols', 'watchPositions', 'watchPositionForSymbols', 'watchPosition', 'watchBidsAsks', 'watchLiquidations', 'watchLiquidationsForSymbols', 'watchMyLiquidations', 'watchMyLiquidationsForSymbols', 'watchFundingRate', 'watchFundingRates', 'watchFundingRatesForSymbols', 'watchMarkPrice', 'watchMarkPrices', 'unWatchBidsAsks', 'unWatchFundingRate', 'unWatchFundingRates', 'unWatchMarkPrice', 'unWatchMarkPrices', 'unWatchMyTrades', 'unWatchOHLCV', 'unWatchOHLCVForSymbols', 'unWatchOrderBook', 'unWatchOrderBookForSymbols', 'unWatchOrders', 'unWatchPositions', 'unWatchTicker', 'unWatchTickers', 'unWatchTrades', 'unWatchTradesForSymbols', 'cancelAllOrdersWs', 'cancelOrderWs', 'createOrderWs', 'editOrderWs', 'fetchBalanceWs', 'fetchClosedOrdersWs', 'fetchCurrenciesWs', 'fetchDepositsWs', 'fetchMarketsWs', 'fetchMyTradesWs', 'fetchOHLCVWs', 'fetchOpenOrdersWs', 'fetchOrderBookWs', 'fetchOrdersByStatusWs', 'fetchOrdersWs', 'fetchOrderWs', 'fetchPositionsForSymbolWs', 'fetchPositionsWs', 'fetchPositionWs', 'fetchTickersWs', 'fetchTickerWs', 'fetchTradesWs', 'fetchTradingFeesWs', 'fetchWithdrawalsWs', 'fetchEvents', 'fetchEvent', 'fetchSettlements',
                 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrders', 'fetchCanceledAndClosedOrders', 'fetchOrderTrades', 'cancelOrders', 'createOrders', 'editOrders', 'createLimitOrder', 'createMarketOrder', 'createLimitBuyOrder', 'createLimitSellOrder', 'createMarketBuyOrder', 'createMarketSellOrder', 'createMarketOrderWithCost', 'createMarketBuyOrderWithCost', 'createMarketSellOrderWithCost', 'createPostOnlyOrder', 'createReduceOnlyOrder', 'createStopOrder', 'createStopLimitOrder', 'createStopMarketOrder', 'createStopLossOrder', 'createTakeProfitOrder', 'createTriggerOrder', 'createTrailingAmountOrder', 'createTrailingPercentOrder', 'createOrderWithTakeProfitAndStopLoss', 'createTwapOrder',
-                'fetchAccounts', 'fetchCrossBorrowRates', 'fetchIsolatedBorrowRates', 'fetchFundingIntervals', 'createDepositAddress', 'setMargin', 'fetchLongShortRatio', 'fetchLongShortRatioHistory', 'fetchMarginAdjustmentHistory', 'fetchDepositAddressesByNetwork', 'fetchOpenInterests', 'repayCrossMargin', 'repayIsolatedMargin', 'borrowCrossMargin', 'borrowIsolatedMargin', 'borrowMargin', 'repayMargin', 'fetchSpotOHLCV', 'fetchContractOHLCV', 'fetchBorrowInterest', 'fetchLedgerEntry', 'fetchPartialBalance', 'fetchFreeBalance', 'fetchUsedBalance', 'fetchTotalBalance', 'fetchDepositWithdrawFee', 'fetchCrossBorrowRate', 'fetchIsolatedBorrowRate', 'fetchSpotTickers', 'fetchContractTickers', 'fetchOrderBooks', 'createConvertTrade', 'fetchConvertTrade', 'fetchConvertTradeHistory', 'fetchPositionMode', 'fetchADLRank', 'fetchPositionsADLRank', 'fetchPositionADLRank', 'createSpotOrders', 'createContractOrders', 'cancelSpotOrder', 'cancelContractOrder', 'cancelAllSpotOrders', 'cancelAllContractOrders', 'cancelOrdersForSymbols', 'fetchAllGreeks', 'fetchConvertQuote', 'fetchContractDepositAddress', 'fetchConvertCurrencies', 'fetchFundingInterval', 'fetchMarkOHLCV', 'fetchIndexOHLCV', 'fetchPremiumIndexOHLCV', 'fetchTransfer', 'fetchPositionHistory', 'fetchPositionsRisk', 'fetchPositionsForSymbol', 'fetchL3OrderBook', 'editLimitBuyOrder', 'editLimitSellOrder', 'editLimitOrder', 'editOrderWithClientOrderId', 'fetchOrderWithClientOrderId', 'fetchOrderStatus', 'fetchUnifiedOrder', 'cancelOrderWithClientOrderId', 'cancelOrdersWithClientOrderIds', 'cancelUnifiedOrder', 'createOrdersWs', 'cancelOrdersWs', 'withdrawWs', 'createLimitOrderWs', 'createMarketOrderWs', 'createLimitBuyOrderWs', 'createLimitSellOrderWs', 'createMarketBuyOrderWs', 'createMarketSellOrderWs', 'createMarketOrderWithCostWs', 'createPostOnlyOrderWs', 'createReduceOnlyOrderWs', 'createStopOrderWs', 'createStopLimitOrderWs', 'createStopMarketOrderWs', 'createStopLossOrderWs', 'createTakeProfitOrderWs', 'createTriggerOrderWs', 'createTrailingAmountOrderWs', 'createTrailingPercentOrderWs', 'createOrderWithTakeProfitAndStopLossWs'] },
+                'fetchAccounts', 'fetchCrossBorrowRates', 'fetchIsolatedBorrowRates', 'fetchFundingIntervals', 'createDepositAddress', 'setMargin', 'fetchLongShortRatio', 'fetchLongShortRatioHistory', 'fetchMarginAdjustmentHistory', 'fetchDepositAddressesByNetwork', 'fetchOpenInterests', 'repayCrossMargin', 'repayIsolatedMargin', 'borrowCrossMargin', 'borrowIsolatedMargin', 'borrowMargin', 'repayMargin', 'fetchSpotOHLCV', 'fetchContractOHLCV', 'fetchBorrowInterest', 'fetchLedgerEntry', 'fetchPartialBalance', 'fetchFreeBalance', 'fetchUsedBalance', 'fetchTotalBalance', 'fetchDepositWithdrawFee', 'fetchCrossBorrowRate', 'fetchIsolatedBorrowRate', 'fetchSpotTickers', 'fetchContractTickers', 'fetchOrderBooks', 'createConvertTrade', 'fetchConvertTrade', 'fetchConvertTradeHistory', 'fetchPositionMode', 'fetchADLRank', 'fetchPositionsADLRank', 'fetchPositionADLRank', 'createSpotOrders', 'createContractOrders', 'cancelSpotOrder', 'cancelContractOrder', 'cancelAllSpotOrders', 'cancelAllContractOrders', 'cancelOrdersForSymbols', 'fetchAllGreeks', 'fetchConvertQuote', 'fetchContractDepositAddress', 'fetchConvertCurrencies', 'fetchFundingInterval', 'fetchMarkOHLCV', 'fetchIndexOHLCV', 'fetchPremiumIndexOHLCV', 'fetchTransfer', 'fetchPositionHistory', 'fetchPositionsRisk', 'fetchPositionsForSymbol', 'fetchL3OrderBook', 'editLimitBuyOrder', 'editLimitSellOrder', 'editLimitOrder', 'editOrderWithClientOrderId', 'fetchOrderWithClientOrderId', 'fetchOrderStatus', 'fetchUnifiedOrder', 'cancelOrderWithClientOrderId', 'cancelOrdersWithClientOrderIds', 'cancelUnifiedOrder', 'createOrdersWs', 'cancelOrdersWs', 'withdrawWs', 'createLimitOrderWs', 'createMarketOrderWs', 'createLimitBuyOrderWs', 'createLimitSellOrderWs', 'createMarketBuyOrderWs', 'createMarketSellOrderWs', 'createMarketOrderWithCostWs', 'createPostOnlyOrderWs', 'createReduceOnlyOrderWs', 'createStopOrderWs', 'createStopLimitOrderWs', 'createStopMarketOrderWs', 'createStopLossOrderWs', 'createTakeProfitOrderWs', 'createTriggerOrderWs', 'createTrailingAmountOrderWs', 'createTrailingPercentOrderWs', 'createOrderWithTakeProfitAndStopLossWs'],
+                // base methods that ask the derived exchange first, and those printed with an `X_non_virtual` body
+                virtualDispatch: this.traitMethodSignatures(), nonVirtualShims: [ ...this.superShimmedVirtualMethods() ] },
         };
     }
 
@@ -11647,88 +11582,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    injectVirtualDispatchPreamble(content: string): string {
-        // Methods whose param shapes match the trait signatures we declared.
-        // Each entry: name → [argNames or '@SLICE@' for variadic].
-        const traitDispatches = this.traitMethodSignatures();
-        const pattern = /\bpub(\s+async)?\s+fn\s+([a-zA-Z_][a-zA-Z0-9_]*)\(([^)]*)\)\s*(->\s*[^\{]+?)?\s*\{/g;
-        let out = '';
-        let last = 0;
-        let m: RegExpExecArray | null;
-        while ((m = pattern.exec(content)) !== null) {
-            const name = m[2];
-            const sig = traitDispatches[name];
-            if (!sig) continue;
-            const retType = (m[4] || '').trim();
-            const typedRet = /->\s*crate::Result</.test(retType);
-            if (!/->\s*(crate::)?Value\b/.test(retType) && !typedRet) continue;
-            // Build the forwarding call. The trait method takes fixed-arity
-            // `Value` args; we pull them from the inherent method's params.
-            const argList = m[3];
-            const params = mapParamSplitArgs(argList).slice(1).map(s => s.trim()).filter(p => p.length > 0);
-            // Classify each inherent param: 'value' (a fixed Value),
-            // 'slice' (the `optional_args: &[Value]` bag), or unknown.
-            type ParamInfo = { name: string, kind: 'value' | 'slice' | 'typed' | 'other' };
-            const paramInfo: ParamInfo[] = [];
-            for (const p of params) {
-                const nameMatch = p.match(/^(mut\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*(.*)$/);
-                if (!nameMatch) { paramInfo.push({ name: '', kind: 'other' }); continue; }
-                const ty = nameMatch[3].trim();
-                let kind: 'value' | 'slice' | 'typed' | 'other' = 'other';
-                if (/^&\[/.test(ty))          kind = 'slice';
-                else if (/^Value\b/.test(ty)) kind = 'value';
-                else if (typedParamKind(p) === 'str') kind = 'typed';
-                paramInfo.push({ name: nameMatch[2], kind });
-            }
-            const sliceIdx = paramInfo.findIndex(p => p.kind === 'slice');
-            const sliceName = sliceIdx >= 0 ? paramInfo[sliceIdx].name : '';
-            // Map each trait arg to either a fixed inherent param
-            // (by position) or `get_arg(optional_args, k, Null)`.
-            const callArgs = sig.map((argName, i) => {
-                if (argName === '@SLICE@') {
-                    // For variadic methods, the trait takes a fixed shape;
-                    // skip preamble (don't generate forwarding here).
-                    return null;
-                }
-                const info = paramInfo[i];
-                if (info && info.kind === 'value') {
-                    return `${info.name}.clone()`;
-                }
-                if (info && info.kind === 'typed') {
-                    return `crate::Value::from(${info.name})`;
-                }
-                // Trait arg lands past the fixed inherent params — pull
-                // it from the optional_args slice.
-                if (sliceIdx >= 0 && i >= sliceIdx) {
-                    const k = i - sliceIdx;
-                    return `crate::runtime::get_arg(${sliceName}, ${k}, crate::Value::Null)`;
-                }
-                return 'crate::Value::Null';
-            });
-            if (callArgs.includes(null)) continue;
-            // Static dispatch to the derived override — `self` is the concrete
-            // Core (Self), so this monomorphizes to its `DerivedExchange` impl
-            // (override or the trait default). No stored pointer (review #1).
-            const callExpr = `crate::exchange::DerivedExchange::${name}(self, ${callArgs.join(', ')})`;
-            const preamble =
-                `\n        // virtual-dispatch (static: DerivedExchange::${name}(self, ...))\n` +
-                `        { let __v = ${callExpr}; if !matches!(__v, crate::Value::Null) { return ${typedRet ? 'Ok(crate::types::FromRaw::from_raw(__v))' : '__v'}; } }\n`;
-            if (this.superShimmedVirtualMethods().has(name)) {
-                // overrides that call super.X() reach `X_non_virtual`, so the virtual hop cannot recurse
-                const fwd = paramInfo.map(p => p.name).join(', ');
-                const wrapper = `pub fn ${name}(${argList}) ${retType} {${preamble}        self.${name}_non_virtual(${fwd})\n    }\n\n    `;
-                out += content.slice(last, m.index) + wrapper + m[0].replace(`fn ${name}(`, `fn ${name}_non_virtual(`);
-                last = m.index + m[0].length;
-                continue;
-            }
-            const matchEnd = m.index + m[0].length;
-            out += content.slice(last, matchEnd) + preamble;
-            last = matchEnd;
-        }
-        out += content.slice(last);
-        return out;
-    }
-
     /** Trait methods whose overrides call `super.X()`; their base body is emitted as `X_non_virtual`. */
     superShimmedVirtualMethods(): Set<string> {
         return new Set([ 'market' ]);
@@ -11794,67 +11647,36 @@ export class RustTranspilerBuilder {
     }
 
     /**
-     * Scans transpiled per-exchange Rust for method signatures. Returns
-     * { name, isAsync, params } so we can emit a virtual-dispatch arm
-     * that forwards `(name, &[args])` to the typed method.
-     *
-     * Only considers `pub fn` and `pub async fn` at indented positions
-     * (i.e. inside `impl` blocks). Skips synthetic helpers like `new`
-     * and `bind`/`dispatch_virtual` we generate ourselves.
+     * The dispatchable methods of a printed file, from the printer's signature table (`rustSignatures`: parameter
+     * and return kinds per method). Only two facts come from the final text, because later passes decide them:
+     * whether the method is `async`, and whether its receiver was promoted to `&mut self`.
      */
-    collectExchangeMethodSignatures(content: string, allowNoPub = false): Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean, isTyped?: boolean }> {
-        const out: Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean, isTyped?: boolean }> = [];
-        // Match `[pub] [async] fn NAME(&self|&mut self, ARG_LIST) [-> Ret] {`.
-        // `allowNoPub` (used only for the `ExchangeBase` trait body → its
-        // `call_dynamic_base`) makes `pub` optional because trait methods are
-        // emitted without it (review #1): otherwise base-only methods
-        // (createTakeProfitOrder, fetchPositionADLRank, …) get no dispatch arm
-        // and return Null. For per-Core content `pub` stays required so local
-        // `fn`s inside method bodies aren't picked up.
-        const pub = allowNoPub ? '(?:pub\\s+)?' : 'pub\\s+';
-        const re = new RegExp(`\\b${pub}(async\\s+)?fn\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\(([^)]*)\\)\\s*(->\\s*[^\\{]+?)?\\s*\\{`, 'g');
-        let m: RegExpExecArray | null;
-        while ((m = re.exec(content)) !== null) {
-            const isAsync = m[1] !== undefined && m[1].trim().length > 0;
-            const name = m[2];
-            const argList = m[3];
-            const retType = (m[4] || '').trim();
-            if (['new', 'bind', 'dispatch_virtual', 'super_describe', 'super_set_sandbox_mode'].includes(name)) {
-                continue;
-            }
-            // Methods returning `Value` dispatch directly. Async methods that
-            // DON'T return Value (void handlers like `handle_order_book`, which
-            // WS venues schedule via spawn/delay and then run through
-            // dispatch_to_derived → call_dynamic) must still be dispatchable —
-            // emit them with the return value discarded (see `isVoid` in the
-            // emitters). Sync non-Value methods stay out (they route through the
-            // sync dispatch_ws_handler, which already void-wraps them).
-            const isValue = /->\s*(crate::)?Value\b/.test(retType);
-            const isTyped = /->\s*crate::Result</.test(retType);
-            if (!isValue && !isAsync && !isTyped) continue;
-            const isVoid = !isValue && !isTyped;
-            // Skip if there's no `self` receiver.
-            if (!/\bself\b/.test(argList)) continue;
-            const params = mapParamSplitArgs(argList).slice(1).map(s => s.trim()).filter(p => p.length > 0);
-            const paramKinds = params.map(p => {
-                const typedKind = typedParamKind(p);
-                if (typedKind !== undefined) return typedKind;
-                if (/:\s*&\[/.test(p)) return 'slice';
-                if (mapParamKind(p) !== undefined) return 'map';
-                if (/:\s*Vec<String>/.test(p)) return 'strvec';
-                if (/:\s*Value\b/.test(p)) return 'value';
-                if (/:\s*bool\b/.test(p)) return 'bool';
-                return 'other';
-            });
+    collectExchangeMethodSignatures(table: Array<{ name: string, params: Array<{ kind: string }>, ret: string }> | undefined, content: string, allowNoPub = false): Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean, isTyped?: boolean | string }> {
+        const facts = this.receiverFacts(content, allowNoPub);
+        const out: Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean, isTyped?: boolean | string }> = [];
+        for (const sig of table ?? []) {
+            const fact = facts.get(sig.name);
+            if (fact === undefined || [ 'new', 'bind', 'dispatch_virtual', 'super_describe', 'super_set_sandbox_mode' ].includes(sig.name)) continue;
+            // a sync method dispatches only when it returns a value (sync void handlers go through dispatch_ws_handler)
+            const isValue = sig.ret === 'value';
+            // a typed or native return boxes back to `Value` once, inside the arm (`isTyped` carries the return kind)
+            const isTyped: boolean | string = sig.ret === 'typed' ? true : rustDispatch.isNativeReturn(sig.ret) ? sig.ret : false;
+            if (!isValue && !fact.isAsync && isTyped === false) continue;
+            const paramKinds = sig.params.map(p => p.kind);
             if (paramKinds.some(k => k === 'other')) continue;
-            // Receiver mutability — the DerivedExchange forwarder only needs the
-            // unsafe `&`→`&mut` cast when the inherent method really takes
-            // `&mut self`; for `&self` methods (parse_ticker/parse_market/sign/
-            // handle_errors, …) it can forward directly and soundly.
-            const isMut = /^\s*&mut\s+self\b/.test(argList);
-            out.push({ name, isAsync, paramKinds, isMut, isVoid, isTyped });
+            out.push({ name: sig.name, isAsync: fact.isAsync, paramKinds, isMut: fact.isMut, isVoid: !isValue && isTyped === false, isTyped });
         }
         return out;
+    }
+
+    /** Per printed method name: its final `async` keyword and `&mut self` receiver (decided by later text passes). */
+    receiverFacts(content: string, allowNoPub = false): Map<string, { isAsync: boolean, isMut: boolean }> {
+        const facts = new Map<string, { isAsync: boolean, isMut: boolean }>();
+        const re = new RegExp(`\\b${allowNoPub ? '(?:pub\\s+)?' : 'pub\\s+'}(async\\s+)?fn\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\(\\s*(&mut\\s+self|&self)\\b`, 'g');
+        for (const m of content.matchAll(re)) {
+            if (!facts.has(m[2])) facts.set(m[2], { isAsync: m[1] !== undefined, isMut: m[3].startsWith('&mut') });
+        }
+        return facts;
     }
 
     /**
@@ -11926,19 +11748,12 @@ export class RustTranspilerBuilder {
 `;
     }
 
-    /// Tail of a dynamic-dispatch `args` list as a slice: `&args[..]` for the
-    /// whole list, `&args[N.min(args.len())..]` for the tail. Same slice the
-    /// old `&args.get(N..).unwrap_or(&[]).to_vec()[..]` passed, without the copy.
-    dispatchSliceArg(index: number): string {
-        return index === 0 ? '&args[..]' : `&args[${index}.min(args.len())..]`;
-    }
-
     /// The prediction-only `call_dynamic_prediction_base` trait default: a
     /// `match` over prediction base method names, falling through to the
     /// Exchange `call_dynamic_base`. A prediction Core's `call_dynamic` ends
     /// with `_ => self.call_dynamic_prediction_base(method, args).await`.
-    emitCallDynamicPredictionBase(content: string): string {
-        const sigs = this.collectExchangeMethodSignatures(content, /* allowNoPub */ true);
+    emitCallDynamicPredictionBase(table: any[], content: string): string {
+        const sigs = this.collectExchangeMethodSignatures(table, content, /* allowNoPub */ true);
         // Qualify only genuinely-ambiguous names (also in ExchangeBase /
         // DerivedExchange); a bare call for a prediction-only method avoids the
         // async-trait-fn lifetime error (E0792).
@@ -11953,27 +11768,12 @@ export class RustTranspilerBuilder {
         const arms: string[] = [];
         for (const { name, paramKinds, isAsync, isVoid, isTyped } of sigs as any[]) {
             if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base', 'call_dynamic_prediction_base', 'pred', 'pred_mut'].includes(name)) continue;
-            const callArgs: string[] = [];
-            for (let i = 0; i < paramKinds.length; i++) {
-                if (paramKinds[i] === 'value') {
-                    callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
-                } else if (paramKinds[i] === 'bool') {
-                    callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
-                } else if (paramKinds[i] === 'strvec') {
-                    callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
-                } else if (paramKinds[i] === 'map') {
-                    callArgs.push(mapParamDispatchArg(i));
-                } else if (TYPED_PARAM_KINDS.has(paramKinds[i])) {
-                    callArgs.push(typedDispatchArg(paramKinds[i], i));
-                } else if (paramKinds[i] === 'slice') {
-                    callArgs.push(this.dispatchSliceArg(i));
-                }
-            }
+            const callArgs = rustDispatch.args(paramKinds);
             // Every arm is a prediction base method; several override an
             // ExchangeBase method of the same name (cancel_order, create_order),
             // so always qualify to PredictionBase to avoid ambiguity (review #1).
             const recv = `<Self as crate::prediction_exchange_generated::PredictionBase>::${name}(self${callArgs.length ? ', ' : ''}${callArgs.join(', ')})`;
-            const expr = typedResult(`${recv}${isAsync ? '.await' : ''}`, isTyped);
+            const expr = rustDispatch.result(`${recv}${isAsync ? '.await' : ''}`, isTyped);
             arms.push(`            "${name}" => ${isVoid ? `{ ${expr}; crate::Value::Null }` : expr},`);
         }
         arms.sort();
@@ -11994,8 +11794,8 @@ ${arms.join('\n')}
     /// method names (the async ones a core inherits, e.g.
     /// cancel_order_with_client_order_id). A core's `call_dynamic` ends with
     /// `_ => self.call_dynamic_base(method, args).await`.
-    emitCallDynamicBaseTrait(content: string): string {
-        const sigs = this.collectExchangeMethodSignatures(content, /* allowNoPub */ true);
+    emitCallDynamicBaseTrait(table: any[], content: string): string {
+        const sigs = this.collectExchangeMethodSignatures(table, content, /* allowNoPub */ true);
         const handWritten: Array<{ name: string, isAsync: boolean, paramKinds: string[], isTyped?: boolean }> = [
             { name: 'load_markets',    isAsync: true,  paramKinds: ['flag', 'params'], isTyped: true },
             { name: 'fetch',           isAsync: true,  paramKinds: ['value', 'slice'] },
@@ -12010,26 +11810,11 @@ ${arms.join('\n')}
         const arms: string[] = [];
         for (const { name, paramKinds, isAsync, isVoid, isTyped } of sigs as any[]) {
             if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base'].includes(name)) continue;
-            const callArgs: string[] = [];
-            for (let i = 0; i < paramKinds.length; i++) {
-                if (paramKinds[i] === 'value') {
-                    callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
-                } else if (paramKinds[i] === 'bool') {
-                    callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
-                } else if (paramKinds[i] === 'strvec') {
-                    callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
-                } else if (paramKinds[i] === 'map') {
-                    callArgs.push(mapParamDispatchArg(i));
-                } else if (TYPED_PARAM_KINDS.has(paramKinds[i])) {
-                    callArgs.push(typedDispatchArg(paramKinds[i], i));
-                } else if (paramKinds[i] === 'slice') {
-                    callArgs.push(this.dispatchSliceArg(i));
-                }
-            }
+            const callArgs = rustDispatch.args(paramKinds);
             const recv = collide.has(name)
                 ? `<Self as crate::exchange_generated::ExchangeBase>::${name}(self${callArgs.length ? ', ' : ''}${callArgs.join(', ')})`
                 : `self.${name}(${callArgs.join(', ')})`;
-            const expr = typedResult(`${recv}${isAsync ? '.await' : ''}`, isTyped);
+            const expr = rustDispatch.result(`${recv}${isAsync ? '.await' : ''}`, isTyped);
             arms.push(`            "${name}" => ${isVoid ? `{ ${expr}; crate::Value::Null }` : expr},`);
         }
         arms.sort();
@@ -12069,8 +11854,8 @@ ${arms.join('\n')}
     }`;
     }
 
-    emitCallDynamicForBase(content: string): string {
-        const sigs = this.collectExchangeMethodSignatures(content);
+    emitCallDynamicForBase(table: any[], content: string): string {
+        const sigs = this.collectExchangeMethodSignatures(table, content);
         // Hand-written base methods (`load_markets`, `sign_in`, `fetch`,
         // …) live in `exchange_stubs.rs` so the regex transpiler never
         // sees them. Without arms here, `live_dispatch::dispatch(&mut
@@ -12094,26 +11879,8 @@ ${arms.join('\n')}
         for (const { name, isAsync, paramKinds, isVoid, isTyped } of sigs as any[]) {
             // Skip names that already clash with the synthesized helpers.
             if (['describe', 'new', 'bind', 'init', 'call_dynamic'].includes(name)) continue;
-            const callArgs: string[] = [];
-            for (let i = 0; i < paramKinds.length; i++) {
-                if (paramKinds[i] === 'value') {
-                    // Pull args[i] (cloned), defaulting to Null.
-                    callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
-                } else if (paramKinds[i] === 'bool') {
-                    // A native `bool` slot takes the same truthiness the body used.
-                    callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
-                } else if (paramKinds[i] === 'strvec') {
-                    callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
-                } else if (paramKinds[i] === 'map') {
-                    callArgs.push(mapParamDispatchArg(i));
-                } else if (TYPED_PARAM_KINDS.has(paramKinds[i])) {
-                    callArgs.push(typedDispatchArg(paramKinds[i], i));
-                } else if (paramKinds[i] === 'slice') {
-                    // Pass the remaining args as a slice of `args` itself.
-                    callArgs.push(this.dispatchSliceArg(i));
-                }
-            }
-            const callExpr = typedResult(`self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}`, isTyped);
+            const callArgs = rustDispatch.args(paramKinds);
+            const callExpr = rustDispatch.result(`self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}`, isTyped);
             arms.push(`            "${name}" => ${isVoid ? `{ ${callExpr}; crate::Value::Null }` : callExpr},`);
         }
         // Sort arms for stable diffs.
@@ -12144,23 +11911,8 @@ ${isBase
         const arms: string[] = [];
         for (const { name, isAsync, paramKinds, isVoid, isTyped } of sigs as any[]) {
             if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base', 'call_dynamic_prediction_base', 'pred', 'pred_mut'].includes(name)) continue;
-            const callArgs: string[] = [];
-            for (let i = 0; i < paramKinds.length; i++) {
-                if (paramKinds[i] === 'value') {
-                    callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
-                } else if (paramKinds[i] === 'bool') {
-                    callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
-                } else if (paramKinds[i] === 'strvec') {
-                    callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
-                } else if (paramKinds[i] === 'map') {
-                    callArgs.push(mapParamDispatchArg(i));
-                } else if (TYPED_PARAM_KINDS.has(paramKinds[i])) {
-                    callArgs.push(typedDispatchArg(paramKinds[i], i));
-                } else if (paramKinds[i] === 'slice') {
-                    callArgs.push(this.dispatchSliceArg(i));
-                }
-            }
-            arms.push(`                "${name}" => ${isVoid ? `{ self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}; crate::Value::Null }` : typedResult(`self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}`, isTyped)},`);
+            const callArgs = rustDispatch.args(paramKinds);
+            arms.push(`                "${name}" => ${isVoid ? `{ self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}; crate::Value::Null }` : rustDispatch.result(`self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}`, isTyped)},`);
         }
         // `handle_message(&mut self, client, message)` returns `()`, so it's
         // filtered out of `sigs` (dispatch arms must yield a Value). The base
@@ -12205,51 +11957,31 @@ ${fallthrough}
      * itself can stay sync (called from the sync `handle_message`). Unknown /
      * async names are no-ops. Returns '' when the Core has no such handlers.
      */
-    emitWsHandlerDispatch(coreName: string, content: string): string {
+    emitWsHandlerDispatch(coreName: string, table: Array<{ name: string, params: Array<{ kind: string }>, ret: string }> | undefined, content: string): string {
         const arms: string[] = [];
         const seen = new Set<string>();
-        // Every *sync* method: `pub fn NAME(args) [-> Ret] {`. A handler-dispatch
-        // table can reference any of them (some venues' handlers return `()`,
-        // others return `Value`), so include both — void gets wrapped, a Value
-        // return is forwarded, and any other return type is skipped (can't be
-        // coerced to the dispatcher's `Value` result).
-        const re = /\bpub\s+(async\s+)?fn\s+([a-z_][a-zA-Z0-9_]*)\s*\(([^)]*)\)\s*(->\s*[^{]+?)?\s*\{/g;
-        let m: RegExpExecArray | null;
-        while ((m = re.exec(content)) !== null) {
-            const isAsync = !!(m[1] && m[1].trim());
-            const name = m[2];
-            const argList = m[3];
-            const retType = (m[4] || '').trim();
-            if (['new', 'bind', 'init', 'describe', 'dispatch_ws_handler'].includes(name)) continue;
-            if (!/\bself\b/.test(argList)) continue;
-            if (seen.has(name)) continue;
-            // Async handlers (e.g. htx `handle_order_book_snapshot`, fetched via a
-            // subscription-status dispatch table) can't be `.await`ed from the sync
-            // dispatcher. Queue them onto the spawn queue — `ws_run` drains and
-            // awaits them right after `handle_message`, same as `this.spawn(...)`.
-            if (isAsync) {
+        // Every method of the printed file: a handler-dispatch table can reference any of them (some venues'
+        // handlers return `()`, others `Value`), so void gets wrapped, a Value return is forwarded, and any
+        // other return type (e.g. `-> bool`) is not dispatchable.
+        const facts = this.receiverFacts(content);
+        for (const sig of table ?? []) {
+            const name = sig.name;
+            const fact = facts.get(name);
+            if (fact === undefined || [ 'new', 'bind', 'init', 'describe', 'dispatch_ws_handler' ].includes(name) || seen.has(name)) continue;
+            // Async handlers (e.g. htx `handle_order_book_snapshot`, fetched via a subscription-status dispatch
+            // table) can't be `.await`ed from the sync dispatcher. Queue them onto the spawn queue — `ws_run`
+            // drains and awaits them right after `handle_message`, same as `this.spawn(...)`.
+            if (fact.isAsync) {
                 seen.add(name);
                 arms.push(`            "${name}" => { crate::exchange_stubs::enqueue_spawn("${name}", args.to_vec()); crate::Value::Null },`);
                 continue;
             }
-            const isVoid = retType === '';
-            const isValue = /->\s*(crate::)?Value\s*$/.test(retType);
-            if (!isVoid && !isValue) continue; // e.g. `-> bool` — not dispatchable
-            const params = mapParamSplitArgs(argList).slice(1).map(s => s.trim()).filter(Boolean);
-            const kinds = params.map(p => /:\s*&\[/.test(p) ? 'slice' : (mapParamKind(p) !== undefined ? 'map' : (/:\s*Vec<String>/.test(p) ? 'strvec' : (p.match(/:\s*bool\b/) ? 'bool' : (p.match(/:\s*Value\b/) ? 'value' : 'other')))));
-            if (kinds.some(k => k === 'other')) continue;
+            if (sig.ret !== 'void' && sig.ret !== 'value') continue;
+            const callArgs = sig.params.map((p, i) => rustDispatch.wsArg(p.kind, i));
+            if (callArgs.some(a => a === undefined)) continue;
             seen.add(name);
-            const callArgs = kinds.map((k, i) => k === 'slice'
-                ? this.dispatchSliceArg(i)
-                : k === 'strvec'
-                    ? `args.get(${i}).cloned().unwrap_or_default().to_str_vec()`
-                    : k === 'bool'
-                    ? `args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`
-                    : k === 'map'
-                        ? mapParamDispatchArg(i)
-                        : `args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
             const call = `self.${name}(${callArgs.join(', ')})`;
-            arms.push(isVoid
+            arms.push(sig.ret === 'void'
                 ? `            "${name}" => { ${call}; crate::Value::Null },`
                 : `            "${name}" => ${call},`);
         }
@@ -12312,8 +12044,8 @@ ${arms.join('\n')}
                 if (kind === 'value') {
                     callArgs.push(args[traitIdx] ?? 'crate::Value::Null');
                     traitIdx++;
-                } else if (TYPED_PARAM_KINDS.has(kind)) {
-                    callArgs.push(typedFromValue(kind, args[traitIdx] ?? 'crate::Value::Null'));
+                } else if (rustDispatch.isTyped(kind)) {
+                    callArgs.push(rustDispatch.fromValue(kind, args[traitIdx] ?? 'crate::Value::Null'));
                     traitIdx++;
                 } else if (kind === 'slice') {
                     const rest = args.slice(traitIdx)
@@ -12333,10 +12065,10 @@ ${arms.join('\n')}
                 // genuinely-mut virtuals.
                 out.push(`        #[allow(invalid_reference_casting)]`);
                 out.push(`        let me = unsafe { &mut *(self as *const ${coreName} as *mut ${coreName}) };`);
-                out.push(`        ${typedResult(`${coreName}::${name}(me, ${callArgs.join(', ')})`, (inh as any).isTyped)}`);
+                out.push(`        ${rustDispatch.result(`${coreName}::${name}(me, ${callArgs.join(', ')})`, (inh as any).isTyped)}`);
             } else {
                 // Inherent method takes `&self` — forward directly, no cast, sound.
-                out.push(`        ${typedResult(`${coreName}::${name}(self, ${callArgs.join(', ')})`, (inh as any).isTyped)}`);
+                out.push(`        ${rustDispatch.result(`${coreName}::${name}(self, ${callArgs.join(', ')})`, (inh as any).isTyped)}`);
             }
             out.push(`    }`);
         }
@@ -12711,7 +12443,7 @@ ${proImport}${predImport}`;
 
         // Collect inherent methods so we can emit a `DerivedExchange`
         // impl block that forwards trait methods to the inherent ones.
-        const methodSigs = this.collectExchangeMethodSignatures(content);
+        const methodSigs = this.collectExchangeMethodSignatures(rustResult.rustSignatures, content);
         const methodNames = new Set(methodSigs.map(s => s.name));
         // Go-style inheritance for a subclass/WS Core: a bare `self.X(...)` call
         // to a method the Core does NOT define itself and that is NOT a base
@@ -12757,7 +12489,7 @@ ${proImport}${predImport}`;
         // Sync WS handler dispatch (used by the rewritten `method.call(...)` in
         // handle_message). WS-only — REST/prediction have no `.call` dispatch, so
         // emitting it there would be dead code (and needless churn).
-        const wsHandlerDispatchRaw = ws ? this.emitWsHandlerDispatch(coreName, content) : '';
+        const wsHandlerDispatchRaw = ws ? this.emitWsHandlerDispatch(coreName, rustResult.rustSignatures, content) : '';
         // Prepend the separating newline only when non-empty, so a REST/prediction
         // Core (empty) leaves the surrounding layout byte-for-byte unchanged.
         const wsHandlerDispatch = wsHandlerDispatchRaw ? '\n' + wsHandlerDispatchRaw : '';
@@ -13636,7 +13368,6 @@ impl std::ops::DerefMut for ${coreName} {
 
         // Route Exchange.ts virtual methods through the derived dispatcher
         // (Go-style: this.parseTicker(...) → this.DerivedExchange.ParseTicker(...)).
-        basePart = this.injectVirtualDispatchPreamble(basePart);
         basePart = this.injectAsyncDispatchPreamble(basePart);
 
         // Collision disambiguation (ExchangeBase trait only). ~33 base method
@@ -13796,9 +13527,9 @@ impl std::ops::DerefMut for ${coreName} {
             traitBody,
             // call_dynamic_base — base-only async methods (cancelOrderWith…) that
             // a core's `call_dynamic` falls through to.
-            isExchangeBase ? this.emitCallDynamicBaseTrait(traitBodyForSigs)
-                : isPredictionBase ? this.emitCallDynamicPredictionBase(traitBodyForSigs)
-                : this.emitCallDynamicForBase(basePart),
+            isExchangeBase ? this.emitCallDynamicBaseTrait(result.rustSignatures, traitBodyForSigs)
+                : isPredictionBase ? this.emitCallDynamicPredictionBase(result.rustSignatures, traitBodyForSigs)
+                : this.emitCallDynamicForBase(result.rustSignatures, basePart),
             '}',
             '',
         ].join('\n')
