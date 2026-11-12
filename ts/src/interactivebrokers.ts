@@ -412,11 +412,17 @@ export default class interactivebrokers extends Exchange {
                         'STK': [ 'NYSE' ], // "AMEX,NYSE,CBOE,PHLX,CHX,ARCA,ISLAND,ISE,IDEAL,NASDAQQ,REALNYSE,DRCTEDGE,BEX,BATS,NITEECN,EDGEA,CSFBALGO,PSX,BYX,ITG,PDQ,IBKRATS,NYSEFLOOR,CITADEL,NYSEDARK,MIAX,IBDARK,CITADELDP,NASDDARK,IEX,WEDBUSH,SUMMER,WINSLOW,FINRA,LIQITG,UBSDARK,BTIG,VIRTU,JEFF,OPCO,COWEN,DBK,JPMC,EDGX,JANE,NEEDHAM,FRACSHARE,RBCALGO,VIRTUDP,BAYCREST,FOXRIVER,MND,NITEEXST,PEARL,GSDARK,NITERTL,NYSENAT,IEXMID,HRT,FLOWTRADE,HRTDP,JANELP,PEAK6,CTDLZERO,HRTMID,JANEZERO,HRTEXST,IMCLP,LTSE,SOCGENDP,MEMX,INTELCROS,VIRTUBYIN,JUMPTRADE,NITEZERO,TPLUS1,XTXEXST,XTXDP,XTXMID,COWENLP,BARCDP,JUMPLP,OLDMCLP,RBCCMALP,WALLBETH,IBEOS,JONES,GSLP,BLUEOCEAN,USIBSILP,OVERNIGHT,JANEMID,IBATSEOS,HRTZERO,VIRTUALGO,G1XLP,VIRTUMID,GLOBALXLP,CTDLMID,TPLUS0, SMART;AMEX;BATS;BOX;CBOE;CBOE2;EDGX;EMERALD;…2;NASDAQBX;NASDAQOM; OTC,IDEAL,IBFX,UBSFX,JPMCFX,DBKFX,CITIFX,BARCFX,RBSFX,RBCFX,BOAFX,HSBCFX,GSFX,IDEALFX,NOMFX,MSFX,BARC2FX,ETFFX,NATIXISFX,NOM2FX,CSFX,DBK2FX,RBS2FX,UBS2FX,BOA2FX,GS2FX,JPMC2FX,RBC2FX,SCBFX,CITADELFX,KNIGHTFX,HSBC2FX,CBKFX,SCB2FX,CBK2FX,NOM3FX,BNPFX,BNP2FX,VIRTUFX,ANZFX,ANZ2FX,XTXFX,FXSETTLE,TDFX,WFFX,CITI2FX,IBCMSCFX,WF2FX,BNYFX,BNY2FX,PEARL;PHLX;PSE;SAPPHIRE
                         // 'CRYPTO': [ 'PAXOS', 'ZEROHASH', 'ZEROHASHE' ],
                     },
-                    'types': [ 'crypto', 'forex', 'swap', 'future', 'cfd', 'stock' ], // 'crypto', 'forex', 'swap', 'future', 'cfd', 'stock'
+                    'types': [ 'crypto', 'forex', 'swap', 'future', 'cfd', 'stock' ], // 'crypto', 'forex', 'swap', 'future', 'cfd', 'stock', 'bond' (bonds are opt-in)
                     'stockAmountIncrement': '1',
                     'forexAmountIncrement': '1',
                     'cryptoAmountIncrement': '0.00000001',
                     'contractAmountIncrement': '1',
+                    'bondAmountIncrement': '1',
+                    // bonds are only loaded with 'bond' in types, the issuers are resolved via iserver/secdef/search, US-T = US treasuries (bills, notes, bonds, tips, strips)
+                    'bondSymbols': [ 'US-T' ],
+                    // narrows the bonds of each issuer, a dict of iserver/secdef/bond-filters columnId -> value, e.g. { '29': 'Notes', '27': '202701' }
+                    // 29 = type (Bills, Notes, Bonds, ...), 27 = maturity month (YYYYMM), 28 = issue date (YYYYMMDD), 25 = coupon (4.125, No Coupon)
+                    'bondFilters': {},
                     // coinbase derivatives perp-style futures (COINDERIV), IBKR symbol -> unified base, resolved via trsrv/futures
                     // https://investors.interactivebrokers.com/en/index.php?f=26662&hm=us&ex=us&rgt=0&rsk=1&pm=0&rst=101004100808080101
                     // https://www.interactivebrokers.com/en/pricing/commissions-futures.php?region=americas
@@ -614,6 +620,7 @@ export default class interactivebrokers extends Exchange {
                     ' doesn\'t exist': OrderNotFound, // {"error":"OrderID 468370477 doesn't exist"}
                     'Please query /accounts first': AuthenticationError, // {"error":"Please query /accounts first"}
                     'Cash Quantity cannot be used for this order': InvalidOrder, // {"error":"Cash Quantity cannot be used for this order"}
+                    'No Contracts retrieved': NullResponse, // {"error":"No Contracts retrieved "}
                 },
             },
             'commonCurrencies': {},
@@ -1275,8 +1282,10 @@ export default class interactivebrokers extends Exchange {
     /**
      * @method
      * @name interactivebrokers#fetchMarkets
-     * @description retrieves data on the market types of options.fetchMarkets.types: stocks of options.fetchMarkets.exchanges.STK, crypto of options.fetchMarkets.cryptoSpotSymbols, fx pairs of options.fetchMarkets.forexCurrencies, coinbase derivatives perp-style futures of options.fetchMarkets.cryptoCoinbasePerpSymbols (as swap, e.g. BTC/USD:USD), dated CME and coinbase derivatives crypto futures of options.fetchMarkets.cryptoCmeFutureSymbols (as future, e.g. BTC/USD:USD-261127) and cfds of options.fetchMarkets.cfdExchanges (as swap, e.g. AAPL/USD:USD), the market id is the IBKR conid
+     * @description retrieves data on the market types of options.fetchMarkets.types: stocks of options.fetchMarkets.exchanges.STK, crypto of options.fetchMarkets.cryptoSpotSymbols, fx pairs of options.fetchMarkets.forexCurrencies, coinbase derivatives perp-style futures of options.fetchMarkets.cryptoCoinbasePerpSymbols (as swap, e.g. BTC/USD:USD), dated CME and coinbase derivatives crypto futures of options.fetchMarkets.cryptoCmeFutureSymbols (as future, e.g. BTC/USD:USD-261127) and cfds of options.fetchMarkets.cfdExchanges (as swap, e.g. AAPL/USD:USD), bonds of options.fetchMarkets.bondSymbols are loaded only with 'bond' in options.fetchMarkets.types (as spot, e.g. US-T-4.125-270131.SMART/USD), the market id is the IBKR conid
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-conids-by-exchange
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-bond-filters
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-info-and-rules
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-future-by-symbol
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-contract-symbols-from-body
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-currency-pairs
@@ -1306,6 +1315,9 @@ export default class interactivebrokers extends Exchange {
         }
         if (this.inArray ('cfd', types)) {
             promises.push (this.fetchCfdMarkets (params));
+        }
+        if (this.inArray ('bond', types)) {
+            promises.push (this.fetchBondMarkets (params));
         }
         const results = await Promise.all (promises);
         const markets = this.arraysConcat (results);
@@ -1665,6 +1677,145 @@ export default class interactivebrokers extends Exchange {
         return this.parseMarkets (result);
     }
 
+    /**
+     * @method
+     * @name interactivebrokers#fetchBondContracts
+     * @description retrieves the bonds of a single issuer, an issuer without bonds matching the filters returns an empty list
+     * @ignore
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-info-and-rules
+     * @param {object} request the iserver/secdef/info request, with sectype, issuerId and optionally filters
+     * @returns {object[]} a list of bond contracts
+     */
+    async fetchBondContracts (request: Dict): Promise<List> {
+        try {
+            const response = await this.webapiGetV1ApiIserverSecdefInfo (request);
+            return this.toArray (response);
+        } catch (e) {
+            if (e instanceof NullResponse) {
+                return []; // {"error":"No Contracts retrieved "}
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchBondMarkets
+     * @description retrieves the bonds of the issuers of options.fetchMarkets.bondSymbols, narrowed by options.fetchMarkets.bondFilters
+     * @ignore
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-contract-symbols-from-body
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-bond-filters
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-info-and-rules
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchBondMarkets (params: Dict = {}): Promise<Market[]> {
+        const entries: Dict = {};
+        const options = this.safeDict (this.options, 'fetchMarkets', {});
+        const bondSymbols = this.safeList (options, 'bondSymbols', []);
+        const bondFilters = this.safeDict (options, 'bondFilters', {});
+        const searchPromises = [];
+        for (let i = 0; i < bondSymbols.length; i++) {
+            const searchRequest: Dict = {
+                'symbol': bondSymbols[i],
+                'secType': 'BOND',
+            };
+            searchPromises.push (this.webapiPostV1ApiIserverSecdefSearch (this.extend (searchRequest, params)));
+            //
+            //     [
+            //         {
+            //             "issuers": [
+            //                 { "id": "e1359061", "name": "United States Treasury" },
+            //                 { "id": "e3773654", "name": "United States Treasury Floating Rate Note" }
+            //             ],
+            //             "bondid": 0,
+            //             "conid": "2147483647",
+            //             "companyHeader": "Government Fixed Income",
+            //             "sections": [ { "secType": "BOND" } ]
+            //         }
+            //     ]
+            //
+        }
+        const searchResults: List = await Promise.all (searchPromises);
+        // the filters are sent as columnId:value pairs joined by a comma, e.g. 29:Notes,27:202701
+        const filterIds = Object.keys (bondFilters);
+        const filterParts = [];
+        for (let i = 0; i < filterIds.length; i++) {
+            const filterId = filterIds[i];
+            filterParts.push (filterId + ':' + this.safeString (bondFilters, filterId));
+        }
+        const contractPromises = [];
+        for (let i = 0; i < searchResults.length; i++) {
+            const searchResult = searchResults[i];
+            for (let j = 0; j < searchResult.length; j++) {
+                const issuers = this.safeList (searchResult[j], 'issuers', []);
+                for (let k = 0; k < issuers.length; k++) {
+                    const contractsRequest: Dict = {
+                        'sectype': 'BOND',
+                        'issuerId': this.safeString (issuers[k], 'id'),
+                    };
+                    if (filterParts.length > 0) {
+                        contractsRequest['filters'] = filterParts.join (',');
+                    }
+                    contractPromises.push (this.fetchBondContracts (contractsRequest));
+                }
+            }
+        }
+        const contractResults: List = await Promise.all (contractPromises);
+        //
+        //     [
+        //         {
+        //             "conid": 758087005,
+        //             "symbol": "US-T",
+        //             "secType": "BOND",
+        //             "exchange": "SMART",
+        //             "listingExchange": "SMART",
+        //             "right": "?",
+        //             "strike": 0.0,
+        //             "currency": "USD",
+        //             "cusip": "IBCID758087005",
+        //             "coupon": "4.125", // "No Coupon" for bills and strips
+        //             "desc1": "US-T",
+        //             "desc2": "GOVT Notes 4.125 Jan31'27 IBCID758087005",
+        //             "maturityDate": "20270131",
+        //             "multiplier": null,
+        //             "tradingClass": "US-T",
+        //             "validExchanges": "SMART"
+        //         }
+        //     ]
+        //
+        for (let i = 0; i < contractResults.length; i++) {
+            const contracts = contractResults[i];
+            for (let j = 0; j < contracts.length; j++) {
+                const contract = contracts[j];
+                const conid = this.safeString (contract, 'conid');
+                if (conid !== undefined) {
+                    entries[conid] = contract;
+                }
+            }
+        }
+        const detailMarkets = await this.fetchSecWithDetails (entries);
+        const markets = this.parseMarkets (detailMarkets);
+        // bonds sharing the issuer, coupon and maturity (e.g. a bill and a strip) are told apart by the conid, e.g. US-T-270215-265342934.SMART/USD
+        const seen: Dict = {};
+        const result: Market[] = [];
+        for (let i = 0; i < markets.length; i++) {
+            let market: Dict = this.extend ({}, markets[i]);
+            let symbol = this.safeString (market, 'symbol') as string;
+            if (symbol in seen) {
+                const base = this.safeString (market, 'base') + '-' + this.safeString (market, 'id');
+                symbol = base + '.' + this.safeString (market['info'], 'exchange', 'SMART') + '/' + this.safeString (market, 'quote');
+                market = this.extend (market, {
+                    'symbol': symbol,
+                    'base': base,
+                });
+            }
+            seen[symbol] = true;
+            result.push (market as Market);
+        }
+        return result;
+    }
+
     async fetchStockMarkets (params: Dict = {}): Promise<Market[]> {
         const entries: Dict = {};
         const options = this.safeDict (this.options, 'fetchMarkets', {});
@@ -1753,14 +1904,20 @@ export default class interactivebrokers extends Exchange {
         // perp-style future (FUT): "ticker": "BIP", "assetClass": "FUT", "listingExchange": "COINDERIV", "multiplier": 0.01, "expiry": "20301220", "undConid": 805366629
         // dated future (FUT): "ticker": "MBT", "assetClass": "FUT", "listingExchange": "CME", "multiplier": 0.1, "expiry": "20261127", "expirationDate": 20261127
         // cfd (CFD): "ticker": "AAPL", "assetClass": "CFD", "listingExchange": "IBUSCFD", "multiplier": 0, "undConid": 265598, "fullName": "APPLE INC CFD"
+        // bond (BOND): "ticker": "US-T", "assetClass": "BOND", "exchange": "SMART", "listingExchange": "BONDDESKG", "coupon": "4.125", "maturityDate": "20270131", "type": "Govt", "fullName": "US-T Govt Notes 4.125 Jan31'27", "bond": { "t2": "Notes", "principalValue": 1000.0, "couponType": "FIXED", ... }
         //
         const assetClass = this.safeString (market, 'assetClass');
         const isCrypto = (assetClass === 'CRYPTO');
         const isForex = (assetClass === 'CASH');
         const isStock = (assetClass === 'STK');
+        const isBond = (assetClass === 'BOND');
         const options = this.safeDict (this.options, 'fetchMarkets', {});
         const baseTickerId = this.safeString2 (market, 'ticker', 'symbol') as string;
-        const listingExchange = this.safeString2 (market, 'listingExchange', 'exchange', 'default');
+        let listingExchange = this.safeString2 (market, 'listingExchange', 'exchange', 'default');
+        if (isBond) {
+            // bonds trade across many venues (BONDDESKG, TRADEWEBG, ...) and are routed by SMART, the listing exchange is an arbitrary one of them
+            listingExchange = this.safeString (market, 'exchange', 'SMART');
+        }
         const name = this.safeString (market, 'name', '');
         const nameLower = name.toLowerCase ();
         // coinbase derivatives perp-style futures are listed as FUT with a far (2030) nominal expiry, they are rolled with a funding adjustment, so they are unified as swaps
@@ -1787,6 +1944,8 @@ export default class interactivebrokers extends Exchange {
             amountPrecision = this.safeString (options, 'cryptoAmountIncrement', '0.00000001');
         } else if (isForex) {
             amountPrecision = this.safeString (options, 'forexAmountIncrement', '1');
+        } else if (isBond) {
+            amountPrecision = this.safeString (options, 'bondAmountIncrement', '1');
         } else if (isContract) {
             amountPrecision = this.safeString (options, 'contractAmountIncrement', '1');
         } else {
@@ -1823,6 +1982,17 @@ export default class interactivebrokers extends Exchange {
             if (expirationDate !== undefined) {
                 const expiryDatetime = expirationDate.slice (0, 4) + '-' + expirationDate.slice (4, 6) + '-' + expirationDate.slice (6, 8) + 'T00:00:00Z';
                 expiry = this.parse8601 (expiryDatetime);
+            }
+        } else if (isBond) {
+            // every bond of an issuer has the same ticker, the coupon and the maturity tell them apart, US-T-4.125-270131 (US-T-270114 without a coupon)
+            base = baseTickerId;
+            const coupon = this.safeString (market, 'coupon', ''); // "No Coupon" for bills and strips
+            if ((coupon !== '') && (coupon.indexOf (' ') === -1)) {
+                base = base + '-' + coupon;
+            }
+            const maturityDate = this.safeString (market, 'maturityDate'); // 20270131
+            if (maturityDate !== undefined) {
+                base = base + '-' + maturityDate.slice (2, 8);
             }
         } else if (isStock || isCfd) {
             // stock and cfd tickers are not currencies, skip commonCurrencies remapping, 'BRK B' -> 'BRK.B'
@@ -1904,7 +2074,6 @@ export default class interactivebrokers extends Exchange {
             'info': market,
         });
     }
-
 
     /**
      * @method
@@ -2184,13 +2353,13 @@ export default class interactivebrokers extends Exchange {
     }
 
     ibkrParseValue (value: Str): Str {
-        // snapshot values are formatted strings: "C82838.50" (prior close), "H1.2" (halted), "+1.04", "1.5%", "1M", "1,234"
+        // snapshot values are formatted strings: "C82838.50" (prior close), "H1.2" (halted), "+1.04", "1.5%", "1M", "1,234", "$11,000K" (bond sizes, the principal amount)
         if ((value === undefined) || (value === '') || (value === 'N/A')) {
             return undefined;
         }
         const valueParts = value.split (',');
         let result = valueParts.join ('');
-        if (result.startsWith ('C') || result.startsWith ('H') || result.startsWith ('+')) {
+        if (result.startsWith ('C') || result.startsWith ('H') || result.startsWith ('+') || result.startsWith ('$')) {
             result = result.slice (1);
         }
         if (result.endsWith ('%')) {
