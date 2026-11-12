@@ -1938,7 +1938,7 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
-        return this.parseFundingRates(response, symbolsNormalized);
+        return this.parseFundingRates(this.toArray(response), symbolsNormalized);
     }
     /**
      * @method

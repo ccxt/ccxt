@@ -169852,7 +169852,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         //         }
         //     ]
         //
-        return this.parseFundingRates(response, symbolsNormalized);
+        return this.parseFundingRates(this.toArray(response), symbolsNormalized);
     }
     /**
      * @method
@@ -180428,16 +180428,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 results.push(order);
             }
         } else {
-            const ids = Object.keys(orders);
-            for(let i = 0; i < ids.length; i++){
-                const id = ids[i];
-                const idExtended = this.extend({
-                    'id': id
-                }, orders[id]);
-                const parsedOrder = this.parseOrder(idExtended, market); // don't  inline these calls
-                const order = this.extend(parsedOrder, params);
-                results.push(order);
-            }
+            return this.parseOrders(this.addKeyInArrayItems(orders, 'id'), market, since, limit, params);
         }
         results = this.sortBy(results, 'timestamp');
         const symbol = this.safeString(market, 'symbol');
@@ -209799,7 +209790,8 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                 }
                 response = await this.sapiGetMarginAllOrders(this.extend(request, paramsPaginate));
             } else if (stock) {
-                response = await this.sapiGetEquityOrderHistory(this.extend(request, paramsPaginate));
+                const equityResponse = await this.sapiGetEquityOrderHistory(this.extend(request, paramsPaginate));
+                response = this.safeList(equityResponse, 'rows', []);
             } else {
                 response = await this.privateGetAllOrders(this.extend(request, paramsPaginate));
             }
@@ -210010,10 +210002,6 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         //         ]
         //     }
         //
-        if (stock) {
-            const result = this.safeList(response, 'rows', []);
-            return this.parseOrders(result, market, since, limitResolved);
-        }
         return this.parseOrders(response, market, since, limitResolved);
     }
     /**
@@ -213068,7 +213056,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         const type = this.safeString(params, 'type', defaultType);
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchFundingRates', undefined, params, 'linear');
         const query = this.omit(paramsSubType, 'type');
-        let response = undefined;
+        let response;
         if (this.isLinear(type, subType)) {
             response = await this.fapiPublicGetPremiumIndex(query);
         } else if (this.isInverse(type, subType)) {
@@ -217439,7 +217427,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         }
         const type = 'swap';
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchFundingIntervals', market, params, 'linear');
-        let response = undefined;
+        let response;
         if (this.isLinear(type, subType)) {
             response = await this.fapiPublicGetFundingInfo(paramsSubType);
         } else if (this.isInverse(type, subType)) {
@@ -283922,7 +283910,7 @@ class btse extends _abstract_btse_js__rspack_import_0/* ["default"] */.A {
             request['symbol'] = this.futuresRequestId(this.market(symbol));
             response = await this.privateDeleteFuturesApiV23Order(this.extend(request, paramsMarketType));
         }
-        return this.parseOrders(response, market);
+        return this.parseOrders(this.toArray(response), market);
     }
     /**
      * @method
@@ -419415,8 +419403,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         //           },
         // }
         //
-        let data = this.safeDict(response, 'data', {});
-        data = this.safeList(data, 'data', []);
+        const data = this.safeList(this.safeDict(response, 'data', {}), 'data', []);
         return this.parseOrders(data);
     }
     /**
@@ -659194,7 +659181,7 @@ class zaif extends _abstract_zaif_js__rspack_import_0/* ["default"] */.A {
         }
         const response = await this.privatePostActiveOrders(this.extend(request, params));
         const data = this.safeDict(response, 'return', {});
-        return this.parseOrders(data, market, since, limit);
+        return this.parseOrders(this.addKeyInArrayItems(data, 'id'), market, since, limit);
     }
     /**
      * @method
@@ -659225,7 +659212,7 @@ class zaif extends _abstract_zaif_js__rspack_import_0/* ["default"] */.A {
         }
         const response = await this.privatePostTradeHistory(this.extend(request, params));
         const data = this.safeDict(response, 'return', {});
-        return this.parseOrders(data, market, since, limit);
+        return this.parseOrders(this.addKeyInArrayItems(data, 'id'), market, since, limit);
     }
     /**
      * @method

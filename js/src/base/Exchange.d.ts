@@ -702,7 +702,7 @@ export declare class BaseExchange {
     getDescribeForExtendedWsExchange(currentRestInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>): any;
     safeBalance(balance: Dict): Balances;
     safeOrder(order: Dict, market?: Market): Order;
-    parseOrders(orders: Dict | Dict[] | undefined, market?: Market, since?: Int, limit?: Int, params?: Dict): Order[];
+    parseOrders(orders: NullableList, market?: Market, since?: Int, limit?: Int, params?: Dict): Order[];
     calculateFeeWithRate(symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker?: string, feeRate?: Num, params?: Dict): {
         type: string;
         currency: any;
@@ -969,7 +969,7 @@ export declare class BaseExchange {
     parseFundingRateHistories(response: List, market?: Market, since?: Int, limit?: Int): FundingRateHistory[];
     safeSymbol(marketId: Str, market?: Market, delimiter?: Str, marketType?: Str): string;
     parseFundingRate(contract: string, market?: Market): FundingRate;
-    parseFundingRates(response: any, symbols?: Strings): FundingRates;
+    parseFundingRates(response: List, symbols?: Strings): FundingRates;
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
     parseLongShortRatioHistory(response: List, market?: Market, since?: Int, limit?: Int): LongShortRatio[];
     handleTriggerPricesAndParams(symbol: any, params: Dict, omitParams?: boolean): [Str, Str, Str, Dict];

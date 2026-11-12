@@ -43,7 +43,7 @@ declare abstract class Exchange extends _Exchange {
     spotPrivateGetCapitalConvert(params?: {}): Promise<Dict>;
     spotPrivateGetCapitalConvertList(params?: {}): Promise<List>;
     spotPrivateGetMarginLoan(params?: {}): Promise<Dict>;
-    spotPrivateGetMarginAllOrders(params?: {}): Promise<Dict>;
+    spotPrivateGetMarginAllOrders(params?: {}): Promise<List>;
     spotPrivateGetMarginMyTrades(params?: {}): Promise<Dict>;
     spotPrivateGetMarginOpenOrders(params?: {}): Promise<List>;
     spotPrivateGetMarginMaxTransferable(params?: {}): Promise<Dict>;
@@ -92,7 +92,7 @@ declare abstract class Exchange extends _Exchange {
     spotPrivatePostUserDataStream(params?: {}): Promise<Dict>;
     spotPrivatePutUserDataStream(params?: {}): Promise<Dict>;
     spotPrivateDeleteOrder(params?: {}): Promise<List>;
-    spotPrivateDeleteOpenOrders(params?: {}): Promise<Dict>;
+    spotPrivateDeleteOpenOrders(params?: {}): Promise<List>;
     spotPrivateDeleteOrderAll(params?: {}): Promise<Dict>;
     spotPrivateDeleteSubAccountApiKey(params?: {}): Promise<Dict>;
     spotPrivateDeleteStrategyGroup(params?: {}): Promise<Dict>;
