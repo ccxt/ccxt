@@ -775,7 +775,7 @@ export default class paradex extends paradexRest {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         const [ deltasOption, paramsDeltas ] = this.handleOptionAndParams (params, 'watchOrderBook', 'deltas', false);
-        const deltas = (deltasOption === true) || ((limit !== undefined) && (limit > 15));
+        const deltas = (deltasOption) || ((limit !== undefined) && (limit > 15));
         const url = this.getWsUrl ();
         // an unwatch in flight decides which feed each market is on once acknowledged
         const feeds: string[] = [];
@@ -855,7 +855,7 @@ export default class paradex extends paradexRest {
             // the feed the market is on, a market is on one of them at a time
             const deltasChannel = this.getOrderBookChannel (market['id'], true);
             const snapshotChannel = this.getOrderBookChannel (market['id'], false);
-            let channel = (deltasOption === true) ? deltasChannel : snapshotChannel;
+            let channel = (deltasOption) ? deltasChannel : snapshotChannel;
             // a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
             const requestedHash = deltasChannel + ':requested';
             if ((deltasChannel in client.subscriptions) || (requestedHash in client.subscriptions)) {

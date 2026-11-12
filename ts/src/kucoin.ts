@@ -2250,7 +2250,7 @@ export default class kucoin extends Exchange {
         }
         const hfParam = this.safeBool (params, 'hf');
         if (hfParam !== undefined) {
-            hf = (hfParam === true);
+            hf = (hfParam);
         }
         const paramsOmitted: Dict = this.omit (params, 'hf');
         return [ hf, paramsOmitted ];
@@ -4541,7 +4541,7 @@ export default class kucoin extends Exchange {
         const cost = this.safeString (paramsRequest, 'cost');
         if (cost !== undefined) {
             paramsRequest = this.omit (paramsRequest, 'cost');
-            if ((isSpot === true) && isMarketOrder) {
+            if ((isSpot) && isMarketOrder) {
                 request['sizeUnit'] = 'QUOTECCY';
                 request['size'] = this.marketOrderAmountToPrecision (symbol, cost);
             } else {
@@ -4549,7 +4549,7 @@ export default class kucoin extends Exchange {
             }
         } else {
             let sizeUnit = 'BASECCY';
-            if (isContract === true) {
+            if (isContract) {
                 [ sizeUnit, paramsRequest ] = this.handleOptionStringAndParams (paramsRequest, 'createOrder', 'sizeUnit', 'UNIT');
             }
             request['sizeUnit'] = sizeUnit;
@@ -4568,7 +4568,7 @@ export default class kucoin extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
-        if (isContract === true) {
+        if (isContract) {
             if (!isUnified) {
                 if (marginMode !== undefined) {
                     request['marginMode'] = marginMode.toUpperCase ();
@@ -4616,7 +4616,7 @@ export default class kucoin extends Exchange {
             request['triggerDirection'] = (triggerDirection === 'ascending') ? 'UP' : 'DOWN';
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         } else if (hasStopLoss || hasTakeProfit) {
-            if (isContract !== true) {
+            if (!isContract) {
                 throw new NotSupported (this.id + ' createOrder() stopLoss and takeProfit parameters are only supported for contract orders');
             }
             if (hasStopLoss) {
@@ -4635,14 +4635,14 @@ export default class kucoin extends Exchange {
             if (stopLossPrice !== undefined) {
                 request['triggerDirection'] = (side === 'buy') ? 'UP' : 'DOWN';
                 request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
-                if (isContract === true) {
+                if (isContract) {
                     const stopLossPriceType = this.safeString2 (paramsOmitted, 'stopLossPriceType', 'triggerPriceType', 'mark');
                     request['triggerPriceType'] = this.safeString (triggerPriceTypes, stopLossPriceType, stopLossPriceType);
                 }
             } else {
                 request['triggerDirection'] = (side === 'buy') ? 'DOWN' : 'UP';
                 request['triggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
-                if (isContract === true) {
+                if (isContract) {
                     const takeProfitPriceType = this.safeString2 (paramsOmitted, 'takeProfitPriceType', 'triggerPriceType', 'mark');
                     request['triggerPriceType'] = this.safeString (triggerPriceTypes, takeProfitPriceType, takeProfitPriceType);
                 }
@@ -5419,7 +5419,7 @@ export default class kucoin extends Exchange {
         const market = this.market (symbol);
         const isContract = market['contract'];
         let tradeType: Str = 'SPOT';
-        if (isContract === true) {
+        if (isContract) {
             tradeType = 'FUTURES';
         }
         const trigger: Bool = false;
@@ -11075,7 +11075,7 @@ export default class kucoin extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             isContractMarket = market['contract'];
-            if (isContractMarket !== true) {
+            if (!isContractMarket) {
                 if (!uta) {
                     throw new NotSupported (this.id + ' cancelOrders() supports spot markets only for unified trading accounts');
                 }

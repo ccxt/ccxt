@@ -3736,7 +3736,7 @@ export default class mexc extends Exchange {
         const marketResolved: Market = this.safeMarket (marketId, market);
         const isContract: Bool = marketResolved['contract'];
         const sideRaw = this.safeString (order, 'side');
-        const side = (isContract === true) ? this.parseContractOrderSide (sideRaw) : this.parseOrderSide (sideRaw);
+        const side = (isContract) ? this.parseContractOrderSide (sideRaw) : this.parseOrderSide (sideRaw);
         const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'transactTime' ]);
         let fee: Fee = undefined;
         const feeCurrency = this.safeString (order, 'feeCurrency');

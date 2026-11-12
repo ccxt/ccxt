@@ -339,7 +339,7 @@ export default class mexc extends mexcRest {
         const isSpot = marketIdIsUndefined ? channelStartsWithSpot : market['spot'];
         const spotPrefix = 'spot:';
         let messageHashPrefix: Str = '';
-        if (isSpot === true) {
+        if (isSpot) {
             messageHashPrefix = spotPrefix;
         }
         const topic = messageHashPrefix + 'ticker';
@@ -347,7 +347,7 @@ export default class mexc extends mexcRest {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             let ticker: Ticker;
-            if (isSpot === true) {
+            if (isSpot) {
                 ticker = this.parseWsTicker (entry, market);
             } else {
                 ticker = this.parseTicker (entry);

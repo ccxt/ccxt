@@ -450,7 +450,7 @@ export default class gate extends gateRest {
         const marketId = this.safeString (market, 'id', '');
         const url = this.getUrlByMarket (market);
         const isEuUrl = url.indexOf ('gateeu') >= 0;
-        const isNonEuSpot = (market['spot'] === true) && !isEuUrl;
+        const isNonEuSpot = (market['spot']) && !isEuUrl;
         let intervalDefault: Str = '100ms';
         if (isNonEuSpot) {
             intervalDefault = '50';
@@ -512,7 +512,7 @@ export default class gate extends gateRest {
         const symbolValue: string = this.safeString (market, 'symbol', '');
         const marketId = this.safeString (market, 'id', '');
         const isEuUrl = url.indexOf ('gateeu') >= 0;
-        const isNonEuSpot = (market['spot'] === true) && !isEuUrl;
+        const isNonEuSpot = (market['spot']) && !isEuUrl;
         let intervalDefault: Str = '100ms';
         if (isNonEuSpot) {
             intervalDefault = '50';

@@ -1304,7 +1304,7 @@ export default class binance extends binanceRest {
         const firstMarket = this.market (symbolsNormalized[0]);
         let type: string = firstMarket['type'];
         const isOption = firstMarket['option'];
-        if (isOption === true) {
+        if (isOption) {
             type = 'option';
         } else if (this.safeBool (firstMarket, 'contract', false)) {
             type = (this.safeBool (firstMarket, 'linear', false)) ? 'linear' : 'inverse';
@@ -1312,7 +1312,7 @@ export default class binance extends binanceRest {
         const messageHashes: string[] = [];
         const subscribeHashes: string[] = [];
         const subParams: string[] = [];
-        if (isOption === true) {
+        if (isOption) {
             // eOptions: always subscribe per-underlying (<underlying>@optionTrade)
             // handleTrade filters to the correct symbol via the 's' field
             const seenUnderlyings: Dict = {};
@@ -1394,7 +1394,7 @@ export default class binance extends binanceRest {
         const firstMarket = this.market (symbolsNormalized[0]);
         let type: string = firstMarket['type'];
         const isOption = firstMarket['option'];
-        if (isOption === true) {
+        if (isOption) {
             type = 'option';
         } else if (this.safeBool (firstMarket, 'contract', false)) {
             type = (this.safeBool (firstMarket, 'linear', false)) ? 'linear' : 'inverse';
@@ -1402,7 +1402,7 @@ export default class binance extends binanceRest {
         const subMessageHashes: string[] = [];
         const subParams: string[] = [];
         const messageHashes: string[] = [];
-        if (isOption === true) {
+        if (isOption) {
             // eOptions: always subscribe per-underlying (<underlying>@optionTrade)
             // handleTrade filters to the correct symbol via the 's' field
             const seenUnderlyings: Dict = {};
@@ -3868,7 +3868,7 @@ export default class binance extends binanceRest {
         if ((this.safeBool (market, 'inverse', false)) && isConditional) {
             throw new NotSupported (this.id + ' createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead');
         }
-        const isAlgoOrder = (market['linear'] === true) && ((market['swap'] === true) || (market['future'] === true)) && isConditional;
+        const isAlgoOrder = (market['linear'] === true) && ((market['swap']) || (market['future'])) && isConditional;
         const payload = this.createOrderRequest (symbol, type, side, amount, price, this.extend (paramsOmitted, { 'isAlgoOrder': isAlgoOrder }));
         const [ returnRateLimits, paramsReturnRateLimits ] = this.handleOptionBoolAndParams (paramsOmitted, 'createOrderWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
@@ -4199,7 +4199,7 @@ export default class binance extends binanceRest {
         };
         const isConditional = this.safeBoolN (paramsReturnRateLimits, [ 'stop', 'trigger', 'conditional' ]);
         const clientOrderId = this.safeStringN (paramsReturnRateLimits, [ 'clientAlgoId', 'origClientOrderId', 'clientOrderId' ]);
-        const shouldUseAlgoOrder = (market['linear'] === true) && ((market['swap'] === true) || (market['future'] === true)) && (isConditional === true);
+        const shouldUseAlgoOrder = (market['linear'] === true) && ((market['swap']) || (market['future'])) && (isConditional === true);
         if (clientOrderId !== undefined) {
             if (shouldUseAlgoOrder) {
                 payload['clientAlgoId'] = clientOrderId;

@@ -3641,7 +3641,7 @@ class testMainClass {
             clientOrderId = query['label'];
         }
         // the label is built as "<brokerId>-<uuid22>", so assert the hyphenated prefix to ensure the uuid suffix was appended after the ccxt broker id
-        assert (clientOrderId !== undefined && clientOrderId.startsWith (id + '-') === true, 'clientOrderId ' + clientOrderId + ' does not start with the brokerId prefix ' + id + '-');
+        assert (clientOrderId !== undefined && clientOrderId.startsWith (id + '-'), 'clientOrderId ' + clientOrderId + ' does not start with the brokerId prefix ' + id + '-');
         if (!isSync ()) {
             await close (exchange);
         }

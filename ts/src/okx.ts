@@ -3262,7 +3262,7 @@ export default class okx extends Exchange {
         const marginParam = this.safeBool (params, 'margin', false);
         const margin = marginModeIsExplicit || marginParam;
         // position side / hedged options only apply to swap and future orders
-        const isSwapOrFuture = (contract === true) && ((market['swap'] === true) || (market['future'] === true));
+        const isSwapOrFuture = (contract === true) && ((market['swap']) || (market['future']));
         const [ positionSide, paramsPositionSide ] = this.handleOptionStringAndParams (params, 'createOrder', 'positionSide');
         let paramsSwapOrFuture: Dict = params;
         if (isSwapOrFuture) {

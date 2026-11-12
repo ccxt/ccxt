@@ -5618,7 +5618,7 @@ export default class binance extends Exchange {
         let method = this.safeString (this.options, 'fetchTradesMethod');
         method = this.safeString2 (paramsPaginate, 'fetchTradesMethod', 'method', method);
         if (limit !== undefined) {
-            const isFutureOrSwap = (market['swap'] === true) || (market['future'] === true);
+            const isFutureOrSwap = (market['swap']) || (market['future']);
             const isHistoricalEndpoint = (method !== undefined) && (method.indexOf ('GetHistoricalTrades') >= 0);
             const maxLimitForContractHistorical = isHistoricalEndpoint ? 500 : 1000;
             request['limit'] = (isFutureOrSwap) ? Math.min (limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
@@ -7036,7 +7036,7 @@ export default class binance extends Exchange {
         // algo and conditional endpoints use different arguments
         // conditional swap and future orders go through the algo api
         // except for portfolio margin inverse (cm) orders, which still use the conditional endpoints
-        const isSwapOrFuture = (market['swap'] === true) || (market['future'] === true);
+        const isSwapOrFuture = (market['swap']) || (market['future']);
         const isLinear = market['linear'] === true;
         const isInverse = market['inverse'] === true;
         const isPortfolioMarginInverse = isPortfolioMargin && isInverse;
@@ -8736,7 +8736,7 @@ export default class binance extends Exchange {
         // algo and conditional endpoints use different arguments
         // conditional swap and future orders go through the algo api
         // except for portfolio margin inverse (cm) orders, which still use the conditional endpoints
-        const isSwapOrFuture = (market !== undefined) && ((market['swap'] === true) || (market['future'] === true));
+        const isSwapOrFuture = (market !== undefined) && ((market['swap']) || (market['future']));
         const isPortfolioMarginInverse = (isPortfolioMargin) && (isInverseType);
         const isAlgoOrder = isSwapOrFuture && (isConditional === true) && (!isPortfolioMarginInverse);
         const clientOrderId = this.safeStringN (paramsStock, [ 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'clientAlgoId' ]);
