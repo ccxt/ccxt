@@ -122,7 +122,7 @@ export default class interactivebrokers extends Exchange {
                 '1M': '1m',
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://github.com/user-attachments/assets/47a035dd-6321-4321-adf5-19a6072e5540',
                 'api': {
                     'webapi': 'https://api.ibkr.com/',
                     'private': 'https://api.ibkr.com/v1/api/',
