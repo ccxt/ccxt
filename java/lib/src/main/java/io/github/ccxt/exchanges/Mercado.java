@@ -748,7 +748,7 @@ public class Mercado extends MercadoApi
             // TODO: replace this with a call to parseOrder for unification
             HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
             mapLiteral2.put("info", response);
-            mapLiteral2.put("id", this.safeString(this.safeValue(this.safeValue(response, "response_data"), "order"), "order_id"));
+            mapLiteral2.put("id", this.safeString(this.safeDict(this.safeDict(response, "response_data", (Object) null), "order", (Object) null), "order_id"));
             return this.safeOrder(mapLiteral2, market);
         }).thenApply(Order::new);
 
@@ -1221,7 +1221,7 @@ public class Mercado extends MercadoApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            List<Object> trades = (List<Object>) this.safeList(this.safeValue(orders, i), "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(this.safeDict(orders, i, (Object) null), "trades", new ArrayList<Object>(Arrays.asList()));
             for (var y = 0; y < ((List<?>)trades).size(); y++)
             {
                 ((List<Object>)result).add((trades == null || y < 0 || y >= trades.size() ? null : trades.get(y)));
@@ -1304,7 +1304,7 @@ public class Mercado extends MercadoApi
         //
         //     {"status":503,"message":"Maintenancing, try again later","result":null}
         //
-        Object errorMessage = this.safeValue(response, "error_message");
+        String errorMessage = this.safeString(response, "error_message");
         if (!java.util.Objects.equals(errorMessage, null))
         {
             throw new ExchangeError(((this.id + " ") + this.json(response))) ;

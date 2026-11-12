@@ -1728,7 +1728,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Integer deltasLength = ((List<?>)deltas).size();
         for (var i = 0; (deltasLength != null && i < deltasLength); i++)
         {
-            this.handleDelta(bookside, this.safeValue(deltas, i));
+            this.handleDelta(bookside, this.safeList(deltas, i, (Object) null));
         }
     }
 

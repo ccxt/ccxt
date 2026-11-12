@@ -901,8 +901,8 @@ public class Opinion extends OpinionApi
             {
                 Object outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
                 Long priceIndex = (((long) i) * 2L);
-                Object priceResponse = this.safeValue(responses, priceIndex);
-                Object bookResponse = this.safeValue(responses, this.sum(priceIndex, 1));
+                Map<String, Object> priceResponse = (Map<String, Object>) this.safeDict(responses, priceIndex, (Object) null);
+                Map<String, Object> bookResponse = (Map<String, Object>) this.safeDict(responses, this.sum(priceIndex, 1), (Object) null);
                 Map<String, Object> response = new HashMap<String, Object>() {{
                     put( "price", priceResponse );
                     put( "book", bookResponse );

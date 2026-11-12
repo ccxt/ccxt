@@ -3000,7 +3000,7 @@ public class Ndax extends NdaxApi
                 type = "withdrawal";
             }
         }
-        Object templateForm = this.parseJson(this.safeValue2(transaction, "TemplateForm", "DepositInfo"));
+        Object templateForm = this.parseJson(this.safeString2(transaction, "TemplateForm", "DepositInfo"));
         Long updated = this.safeInteger(transaction, "LastUpdateTimeStamp");
         if (!java.util.Objects.equals(templateForm, null))
         {

@@ -6765,7 +6765,7 @@ public class Binance extends BinanceApi
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; }); i++)
         {
-            String marketId = this.safeString(this.safeValue(response, i), "symbol");
+            String marketId = this.safeString(this.safeDict(response, i, (Object) null), "symbol");
             Map<String, Object> tickerMarket = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "spot");
             Map<String, Object> parsedTicker = (Map<String, Object>) this.parseTicker(this.safeValue(response, i), (Map<String, Object>) null);
             parsedTicker.put("symbol", tickerMarket.get("symbol"));
@@ -14074,7 +14074,7 @@ public class Binance extends BinanceApi
         for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
         {
             Object bracket = (leverageBracket == null || i < 0 || i >= leverageBracket.size() ? null : leverageBracket.get(i));
-            if (Precise.stringLt(notionalStringAbs, this.safeValue(bracket, 0)))
+            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0)))
             {
                 break;
             }
@@ -14319,7 +14319,7 @@ public class Binance extends BinanceApi
         for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
         {
             Object bracket = (leverageBracket == null || i < 0 || i >= leverageBracket.size() ? null : leverageBracket.get(i));
-            if (Precise.stringLt(notionalStringAbs, this.safeValue(bracket, 0)))
+            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0)))
             {
                 break;
             }

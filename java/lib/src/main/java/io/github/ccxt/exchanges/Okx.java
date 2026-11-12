@@ -4367,8 +4367,8 @@ public class Okx extends OkxApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
-        Object takeProfitPrice = this.safeValue2(parameters, "takeProfitPrice", "tpTriggerPx");
-        Object stopLossPrice = this.safeValue2(parameters, "stopLossPrice", "slTriggerPx");
+        String takeProfitPrice = this.safeString2(parameters, "takeProfitPrice", "tpTriggerPx");
+        String stopLossPrice = this.safeString2(parameters, "stopLossPrice", "slTriggerPx");
         Boolean conditional = (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null)) || (java.util.Objects.equals(type, "conditional"));
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("instId", market.get("id"));

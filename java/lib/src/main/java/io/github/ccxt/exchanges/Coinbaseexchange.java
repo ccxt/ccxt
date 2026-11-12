@@ -1423,7 +1423,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 request.put("start_date", this.iso8601(since));
             }
-            Object until = this.safeValue2(paramsPaginate, "until", "end_date");
+            Long until = (Long) this.safeInteger2(paramsPaginate, "until", "end_date");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_date", this.iso8601(until));
@@ -1583,7 +1583,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 request.put("granularity", java.util.Objects.requireNonNullElse(timeframe, "1m"));
             }
-            Object until = this.safeValue2(paramsPaginate, "until", "end");
+            Long until = (Long) this.safeInteger2(paramsPaginate, "until", "end");
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             // https://docs.pro.coinbase.com/#get-historic-rates max = 300
             Long cappedLimit = this.parseToInt((((java.util.Objects.equals(limit, null)))) ? 300 : Math.min(limit, 300));
@@ -1879,7 +1879,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 request.put("start_date", this.iso8601(since));
             }
-            Object until = this.safeValue2(paramsPaginate, "until", "end_date");
+            Long until = (Long) this.safeInteger2(paramsPaginate, "until", "end_date");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_date", this.iso8601(until));
@@ -2296,7 +2296,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 request.put("limit", limit); // default 100
             }
-            Object until = this.safeValue2(parameters, "until", "end_date");
+            Long until = (Long) this.safeInteger2(parameters, "until", "end_date");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_date", this.iso8601(until));

@@ -1272,7 +1272,7 @@ public class Whitebit extends WhitebitApi
             Object entry = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             List<Object> splitEntry = new ArrayList<Object>(Arrays.asList(((String)entry).split(java.util.regex.Pattern.quote(" "))));
             Object currencyId = (splitEntry == null || 0 >= splitEntry.size() ? null : splitEntry.get(0));
-            Object feeInfo = this.safeValue(response, entry);
+            Map<String, Object> feeInfo = (Map<String, Object>) this.safeDict(response, entry, (Object) null);
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || (this.inArray(code, codesValue))))
             {
@@ -3591,7 +3591,7 @@ public class Whitebit extends WhitebitApi
                     throw new ArgumentsRequired((this.id + " fetchDepositAddress() requires an amount when the ticker is fiat")) ;
                 }
                 request.put("amount", amount);
-                Object uniqueId = this.safeValue(parameters, "uniqueId");
+                String uniqueId = this.safeString(parameters, "uniqueId");
                 if (java.util.Objects.equals(uniqueId, null))
                 {
                     throw new ArgumentsRequired((this.id + " fetchDepositAddress() requires an uniqueId when the ticker is fiat")) ;
@@ -5169,7 +5169,7 @@ public class Whitebit extends WhitebitApi
         Map<String, Object> publicHeaders = new HashMap<String, Object>() {{}};
         publicHeaders.put("User-Agent", ((("ccxt/" + this.id) + "-") + this.version));
         String pathWithParams = ("/" + this.implodeParams(path, parameters));
-        String apiUrl = this.safeString(this.safeValue(this.urls.get("api"), version), accessibility);
+        String apiUrl = this.safeString(this.safeDict(this.urls.get("api"), version, (Object) null), accessibility);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;

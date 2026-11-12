@@ -223,7 +223,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         List<Object> parsedTrades = this.parseTrades(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         for (var i = 0; i < ((List<?>)parsedTrades).size(); i++)
         {
-            stored.append(this.safeValue(parsedTrades, i));
+            stored.append(this.safeDict(parsedTrades, i, (Object) null));
         }
         if (!java.util.Objects.equals(channel, null))
         {
