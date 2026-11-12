@@ -4975,7 +4975,7 @@ class binance extends Exchange {
     public function parse_tickers_for_rolling(mixed $response, ?array $symbols): array {
         $results = array();
         for ($i = 0; $i < count($response); $i++) {
-            $marketId = $this->safe_string($this->safe_value($response, $i), 'symbol');
+            $marketId = $this->safe_string($this->safe_dict($response, $i), 'symbol');
             $tickerMarket = $this->safe_market($marketId, null, null, 'spot');
             $parsedTicker = $this->parse_ticker($this->safe_value($response, $i));
             $parsedTicker['symbol'] = $tickerMarket['symbol'];
@@ -11468,7 +11468,7 @@ class binance extends Exchange {
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
             $bracket = $leverageBracket[$i];
-            if (Precise::string_lt($notionalStringAbs, $this->safe_value($bracket, 0))) {
+            if (Precise::string_lt($notionalStringAbs, $this->safe_string($bracket, 0))) {
                 break;
             }
             $maintenanceMarginPercentageString = $this->safe_string($bracket, 1);
@@ -11694,7 +11694,7 @@ class binance extends Exchange {
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
             $bracket = $leverageBracket[$i];
-            if (Precise::string_lt($notionalStringAbs, $this->safe_value($bracket, 0))) {
+            if (Precise::string_lt($notionalStringAbs, $this->safe_string($bracket, 0))) {
                 break;
             }
             $maintenanceMarginPercentageString = $this->safe_string($bracket, 1);

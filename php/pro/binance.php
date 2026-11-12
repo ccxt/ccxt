@@ -1128,7 +1128,7 @@ class binance extends \ccxt\async\binance {
 
     public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta($bookside, $this->safe_value($deltas, $i));
+            $this->handle_delta($bookside, $this->safe_list($deltas, $i));
         }
     }
 
@@ -3693,7 +3693,7 @@ class binance extends \ccxt\async\binance {
             $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
                 $market = $this->market($symbolsNormalized[0]);
-                $payload['symbol'] = $this->safe_value($market, 'id');
+                $payload['symbol'] = $this->safe_string($market, 'id');
             }
         }
         $type = $this->get_market_type('fetchPositionsWs', $market, $params);

@@ -1013,7 +1013,7 @@ class derive extends \ccxt\async\derive {
             $positionsSnapshot = Async\await($this->fetch_positions(null, $snapshotParams));
             $cache = $this->safe_value($this->positions, $subaccountIdKey);
             for ($i = 0; $i < count($positionsSnapshot); $i++) {
-                $snapshotPosition = $this->safe_value($positionsSnapshot, $i);
+                $snapshotPosition = $this->safe_dict($positionsSnapshot, $i);
                 $cache->append($snapshotPosition);
             }
             $loadedSnapshots[$subaccountIdKey] = true;

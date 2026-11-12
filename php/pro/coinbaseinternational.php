@@ -1493,7 +1493,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
     public function handle_deltas(mixed $bookside, array $deltas) {
         $deltasLength = count($deltas);
         for ($i = 0; $i < $deltasLength; $i++) {
-            $this->handle_delta($bookside, $this->safe_value($deltas, $i));
+            $this->handle_delta($bookside, $this->safe_list($deltas, $i));
         }
     }
 

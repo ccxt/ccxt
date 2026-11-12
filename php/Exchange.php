@@ -4393,8 +4393,8 @@ class BaseExchange {
 
     public function after_construct(array $userConfig = array()) {
         // networksById: inverse of options.networks, explicit options.networksById entries win
-        $networkIdsToCodesGenerated = $this->invert_flat_string_dictionary($this->safe_value($this->options, 'networks', array()));
-        $this->options['networksById'] = $this->extend($networkIdsToCodesGenerated, $this->safe_value($this->options, 'networksById', array()));
+        $networkIdsToCodesGenerated = $this->invert_flat_string_dictionary($this->safe_dict($this->options, 'networks', array()));
+        $this->options['networksById'] = $this->extend($networkIdsToCodesGenerated, $this->safe_dict($this->options, 'networksById', array()));
         $this->features_generator();
         $this->has_autocorrect();
         // init predefined markets if any

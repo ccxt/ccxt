@@ -229,7 +229,7 @@ class cryptocom extends \ccxt\async\cryptocom {
 
     public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta($bookside, $this->safe_value($deltas, $i));
+            $this->handle_delta($bookside, $this->safe_list($deltas, $i));
         }
     }
 
@@ -473,7 +473,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
         $parsedTrades = $this->parse_trades($data, $market);
         for ($j = 0; $j < count($parsedTrades); $j++) {
-            $stored->append($this->safe_value($parsedTrades, $j));
+            $stored->append($this->safe_dict($parsedTrades, $j));
         }
         $channelReplaced = str_replace('.' . $marketId, '', $channel);
         $client->resolve($stored, $symbolSpecificMessageHash);

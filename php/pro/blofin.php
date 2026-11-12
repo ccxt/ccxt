@@ -187,7 +187,7 @@ class blofin extends \ccxt\async\blofin {
             return;
         }
         for ($i = 0; $i < count($data); $i++) {
-            $rawTrade = $this->safe_value($data, $i);
+            $rawTrade = $this->safe_dict($data, $i, array());
             $trade = $this->parse_ws_trade($rawTrade);
             $symbol = $this->safe_string($trade, 'symbol', '');
             $stored = $this->safe_value($this->trades, $symbol);
@@ -373,7 +373,7 @@ class blofin extends \ccxt\async\blofin {
         $channelName = $this->safe_string($arg, 'channel');
         $data = $this->safe_list($message, 'data');
         for ($i = 0; $i < count($data); $i++) {
-            $ticker = $this->parse_ws_ticker($this->safe_value($data, $i));
+            $ticker = $this->parse_ws_ticker($this->safe_dict($data, $i, array()));
             $symbol = $this->safe_string($ticker, 'symbol', '');
             $this->tickers[$symbol] = $ticker;
             if ($channelName !== null) {
@@ -437,7 +437,7 @@ class blofin extends \ccxt\async\blofin {
     public function handle_bid_ask(Client $client, array $message) {
         $data = $this->safe_list($message, 'data');
         for ($i = 0; $i < count($data); $i++) {
-            $ticker = $this->parse_ws_bid_ask($this->safe_value($data, $i));
+            $ticker = $this->parse_ws_bid_ask($this->safe_dict($data, $i, array()));
             $symbol = $this->safe_string($ticker, 'symbol', '');
             $messageHash = 'bidask:' . $symbol;
             $this->bidsasks[$symbol] = $ticker;
@@ -587,7 +587,7 @@ class blofin extends \ccxt\async\blofin {
             $this->ohlcvs[$symbol][$unifiedTimeframe] = $stored;
         }
         for ($i = 0; $i < count($data); $i++) {
-            $candle = $this->safe_value($data, $i);
+            $candle = $this->safe_list($data, $i);
             $parsed = $this->parse_ohlcv($candle, $market);
             $stored->append($parsed);
         }
@@ -744,7 +744,7 @@ class blofin extends \ccxt\async\blofin {
         $channelName = $this->safe_string($arg, 'channel');
         $data = $this->safe_list($message, 'data');
         for ($i = 0; $i < count($data); $i++) {
-            $order = $this->parse_ws_order($this->safe_value($data, $i));
+            $order = $this->parse_ws_order($this->safe_dict($data, $i, array()));
             $orders->append($order);
             if ($channelName !== null) {
                 $client->resolve($orders, $channelName . ':' . $this->safe_string($order, 'symbol', ''));
@@ -802,7 +802,7 @@ class blofin extends \ccxt\async\blofin {
         $data = $this->safe_list($message, 'data');
         $newPositions = array();
         for ($i = 0; $i < count($data); $i++) {
-            $position = $this->parse_ws_position($this->safe_value($data, $i));
+            $position = $this->parse_ws_position($this->safe_dict($data, $i, array()));
             $newPositions[] = $position;
             $cache->append($position);
             if ($channelName !== null) {
@@ -902,7 +902,7 @@ class blofin extends \ccxt\async\blofin {
                 $channel = $channelName;
                 if ($isOHLCV) {
                     $market = $this->market($current);
-                    $tf = $this->safe_string($this->safe_value($symbolsArray, $i), 1);
+                    $tf = $this->safe_string($this->safe_list($symbolsArray, $i), 1);
                     $interval = $this->safe_string($this->timeframes, $tf, $tf);
                     $channel = $channel . $interval;
                 } else {
