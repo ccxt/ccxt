@@ -1455,10 +1455,6 @@ public partial class pacifica : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if ((since == null))
-        {
-            throw new ArgumentsRequired ((this.id + " fetchOHLCV() requires a \"since\" argument")) ;
-        }
         int defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
         if ((this.markets == null))
         {
@@ -1472,28 +1468,35 @@ public partial class pacifica : Exchange
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, defaultMaxLimit));
         }
+        Int64? limitValue = ((limit == null)) ? defaultMaxLimit : limit;
         string? tf = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        Int64 nowMs = this.milliseconds();
+        Int64 duration = (this.parseTimeframe(tf) * 1000L);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", tf },
-            { "start_time", since },
         };
+        object sinceValue = since;
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end_time", request, paramsPaginate);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
-        Int64 nowMillis = this.milliseconds();
-        Int64? requestedUntil = this.safeInteger(requestUntil, "end_time");
-        if ((requestedUntil == null))
+        if ((this.safeInteger(requestUntil, "end_time") == null))
         {
-            Int64 durationMillis = (this.parseTimeframe(tf) * 1000L);
-            Int64? candleCount = ((limit == null)) ? defaultMaxLimit : limit;
-            if ((since != null))
+            if ((sinceValue == null))
             {
-                Int64? windowEnd = this.parseToInt(this.sum((since - 1), (candleCount * durationMillis)));
-                Int64? until = ((windowEnd > nowMillis)) ? nowMillis : windowEnd;
-                requestUntil["end_time"] = until;
+                sinceValue = (nowMs - (limitValue * duration));
+            }
+            Int64? windowEnd = this.parseToInt(this.sum(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(sinceValue, 1), (limitValue * duration)));
+            Int64? until = ((windowEnd > nowMs)) ? nowMs : windowEnd;
+            requestUntil["end_time"] = until;
+        } else
+        {
+            if ((sinceValue == null))
+            {
+                sinceValue = subtract(GetValue(requestUntil, "end_time"), (limitValue * duration));
             }
         }
+        requestUntil["start_time"] = sinceValue;
         Dictionary<string, object> response = await this.publicGetKline(this.extend(requestUntil, paramsUntil));
         //
         // {

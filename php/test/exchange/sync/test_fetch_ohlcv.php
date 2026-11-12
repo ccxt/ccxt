@@ -12,21 +12,90 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_ohlcv.php';
 function test_fetch_ohlcv($exchange, $skipped_properties, $symbol) {
     $method = 'fetchOHLCV';
     $timeframe_keys = is_array($exchange->timeframes) ? array_keys($exchange->timeframes) : array();
-    assert(count($timeframe_keys) > 0, $exchange->id . ' ' . $method . ' - no timeframes found');
-    // prefer 1m timeframe if available, otherwise return the first one
+    $log_text = log_template($exchange, $method, array());
+    assert(count($timeframe_keys) > 0, $exchange->id . ' ' . $method . ' - no timeframes found' . $log_text); // prefer 1m timeframe if available, otherwise return the first one
     $chosen_timeframe_key = '1m';
     if (!$exchange->in_array($chosen_timeframe_key, $timeframe_keys)) {
         $chosen_timeframe_key = $timeframe_keys[0];
     }
-    $limit = 10;
-    $duration = $exchange->parse_timeframe($chosen_timeframe_key);
-    $since = $exchange->milliseconds() - $duration * $limit * 1000 - 1000;
-    $ohlcvs = $exchange->fetch_ohlcv($symbol, $chosen_timeframe_key, $since, $limit);
-    assert_non_emtpy_array($exchange, $skipped_properties, $method, $ohlcvs, $symbol);
+    $duration_ms = $exchange->parse_timeframe($chosen_timeframe_key) * 1000;
+    //
+    // check for all possible "since" & "limit" combinations, where one of them could be undefined and the other not
+    //
+    $since_array = [null, $exchange->milliseconds() - $duration_ms * 2800]; // eg, "since" was a date of 2800 bars back
+    $limits_array = [null, 50, 25000];
+    for ($i = 0; $i < count($since_array); $i++) {
+        $since_current = $since_array[$i];
+        for ($j = 0; $j < count($limits_array); $j++) {
+            $limit = $limits_array[$j];
+            $ohlcvs = $exchange->fetch_ohlcv($symbol, $chosen_timeframe_key, $since_current, $limit);
+            // we can't expect array to have values, because requested period might have zero bars for valid reason
+            // testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, ohlcvs, symbol);
+            helper_fetch_ohlcv_checker($exchange, $skipped_properties, $symbol, $ohlcvs, $chosen_timeframe_key, $since_current, $limit);
+        }
+    }
+    return true;
+}
+
+
+function helper_fetch_ohlcv_checker($exchange, $skipped_properties, $symbol, $ohlcvs, $timeframe, $since, $limit) {
+    $method = 'fetchOHLCV';
+    $log_text = log_template($exchange, $method, array());
+    assert(gettype($ohlcvs) === 'array' && array_is_list($ohlcvs), $exchange->id . ' ' . $method . ' must return an array, returned ' . $log_text);
     $now = $exchange->milliseconds();
     for ($i = 0; $i < count($ohlcvs); $i++) {
         test_ohlcv($exchange, $skipped_properties, $method, $ohlcvs[$i], $symbol, $now);
     }
-    // todo: sorted timestamps check
-    return true;
+    $duration_ms = $exchange->parse_timeframe($timeframe) * 1000;
+    $bars_length = count($ohlcvs);
+    // check bars amounts, to be between 0 and limit
+    // less then limit
+    if ($limit !== null) {
+        assert($bars_length <= $limit, 'Returned bars amount (' . ((string) $bars_length) . ') is more than requested (' . ((string) $limit) . ')' . $log_text . '' . $exchange->json($ohlcvs));
+    }
+    // ensure bars amount is more than zero
+    if ($bars_length === 0) {
+        // zero-amount of bars should not be tolerated for major exchanges, because it would indicate implementation issue
+        // so unless the target exchange (probably mostly lower end exchanges) is skipped, we should assert that
+        if (!(is_array($skipped_properties) && array_key_exists('compareAmountToZero', $skipped_properties))) {
+            assert($bars_length > 0, 'Returned bars amount should be more then zero' . $log_text);
+        }
+        // exchange was skipped for zero-bars, then just return and don't do any further check, because there were no ohlcv entries
+        return;
+    }
+    // else we continue and check timestamps
+    for ($i = 0; $i < $bars_length; $i++) {
+        $ohlcv = $ohlcvs[$i];
+        $bar_ts = $ohlcv[0];
+        // if this is the first bar, then ensure its timestamp is not earlier than requested "since"
+        if (!(is_array($skipped_properties) && array_key_exists('compareTimestampToSince', $skipped_properties))) {
+            if ($i === 0 && $since !== null) {
+                assert($bar_ts >= $since, 'Returned bars earliest timestamp (' . ((string) $bar_ts) . ') is before than requested since (' . ((string) $since) . ')' . $log_text);
+            }
+        }
+        // if this is the last bar, then check if it's <= now
+        if ($i === $bars_length - 1) {
+            if (!(is_array($skipped_properties) && array_key_exists('compareToNow', $skipped_properties))) {
+                assert($bar_ts <= $now, 'Returned bars latest timestamp (' . ((string) $bar_ts) . ') is after than current timestamp (' . ((string) $now) . ')' . $log_text);
+            }
+            // and ensure the last bar's timestamp does not exceed the requested "since + limit * duration" upper bound
+            if (!(is_array($skipped_properties) && array_key_exists('compareTimestampToLimit', $skipped_properties))) {
+                if ($since !== null && $limit !== null) {
+                    $max_expected_ts = $since + ($limit * $duration_ms);
+                    assert($bar_ts <= $max_expected_ts, 'Returned bars latest timestamp (' . ((string) $bar_ts) . ') is after than requested since + limit * duration (' . ((string) $max_expected_ts) . ')' . $log_text);
+                }
+            }
+        }
+        // we compare bar durations below (unless skipped), to ensure current bar's timestamp >= previous bar + one duration
+        if (!(is_array($skipped_properties) && array_key_exists('compareDuration', $skipped_properties))) {
+            if ($i > 0) {
+                $previous_bar_ts = $ohlcvs[$i - 1][0];
+                $diff_between_current_and_previous = $bar_ts - $previous_bar_ts;
+                assert($diff_between_current_and_previous > 0, 'Difference between current bar timestamp (' . ((string) $bar_ts) . ') and previous bar timestamp (' . ((string) $previous_bar_ts) . ') should be positive' . $log_text);
+                // ensure that the difference is one duration or its multiplier (i.e. current minute bar timestamp should be 60*X seconds more than last bar's timestamp)
+                $is_round_number = $exchange->is_round_number($diff_between_current_and_previous / $duration_ms);
+                assert($is_round_number, 'Difference between current bar timestamp (' . ((string) $bar_ts) . ') and previous bar timestamp (' . ((string) $previous_bar_ts) . ') is not multiplier of duration (' . ((string) $duration_ms) . ')' . $log_text);
+            }
+        }
+    }
 }

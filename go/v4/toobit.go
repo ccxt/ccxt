@@ -2580,6 +2580,13 @@ func (this *Toobit) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
 	var request map[string]any = map[string]any{}
 	if this.SafeString(params, "clientOrderId") == nil {
 		request["orderId"] = id
@@ -2596,18 +2603,18 @@ func (this *Toobit) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	var response any = map[string]any{}
 	if marketType != nil && *marketType == "spot" {
 
-		r := <-this.PrivateDeleteApiV1SpotOrder(this.Extend(request, paramsMarketType))
-		if r.Err != nil {
-			panic(r.Err)
-		}
-		response = r.Raw
-	} else {
-
-		r1 := <-this.PrivateDeleteApiV1FuturesOrder(this.Extend(request, paramsMarketType))
+		r1 := <-this.PrivateDeleteApiV1SpotOrder(this.Extend(request, paramsMarketType))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
 		response = r1.Raw
+	} else {
+
+		r2 := <-this.PrivateDeleteApiV1FuturesOrder(this.Extend(request, paramsMarketType))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Raw
 	}
 	// response same as in `createOrder`
 	var status *string = this.ParseOrderStatus(this.SafeString(response, "status"))
@@ -3417,11 +3424,11 @@ func (this *Toobit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes276815 []any = TransactionsToList(r.Value)
-	if retRes276815 == nil {
+	var retRes277115 []any = TransactionsToList(r.Value)
+	if retRes277115 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes276815)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277115)}
 	}
 	return nil
 }
@@ -3458,11 +3465,11 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes278315 []any = TransactionsToList(r.Value)
-	if retRes278315 == nil {
+	var retRes278615 []any = TransactionsToList(r.Value)
+	if retRes278615 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes278315)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes278615)}
 	}
 	return nil
 }

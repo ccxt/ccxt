@@ -816,7 +816,7 @@ public partial class p2b : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = limit;
+            request["limit"] = Math.Min(limit.Value, 500);
         }
         Dictionary<string, object> response = await this.publicGetMarketKline(this.extend(request, parameters));
         //

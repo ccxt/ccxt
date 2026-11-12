@@ -1232,9 +1232,6 @@ class pacifica extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params
          * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
-        if ($since === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a "since" argument');
-        }
         $defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
         if ($this->markets === null) {
             $this->load_markets();
@@ -1244,24 +1241,29 @@ class pacifica extends Exchange {
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $defaultMaxLimit);
         }
+        $limitValue = ($limit === null) ? $defaultMaxLimit : $limit;
         $tf = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $nowMs = $this->milliseconds();
+        $duration = $this->parse_timeframe($tf) * 1000;
         $request = array(
             'symbol' => $market['id'],
             'interval' => $tf,
-            'start_time' => $since,
         );
+        $sinceValue = $since;
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end_time', $request, $paramsPaginate);
-        $nowMillis = $this->milliseconds();
-        $requestedUntil = $this->safe_integer($requestUntil, 'end_time');
-        if ($requestedUntil === null) {
-            $durationMillis = $this->parse_timeframe($tf) * 1000;
-            $candleCount = ($limit === null) ? $defaultMaxLimit : $limit;
-            if ($since !== null) {
-                $windowEnd = $this->parse_to_int($this->sum($since - 1, $candleCount * $durationMillis));
-                $until = ($windowEnd > $nowMillis) ? $nowMillis : $windowEnd;
-                $requestUntil['end_time'] = $until;
+        if ($this->safe_integer($requestUntil, 'end_time') === null) {
+            if ($sinceValue === null) {
+                $sinceValue = $nowMs - $limitValue * $duration;
+            }
+            $windowEnd = $this->parse_to_int($this->sum($sinceValue - 1, $limitValue * $duration));
+            $until = ($windowEnd > $nowMs) ? $nowMs : $windowEnd;
+            $requestUntil['end_time'] = $until;
+        } else {
+            if ($sinceValue === null) {
+                $sinceValue = $requestUntil['end_time'] - $limitValue * $duration;
             }
         }
+        $requestUntil['start_time'] = $sinceValue;
         $response = $this->publicGetKline($this->extend($requestUntil, $paramsUntil));
         //
         // {
