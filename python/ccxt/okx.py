@@ -3102,8 +3102,8 @@ class okx(Exchange, ImplicitAPI):
         if side is None:
             raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
-        takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'tpTriggerPx')
-        stopLossPrice = self.safe_value_2(params, 'stopLossPrice', 'slTriggerPx')
+        takeProfitPrice = self.safe_string_2(params, 'takeProfitPrice', 'tpTriggerPx')
+        stopLossPrice = self.safe_string_2(params, 'stopLossPrice', 'slTriggerPx')
         conditional = (stopLossPrice is not None) or (takeProfitPrice is not None) or (type == 'conditional')
         request = {
             'instId': market['id'],

@@ -999,7 +999,7 @@ class binance(ccxt.async_support.binance):
 
     def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
-            self.handle_delta(bookside, self.safe_value(deltas, i))
+            self.handle_delta(bookside, self.safe_list(deltas, i))
 
     def handle_order_book_message(self, client: Client, message: dict, orderbook: object):
         u = self.safe_integer(message, 'u')
@@ -3194,7 +3194,7 @@ class binance(ccxt.async_support.binance):
             symbolsLength = len(symbolsNormalized)
             if symbolsLength == 1:
                 market = self.market(symbolsNormalized[0])
-                payload['symbol'] = self.safe_value(market, 'id')
+                payload['symbol'] = self.safe_string(market, 'id')
         type = self.get_market_type('fetchPositionsWs', market, params)
         if symbolsNormalized is None and (type == 'spot'):
             # when symbols aren't provide

@@ -190,7 +190,7 @@ class cryptocom(ccxt.async_support.cryptocom):
 
     def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
-            self.handle_delta(bookside, self.safe_value(deltas, i))
+            self.handle_delta(bookside, self.safe_list(deltas, i))
 
     def handle_order_book(self, client: Client, message: dict):
         #
@@ -399,7 +399,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             return
         parsedTrades = self.parse_trades(data, market)
         for j in range(0, len(parsedTrades)):
-            stored.append(self.safe_value(parsedTrades, j))
+            stored.append(self.safe_dict(parsedTrades, j))
         channelReplaced = channel.replace('.' + marketId, '')
         client.resolve(stored, symbolSpecificMessageHash)
         client.resolve(stored, channelReplaced)

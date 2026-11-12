@@ -3832,8 +3832,8 @@ class BaseExchange(object):
 
     def after_construct(self, userConfig: dict = {}):
         # networksById: inverse of options.networks, explicit options.networksById entries win
-        networkIdsToCodesGenerated = self.invert_flat_string_dictionary(self.safe_value(self.options, 'networks', {}))
-        self.options['networksById'] = self.extend(networkIdsToCodesGenerated, self.safe_value(self.options, 'networksById', {}))
+        networkIdsToCodesGenerated = self.invert_flat_string_dictionary(self.safe_dict(self.options, 'networks', {}))
+        self.options['networksById'] = self.extend(networkIdsToCodesGenerated, self.safe_dict(self.options, 'networksById', {}))
         self.features_generator()
         self.has_autocorrect()
         # init predefined markets if any

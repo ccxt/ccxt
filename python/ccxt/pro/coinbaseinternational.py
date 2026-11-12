@@ -1206,7 +1206,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
     def handle_deltas(self, bookside: object, deltas: list[object]):
         deltasLength = len(deltas)
         for i in range(0, deltasLength):
-            self.handle_delta(bookside, self.safe_value(deltas, i))
+            self.handle_delta(bookside, self.safe_list(deltas, i))
 
     def handle_error_message(self, client: Client, message: object) -> Bool:
         error = self.safe_dict(message, 'error')

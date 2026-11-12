@@ -4844,7 +4844,7 @@ class binance(Exchange, ImplicitAPI):
     def parse_tickers_for_rolling(self, response: object, symbols: Strings) -> Tickers:
         results = []
         for i in range(0, len(response)):
-            marketId = self.safe_string(self.safe_value(response, i), 'symbol')
+            marketId = self.safe_string(self.safe_dict(response, i), 'symbol')
             tickerMarket = self.safe_market(marketId, None, None, 'spot')
             parsedTicker = self.parse_ticker(self.safe_value(response, i))
             parsedTicker['symbol'] = tickerMarket['symbol']
@@ -10802,7 +10802,7 @@ class binance(Exchange, ImplicitAPI):
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
             bracket = leverageBracket[i]
-            if Precise.string_lt(notionalStringAbs, self.safe_value(bracket, 0)):
+            if Precise.string_lt(notionalStringAbs, self.safe_string(bracket, 0)):
                 break
             maintenanceMarginPercentageString = self.safe_string(bracket, 1)
         maintenanceMarginPercentage = self.parse_number(maintenanceMarginPercentageString)
@@ -11016,7 +11016,7 @@ class binance(Exchange, ImplicitAPI):
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
             bracket = leverageBracket[i]
-            if Precise.string_lt(notionalStringAbs, self.safe_value(bracket, 0)):
+            if Precise.string_lt(notionalStringAbs, self.safe_string(bracket, 0)):
                 break
             maintenanceMarginPercentageString = self.safe_string(bracket, 1)
         notional = self.parse_number(notionalStringAbs)

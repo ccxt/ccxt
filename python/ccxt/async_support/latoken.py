@@ -602,7 +602,7 @@ class latoken(Exchange, ImplicitAPI):
         rawCurrencies = self.to_array(response)
         merged = []
         for i in range(0, len(rawCurrencies)):
-            rawCurrency = self.safe_value(rawCurrencies, i)
+            rawCurrency = self.safe_dict(rawCurrencies, i)
             bindingEntry = self.safe_dict(bindingsById, self.safe_string(rawCurrency, 'id'))
             bindings = self.safe_list(bindingEntry, 'bindings')
             mergedCurrency = rawCurrency

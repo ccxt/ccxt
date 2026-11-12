@@ -1093,7 +1093,7 @@ class digifinex(Exchange, ImplicitAPI):
         for i in range(0, len(tickers)):
             rawTicker = self.extend({
                 'date': date,
-            }, self.safe_value(tickers, i))
+            }, self.safe_dict(tickers, i))
             ticker = self.parse_ticker(rawTicker)
             symbol = ticker['symbol']
             if symbol is not None:

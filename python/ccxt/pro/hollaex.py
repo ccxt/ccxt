@@ -175,7 +175,7 @@ class hollaex(ccxt.async_support.hollaex):
         data = self.safe_list(message, 'data', [])
         parsedTrades = self.parse_trades(data, market)
         for i in range(0, len(parsedTrades)):
-            stored.append(self.safe_value(parsedTrades, i))
+            stored.append(self.safe_dict(parsedTrades, i))
         if channel is not None:
             messageHash = channel + ':' + marketIdValue
             client.resolve(stored, messageHash)

@@ -1130,8 +1130,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         for i in range(0, len(slugs)):
             slug = slugs[i]
             detailIndex = i * 2
-            detail = self.safe_value(responses, detailIndex)
-            book = self.safe_value(responses, self.sum(detailIndex, 1))
+            detail = self.safe_dict(responses, detailIndex)
+            book = self.safe_dict(responses, self.sum(detailIndex, 1))
             tickerInput = {'market': detail, 'book': book}
             grouped = self.safe_list(outcomesBySlug, slug, [])
             for j in range(0, len(grouped)):
@@ -1250,18 +1250,18 @@ class limitless(PredictionExchange, ImplicitAPI):
         bids = []
         asks = []
         for bi in range(0, len(bidsSource)):
-            priceStr = self.safe_string(self.safe_value(bidsSource, bi), 'price')
+            priceStr = self.safe_string(self.safe_dict(bidsSource, bi), 'price')
             if not isYes and (priceStr is not None):
                 priceStr = Precise.string_sub('1', priceStr)
-            sizeStr = self.safe_string(self.safe_value(bidsSource, bi), 'size')
+            sizeStr = self.safe_string(self.safe_dict(bidsSource, bi), 'size')
             if sizeStr is not None:
                 sizeStr = Precise.string_div(sizeStr, scaleStr)
             bids.append([self.parse_number(priceStr), self.parse_number(sizeStr)])
         for ai in range(0, len(asksSource)):
-            priceStr = self.safe_string(self.safe_value(asksSource, ai), 'price')
+            priceStr = self.safe_string(self.safe_dict(asksSource, ai), 'price')
             if not isYes and (priceStr is not None):
                 priceStr = Precise.string_sub('1', priceStr)
-            sizeStr = self.safe_string(self.safe_value(asksSource, ai), 'size')
+            sizeStr = self.safe_string(self.safe_dict(asksSource, ai), 'size')
             if sizeStr is not None:
                 sizeStr = Precise.string_div(sizeStr, scaleStr)
             asks.append([self.parse_number(priceStr), self.parse_number(sizeStr)])

@@ -583,7 +583,7 @@ class mercado(Exchange, ImplicitAPI):
         # TODO: replace this with a call to parseOrder for unification
         return self.safe_order({
             'info': response,
-            'id': self.safe_string(self.safe_value(self.safe_value(response, 'response_data'), 'order'), 'order_id'),
+            'id': self.safe_string(self.safe_dict(self.safe_dict(response, 'response_data'), 'order'), 'order_id'),
         }, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -942,7 +942,7 @@ class mercado(Exchange, ImplicitAPI):
     def orders_to_trades(self, orders: list[Order]) -> list[Trade]:
         result = []
         for i in range(0, len(orders)):
-            trades = self.safe_list(self.safe_value(orders, i), 'trades', [])
+            trades = self.safe_list(self.safe_dict(orders, i), 'trades', [])
             for y in range(0, len(trades)):
                 result.append(trades[y])
         return result
@@ -996,7 +996,7 @@ class mercado(Exchange, ImplicitAPI):
         #
         #     {"status":503,"message":"Maintenancing, try again later","result":null}
         #
-        errorMessage = self.safe_value(response, 'error_message')
+        errorMessage = self.safe_string(response, 'error_message')
         if errorMessage is not None:
             raise ExchangeError(self.id + ' ' + self.json(response))
         return None

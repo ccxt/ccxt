@@ -948,7 +948,7 @@ class lbank(ccxt.async_support.lbank):
         #
         marketId = self.safe_string(message, 'pair')
         symbol = self.safe_symbol(marketId)
-        orderBook = self.safe_value(message, 'depth', message)
+        orderBook = self.safe_dict(message, 'depth', message)
         datetime = self.safe_string(message, 'TS')
         timestamp = self.parse8601(datetime)
         # let orderbook = this.safeValue (this.orderbooks, symbol);
