@@ -1122,7 +1122,7 @@ export default class blofin extends Exchange {
         let query = undefined;
         [paginate, query] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', query, 100);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, query, 100);
         }
         const market = this.market(symbol);
         const request = {

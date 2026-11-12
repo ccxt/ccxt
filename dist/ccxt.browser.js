@@ -219970,7 +219970,9 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         const maxLimit = this.safeBool(market, 'inverse', false) ? 1000 : 1440;
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
+            // klines return up to 1440 candles only for 1m, 1000 for 5m and above
+            const paginationLimit = timeframe === '1m' ? maxLimit : 1000;
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, paginationLimit);
         }
         const request = {
             'symbol': market['id']
@@ -219988,7 +219990,13 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'until'
         ]) : paramsPaginate;
         if (until !== undefined) {
-            request['endTime'] = until;
+            let endTime = until;
+            if (since !== undefined) {
+                // the exchange aligns the window to endTime, so keep it within limit candles of since
+                const duration = this.parseTimeframe(timeframe) * 1000;
+                endTime = Math.min(until, this.sum(since, duration * requestLimit));
+            }
+            request['endTime'] = endTime;
         } else if (this.safeBool(market, 'inverse', false) && since !== undefined) {
             const duration = this.parseTimeframe(timeframe) * 1000;
             request['endTime'] = this.sum(since, duration * requestLimit);
@@ -275203,7 +275211,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         let query = undefined;
         [paginate, query] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', query, 100);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, query, 100);
         }
         const market = this.market(symbol);
         const request = {
@@ -303174,12 +303182,22 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
             'trade_time',
             'time'
         ]);
-        const side = this.safeStringLower2(trade, 'resource', 'side');
+        let side = this.safeStringLower2(trade, 'resource', 'side');
         const takerOrMaker = this.safeStringLower(trade, 'liquidity_indicator');
+        const orderId = this.safeString(trade, 'order_id');
+        const entryId = this.safeString(trade, 'entry_id');
+        if (orderId === undefined && entryId === undefined && this.safeString(trade, 'resource') === undefined) {
+            // public market trades carry the maker side, the unified side of a public trade is the taker side
+            if (side === 'buy') {
+                side = 'sell';
+            } else if (side === 'sell') {
+                side = 'buy';
+            }
+        }
         return this.safeTrade({
             'info': trade,
             'id': this.safeString2(trade, 'id', 'trade_id'),
-            'order': this.safeString(trade, 'order_id'),
+            'order': orderId,
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
             'symbol': symbol,
@@ -311866,29 +311884,32 @@ class coinbaseinternational extends _abstract_coinbaseinternational_js__rspack_i
         //
         const instrumentName = this.safeString(position, 'instrument_name');
         const marketResolved = this.safeMarket(instrumentName, market);
-        let side = this.safeString(position, 'direction');
-        if (side === 'buy') {
+        const direction = this.safeString(position, 'direction');
+        let side = undefined;
+        if (direction === 'buy') {
             side = 'long';
-        } else if (side === 'sell') {
+        } else if (direction === 'sell') {
             side = 'short';
         }
-        let notional = this.safeString(position, 'size_currency');
         const initialMargin = this.safeString(position, 'initial_margin');
         const maintenanceMargin = this.safeString(position, 'maintenance_margin');
-        let contracts = this.safeNumber(position, 'size');
-        if (this.isNativeDeribitCredentials()) {
-            let size = this.safeString(position, 'size');
-            if (!this.safeBool(marketResolved, 'option', false)) {
-                notional = size;
-                if (this.safeBool(marketResolved, 'linear', false)) {
-                    size = this.safeString(position, 'size_currency');
-                }
-            } else {
-                notional = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(size, this.safeString(position, 'mark_price'));
-            }
-            const contractsString = this.safeString(position, 'contracts', _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(size, this.safeString(marketResolved, 'contractSize')));
-            contracts = this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(contractsString));
+        // size is in the quote currency for futures (USD for inverse, USDC for linear) and in the base currency for options
+        // size_currency is in the base currency, futures only
+        // contractSize is in USD for inverse futures and in the base currency otherwise
+        const size = this.safeString(position, 'size');
+        let amount = size; // `contract_size` converts between `amount` and `contracts`
+        let notional = undefined;
+        if (this.safeBool(marketResolved, 'option', false)) {
+            // For options, "size" is the base currency (e.g. BTC) instead of quote currency
+            notional = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(size, this.safeString(position, 'mark_price'));
+        } else if (this.safeBool(marketResolved, 'linear', false)) {
+            amount = this.safeString(position, 'size_currency'); // The size of the position in terms of base currency (e.g. BTC for BTC/USDC:USDC)
+            notional = size;
+        } else {
+            // Inverse markets in Coinbase all settle in the base currency (per Coinbase's get_instruments), so size_currency is already the notional
+            notional = this.safeString(position, 'size_currency');
         }
+        const contractsString = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(amount, this.safeString(marketResolved, 'contractSize'));
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -311899,7 +311920,7 @@ class coinbaseinternational extends _abstract_coinbaseinternational_js__rspack_i
             'collateral': undefined,
             'unrealizedPnl': this.safeNumber(position, 'floating_profit_loss'),
             'side': side,
-            'contracts': contracts,
+            'contracts': this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(contractsString)),
             'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'timestamp': undefined,
             'datetime': undefined,
@@ -349003,12 +349024,17 @@ class dydx extends _abstract_dydx_js__rspack_import_0/* ["default"] */.A {
             request['limit'] = Math.min(limit, 1000);
         }
         if (since !== undefined) {
-            request['fromIso'] = this.iso8601(since);
+            request['fromISO'] = this.iso8601(since);
         }
         const until = this.safeInteger(params, 'until');
         const paramsOmitted = this.omit(params, 'until');
         if (until !== undefined) {
-            request['toIso'] = this.iso8601(until);
+            request['toISO'] = this.iso8601(until);
+        } else if (since !== undefined) {
+            // the indexer returns the newest candles in the range, so the range ends where the limit does
+            const duration = this.parseTimeframe(timeframe) * 1000;
+            const count = limit !== undefined ? Math.min(limit, 1000) : 1000;
+            request['toISO'] = this.iso8601(this.sum(since, duration * count));
         }
         const response = await this.indexerGetCandlesPerpetualMarketsMarket(this.extend(request, paramsOmitted));
         //
@@ -365899,19 +365925,21 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             quoteValueString = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(baseValueString, priceString);
         }
         // --- derive side ---
+        // gate reports the liquidated position (size > 0 or 'long' is a long position), the unified side
+        // is the side of the liquidation order: a long is closed by a sell, a short by a buy
         // 1) options payload has explicit 'side': 'long' | 'short'
         const optPos = this.safeStringLower(liquidation, 'side');
         let side = undefined;
         if (optPos === 'long') {
-            side = 'buy';
-        } else if (optPos === 'short') {
             side = 'sell';
+        } else if (optPos === 'short') {
+            side = 'buy';
         } else {
             if (size !== undefined) {
                 if (_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(size, '0')) {
-                    side = 'buy';
-                } else if (_base_Precise_js__rspack_import_3/* .Precise.stringLt */.Y.stringLt(size, '0')) {
                     side = 'sell';
+                } else if (_base_Precise_js__rspack_import_3/* .Precise.stringLt */.Y.stringLt(size, '0')) {
+                    side = 'buy';
                 }
             }
         }
@@ -394395,20 +394423,24 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
      * @param {int} [since] the earliest time in ms to fetch funding rate history for
      * @param {int} [limit] the maximum number of structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate, linear swaps only
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */ async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
-        if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'current_page', 'page_index', 1, 50);
-        }
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
+        if (paginate) {
+            if (market['linear']) {
+                return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 100);
+            }
+            return await this.fetchPaginatedCallCursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'current_page', 'page_index', 1, 50);
+        }
         const request = {
             'contract_code': market['id']
         };
@@ -394452,7 +394484,8 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         } else if (this.safeBool(market, 'linear', false)) {
-            response = await this.contractPublicGetV5MarketFundingRateHistory(this.extend(request, paramsPaginate));
+            const [requestUntil, paramsUntil] = this.handleUntilOption('end_time', request, paramsPaginate);
+            response = await this.contractPublicGetV5MarketFundingRateHistory(this.extend(requestUntil, paramsUntil));
         //
         //     {
         //         "code": 200,
@@ -470524,7 +470557,7 @@ class p2b extends _abstract_p2b_js__rspack_import_0/* ["default"] */.A {
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
+                        'daysBack': 90,
                         'untilDays': 1,
                         'symbolRequired': true
                     },
@@ -470540,8 +470573,8 @@ class p2b extends _abstract_p2b_js__rspack_import_0/* ["default"] */.A {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 100000,
-                        'daysBackCanceled': 1 / 12,
+                        'daysBack': 90,
+                        'daysBackCanceled': undefined,
                         'untilDays': 1,
                         'trigger': false,
                         'trailing': false,
@@ -485727,7 +485760,7 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 100);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 100);
         }
         let customSymbol = undefined;
         if (isUsdtSettled) {
@@ -556850,7 +556883,15 @@ class coinbaseinternational extends _coinbaseinternational_js__rspack_import_0/*
         const positions = this.parsePositions(rawPositions);
         const positionsLength = positions.length;
         for(let i = 0; i < positionsLength; i++){
-            this.positions.append(positions[i]);
+            const position = positions[i];
+            if (position['side'] === undefined) {
+                // flat (direction: zero) position, the cache is keyed by side so reset both sides
+                position['side'] = 'long';
+                const shortPosition = this.clone(position);
+                shortPosition['side'] = 'short';
+                this.positions.append(shortPosition);
+            }
+            this.positions.append(position);
         }
         client.resolve(this.positions, channel);
     }
@@ -643321,7 +643362,7 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
         const maxLimit = 100;
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, maxLimit);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, maxLimit);
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -643333,7 +643374,7 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
         if (since !== undefined) {
             request['startDate'] = Math.round(since / 1000);
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('until_timestamp', request, paramsPaginate, 0.001);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endDate', request, paramsPaginate, 0.001);
         if (limit !== undefined) {
             requestUntil['limit'] = limit;
         }
