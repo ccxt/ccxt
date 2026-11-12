@@ -14,7 +14,7 @@ import Client from '../base/ws/Client.js';
  * @augments interactivebrokersRest
  */
 export default class interactivebrokers extends interactivebrokersRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,

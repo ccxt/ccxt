@@ -16,7 +16,7 @@ import { sha1 } from '@noble/hashes/legacy.js';
  * @augments Exchange
  */
 export default class interactivebrokers extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'interactivebrokers',
             'name': 'Interactive Brokers',
