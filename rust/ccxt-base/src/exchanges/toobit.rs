@@ -2851,6 +2851,9 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        if (self.markets.clone() == Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
