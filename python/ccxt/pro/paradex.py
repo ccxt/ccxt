@@ -9,6 +9,7 @@ from ccxt.base.types import Balances, Bool, Int, Liquidation, Market, Order, Ord
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import RequestTimeout
 from ccxt.base.precise import Precise
 
 
@@ -35,6 +36,14 @@ class paradex(ccxt.async_support.paradex):
                 'watchTradesForSymbols': True,
                 'watchBalance': True,
                 'watchOHLCV': False,
+                'unWatchBidsAsks': True,
+                'unWatchFundingRate': True,
+                'unWatchOrderBook': True,
+                'unWatchOrderBookForSymbols': True,
+                'unWatchTicker': True,
+                'unWatchTickers': True,
+                'unWatchTrades': True,
+                'unWatchTradesForSymbols': True,
             },
             'urls': {
                 'logo': 'https://x.com/tradeparadex/photo',
@@ -64,6 +73,8 @@ class paradex(ccxt.async_support.paradex):
                     # the book is the 15-level snapshot sent every 100ms
                     'deltas': False,
                 },
+                # ms a watch waits for the acknowledgement of an unsubscribe of its channel
+                'unsubscribeTimeout': 10000,
                 'ws': {
                     # paces the requests sent on a connection: a subscribe per market adds up when
                     # many symbols are watched at once
@@ -156,6 +167,7 @@ class paradex(ccxt.async_support.paradex):
         # messageHashes[i] is the hash the updates of channels[i] resolve. The channels still to subscribe are
         # looked up again after each await: another watch may have subscribed one meanwhile, and a reconnect
         # starts a client without any. Each but the last is sent once the previous one is acknowledged
+        await self.wait_for_pending_unsubscribe(url, channels)
         channelsLength = len(channels)
         for attempt in range(0, channelsLength):
             pending = self.unsubscribed_channels(url, channels)
@@ -186,6 +198,140 @@ class paradex(ccxt.async_support.paradex):
             if not (channels[i] in client.subscriptions):
                 result.append(i)
         return result
+
+    async def send_unsubscribe(self, url: str, unsubHash: str, request: dict, subscription: dict, params: dict = {}) -> object:
+        """
+ @ignore
+        sends an unsubscribe or modify request and waits for its reply, which forgets the subscriptions it ends and rejects their watchers
+        :param str url: the websocket url
+        :param str unsubHash: the message hash the reply resolves
+        :param dict request: the json-rpc request
+        :param dict subscription: what the reply cleans up: subscribeHashes, subMessageHashes, prefix, topic and symbols
+        :param dict [params]: extra parameters merged into the request
+        :returns boolean: True once the reply is in
+        """
+        # an error reply rejects the unwatch only, the watchers keep their subscription
+        unsubscription = self.extend(subscription, {
+            'id': request['id'],
+            'messageHashes': [unsubHash],
+        })
+        # a lost acknowledgement is timed out, so that neither the unwatch nor a watch waiting on it can hang
+        client = self.client(url)
+        timeout = self.safe_integer(self.options, 'unsubscribeTimeout', 10000)
+        self.delay(timeout, self.expire_pending_unsubscribe, client, unsubHash, self.safe_string(unsubscription, 'id'))
+        return await self.watch(url, unsubHash, self.deep_extend(request, params), unsubHash, unsubscription)
+
+    async def unsubscribe_channels(self, url: str, topic: str, channels: list[str], subMessageHashes: list[str], symbols: list[str], params: dict = {}) -> object:
+        """
+ @ignore
+        unsubscribes from a list of channels, one request per channel as the server takes one channel per request, each sent once the previous one is acknowledged, a refused channel does not stop the others
+        :param str url: the websocket url
+        :param str topic: the cache the replies clear, see cleanCache
+        :param str[] channels: the channels to unsubscribe from
+        :param str[] subMessageHashes: the message hash the watchers of each channel wait on
+        :param str[] symbols: the unified symbol of each channel, empty for an all-markets channel
+        :param dict [params]: extra parameters merged into each unsubscribe request
+        :returns boolean: True once every channel is unsubscribed
+        """
+        for i in range(0, len(channels)):
+            try:
+                await self.unsubscribe_channel_at(url, topic, channels, subMessageHashes, symbols, i, params)
+            except Exception as e:
+                # a channel the server refuses (not subscribed) does not stop the others, its error is thrown once they are sent
+                await self.unsubscribe_channels_from(url, topic, channels, subMessageHashes, symbols, i + 1, params)
+                raise e
+        return True
+
+    async def unsubscribe_channels_from(self, url: str, topic: str, channels: list[str], subMessageHashes: list[str], symbols: list[str], start: float, params: dict = {}) -> object:
+        """
+ @ignore
+        unsubscribes from the channels from an index on, after one was refused, their errors are dropped as the first one is thrown
+        :param str url: the websocket url
+        :param str topic: the cache the replies clear, see cleanCache
+        :param str[] channels: the channels to unsubscribe from
+        :param str[] subMessageHashes: the message hash the watchers of each channel wait on
+        :param str[] symbols: the unified symbol of each channel, empty for an all-markets channel
+        :param int start: the index of the first channel to unsubscribe from
+        :param dict [params]: extra parameters merged into each unsubscribe request
+        :returns int: the number of channels refused
+        """
+        refused = 0
+        for i in range(0, len(channels)):
+            if i >= start:
+                try:
+                    await self.unsubscribe_channel_at(url, topic, channels, subMessageHashes, symbols, i, params)
+                except Exception as e:
+                    refused = refused + 1
+        return refused
+
+    async def unsubscribe_channel_at(self, url: str, topic: str, channels: list[str], subMessageHashes: list[str], symbols: list[str], index: float, params: dict = {}) -> object:
+        """
+ @ignore
+        unsubscribes from one channel of a list, the reply forgets its subscription and rejects its watchers, the liquidations of a market with its trades
+        :param str url: the websocket url
+        :param str topic: the cache the reply clears, see cleanCache
+        :param str[] channels: the channels of the list
+        :param str[] subMessageHashes: the message hash the watchers of each channel wait on
+        :param str[] symbols: the unified symbol of each channel, empty for an all-markets channel
+        :param int index: the index of the channel to unsubscribe from
+        :param dict [params]: extra parameters merged into the unsubscribe request
+        :returns boolean: True once unsubscribed
+        """
+        channel = channels[index]
+        symbol = self.safe_string(symbols, index)
+        hashes = [subMessageHashes[index]]
+        channelSymbols = []
+        if symbol is not None:
+            channelSymbols.append(symbol)
+            if topic == 'trades':
+                # the liquidations of a market come from its trades channel
+                hashes.append('liquidations:' + symbol)
+        subscription = {
+            'topic': topic,
+            'subscribeHashes': [channel],
+            'subMessageHashes': hashes,
+            'symbols': channelSymbols,
+        }
+        request = self.unsubscribe_request(channel)
+        return await self.send_unsubscribe(url, 'unsubscribe:' + channel, request, subscription, params)
+
+    async def wait_for_pending_unsubscribe(self, url: str, subscribeHashes: list[str]) -> object:
+        """
+ @ignore
+        waits for the unsubscribes in flight of any of these subscriptions, a watch made meanwhile would find the subscription still there, send nothing, and be rejected by the reply
+        :param str url: the websocket url
+        :param str[] subscribeHashes: the subscriptions the watch relies on
+        :returns None:
+        """
+        if not (url in self.clients):
+            return None
+        client = self.client(url)
+        keys = list(client.subscriptions.keys())
+        for i in range(0, len(keys)):
+            unsubHash = keys[i]
+            if unsubHash.find('unsubscribe:') != 0:
+                continue
+            unsubscription = self.safe_dict(client.subscriptions, unsubHash)
+            pendingHashes = self.safe_list(unsubscription, 'subscribeHashes', [])
+            pending = False
+            for j in range(0, len(pendingHashes)):
+                if self.in_array(pendingHashes[j], subscribeHashes):
+                    pending = True
+            if pending:
+                try:
+                    await client.future(unsubHash)
+                except Exception as e:
+                    # the error of the unsubscribe belongs to the unwatch, the watch goes on with the subscriptions as the reply left them
+                    pending = False
+        return None
+
+    async def expire_pending_unsubscribe(self, client: Client, unsubHash: str, requestId: str):
+        unsubscription = self.safe_dict(client.subscriptions, unsubHash, {})
+        if self.safe_string(unsubscription, 'id') == requestId:
+            error = RequestTimeout(self.id + ' ' + unsubHash + ' was not acknowledged')
+            client.reject(error, unsubHash)
+            # the subscriptions are forgotten, so that the next watch subscribes them again
+            self.clean_unsubscribed(client, unsubHash, unsubscription)
 
     async def authenticate(self, params: dict = {}):
         url = self.get_ws_url()
@@ -250,11 +396,54 @@ class paradex(ccxt.async_support.paradex):
         if isAuth:
             self.handle_authentication_message(client, message)
         if requestId is not None:
+            self.handle_unsubscribe_reply(client, requestId)
             # sendRequest waits on the request id, a request without a subscription of its own is kept under it
             requestHash = 'request:' + requestId
             if requestHash in client.subscriptions:
                 del client.subscriptions[requestHash]
             client.resolve(message, requestHash)
+
+    def handle_unsubscribe_reply(self, client: Client, requestId: str):
+        #
+        # the reply to an unsubscribe, a modify_subscription with remove is acknowledged the same way
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 2,
+        #         "result": { "channel": "trades.BTC-USD-PERP" }
+        #     }
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 4,
+        #         "result": { "channel": "markets_summary", "remove": [ "ETH-USD-PERP" ] }
+        #     }
+        #
+        keys = list(client.subscriptions.keys())
+        for i in range(0, len(keys)):
+            unsubHash = keys[i]
+            if unsubHash.find('unsubscribe:') != 0:
+                continue
+            subscription = self.safe_dict(client.subscriptions, unsubHash, {})
+            if self.safe_string(subscription, 'id') == requestId:
+                self.clean_unsubscribed(client, unsubHash, subscription)
+
+    def clean_unsubscribed(self, client: Client, unsubHash: str, subscription: dict):
+        subscribeHashes = self.safe_list(subscription, 'subscribeHashes', [])
+        for j in range(0, len(subscribeHashes)):
+            subscribeHash = subscribeHashes[j]
+            if subscribeHash in client.subscriptions:
+                del client.subscriptions[subscribeHash]
+            # a market moved to the deltas feed goes back to the snapshots on its next watch
+            requestedHash = subscribeHash + ':requested'
+            if requestedHash in client.subscriptions:
+                del client.subscriptions[requestedHash]
+        prefix = self.safe_bool(subscription, 'prefix', False)
+        subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
+        for j in range(0, len(subMessageHashes)):
+            self.clean_unsubscription(client, subMessageHashes[j], unsubHash, prefix)
+        self.clean_cache(subscription)
+        client.resolve(True, unsubHash)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -275,6 +464,7 @@ class paradex(ccxt.async_support.paradex):
             market = self.market(symbol)
             messageHash = 'trades.' + market['id']
         url = self.get_ws_url()
+        await self.wait_for_pending_unsubscribe(url, [messageHash])
         request = self.subscribe_request(messageHash)
         subscription = {
             'id': request['id'],
@@ -317,6 +507,41 @@ class paradex(ccxt.async_support.paradex):
         if self.newUpdates:
             limitResolved = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
+
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
+        """
+        unsubscribes from the trades channel of a market
+
+        https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
+
+        :param str symbol: unified symbol of the market, the all-markets channel when None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns boolean: True once unsubscribed
+        """
+        if symbol is not None:
+            return await self.un_watch_trades_for_symbols([symbol], params)
+        channel = 'trades.ALL'
+        return await self.unsubscribe_channels(self.get_ws_url(), 'trades', [channel], [channel], [], params)
+
+    async def un_watch_trades_for_symbols(self, symbols: list[str], params: dict = {}) -> object:
+        """
+        unsubscribes from the trades channels of a list of markets, the liquidations of those markets end with them
+
+        https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
+
+        :param str[] symbols: unified symbols of the markets
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns boolean: True once unsubscribed
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols, None, False)
+        channels = []
+        for i in range(0, len(symbolsNormalized)):
+            market = self.market(symbolsNormalized[i])
+            channels.append('trades.' + market['id'])
+        # the watchers of a market wait on its channel
+        return await self.unsubscribe_channels(self.get_ws_url(), 'trades', channels, channels, symbolsNormalized, params)
 
     async def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
         """
@@ -457,6 +682,13 @@ class paradex(ccxt.async_support.paradex):
         deltasOption, paramsDeltas = self.handle_option_and_params(params, 'watchOrderBook', 'deltas', False)
         deltas = (deltasOption is True) or ((limit is not None) and (limit > 15))
         url = self.get_ws_url()
+        # an unwatch in flight decides which feed each market is on once acknowledged
+        feeds = []
+        for i in range(0, symbolsLength):
+            feedMarket = self.market(symbolsNormalized[i])
+            feeds.append(self.get_order_book_channel(feedMarket['id'], True))
+            feeds.append(self.get_order_book_channel(feedMarket['id'], False))
+        await self.wait_for_pending_unsubscribe(url, feeds)
         client = self.client(url)
         channels = []
         messageHashes = []
@@ -483,6 +715,54 @@ class paradex(ccxt.async_support.paradex):
             messageHashes.append('orderbook:' + market['symbol'])
         orderbook = await self.subscribe_channels(url, messageHashes, channels, paramsDeltas)
         return orderbook.limit()
+
+    async def un_watch_order_book(self, symbol: str, params: dict = {}) -> object:
+        """
+        unsubscribes from the order book feed of a market
+
+        https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
+
+        :param str symbol: unified symbol of the market
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.deltas]: the feed to unsubscribe from when the market is not watched on self connection, True for the full-depth deltas, default False
+        :returns boolean: True once unsubscribed
+        """
+        return await self.un_watch_order_book_for_symbols([symbol], params)
+
+    async def un_watch_order_book_for_symbols(self, symbols: list[str], params: dict = {}) -> object:
+        """
+        unsubscribes from the order book feeds of a list of markets
+
+        https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
+
+        :param str[] symbols: unified symbols of the markets
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.deltas]: the feed to unsubscribe from when a market is not watched on self connection, True for the full-depth deltas, default False
+        :returns boolean: True once unsubscribed
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols, None, False)
+        deltasOption, paramsDeltas = self.handle_option_and_params(params, 'watchOrderBook', 'deltas', False)
+        url = self.get_ws_url()
+        client = self.client(url)
+        channels = []
+        subMessageHashes = []
+        for i in range(0, len(symbolsNormalized)):
+            market = self.market(symbolsNormalized[i])
+            # the feed the market is on, a market is on one of them at a time
+            deltasChannel = self.get_order_book_channel(market['id'], True)
+            snapshotChannel = self.get_order_book_channel(market['id'], False)
+            channel = deltasChannel if (deltasOption is True) else snapshotChannel
+            # a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
+            requestedHash = deltasChannel + ':requested'
+            if (deltasChannel in client.subscriptions) or (requestedHash in client.subscriptions):
+                channel = deltasChannel
+            elif snapshotChannel in client.subscriptions:
+                channel = snapshotChannel
+            channels.append(channel)
+            subMessageHashes.append('orderbook:' + market['symbol'])
+        return await self.unsubscribe_channels(url, 'orderbook', channels, subMessageHashes, symbolsNormalized, paramsDeltas)
 
     def handle_order_book(self, client: Client, message: dict):
         #
@@ -672,8 +952,9 @@ class paradex(ccxt.async_support.paradex):
         else:
             # every listed market, options included
             url = self.get_ws_url()
-            client = self.client(url)
             scopedHash = channel + ':scoped'
+            await self.wait_for_pending_unsubscribe(url, [channel, scopedHash])
+            client = self.client(url)
             if scopedHash in client.subscriptions:
                 # a scoped subscription keeps its filter through a plain subscribe, it is unsubscribed first
                 subscribeHashes = list(client.subscriptions.keys())
@@ -696,6 +977,89 @@ class paradex(ccxt.async_support.paradex):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 
+    async def un_watch_ticker(self, symbol: str, params: dict = {}) -> object:
+        """
+        stops watching the market summary of a market
+
+        https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+
+        :param str symbol: unified symbol of the market
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns boolean: True once unsubscribed
+        """
+        return await self.un_watch_tickers([symbol], params)
+
+    async def un_watch_tickers(self, symbols: Strings = None, params: dict = {}) -> object:
+        """
+        stops watching the market summaries of a list of markets, they are removed from the scoped subscription in place, the last ones unsubscribe it
+
+        https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+
+        :param str[] [symbols]: unified symbols of the markets, the whole channel when None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns boolean: True once unsubscribed
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols)
+        symbolsLength = 0
+        if symbolsNormalized is not None:
+            symbolsLength = len(symbolsNormalized)
+        channel = 'markets_summary'
+        scopedHash = channel + ':scoped'
+        url = self.get_ws_url()
+        client = self.client(url)
+        marketIds = []
+        subscribeHashes = []
+        subMessageHashes = []
+        for i in range(0, symbolsLength):
+            symbol = (symbolsNormalized)[i]
+            marketId = self.market(symbol)['id']
+            marketIds.append(marketId)
+            subscribeHashes.append(channel + '.' + marketId)
+            subMessageHashes.append(channel + '.' + symbol)
+        tickerSymbols = [] if (symbolsNormalized is None) else symbolsNormalized
+        if (symbolsLength > 0) and (channel in client.subscriptions):
+            # the all-markets subscription has no market filter to remove these from, their watchers are ended here
+            for i in range(0, len(subMessageHashes)):
+                self.clean_unsubscription(client, subMessageHashes[i], 'unsubscribe:' + subMessageHashes[i])
+            self.clean_cache({'topic': 'ticker', 'symbols': tickerSymbols})
+            return True
+        # the markets left in the scoped subscription once these are removed
+        remaining = 0
+        keys = list(client.subscriptions.keys())
+        for i in range(0, len(keys)):
+            if (keys[i].find(channel + '.') == 0) and not self.in_array(keys[i], subscribeHashes):
+                remaining = remaining + 1
+        if (symbolsLength == 0) or ((scopedHash in client.subscriptions) and (remaining == 0)):
+            # a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
+            channelSubscription = {
+                'topic': 'ticker',
+                'subscribeHashes': [channel, scopedHash],
+                'subMessageHashes': [channel],
+                'prefix': True,
+                'symbols': tickerSymbols,
+            }
+            unsubscribe = self.unsubscribe_request(channel)
+            return await self.send_unsubscribe(url, 'unsubscribe:' + channel, unsubscribe, channelSubscription, params)
+        request = {
+            'jsonrpc': '2.0',
+            'id': self.request_id(),
+            'method': 'modify_subscription',
+            'params': {
+                'channel': channel,
+                'remove': marketIds,
+            },
+        }
+        subscription = {
+            'topic': 'ticker',
+            'subscribeHashes': subscribeHashes,
+            'subMessageHashes': subMessageHashes,
+            'symbols': tickerSymbols,
+        }
+        unsubHash = 'unsubscribe:' + channel + ':' + ','.join(marketIds)
+        return await self.send_unsubscribe(url, unsubHash, request, subscription, params)
+
     async def subscribe_markets_summary(self, symbols: list[str], messageHashes: list[str], params: dict = {}) -> object:
         """
  @ignore
@@ -709,8 +1073,12 @@ class paradex(ccxt.async_support.paradex):
         :returns dict: the first `ticker structure <https://docs.ccxt.com/?id=ticker-structure>` updated
         """
         url = self.get_ws_url()
-        client = self.client(url)
         channel = 'markets_summary'
+        pendingHashes = [channel, channel + ':scoped']
+        for i in range(0, len(symbols)):
+            pendingHashes.append(channel + '.' + self.market(symbols[i])['id'])
+        await self.wait_for_pending_unsubscribe(url, pendingHashes)
+        client = self.client(url)
         if channel in client.subscriptions:
             # the all-markets subscription carries these markets already
             return await self.watch_multiple(url, messageHashes, None, [channel])
@@ -811,6 +1179,36 @@ class paradex(ccxt.async_support.paradex):
             result[newBidAsk['symbol']] = newBidAsk
             return result
         return self.filter_by_array(self.bidsasks, 'symbol', symbolsNormalized)
+
+    async def un_watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> object:
+        """
+        unsubscribes from the best bid & ask channels of a list of markets
+
+        https://docs.paradex.trade/ws/web-socket-channels/bbo-market-symbol/bbo-market-symbol
+
+        :param str[] [symbols]: unified symbols of the markets, the all-markets channel when None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns boolean: True once unsubscribed
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols)
+        symbolsLength = 0
+        if symbolsNormalized is not None:
+            symbolsLength = len(symbolsNormalized)
+        channels = []
+        subMessageHashes = []
+        bidAskSymbols = []
+        if symbolsLength > 0:
+            for i in range(0, symbolsLength):
+                market = self.market((symbolsNormalized)[i])
+                channels.append('bbo.' + market['id'])
+                subMessageHashes.append('bidask:' + market['symbol'])
+                bidAskSymbols.append(market['symbol'])
+        else:
+            channels.append('bbo.ALL')
+            subMessageHashes.append('bidask')
+        return await self.unsubscribe_channels(self.get_ws_url(), 'bidsasks', channels, subMessageHashes, bidAskSymbols, params)
 
     def handle_bid_ask(self, client: Client, message: dict):
         #
@@ -1237,8 +1635,26 @@ class paradex(ccxt.async_support.paradex):
         # the per-market channel, the all-markets one sends every perpetual's funding
         channel = 'funding_data.' + market['id']
         url = self.get_ws_url()
-        messageHash = 'funding_data.' + market['symbol']
+        # its own hash: funding_data.<symbol> is the hash of watchFundingRates on the all-markets channel
+        messageHash = 'fundingRate:' + market['symbol']
         return await self.subscribe_channels(url, [messageHash], [channel], params)
+
+    async def un_watch_funding_rate(self, symbol: str, params: dict = {}) -> object:
+        """
+        unsubscribes from the funding data channel of a market
+
+        https://docs.paradex.trade/ws/web-socket-channels/funding-data-market-symbol/funding-data-market-symbol
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns boolean: True once unsubscribed
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        channel = 'funding_data.' + market['id']
+        messageHash = 'fundingRate:' + market['symbol']
+        return await self.unsubscribe_channels(self.get_ws_url(), 'fundingRate', [channel], [messageHash], [market['symbol']], params)
 
     async def watch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
@@ -1303,10 +1719,11 @@ class paradex(ccxt.async_support.paradex):
         fundingRate = self.parse_funding_rate_ws(data)
         symbol = self.safe_string(fundingRate, 'symbol')
         self.fundingRates[symbol] = fundingRate
-        # watchFundingRates without symbols waits on the bare channel, the per-market and all-markets
-        # channels carry the same frame
+        # watchFundingRates waits on the bare channel without symbols and on funding_data.<symbol> with them,
+        # watchFundingRate on fundingRate:<symbol>, the per-market and all-markets channels carry the same frame
         client.resolve(fundingRate, 'funding_data')
         client.resolve(fundingRate, 'funding_data.' + symbol)
+        client.resolve(fundingRate, 'fundingRate:' + symbol)
 
     def parse_funding_rate_ws(self, contract: dict, market: Market = None) -> FundingRate:
         #
