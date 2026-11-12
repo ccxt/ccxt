@@ -547920,7 +547920,7 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */ async watchTickers(symbols = undefined, params = {}) {
         if (symbols === undefined) {
-            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' watchTickers() requires a list of symbols');
+            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' watchTickers() requires a list of symbols');
         }
         const ticker = await this.watchMultipleWrapper(true, 'tickers', 'watchTickers', symbols, params);
         if (this.newUpdates) {
