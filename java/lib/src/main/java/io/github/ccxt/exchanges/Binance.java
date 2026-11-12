@@ -10216,7 +10216,7 @@ public class Binance extends BinanceApi
                     request.put("startTime", (untilResolved - ((long) oneWeek)));
                 }
             }
-            Object response = null;
+            List<Object> response = null;
             if (Boolean.TRUE.equals(isOptionType))
             {
                 response = (this.eapiPrivateGetHistoryOrders(this.extend(request, paramsPaginate))).join();
@@ -10276,7 +10276,8 @@ public class Binance extends BinanceApi
                     response = (this.sapiGetMarginAllOrders(this.extend(request, paramsPaginate))).join();
                 } else if (Boolean.TRUE.equals(stock))
                 {
-                    response = (this.sapiGetEquityOrderHistory(this.extend(request, paramsPaginate))).join();
+                    Map<String, Object> equityResponse = (this.sapiGetEquityOrderHistory(this.extend(request, paramsPaginate))).join();
+                    response = (List<Object>) this.safeList(equityResponse, "rows", new ArrayList<Object>(Arrays.asList()));
                 } else
                 {
                     response = (this.privateGetAllOrders(this.extend(request, paramsPaginate))).join();
@@ -10488,11 +10489,6 @@ public class Binance extends BinanceApi
             //         ]
             //     }
             //
-            if (Boolean.TRUE.equals(stock))
-            {
-                List<Object> result = (List<Object>) this.safeList(response, "rows", new ArrayList<Object>(Arrays.asList()));
-                return this.parseOrders(result, market, since, limitResolved, new HashMap<String, Object>() {{}});
-            }
             return this.parseOrders(response, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 

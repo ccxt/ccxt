@@ -2420,7 +2420,7 @@ public class Aster extends AsterApi
             //         }
             //     ]
             //
-            return this.parseFundingRates(response, symbolsNormalized);
+            return this.parseFundingRates(this.toArray(response), symbolsNormalized);
         }).thenApply(FundingRates::new);
 
     }

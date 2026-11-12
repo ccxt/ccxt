@@ -5768,8 +5768,7 @@ public class Kucoin extends KucoinApi
             //           },
             // }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            data = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 

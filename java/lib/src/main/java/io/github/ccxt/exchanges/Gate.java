@@ -7312,7 +7312,7 @@ public class Gate extends GateApi
             if (Boolean.TRUE.equals(openSpotOrders))
             {
                 List<Object> spotResult = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < (response == null ? 0 : response.size()); i++)
+                for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
                     Map<String, Object> responseEntry = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
                     Object ordersInner = this.safeValue(responseEntry, "orders");

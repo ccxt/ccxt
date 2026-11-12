@@ -850,7 +850,7 @@ public class Zaif extends ZaifApi
             }
             Map<String, Object> response = (this.privatePostActiveOrders(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
-            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(this.addKeyInArrayItems(data, "id"), market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -892,7 +892,7 @@ public class Zaif extends ZaifApi
             }
             Map<String, Object> response = (this.privatePostTradeHistory(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
-            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(this.addKeyInArrayItems(data, "id"), market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
