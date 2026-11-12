@@ -2145,51 +2145,53 @@ func (this *Backpack) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			panic(r.Err)
 		}
 	}
+	var maxLimit int = 2000
 	var market map[string]any = this.Market(symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var duration int64 = this.ParseTimeframe(timeframe)
+	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var dataRequest map[string]any = this.StockDataRequest("fetchOHLCV", params, market)
 	var request map[string]any = map[string]any{
 		"symbol":   this.SafeString(dataRequest, "symbol"),
 		"interval": interval,
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(this.Omit(dataRequest, "symbol"), "fetchOHLCV", "until")
-	var until *int64 = nil
-	if p, ok := untilparamsUntilVariable[0].(*int64); ok {
-		until = p
-	}
+	until := func() any {
+		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
+			return *p
+		}
+		return nil
+	}()
 	paramsUntil := untilparamsUntilVariable[1]
 	if until != nil {
-		request["endTime"] = this.ParseToInt(float64(*until) / 1000) // convert milliseconds to seconds
+		request["endTime"] = this.ParseToInt(Divide(until, 1000)) // convert milliseconds to seconds
 	}
 	var defaultLimit int = 100
 	var limitResolved any = limit
-	if (since == nil) && (limit == nil) {
-		limitResolved = defaultLimit
+	if !IsEqual(limitResolved, nil) {
+		limitResolved = mathMin(limitResolved, maxLimit)
 	}
-	var windowLimit int64 = func() int64 {
-		if limit == nil {
-			return int64(defaultLimit)
+	var windowLimit any = func() any {
+		if IsEqual(limitResolved, nil) {
+			return defaultLimit
 		}
-		return *limit
+		return limitResolved
 	}()
-	var startTime any = nil
-	if since == nil {
-		var endTime int64 = this.Seconds()
-		if (until != nil) && (until == nil || *until != 0) {
-			endTime = this.ParseToInt(float64(*until) / 1000)
+	var now int64 = this.Milliseconds()
+	var startTime any = since
+	var untilValue any = until
+	if IsEqual(startTime, nil) {
+		if IsEqual(untilValue, nil) {
+			untilValue = now
 		}
-		startTime = (endTime - (windowLimit * duration))
-	} else {
-		startTime = this.ParseToInt(float64(*since) / 1000) // convert milliseconds to seconds
+		startTime = Subtract(untilValue, (Multiply(windowLimit, duration)))
 	}
-	request["startTime"] = startTime
-	if until == nil {
-		var currentMs int64 = this.Seconds() // default to current time in seconds
-		var windowEnd any = this.Sum(startTime, (windowLimit * duration))
-		var minTimestamp any = mathMin(currentMs, windowEnd)
-		request["endTime"] = this.ParseToInt(minTimestamp) // default to current time in seconds if until is not specified
+	request["startTime"] = this.ParseToInt(Divide(startTime, 1000))
+	// set until value
+	if IsEqual(untilValue, nil) {
+		var windowEnd any = this.Sum(startTime, Multiply(windowLimit, duration))
+		untilValue = mathMin(now, windowEnd)
 	}
+	request["endTime"] = this.ParseToInt(Divide(untilValue, 1000))
 	var price *string = this.SafeString(paramsUntil, "price")
 	var paramsOmitted any = func() any {
 		if price != nil {
