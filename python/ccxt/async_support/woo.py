@@ -2745,7 +2745,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(self.extend(data, {'network': self.safe_string(request, 'network')}), currency)
 
-    def get_dedicated_network_id(self, currency: dict, params: dict) -> list:
+    def get_dedicated_network_id(self, currency: Currency, params: dict) -> list:
         networkCodeRaw, paramsNetworkCode = self.handle_network_code_and_params(params)
         networks = self.safe_dict(currency, 'networks', {})
         currencyCode = self.safe_string(currency, 'code', '')
@@ -2769,7 +2769,7 @@ class woo(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositEntry, 'extra'),
         }
 
-    async def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> object:
+    async def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list:
         if self.markets is None:
             await self.load_markets()
         request = {}

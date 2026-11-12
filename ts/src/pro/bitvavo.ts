@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import bitvavoRest from '../bitvavo.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, List, Strings, Tickers, Bool, Currencies, Market, Transaction } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, List, Strings, Tickers, Bool, Currencies, Market, Transaction, type int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -1242,7 +1242,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    requestId (): number {
+    requestId (): int {
         const ts = this.milliseconds ().toString ();
         const randomNumber = this.randNumber (4);
         const randomPart = randomNumber.toString ();
@@ -1515,8 +1515,8 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override fetchMarketsWs (params: Dict = {}): Promise<any> {
-        return this.watchRequest ('getMarkets', params);
+    override async fetchMarketsWs (params: Dict = {}): Promise<any> {
+        return await this.watchRequest ('getMarkets', params);
     }
 
     /**
@@ -1556,7 +1556,7 @@ export default class bitvavo extends bitvavoRest {
         //    }
         //
         const messageHash = this.safeString (message, 'requestId');
-        const response = this.safeList (message, 'response');
+        const response = this.safeList (message, 'response', []);
         const currencies = this.parseCurrencies (response);
         client.resolve (currencies, messageHash);
     }

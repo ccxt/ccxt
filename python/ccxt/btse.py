@@ -2384,7 +2384,7 @@ class btse(Exchange, ImplicitAPI):
             # sent, and it identifies contracts by the short symbol form
             request['symbol'] = self.futures_request_id(self.market(symbol))
             response = self.privateDeleteFuturesApiV23Order(self.extend(request, paramsMarketType))
-        return self.parse_orders(response, market)
+        return self.parse_orders(self.to_array(response), market)
 
     def cancel_all_orders_after(self, timeout: Int, params: dict = {}):
         """

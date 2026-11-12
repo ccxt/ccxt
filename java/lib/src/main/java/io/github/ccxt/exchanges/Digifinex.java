@@ -1402,7 +1402,7 @@ public class Digifinex extends DigifinexApi
             {
                 Map<String, Object> rawTicker = this.extend(new HashMap<String, Object>() {{
                     put( "date", date );
-                }}, this.safeValue(tickers, i));
+                }}, this.safeDict(tickers, i, (Object) null));
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, (Map<String, Object>) null);
                 String symbol = (String) ticker.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
@@ -4092,7 +4092,7 @@ public class Digifinex extends DigifinexApi
             //         "unrealized_pnl": "-0.049158102631998504"
             //     }
             //
-            List<Object> rows = (List<Object>) this.safeList(response, "positions", (Object) null);
+            List<Object> rows = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
             List<Object> interest = this.parseBorrowInterests(rows, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
@@ -4143,7 +4143,7 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
      */
-    public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Object parameters)
+    public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

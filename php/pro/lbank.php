@@ -65,7 +65,7 @@ class lbank extends \ccxt\async\lbank {
         ));
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         $this->lock_id();
         $previousValue = $this->safe_integer($this->options, 'requestId', 0);
         $newValue = $this->sum($previousValue, 1);
@@ -1061,7 +1061,7 @@ class lbank extends \ccxt\async\lbank {
         //
         $marketId = $this->safe_string($message, 'pair');
         $symbol = $this->safe_symbol($marketId);
-        $orderBook = $this->safe_value($message, 'depth', $message);
+        $orderBook = $this->safe_dict($message, 'depth', $message);
         $datetime = $this->safe_string($message, 'TS');
         $timestamp = $this->parse8601($datetime);
         // let orderbook = this.safeValue (this.orderbooks, symbol);

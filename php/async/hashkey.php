@@ -1185,7 +1185,7 @@ class hashkey extends Exchange {
          * @return {array} an associative dictionary of currencies
          */
         $response = Async\await($this->publicGetApiV1ExchangeInfo($params));
-        $coins = $this->safe_list($response, 'coins');
+        $coins = $this->safe_list($response, 'coins', array());
         //
         //     {
         //         ...

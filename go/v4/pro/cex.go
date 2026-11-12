@@ -59,9 +59,9 @@ func (this *Cex) Describe() map[string]any {
 		"exceptions": map[string]any{},
 	})
 }
-func (this *Cex) RequestId() string {
+func (this *Cex) RequestId() int64 {
 	var requestId int64 = this.NextRequestId("requestId")
-	return strconv.FormatInt(requestId, 10)
+	return requestId
 }
 
 /**
@@ -87,7 +87,7 @@ func (this *Cex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var messageHash string = this.RequestId()
+	var messageHash string = strconv.FormatInt(this.RequestId(), 10)
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	var subscribe map[string]any = map[string]any{
 		"e":    "get-balance",
@@ -361,7 +361,7 @@ func (this *Cex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol s
 		message = map[string]any{
 			"e":    "ticker",
 			"data": []any{market["baseId"], market["quoteId"]},
-			"oid":  this.RequestId(),
+			"oid":  strconv.FormatInt(this.RequestId(), 10),
 		}
 		subscriptionHash = "ticker:" + symbolValue
 	}
@@ -469,7 +469,7 @@ func (this *Cex) fetchTickerWsBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol
 	}
 	var market map[string]any = this.Market(symbol)
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
-	var messageHash string = this.RequestId()
+	var messageHash string = strconv.FormatInt(this.RequestId(), 10)
 	var request map[string]any = this.Extend(map[string]any{
 		"e":    "ticker",
 		"oid":  messageHash,
@@ -608,7 +608,7 @@ func (this *Cex) fetchBalanceWsBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 		panic(r1.Err)
 	}
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
-	var messageHash string = this.RequestId()
+	var messageHash string = strconv.FormatInt(this.RequestId(), 10)
 	var request map[string]any = this.Extend(map[string]any{
 		"e":   "get-balance",
 		"oid": messageHash,
@@ -1226,7 +1226,7 @@ func (this *Cex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 			"subscribe": true,
 			"depth":     depth,
 		},
-		"oid": this.RequestId(),
+		"oid": strconv.FormatInt(this.RequestId(), 10),
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
@@ -1573,7 +1573,7 @@ func (this *Cex) fetchOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id strin
 		"order_id": id,
 	}, params)
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
-	var messageHash string = this.RequestId()
+	var messageHash string = strconv.FormatInt(this.RequestId(), 10)
 	var request map[string]any = map[string]any{
 		"e":    "get-order",
 		"oid":  messageHash,
@@ -1634,7 +1634,7 @@ func (this *Cex) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], o
 	}
 	var market map[string]any = this.Market(symbol)
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
-	var messageHash string = this.RequestId()
+	var messageHash string = strconv.FormatInt(this.RequestId(), 10)
 	var data map[string]any = this.Extend(map[string]any{
 		"pair": []any{market["baseId"], market["quoteId"]},
 	}, params)
@@ -1697,7 +1697,7 @@ func (this *Cex) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol 
 	}
 	var market map[string]any = this.Market(symbol)
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
-	var messageHash string = this.RequestId()
+	var messageHash string = strconv.FormatInt(this.RequestId(), 10)
 	var data map[string]any = this.Extend(map[string]any{
 		"pair":   []any{market["baseId"], market["quoteId"]},
 		"amount": amount,
@@ -1774,7 +1774,7 @@ func (this *Cex) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id string
 		"price":    price,
 		"order_id": id,
 	}, params)
-	var messageHash string = this.RequestId()
+	var messageHash string = strconv.FormatInt(this.RequestId(), 10)
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	var request map[string]any = map[string]any{
 		"e":    "cancel-replace-order",
@@ -1833,7 +1833,7 @@ func (this *Cex) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id stri
 	var data map[string]any = this.Extend(map[string]any{
 		"order_id": id,
 	}, params)
-	var messageHash string = this.RequestId()
+	var messageHash string = strconv.FormatInt(this.RequestId(), 10)
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	var request map[string]any = map[string]any{
 		"e":    "cancel-order",
@@ -1888,7 +1888,7 @@ func (this *Cex) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var messageHash string = this.RequestId()
+	var messageHash string = strconv.FormatInt(this.RequestId(), 10)
 	var data map[string]any = this.Extend(map[string]any{
 		"cancel-orders": ids,
 	}, params)

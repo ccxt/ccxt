@@ -3388,7 +3388,7 @@ class predictfun extends Exchange {
         return $base . '?apiKey=' . $this->apiKey;
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         /**
          * @ignore
          * a monotonic id the venue echoes back so a subscription reply can be matched to its request

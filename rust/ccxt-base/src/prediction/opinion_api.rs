@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::opinion::OpinionCore;
+use super::opinion::Opinion;
 use crate::exchange::ExchangeRuntime;
 
-impl OpinionCore {
+impl Opinion {
     /// Auto-generated wrapper for the `opinionPublicGetMarket` implicit endpoint.
     pub async fn opinion_public_get_market(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("opinion_public_get_market".into()), optional_args).await

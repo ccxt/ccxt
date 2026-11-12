@@ -4980,7 +4980,7 @@ class phemex extends Exchange {
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-        $scaledAmmount = $this->to_ev($amount, $currency);
+        $scaledAmmount = $this->to_en($amount, $this->safe_integer($currency, 'valueScale'));
         $direction = null;
         $transfer = null;
         if ($fromId === 'spot' && $toId === 'future') {

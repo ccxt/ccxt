@@ -4844,8 +4844,7 @@ export default class kucoin extends Exchange {
         //           },
         // }
         //
-        let data = this.safeDict (response, 'data', {});
-        data = this.safeList (data, 'data', []);
+        const data = this.safeList (this.safeDict (response, 'data', {}), 'data', []);
         return this.parseOrders (data);
     }
 
@@ -11097,9 +11096,8 @@ export default class kucoin extends Exchange {
                 'clientOid': this.safeString (clientOrderIds, i),
             });
         }
-        const idsList = this.toArray (ids);
-        for (let i = 0; i < idsList.length; i++) {
-            const orderId = this.safeString (idsList, i);
+        for (let i = 0; i < ids.length; i++) {
+            const orderId = this.safeString (ids, i);
             if (uta) {
                 ordersRequests.push ({
                     'orderId': orderId,

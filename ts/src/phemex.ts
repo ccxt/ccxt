@@ -4888,7 +4888,7 @@ export default class phemex extends Exchange {
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
-        const scaledAmmount = this.toEv (amount, currency);
+        const scaledAmmount = this.toEn (amount, this.safeInteger (currency, 'valueScale'));
         let direction: Int = undefined;
         let transfer: TransferEntry | undefined = undefined;
         if (fromId === 'spot' && toId === 'future') {

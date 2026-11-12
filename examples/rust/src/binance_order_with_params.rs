@@ -32,7 +32,7 @@
 // full validation and creates nothing. The opt-in path is capped at 25 USD
 // notional per order and cancels whatever it creates.
 use ccxt::types::{Market, Order};
-use ccxt::{Binance, Config, ExchangeError, Params};
+use ccxt::{Binance, Config, ExchangeError, Params, ExchangeRuntime};
 
 /// Hard cap on the notional of any order this example is willing to send.
 const MAX_NOTIONAL_USD: f64 = 25.0;
@@ -161,7 +161,7 @@ async fn run() {
     // Print the resolved host instead of asserting one — sandbox routing does
     // not currently work, so an assumption here would be a dangerous lie.
     println!("  endpoint:    {}", api_host(&ex));
-    if let Err(e) = ex.try_load_markets(false).await {
+    if let Err(e) = ex.load_markets(false, ()).await {
         println!(
             "\nload_markets failed [{}]: {}",
             e.kind,

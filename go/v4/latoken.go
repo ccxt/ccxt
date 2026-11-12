@@ -762,7 +762,7 @@ func (this *Latoken) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	var rawCurrencies []any = this.ToArray(response)
 	var merged []any = []any{}
 	for i := 0; i < len(rawCurrencies); i++ {
-		var rawCurrency any = this.SafeValue(rawCurrencies, i)
+		var rawCurrency any = this.SafeDict(rawCurrencies, i)
 		var bindingEntry map[string]any = SafeMapTyped(bindingsById, this.SafeString(rawCurrency, "id"))
 		var bindings []any = SafeListTyped(bindingEntry, "bindings")
 		var mergedCurrency any = rawCurrency
@@ -2108,12 +2108,12 @@ func (this *Latoken) createOrderBody(ch chan AsyncResult[Order], symbol string, 
  * @param {boolean} [params.trigger] true if cancelling a trigger order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Latoken) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Latoken) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Latoken) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Latoken) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

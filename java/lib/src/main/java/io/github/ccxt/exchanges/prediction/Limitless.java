@@ -1440,8 +1440,8 @@ public class Limitless extends LimitlessApi
             {
                 String slug = (slugs == null || i < 0 || i >= slugs.size() ? null : slugs.get(i));
                 Long detailIndex = (((long) i) * 2L);
-                Object detail = this.safeValue(responses, detailIndex);
-                Object book = this.safeValue(responses, this.sum(detailIndex, 1));
+                Map<String, Object> detail = (Map<String, Object>) this.safeDict(responses, detailIndex, (Object) null);
+                Map<String, Object> book = (Map<String, Object>) this.safeDict(responses, this.sum(detailIndex, 1), (Object) null);
                 Map<String, Object> tickerInput = new HashMap<String, Object>() {{
                     put( "market", detail );
                     put( "book", book );
@@ -1593,12 +1593,12 @@ public class Limitless extends LimitlessApi
             List<Object> asks = new ArrayList<Object>(Arrays.asList());
             for (var bi = 0; bi < ((List<?>)bidsSource).size(); bi++)
             {
-                String priceStr = this.safeString(this.safeValue(bidsSource, bi), "price");
+                String priceStr = this.safeString(this.safeDict(bidsSource, bi, (Object) null), "price");
                 if (!Boolean.TRUE.equals(isYes) && (!java.util.Objects.equals(priceStr, null)))
                 {
                     priceStr = Precise.stringSub("1", priceStr);
                 }
-                String sizeStr = this.safeString(this.safeValue(bidsSource, bi), "size");
+                String sizeStr = this.safeString(this.safeDict(bidsSource, bi, (Object) null), "size");
                 if (!java.util.Objects.equals(sizeStr, null))
                 {
                     sizeStr = Precise.stringDiv(sizeStr, scaleStr);
@@ -1607,12 +1607,12 @@ public class Limitless extends LimitlessApi
             }
             for (var ai = 0; ai < ((List<?>)asksSource).size(); ai++)
             {
-                String priceStr = this.safeString(this.safeValue(asksSource, ai), "price");
+                String priceStr = this.safeString(this.safeDict(asksSource, ai, (Object) null), "price");
                 if (!Boolean.TRUE.equals(isYes) && (!java.util.Objects.equals(priceStr, null)))
                 {
                     priceStr = Precise.stringSub("1", priceStr);
                 }
-                String sizeStr = this.safeString(this.safeValue(asksSource, ai), "size");
+                String sizeStr = this.safeString(this.safeDict(asksSource, ai, (Object) null), "size");
                 if (!java.util.Objects.equals(sizeStr, null))
                 {
                     sizeStr = Precise.stringDiv(sizeStr, scaleStr);

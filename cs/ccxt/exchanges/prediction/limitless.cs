@@ -1395,8 +1395,8 @@ public partial class limitless : PredictionExchange
         {
             string? slug = ((string)slugs[i]);
             Int64 detailIndex = (i * 2L);
-            object detail = this.safeValue(responses, detailIndex);
-            object book = this.safeValue(responses, this.sum(detailIndex, 1));
+            IDictionary<string, object> detail = this.safeDict(responses, detailIndex);
+            IDictionary<string, object> book = this.safeDict(responses, this.sum(detailIndex, 1));
             Dictionary<string, object> tickerInput = new Dictionary<string, object>() {
                 { "market", detail },
                 { "book", book },
@@ -1540,12 +1540,12 @@ public partial class limitless : PredictionExchange
         List<object> asks = new List<object>() {};
         for (int bi = 0; bi < (bidsSource?.Count ?? 0); bi++)
         {
-            string? priceStr = this.safeString(this.safeValue(bidsSource, bi), "price");
+            string? priceStr = this.safeString(this.safeDict(bidsSource, bi), "price");
             if (!isYes && ((priceStr != null)))
             {
                 priceStr = Precise.stringSub("1", priceStr);
             }
-            string? sizeStr = this.safeString(this.safeValue(bidsSource, bi), "size");
+            string? sizeStr = this.safeString(this.safeDict(bidsSource, bi), "size");
             if ((sizeStr != null))
             {
                 sizeStr = Precise.stringDiv(sizeStr, scaleStr);
@@ -1554,12 +1554,12 @@ public partial class limitless : PredictionExchange
         }
         for (int ai = 0; ai < (asksSource?.Count ?? 0); ai++)
         {
-            string? priceStr = this.safeString(this.safeValue(asksSource, ai), "price");
+            string? priceStr = this.safeString(this.safeDict(asksSource, ai), "price");
             if (!isYes && ((priceStr != null)))
             {
                 priceStr = Precise.stringSub("1", priceStr);
             }
-            string? sizeStr = this.safeString(this.safeValue(asksSource, ai), "size");
+            string? sizeStr = this.safeString(this.safeDict(asksSource, ai), "size");
             if ((sizeStr != null))
             {
                 sizeStr = Precise.stringDiv(sizeStr, scaleStr);

@@ -859,7 +859,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currencies(self, rawCurrencies: object) -> Currencies:
+    def parse_currencies(self, rawCurrencies: list) -> Currencies:
         # each market row yields two currencies so the accumulation happens
         # in a local dictionary here instead of a temp key inside this.options
         # because the shared scratch key raced between concurrent

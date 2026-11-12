@@ -1200,7 +1200,7 @@ export default class xt extends Exchange {
         return this.parseMarkets (swapAndFutureMarkets);
     }
 
-    override parseMarkets (markets: any) {
+    override parseMarkets (markets: List) {
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const parsed = this.parseMarket (this.safeValue (markets, i));

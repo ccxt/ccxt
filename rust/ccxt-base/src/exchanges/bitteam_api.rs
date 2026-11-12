@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::bitteam::BitteamCore;
+use super::bitteam::Bitteam;
 use crate::exchange::ExchangeRuntime;
 
-impl BitteamCore {
+impl Bitteam {
     /// Auto-generated wrapper for the `historyGetApiTwHistoryPairNameResolution` implicit endpoint.
     pub async fn history_get_api_tw_history_pair_name_resolution(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("history_get_api_tw_history_pair_name_resolution".into()), optional_args).await

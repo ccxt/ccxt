@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::mexc::MexcCore;
+use super::mexc::Mexc;
 use crate::exchange::ExchangeRuntime;
 
-impl MexcCore {
+impl Mexc {
     /// Auto-generated wrapper for the `spotPublicGetAnnouncements` implicit endpoint.
     pub async fn spot_public_get_announcements(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_public_get_announcements".into()), optional_args).await

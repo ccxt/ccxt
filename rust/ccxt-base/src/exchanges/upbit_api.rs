@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::upbit::UpbitCore;
+use super::upbit::Upbit;
 use crate::exchange::ExchangeRuntime;
 
-impl UpbitCore {
+impl Upbit {
     /// Auto-generated wrapper for the `publicGetMarketAll` implicit endpoint.
     pub async fn public_get_market_all(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_market_all".into()), optional_args).await

@@ -5486,7 +5486,7 @@ public partial class phemex : Exchange
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         string? fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         string? toId = this.safeString(accountsByType, toAccount, toAccount);
-        object scaledAmmount = this.toEv(amount, currency);
+        object scaledAmmount = this.toEn(amount, this.safeInteger(currency, "valueScale"));
         int? direction = null;
         Dictionary<string, object> transfer = null;
         if (fromId == "spot" && toId == "future")

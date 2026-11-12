@@ -399,7 +399,7 @@ class lighter(ccxt.async_support.lighter):
         messageHash = 'unsubscribe:' + subMessageHash
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
-    def watch_mark_price(self, symbol: str, params: dict = {}) -> Ticker:
+    async def watch_mark_price(self, symbol: str, params: dict = {}) -> Ticker:
         """
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
@@ -409,9 +409,9 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return self.watch_ticker(symbol, params)
+        return await self.watch_ticker(symbol, params)
 
-    def watch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+    async def watch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
@@ -421,9 +421,9 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return self.watch_tickers(symbols, params)
+        return await self.watch_tickers(symbols, params)
 
-    def un_watch_mark_price(self, symbol: str, params={}) -> object:
+    async def un_watch_mark_price(self, symbol: str, params: dict = {}) -> object:
         """
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
@@ -433,9 +433,9 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return self.un_watch_ticker(symbol, params)
+        return await self.un_watch_ticker(symbol, params)
 
-    def un_watch_mark_prices(self, symbols: Strings = None, params={}) -> object:
+    async def un_watch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> object:
         """
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
@@ -445,7 +445,7 @@ class lighter(ccxt.async_support.lighter):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return self.un_watch_tickers(symbols, params)
+        return await self.un_watch_tickers(symbols, params)
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -1101,12 +1101,12 @@ class lighter(ccxt.async_support.lighter):
         messageHash = 'unsubscribe:' + subMessageHash
         return await self.unsubscribe(messageHash, self.extend(request, paramsAccountIndex))
 
-    def request_id(self, url: str) -> str:
+    def request_id(self, url: str) -> int:
         options = self.safe_dict(self.options, 'requestId', self.create_safe_dictionary())
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
         self.options['requestId'][url] = newValue
-        return self.number_to_string(newValue)
+        return newValue
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -1131,7 +1131,9 @@ class lighter(ccxt.async_support.lighter):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         url = self.urls['api']['ws']
-        requestId = self.request_id(url)
+        nextId = self.request_id(url)
+        # the venue takes a string request id
+        requestId = str(nextId)
         messageHash = 'jsonapi/sendtx:' + requestId
         txType, txInfo, order = await self.signAndCreateOrder('createOrderWs', symbol, type, side, amount, price, params)
         market = self.market(symbol)
@@ -1164,7 +1166,9 @@ class lighter(ccxt.async_support.lighter):
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         url = self.urls['api']['ws']
-        requestId = self.request_id(url)
+        nextId = self.request_id(url)
+        # the venue takes a string request id
+        requestId = str(nextId)
         messageHash = 'jsonapi/sendtx:' + requestId
         txType, txInfo = await self.signAndCancelOrder('cancelOrderWs', id, symbol, params)
         market = self.market(symbol)
@@ -1196,7 +1200,9 @@ class lighter(ccxt.async_support.lighter):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         url = self.urls['api']['ws']
-        requestId = self.request_id(url)
+        nextId = self.request_id(url)
+        # the venue takes a string request id
+        requestId = str(nextId)
         messageHash = 'jsonapi/sendtx:' + requestId
         txType, txInfo = await self.signAndCancelAllOrders('cancelAllOrdersWs', symbol, params)
         parsedTx = self.parse_json(txInfo)

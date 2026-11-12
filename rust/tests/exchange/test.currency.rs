@@ -24,7 +24,7 @@ pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut metho
     // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
     let mut isNative: bool = (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null) != Value::Null) && (get_value(&exchange,
         &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) && (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null).as_str() != Some("emulated"));
-    let mut currencyType: Value = exchange.safe_string(entry.clone(), Value::Str("type".into()), &[]);
+    let mut currencyType: Option<String> = exchange.safe_string(entry.clone(), Value::Str("type".into()), &[]).as_str().map(str::to_owned);
     if isNative {
         if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("info".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -58,13 +58,13 @@ pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut metho
         if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("crypto".into())); }; // crypto, fiat, leverage, other
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".into()).clone(), Value::from(vec![Value::Str("fiat".into()), Value::Str("crypto".into()), Value::Str("leveraged".into()), Value::Str("other".into()), Value::Null]).clone()]); // todo: remove undefined
         // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
-        if (currencyType.as_str() != Some("crypto")) && (in_op(&skippedProperties, &Value::Str("depositForNonCrypto".into()))) {
+        if (currencyType.as_deref() != Some("crypto")) && (in_op(&skippedProperties, &Value::Str("depositForNonCrypto".into()))) {
             append_to_array(&mut emptyAllowedFor, Value::Str("deposit".into()));
         }
-        if (currencyType.as_str() != Some("crypto")) && (in_op(&skippedProperties, &Value::Str("withdrawForNonCrypto".into()))) {
+        if (currencyType.as_deref() != Some("crypto")) && (in_op(&skippedProperties, &Value::Str("withdrawForNonCrypto".into()))) {
             append_to_array(&mut emptyAllowedFor, Value::Str("withdraw".into()));
         }
-        if (currencyType.as_str() == Some("leveraged")) || (currencyType.as_str() == Some("other")) {
+        if (currencyType.as_deref() == Some("leveraged")) || (currencyType.as_deref() == Some("other")) {
             append_to_array(&mut emptyAllowedFor, Value::Str("precision".into()));
         }
     }
@@ -78,11 +78,10 @@ pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut metho
     let mut networkKeys: Value = object_keys(&networks);
     let mut networkKeysLength: Value = Value::Int(networkKeys.len() as i64);
     {
-                let mut i: Value = Value::Int(0);
-        let mut __for_first_1548: bool = true;
-        while { if !__for_first_1548 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            } __for_first_1548 = false; i.as_f64().unwrap_or(f64::NAN) < networkKeysLength.as_f64().unwrap_or(f64::NAN) } {
-        crate::tests_support::shared::assert_unified_network_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), networkKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).clone()]);
+                let mut i: i64 = 0;
+        let mut __for_first_1549: bool = true;
+        while { if !__for_first_1549 { i += 1; } __for_first_1549 = false; (i as f64) < networkKeysLength.as_f64().unwrap_or(f64::NAN) } {
+        crate::tests_support::shared::assert_unified_network_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), networkKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).clone()]);
     }
     }
     if (networkKeysLength.as_f64() == Some(0.0)) && (in_op(&skippedProperties, &Value::Str("skipCurrenciesWithoutNetworks".into()))) {

@@ -63,29 +63,29 @@ pub struct ArrayCache;
 impl ArrayCache {
     /// `new ArrayCache(maxSize?)` → marker map. `maxSize` is held as a
     /// `Value::Int` or `Value::Null` (matches the JS `undefined` semantics).
-    pub fn new(max_size: Value) -> Value {
-        new_marker(KIND_ARRAY_CACHE, max_size)
+    pub fn new(max_size: impl Into<Value>) -> Value {
+        new_marker(KIND_ARRAY_CACHE, max_size.into())
     }
 }
 
 pub struct ArrayCacheByTimestamp;
 impl ArrayCacheByTimestamp {
-    pub fn new(max_size: Value) -> Value {
-        new_marker(KIND_ARRAY_CACHE_BY_TIMESTAMP, max_size)
+    pub fn new(max_size: impl Into<Value>) -> Value {
+        new_marker(KIND_ARRAY_CACHE_BY_TIMESTAMP, max_size.into())
     }
 }
 
 pub struct ArrayCacheBySymbolById;
 impl ArrayCacheBySymbolById {
-    pub fn new(max_size: Value) -> Value {
-        new_marker(KIND_ARRAY_CACHE_BY_SYMBOL_ID, max_size)
+    pub fn new(max_size: impl Into<Value>) -> Value {
+        new_marker(KIND_ARRAY_CACHE_BY_SYMBOL_ID, max_size.into())
     }
 }
 
 pub struct ArrayCacheBySymbolBySide;
 impl ArrayCacheBySymbolBySide {
-    pub fn new(max_size: Value) -> Value {
-        new_marker(KIND_ARRAY_CACHE_BY_SYMBOL_SIDE, max_size)
+    pub fn new(max_size: impl Into<Value>) -> Value {
+        new_marker(KIND_ARRAY_CACHE_BY_SYMBOL_SIDE, max_size.into())
     }
 }
 
@@ -94,7 +94,7 @@ impl ArrayCacheBySymbolBySide {
 /// reuses the same kind.
 pub struct ArrayCacheByOutcomeById;
 impl ArrayCacheByOutcomeById {
-    pub fn new(max_size: Value) -> Value {
-        new_marker(KIND_ARRAY_CACHE_BY_OUTCOME_ID, max_size)
+    pub fn new(max_size: impl Into<Value>) -> Value {
+        new_marker(KIND_ARRAY_CACHE_BY_OUTCOME_ID, max_size.into())
     }
 }

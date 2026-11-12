@@ -482,7 +482,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_markets(self, markets: object):
+    def parse_markets(self, markets: list):
         result = []
         for i in range(0, len(markets)):
             market = self.safe_dict(markets, i)

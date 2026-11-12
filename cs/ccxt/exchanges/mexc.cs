@@ -3306,7 +3306,7 @@ public partial class mexc : Exchange
             {
                 request["limit"] = limit;
             }
-            object response = null;
+            List<object> response = null;
             if ((marginMode != null))
             {
                 if (!(marginMode == "isolated"))
@@ -3940,7 +3940,7 @@ public partial class mexc : Exchange
                 return ccxt.BaseExchange.ToOrderList(new List<object>() {});
             }
             request["symbol"] = this.safeString(market, "id");
-            Dictionary<string, object> response = await this.spotPrivateDeleteOpenOrders(this.extend(request, paramsMarketType));
+            List<object> response = await this.spotPrivateDeleteOpenOrders(this.extend(request, paramsMarketType));
             //
             // spot
             //

@@ -1883,7 +1883,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //    }
         //
         String messageHash = this.safeString(message, "requestId");
-        List<Object> response = (List<Object>) this.safeList(message, "response", (Object) null);
+        List<Object> response = (List<Object>) this.safeList(message, "response", new ArrayList<Object>(Arrays.asList()));
         Object currencies = this.parseCurrencies(response);
         client.resolve(currencies, messageHash);
     }

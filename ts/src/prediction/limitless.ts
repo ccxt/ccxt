@@ -1207,8 +1207,8 @@ export default class limitless extends Exchange {
         for (let i = 0; i < slugs.length; i++) {
             const slug = slugs[i];
             const detailIndex = i * 2;
-            const detail = this.safeValue (responses, detailIndex);
-            const book = this.safeValue (responses, this.sum (detailIndex, 1));
+            const detail = this.safeDict (responses, detailIndex);
+            const book = this.safeDict (responses, this.sum (detailIndex, 1));
             const tickerInput: Dict = { 'market': detail, 'book': book };
             const grouped = this.safeList (outcomesBySlug, slug, []);
             for (let j = 0; j < grouped.length; j++) {
@@ -1337,22 +1337,22 @@ export default class limitless extends Exchange {
         const bids: any[] = [];
         const asks: any[] = [];
         for (let bi = 0; bi < bidsSource.length; bi++) {
-            let priceStr = this.safeString (this.safeValue (bidsSource, bi), 'price');
+            let priceStr = this.safeString (this.safeDict (bidsSource, bi), 'price');
             if (!isYes && (priceStr !== undefined)) {
                 priceStr = Precise.stringSub ('1', priceStr);
             }
-            let sizeStr = this.safeString (this.safeValue (bidsSource, bi), 'size');
+            let sizeStr = this.safeString (this.safeDict (bidsSource, bi), 'size');
             if (sizeStr !== undefined) {
                 sizeStr = Precise.stringDiv (sizeStr, scaleStr);
             }
             bids.push ([ this.parseNumber (priceStr), this.parseNumber (sizeStr) ]);
         }
         for (let ai = 0; ai < asksSource.length; ai++) {
-            let priceStr = this.safeString (this.safeValue (asksSource, ai), 'price');
+            let priceStr = this.safeString (this.safeDict (asksSource, ai), 'price');
             if (!isYes && (priceStr !== undefined)) {
                 priceStr = Precise.stringSub ('1', priceStr);
             }
-            let sizeStr = this.safeString (this.safeValue (asksSource, ai), 'size');
+            let sizeStr = this.safeString (this.safeDict (asksSource, ai), 'size');
             if (sizeStr !== undefined) {
                 sizeStr = Precise.stringDiv (sizeStr, scaleStr);
             }

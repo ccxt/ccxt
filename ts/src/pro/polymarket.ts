@@ -4,7 +4,7 @@
 import polymarketRest from '../polymarket.js';
 import { ExchangeError, NotSupported, AuthenticationError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
-import type { Int, Str, Market, OrderBook, Trade, OHLCV, Dict, Strings, Ticker, Tickers, Order, Position, Balances } from '../base/types.js';
+import type { Int, Str, Market, OrderBook, Trade, OHLCV, Dict, Strings, Ticker, Tickers, Order, Position, Balances, int } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
@@ -65,7 +65,7 @@ export default class polymarket extends polymarketRest {
         });
     }
 
-    requestId (): number {
+    requestId (): int {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         return requestId;

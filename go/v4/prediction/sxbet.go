@@ -1479,12 +1479,12 @@ func (this *Sxbet) ParseSxbetCancelResponse(response any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Sxbet) CancelOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Sxbet) CancelOrderAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Sxbet) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id any, optionalArgs ...any) any {
+func (this *Sxbet) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1520,12 +1520,12 @@ func (this *Sxbet) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Sxbet) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
+func (this *Sxbet) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionOrder], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Sxbet) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], ids any, optionalArgs ...any) any {
+func (this *Sxbet) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1533,7 +1533,7 @@ func (this *Sxbet) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOr
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var idsLength int = ccxt.GetArrayLength(ids)
+	var idsLength int = len(ids)
 	if idsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " cancelOrders() requires a non-empty ids argument"))
 	}

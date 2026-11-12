@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::luno::LunoCore;
+use super::luno::Luno;
 use crate::exchange::ExchangeRuntime;
 
-impl LunoCore {
+impl Luno {
     /// Auto-generated wrapper for the `exchangeGetMarkets` implicit endpoint.
     pub async fn exchange_get_markets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("exchange_get_markets".into()), optional_args).await

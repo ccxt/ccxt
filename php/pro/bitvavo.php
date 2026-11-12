@@ -1340,7 +1340,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         $ts = (string) $this->milliseconds();
         $randomNumber = $this->rand_number(4);
         $randomPart = (string) $randomNumber;
@@ -1634,6 +1634,10 @@ class bitvavo extends \ccxt\async\bitvavo {
     }
 
     public function fetch_markets_ws($params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_markets_ws(...))($params);
+    }
+
+    private function do_fetch_markets_ws($params = array()) {
         /**
          *
          * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
@@ -1642,7 +1646,7 @@ class bitvavo extends \ccxt\async\bitvavo {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        return $this->watch_request('getMarkets', $params);
+        return Async\await($this->watch_request('getMarkets', $params));
     }
 
     public function fetch_currencies_ws($params = array()): PromiseInterface {
@@ -1686,7 +1690,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //    }
         //
         $messageHash = $this->safe_string($message, 'requestId');
-        $response = $this->safe_list($message, 'response');
+        $response = $this->safe_list($message, 'response', array());
         $currencies = $this->parse_currencies($response);
         $client->resolve($currencies, $messageHash);
     }

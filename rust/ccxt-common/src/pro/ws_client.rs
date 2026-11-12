@@ -1028,8 +1028,8 @@ impl ClientHandle {
     /// The `Value` handle the untyped generated handlers take.
     pub fn as_value(&self) -> Value { self.value.clone() }
 
-    pub fn resolve(&self, args: &[Value]) -> Value { value_resolve(&self.value, args) }
-    pub fn reject(&self, args: &[Value]) -> Value { value_reject(&self.value, args) }
+    pub fn resolve<'k>(&self, value: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value { value_resolve(&self.value, value.into(), hash.into()) }
+    pub fn reject<'k>(&self, err: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value { value_reject(&self.value, err.into(), hash.into()) }
     pub fn send(&self, args: &[Value]) -> Value { value_send(&self.value, args) }
     pub fn reset(&self, error: Value) -> Value { value_reset(&self.value, error) }
     pub fn on_pong(&self) -> Value { value_on_pong(&self.value) }
@@ -1039,10 +1039,10 @@ impl ClientHandle {
 
     /// `delete client.subscriptions[key]`: drops the live client's entry and
     /// the handle's snapshot entry (what `remove(&mut subscriptions, key)` did).
-    pub fn remove_subscription(&mut self, key: &Value) {
-        if let (Value::Dict(m), Value::Str(k)) = (&mut self.subscriptions, key) {
+    pub fn remove_subscription<'k>(&mut self, key: impl Into<Option<&'k str>>) {
+        if let (Value::Dict(m), Some(k)) = (&mut self.subscriptions, key.into()) {
             crate::value::try_ws_subs_remove(m, k);
-            Arc::make_mut(m).shift_remove(k.as_ref());
+            Arc::make_mut(m).shift_remove(k);
         }
     }
 
@@ -1058,26 +1058,26 @@ impl ClientHandle {
         }
     }
     /// `key in client.subscriptions`, read from the handle's snapshot.
-    pub fn has_subscription(&self, key: &Value) -> bool { crate::runtime::in_op(&self.subscriptions, key) }
+    pub fn has_subscription<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(&self.subscriptions, key.into()) }
     /// `client.subscriptions[key]` (Null when absent).
-    pub fn get_subscription(&self, key: &Value) -> Value { crate::get_value(&self.subscriptions, key) }
+    pub fn get_subscription<'k>(&self, key: impl Into<Option<&'k str>>) -> Value { handle_get(&self.subscriptions, key.into()) }
     /// `Object.keys(client.subscriptions)` (internal tags filtered).
     pub fn subscription_keys(&self) -> Vec<Value> {
         crate::runtime::object_keys(&self.subscriptions).as_array().cloned().unwrap_or_default()
     }
     /// `key in client.futures`, read from the handle's snapshot.
-    pub fn has_future(&self, key: &Value) -> bool { crate::runtime::in_op(&self.futures, key) }
+    pub fn has_future<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(&self.futures, key.into()) }
     /// `client.futures[key]` (Null when absent).
-    pub fn get_future(&self, key: &Value) -> Value { crate::get_value(&self.futures, key) }
+    pub fn get_future<'k>(&self, key: impl Into<Option<&'k str>>) -> Flight { Flight::from(&handle_get(&self.futures, key.into())) }
     /// `Object.keys(client.futures)`.
     pub fn future_keys(&self) -> Vec<Value> {
         crate::runtime::object_keys(&self.futures).as_array().cloned().unwrap_or_default()
     }
-    pub fn future(&self, args: &[Value]) -> Value {
-        self.value.future(args)
+    pub fn future(&self, hash: impl Into<Value>) -> Flight {
+        self.value.future(hash)
     }
-    pub fn reusable_future(&self, msg_hash: Value) -> Value {
-        self.value.reusable_future(msg_hash)
+    pub fn reusable_future(&self, hash: impl Into<Value>) -> Flight {
+        self.value.reusable_future(hash)
     }
 }
 
@@ -1091,20 +1091,65 @@ pub fn begin_flight(url: &str, hash: &str) -> bool {
 
 
 /// The `Value` a `client.future ()` / `client.reusableFuture ()` call hands
-/// back: enough to find the flight again (its client's url + the hash). TS
-/// returns a real Future object; a `Value` can't hold one, so the port returns
-/// a handle and `ws_await_flight` does the awaiting.
+/// back: enough to find the flight again (its client's url + the hash).
 pub fn flight_handle(url: &str, hash: &str, led: bool) -> Value {
-    let mut m = indexmap::IndexMap::new();
-    m.insert("url".to_string(), Value::Str(url.to_string().into()));
-    m.insert("__ws_flight_hash".to_string(), Value::Str(hash.to_string().into()));
-    // Whether the call that produced this handle opened the flight. A leader
-    // settles its own flight (and TS's `await future` resolves the instant it
-    // does), so it must never block on itself — including when the venue
-    // decides, after taking the lead, that there is no work to do because it
-    // is already subscribed (bitget's `authenticate`).
-    m.insert("__ws_flight_led".to_string(), Value::Bool(led));
-    Value::Map(m)
+    Value::from(Flight { url: Some(url.to_string()), hash: Some(hash.to_string()), led, entry: false })
+}
+
+/// A single-flight handle: what `client.future ()` / `client.reusableFuture ()` open (`entry` false) and what a
+/// `client.futures[hash]` read names (`entry` true). Await it with `ws_await_flight`; only an entry settles its
+/// hash through `resolve` / `reject`. A handle without a url or a hash names no flight.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct Flight {
+    pub url: Option<String>,
+    pub hash: Option<String>,
+    pub led: bool,
+    pub entry: bool,
+}
+
+impl Flight {
+    /// Settles through the same routing as the boxed handle (an entry settles its own hash).
+    pub fn resolve<'k>(&self, value: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value {
+        value_resolve(&Value::from(self), value.into(), hash.into())
+    }
+    pub fn reject<'k>(&self, err: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value {
+        value_reject(&Value::from(self), err.into(), hash.into())
+    }
+}
+
+/// The handle shape untyped code reads: `{url, __ws_flight_hash, __ws_flight_led}` or `{url, __ws_future_hash}`.
+impl From<&Flight> for Value {
+    fn from(f: &Flight) -> Value {
+        let (url, hash) = match (f.url.as_deref(), f.hash.as_deref()) {
+            (Some(u), Some(h)) => (u, h),
+            (_, h) => return Value::from(h),
+        };
+        let mut m = indexmap::IndexMap::new();
+        m.insert("url".to_string(), Value::from(url));
+        if f.entry {
+            m.insert("__ws_future_hash".to_string(), Value::from(hash));
+        } else {
+            m.insert("__ws_flight_hash".to_string(), Value::from(hash));
+            m.insert("__ws_flight_led".to_string(), Value::Bool(f.led));
+        }
+        Value::Map(m)
+    }
+}
+
+impl From<Flight> for Value {
+    fn from(f: Flight) -> Value { Value::from(&f) }
+}
+
+impl From<&Value> for Flight {
+    fn from(v: &Value) -> Flight {
+        let led = matches!(crate::get_value(v, &Value::Str("__ws_flight_led".into())), Value::Bool(true));
+        let entry = crate::get_value(v, &Value::Str("__ws_flight_hash".into())).is_null() && future_hash_of(v).is_some();
+        Flight { url: url_of(v), hash: flight_hash_of(v), led, entry }
+    }
+}
+
+impl From<&Flight> for Flight {
+    fn from(f: &Flight) -> Flight { Flight { url: f.url.as_deref().map(str::to_owned), hash: f.hash.as_deref().map(str::to_owned), led: f.led, entry: f.entry } }
 }
 
 /// The hash a flight handle refers to. Accepts the `futures_value ()` handle
@@ -1124,8 +1169,9 @@ fn flight_hash_of(handle: &Value) -> Option<String> {
 /// Returns the resolved value; a rejected flight panics with the error, which
 /// is how the port rethrows (the drive loop does the same with `take_settled`).
 /// A handle that names no flight returns `Value::Null` rather than hanging.
-pub async fn ws_await_flight(handle: &Value) -> Value {
-    let (url, hash) = match (url_of(handle), flight_hash_of(handle)) {
+pub async fn ws_await_flight(handle: impl Into<Flight>) -> Value {
+    let handle: Flight = handle.into();
+    let (url, hash) = match (handle.url, handle.hash) {
         (Some(u), Some(h)) => (u, h),
         _ => return Value::Null,
     };
@@ -1138,10 +1184,7 @@ pub async fn ws_await_flight(handle: &Value) -> Value {
     // reaches its trailing await, so take the value and go. Waiting here would
     // deadlock the (common) case where the venue took the lead and then found
     // it had nothing to do.
-    let led = matches!(
-        crate::get_value(handle, &Value::Str("__ws_flight_led".into())),
-        Value::Bool(true)
-    );
+    let led = handle.led;
     if led || !client.flight_is_open(&hash) {
         return match settled {
             Some(Ok(v)) => v,
@@ -1201,16 +1244,21 @@ pub fn url_of(client: &Value) -> Option<String> {
     }
 }
 
-fn hash_str(v: &Value) -> Option<String> {
-    match v {
-        Value::Str(s) => Some(s.to_string()),
-        _ => None,
+/// `k in client.subscriptions|futures` on the handle's snapshot (a non-string key is never present).
+fn handle_has(map: &Value, key: Option<&str>) -> bool {
+    matches!((map, key), (Value::Dict(m), Some(k)) if m.contains_key(k))
+}
+
+/// `client.subscriptions|futures[k]` on the handle's snapshot (Null when absent).
+fn handle_get(map: &Value, key: Option<&str>) -> Value {
+    match key {
+        Some(k) => crate::get_value(map, &Value::from(k)),
+        None => Value::Null,
     }
 }
 
 /// `client.resolve(value, messageHash)` routed by URL. Returns `value`.
-pub fn value_resolve(client: &Value, args: &[Value]) -> Value {
-    let value = args.get(0).cloned().unwrap_or(Value::Null);
+pub fn value_resolve(client: &Value, value: Value, hash: Option<&str>) -> Value {
     // `client.futures[hash].resolve(value)` — the future handle carries its own
     // hash, so there is no second arg. Resolve that hash.
     if let Some(hash) = future_hash_of(client) {
@@ -1219,9 +1267,9 @@ pub fn value_resolve(client: &Value, args: &[Value]) -> Value {
         }
         return value;
     }
-    if let (Some(url), Some(hash)) = (url_of(client), args.get(1).and_then(hash_str)) {
+    if let (Some(url), Some(hash)) = (url_of(client), hash) {
         if let Some(c) = get_client(&url) {
-            c.resolve(&hash, value.clone());
+            c.resolve(hash, value.clone());
         }
     }
     value
@@ -1236,8 +1284,7 @@ fn future_hash_of(client: &Value) -> Option<String> {
 }
 
 /// `client.reject(error, messageHash)` routed by URL.
-pub fn value_reject(client: &Value, args: &[Value]) -> Value {
-    let err = args.get(0).cloned().unwrap_or(Value::Null);
+pub fn value_reject(client: &Value, err: Value, hash: Option<&str>) -> Value {
     // `client.futures[hash].reject(error)` — future handle carries its own hash.
     if let Some(hash) = future_hash_of(client) {
         if let Some(url) = url_of(client) {
@@ -1247,8 +1294,8 @@ pub fn value_reject(client: &Value, args: &[Value]) -> Value {
     }
     if let Some(url) = url_of(client) {
         if let Some(c) = get_client(&url) {
-            match args.get(1).and_then(hash_str) {
-                Some(hash) => c.reject(&hash, err.clone()),
+            match hash {
+                Some(hash) => c.reject(hash, err.clone()),
                 // reject with no hash → reject every pending future.
                 None => c.reject_pending_futures(err.clone()),
             }
@@ -1461,7 +1508,7 @@ mod tests {
                         let message = args.get(1).cloned().unwrap_or(Value::Null);
                         let last = crate::get_value(&message, &Value::Str("last".into()));
                         // `client.resolve(value, messageHash)` — routes to the registry.
-                        client.resolve(&[last, Value::Str("ticker".into())]);
+                        client.resolve(last, "ticker");
                         Value::Null
                     }
                     _ => self.call_dynamic_base(method, args).await,
@@ -1481,8 +1528,8 @@ mod tests {
         // dispatch each to handle_message, return once "ticker" resolves.
         let result = ExchangeRuntime::watch(
             &mut core,
-            Value::Str(url.clone().into()),
-            Value::Str("ticker".into()),
+            url.as_str(),
+            "ticker",
             &[
                 Value::Str("{\"op\":\"subscribe\",\"channel\":\"ticker\"}".into()),
                 Value::Str("ticker".into()),

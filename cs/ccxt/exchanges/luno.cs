@@ -1887,7 +1887,7 @@ public partial class luno : Exchange
         {
             return null;
         }
-        object error = this.safeValue(response, "error");
+        string? error = this.safeString(response, "error");
         if ((error != null))
         {
             string feedback = ((this.id + " ") + this.json(response));

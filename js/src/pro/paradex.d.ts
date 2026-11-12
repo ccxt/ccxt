@@ -5,7 +5,7 @@ export default class paradex extends paradexRest {
     describe(): Dict;
     getWsUrl(): string;
     getOrderBookChannel(marketId: Str, deltas?: boolean): string;
-    requestId(): number;
+    requestId(): int;
     /**
      * @ignore
      * @method
@@ -132,7 +132,7 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    watchTrades(symbol: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name paradex#watchTradesForSymbols

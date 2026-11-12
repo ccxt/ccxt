@@ -2320,7 +2320,7 @@ class deribit extends Exchange {
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        $order = $this->extend($this->safe_value($result, 'order'), array( 'trades' => $this->safe_list($result, 'trades', array()) ));
+        $order = $this->extend($this->safe_dict($result, 'order'), array( 'trades' => $this->safe_list($result, 'trades', array()) ));
         return $this->parse_order($order, $market);
     }
 
@@ -2373,7 +2373,7 @@ class deribit extends Exchange {
         }
         $response = Async\await($this->privateGetEdit($this->extend($request, $paramsOmitted)));
         $result = $this->safe_dict($response, 'result', array());
-        $order = $this->extend($this->safe_value($result, 'order'), array( 'trades' => $this->safe_list($result, 'trades', array()) ));
+        $order = $this->extend($this->safe_dict($result, 'order'), array( 'trades' => $this->safe_list($result, 'trades', array()) ));
         return $this->parse_order($order);
     }
 

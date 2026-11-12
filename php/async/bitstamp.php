@@ -874,7 +874,7 @@ class bitstamp extends Exchange {
         return $this->parse_currencies($response);
     }
 
-    public function parse_currencies(mixed $rawCurrencies): array {
+    public function parse_currencies(array $rawCurrencies): array {
         // each market row yields two currencies so the accumulation happens
         // in a local dictionary here instead of a temp key inside this.options
         // because the shared scratch key raced between concurrent

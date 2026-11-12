@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct BybitidCore {
-    pub parent: crate::exchanges::bybit::BybitCore,
+pub struct Bybitid {
+    pub parent: crate::exchanges::bybit::Bybit,
 }
 
-impl BybitidCore {
+impl Bybitid {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::bybit::BybitCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::bybit::Bybit::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = BybitidCore::describe(self);
+        let described = Bybitid::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,7 +47,7 @@ impl BybitidCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for BybitidCore {
+impl crate::exchange::DerivedExchange for Bybitid {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -171,7 +176,7 @@ impl crate::exchange::DerivedExchange for BybitidCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for BybitidCore {
+impl crate::exchange_generated::ExchangeBase for Bybitid {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -185,16 +190,16 @@ impl crate::exchange_generated::ExchangeBase for BybitidCore {
     }
 }
 
-impl std::ops::Deref for BybitidCore {
+impl std::ops::Deref for Bybitid {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for BybitidCore {
+impl std::ops::DerefMut for Bybitid {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl BybitidCore {
+impl Bybitid {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

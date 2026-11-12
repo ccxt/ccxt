@@ -5304,7 +5304,7 @@ class gate(Exchange, ImplicitAPI):
         spot = (type == 'spot') or (type == 'margin')
         openStatus = (status == 'open')
         openSpotOrders = spot and openStatus and (trigger is not True)
-        response: dict | List
+        response: List
         if spot:
             if trigger is not True:
                 if openStatus:
@@ -5731,7 +5731,7 @@ class gate(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         type, query = self.handle_market_type_and_params('cancelAllOrders', market, paramsOmitted)
         request, requestParams = self.multi_order_spot_prepare_request(market, trigger, query) if (type == 'spot') else self.prepare_request(market, type, query)
-        response: dict
+        response: List
         if type == 'spot' or type == 'margin':
             if trigger is True:
                 response = await self.privateSpotDeletePriceOrders(self.extend(request, requestParams))
@@ -6675,7 +6675,7 @@ class gate(Exchange, ImplicitAPI):
             requestUntil['from'] = since
         if limit is not None:
             requestUntil['limit'] = limit
-        response = None
+        response: List
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchBorrowInterest', paramsUntil, 'cross')
         if isUnifiedAccount:
             response = await self.privateUnifiedGetInterestRecords(self.extend(requestUntil, paramsMarginMode))
@@ -6683,8 +6683,8 @@ class gate(Exchange, ImplicitAPI):
             if market is not None:
                 requestUntil['currency_pair'] = market['id']
             response = await self.privateMarginGetUniInterestRecords(self.extend(requestUntil, paramsMarginMode))
-        elif marginMode == 'cross':
-            # deprecated and not present in the exchange's docs but still works
+        else:
+            # cross: deprecated and not present in the exchange's docs but still works
             response = await self.privateMarginGetCrossInterestRecords(self.extend(requestUntil, paramsMarginMode))
         interest = self.parse_borrow_interests(response, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)

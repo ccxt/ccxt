@@ -192,7 +192,6 @@ dependencies = [
 name = "ccxt"
 version = "4.5.92"
 dependencies = [
- "async-trait",
  "ccxt-base",
 ]
 
@@ -244,7 +243,6 @@ dependencies = [
 name = "ccxt-prediction"
 version = "4.5.92"
 dependencies = [
- "async-trait",
  "ccxt-base",
 ]
 
@@ -252,7 +250,6 @@ dependencies = [
 name = "ccxt-pro"
 version = "4.5.92"
 dependencies = [
- "async-trait",
  "ccxt-base",
  "futures",
  "indexmap",

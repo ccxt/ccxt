@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::aster::AsterCore;
+use super::aster::Aster;
 use crate::exchange::ExchangeRuntime;
 
-impl AsterCore {
+impl Aster {
     /// Auto-generated wrapper for the `fapiPublicGetV1Ping` implicit endpoint.
     pub async fn fapi_public_get_v1_ping(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_public_get_v1_ping".into()), optional_args).await

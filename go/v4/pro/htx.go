@@ -143,9 +143,9 @@ func (this *Htx) Describe() map[string]any {
 		},
 	})
 }
-func (this *Htx) RequestId() string {
+func (this *Htx) RequestId() int64 {
 	var requestId int64 = this.NextRequestId("requestId")
-	return strconv.FormatInt(requestId, 10)
+	return requestId
 }
 
 /**
@@ -842,15 +842,15 @@ func (this *Htx) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.OrderB
 	var attempts *int64 = this.SafeInteger(subscription, "numAttempts", 0)
 	var market map[string]any = this.Market(symbol)
 	var url any = this.GetUrlByMarketType(market["type"], market["linear"], false, true)
-	var requestId string = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"req": messageHash,
-		"id":  requestId,
+		"id":  strconv.FormatInt(requestId, 10),
 	}
 	// this is a temporary subscription by a specific requestId
 	// it has a very short lifetime until the snapshot is received over ws
 	var snapshotSubscription map[string]any = map[string]any{
-		"id":            requestId,
+		"id":            strconv.FormatInt(requestId, 10),
 		"messageHash":   messageHash,
 		"symbol":        symbol,
 		"limit":         limit,
@@ -879,7 +879,7 @@ func (this *Htx) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.OrderB
 			}()
 			// try block:
 
-			r := <-this.Watch(url, requestId, request, requestId, snapshotSubscription)
+			r := <-this.Watch(url, strconv.FormatInt(requestId, 10), request, strconv.FormatInt(requestId, 10), snapshotSubscription)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -3505,13 +3505,13 @@ func (this *Htx) subscribePublicBody(ch chan ccxt.AsyncResult[any], url any, sym
 	_ = method
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var requestId string = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"sub": messageHash,
-		"id":  requestId,
+		"id":  strconv.FormatInt(requestId, 10),
 	}
 	var subscription map[string]any = map[string]any{
-		"id":          requestId,
+		"id":          strconv.FormatInt(requestId, 10),
 		"messageHash": messageHash,
 		"symbol":      symbol,
 		"params":      params,
@@ -3537,10 +3537,10 @@ func (this *Htx) unsubscribePublicBody(ch chan ccxt.AsyncResult[bool], market ma
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var requestId string = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"unsub": subMessageHash,
-		"id":    requestId,
+		"id":    strconv.FormatInt(requestId, 10),
 	}
 	var messageHash string = "unsubscribe::" + subMessageHash
 	var isFeed bool = (topic == "orderbook")
@@ -3550,7 +3550,7 @@ func (this *Htx) unsubscribePublicBody(ch chan ccxt.AsyncResult[bool], market ma
 	var url any = this.GetUrlByMarketType(market["type"], market["linear"], false, isFeed)
 	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
-		"id":               requestId,
+		"id":               strconv.FormatInt(requestId, 10),
 		"subMessageHashes": []any{subMessageHash},
 		"messageHashes":    []any{messageHash},
 		"symbols":          []any{market["symbol"]},
@@ -3598,9 +3598,9 @@ func (this *Htx) subscribePrivateBody(ch chan ccxt.AsyncResult[any], channel any
 	_ = params
 	var subscriptionParams map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = subscriptionParams
-	var requestId string = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var subscription map[string]any = map[string]any{
-		"id":          requestId,
+		"id":          strconv.FormatInt(requestId, 10),
 		"messageHash": messageHash,
 		"params":      params,
 	}
@@ -3615,7 +3615,7 @@ func (this *Htx) subscribePrivateBody(ch chan ccxt.AsyncResult[any], channel any
 		request = map[string]any{
 			"op":    "sub",
 			"topic": channel,
-			"cid":   requestId,
+			"cid":   strconv.FormatInt(requestId, 10),
 		}
 	}
 	var isLinear bool = (ccxt.IsEqual(subtype, "linear"))
@@ -3716,9 +3716,9 @@ func (this *Htx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 				"Signature":        signature,
 			}
 		}
-		var requestId string = this.RequestId()
+		var requestId int64 = this.RequestId()
 		var subscription map[string]any = map[string]any{
-			"id":          requestId,
+			"id":          strconv.FormatInt(requestId, 10),
 			"messageHash": messageHash,
 			"params":      params,
 		}

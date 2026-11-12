@@ -629,9 +629,9 @@ export declare class BaseExchange {
     fetchTime(params?: Dict): Promise<Int>;
     fetchTradingLimits(symbols?: Strings, params?: Dict): Promise<Dict>;
     parseCurrency(rawCurrency: Dict): Currency;
-    parseCurrencies(rawCurrencies: any): Currencies;
+    parseCurrencies(rawCurrencies: List): Currencies;
     parseMarket(market: Dict): Market;
-    parseMarkets(markets: any): Market[];
+    parseMarkets(markets: List): Market[];
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
     parseTrade(trade: Dict, market?: Market): Trade;
@@ -702,7 +702,7 @@ export declare class BaseExchange {
     getDescribeForExtendedWsExchange(currentRestInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>): any;
     safeBalance(balance: Dict): Balances;
     safeOrder(order: Dict, market?: Market): Order;
-    parseOrders(orders: Dict | Dict[] | undefined, market?: Market, since?: Int, limit?: Int, params?: Dict): Order[];
+    parseOrders(orders: NullableList, market?: Market, since?: Int, limit?: Int, params?: Dict): Order[];
     calculateFeeWithRate(symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker?: string, feeRate?: Num, params?: Dict): {
         type: string;
         currency: any;
@@ -783,7 +783,7 @@ export declare class BaseExchange {
     safeNumber2(dictionary: object | undefined, key1: NullableIndexType, key2: NullableIndexType, d?: Num): number;
     parseOrderBook(orderbook: object | undefined, symbol: Str, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBook;
     parseOrderBookL3(orderbook: object | undefined, symbol: Str, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBookL3;
-    parseOHLCVs(ohlcvs: object[] | undefined, market?: any, timeframe?: string, since?: Int, limit?: Int, tail?: Bool): OHLCV[];
+    parseOHLCVs(ohlcvs: NullableList, market?: any, timeframe?: string, since?: Int, limit?: Int, tail?: Bool): OHLCV[];
     parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: Str): LeverageTiers;
     loadTradingLimits(symbols?: Strings, reload?: boolean, params?: Dict): Promise<Dict | undefined>;
     safePosition(position: Dict): Position;
@@ -856,7 +856,7 @@ export declare class BaseExchange {
     fetchDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
     fetchDepositWithdrawFee(code: string, params?: Dict): Promise<DepositWithdrawFee>;
     getSupportedMapping(key: Str, mapping?: Dict): any;
-    fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
+    fetchCrossBorrowRate(code: string, params?: Dict): Promise<CrossBorrowRate>;
     fetchIsolatedBorrowRate(symbol: string, params?: Dict): Promise<IsolatedBorrowRate>;
     requireValue<T>(value: T | undefined, message?: Str): T;
     handleOptionAndParams<T>(params: object, methodName: string, optionName: string, defaultValue: T): [T, Dict];
@@ -961,17 +961,17 @@ export declare class BaseExchange {
     filterBySymbolsSinceLimit(array: any, symbols?: Strings, since?: Int, limit?: Int, tail?: boolean): any[];
     parseLastPrices(pricesData: any, symbols?: Strings, params?: Dict): LastPrices;
     parseTickers(tickers: any, symbols?: Strings, params?: Dict): Tickers;
-    parseDepositAddresses(addresses: any, codes?: Strings, indexed?: boolean, params?: Dict): DepositAddress[];
-    parseBorrowInterests(response: any, market?: Market): BorrowInterest[];
+    parseDepositAddresses(addresses: List, codes?: Strings, indexed?: boolean, params?: Dict): DepositAddress[];
+    parseBorrowInterests(response: List, market?: Market): BorrowInterest[];
     parseBorrowRate(info: any, currency?: Currency): Dict;
     parseBorrowRateHistory(response: any, code: Str, since: Int, limit: Int): any[];
-    parseIsolatedBorrowRates(info: any): IsolatedBorrowRates;
-    parseFundingRateHistories(response: any, market?: Market, since?: Int, limit?: Int): FundingRateHistory[];
+    parseIsolatedBorrowRates(info: List): IsolatedBorrowRates;
+    parseFundingRateHistories(response: List, market?: Market, since?: Int, limit?: Int): FundingRateHistory[];
     safeSymbol(marketId: Str, market?: Market, delimiter?: Str, marketType?: Str): string;
     parseFundingRate(contract: string, market?: Market): FundingRate;
-    parseFundingRates(response: any, symbols?: Strings): FundingRates;
+    parseFundingRates(response: List, symbols?: Strings): FundingRates;
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
-    parseLongShortRatioHistory(response: any, market?: Market, since?: Int, limit?: Int): LongShortRatio[];
+    parseLongShortRatioHistory(response: List, market?: Market, since?: Int, limit?: Int): LongShortRatio[];
     handleTriggerPricesAndParams(symbol: any, params: Dict, omitParams?: boolean): [Str, Str, Str, Dict];
     handleTriggerDirectionAndParams(params: Dict, exchangeSpecificKey?: Str, allowEmpty?: Bool): [Str, Dict];
     handleTriggerAndParams(params: any): [Bool, Dict];
@@ -983,7 +983,7 @@ export declare class BaseExchange {
     fetchTradingFeesWs(params?: Dict): Promise<TradingFees>;
     fetchConvertCurrencies(params?: Dict): Promise<Currencies>;
     parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
-    parseOpenInterests(response: any, symbols?: Strings): OpenInterests;
+    parseOpenInterests(response: List, symbols?: Strings): OpenInterests;
     parseOpenInterestsHistory(response: any, market?: Market, since?: Int, limit?: Int): OpenInterest[];
     fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     fetchFundingInterval(symbol: string, params?: Dict): Promise<FundingRate>;
@@ -1140,7 +1140,7 @@ export default class Exchange extends BaseExchange {
      */
     fetchOrderWithClientOrderId(clientOrderId: string, symbol?: Str, params?: Dict): Promise<Order>;
     fetchOrderStatus(id: string, symbol?: Str, params?: Dict): Promise<Str>;
-    fetchUnifiedOrder(order: any, params?: Dict): Promise<Order>;
+    fetchUnifiedOrder(order: Order, params?: Dict): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     createTrailingAmountOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: Dict): Promise<Order>;
     createTrailingPercentOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: Dict): Promise<Order>;

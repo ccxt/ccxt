@@ -234,7 +234,7 @@ public partial class cryptocom : ccxt.cryptocom
     {
         for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, this.safeValue(deltas, i));
+            this.handleDelta(bookside, this.safeList(deltas, i));
         }
     }
 
@@ -486,7 +486,7 @@ public partial class cryptocom : ccxt.cryptocom
         IList<object> parsedTrades = ccxt.BaseExchange.FromTradeList(this.parseTrades(data, market));
         for (int j = 0; j < (parsedTrades?.Count ?? 0); j++)
         {
-            stored.append(this.safeValue(parsedTrades, j));
+            stored.append(this.safeDict(parsedTrades, j));
         }
         string channelReplaced = channel.Replace(("." + marketId), (string)"");
         client.resolve(stored, symbolSpecificMessageHash);

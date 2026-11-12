@@ -2452,7 +2452,7 @@ class ndax(Exchange, ImplicitAPI):
             id = self.safe_string(transaction, 'WithdrawId')
             if id is not None:
                 type = 'withdrawal'
-        templateForm = self.parse_json(self.safe_value_2(transaction, 'TemplateForm', 'DepositInfo'))
+        templateForm = self.parse_json(self.safe_string_2(transaction, 'TemplateForm', 'DepositInfo'))
         updated = self.safe_integer(transaction, 'LastUpdateTimeStamp')
         if templateForm is not None:
             updated = self.safe_integer(templateForm, 'LastUpdated', updated)

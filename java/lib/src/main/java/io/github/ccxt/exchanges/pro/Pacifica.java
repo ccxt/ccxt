@@ -1861,9 +1861,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         return message;
     }
 
-    public String requestId()
+    public Long requestId()
     {
-        return (String) (this.uuid());  // uuid v4
+        // millisecond timestamp plus 3 random digits stays a safe integer
+        String ts = String.valueOf(this.milliseconds());
+        String randomPart = String.valueOf(this.randNumber(3));
+        return this.parseToInt((ts + randomPart));
     }
 
     public Map<String, Object> wrapAsPostAction(String operationType, Map<String, Object> request)
@@ -1872,7 +1875,8 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             throw new ArgumentsRequired((this.id + "postAction() requires a \"operationType\" argument!")) ;
         }
-        String requestId = this.requestId();
+        // the venue requires a full uuid v4 request id
+        String requestId = this.uuid();
         Map<String, Object> postParams = new HashMap<String, Object>() {{}};
         postParams.put(operationType, request);
         Map<String, Object> payload = new HashMap<String, Object>() {{

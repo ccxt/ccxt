@@ -4610,8 +4610,7 @@ class kucoin(Exchange, ImplicitAPI):
         #           },
         # }
         #
-        data = self.safe_dict(response, 'data', {})
-        data = self.safe_list(data, 'data', [])
+        data = self.safe_list(self.safe_dict(response, 'data', {}), 'data', [])
         return self.parse_orders(data)
 
     async def create_contract_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
@@ -10384,9 +10383,8 @@ class kucoin(Exchange, ImplicitAPI):
                 'symbol': self.safe_string(market, 'id'),
                 'clientOid': self.safe_string(clientOrderIds, i),
             })
-        idsList = self.to_array(ids)
-        for i in range(0, len(idsList)):
-            orderId = self.safe_string(idsList, i)
+        for i in range(0, len(ids)):
+            orderId = self.safe_string(ids, i)
             if uta:
                 ordersRequests.append({
                     'orderId': orderId,

@@ -143,12 +143,12 @@ class htx(ccxt.async_support.htx):
             },
         })
 
-    def request_id(self) -> str:
+    def request_id(self) -> int:
         self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         self.unlock_id()
-        return str(requestId)
+        return requestId
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -586,12 +586,12 @@ class htx(ccxt.async_support.htx):
         requestId = self.request_id()
         request = {
             'req': messageHash,
-            'id': requestId,
+            'id': str(requestId),
         }
         # this is a temporary subscription by a specific requestId
         # it has a very short lifetime until the snapshot is received over ws
         snapshotSubscription = {
-            'id': requestId,
+            'id': str(requestId),
             'messageHash': messageHash,
             'symbol': symbol,
             'limit': limit,
@@ -601,7 +601,7 @@ class htx(ccxt.async_support.htx):
             'method': self.handle_order_book_snapshot,
         }
         try:
-            orderbook = await self.watch(url, requestId, request, requestId, snapshotSubscription)
+            orderbook = await self.watch(url, str(requestId), request, str(requestId), snapshotSubscription)
             return orderbook.limit()
         except Exception as e:
             if messageHash is not None:
@@ -2687,10 +2687,10 @@ class htx(ccxt.async_support.htx):
         requestId = self.request_id()
         request = {
             'sub': messageHash,
-            'id': requestId,
+            'id': str(requestId),
         }
         subscription = {
-            'id': requestId,
+            'id': str(requestId),
             'messageHash': messageHash,
             'symbol': symbol,
             'params': params,
@@ -2703,7 +2703,7 @@ class htx(ccxt.async_support.htx):
         requestId = self.request_id()
         request = {
             'unsub': subMessageHash,
-            'id': requestId,
+            'id': str(requestId),
         }
         messageHash = 'unsubscribe::' + subMessageHash
         isFeed = (topic == 'orderbook')
@@ -2712,7 +2712,7 @@ class htx(ccxt.async_support.htx):
         url = self.get_url_by_market_type(market['type'], market['linear'], False, isFeed)
         subscription = {
             'unsubscribe': True,
-            'id': requestId,
+            'id': str(requestId),
             'subMessageHashes': [subMessageHash],
             'messageHashes': [messageHash],
             'symbols': [market['symbol']],
@@ -2727,7 +2727,7 @@ class htx(ccxt.async_support.htx):
     async def subscribe_private(self, channel: Str, messageHash: Str, type: Str, subtype: Str, params: dict = {}, subscriptionParams: dict = {}):
         requestId = self.request_id()
         subscription = {
-            'id': requestId,
+            'id': str(requestId),
             'messageHash': messageHash,
             'params': params,
         }
@@ -2742,7 +2742,7 @@ class htx(ccxt.async_support.htx):
             request = {
                 'op': 'sub',
                 'topic': channel,
-                'cid': requestId,
+                'cid': str(requestId),
             }
         isLinear = subtype == 'linear'
         isV5 = self.safe_bool(subscriptionParams, 'isV5', False)
@@ -2821,7 +2821,7 @@ class htx(ccxt.async_support.htx):
                 }
             requestId = self.request_id()
             subscription = {
-                'id': requestId,
+                'id': str(requestId),
                 'messageHash': messageHash,
                 'params': params,
             }

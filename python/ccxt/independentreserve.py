@@ -342,8 +342,8 @@ class independentreserve(Exchange, ImplicitAPI):
         #     }
         #
         result = []
-        baseCurrencyIds = self.to_array(self.safe_value(responses, 0))
-        quoteCurrencyIds = self.to_array(self.safe_value(responses, 1))
+        baseCurrencyIds = self.to_array(self.safe_list(responses, 0))
+        quoteCurrencyIds = self.to_array(self.safe_list(responses, 1))
         for i in range(0, len(baseCurrencyIds)):
             baseId = self.safe_string(baseCurrencyIds, i, '')
             base = self.safe_currency_code(baseId)

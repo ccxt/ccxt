@@ -1,9 +1,9 @@
 import polymarketRest from '../polymarket.js';
 import Client from '../base/ws/Client.js';
-import type { Int, Str, Market, OrderBook, Trade, OHLCV, Dict, Strings, Ticker, Tickers, Order, Position, Balances } from '../base/types.js';
+import type { Int, Str, Market, OrderBook, Trade, OHLCV, Dict, Strings, Ticker, Tickers, Order, Position, Balances, int } from '../base/types.js';
 export default class polymarket extends polymarketRest {
     describe(): Dict;
-    requestId(): number;
+    requestId(): int;
     /**
      * @method
      * @ignore

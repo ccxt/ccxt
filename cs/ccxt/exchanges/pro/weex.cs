@@ -78,13 +78,13 @@ public partial class weex : ccxt.weex
         });
     }
 
-    public virtual string? requestId()
+    public virtual Int64 requestId()
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         this.options["requestId"] = requestId;
         this.unlockId();
-        return this.numberToString(requestId);
+        return requestId;
     }
 
     public async virtual Task<object> subscribePublic(object messageHashes, object channels, bool? isContract = null, object parameters = null, IDictionary<string, object>? subscription = null)
@@ -92,7 +92,7 @@ public partial class weex : ccxt.weex
         isContract ??= false;
         parameters ??= new Dictionary<string, object>();
         subscription ??= new Dictionary<string, object>();
-        string id = this.requestId();
+        Int64 id = this.requestId();
         string method = "SUBSCRIBE";
         bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
         if ((unsubscribe == true))
@@ -105,7 +105,7 @@ public partial class weex : ccxt.weex
             { "params", channels },
         };
         Dictionary<string, object> subscriptionExtended = this.extend(subscription, new Dictionary<string, object>() {
-            { "id", id },
+            { "id", id.ToString() },
         });
         string type = "spot";
         if (isContract == true)
@@ -134,14 +134,14 @@ public partial class weex : ccxt.weex
         {
             method = "UNSUBSCRIBE";
         }
-        string id = this.requestId();
+        Int64 id = this.requestId();
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "id", id },
             { "method", method },
             { "params", new List<object>() {channel} },
         };
         Dictionary<string, object> subscriptionExtended = this.extend(subscription, new Dictionary<string, object>() {
-            { "id", id },
+            { "id", id.ToString() },
         });
         return await this.watch(url, messageHash, this.deepExtend(message, parameters), subscribeHash, subscriptionExtended);
     }

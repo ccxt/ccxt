@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::bitvavo::BitvavoCore;
+use super::bitvavo::Bitvavo;
 use crate::exchange::ExchangeRuntime;
 
-impl BitvavoCore {
+impl Bitvavo {
     /// Auto-generated wrapper for the `publicGetMarketBook` implicit endpoint.
     pub async fn public_get_market_book(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_market_book".into()), optional_args).await

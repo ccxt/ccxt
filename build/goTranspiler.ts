@@ -29,7 +29,7 @@ type dict = { [key: string]: string };
 // required non-symbol string params (order ids, currency codes, addresses): merged into the table below
 const GO_UNIFIED_REQUIRED_ID_PARAMS: { [method: string]: number[] } = {
     'fetchDepositAddress': [ 0 ], 'createDepositAddress': [ 0 ], 'fetchDepositAddressesByNetwork': [ 0 ],
-    'fetchContractDepositAddress': [ 0 ], 'cancelOrderWs': [ 0 ], 'editOrderWs': [ 0 ], 'fetchOrderWs': [ 0 ],
+    'fetchContractDepositAddress': [ 0 ], 'cancelOrder': [ 0 ], 'cancelOrderWs': [ 0 ], 'editOrderWs': [ 0 ], 'fetchOrderWs': [ 0 ],
     'cancelSpotOrder': [ 0 ], 'cancelContractOrder': [ 0 ], 'fetchOrderStatus': [ 0 ], 'editLimitOrder': [ 0 ],
     'editLimitBuyOrder': [ 0 ], 'editLimitSellOrder': [ 0 ], 'editOrderWithClientOrderId': [ 0 ],
     'fetchOrderWithClientOrderId': [ 0 ], 'cancelOrderWithClientOrderId': [ 0 ], 'createConvertTrade': [ 0, 1, 2 ],
@@ -59,6 +59,8 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     // createOrders (orders: OrderRequest[]) prints `orders []any` on the base, every venue and
     // ICreateOrders: every caller already hands over a `[]any`
     'createOrders': { 0: '[]any' },
+    // cancelOrders (ids: string[]) on the base, every venue and ICancelOrders
+    'cancelOrders': { 0: '[]string' },
 };
 
 // exchange-local methods no ts/src file calls whose required `string` params are Go strings

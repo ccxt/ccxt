@@ -172,6 +172,45 @@ pub struct Internals {
     /// `fetchWebEndpoint` treats a miss as fatal — see
     /// `crate::exchange::call_dynamic_required`.
     pub dynamic_dispatch_miss: Option<String>,
+    /// Typed views of `markets_by_id` / `currencies_by_id`, rebuilt only when the source map changes.
+    pub typed_by_id: std::sync::Mutex<TypedByIdStores>,
+}
+
+/// A typed by-id store decoded once from one source dict: `rows[i]` holds the records of the
+/// source's i-th id, so a lookup is one index probe and the keys are never copied.
+pub struct TypedById<T> {
+    source: Option<crate::value::Dict>,
+    rows: Vec<Vec<T>>,
+}
+
+impl<T> Default for TypedById<T> {
+    fn default() -> Self { TypedById { source: None, rows: Vec::new() } }
+}
+
+#[derive(Default)]
+pub struct TypedByIdStores {
+    pub markets:    Arc<TypedById<crate::types::Market>>,
+    pub currencies: Arc<TypedById<crate::types::Currency>>,
+}
+
+impl<T> TypedById<T> {
+    /// The records stored under exchange id `id` (several markets can share one id).
+    pub fn records_by_id(&self, id: &str) -> Option<&[T]> {
+        let index = self.source.as_ref()?.get_index_of(id)?;
+        self.rows.get(index).map(Vec::as_slice)
+    }
+    fn is_from(&self, src: &Value) -> bool {
+        match (&self.source, src) { (Some(a), Value::Dict(b)) => Arc::ptr_eq(a, b), (None, Value::Dict(_)) => false, (None, _) => true, _ => false }
+    }
+    /// The shared store for `src`, decoded only when `src` is not the dict decoded last time.
+    fn refresh(store: &mut Arc<Self>, src: &Value, decode: impl Fn(&Value) -> Vec<T>) -> Arc<Self> {
+        if !store.is_from(src) {
+            let source = match src { Value::Dict(d) => Some(Arc::clone(d)), _ => None };
+            let rows = source.as_deref().map_or_else(Vec::new, |m| m.values().map(&decode).collect());
+            *store = Arc::new(TypedById { source, rows });
+        }
+        Arc::clone(store)
+    }
 }
 
 /// The Go-style "interface" that every derived exchange implements. When
@@ -260,6 +299,7 @@ impl Default for Internals {
             implicit_api:     HashMap::new(),
             dispatch_stack:      Vec::new(),
             dynamic_dispatch_miss: None,
+            typed_by_id:      std::sync::Mutex::new(TypedByIdStores::default()),
         }
     }
 }
@@ -344,7 +384,7 @@ pub struct Exchange {
     pub commonCurrencies:  Value,
     pub baseCurrencies:    Value,
     pub quoteCurrencies:   Value,
-    pub symbols:           Value,
+    pub symbols:           crate::value::List,
     pub ids:               Value,
     pub codes:             Value,
     pub timeframes:        Value,
@@ -692,7 +732,7 @@ impl Exchange {
             },
             baseCurrencies:    Value::Null,
             quoteCurrencies:   Value::Null,
-            symbols:           Value::Null,
+            symbols:           std::sync::Arc::new(Vec::new()),
             ids:               Value::Null,
             codes:             Value::Null,
             timeframes:        Value::Null,
@@ -959,7 +999,7 @@ impl Exchange {
         self.markets_by_id = Value::Map(
             by_id.into_iter().map(|(k, v)| (k, Value::Array(v))).collect()
         );
-        self.symbols       = Value::Array(symbols);
+        self.symbols       = std::sync::Arc::new(symbols);
     }
 
     // ── http client ─────────────────────────────────────────────────────────
@@ -1034,8 +1074,94 @@ impl Exchange {
     }
 
 
-    fn is_verbose(&self) -> bool {
+    /// Whether request/response logging is on.
+    pub fn is_verbose(&self) -> bool {
         matches!(self.verbose, Value::Bool(true))
+    }
+
+    // Setup accessors, reached on every exchange through its `Deref<Target = Exchange>`.
+    // Setters take Rust primitives and return `&mut Self` so they chain.
+
+    /// Every loaded market, typed. Empty until markets are loaded.
+    pub fn markets(&self) -> Vec<crate::types::Market> {
+        match &self.markets {
+            Value::Dict(d) => d.values().cloned().map(crate::types::Market::from_value).collect(),
+            _ => Vec::new(),
+        }
+    }
+
+    /// Markets by exchange id (one id can name several markets), typed and shared.
+    pub fn markets_by_id_typed(&self) -> Arc<TypedById<crate::types::Market>> {
+        let mut stores = self.internals.typed_by_id.lock().unwrap_or_else(|e| e.into_inner());
+        TypedById::refresh(&mut stores.markets, &self.markets_by_id, |v| match v {
+            Value::Arr(a) => a.iter().cloned().map(crate::types::Market::from_value).collect(),
+            _ => Vec::new(),
+        })
+    }
+
+    /// Currencies by exchange id, typed and shared.
+    pub fn currencies_by_id_typed(&self) -> Arc<TypedById<crate::types::Currency>> {
+        let mut stores = self.internals.typed_by_id.lock().unwrap_or_else(|e| e.into_inner());
+        TypedById::refresh(&mut stores.currencies, &self.currencies_by_id, |v| match v {
+            Value::Dict(_) => vec![crate::types::Currency::from_value(v.clone())],
+            _ => Vec::new(),
+        })
+    }
+
+    /// Every loaded currency, typed. Empty until markets are loaded.
+    pub fn currencies(&self) -> Vec<crate::types::Currency> {
+        match &self.currencies {
+            Value::Dict(d) => d.values().cloned().map(crate::types::Currency::from_value).collect(),
+            _ => Vec::new(),
+        }
+    }
+
+    /// Unified symbols of every loaded market, sorted.
+    pub fn symbols(&self) -> Vec<String> {
+        let mut out: Vec<String> = self.markets().into_iter().map(|m| m.symbol).collect();
+        out.sort();
+        out
+    }
+
+    /// The ccxt id of this exchange, e.g. binance.
+    pub fn id(&self) -> String {
+        match &self.id { Value::Str(s) => s.to_string(), _ => String::new() }
+    }
+
+    /// Whether sandbox/testnet endpoints are in use.
+    pub fn is_sandbox_mode_enabled(&self) -> bool {
+        matches!(self.isSandboxModeEnabled, Value::Bool(true))
+    }
+
+    /// Log every HTTP request and response to stderr.
+    pub fn set_verbose(&mut self, on: bool) -> &mut Self { self.verbose = Value::Bool(on); self }
+    /// Client-side rate limiting (on by default).
+    pub fn set_enable_rate_limit(&mut self, on: bool) -> &mut Self { self.enableRateLimit = Value::Bool(on); self }
+    /// Milliseconds per rate-limit token; read on every throttled call.
+    pub fn set_rate_limit_ms(&mut self, ms: i64) -> &mut Self { self.rateLimit = Value::Int(ms); self }
+    /// HTTP request timeout in milliseconds.
+    pub fn set_timeout_ms(&mut self, ms: i64) -> &mut Self { self.timeout = Value::Int(ms); self }
+    pub fn set_api_key(&mut self, v: &str) -> &mut Self { self.apiKey = Value::from(v); self }
+    pub fn set_secret(&mut self, v: &str) -> &mut Self { self.secret = Value::from(v); self }
+    pub fn set_password(&mut self, v: &str) -> &mut Self { self.password = Value::from(v); self }
+    pub fn set_uid(&mut self, v: &str) -> &mut Self { self.uid = Value::from(v); self }
+    pub fn set_wallet_address(&mut self, v: &str) -> &mut Self { self.walletAddress = Value::from(v); self }
+    pub fn set_private_key(&mut self, v: &str) -> &mut Self { self.privateKey = Value::from(v); self }
+    pub fn set_token(&mut self, v: &str) -> &mut Self { self.token = Value::from(v); self }
+    /// REST proxies: set at most one (conflicting proxy settings are rejected per request).
+    pub fn set_http_proxy(&mut self, url: &str) -> &mut Self { self.httpProxy = Value::from(url); self }
+    pub fn set_https_proxy(&mut self, url: &str) -> &mut Self { self.httpsProxy = Value::from(url); self }
+    pub fn set_socks_proxy(&mut self, url: &str) -> &mut Self { self.socksProxy = Value::from(url); self }
+    /// WebSocket proxy, dialed with an HTTP CONNECT tunnel by the `watch*` transport.
+    pub fn set_ws_proxy(&mut self, url: &str) -> &mut Self { self.wsProxy = Value::from(url); self }
+
+    /// Merge entries into `options` the way `Config::options` does; nested objects combine.
+    pub fn set_options(&mut self, options: crate::Params) -> &mut Self {
+        let merged = crate::Config::new().options(crate::Params::from(self.options.clone()))
+            .options(options)
+            .into_value();
+        self.options = crate::runtime::get_value(&merged, &Value::Str("options".into()));
+        self
     }
 
 
@@ -1050,17 +1176,17 @@ impl Exchange {
         )).collect::<Vec<_>>().join("&")
     }
 
-    pub fn implode_params(&self, path: Value, params: Value) -> Value {
-        let path_str = match &path { Value::Str(s) => s.clone(), _ => return path };
-        let m = match &params { Value::Dict(m) => m, _ => return Value::Str(path_str) };
+    pub fn implode_params(&self, path: Value, params: Value) -> String {
+        let path_str: String = match &path { Value::Str(s) => s.to_string(), Value::Null => return String::new(), other => return other.to_string() };
+        let m = match &params { Value::Dict(m) => m, _ => return path_str };
         let mut out = path_str;
         for (k, v) in m.iter() {
             let needle = format!("{{{k}}}");
             if out.contains(&needle) {
-                out = out.replace(&needle, &crate::runtime::stringify_param(v)).into();
+                out = out.replace(&needle, &crate::runtime::stringify_param(v));
             }
         }
-        Value::Str(out)
+        out
     }
 
     pub fn json_str(&self, v: &Value) -> String {
@@ -1151,17 +1277,16 @@ impl Exchange {
 
     // ── time ────────────────────────────────────────────────────────────────
 
-    pub fn milliseconds(&self) -> Value {
-        let n = std::time::SystemTime::now()
+    pub fn milliseconds(&self) -> i64 {
+        std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_millis() as i64).unwrap_or(0);
-        Value::Int(n)
+            .map(|d| d.as_millis() as i64).unwrap_or(0)
     }
     pub fn seconds(&self) -> Value {
-        match self.milliseconds() { Value::Int(n) => Value::Int(n / 1000), v => v }
+        Value::Int(self.milliseconds() / 1000)
     }
     pub fn microseconds(&self) -> Value {
-        match self.milliseconds() { Value::Int(n) => Value::Int(n * 1000), v => v }
+        Value::Int(self.milliseconds() * 1000)
     }
 
     pub fn iso8601(&self, ts: Value) -> Value {
@@ -1179,14 +1304,14 @@ impl Exchange {
             .unwrap_or(Value::Null)
     }
 
-    pub fn parse8601(&self, s: Value) -> Value {
-        let str_val = match s { Value::Str(s) => s, _ => return Value::Null };
+    pub fn parse8601(&self, s: Value) -> Option<i64> {
+        let str_val = match s { Value::Str(s) => s, _ => return None };
         if str_val.is_empty() {
-            return Value::Null;
+            return None;
         }
         // rfc3339 (`T…Z` / `+00:00` offset forms).
         if let Ok(t) = chrono::DateTime::parse_from_rfc3339(&str_val) {
-            return Value::Int(t.timestamp_millis());
+            return Some(t.timestamp_millis());
         }
         // Numeric timezone offset WITHOUT a colon (`+0000`) — not valid
         // rfc3339 but common (e.g. bitso `2024-03-13T10:59:59+0000`). JS
@@ -1196,7 +1321,7 @@ impl Exchange {
             "%Y-%m-%d %H:%M:%S%.f%z", "%Y-%m-%d %H:%M:%S%z",
         ] {
             if let Ok(t) = chrono::DateTime::parse_from_str(&str_val, fmt) {
-                return Value::Int(t.timestamp_millis());
+                return Some(t.timestamp_millis());
             }
         }
         // Lenient fallbacks — naive forms are interpreted as UTC.
@@ -1206,15 +1331,15 @@ impl Exchange {
             "%Y-%m-%d %H:%M", "%Y-%m-%dT%H:%M",
         ] {
             if let Ok(ndt) = chrono::NaiveDateTime::parse_from_str(&str_val, fmt) {
-                return Value::Int(ndt.and_utc().timestamp_millis());
+                return Some(ndt.and_utc().timestamp_millis());
             }
         }
         if let Ok(d) = chrono::NaiveDate::parse_from_str(&str_val, "%Y-%m-%d") {
             if let Some(ndt) = d.and_hms_opt(0, 0, 0) {
-                return Value::Int(ndt.and_utc().timestamp_millis());
+                return Some(ndt.and_utc().timestamp_millis());
             }
         }
-        Value::Null
+        None
     }
 
     // safe_string/safe_number/safe_integer/safe_bool live on the transpiled
@@ -1506,7 +1631,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             "[ExchangeError] {} loadOrderBook() failed to synchronize",
             match id { Value::Str(s) => s.as_ref(), _ => "" }).into());
         if !crate::runtime::in_op(&self.orderbooks, &symbol) {
-            crate::pro::ws_client::value_reject(&client, &[err(&self.id), message_hash]);
+            crate::pro::ws_client::value_reject(&client, err(&self.id), message_hash.as_str());
             return;
         }
         let max_retries: i64 = 3;
@@ -1531,42 +1656,43 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                     .collect();
                 self.dispatch_to_derived("handle_deltas", vec![stored.clone(), Value::List(deltas)]).await;
                 crate::set_value(&mut stored, &Value::Str("cache".into()), Value::List(Vec::new()));
-                crate::pro::ws_client::value_resolve(&client, &[stored.clone(), message_hash.clone()]);
+                crate::pro::ws_client::value_resolve(&client, stored.clone(), message_hash.as_str());
                 return;
             }
             tries += 1;
         }
-        crate::pro::ws_client::value_reject(&client, &[err(&self.id), message_hash]);
+        crate::pro::ws_client::value_reject(&client, err(&self.id), message_hash.as_str());
     } }
 
-    fn watch(
+    fn watch<'a>(
         &mut self,
-        url: Value,
-        message_hash: Value,
-        optional_args: &[Value],
-    ) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        let url_s = match &url { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
-        let hash_s = match &message_hash { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
-        let message = optional_args.get(0).cloned().unwrap_or(Value::Null);
-        let subscribe_hash = optional_args.get(1).cloned().unwrap_or(message_hash.clone());
-        let sub_hash_s = match &subscribe_hash { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
-        let subscription = optional_args.get(2).cloned().unwrap_or(Value::Null);
-        self.ws_run(url_s, vec![hash_s], message, vec![sub_hash_s], subscription).await
-    } }
+        url: impl Into<Option<&'a str>>,
+        message_hash: impl Into<Option<&'a str>>,
+        message: impl Into<Value>,
+        subscribe_hash: impl Into<Option<&'a str>>,
+        subscription: impl Into<Value>,
+    ) -> impl ::std::future::Future<Output = Value> + Send {
+        let hash_s = message_hash.into().unwrap_or("null").to_string();
+        let (url_s, message, subscription) = (url.into().unwrap_or("null").to_string(), message.into(), subscription.into());
+        let sub_hash_s = match subscribe_hash.into() { Some(s) => s.to_string(), None => hash_s.to_string() };
+        async move { self.ws_run(url_s, vec![hash_s], message, vec![sub_hash_s], subscription).await }
+    }
 
-    fn watch_multiple(
+    fn watch_multiple<'a>(
         &mut self,
-        url: Value,
-        message_hashes: Value,
-        optional_args: &[Value],
-    ) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        let url_s = match &url { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
-        let hashes = ws_string_list(&message_hashes);
-        let message = optional_args.get(0).cloned().unwrap_or(Value::Null);
-        let subscribe_hashes = ws_string_list(&optional_args.get(1).cloned().unwrap_or(Value::Null));
-        let subscription = optional_args.get(2).cloned().unwrap_or(Value::Null);
-        self.ws_run(url_s, hashes, message, subscribe_hashes, subscription).await
-    } }
+        url: impl Into<Option<&'a str>>,
+        message_hashes: impl Into<Value>,
+        message: impl Into<Value>,
+        subscribe_hashes: impl Into<Value>,
+        subscription: impl Into<Value>,
+    ) -> impl ::std::future::Future<Output = Value> + Send {
+        let (url_s, message_hashes, message) = (url.into().unwrap_or("null").to_string(), message_hashes.into(), message.into());
+        let (subscribe_hashes, subscription) = (subscribe_hashes.into(), subscription.into());
+        async move {
+            let hashes = ws_string_list(&message_hashes);
+            self.ws_run(url_s, hashes, message, ws_string_list(&subscribe_hashes), subscription).await
+        }
+    }
 
     fn fetch_typed(
         &mut self,
@@ -1737,8 +1863,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             "BadRequest",
             format!("no URL configured for api scope `{scope_lookup}`"),
         ))?;
-        let imploded = self.implode_params(Value::Str(path.to_string().into()), params.clone());
-        let path_str = match &imploded { Value::Str(s) => s.clone(), _ => path.to_string().into() };
+        let path_str = self.implode_params(Value::Str(path.to_string().into()), params.clone());
         let consumed_keys = self.extract_path_params(path);
         let remaining_params = match params {
             Value::Dict(m) => {
@@ -1831,9 +1956,10 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
 
     /// Loads markets (and currencies), dispatching `fetch_markets` /
     /// `fetch_currencies` / `set_markets` to the derived overrides.
-    fn load_markets(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        let reload = optional_args.get(0).cloned().unwrap_or(Value::Bool(false));
-        let reload_b = matches!(reload, Value::Bool(true));
+    fn load_markets(&mut self, reload: bool, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = Result<crate::types::Markets>> + Send { async move {
+        let _ = params.into();
+        let markets = crate::runtime::call_typed(async move {
+        let reload_b = reload;
         if !reload_b && !self.markets.is_null() {
             return self.markets.clone();
         }
@@ -1891,7 +2017,10 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                 self.markets_by_id = Value::Map(by_id);
             }
         }
+        let _ = (self.markets_by_id_typed(), self.currencies_by_id_typed());
         self.markets.clone()
+        }).await?;
+        Ok(crate::types::FromRaw::from_raw(markets))
     } }
 
     // ── super.X() shims — call the BASE (ExchangeBase) method, fully-qualified
@@ -1900,7 +2029,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         <Self as crate::exchange_generated::ExchangeBase>::describe(self)
     }
     fn super_set_sandbox_mode(&mut self, enabled: Value) {
-        <Self as crate::exchange_generated::ExchangeBase>::set_sandbox_mode(self, enabled);
+        crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::set_sandbox_mode(self, enabled.is_truthy()));
     }
     fn super_safe_market(&self, id: Value, market: Value, delim: Value, market_type: Value) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::safe_market(self, &[id, market, delim, market_type])
@@ -1909,7 +2038,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         <Self as crate::exchange_generated::ExchangeBase>::handle_market_type_and_params(self, method_name, &[market, params, default_value])
     }
     fn super_market(&self, symbol: Value) -> Value {
-        <Self as crate::exchange_generated::ExchangeBase>::market_non_virtual(self, symbol)
+        crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market_non_virtual(self, symbol.as_str().unwrap_or_default()))
     }
     fn super_amount_to_precision(&self, symbol: Value, amount: Value) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::amount_to_precision(self, symbol, amount)
@@ -1923,17 +2052,18 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn super_set_markets(&mut self, markets: Value, currencies: Value) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, markets, &[currencies])
     }
-    fn super_network_id_to_code(&self, optional_args: &[Value]) -> Value {
+    fn super_network_id_to_code(&self, optional_args: &[Value]) -> Option<String> {
         <Self as crate::exchange_generated::ExchangeBase>::network_id_to_code(self, optional_args)
     }
     fn super_network_code_to_id(&self, network_code: Value, optional_args: &[Value]) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::network_code_to_id(self, network_code, optional_args)
     }
     fn super_fetch_deposit_address(&mut self, code: Value, params: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        self.fetch_deposit_address(code, &[params]).await
+        let typed = <Self as crate::exchange_generated::ExchangeBase>::fetch_deposit_address(self, code.as_str().unwrap_or_default(), params).await;
+        crate::types::IntoRaw::into_raw(typed)
     } }
     fn super_load_markets(&mut self, reload: Value, params: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        self.load_markets(&[reload, params]).await
+        crate::types::IntoRaw::into_raw(<Self as ExchangeRuntime>::load_markets(self, reload.is_truthy(), params).await)
     } }
 }
 
@@ -2015,6 +2145,76 @@ pub trait CallDynamicChecked: crate::exchange_generated::ExchangeBase {
 }
 
 impl<T: crate::exchange_generated::ExchangeBase> CallDynamicChecked for T {}
+
+/// The object-safe slots behind `dyn TypedExchange`. Private: callers only see the
+/// base-spec names inherent on `dyn TypedExchange` (and on every venue struct).
+mod typed_slots {
+    use super::{Exchange, Result, Value};
+
+    #[async_trait::async_trait]
+    pub trait Slots: Send {
+        async fn slot_call(&mut self, method: &str, args: Vec<Value>) -> Result<Value>;
+        fn slot_market(&self, symbol: &str) -> Result<crate::types::Market>;
+        fn slot_base(&self) -> &Exchange;
+        fn slot_base_mut(&mut self) -> &mut Exchange;
+    }
+
+    #[async_trait::async_trait]
+    impl<T: crate::exchange_generated::ExchangeBase> Slots for T {
+        async fn slot_call(&mut self, method: &str, args: Vec<Value>) -> Result<Value> {
+            crate::runtime::call_typed(crate::exchange_generated::ExchangeBase::call_dynamic(self, method, args)).await
+        }
+        fn slot_market(&self, symbol: &str) -> Result<crate::types::Market> {
+            crate::exchange_generated::ExchangeBase::market(self, symbol)
+        }
+        fn slot_base(&self) -> &Exchange { <T as std::ops::Deref>::deref(self) }
+        fn slot_base_mut(&mut self) -> &mut Exchange { <T as std::ops::DerefMut>::deref_mut(self) }
+    }
+}
+
+/// Every exchange (blanket over `ExchangeBase`), so `Box<dyn TypedExchange>` can hold
+/// any venue. `dyn TypedExchange` carries the base-spec methods with the same names and
+/// signatures as each venue struct (`load_markets`, `market`, `set_sandbox_mode`,
+/// `fetch_ticker`, …) and `Deref`s to the base `Exchange` for setup accessors.
+#[allow(private_bounds)]
+pub trait TypedExchange: typed_slots::Slots {}
+
+impl<T: crate::exchange_generated::ExchangeBase> TypedExchange for T {}
+
+impl std::ops::Deref for dyn TypedExchange {
+    type Target = Exchange;
+    fn deref(&self) -> &Exchange { typed_slots::Slots::slot_base(self) }
+}
+
+impl std::ops::DerefMut for dyn TypedExchange {
+    fn deref_mut(&mut self) -> &mut Exchange { typed_slots::Slots::slot_base_mut(self) }
+}
+
+impl dyn TypedExchange {
+    /// A unified method by snake_case name (any unified method or implicit endpoint),
+    /// decoded into its typed return, e.g. `call::<Ticker>("fetch_ticker", args)`.
+    pub async fn call<R: crate::types::FromRaw>(&mut self, method: &str, args: Vec<Value>) -> Result<R> {
+        Ok(R::from_raw(typed_slots::Slots::slot_call(self, method, args).await?))
+    }
+
+    /// Loads and caches markets through the venue's override, keyed by symbol.
+    pub async fn load_markets(&mut self, reload: bool, params: impl Into<crate::Params> + Send) -> Result<crate::types::Markets> {
+        self.call("load_markets", vec![Value::Bool(reload), params.into().into_value()]).await
+    }
+
+    /// One loaded market, typed (the venue's `market` override applies). `Err(BadSymbol)` when not listed.
+    pub fn market(&self, symbol: &str) -> Result<crate::types::Market> {
+        typed_slots::Slots::slot_market(self, symbol)
+    }
+
+    /// Swap to the testnet/sandbox endpoints (or back), through the venue's override.
+    /// `Err(NotSupported)` without a `urls.test`.
+    pub fn set_sandbox_mode(&mut self, enabled: bool) -> Result<()> {
+        // a sync method: its dispatch arm completes on the first poll
+        let call = self.call::<Value>("set_sandbox_mode", vec![Value::Bool(enabled)]);
+        futures::FutureExt::now_or_never(call).expect("set_sandbox_mode never awaits").map(|_| ())
+    }
+}
 
 /// A minimal Core wrapping a bare `Exchange` with NO overrides. Lets code that
 /// only has an `Exchange` value — `Value` snapshots (value.rs), the constructor
@@ -2848,5 +3048,42 @@ mod http_error_tests {
         let mut core = BaseCore::new(Exchange::new(None));
         let error = fetch_error(&mut core, url).await;
         assert!(error.contains("ExchangeError"), "{error}");
+    }
+}
+
+#[cfg(test)]
+mod typed_by_id_tests {
+    use super::Exchange;
+    use crate::Value;
+    use indexmap::IndexMap;
+
+    fn market(id: &str, symbol: &str) -> Value {
+        let mut m = IndexMap::new();
+        m.insert("id".to_string(), Value::Str(id.to_string().into()));
+        m.insert("symbol".to_string(), Value::Str(symbol.to_string().into()));
+        Value::Map(m)
+    }
+
+    #[test]
+    fn by_id_stores_decode_once_and_follow_a_replaced_map() {
+        let mut ex = Exchange::new(None);
+        let mut by_id = IndexMap::new();
+        by_id.insert("BTCUSDT".to_string(), Value::Array(vec![market("BTCUSDT", "BTC/USDT"), market("BTCUSDT", "BTC/USDT:USDT")]));
+        ex.markets_by_id = Value::Map(by_id);
+        let first = ex.markets_by_id_typed();
+        let rows = first.records_by_id("BTCUSDT").unwrap();
+        assert_eq!(rows.len(), 2);
+        assert_eq!(rows[1].symbol, "BTC/USDT:USDT");
+        assert_eq!(rows[0].id.as_deref(), Some("BTCUSDT"));
+        assert!(std::sync::Arc::ptr_eq(&first, &ex.markets_by_id_typed()));
+        assert!(first.records_by_id("ETHUSDT").is_none());
+        let mut cur = IndexMap::new();
+        cur.insert("XBt".to_string(), market("XBt", "BTC"));
+        ex.currencies_by_id = Value::Map(cur);
+        assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].id.as_deref(), Some("XBt"));
+        assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].code, None);
+        assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].active, None);
+        ex.markets_by_id = Value::Null;
+        assert!(ex.markets_by_id_typed().records_by_id("BTCUSDT").is_none());
     }
 }

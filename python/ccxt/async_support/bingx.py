@@ -5320,7 +5320,7 @@ class bingx(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_list(self.safe_dict(response, 'data'), 'data')
+        data = self.safe_list(self.safe_dict(response, 'data'), 'data', [])
         parsed = self.parse_deposit_addresses(data, [currency['code']], False)
         return self.index_by(parsed, 'network')
 

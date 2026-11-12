@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::bit2c::Bit2cCore;
+use super::bit2c::Bit2c;
 use crate::exchange::ExchangeRuntime;
 
-impl Bit2cCore {
+impl Bit2c {
     /// Auto-generated wrapper for the `publicGetExchangesPairTicker` implicit endpoint.
     pub async fn public_get_exchanges_pair_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_exchanges_pair_ticker".into()), optional_args).await

@@ -1,16 +1,18 @@
 // Exchange-agnostic code via the built-in `ccxt::TypedExchange` trait — the
-// Rust analog of a C#/Go `IExchange`. Every typed wrapper (ccxt::Binance,
+// Rust analog of a C#/Go `IExchange`. Every exchange (ccxt::Binance,
 // ccxt::Kraken, …) implements it, so you can be generic OR dynamic over
 // exchanges with native typed returns. Compile-check only.
-// `TypedExchange` = object-safe core (call_raw + load_markets, enables
-// `Box<dyn ...>`); `TypedExchangeExt` = the typed methods (fetch_ticker, …),
-// blanket-implemented for every `TypedExchange`. Import both to call them.
+// `Box<dyn TypedExchange>` holds any venue; the base-spec methods (load_markets,
+// market, set_sandbox_mode, fetch_ticker, …) are inherent on `dyn TypedExchange`
+// with the same names and signatures as on every concrete exchange struct.
 use ccxt::Params;
-use ccxt::{Binance, Kraken, TypedExchange, TypedExchangeExt};
+use ccxt::{Binance, Kraken, TypedExchange};
 
 // ── A. generic (static dispatch) ─────────────────────────────────────────────
-async fn last_price<E: TypedExchange>(ex: &mut E, symbol: &str) -> Option<f64> {
-    ex.load_markets(false).await;
+async fn last_price<E: TypedExchange + 'static>(ex: &mut E, symbol: &str) -> Option<f64> {
+    // The typed methods live on `dyn TypedExchange`, so view the generic as one.
+    let ex: &mut (dyn TypedExchange + 'static) = ex;
+    ex.load_markets(false, ()).await.ok()?;
     ex.fetch_ticker(symbol, Params::none()).await.ok()?.last
 }
 
@@ -35,7 +37,9 @@ async fn demo() {
         .filter_map(|id| create(id))
         .collect();
     for ex in &mut venues {
-        ex.load_markets(false).await;
+        if ex.load_markets(false, ()).await.is_err() {
+            continue;
+        }
         if let Ok(t) = ex.fetch_ticker("BTC/USDT", Params::none()).await {
             println!("{} last={:?}", t.symbol, t.last);
         }

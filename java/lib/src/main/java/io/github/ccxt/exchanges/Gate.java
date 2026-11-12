@@ -7312,7 +7312,7 @@ public class Gate extends GateApi
             if (Boolean.TRUE.equals(openSpotOrders))
             {
                 List<Object> spotResult = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < (response == null ? 0 : response.size()); i++)
+                for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
                     Map<String, Object> responseEntry = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
                     Object ordersInner = this.safeValue(responseEntry, "orders");
@@ -8837,9 +8837,9 @@ public class Gate extends GateApi
                     requestUntil.put("currency_pair", market.get("id"));
                 }
                 response = (this.privateMarginGetUniInterestRecords(this.extend(requestUntil, paramsMarginMode))).join();
-            } else if (java.util.Objects.equals(marginMode, "cross"))
+            } else
             {
-                // deprecated and not present in the exchange's docs but still works
+                // cross: deprecated and not present in the exchange's docs but still works
                 response = (this.privateMarginGetCrossInterestRecords(this.extend(requestUntil, paramsMarginMode))).join();
             }
             List<Object> interest = this.parseBorrowInterests(response, market);

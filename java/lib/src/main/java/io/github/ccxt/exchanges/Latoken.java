@@ -751,10 +751,10 @@ public class Latoken extends LatokenApi
             List<Object> merged = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rawCurrencies).size(); i++)
             {
-                Object rawCurrency = this.safeValue(rawCurrencies, i);
+                Map<String, Object> rawCurrency = (Map<String, Object>) this.safeDict(rawCurrencies, i, (Object) null);
                 Map<String, Object> bindingEntry = (Map<String, Object>) this.safeDict(bindingsById, this.safeString(rawCurrency, "id"), (Object) null);
                 List<Object> bindings = (List<Object>) this.safeList(bindingEntry, "bindings", (Object) null);
-                Object mergedCurrency = rawCurrency;
+                Map<String, Object> mergedCurrency = rawCurrency;
                 if (!java.util.Objects.equals(bindings, null))
                 {
                     HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();

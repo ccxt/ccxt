@@ -1123,7 +1123,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         orders = await self.watch_request('privateGetOrders', request)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         ts = str(self.milliseconds())
         randomNumber = self.rand_number(4)
         randomPart = str(randomNumber)
@@ -1362,7 +1362,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         await self.authenticate()
         return await self.watch_request('privateGetAccount', params)
 
-    def fetch_markets_ws(self, params: dict = {}) -> object:
+    async def fetch_markets_ws(self, params: dict = {}) -> object:
         """
 
         https://docs.bitvavo.com/#tag/General/paths/~1markets/get
@@ -1371,7 +1371,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        return self.watch_request('getMarkets', params)
+        return await self.watch_request('getMarkets', params)
 
     async def fetch_currencies_ws(self, params: dict = {}) -> Currencies:
         """
@@ -1408,7 +1408,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #    }
         #
         messageHash = self.safe_string(message, 'requestId')
-        response = self.safe_list(message, 'response')
+        response = self.safe_list(message, 'response', [])
         currencies = self.parse_currencies(response)
         client.resolve(currencies, messageHash)
 

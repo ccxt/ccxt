@@ -2247,7 +2247,7 @@ class deribit extends deribit$1["default"] {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        const order = this.extend(this.safeValue(result, 'order'), { 'trades': this.safeList(result, 'trades', []) });
+        const order = this.extend(this.safeDict(result, 'order'), { 'trades': this.safeList(result, 'trades', []) });
         return this.parseOrder(order, market);
     }
     /**
@@ -2295,7 +2295,7 @@ class deribit extends deribit$1["default"] {
         }
         const response = await this.privateGetEdit(this.extend(request, paramsOmitted));
         const result = this.safeDict(response, 'result', {});
-        const order = this.extend(this.safeValue(result, 'order'), { 'trades': this.safeList(result, 'trades', []) });
+        const order = this.extend(this.safeDict(result, 'order'), { 'trades': this.safeList(result, 'trades', []) });
         return this.parseOrder(order);
     }
     /**

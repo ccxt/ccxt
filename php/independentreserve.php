@@ -337,8 +337,8 @@ class independentreserve extends Exchange {
         //     }
         //
         $result = array();
-        $baseCurrencyIds = $this->to_array($this->safe_value($responses, 0));
-        $quoteCurrencyIds = $this->to_array($this->safe_value($responses, 1));
+        $baseCurrencyIds = $this->to_array($this->safe_list($responses, 0));
+        $quoteCurrencyIds = $this->to_array($this->safe_list($responses, 1));
         for ($i = 0; $i < count($baseCurrencyIds); $i++) {
             $baseId = $this->safe_string($baseCurrencyIds, $i, '');
             $base = $this->safe_currency_code($baseId);

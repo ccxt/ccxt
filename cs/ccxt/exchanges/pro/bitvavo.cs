@@ -1373,8 +1373,8 @@ public partial class bitvavo : ccxt.bitvavo
 
     public async virtual Task<object> watchRequest(string? action, object request)
     {
-        object messageHash = this.requestId();
-        string messageHashStr = messageHash.ToString();
+        Int64? messageHash = ((Int64)this.requestId());
+        string messageHashStr = ((object)messageHash).ToString();
         ((IDictionary<string,object>)request)["action"] = action;
         ((IDictionary<string,object>)request)["requestId"] = messageHash;
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
@@ -1718,7 +1718,7 @@ public partial class bitvavo : ccxt.bitvavo
         //    }
         //
         string? messageHash = this.safeString(message, "requestId");
-        List<object> response = this.safeList(message, "response");
+        List<object> response = this.safeList(message, "response", new List<object>() {});
         Dictionary<string, object> currencies = this.parseCurrencies(response);
         client.resolve(currencies, messageHash);
     }

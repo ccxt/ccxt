@@ -1,4 +1,4 @@
-import type { Balances, Dict, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market, OrderType, OrderSide, Num } from '../base/types.js';
+import type { Balances, Dict, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market, OrderType, OrderSide, Num, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -104,7 +104,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchMarkPrice(symbol: string, params?: {}): Promise<any>;
+    unWatchMarkPrice(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name lighter#unWatchMarkPrices
@@ -114,7 +114,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchMarkPrices(symbols?: Strings, params?: {}): Promise<any>;
+    unWatchMarkPrices(symbols?: Strings, params?: Dict): Promise<any>;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     handleTrades(client: Client, message: Dict): void;
     /**
@@ -210,7 +210,7 @@ export default class lighter extends lighterRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     unWatchOrders(symbol?: Str, params?: Dict): Promise<any>;
-    requestId(url: string): string;
+    requestId(url: string): int;
     /**
      * @method
      * @name lighter#createOrderWs

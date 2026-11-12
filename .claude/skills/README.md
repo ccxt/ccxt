@@ -73,13 +73,13 @@ Java skill covering:
 ### 7. ccxt-rust
 Rust skill covering:
 - Installation via cargo (`ccxt`, `ccxt-pro`, `ccxt-prediction` crates)
-- Typed wrapper pattern (`ccxt::Binance` returning `Result<T, ExchangeError>`)
+- One struct per exchange (`ccxt::Binance`) with typed methods returning `Result<T, ExchangeError>`
 - REST API with typed returns (Ticker, Vec\<Trade\>, OrderBook)
 - WebSocket API (`ccxt_pro::Binance::watch_*`, one decoded update per call)
 - `Config` / `Params` builders — no dynamic values at the call site
 - Runtime setup (tokio, worker-thread stack size, panic hook)
 - Error handling with the unified hierarchy (`ExchangeError::is`)
-- Untyped escape hatch (`raw`, `Deref` to the core, `call_raw`)
+- Untyped escape hatch (`raw`, `Deref` to the base `Exchange`, `call::<Value>` on `dyn TypedExchange`)
 
 **Invoke with:** `/ccxt-rust`
 

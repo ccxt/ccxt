@@ -864,7 +864,7 @@ export default class poloniex extends Exchange {
         //                "limitMaxQty": "1000000"
         //            },
         //
-        const markets = this.safeList (response, 'data');
+        const markets = this.safeList (response, 'data', []);
         return this.parseMarkets (markets);
     }
 
@@ -1923,7 +1923,7 @@ export default class poloniex extends Exchange {
         }
         const isTrigger = this.safeBool2 (paramsMarketType, 'trigger', 'stop');
         const paramsOmitted: Dict = this.omit (paramsMarketType, [ 'trigger', 'stop' ]);
-        let response: Dict | List = [];
+        let response: List = [];
         if (marketType !== 'spot') {
             const raw = await this.swapPrivateGetV3TradeOrderOpens (this.extend (request, paramsOmitted));
             //
@@ -2136,7 +2136,7 @@ export default class poloniex extends Exchange {
      * @param {string} [params.posSide] *swap only* 'LONG', 'SHORT' or 'BOTH', defaults to 'BOTH', the batch endpoint requires it explicitly
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrders (orders: OrderRequest[], params = {}) {
+    override async createOrders (orders: OrderRequest[], params: Dict = {}) {
         await this.loadMarkets ();
         const ordersRequests = [];
         const ordersMarkets = [];
@@ -2432,7 +2432,7 @@ export default class poloniex extends Exchange {
      * @param {string[]} [params.clientOrderIds] alternative to ids, cancel by client order ids
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params: Dict = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -2508,7 +2508,7 @@ export default class poloniex extends Exchange {
                 market['id'],
             ];
         }
-        let response: Dict | List = [];
+        let response: List = [];
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (marketType === 'swap' || marketType === 'future') {
             const raw = await this.swapPrivateDeleteV3TradeAllOrders (this.extend (request, paramsMarketType));

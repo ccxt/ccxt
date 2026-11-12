@@ -602,7 +602,7 @@ class latoken(Exchange, ImplicitAPI):
         rawCurrencies = self.to_array(response)
         merged = []
         for i in range(0, len(rawCurrencies)):
-            rawCurrency = self.safe_value(rawCurrencies, i)
+            rawCurrency = self.safe_dict(rawCurrencies, i)
             bindingEntry = self.safe_dict(bindingsById, self.safe_string(rawCurrency, 'id'))
             bindings = self.safe_list(bindingEntry, 'bindings')
             mergedCurrency = rawCurrency
@@ -1324,7 +1324,7 @@ class latoken(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         if self.markets is None:
             await self.load_markets()
-        response: dict
+        response: List
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         # privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
@@ -1390,7 +1390,7 @@ class latoken(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         if limit is not None:
             request['limit'] = limit  # default 100
-        response: dict
+        response: List
         if symbol is not None:
             market = self.market(symbol)
             request['currency'] = market['baseId']

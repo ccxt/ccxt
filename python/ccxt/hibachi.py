@@ -383,7 +383,7 @@ class hibachi(Exchange, ImplicitAPI):
         #     "underlyingDecimals": 9,
         #     "underlyingSymbol": "ETH"
         # },
-        rows = self.safe_list(response, 'futureContracts')
+        rows = self.safe_list(response, 'futureContracts', [])
         return self.parse_markets(rows)
 
     def hardcoded_currencies(self) -> Currencies:

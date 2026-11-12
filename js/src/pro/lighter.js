@@ -430,8 +430,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchMarkPrice(symbol, params = {}) {
-        return this.watchTicker(symbol, params);
+    async watchMarkPrice(symbol, params = {}) {
+        return await this.watchTicker(symbol, params);
     }
     /**
      * @method
@@ -442,8 +442,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchMarkPrices(symbols = undefined, params = {}) {
-        return this.watchTickers(symbols, params);
+    async watchMarkPrices(symbols = undefined, params = {}) {
+        return await this.watchTickers(symbols, params);
     }
     /**
      * @method
@@ -454,8 +454,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchMarkPrice(symbol, params = {}) {
-        return this.unWatchTicker(symbol, params);
+    async unWatchMarkPrice(symbol, params = {}) {
+        return await this.unWatchTicker(symbol, params);
     }
     /**
      * @method
@@ -466,8 +466,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchMarkPrices(symbols = undefined, params = {}) {
-        return this.unWatchTickers(symbols, params);
+    async unWatchMarkPrices(symbols = undefined, params = {}) {
+        return await this.unWatchTickers(symbols, params);
     }
     parseWsTrade(trade, market = undefined) {
         //
@@ -1169,7 +1169,7 @@ export default class lighter extends lighterRest {
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
         this.options['requestId'][url] = newValue;
-        return this.numberToString(newValue);
+        return newValue;
     }
     /**
      * @method
@@ -1194,7 +1194,9 @@ export default class lighter extends lighterRest {
      */
     async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
         const url = this.urls['api']['ws'];
-        const requestId = this.requestId(url);
+        const nextId = this.requestId(url);
+        // the venue takes a string request id
+        const requestId = nextId.toString();
         const messageHash = 'jsonapi/sendtx:' + requestId;
         const [txType, txInfo, order] = await this.signAndCreateOrder('createOrderWs', symbol, type, side, amount, price, params);
         const market = this.market(symbol);
@@ -1227,7 +1229,9 @@ export default class lighter extends lighterRest {
      */
     async cancelOrderWs(id, symbol = undefined, params = {}) {
         const url = this.urls['api']['ws'];
-        const requestId = this.requestId(url);
+        const nextId = this.requestId(url);
+        // the venue takes a string request id
+        const requestId = nextId.toString();
         const messageHash = 'jsonapi/sendtx:' + requestId;
         const [txType, txInfo] = await this.signAndCancelOrder('cancelOrderWs', id, symbol, params);
         const market = this.market(symbol);
@@ -1259,7 +1263,9 @@ export default class lighter extends lighterRest {
      */
     async cancelAllOrdersWs(symbol = undefined, params = {}) {
         const url = this.urls['api']['ws'];
-        const requestId = this.requestId(url);
+        const nextId = this.requestId(url);
+        // the venue takes a string request id
+        const requestId = nextId.toString();
         const messageHash = 'jsonapi/sendtx:' + requestId;
         const [txType, txInfo] = await this.signAndCancelAllOrders('cancelAllOrdersWs', symbol, params);
         const parsedTx = this.parseJson(txInfo);

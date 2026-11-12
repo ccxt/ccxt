@@ -48,7 +48,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name bitfinex#watchMyTrades
@@ -77,7 +77,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
     handleMyTrade(client: Client, message: any[], subscription?: Dict): void;
     handleTrades(client: Client, message: any[], subscription: Dict): void;
     parseWsTrade(tradeResult: Dict, market?: Market): Trade;

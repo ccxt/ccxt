@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::gemini::GeminiCore;
+use super::gemini::Gemini;
 use crate::exchange::ExchangeRuntime;
 
-impl GeminiCore {
+impl Gemini {
     /// Auto-generated wrapper for the `webExchangeGet` implicit endpoint.
     pub async fn web_exchange_get(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("web_exchange_get".into()), optional_args).await

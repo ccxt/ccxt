@@ -107,7 +107,7 @@ class paradex extends \ccxt\async\paradex {
         return 'order_book.' . $marketId . '.snapshot@15@100ms';
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
         return $requestId;
@@ -533,11 +533,11 @@ class paradex extends \ccxt\async\paradex {
         $client->resolve(true, $unsubHash);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function watch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }
 
-    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_watch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * get the list of most recent $trades for a particular $symbol
          *

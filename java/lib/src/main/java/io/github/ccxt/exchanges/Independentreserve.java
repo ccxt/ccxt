@@ -460,8 +460,8 @@ public class Independentreserve extends IndependentreserveApi
             //     }
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            List<Object> baseCurrencyIds = this.toArray(this.safeValue(responses, 0));
-            List<Object> quoteCurrencyIds = this.toArray(this.safeValue(responses, 1));
+            List<Object> baseCurrencyIds = this.toArray(this.safeList(responses, 0, (Object) null));
+            List<Object> quoteCurrencyIds = this.toArray(this.safeList(responses, 1, (Object) null));
             for (var i = 0; i < ((List<?>)baseCurrencyIds).size(); i++)
             {
                 String baseId = this.safeString(baseCurrencyIds, i, "");

@@ -4866,8 +4866,7 @@ class kucoin extends kucoin$1["default"] {
         //           },
         // }
         //
-        let data = this.safeDict(response, 'data', {});
-        data = this.safeList(data, 'data', []);
+        const data = this.safeList(this.safeDict(response, 'data', {}), 'data', []);
         return this.parseOrders(data);
     }
     /**
@@ -11158,9 +11157,8 @@ class kucoin extends kucoin$1["default"] {
                 'clientOid': this.safeString(clientOrderIds, i),
             });
         }
-        const idsList = this.toArray(ids);
-        for (let i = 0; i < idsList.length; i++) {
-            const orderId = this.safeString(idsList, i);
+        for (let i = 0; i < ids.length; i++) {
+            const orderId = this.safeString(ids, i);
             if (uta) {
                 ordersRequests.push({
                     'orderId': orderId,

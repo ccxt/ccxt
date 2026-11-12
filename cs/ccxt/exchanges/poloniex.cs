@@ -1058,7 +1058,7 @@ public partial class poloniex : Exchange
         //                "limitMaxQty": "1000000"
         //            },
         //
-        List<object> markets = this.safeList(response, "data");
+        List<object> markets = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 

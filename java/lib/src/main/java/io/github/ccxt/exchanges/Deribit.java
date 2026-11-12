@@ -2769,7 +2769,7 @@ public class Deribit extends DeribitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> order = this.extend(this.safeValue(result, "order"), new HashMap<String, Object>() {{
+            Map<String, Object> order = this.extend(this.safeDict(result, "order", (Object) null), new HashMap<String, Object>() {{
                 put( "trades", Deribit.this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList())) );
             }});
             return this.parseOrder(order, market);
@@ -2825,7 +2825,7 @@ public class Deribit extends DeribitApi
             }
             Map<String, Object> response = (this.privateGetEdit(this.extend(request, paramsOmitted))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> order = this.extend(this.safeValue(result, "order"), new HashMap<String, Object>() {{
+            Map<String, Object> order = this.extend(this.safeDict(result, "order", (Object) null), new HashMap<String, Object>() {{
                 put( "trades", Deribit.this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList())) );
             }});
             return this.parseOrder(order, (Map<String, Object>) null);

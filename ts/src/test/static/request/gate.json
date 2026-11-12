@@ -1108,7 +1108,7 @@
                 "url": "https://api.gateio.ws/api/v4/wallet/transfers",
                 "input": [
                     "USDT",
-                    "1",
+                    1,
                     "swap",
                     "spot"
                 ],

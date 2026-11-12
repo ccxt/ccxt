@@ -74,7 +74,7 @@ fn helperTestInitSandbox() {
     //
     let mut exchange3 = crate::tests_support::make_exchange(opts.clone());
     helperTestSandboxState(exchange3.clone_self(), Value::Bool(false));
-    exchange3.set_sandbox_mode(Value::Bool(true));
+    if let Err(__e) = exchange3.set_sandbox_mode(true) { panic!("{}", __e) }
     helperTestSandboxState(exchange3.clone_self(), Value::Bool(true));
     //
     // CASE B: when sandbox is enabled
@@ -82,7 +82,7 @@ fn helperTestInitSandbox() {
     add_element_to_object(get_value_mut(&mut opts, &Value::Str("options".into())), &Value::Str("sandbox".into()), Value::Bool(true));
     let mut exchange4 = crate::tests_support::make_exchange(opts.clone());
     helperTestSandboxState(exchange4.clone_self(), Value::Bool(true));
-    exchange4.set_sandbox_mode(Value::Bool(false));
+    if let Err(__e) = exchange4.set_sandbox_mode(false) { panic!("{}", __e) }
     helperTestSandboxState(exchange4.clone_self(), Value::Bool(false));
     //
     // CASE C: passed 'sandbox' within userConfig
@@ -92,12 +92,12 @@ fn helperTestInitSandbox() {
     if let Value::Dict(__d) = &mut opts { std::sync::Arc::make_mut(__d).insert("sandbox".into(), Value::Bool(true)); }
     let mut exchange5 = crate::tests_support::make_exchange(opts.clone());
     helperTestSandboxState(exchange5.clone_self(), Value::Bool(true));
-    exchange5.set_sandbox_mode(Value::Bool(false));
+    if let Err(__e) = exchange5.set_sandbox_mode(false) { panic!("{}", __e) }
     helperTestSandboxState(exchange5.clone_self(), Value::Bool(false));
 }
 fn helperTestInitMarket() {
     // ############# markets ############# //
-    let mut sampleMarket: Value = Value::Map({
+    let mut sampleMarket: indexmap::IndexMap<String, Value> = ({
         let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("BtcUsd".into()));
             m.insert("symbol".to_string(), Value::Str("BTC/USD".into()));
@@ -114,7 +114,7 @@ fn helperTestInitMarket() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
             m.insert("markets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("BTC/USD".to_string(), sampleMarket.clone());
+        m.insert("BTC/USD".to_string(), Value::Map(sampleMarket));
     m
 }));
         m
@@ -132,11 +132,10 @@ fn helperTestProperties() {
     let mut keys: Value = Value::from(vec![Value::Str("chrome".into()), Value::Str("chrome39".into()), Value::Str("chrome100".into())]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("userAgents".into())) != Value::Null))));
     {
-                let mut i: Value = Value::Int(0);
-        let mut __for_first_1531: bool = true;
-        while { if !__for_first_1531 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            } __for_first_1531 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-        let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut i: i64 = 0;
+        let mut __for_first_1532: bool = true;
+        while { if !__for_first_1532 { i += 1; } __for_first_1532 = false; i < (keys.len() as i64) } {
+        let mut key: Value = keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         let mut userAgent: Value = get_value(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("userAgents".into())), &key);
         assert!(ccxt::runtime::is_true(&(Value::Bool(userAgent != Value::Null))));
     }

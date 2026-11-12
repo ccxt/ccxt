@@ -1200,7 +1200,7 @@ class xt(Exchange, ImplicitAPI):
         swapAndFutureMarkets = self.array_concat(self.safe_list(markets[0], 'result', []), self.safe_list(markets[1], 'result', []))
         return self.parse_markets(swapAndFutureMarkets)
 
-    def parse_markets(self, markets: object):
+    def parse_markets(self, markets: list):
         result = []
         for i in range(0, len(markets)):
             parsed = self.parse_market(self.safe_value(markets, i))

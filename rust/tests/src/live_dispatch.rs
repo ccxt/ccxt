@@ -389,8 +389,8 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
 
 fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
     // Field access on `core.last_request_*` auto-derefs through each
-    // Core's `Deref` chain (root: `BinanceCore → Exchange`; subclass:
-    // `BinanceusCore → BinanceCore → Exchange`) — so this one expression
+    // Core's `Deref` chain (root: `Binance → Exchange`; subclass:
+    // `Binanceus → Binance → Exchange`) — so this one expression
     // works for every Core type without per-subclass plumbing.
     macro_rules! arm { ($name:ident, $core:ident) => {
         if id == stringify!($name) {
@@ -433,7 +433,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                     // Lightweight ones still served here so a `__live_id`
                     // snapshot stays fully introspectable through the
                     // same code path.
-                    "symbols"          => core.symbols.clone(),
+                    "symbols"          => Value::Arr(core.symbols.clone()),
                     "codes"            => core.codes.clone(),
                     "ids"              => core.ids.clone(),
                     "has"              => core.has.clone(),
@@ -539,7 +539,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 // markets_by_id → expired option) but clone only the one
                 // market it returns — not the whole markets map.
                 let core: &$core = unsafe { &*(ptr as *const $core) };
-                core.market(Value::Str(symbol.to_string().into()))
+                ccxt::types::IntoRaw::into_raw(core.market(symbol))
             }
             fn has_market(ptr: *mut (), symbol: &str) -> bool {
                 let core: &$core = unsafe { &*(ptr as *const $core) };

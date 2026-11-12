@@ -1147,7 +1147,7 @@ export default class coinbaseexchange extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.iso8601(since);
         }
-        const until = this.safeValue2(paramsPaginate, 'until', 'end_date');
+        const until = this.safeInteger2(paramsPaginate, 'until', 'end_date');
         if (until !== undefined) {
             request['end_date'] = this.iso8601(until);
         }
@@ -1281,7 +1281,7 @@ export default class coinbaseexchange extends Exchange {
         else {
             request['granularity'] = timeframe;
         }
-        const until = this.safeValue2(paramsPaginate, 'until', 'end');
+        const until = this.safeInteger2(paramsPaginate, 'until', 'end');
         const paramsOmitted = this.omit(paramsPaginate, ['until']);
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
         const cappedLimit = this.parseToInt((limit === undefined) ? 300 : Math.min(limit, 300));
@@ -1519,7 +1519,7 @@ export default class coinbaseexchange extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.iso8601(since);
         }
-        const until = this.safeValue2(paramsPaginate, 'until', 'end_date');
+        const until = this.safeInteger2(paramsPaginate, 'until', 'end_date');
         if (until !== undefined) {
             request['end_date'] = this.iso8601(until);
         }
@@ -1876,7 +1876,7 @@ export default class coinbaseexchange extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        const until = this.safeValue2(params, 'until', 'end_date');
+        const until = this.safeInteger2(params, 'until', 'end_date');
         if (until !== undefined) {
             request['end_date'] = this.iso8601(until);
         }

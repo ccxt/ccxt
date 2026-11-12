@@ -1184,7 +1184,7 @@ public partial class binance : ccxt.binance
     {
         for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, this.safeValue(deltas, i));
+            this.handleDelta(bookside, this.safeList(deltas, i));
         }
     }
 
@@ -4028,7 +4028,7 @@ public partial class binance : ccxt.binance
             if ((symbolsLength == 1))
             {
                 market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
-                payload["symbol"] = this.safeValue(market, "id");
+                payload["symbol"] = this.safeString(market, "id");
             }
         }
         string? type = this.getMarketType("fetchPositionsWs", market, parameters);

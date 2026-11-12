@@ -1188,7 +1188,7 @@ class coinbaseexchange extends Exchange {
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
         }
-        $until = $this->safe_value_2($paramsPaginate, 'until', 'end_date');
+        $until = $this->safe_integer_2($paramsPaginate, 'until', 'end_date');
         if ($until !== null) {
             $request['end_date'] = $this->iso8601($until);
         }
@@ -1337,7 +1337,7 @@ class coinbaseexchange extends Exchange {
         } else {
             $request['granularity'] = $timeframe;
         }
-        $until = $this->safe_value_2($paramsPaginate, 'until', 'end');
+        $until = $this->safe_integer_2($paramsPaginate, 'until', 'end');
         $paramsOmitted = $this->omit($paramsPaginate, array( 'until' ));
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
         $cappedLimit = $this->parse_to_int(($limit === null) ? 300 : min($limit, 300));
@@ -1595,7 +1595,7 @@ class coinbaseexchange extends Exchange {
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
         }
-        $until = $this->safe_value_2($paramsPaginate, 'until', 'end_date');
+        $until = $this->safe_integer_2($paramsPaginate, 'until', 'end_date');
         if ($until !== null) {
             $request['end_date'] = $this->iso8601($until);
         }
@@ -1980,7 +1980,7 @@ class coinbaseexchange extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100
         }
-        $until = $this->safe_value_2($params, 'until', 'end_date');
+        $until = $this->safe_integer_2($params, 'until', 'end_date');
         if ($until !== null) {
             $request['end_date'] = $this->iso8601($until);
         }

@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::nado::NadoCore;
+use super::nado::Nado;
 use crate::exchange::ExchangeRuntime;
 
-impl NadoCore {
+impl Nado {
     /// Auto-generated wrapper for the `gatewayPublicGetSymbols` implicit endpoint.
     pub async fn gateway_public_get_symbols(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("gateway_public_get_symbols".into()), optional_args).await

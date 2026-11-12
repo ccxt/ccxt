@@ -5,10 +5,10 @@ crates. Pick the ones you need:
 
 | crate | what it is | use it when |
 |---|---|---|
-| [`ccxt`](ccxt/README.md) | typed REST API — `Binance::fetch_ticker(..) -> Result<Ticker>` | you call `fetch_*` / `create_order` on spot or derivatives exchanges |
-| [`ccxt-pro`](ccxt-pro/README.md) | typed WebSocket API — `watch_order_book`, `watch_trades`, … (REST included) | you stream market data or your own orders |
-| [`ccxt-prediction`](ccxt-prediction/README.md) | typed prediction-market API — Polymarket, Kalshi, Limitless, Myriad, … | you trade outcome markets |
-| [`ccxt-base`](ccxt-base/README.md) | the untyped engine the three above wrap — `Value`, runtime, transpiled Cores | you build tooling on the dynamic `Value` surface; app code normally does not depend on it directly |
+| [`ccxt`](ccxt/README.md) | REST API — `Binance::fetch_ticker(..) -> Result<Ticker>` | you call `fetch_*` / `create_order` on spot or derivatives exchanges |
+| [`ccxt-pro`](ccxt-pro/README.md) | WebSocket API — `watch_order_book`, `watch_trades`, … (REST included) | you stream market data or your own orders |
+| [`ccxt-prediction`](ccxt-prediction/README.md) | prediction-market API — Polymarket, Kalshi, Limitless, Myriad, … | you trade outcome markets |
+| [`ccxt-base`](ccxt-base/README.md) | the engine the three above re-export — runtime, `Value`, and the transpiled exchange structs | app code normally does not depend on it directly |
 
 All of them are async and expect a Tokio runtime.
 
@@ -19,10 +19,10 @@ tokio = { version = "1", features = ["full"] }
 ```
 
 ```rust
-use ccxt::{Binance, Params};
+use ccxt::{Binance, Params, ExchangeBase, ExchangeRuntime};
 
 let mut exchange = Binance::new(None);
-exchange.load_markets(false).await;
+exchange.load_markets(false, ()).await?;
 let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
 ```
 
@@ -45,7 +45,7 @@ Rules of thumb:
 - Features are per crate. Put the list on every ccxt crate you depend on, and keep
   `default-features = false` on each — one crate left on defaults brings every exchange back.
 - A derived exchange enables its parent (`binanceus` → `binance`), and a `ccxt-pro` venue
-  enables its REST Core, so the REST and WebSocket lists can be identical.
+  enables its REST exchange, so the REST and WebSocket lists can be identical.
 - `ccxt-prediction`'s ids are the prediction venues (`polymarket`, `kalshi`, `binance` for
   Binance's prediction markets, …); they are separate features from the spot exchange of the
   same name.
@@ -58,17 +58,18 @@ Rules of thumb:
 
 ```
 rust/
-  ccxt-base/        engine: value.rs, runtime.rs, exchange.rs (hand-written) + generated
-                    exchanges/<id>.rs, <id>_api.rs, prediction/<id>.rs, exchange_generated.rs
-  ccxt/             typed REST wrappers  — generated exchanges/<id>_typed.rs, typed.rs
-  ccxt-pro/         WebSocket venues     — generated pro/<id>.rs, pro_typed/<id>_typed.rs, typed.rs
-  ccxt-prediction/  typed prediction wrappers — generated prediction/<id>_typed.rs, typed.rs
+  ccxt-common/      hand-written runtime: value.rs, runtime.rs, exchange.rs, types.rs, params.rs
+                    + generated exchange_generated.rs / prediction_exchange_generated.rs
+  ccxt-base/        generated exchanges/<id>.rs, <id>_api.rs, prediction/<id>.rs
+  ccxt/             REST crate — re-exports ccxt-base (lib.rs only)
+  ccxt-pro/         WebSocket venues — generated pro/<id>.rs
+  ccxt-prediction/  prediction crate — re-exports ccxt-base::prediction (lib.rs only)
   tests/            the `ti-rust` test binary (static request/response/WS suites, live tests)
   BUILD-BENCHMARK.md
 ```
 
-Everything under `src/exchanges`, `src/prediction`, `src/pro`, `src/pro_typed` and the
-`typed.rs` / `mod.rs` registries is transpiled from `ts/src/` — do not edit it by hand.
+Everything under `src/exchanges`, `src/prediction`, `src/pro`, the `mod.rs` registries
+and the crates' `lib.rs` is transpiled from `ts/src/` — do not edit it by hand.
 The per-exchange feature lists in each `Cargo.toml` are generated too (between the
 `BEGIN/END GENERATED FEATURES` markers).
 
@@ -78,7 +79,7 @@ The Rust code is produced by the transpiler; fixes go into the TypeScript source
 regenerated (see the repository's `CONTRIBUTING.md`). From the repository root:
 
 ```bash
-npm run transpileRust                      # ts/src → rust/ (REST + WS + typed wrappers + Cargo features)
+npm run transpileRust                      # ts/src → rust/ (REST + WS + Cargo features)
 npm run buildRust                          # cargo build --manifest-path rust/Cargo.toml
 tsx build/granular-rust-build.ts binance   # regenerate one exchange (and its ancestors)
 npm run request-rust && npm run response-rust && npm run ws-tests-rust   # offline suites

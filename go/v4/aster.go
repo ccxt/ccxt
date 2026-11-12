@@ -2600,7 +2600,7 @@ func (this *Aster) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingR
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(response, symbolsNormalized))}
+	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(this.ToArray(response), symbolsNormalized))}
 	return nil
 }
 
@@ -3574,7 +3574,7 @@ func (this *Aster) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var request map[string]any = this.CreateOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
+	var request map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, params)
 	var response map[string]any = nil
 	if *this.SafeBool(market, "swap", false) {
 
@@ -3964,12 +3964,12 @@ func (this *Aster) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Aster) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Aster) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Aster) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Aster) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4031,12 +4031,12 @@ func (this *Aster) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalA
  * @param {int[]} [params.recvWindow]
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Aster) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Aster) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Aster) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Aster) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4059,7 +4059,12 @@ func (this *Aster) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optio
 	if clientOrderIdList != nil {
 		request["origClientOrderIdList"] = clientOrderIdList
 	} else {
-		request["orderIdList"] = ids
+		// the api takes LONG[] order ids
+		var orderIdList []any = []any{}
+		for i := 0; i < len(ids); i++ {
+			orderIdList = append(orderIdList, this.ParseToNumeric(ids[i]))
+		}
+		request["orderIdList"] = orderIdList
 	}
 	var response []any = nil
 	if *this.SafeBool(market, "swap", false) {
@@ -5087,11 +5092,11 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes381119 []any = PositionsToList(r.Value)
-		if retRes381119 == nil {
+		var retRes381619 []any = PositionsToList(r.Value)
+		if retRes381619 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381119)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381619)}
 		}
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "account" {
@@ -5100,11 +5105,11 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes381319 []any = PositionsToList(r1.Value)
-		if retRes381319 == nil {
+		var retRes381819 []any = PositionsToList(r1.Value)
+		if retRes381819 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381319)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381819)}
 		}
 		return nil
 	} else {

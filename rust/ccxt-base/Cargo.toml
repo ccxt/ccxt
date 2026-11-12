@@ -35,7 +35,7 @@ default = []
 # single Core instead of all 200+.
 transpiled-base = ["engine", "all-exchanges", "all-prediction"]
 engine = ["ccxt-common/engine"]
-# One feature per transpiled Core, emitted by build/generateRustWrappers.ts; a
+# One feature per transpiled Core, emitted by build/rustTranspiler.ts; a
 # derived venue lists its parent so the parent Core compiles too. Prediction
 # Cores are prefixed `prediction-` because their ids overlap the REST venues.
 # BEGIN GENERATED FEATURES

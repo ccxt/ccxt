@@ -555,12 +555,12 @@ pub trait ExchangeOps {
     fn index_by(&self, arr: Value, key: Value) -> Value;
     fn group_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value;
     fn filter_by(&self, arr: Value, key: Value, value: Value, optional_args: &[Value]) -> Value;
-    fn number_to_string(&self, n: Value) -> Value;
+    fn number_to_string(&self, n: Value) -> Option<String>;
     fn base16_to_binary(&self, s: Value, optional_args: &[Value]) -> Value;
     fn precision_from_string(&self, s: Value) -> Value;
     fn parse_precision(&self, optional_args: &[Value]) -> Value;
     fn sort_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value;
-    fn parse_to_int(&self, n: Value) -> Value;
+    fn parse_to_int(&self, n: Value) -> Option<i64>;
     fn parse_to_numeric(&self, n: Value) -> Value;
     fn is_round_number(&self, n: Value) -> Value;
     fn sum(&self, optional_args: &[Value]) -> Value;
@@ -574,16 +574,16 @@ pub trait ExchangeOps {
     fn safe_integer(&self, d: Value, key: Value, optional_args: &[Value]) -> Value;
     fn safe_string_n(&self, d: Value, keys: Value, optional_args: &[Value]) -> Value;
     fn omit(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value;
-    fn omit_zero(&self, s: Value) -> Value;
+    fn omit_zero(&self, s: Value) -> Option<String>;
     fn array_concat(&self, a: Value, b: Value) -> Value;
     /// Reflects `exchange.setProperty(exchange, key, value)` from TS —
     /// the receiver and first arg are the same Value, hence the
     /// `_redundant_exchange` slot. Mutates the Value-map keyed by `key`.
     fn set_property(&mut self, redundant_exchange: Value, key: Value, value: Value);
     fn get_fetch_cache(&mut self) -> Value;
-    fn parse_timeframe(&self, tf: Value) -> Value;
+    fn parse_timeframe(&self, tf: Value) -> i64;
     fn iso8601(&self, ts: Value) -> Value;
-    fn milliseconds(&self) -> Value;
+    fn milliseconds(&self) -> i64;
     fn get_ccxt_version(&self) -> Value;
     fn safeString(&self, d: Value, key: Value, optional_args: &[Value]) -> Value;
     fn exception_message(&self, e: Value) -> Value;
@@ -607,12 +607,12 @@ impl ExchangeOps for Value {
     fn index_by(&self, arr: Value, key: Value) -> Value { with_base(|e| e.index_by(arr, key)) }
     fn group_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.group_by(arr, key, o)) }
     fn filter_by(&self, arr: Value, key: Value, value: Value, o: &[Value]) -> Value { with_base(|e| e.filter_by(arr, key, value, o)) }
-    fn number_to_string(&self, n: Value) -> Value { with_base(|e| e.number_to_string(n)) }
+    fn number_to_string(&self, n: Value) -> Option<String> { with_base(|e| e.number_to_string(n)) }
     fn base16_to_binary(&self, s: Value, o: &[Value]) -> Value { with_base(|e| e.base16_to_binary(s, o)) }
     fn precision_from_string(&self, s: Value) -> Value { with_base(|e| e.precision_from_string(s)) }
     fn parse_precision(&self, o: &[Value]) -> Value { with_base(|e| e.parse_precision(o)) }
     fn sort_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.sort_by(arr, key, o)) }
-    fn parse_to_int(&self, n: Value) -> Value { with_base(|e| e.parse_to_int(n)) }
+    fn parse_to_int(&self, n: Value) -> Option<i64> { with_base(|e| e.parse_to_int(n)) }
     fn parse_to_numeric(&self, n: Value) -> Value { with_base(|e| e.parse_to_numeric(n)) }
     fn is_round_number(&self, n: Value) -> Value { with_base(|e| e.is_round_number(n)) }
     fn sum(&self, optional_args: &[Value]) -> Value { with_base(|e| e.sum(optional_args)) }
@@ -652,11 +652,11 @@ impl ExchangeOps for Value {
     fn safe_integer(&self, d: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_integer(d, key, o)) }
     fn safe_string_n(&self, d: Value, keys: Value, o: &[Value]) -> Value { with_base(|e| e.safe_string_n(d, keys, o)) }
     fn omit(&self, obj: Value, keys: Value, o: &[Value]) -> Value { with_base(|e| e.omit(obj, keys, o)) }
-    fn omit_zero(&self, s: Value)                -> Value { with_base(|e| e.omit_zero(s)) }
+    fn omit_zero(&self, s: Value)                -> Option<String> { with_base(|e| e.omit_zero(s)) }
     fn array_concat(&self, a: Value, b: Value)   -> Value { with_base(|e| e.array_concat(a, b)) }
-    fn parse_timeframe(&self, tf: Value)         -> Value { with_base(|e| e.parse_timeframe(tf)) }
+    fn parse_timeframe(&self, tf: Value)         -> i64 { with_base(|e| e.parse_timeframe(tf)) }
     fn iso8601(&self, ts: Value)                 -> Value { with_base(|e| e.iso8601(ts)) }
-    fn milliseconds(&self)                        -> Value { with_base(|e| e.milliseconds()) }
+    fn milliseconds(&self)                        -> i64 { with_base(|e| e.milliseconds()) }
     fn get_ccxt_version(&self)                     -> Value { with_base(|e| e.get_ccxt_version()) }
     /// Set a field on the exchange Value-map by key. The
     /// transpiled tests use this to inject precision/markets/etc.

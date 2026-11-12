@@ -379,7 +379,7 @@ class hibachi extends Exchange {
         //     "underlyingDecimals": 9,
         //     "underlyingSymbol": "ETH"
         // },
-        $rows = $this->safe_list($response, 'futureContracts');
+        $rows = $this->safe_list($response, 'futureContracts', array());
         return $this->parse_markets($rows);
     }
 

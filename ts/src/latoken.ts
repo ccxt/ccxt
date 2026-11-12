@@ -600,7 +600,7 @@ export default class latoken extends Exchange {
         const rawCurrencies = this.toArray (response);
         const merged: List = [];
         for (let i = 0; i < rawCurrencies.length; i++) {
-            const rawCurrency = this.safeValue (rawCurrencies, i);
+            const rawCurrency = this.safeDict (rawCurrencies, i);
             const bindingEntry = this.safeDict (bindingsById, this.safeString (rawCurrency, 'id'));
             const bindings = this.safeList (bindingEntry, 'bindings');
             let mergedCurrency = rawCurrency;
@@ -1378,7 +1378,7 @@ export default class latoken extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let response: Dict;
+        let response: List;
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
@@ -1448,7 +1448,7 @@ export default class latoken extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        let response: Dict;
+        let response: List;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['currency'] = market['baseId'];

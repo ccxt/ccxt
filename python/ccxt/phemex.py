@@ -4590,7 +4590,7 @@ class phemex(Exchange, ImplicitAPI):
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
-        scaledAmmount = self.to_ev(amount, currency)
+        scaledAmmount = self.to_en(amount, self.safe_integer(currency, 'valueScale'))
         direction = None
         transfer = None
         if fromId == 'spot' and toId == 'future':

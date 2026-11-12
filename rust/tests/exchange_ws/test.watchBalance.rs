@@ -11,14 +11,14 @@ use super::*;
 
 pub async fn testWatchBalance(mut exchange: Value, mut skippedProperties: Value, mut code: Value) -> Value {
     let mut method: Value = Value::Str("watchBalance".into());
-    let mut now: Value = exchange.milliseconds();
-    let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-    while now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN) {
+    let mut now: i64 = exchange.milliseconds();
+    let mut ends: i64 = (now + 15000);
+    while now < ends {
         let mut response: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut success: Value = Value::Bool(true);
+        let mut success: bool = true;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_balance", vec![]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -28,9 +28,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             now = exchange.milliseconds();
             // continue;
-            success = Value::Bool(false);
+            success = false;
         }
-        if !(success.as_bool() == Some(true)) {
+        if !success {
             continue;
         }
         testBalance(exchange.clone(), skippedProperties.clone(), method.clone(), response.clone());

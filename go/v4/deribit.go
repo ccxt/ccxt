@@ -2930,7 +2930,7 @@ func (this *Deribit) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var order map[string]any = this.Extend(this.SafeValue(result, "order"), map[string]any{
+	var order map[string]any = this.Extend(this.SafeDict(result, "order"), map[string]any{
 		"trades": this.SafeList(result, "trades", []any{}),
 	})
 
@@ -3000,7 +3000,7 @@ func (this *Deribit) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	}
 	var response map[string]any = r1.Value
 	var result map[string]any = SafeMapTyped(response, "result")
-	var order map[string]any = this.Extend(this.SafeValue(result, "order"), map[string]any{
+	var order map[string]any = this.Extend(this.SafeDict(result, "order"), map[string]any{
 		"trades": this.SafeList(result, "trades", []any{}),
 	})
 
@@ -3018,12 +3018,12 @@ func (this *Deribit) editOrderBody(ch chan AsyncResult[Order], id string, symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Deribit) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Deribit) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Deribit) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Deribit) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

@@ -41,16 +41,15 @@ pub fn testBalance(mut exchange: Value, mut skippedProperties: Value, mut method
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesUsed.clone(), Value::Str("used".into()).clone()]);
     let mut allCodes: Value = exchange.array_concat(codesTotal.clone(), codesFree.clone());
     allCodes = exchange.array_concat(allCodes.clone(), codesUsed.clone());
-    let mut codesLength: Value = Value::Int(codesTotal.len() as i64);
-    let mut freeLength: Value = Value::Int(codesFree.len() as i64);
-    let mut usedLength: Value = Value::Int(codesUsed.len() as i64);
-    assert!(ccxt::runtime::is_true(&(((codesLength.as_f64() == freeLength.as_f64()) || (codesLength.as_f64() == usedLength.as_f64())))));
+    let mut codesLength: i64 = codesTotal.len() as i64;
+    let mut freeLength: i64 = codesFree.len() as i64;
+    let mut usedLength: i64 = codesUsed.len() as i64;
+    assert!(ccxt::runtime::is_true(&(((codesLength == freeLength) || (codesLength == usedLength)))));
     {
-                let mut i: Value = Value::Int(0);
-        let mut __for_first_1547: bool = true;
-        while { if !__for_first_1547 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            } __for_first_1547 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(allCodes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-        let mut code: Value = allCodes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut i: i64 = 0;
+        let mut __for_first_1548: bool = true;
+        while { if !__for_first_1548 { i += 1; } __for_first_1548 = false; i < (allCodes.len() as i64) } {
+        let mut code: Value = allCodes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         // testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, code);
         assert!(ccxt::runtime::is_true(&((in_op(&entry.as_map().and_then(|__m| __m.get("total")).cloned().unwrap_or(Value::Null), &code)))));
         assert!(ccxt::runtime::is_true(&((in_op(&entry.as_map().and_then(|__m| __m.get("free")).cloned().unwrap_or(Value::Null), &code)))));

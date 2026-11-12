@@ -85,8 +85,8 @@ export default class cryptocom extends cryptocomRest {
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
-        return this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
     /**
@@ -100,8 +100,8 @@ export default class cryptocom extends cryptocomRest {
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override unWatchOrderBook (symbol: string, params = {}): Promise<any> {
-        return this.unWatchOrderBookForSymbols ([ symbol ], params);
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
     }
 
     /**
@@ -202,7 +202,7 @@ export default class cryptocom extends cryptocomRest {
 
     override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, this.safeValue (deltas, i));
+            this.handleDelta (bookside, this.safeList (deltas, i));
         }
     }
 
@@ -311,8 +311,8 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**
@@ -324,8 +324,8 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override unWatchTrades (symbol: string, params: Dict = {}) {
-        return this.unWatchTradesForSymbols ([ symbol ], params);
+    override async unWatchTrades (symbol: string, params: Dict = {}) {
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
     /**
@@ -430,7 +430,7 @@ export default class cryptocom extends cryptocomRest {
         }
         const parsedTrades = this.parseTrades (data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
-            stored.append (this.safeValue (parsedTrades, j));
+            stored.append (this.safeDict (parsedTrades, j));
         }
         const channelReplaced = channel.replace ('.' + marketId, '');
         client.resolve (stored, symbolSpecificMessageHash);

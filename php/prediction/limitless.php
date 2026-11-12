@@ -1202,8 +1202,8 @@ class limitless extends Exchange {
         for ($i = 0; $i < count($slugs); $i++) {
             $slug = $slugs[$i];
             $detailIndex = $i * 2;
-            $detail = $this->safe_value($responses, $detailIndex);
-            $book = $this->safe_value($responses, $this->sum($detailIndex, 1));
+            $detail = $this->safe_dict($responses, $detailIndex);
+            $book = $this->safe_dict($responses, $this->sum($detailIndex, 1));
             $tickerInput = array( 'market' => $detail, 'book' => $book );
             $grouped = $this->safe_list($outcomesBySlug, $slug, array());
             for ($j = 0; $j < count($grouped); $j++) {
@@ -1340,22 +1340,22 @@ class limitless extends Exchange {
         $bids = array();
         $asks = array();
         for ($bi = 0; $bi < count($bidsSource); $bi++) {
-            $priceStr = $this->safe_string($this->safe_value($bidsSource, $bi), 'price');
+            $priceStr = $this->safe_string($this->safe_dict($bidsSource, $bi), 'price');
             if (!$isYes && ($priceStr !== null)) {
                 $priceStr = Precise::string_sub('1', $priceStr);
             }
-            $sizeStr = $this->safe_string($this->safe_value($bidsSource, $bi), 'size');
+            $sizeStr = $this->safe_string($this->safe_dict($bidsSource, $bi), 'size');
             if ($sizeStr !== null) {
                 $sizeStr = Precise::string_div($sizeStr, $scaleStr);
             }
             $bids[] = array( $this->parse_number($priceStr), $this->parse_number($sizeStr) );
         }
         for ($ai = 0; $ai < count($asksSource); $ai++) {
-            $priceStr = $this->safe_string($this->safe_value($asksSource, $ai), 'price');
+            $priceStr = $this->safe_string($this->safe_dict($asksSource, $ai), 'price');
             if (!$isYes && ($priceStr !== null)) {
                 $priceStr = Precise::string_sub('1', $priceStr);
             }
-            $sizeStr = $this->safe_string($this->safe_value($asksSource, $ai), 'size');
+            $sizeStr = $this->safe_string($this->safe_dict($asksSource, $ai), 'size');
             if ($sizeStr !== null) {
                 $sizeStr = Precise::string_div($sizeStr, $scaleStr);
             }

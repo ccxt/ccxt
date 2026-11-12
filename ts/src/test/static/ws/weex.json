@@ -43,7 +43,7 @@
                 ],
                 "sentMessages": [
                     {
-                        "id": "1",
+                        "id": 1,
                         "method": "SUBSCRIBE",
                         "params": [
                             "BTCUSDT@trade"
@@ -144,7 +144,7 @@
                 ],
                 "sentMessages": [
                     {
-                        "id": "1",
+                        "id": 1,
                         "method": "SUBSCRIBE",
                         "params": [
                             "BTCUSDT@trade"
@@ -245,7 +245,7 @@
                 ],
                 "sentMessages": [
                     {
-                        "id": "1",
+                        "id": 1,
                         "method": "SUBSCRIBE",
                         "params": [
                             "BTCUSDT@ticker"
@@ -327,7 +327,7 @@
                 ],
                 "sentMessages": [
                     {
-                        "id": "1",
+                        "id": 1,
                         "method": "SUBSCRIBE",
                         "params": [
                             "BTCUSDT@ticker"
@@ -409,7 +409,7 @@
                 ],
                 "sentMessages": [
                     {
-                        "id": "1",
+                        "id": 1,
                         "method": "SUBSCRIBE",
                         "params": [
                             "BTCUSDT@ticker"
@@ -490,7 +490,7 @@
                 ],
                 "sentMessages": [
                     {
-                        "id": "1",
+                        "id": 1,
                         "method": "SUBSCRIBE",
                         "params": [
                             "BTCUSDT@ticker"
@@ -569,7 +569,7 @@
                 ],
                 "sentMessages": [
                     {
-                        "id": "1",
+                        "id": 1,
                         "method": "SUBSCRIBE",
                         "params": [
                             "BTCUSDT@ticker"
@@ -649,7 +649,7 @@
                 ],
                 "sentMessages": [
                     {
-                        "id": "1",
+                        "id": 1,
                         "method": "SUBSCRIBE",
                         "params": [
                             "BTCUSDT@ticker"
@@ -733,7 +733,7 @@
                 ],
                 "sentMessages": [
                     {
-                        "id": "1",
+                        "id": 1,
                         "method": "SUBSCRIBE",
                         "params": [
                             "BTCUSDT@ticker"
@@ -817,7 +817,7 @@
                 ],
                 "sentMessages": [
                     {
-                        "id": "1",
+                        "id": 1,
                         "method": "SUBSCRIBE",
                         "params": [
                             "BTCUSDT@ticker"

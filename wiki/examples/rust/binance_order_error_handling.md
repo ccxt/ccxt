@@ -26,7 +26,7 @@
 // this example would actually place is checked against a 25 USD notional cap
 // first and any order that does get created is cancelled before exit.
 use ccxt::types::{Market, Order};
-use ccxt::{Binance, Config, ExchangeError, Params};
+use ccxt::{Binance, Config, ExchangeError, Params, ExchangeRuntime};
 
 /// Hard cap on the notional of any order this example is willing to send.
 const MAX_NOTIONAL_USD: f64 = 25.0;
@@ -245,7 +245,7 @@ async fn run() {
         let mut ex = build(false);
         // No credentials here, so the (authenticated) currency load is skipped
         // and this cannot fail — but check anyway rather than assume.
-        if let Err(e) = ex.try_load_markets(false).await {
+        if let Err(e) = ex.load_markets(false, ()).await {
             println!(
                 "load_markets failed [{}]: {}",
                 e.kind,
@@ -260,7 +260,7 @@ async fn run() {
     }
 
     let mut ex = build(has_creds);
-    if let Err(e) = ex.try_load_markets(false).await {
+    if let Err(e) = ex.load_markets(false, ()).await {
         println!("\n── load_markets");
         println!("   kind     {}", e.kind);
         println!("   chain    {}", chain(&e));

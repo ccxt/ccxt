@@ -1,5 +1,5 @@
 import mudrexRest from '../mudrex.js';
-import type { Int, OHLCV, Strings, Ticker, Tickers, Dict } from '../base/types.js';
+import type { Int, OHLCV, Strings, Ticker, Tickers, Dict, int } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 export default class mudrex extends mudrexRest {
     describe(): Dict;
@@ -7,7 +7,7 @@ export default class mudrex extends mudrexRest {
         id: number;
         method: string;
     };
-    requestId(): number;
+    requestId(): int;
     /**
      * @ignore
      * @method

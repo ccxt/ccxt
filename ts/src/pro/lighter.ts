@@ -2,7 +2,7 @@
 
 import Precise from '../base/Precise.js';
 import { ExchangeError, NotSupported, UnsubscribeError } from '../base/errors.js';
-import type { Balances, Dict, FeeString, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market, OrderType, OrderSide, Num } from '../base/types.js';
+import type { Balances, Dict, FeeString, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market, OrderType, OrderSide, Num, int } from '../base/types.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
@@ -443,8 +443,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override watchMarkPrice (symbol: string, params: Dict = {}): Promise<Ticker> {
-        return this.watchTicker (symbol, params);
+    override async watchMarkPrice (symbol: string, params: Dict = {}): Promise<Ticker> {
+        return await this.watchTicker (symbol, params);
     }
 
     /**
@@ -456,8 +456,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override watchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
-        return this.watchTickers (symbols, params);
+    override async watchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        return await this.watchTickers (symbols, params);
     }
 
     /**
@@ -469,8 +469,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override unWatchMarkPrice (symbol: string, params = {}): Promise<any> {
-        return this.unWatchTicker (symbol, params);
+    override async unWatchMarkPrice (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchTicker (symbol, params);
     }
 
     /**
@@ -482,8 +482,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override unWatchMarkPrices (symbols: Strings = undefined, params = {}): Promise<any> {
-        return this.unWatchTickers (symbols, params);
+    override async unWatchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+        return await this.unWatchTickers (symbols, params);
     }
 
     override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1190,12 +1190,12 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe (messageHash, this.extend (request, paramsAccountIndex));
     }
 
-    requestId (url: string): string {
+    requestId (url: string): int {
         const options = this.safeDict (this.options, 'requestId', this.createSafeDictionary ());
         const previousValue = this.safeInteger (options, url, 0);
-        const newValue = this.sum (previousValue, 1);
+        const newValue: int = this.sum (previousValue, 1);
         this.options['requestId'][url] = newValue;
-        return this.numberToString (newValue) as string;
+        return newValue;
     }
 
     /**
@@ -1221,7 +1221,9 @@ export default class lighter extends lighterRest {
      */
     override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         const url = this.urls['api']['ws'];
-        const requestId = this.requestId (url);
+        const nextId: int = this.requestId (url);
+        // the venue takes a string request id
+        const requestId: string = nextId.toString ();
         const messageHash = 'jsonapi/sendtx:' + requestId;
         const [ txType, txInfo, order ] = await this.signAndCreateOrder ('createOrderWs', symbol, type, side, amount, price, params);
         const market = this.market (symbol);
@@ -1255,7 +1257,9 @@ export default class lighter extends lighterRest {
      */
     override async cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const url = this.urls['api']['ws'];
-        const requestId = this.requestId (url);
+        const nextId: int = this.requestId (url);
+        // the venue takes a string request id
+        const requestId: string = nextId.toString ();
         const messageHash = 'jsonapi/sendtx:' + requestId;
         const [ txType, txInfo ] = await this.signAndCancelOrder ('cancelOrderWs', id, symbol, params);
         const market = this.market (symbol);
@@ -1288,7 +1292,9 @@ export default class lighter extends lighterRest {
      */
     override async cancelAllOrdersWs (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         const url = this.urls['api']['ws'];
-        const requestId = this.requestId (url);
+        const nextId: int = this.requestId (url);
+        // the venue takes a string request id
+        const requestId: string = nextId.toString ();
         const messageHash = 'jsonapi/sendtx:' + requestId;
         const [ txType, txInfo ] = await this.signAndCancelAllOrders ('cancelAllOrdersWs', symbol, params);
         const parsedTx = this.parseJson (txInfo);

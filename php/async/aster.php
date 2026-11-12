@@ -1994,7 +1994,7 @@ class aster extends Exchange {
         //         }
         //     ]
         //
-        return $this->parse_funding_rates($response, $symbolsNormalized);
+        return $this->parse_funding_rates($this->to_array($response), $symbolsNormalized);
     }
 
     public function fetch_funding_intervals(?array $symbols = null, $params = array()): PromiseInterface {
@@ -3135,7 +3135,12 @@ class aster extends Exchange {
         if ($clientOrderIdList !== null) {
             $request['origClientOrderIdList'] = $clientOrderIdList;
         } else {
-            $request['orderIdList'] = $ids;
+            // the api takes LONG[] order ids
+            $orderIdList = array();
+            for ($i = 0; $i < count($ids); $i++) {
+                $orderIdList[] = $this->parse_to_numeric($ids[$i]);
+            }
+            $request['orderIdList'] = $orderIdList;
         }
         if ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->fapiPrivateDeleteV3BatchOrders($this->extend($request, $params)));

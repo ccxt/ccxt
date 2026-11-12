@@ -1658,7 +1658,7 @@ class luno(Exchange, ImplicitAPI):
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
-        error = self.safe_value(response, 'error')
+        error = self.safe_string(response, 'error')
         if error is not None:
             feedback = self.id + ' ' + self.json(response)
             errorCode = self.safe_string(response, 'error_code')

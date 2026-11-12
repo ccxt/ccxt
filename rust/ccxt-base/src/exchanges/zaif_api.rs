@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::zaif::ZaifCore;
+use super::zaif::Zaif;
 use crate::exchange::ExchangeRuntime;
 
-impl ZaifCore {
+impl Zaif {
     /// Auto-generated wrapper for the `publicGetDepthPair` implicit endpoint.
     pub async fn public_get_depth_pair(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_depth_pair".into()), optional_args).await

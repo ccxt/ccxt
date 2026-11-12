@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::phemex::PhemexCore;
+use super::phemex::Phemex;
 use crate::exchange::ExchangeRuntime;
 
-impl PhemexCore {
+impl Phemex {
     /// Auto-generated wrapper for the `publicGetCfgV2Products` implicit endpoint.
     pub async fn public_get_cfg_v2_products(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_cfg_v2_products".into()), optional_args).await

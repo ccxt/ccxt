@@ -100,7 +100,7 @@ class paradex(ccxt.async_support.paradex):
             return 'order_book.' + marketId + '.deltas'
         return 'order_book.' + marketId + '.snapshot@15@100ms'
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         return requestId
@@ -445,7 +445,7 @@ class paradex(ccxt.async_support.paradex):
         self.clean_cache(subscription)
         client.resolve(True, unsubHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+    async def watch_trades(self, symbol: Str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 

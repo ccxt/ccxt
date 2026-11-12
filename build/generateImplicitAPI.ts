@@ -1065,7 +1065,7 @@ function createImplicitMethodsGo(){
         // into that package)
         const pkgPrefix = isPrediction ? 'ccxt.' : '';
         // A derived exchange's core embeds its parent's core in Go
-        // (`type BinanceusCore struct { BinanceCore }`), so every endpoint the parent
+        // (`type Binanceus struct { Binance }`), so every endpoint the parent
         // already declares is promoted onto the child receiver. Re-emitting those
         // stubs on the child adds nothing but duplication, so only emit the endpoints
         // the child actually adds. The lookup stays inside the current pass because
@@ -1245,9 +1245,9 @@ function createGoHeader(exchange: Exchange, parent: string){
 
 function createRustHeader(exchange: Exchange, parent: string){
     // Two-line preamble + import block. Each Rust api file lives next to
-    // its `<id>.rs` sibling and adds `impl <CapitalizedId>Core` methods.
+    // its `<id>.rs` sibling and adds `impl <CapitalizedId>` methods.
     const id = exchange.id;
-    const coreName = capitalize(id) + 'Core';
+    const coreName = capitalize(id);
     const header = [
         getPreamble(),
         '#![allow(non_snake_case, unused, dead_code, clippy::all)]',

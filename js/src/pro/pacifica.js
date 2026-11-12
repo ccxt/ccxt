@@ -1524,13 +1524,17 @@ export default class pacifica extends pacificaRest {
         return message;
     }
     requestId() {
-        return this.uuid(); // uuid v4
+        // millisecond timestamp plus 3 random digits stays a safe integer
+        const ts = this.milliseconds().toString();
+        const randomPart = this.randNumber(3).toString();
+        return this.parseToInt(ts + randomPart);
     }
     wrapAsPostAction(operationType, request) {
         if (operationType === undefined) {
             throw new ArgumentsRequired(this.id + 'postAction() requires a "operationType" argument!');
         }
-        const requestId = this.requestId();
+        // the venue requires a full uuid v4 request id
+        const requestId = this.uuid();
         const postParams = {};
         postParams[operationType] = request;
         const payload = {

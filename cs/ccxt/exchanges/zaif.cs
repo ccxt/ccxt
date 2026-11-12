@@ -791,7 +791,7 @@ public partial class zaif : Exchange
         }
         Dictionary<string, object> response = await this.privatePostActiveOrders(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
-        return this.parseOrders(data, market, since, limit);
+        return this.parseOrders(this.addKeyInArrayItems(data, "id"), market, since, limit);
     }
 
     /**
@@ -829,7 +829,7 @@ public partial class zaif : Exchange
         }
         Dictionary<string, object> response = await this.privatePostTradeHistory(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
-        return this.parseOrders(data, market, since, limit);
+        return this.parseOrders(this.addKeyInArrayItems(data, "id"), market, since, limit);
     }
 
     /**

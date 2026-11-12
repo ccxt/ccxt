@@ -1842,12 +1842,12 @@ func (this *Luno) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Luno) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Luno) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Luno) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Luno) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2358,7 +2358,7 @@ func (this *Luno) HandleErrors(code int64, reason string, url string, method str
 	if response == nil {
 		return nil
 	}
-	var error any = this.SafeValue(response, "error")
+	var error *string = this.SafeString(response, "error")
 	if error != nil {
 		var feedback string = this.Id + " " + this.Json(response)
 		var errorCode *string = this.SafeString(response, "error_code")

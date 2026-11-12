@@ -2154,7 +2154,7 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_dict(response, 'result', {})
-        order = self.extend(self.safe_value(result, 'order'), {'trades': self.safe_list(result, 'trades', [])})
+        order = self.extend(self.safe_dict(result, 'order'), {'trades': self.safe_list(result, 'trades', [])})
         return self.parse_order(order, market)
 
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
@@ -2197,7 +2197,7 @@ class deribit(Exchange, ImplicitAPI):
             request['trigger_offset'] = self.parse_to_numeric(trailingAmount)
         response = self.privateGetEdit(self.extend(request, paramsOmitted))
         result = self.safe_dict(response, 'result', {})
-        order = self.extend(self.safe_value(result, 'order'), {'trades': self.safe_list(result, 'trades', [])})
+        order = self.extend(self.safe_dict(result, 'order'), {'trades': self.safe_list(result, 'trades', [])})
         return self.parse_order(order)
 
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:

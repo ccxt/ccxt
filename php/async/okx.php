@@ -3274,8 +3274,8 @@ class okx extends Exchange {
             throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
-        $takeProfitPrice = $this->safe_value_2($params, 'takeProfitPrice', 'tpTriggerPx');
-        $stopLossPrice = $this->safe_value_2($params, 'stopLossPrice', 'slTriggerPx');
+        $takeProfitPrice = $this->safe_string_2($params, 'takeProfitPrice', 'tpTriggerPx');
+        $stopLossPrice = $this->safe_string_2($params, 'stopLossPrice', 'slTriggerPx');
         $conditional = ($stopLossPrice !== null) || ($takeProfitPrice !== null) || ($type === 'conditional');
         $request = array(
             'instId' => $market['id'],

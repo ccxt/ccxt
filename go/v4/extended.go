@@ -4072,12 +4072,12 @@ func (this *Extended) editOrderBody(ch chan AsyncResult[Order], id string, symbo
  * @param {string} [params.clientOrderId] user-defined order id, cancels by external id
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Extended) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Extended) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Extended) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Extended) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4110,7 +4110,7 @@ func (this *Extended) cancelOrderBody(ch chan AsyncResult[Order], id any, option
 		}
 		response = r1.Value
 	} else {
-		if IsEqual(id, nil) {
+		if false {
 			panic(ArgumentsRequired(this.Id + " cancelOrder() requires an id argument"))
 		}
 		var request map[string]any = map[string]any{
@@ -4128,9 +4128,9 @@ func (this *Extended) cancelOrderBody(ch chan AsyncResult[Order], id any, option
 	//         "status": "OK"
 	//     }
 	//
-	var orderId any = func() any {
+	var orderId *string = func() *string {
 		if clientOrderId == nil {
-			return id
+			return &id
 		}
 		return nil
 	}()
@@ -4159,12 +4159,12 @@ func (this *Extended) cancelOrderBody(ch chan AsyncResult[Order], id any, option
  * @param {string} [params.clientOrderId] single client order id
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Extended) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Extended) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Extended) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Extended) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4180,9 +4180,9 @@ func (this *Extended) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, op
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderIds", "client_order_ids", "clientOrderId", "client_id", "externalOrderIds", "external_order_ids", "orderIds", "order_ids", "markets", "cancelAll", "cancel_all"})
 	var request map[string]any = map[string]any{}
-	var hasOrderIds bool = (!IsEqual(ids, nil))
+	var hasOrderIds bool = (ids != nil)
 	if hasOrderIds {
-		var idsLength int = GetArrayLength(ids)
+		var idsLength int = len(ids)
 		if idsLength > 0 {
 			request["orderIds"] = ids
 		}

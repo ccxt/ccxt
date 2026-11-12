@@ -1087,7 +1087,7 @@ public partial class BaseExchange
         parameters ??= new Dictionary<string, object>();
         if (!((this.has.ContainsKey("watchMyLiquidationsForSymbols") ? this.has["watchMyLiquidationsForSymbols"] : null) == null) && (((this.has.ContainsKey("watchMyLiquidationsForSymbols") ? this.has["watchMyLiquidationsForSymbols"] : null) as bool?) != false))
         {
-            return ccxt.BaseExchange.ToLiquidationList(this.WatchMyLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters));
+            return await this.WatchMyLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
         }
         throw new NotSupported ((this.id + " watchMyLiquidations() is not supported yet")) ;
     }
@@ -1571,8 +1571,8 @@ public partial class BaseExchange
     {
         // networksById: inverse of options.networks, explicit options.networksById entries win
         userConfig ??= new Dictionary<string, object>();
-        Dictionary<string, object> networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, "networks", new Dictionary<string, object>() {}));
-        this.options["networksById"] = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new Dictionary<string, object>() {}));
+        Dictionary<string, object> networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeDict(this.options, "networks", new Dictionary<string, object>() {}));
+        this.options["networksById"] = this.extend(networkIdsToCodesGenerated, this.safeDict(this.options, "networksById", new Dictionary<string, object>() {}));
         this.featuresGenerator();
         this.hasAutocorrect();
         // init predefined markets if any
@@ -2759,17 +2759,7 @@ public partial class BaseExchange
             }
         } else
         {
-            List<object> ids = new List<object>(((IDictionary<string,object>)orders).Keys);
-            for (int i = 0; i < ids.Count; i++)
-            {
-                string? id = ((string)ids[i]);
-                Dictionary<string, object> idExtended = this.extend(new Dictionary<string, object>() {
-                    { "id", id },
-                }, getValue(orders, id));
-                ccxt.Order parsedOrder = this.parseOrder(idExtended, market); // don't  inline these calls
-                Dictionary<string, object> order = this.extend(ccxt.BaseExchange.FromOrder(parsedOrder), parameters);
-                results.Add(order);
-            }
+            return this.parseOrders(this.addKeyInArrayItems(orders, "id"), market, since, limit, parameters);
         }
         results = this.sortBy(results, "timestamp");
         string? symbol = this.safeString(market, "symbol");

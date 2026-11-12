@@ -131,13 +131,13 @@ public partial class htx : ccxt.htx
         });
     }
 
-    public virtual string? requestId()
+    public virtual Int64 requestId()
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         this.options["requestId"] = requestId;
         this.unlockId();
-        return requestId.ToString();
+        return requestId;
     }
 
     /**
@@ -696,15 +696,15 @@ public partial class htx : ccxt.htx
         Int64? attempts = this.safeInteger(subscription, "numAttempts", 0);
         Dictionary<string, object> market = this.market(symbol);
         string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null), false, true);
-        string requestId = this.requestId();
+        Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "req", messageHash },
-            { "id", requestId },
+            { "id", requestId.ToString() },
         };
         // this is a temporary subscription by a specific requestId
         // it has a very short lifetime until the snapshot is received over ws
         Dictionary<string, object> snapshotSubscription = new Dictionary<string, object>() {
-            { "id", requestId },
+            { "id", requestId.ToString() },
             { "messageHash", messageHash },
             { "symbol", symbol },
             { "limit", limit },
@@ -715,7 +715,7 @@ public partial class htx : ccxt.htx
         };
         try
         {
-            ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, requestId, request, requestId, snapshotSubscription));
+            ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, requestId.ToString(), request, requestId.ToString(), snapshotSubscription));
             return (orderbook as IOrderBook).limit();
         } catch(Exception e)
         {
@@ -3256,13 +3256,13 @@ public partial class htx : ccxt.htx
     public async virtual Task<object> subscribePublic(object url, object symbol, object messageHash, object method = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string requestId = this.requestId();
+        Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
-            { "id", requestId },
+            { "id", requestId.ToString() },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", requestId },
+            { "id", requestId.ToString() },
             { "messageHash", messageHash },
             { "symbol", symbol },
             { "params", parameters },
@@ -3277,10 +3277,10 @@ public partial class htx : ccxt.htx
     public async virtual Task<object> unsubscribePublic(IDictionary<string, object> market, string? subMessageHash, string? topic, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string requestId = this.requestId();
+        Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "unsub", subMessageHash },
-            { "id", requestId },
+            { "id", requestId.ToString() },
         };
         string messageHash = ("unsubscribe::" + subMessageHash);
         bool isFeed = ((topic == "orderbook"));
@@ -3291,7 +3291,7 @@ public partial class htx : ccxt.htx
         string? url = this.getUrlByMarketType((market != null && market.ContainsKey("type") ? market["type"] : null), (market != null && market.ContainsKey("linear") ? market["linear"] : null), false, isFeed);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "unsubscribe", true },
-            { "id", requestId },
+            { "id", requestId.ToString() },
             { "subMessageHashes", new List<object>() {subMessageHash} },
             { "messageHashes", new List<object>() {messageHash} },
             { "symbols", new List<object>() {(market != null && market.ContainsKey("symbol") ? market["symbol"] : null)} },
@@ -3310,9 +3310,9 @@ public partial class htx : ccxt.htx
     {
         parameters ??= new Dictionary<string, object>();
         subscriptionParams ??= new Dictionary<string, object>();
-        string requestId = this.requestId();
+        Int64 requestId = this.requestId();
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", requestId },
+            { "id", requestId.ToString() },
             { "messageHash", messageHash },
             { "params", parameters },
         };
@@ -3329,7 +3329,7 @@ public partial class htx : ccxt.htx
             request = new Dictionary<string, object>() {
                 { "op", "sub" },
                 { "topic", channel },
-                { "cid", requestId },
+                { "cid", requestId.ToString() },
             };
         }
         bool isLinear = (subtype is "linear");
@@ -3422,9 +3422,9 @@ public partial class htx : ccxt.htx
                     { "Signature", signature },
                 };
             }
-            string requestId = this.requestId();
+            Int64 requestId = this.requestId();
             Dictionary<string, object> subscription = new Dictionary<string, object>() {
-                { "id", requestId },
+                { "id", requestId.ToString() },
                 { "messageHash", messageHash },
                 { "params", parameters },
             };

@@ -14,7 +14,7 @@ mod response_mock_tests {
             "httpProxy": "http://fake:8080", "httpsProxy": "http://fake:8080",
             "enableRateLimit": false,
         }));
-        let mut exchange = crate::exchanges::binance::BinanceCore::new(Some(config));
+        let mut exchange = crate::exchanges::binance::Binance::new(Some(config));
         let response = Value::from_json(&serde_json::json!({ "price": "100" }));
         exchange.exchange.mock_response = response.clone();
         for symbol in ["BTCUSDT", "ETHUSDT"] {
@@ -36,7 +36,7 @@ mod response_mock_tests {
 
     #[tokio::test]
     async fn response_mock_preserves_public_request_url() {
-        let mut exchange = crate::exchanges::binance::BinanceCore::new(None);
+        let mut exchange = crate::exchanges::binance::Binance::new(None);
         let response = Value::from_json(&serde_json::json!({ "price": "100" }));
         exchange.exchange.mock_response = response.clone();
         let params = Value::from_json(&serde_json::json!({ "symbol": "BTCUSDT" }));
@@ -55,7 +55,7 @@ mod response_mock_tests {
         let config = Value::from_json(&serde_json::json!({
             "apiKey": "fixture-key", "secret": "fixture-secret",
         }));
-        let mut exchange = crate::exchanges::binance::BinanceCore::new(Some(config));
+        let mut exchange = crate::exchanges::binance::Binance::new(Some(config));
         let response = Value::from_json(&serde_json::json!({ "orderId": 123 }));
         exchange.exchange.mock_response = response.clone();
         let params = Value::from_json(&serde_json::json!({
@@ -89,7 +89,7 @@ mod rate_limit_config_tests {
     // declares rateLimit: 50.
     #[test]
     fn binance_init_applies_describe_rate_limit() {
-        let b = crate::exchanges::binance::BinanceCore::new(None);
+        let b = crate::exchanges::binance::Binance::new(None);
         assert_eq!(
             b.exchange.rateLimit,
             Value::Int(50),
@@ -103,13 +103,13 @@ mod rate_limit_config_tests {
     fn config_rate_limit_overrides_describe() {
         let mut cfg = crate::value::HashMap::new();
         cfg.insert("rateLimit".to_string(), Value::Int(123));
-        let b = crate::exchanges::binance::BinanceCore::new(Some(Value::Map(cfg)));
+        let b = crate::exchanges::binance::Binance::new(Some(Value::Map(cfg)));
         assert_eq!(b.exchange.rateLimit, Value::Int(123), "config rateLimit was clobbered by describe()");
     }
 
     #[tokio::test]
     async fn implicit_api_preserves_and_calculates_endpoint_cost() {
-        let mut binance = crate::exchanges::binance::BinanceCore::new(None);
+        let mut binance = crate::exchanges::binance::Binance::new(None);
         binance.build_implicit_api();
         let config = binance
             .exchange
@@ -147,10 +147,10 @@ mod sandbox_mode_tests {
     // swap urls['api'] -> urls['test'] and toggle isSandboxModeEnabled.
     #[test]
     fn binance_sandbox_swaps_api_url() {
-        let mut b = crate::exchanges::binance::BinanceCore::new(None);
+        let mut b = crate::exchanges::binance::Binance::new(None);
         let test_url = crate::get_value(&b.exchange.urls, &Value::Str("test".into()));
         assert!(!matches!(test_url, Value::Null), "binance describe() has no test url");
-        b.set_sandbox_mode(Value::Bool(true));
+        b.set_sandbox_mode(true).expect("binance has a sandbox url");
         assert_eq!(b.exchange.isSandboxModeEnabled, Value::Bool(true));
         let api_url = crate::get_value(&b.exchange.urls, &Value::Str("api".into()));
         assert_eq!(api_url, test_url, "sandbox mode did not switch urls['api'] to urls['test']");
@@ -165,7 +165,7 @@ mod dynamic_dispatch_tests {
 
     #[tokio::test]
     async fn unified_method_reaches_a_dispatch_arm_not_the_null_fallthrough() {
-        let mut b = crate::exchanges::binance::BinanceCore::new(None);
+        let mut b = crate::exchanges::binance::Binance::new(None);
         let snake = crate::exchange::method_name_to_snake_case(
             &Value::Str("fetchOHLCV".into()));
         assert_eq!(snake, "fetch_ohlcv");
@@ -189,7 +189,7 @@ mod dynamic_dispatch_tests {
 
     #[tokio::test]
     async fn implicit_endpoint_is_still_reachable_and_is_not_a_miss() {
-        let mut b = crate::exchanges::binance::BinanceCore::new(None);
+        let mut b = crate::exchanges::binance::Binance::new(None);
         b.exchange.build_implicit_api();
         let snake = crate::exchange::method_name_to_snake_case(
             &Value::Str("publicGetTicker24hr".into()));
@@ -203,7 +203,7 @@ mod dynamic_dispatch_tests {
     #[tokio::test]
     #[should_panic(expected = "NotSupported")]
     async fn unknown_dynamic_name_is_loud_not_null() {
-        let mut b = crate::exchanges::binance::BinanceCore::new(None);
+        let mut b = crate::exchanges::binance::Binance::new(None);
         let _ = b.call_dynamic_checked(
             Value::Str("fetchNoSuchThingAtAll".into()),
             vec![],
@@ -212,7 +212,7 @@ mod dynamic_dispatch_tests {
 
     #[tokio::test]
     async fn bare_call_dynamic_still_returns_null_for_optional_probes() {
-        let mut b = crate::exchanges::binance::BinanceCore::new(None);
+        let mut b = crate::exchanges::binance::Binance::new(None);
         let out = b.call_dynamic("fetch_no_such_thing_at_all", vec![]).await;
         assert_eq!(out, Value::Null);
         assert_eq!(

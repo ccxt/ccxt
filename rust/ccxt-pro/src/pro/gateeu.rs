@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct GateeuCore {
-    pub parent: crate::pro::gate::GateCore,
+pub struct Gateeu {
+    pub parent: crate::pro::gate::Gate,
 }
 
-impl GateeuCore {
+impl Gateeu {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::pro::gate::GateCore::new(config) };
+        let mut s = Self { parent: crate::pro::gate::Gate::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = GateeuCore::describe(self);
+        let described = Gateeu::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl GateeuCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for GateeuCore {
+impl crate::exchange::DerivedExchange for Gateeu {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -172,7 +177,7 @@ impl crate::exchange::DerivedExchange for GateeuCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for GateeuCore {
+impl crate::exchange_generated::ExchangeBase for Gateeu {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -186,25 +191,25 @@ impl crate::exchange_generated::ExchangeBase for GateeuCore {
     }
 }
 
-impl std::ops::Deref for GateeuCore {
+impl std::ops::Deref for Gateeu {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for GateeuCore {
+impl std::ops::DerefMut for Gateeu {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl GateeuCore {
+impl Gateeu {
     pub fn describe(&self) -> Value {
         // eslint-disable-next-line new-cap
-        let mut restInstance = crate::exchanges::gateeu::GateeuCore::new(None);
+        let mut restInstance = crate::exchanges::gateeu::Gateeu::new(None);
         let mut restDescribe: Value = restInstance.describe();
         let mut parentWsDescribe: Value = self.parent.describe_data();
         // the ws describe-data must be applied on top of the rest describe,
         // otherwise the explicit-undefined watch* defaults of the rest 'has'
         // block wipe the parent's ws capability flags in the deep extend
-        let mut extended: Value = self.deep_extend(restDescribe, &[parentWsDescribe]);
+        let mut extended: crate::value::Dict = self.deep_extend(restDescribe, &[parentWsDescribe]).into_dict();
         return self.deep_extend(extended, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("gateeu".into()));

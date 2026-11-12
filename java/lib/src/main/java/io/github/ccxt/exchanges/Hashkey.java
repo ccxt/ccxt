@@ -1339,7 +1339,7 @@ public class Hashkey extends HashkeyApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.publicGetApiV1ExchangeInfo(parameters)).join();
-            List<Object> coins = (List<Object>) this.safeList(response, "coins", (Object) null);
+            List<Object> coins = (List<Object>) this.safeList(response, "coins", new ArrayList<Object>(Arrays.asList()));
             //
             //     {
             //         ...

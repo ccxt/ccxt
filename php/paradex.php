@@ -566,7 +566,7 @@ class paradex extends Exchange {
         //         ]
         //     }
         //
-        $data = $this->safe_list($response, 'results');
+        $data = $this->safe_list($response, 'results', array());
         return $this->parse_markets($data);
     }
 
@@ -2171,7 +2171,7 @@ class paradex extends Exchange {
         }
         $clientOrderIds = $this->safe_list_n($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
         $paramsOmitted = $this->omit($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
-        $hasOrderIds = (gettype($ids) === 'array' && array_keys($ids) === array_keys(array_keys($ids)));
+        $hasOrderIds = ($ids !== null);
         $hasClientOrderIds = ($clientOrderIds !== null) && ((gettype($clientOrderIds) === 'array' && array_keys($clientOrderIds) === array_keys(array_keys($clientOrderIds))));
         if (!$hasOrderIds && !$hasClientOrderIds) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter');

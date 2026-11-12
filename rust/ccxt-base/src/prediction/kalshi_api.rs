@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::kalshi::KalshiCore;
+use super::kalshi::Kalshi;
 use crate::exchange::ExchangeRuntime;
 
-impl KalshiCore {
+impl Kalshi {
     /// Auto-generated wrapper for the `kalshiPublicGetEvents` implicit endpoint.
     pub async fn kalshi_public_get_events(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("kalshi_public_get_events".into()), optional_args).await

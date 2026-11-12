@@ -822,7 +822,7 @@ func (this *Mercado) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	// TODO: replace this with a call to parseOrder for unification
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
 		"info": response,
-		"id":   this.SafeString(this.SafeValue(this.SafeValue(response, "response_data"), "order"), "order_id"),
+		"id":   this.SafeString(this.SafeDict(this.SafeDict(response, "response_data"), "order"), "order_id"),
 	}, market)}
 	return nil
 }
@@ -836,12 +836,12 @@ func (this *Mercado) createOrderBody(ch chan AsyncResult[Order], symbol string, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Mercado) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Mercado) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Mercado) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Mercado) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1407,7 +1407,7 @@ func (this *Mercado) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 func (this *Mercado) OrdersToTrades(orders []any) any {
 	var result []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var trades []any = SafeListTyped(this.SafeValue(orders, i), "trades")
+		var trades []any = SafeListTyped(this.SafeDict(orders, i), "trades")
 		for y := 0; y < len(trades); y++ {
 			result = append(result, trades[y])
 		}
@@ -1480,7 +1480,7 @@ func (this *Mercado) HandleErrors(code int64, reason string, url string, method 
 	//
 	//     {"status":503,"message":"Maintenancing, try again later","result":null}
 	//
-	var errorMessage any = this.SafeValue(response, "error_message")
+	var errorMessage *string = this.SafeString(response, "error_message")
 	if errorMessage != nil {
 		panic(ExchangeError(this.Id + " " + this.Json(response)))
 	}

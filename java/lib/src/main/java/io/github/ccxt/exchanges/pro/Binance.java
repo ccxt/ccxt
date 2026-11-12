@@ -1254,7 +1254,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, this.safeValue(deltas, i));
+            this.handleDelta(bookside, this.safeList(deltas, i, (Object) null));
         }
     }
 
@@ -4214,7 +4214,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
-                    payload.put("symbol", this.safeValue(market, "id"));
+                    payload.put("symbol", this.safeString(market, "id"));
                 }
             }
             String type = this.getMarketType("fetchPositionsWs", market, parameters);

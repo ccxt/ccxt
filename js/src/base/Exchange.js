@@ -1439,7 +1439,7 @@ export class BaseExchange {
             const onClose = this.onClose.bind(this);
             const onConnected = this.onConnected.bind(this);
             // decide client type here: ws / signalr / socketio
-            const wsOptions = this.safeValue(this.options, 'ws', {});
+            const wsOptions = this.safeDict(this.options, 'ws', {});
             // proxy agents
             const [httpProxy, httpsProxy, socksProxy] = this.checkWsProxySettings();
             const chosenAgent = this.setProxyAgents(httpProxy, httpsProxy, socksProxy);
@@ -3188,7 +3188,7 @@ export class BaseExchange {
     }
     async watchMyLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
         if (this.has['watchMyLiquidationsForSymbols'] !== undefined && this.has['watchMyLiquidationsForSymbols'] !== false) {
-            return this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
+            return await this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
         }
         throw new NotSupported(this.id + ' watchMyLiquidations() is not supported yet');
     }
@@ -3480,8 +3480,8 @@ export class BaseExchange {
     }
     afterConstruct(userConfig = {}) {
         // networksById: inverse of options.networks, explicit options.networksById entries win
-        const networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, 'networks', {}));
-        this.options['networksById'] = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, 'networksById', {}));
+        const networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeDict(this.options, 'networks', {}));
+        this.options['networksById'] = this.extend(networkIdsToCodesGenerated, this.safeDict(this.options, 'networksById', {}));
         this.featuresGenerator();
         this.hasAutocorrect();
         // init predefined markets if any
@@ -4493,14 +4493,7 @@ export class BaseExchange {
             }
         }
         else {
-            const ids = Object.keys(orders);
-            for (let i = 0; i < ids.length; i++) {
-                const id = ids[i];
-                const idExtended = this.extend({ 'id': id }, orders[id]);
-                const parsedOrder = this.parseOrder(idExtended, market); // don't  inline these calls
-                const order = this.extend(parsedOrder, params);
-                results.push(order);
-            }
+            return this.parseOrders(this.addKeyInArrayItems(orders, 'id'), market, since, limit, params);
         }
         results = this.sortBy(results, 'timestamp');
         const symbol = this.safeString(market, 'symbol');
@@ -9619,7 +9612,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported(this.id + ' cancelAllOrders() is not supported yet');
     }
     async cancelUnifiedOrder(order, params = {}) {
-        return await this.cancelOrder(this.safeString(order, 'id'), this.safeString(order, 'symbol'), params);
+        return await this.cancelOrder(this.safeString(order, 'id', ''), this.safeString(order, 'symbol'), params);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if ((this.has['fetchOpenOrders'] !== undefined && this.has['fetchOpenOrders'] !== false) && (this.has['fetchClosedOrders'] !== undefined && this.has['fetchClosedOrders'] !== false)) {

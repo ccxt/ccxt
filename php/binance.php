@@ -4975,7 +4975,7 @@ class binance extends Exchange {
     public function parse_tickers_for_rolling(mixed $response, ?array $symbols): array {
         $results = array();
         for ($i = 0; $i < count($response); $i++) {
-            $marketId = $this->safe_string($this->safe_value($response, $i), 'symbol');
+            $marketId = $this->safe_string($this->safe_dict($response, $i), 'symbol');
             $tickerMarket = $this->safe_market($marketId, null, null, 'spot');
             $parsedTicker = $this->parse_ticker($this->safe_value($response, $i));
             $parsedTicker['symbol'] = $tickerMarket['symbol'];
@@ -7956,7 +7956,8 @@ class binance extends Exchange {
                 }
                 $response = $this->sapiGetMarginAllOrders($this->extend($request, $paramsPaginate));
             } elseif ($stock) {
-                $response = $this->sapiGetEquityOrderHistory($this->extend($request, $paramsPaginate));
+                $equityResponse = $this->sapiGetEquityOrderHistory($this->extend($request, $paramsPaginate));
+                $response = $this->safe_list($equityResponse, 'rows', array());
             } else {
                 $response = $this->privateGetAllOrders($this->extend($request, $paramsPaginate));
             }
@@ -8167,10 +8168,6 @@ class binance extends Exchange {
         //         ]
         //     }
         //
-        if ($stock) {
-            $result = $this->safe_list($response, 'rows', array());
-            return $this->parse_orders($result, $market, $since, $limitResolved);
-        }
         return $this->parse_orders($response, $market, $since, $limitResolved);
     }
 
@@ -11233,7 +11230,6 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type', $defaultType);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchFundingRates', null, $params, 'linear');
         $query = $this->omit($paramsSubType, 'type');
-        $response = null;
         if ($this->is_linear($type, $subType)) {
             $response = $this->fapiPublicGetPremiumIndex($query);
         } elseif ($this->is_inverse($type, $subType)) {
@@ -11472,7 +11468,7 @@ class binance extends Exchange {
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
             $bracket = $leverageBracket[$i];
-            if (Precise::string_lt($notionalStringAbs, $this->safe_value($bracket, 0))) {
+            if (Precise::string_lt($notionalStringAbs, $this->safe_string($bracket, 0))) {
                 break;
             }
             $maintenanceMarginPercentageString = $this->safe_string($bracket, 1);
@@ -11698,7 +11694,7 @@ class binance extends Exchange {
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
             $bracket = $leverageBracket[$i];
-            if (Precise::string_lt($notionalStringAbs, $this->safe_value($bracket, 0))) {
+            if (Precise::string_lt($notionalStringAbs, $this->safe_string($bracket, 0))) {
                 break;
             }
             $maintenanceMarginPercentageString = $this->safe_string($bracket, 1);
@@ -14105,7 +14101,7 @@ class binance extends Exchange {
         //         ]
         //     }
         //
-        $rows = $this->safe_list($response, 'rows');
+        $rows = $this->safe_list($response, 'rows', array());
         $interest = $this->parse_borrow_interests($rows, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
@@ -15723,7 +15719,6 @@ class binance extends Exchange {
         }
         $type = 'swap';
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchFundingIntervals', $market, $params, 'linear');
-        $response = null;
         if ($this->is_linear($type, $subType)) {
             $response = $this->fapiPublicGetFundingInfo($paramsSubType);
         } elseif ($this->is_inverse($type, $subType)) {

@@ -848,8 +848,8 @@ public partial class opinion : PredictionExchange
         {
             IDictionary<string, object> outcomeObj = this.outcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
             Int64 priceIndex = (i * 2L);
-            object priceResponse = this.safeValue(responses, priceIndex);
-            object bookResponse = this.safeValue(responses, this.sum(priceIndex, 1));
+            IDictionary<string, object> priceResponse = this.safeDict(responses, priceIndex);
+            IDictionary<string, object> bookResponse = this.safeDict(responses, this.sum(priceIndex, 1));
             Dictionary<string, object> response = new Dictionary<string, object>() {
                 { "price", priceResponse },
                 { "book", bookResponse },

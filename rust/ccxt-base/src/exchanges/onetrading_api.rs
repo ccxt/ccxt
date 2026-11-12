@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::onetrading::OnetradingCore;
+use super::onetrading::Onetrading;
 use crate::exchange::ExchangeRuntime;
 
-impl OnetradingCore {
+impl Onetrading {
     /// Auto-generated wrapper for the `publicGetCurrencies` implicit endpoint.
     pub async fn public_get_currencies(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_currencies".into()), optional_args).await

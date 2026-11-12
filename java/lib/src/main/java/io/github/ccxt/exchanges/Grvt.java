@@ -842,7 +842,7 @@ public class Grvt extends GrvtApi
                 put( "address", walletAddress );
                 put( "signature", Grvt.this.defaultSignature() );
             }};
-            Map<String, Object> response = (this.privateEdgePostAuthWalletLogin(this.extend(this.createSignedRequest(request, "EIP712_WALLETLOGIN_TYPE", (Object) null, (String) null), parameters))).join();
+            Map<String, Object> response = (this.privateEdgePostAuthWalletLogin(this.extend(this.createSignedRequest(request, "EIP712_WALLETLOGIN_TYPE", (Map<String, Object>) null, (String) null), parameters))).join();
             //
             //    {
             //        "location": "",
@@ -910,7 +910,7 @@ public class Grvt extends GrvtApi
                         put( "max_spot_fee_rate", Grvt.this.safeString(Grvt.this.options, "builderRate") );
                         put( "signature", Grvt.this.defaultSignature() );
                     }};
-                    Map<String, Object> authResponse = (this.privateTradingPostFullV1AuthorizeBuilder(this.extend(this.createSignedRequest(request, "EIP712_BUILDER_APPROVAL_TYPE", (Object) null, (String) null), parameters))).join();
+                    Map<String, Object> authResponse = (this.privateTradingPostFullV1AuthorizeBuilder(this.extend(this.createSignedRequest(request, "EIP712_BUILDER_APPROVAL_TYPE", (Map<String, Object>) null, (String) null), parameters))).join();
                     //
                     // {
                     //     "result": {
@@ -2638,7 +2638,7 @@ public class Grvt extends GrvtApi
                 orderRequest.put("builder_fee", this.safeString(this.options, "builderRate"));
             }
             Object paramsOmitted = this.omit(paramsTrigger, new ArrayList<Object>(Arrays.asList("builderFee")));
-            Map<String, Object> signedOrderRequest = this.createSignedRequest(orderRequest, eipType, (Object) null, (String) null);
+            Map<String, Object> signedOrderRequest = this.createSignedRequest(orderRequest, eipType, (Map<String, Object>) null, (String) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order", signedOrderRequest );
             }};
@@ -3823,7 +3823,7 @@ public class Grvt extends GrvtApi
         return this.convertToBigIntCustom("10000");  // multiply needed https://t.me/c/3396937126/88
     }
 
-    public Map<String, Object> createSignedRequest(Map<String, Object> request, String structureType, Object currencyObj, String signerAddress)
+    public Map<String, Object> createSignedRequest(Map<String, Object> request, String structureType, Map<String, Object> currencyObj, String signerAddress)
     {
         Map<String, Object> messageData = null;
         Map<String, Object> requestSignature = (Map<String, Object>) this.safeDict(request, "signature", new HashMap<String, Object>() {{}});
@@ -3841,7 +3841,7 @@ public class Grvt extends GrvtApi
                 hx4NewMap1.put("fromSubAccount", request.get("from_sub_account_id"));
                 hx4NewMap1.put("toAccount", request.get("to_account_id"));
                 hx4NewMap1.put("toSubAccount", request.get("to_sub_account_id"));
-                hx4NewMap1.put("tokenCurrency", ((Map<String, Object>)currencyObj).get("numericId"));
+                hx4NewMap1.put("tokenCurrency", currencyObj.get("numericId"));
                 hx4NewMap1.put("numTokens", this.parseToInt(amountInt));
                 hx4NewMap1.put("nonce", requestSignature.get("nonce"));
                 hx4NewMap1.put("expiration", requestSignature.get("expiration"));
@@ -3858,7 +3858,7 @@ public class Grvt extends GrvtApi
                 HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
                 hx4NewMap2.put("fromAccount", request.get("from_account_id"));
                 hx4NewMap2.put("toEthAddress", request.get("to_eth_address"));
-                hx4NewMap2.put("tokenCurrency", ((Map<String, Object>)currencyObj).get("numericId"));
+                hx4NewMap2.put("tokenCurrency", currencyObj.get("numericId"));
                 hx4NewMap2.put("numTokens", this.parseToInt(Helpers.multiply(request.get("num_tokens"), amountMultiplier)));
                 hx4NewMap2.put("nonce", requestSignature.get("nonce"));
                 hx4NewMap2.put("expiration", requestSignature.get("expiration"));

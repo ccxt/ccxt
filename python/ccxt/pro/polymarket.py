@@ -68,7 +68,7 @@ class polymarket(ccxt.async_support.polymarket):
             },
         })
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         return requestId

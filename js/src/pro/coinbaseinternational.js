@@ -1290,7 +1290,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     handleDeltas(bookside, deltas) {
         const deltasLength = deltas.length;
         for (let i = 0; i < deltasLength; i++) {
-            this.handleDelta(bookside, this.safeValue(deltas, i));
+            this.handleDelta(bookside, this.safeList(deltas, i));
         }
     }
     handleErrorMessage(client, message) {

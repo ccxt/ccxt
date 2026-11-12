@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::gateeu::GateeuCore;
+use super::gateeu::Gateeu;
 use crate::exchange::ExchangeRuntime;
 
-impl GateeuCore {
+impl Gateeu {
     /// Auto-generated wrapper for the `publicWalletGetCurrencyChains` implicit endpoint.
     pub async fn public_wallet_get_currency_chains(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_wallet_get_currency_chains".into()), optional_args).await

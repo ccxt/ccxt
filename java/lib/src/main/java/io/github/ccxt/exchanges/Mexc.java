@@ -4100,7 +4100,7 @@ public class Mexc extends MexcApi
                     return new ArrayList<Object>(Arrays.asList());
                 }
                 request.put("symbol", this.safeString(market, "id"));
-                Map<String, Object> response = (this.spotPrivateDeleteOpenOrders(this.extend(request, paramsMarketType))).join();
+                Object response = (this.spotPrivateDeleteOpenOrders(this.extend(request, paramsMarketType))).join();
                 //
                 // spot
                 //

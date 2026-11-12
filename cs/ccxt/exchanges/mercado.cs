@@ -695,7 +695,7 @@ public partial class mercado : Exchange
             }
         }
         // TODO: replace this with a call to parseOrder for unification
-        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", this.safeString(this.safeValue(this.safeValue(response, "response_data"), "order"), "order_id") },         }, market);
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", this.safeString(this.safeDict(this.safeDict(response, "response_data"), "order"), "order_id") },         }, market);
     }
 
     /**
@@ -1139,7 +1139,7 @@ public partial class mercado : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
-            List<object> trades = this.safeList(this.safeValue(orders, i), "trades", new List<object>() {});
+            List<object> trades = this.safeList(this.safeDict(orders, i), "trades", new List<object>() {});
             for (int y = 0; y < trades.Count; y++)
             {
                 result.Add(trades[y]);
@@ -1223,7 +1223,7 @@ public partial class mercado : Exchange
         //
         //     {"status":503,"message":"Maintenancing, try again later","result":null}
         //
-        object errorMessage = this.safeValue(response, "error_message");
+        string? errorMessage = this.safeString(response, "error_message");
         if ((errorMessage != null))
         {
             throw new ExchangeError (((this.id + " ") + this.json(response))) ;

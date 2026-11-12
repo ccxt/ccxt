@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import weexRest from '../weex.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, FeeString } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, FeeString, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import Precise from '../base/Precise.js';
@@ -83,12 +83,12 @@ export default class weex extends weexRest {
         });
     }
 
-    requestId (): Str {
+    requestId (): int {
         this.lockId ();
-        const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
+        const requestId: int = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         this.unlockId ();
-        return this.numberToString (requestId);
+        return requestId;
     }
 
     async subscribePublic (messageHashes: string[], channels: Strings, isContract: boolean = false, params: Dict = {}, subscription: Dict = {}) {
@@ -103,7 +103,7 @@ export default class weex extends weexRest {
             'method': method,
             'params': channels,
         };
-        const subscriptionExtended: Dict = this.extend (subscription, { 'id': id });
+        const subscriptionExtended: Dict = this.extend (subscription, { 'id': id.toString () });
         let type: Str = 'spot';
         if (isContract) {
             type = 'contract';
@@ -130,7 +130,7 @@ export default class weex extends weexRest {
             'method': method,
             'params': [ channel ],
         };
-        const subscriptionExtended: Dict = this.extend (subscription, { 'id': id });
+        const subscriptionExtended: Dict = this.extend (subscription, { 'id': id.toString () });
         return await this.watch (url, messageHash, this.deepExtend (message, params), subscribeHash, subscriptionExtended);
     }
 
@@ -244,8 +244,8 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override unWatchTicker (symbol: string, params = {}): Promise<any> {
-        return this.unWatchTickers ([ symbol ], params);
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchTickers ([ symbol ], params);
     }
 
     /**
@@ -395,8 +395,8 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**
@@ -450,8 +450,8 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override unWatchTrades (symbol: string, params = {}): Promise<any> {
-        return this.unWatchTradesForSymbols ([ symbol ], params);
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
     /**

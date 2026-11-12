@@ -1105,7 +1105,7 @@ class digifinex extends digifinex$1["default"] {
         for (let i = 0; i < tickers.length; i++) {
             const rawTicker = this.extend({
                 'date': date,
-            }, this.safeValue(tickers, i));
+            }, this.safeDict(tickers, i));
             const ticker = this.parseTicker(rawTicker);
             const symbol = ticker['symbol'];
             if (symbol !== undefined) {
@@ -3424,7 +3424,7 @@ class digifinex extends digifinex$1["default"] {
         //         "unrealized_pnl": "-0.049158102631998504"
         //     }
         //
-        const rows = this.safeList(response, 'positions');
+        const rows = this.safeList(response, 'positions', []);
         const interest = this.parseBorrowInterests(rows, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }

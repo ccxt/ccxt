@@ -8,7 +8,7 @@
 use std::time::{Duration, Instant};
 
 use ccxt::Params;
-use ccxt_pro::{from_id, TypedExchange, TypedExchangeExt};
+use ccxt_pro::{from_id, TypedExchange};
 
 fn secs() -> u64 {
     std::env::var("CCXT_SECS")
@@ -41,8 +41,8 @@ fn peak_rss_mb() -> f64 {
 
 async fn run() {
     let id = exchange();
-    // Typed WS wrapper picked by id — `ccxt_pro::from_id` returns a boxed
-    // `TypedExchange`; the `watch_*` methods come from `TypedExchangeExt`.
+    // WS exchange picked by id — `ccxt_pro::from_id` returns a
+    // `Box<dyn TypedExchange>`, whose typed `watch_*` methods are inherent.
     let mut ex: Box<dyn TypedExchange> = match from_id(&id, None) {
         Some(e) => e,
         None => {
@@ -57,7 +57,7 @@ async fn run() {
     });
 
     let t0 = Instant::now();
-    ex.load_markets(false).await;
+    let _ = ex.load_markets(false, ()).await;
     let load_s = t0.elapsed().as_secs_f64();
 
     let window = Duration::from_secs(secs());

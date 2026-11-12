@@ -1438,13 +1438,13 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     }
 
-    public String requestId(String url)
+    public Long requestId(String url)
     {
         Object options = this.safeDict(this.options, "requestId", this.createSafeDictionary());
         Long previousValue = this.safeInteger(options, url, 0);
         Long newValue = (Long) this.sum(previousValue, 1);
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
-        return (String) (this.numberToString(newValue));
+        return newValue;
     }
 
     /**
@@ -1474,7 +1474,9 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         return BaseExchange.supplyAsync(() -> {
 
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            String requestId = this.requestId(url);
+            Long nextId = this.requestId(url);
+            // the venue takes a string request id
+            String requestId = String.valueOf(nextId);
             String messageHash = ("jsonapi/sendtx:" + requestId);
             var txTypetxInfoorderVariable = (this.signAndCreateOrder("createOrderWs", (String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             var txType = ((List<Object>) txTypetxInfoorderVariable).get(0);
@@ -1517,7 +1519,9 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         return BaseExchange.supplyAsync(() -> {
 
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            String requestId = this.requestId(url);
+            Long nextId = this.requestId(url);
+            // the venue takes a string request id
+            String requestId = String.valueOf(nextId);
             String messageHash = ("jsonapi/sendtx:" + requestId);
             var txTypetxInfoVariable = (this.signAndCancelOrder("cancelOrderWs", (String) (id), symbol, parameters)).join();
             var txType = ((List<Object>) txTypetxInfoVariable).get(0);
@@ -1558,7 +1562,9 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         return BaseExchange.supplyAsync(() -> {
 
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            String requestId = this.requestId(url);
+            Long nextId = this.requestId(url);
+            // the venue takes a string request id
+            String requestId = String.valueOf(nextId);
             String messageHash = ("jsonapi/sendtx:" + requestId);
             var txTypetxInfoVariable = (this.signAndCancelAllOrders("cancelAllOrdersWs", symbol, parameters)).join();
             var txType = ((List<Object>) txTypetxInfoVariable).get(0);

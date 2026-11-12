@@ -59,12 +59,12 @@ class cex extends \ccxt\async\cex {
         ));
     }
 
-    public function request_id(): string {
+    public function request_id(): int {
         $this->lock_id();
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
         $this->unlock_id();
-        return (string) $requestId;
+        return $requestId;
     }
 
     public function watch_balance($params = array()): PromiseInterface {
@@ -81,7 +81,7 @@ class cex extends \ccxt\async\cex {
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         Async\await($this->authenticate($params));
-        $messageHash = $this->request_id();
+        $messageHash = (string) $this->request_id();
         $url = $this->safe_string($this->urls['api'], 'ws', '');
         $subscribe = array(
             'e' => 'get-balance',
@@ -317,7 +317,7 @@ class cex extends \ccxt\async\cex {
                 'data' => array(
                     $market['baseId'], $market['quoteId'],
                 ),
-                'oid' => $this->request_id(),
+                'oid' => (string) $this->request_id(),
             );
             $subscriptionHash = 'ticker:' . $symbolValue;
         }
@@ -386,7 +386,7 @@ class cex extends \ccxt\async\cex {
         }
         $market = $this->market($symbol);
         $url = $this->safe_string($this->urls['api'], 'ws', '');
-        $messageHash = $this->request_id();
+        $messageHash = (string) $this->request_id();
         $request = $this->extend(array(
             'e' => 'ticker',
             'oid' => $messageHash,
@@ -506,7 +506,7 @@ class cex extends \ccxt\async\cex {
         }
         Async\await($this->authenticate());
         $url = $this->safe_string($this->urls['api'], 'ws', '');
-        $messageHash = $this->request_id();
+        $messageHash = (string) $this->request_id();
         $request = $this->extend(array(
             'e' => 'get-balance',
             'oid' => $messageHash,
@@ -1059,7 +1059,7 @@ class cex extends \ccxt\async\cex {
                 'subscribe' => true,
                 'depth' => $depth,
             ),
-            'oid' => $this->request_id(),
+            'oid' => (string) $this->request_id(),
         );
         $request = $this->deep_extend($subscribe, $params);
         $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
@@ -1385,7 +1385,7 @@ class cex extends \ccxt\async\cex {
             'order_id' => (string) $id,
         ), $params);
         $url = $this->safe_string($this->urls['api'], 'ws', '');
-        $messageHash = $this->request_id();
+        $messageHash = (string) $this->request_id();
         $request = array(
             'e' => 'get-order',
             'oid' => $messageHash,
@@ -1420,7 +1420,7 @@ class cex extends \ccxt\async\cex {
         Async\await($this->authenticate());
         $market = $this->market($symbol);
         $url = $this->safe_string($this->urls['api'], 'ws', '');
-        $messageHash = $this->request_id();
+        $messageHash = (string) $this->request_id();
         $data = $this->extend(array(
             'pair' => array( $market['baseId'], $market['quoteId'] ),
         ), $params);
@@ -1461,7 +1461,7 @@ class cex extends \ccxt\async\cex {
         Async\await($this->authenticate());
         $market = $this->market($symbol);
         $url = $this->safe_string($this->urls['api'], 'ws', '');
-        $messageHash = $this->request_id();
+        $messageHash = (string) $this->request_id();
         $data = $this->extend(array(
             'pair' => array( $market['baseId'], $market['quoteId'] ),
             'amount' => $amount,
@@ -1514,7 +1514,7 @@ class cex extends \ccxt\async\cex {
             'price' => $price,
             'order_id' => $id,
         ), $params);
-        $messageHash = $this->request_id();
+        $messageHash = (string) $this->request_id();
         $url = $this->safe_string($this->urls['api'], 'ws', '');
         $request = array(
             'e' => 'cancel-replace-order',
@@ -1551,7 +1551,7 @@ class cex extends \ccxt\async\cex {
         $data = $this->extend(array(
             'order_id' => $id,
         ), $params);
-        $messageHash = $this->request_id();
+        $messageHash = (string) $this->request_id();
         $url = $this->safe_string($this->urls['api'], 'ws', '');
         $request = array(
             'e' => 'cancel-order',
@@ -1584,7 +1584,7 @@ class cex extends \ccxt\async\cex {
             Async\await($this->load_markets());
         }
         Async\await($this->authenticate());
-        $messageHash = $this->request_id();
+        $messageHash = (string) $this->request_id();
         $data = $this->extend(array(
             'cancel-orders' => $ids,
         ), $params);

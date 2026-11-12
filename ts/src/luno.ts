@@ -1736,7 +1736,7 @@ export default class luno extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        const error = this.safeValue (response, 'error');
+        const error = this.safeString (response, 'error');
         if (error !== undefined) {
             const feedback = this.id + ' ' + this.json (response);
             const errorCode = this.safeString (response, 'error_code');

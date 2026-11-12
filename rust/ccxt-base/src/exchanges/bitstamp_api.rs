@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::bitstamp::BitstampCore;
+use super::bitstamp::Bitstamp;
 use crate::exchange::ExchangeRuntime;
 
-impl BitstampCore {
+impl Bitstamp {
     /// Auto-generated wrapper for the `publicGetOhlcPair` implicit endpoint.
     pub async fn public_get_ohlc_pair(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_ohlc_pair".into()), optional_args).await

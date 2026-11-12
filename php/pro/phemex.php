@@ -85,7 +85,7 @@ class phemex extends \ccxt\async\phemex {
         return $this->from_en($er, $this->safe_integer($market, 'ratioScale'));
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         $this->lock_id();
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;

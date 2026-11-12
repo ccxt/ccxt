@@ -4984,7 +4984,7 @@ export default class binance extends Exchange {
     parseTickersForRolling (response: any, symbols: Strings): Tickers {
         const results: List = [];
         for (let i = 0; i < response.length; i++) {
-            const marketId = this.safeString (this.safeValue (response, i), 'symbol');
+            const marketId = this.safeString (this.safeDict (response, i), 'symbol');
             const tickerMarket = this.safeMarket (marketId, undefined, undefined, 'spot');
             const parsedTicker = this.parseTicker (this.safeValue (response, i));
             parsedTicker['symbol'] = tickerMarket['symbol'];
@@ -6108,7 +6108,7 @@ export default class binance extends Exchange {
         if ((this.safeBool (market, 'spot', false)) || (this.safeBool (market, 'option', false))) {
             throw new NotSupported (this.id + ' editOrders() does not support ' + this.safeString (market, 'type', '') + ' orders');
         }
-        let response: NullableDict = undefined;
+        let response: NullableList = undefined;
         let request: Dict = {
             'batchOrders': ordersRequests,
         };
@@ -6930,7 +6930,7 @@ export default class binance extends Exchange {
         if (this.safeBool (market, 'spot', false)) {
             throw new NotSupported (this.id + ' createOrders() does not support ' + this.safeString (market, 'type', '') + ' orders');
         }
-        let response: NullableDict = undefined;
+        let response: NullableList = undefined;
         let request: Dict = {
             'batchOrders': ordersRequests,
         };
@@ -7933,7 +7933,7 @@ export default class binance extends Exchange {
                 request['startTime'] = untilResolved - oneWeek;
             }
         }
-        let response: NullableDict = undefined;
+        let response: NullableList = undefined;
         if (isOptionType) {
             response = await this.eapiPrivateGetHistoryOrders (this.extend (request, paramsPaginate));
         } else if (isLinearType) {
@@ -7973,7 +7973,8 @@ export default class binance extends Exchange {
                 }
                 response = await this.sapiGetMarginAllOrders (this.extend (request, paramsPaginate));
             } else if (stock) {
-                response = await this.sapiGetEquityOrderHistory (this.extend (request, paramsPaginate));
+                const equityResponse = await this.sapiGetEquityOrderHistory (this.extend (request, paramsPaginate));
+                response = this.safeList (equityResponse, 'rows', []);
             } else {
                 response = await this.privateGetAllOrders (this.extend (request, paramsPaginate));
             }
@@ -8184,10 +8185,6 @@ export default class binance extends Exchange {
         //         ]
         //     }
         //
-        if (stock) {
-            const result: Dict[] = this.safeList (response, 'rows', []);
-            return this.parseOrders (result, market, since, limitResolved);
-        }
         return this.parseOrders (response, market, since, limitResolved);
     }
 
@@ -8252,7 +8249,7 @@ export default class binance extends Exchange {
         let subType: SubType = undefined;
         [ subType, paramsMarginMode ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, paramsMarginMode);
         paramsMarginMode = this.omit (paramsMarginMode, [ 'stop', 'trigger', 'conditional' ]);
-        let response: NullableDict = undefined;
+        let response: NullableList = undefined;
         if (type === 'option') {
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -9060,7 +9057,7 @@ export default class binance extends Exchange {
         } else {
             request['orderidlist'] = ids;
         }
-        let response: NullableDict = undefined;
+        let response: NullableList = undefined;
         if (this.safeBool (market, 'linear', false)) {
             response = await this.fapiPrivateDeleteBatchOrders (this.extend (request, paramsOmitted));
         } else if (this.safeBool (market, 'inverse', false)) {
@@ -11196,7 +11193,7 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response: NullableDict = undefined;
+        let response: NullableList = undefined;
         if (this.isLinear (type, subType)) {
             response = await this.fapiPublicGetFundingRate (this.extend (request, paramsOmitted2));
         } else if (this.isInverse (type, subType)) {
@@ -11252,7 +11249,7 @@ export default class binance extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchFundingRates', undefined, params, 'linear');
         const query = this.omit (paramsSubType, 'type');
-        let response: NullableDict = undefined;
+        let response: List;
         if (this.isLinear (type, subType)) {
             response = await this.fapiPublicGetPremiumIndex (query);
         } else if (this.isInverse (type, subType)) {
@@ -11491,7 +11488,7 @@ export default class binance extends Exchange {
         let maintenanceMarginPercentageString: Str = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise.stringLt (notionalStringAbs, this.safeValue (bracket, 0))) {
+            if (Precise.stringLt (notionalStringAbs, this.safeString (bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString (bracket, 1);
@@ -11717,7 +11714,7 @@ export default class binance extends Exchange {
         let maintenanceMarginPercentageString: Str = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise.stringLt (notionalStringAbs, this.safeValue (bracket, 0))) {
+            if (Precise.stringLt (notionalStringAbs, this.safeString (bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString (bracket, 1);
@@ -14125,7 +14122,7 @@ export default class binance extends Exchange {
         //         ]
         //     }
         //
-        const rows = this.safeList (response, 'rows');
+        const rows = this.safeList (response, 'rows', []);
         const interest = this.parseBorrowInterests (rows, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
@@ -15743,7 +15740,7 @@ export default class binance extends Exchange {
         }
         const type = 'swap';
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchFundingIntervals', market, params, 'linear');
-        let response: NullableDict = undefined;
+        let response: List;
         if (this.isLinear (type, subType)) {
             response = await this.fapiPublicGetFundingInfo (paramsSubType);
         } else if (this.isInverse (type, subType)) {
@@ -15796,7 +15793,7 @@ export default class binance extends Exchange {
             requestUntil['limit'] = limit;
         }
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchLongShortRatioHistory', market, paramsUntil);
-        let response: NullableDict = undefined;
+        let response: NullableList = undefined;
         if (subType === 'linear') {
             requestUntil['symbol'] = market['id'];
             response = await this.fapiDataGetGlobalLongShortAccountRatio (this.extend (requestUntil, paramsSubType));

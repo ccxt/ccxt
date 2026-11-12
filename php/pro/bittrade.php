@@ -46,12 +46,12 @@ class bittrade extends \ccxt\async\bittrade {
         ));
     }
 
-    public function request_id(): string {
+    public function request_id(): int {
         $this->lock_id();
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
         $this->unlock_id();
-        return (string) $requestId;
+        return $requestId;
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -81,10 +81,10 @@ class bittrade extends \ccxt\async\bittrade {
         $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
-            'id' => $requestId,
+            'id' => (string) $requestId,
         );
         $subscription = array(
-            'id' => $requestId,
+            'id' => (string) $requestId,
             'messageHash' => $messageHash,
             'symbol' => $market['symbol'],
             'params' => $params,
@@ -158,10 +158,10 @@ class bittrade extends \ccxt\async\bittrade {
         $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
-            'id' => $requestId,
+            'id' => (string) $requestId,
         );
         $subscription = array(
-            'id' => $requestId,
+            'id' => (string) $requestId,
             'messageHash' => $messageHash,
             'symbol' => $symbolValue,
             'params' => $params,
@@ -250,10 +250,10 @@ class bittrade extends \ccxt\async\bittrade {
         $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
-            'id' => $requestId,
+            'id' => (string) $requestId,
         );
         $subscription = array(
-            'id' => $requestId,
+            'id' => (string) $requestId,
             'messageHash' => $messageHash,
             'symbol' => $symbolValue,
             'timeframe' => $timeframe,
@@ -340,10 +340,10 @@ class bittrade extends \ccxt\async\bittrade {
         $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
-            'id' => $requestId,
+            'id' => (string) $requestId,
         );
         $subscription = array(
-            'id' => $requestId,
+            'id' => (string) $requestId,
             'messageHash' => $messageHash,
             'symbol' => $symbolValue,
             'limit' => $limitValue,
@@ -418,19 +418,19 @@ class bittrade extends \ccxt\async\bittrade {
             $requestId = $this->request_id();
             $request = array(
                 'req' => $messageHash,
-                'id' => $requestId,
+                'id' => (string) $requestId,
             );
             // this is a temporary subscription by a specific requestId
             // it has a very short lifetime until the snapshot is received over ws
             $snapshotSubscription = array(
-                'id' => $requestId,
+                'id' => (string) $requestId,
                 'messageHash' => $messageHash,
                 'symbol' => $symbol,
                 'limit' => $limit,
                 'params' => $params,
                 'method' => array($this, 'handle_order_book_snapshot'),
             );
-            $orderbook = Async\await($this->watch($url, $requestId, $request, $requestId, $snapshotSubscription));
+            $orderbook = Async\await($this->watch($url, (string) $requestId, $request, (string) $requestId, $snapshotSubscription));
             return $orderbook->limit();
         } catch (Exception $e) {
             unset($client->subscriptions[$messageHash]);

@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitstamp.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict, DepositWithdrawFees } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict, DepositWithdrawFees } from './base/types.js';
 /**
  * @class bitstamp
  * @augments Exchange
@@ -26,7 +26,7 @@ export default class bitstamp extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
-    parseCurrencies(rawCurrencies: any): Currencies;
+    parseCurrencies(rawCurrencies: List): Currencies;
     /**
      * @method
      * @name bitstamp#fetchOrderBook

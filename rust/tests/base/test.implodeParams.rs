@@ -22,7 +22,7 @@ pub fn testImplodeParams() {
             m.insert("extra_param".to_string(), Value::Str("should_be_ignored".into()));
         m
     });
-    let mut expected: Value = Value::Str("v2/watchlists/1m/BTC/USDT".into());
-    let mut result: Value = exchange.implode_params(path.clone(), params.clone());
-    assert!(ccxt::runtime::is_true(&((result.as_str() == expected.as_str()))));
+    let mut expected: String = "v2/watchlists/1m/BTC/USDT".to_string();
+    let mut result: String = exchange.implode_params(path.clone(), params.clone());
+    assert!(ccxt::runtime::is_true(&((result == expected))));
 }

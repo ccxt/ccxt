@@ -2443,12 +2443,12 @@ func (this *Ndax) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Ndax) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Ndax) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Ndax) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Ndax) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3388,7 +3388,7 @@ func (this *Ndax) ParseTransaction(transaction any, optionalArgs ...any) Transac
 			typeVar = "withdrawal"
 		}
 	}
-	var templateForm any = this.ParseJson(this.SafeValue2(transaction, "TemplateForm", "DepositInfo"))
+	var templateForm any = this.ParseJson(this.SafeString2(transaction, "TemplateForm", "DepositInfo"))
 	var updated *int64 = this.SafeInteger(transaction, "LastUpdateTimeStamp")
 	if templateForm != nil {
 		updated = this.SafeInteger(templateForm, "LastUpdated", updated)

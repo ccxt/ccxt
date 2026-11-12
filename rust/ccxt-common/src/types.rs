@@ -49,20 +49,20 @@ pub struct MarketPrecision {
 /// A unified market / symbol descriptor.
 #[derive(Debug, Clone, Default)]
 pub struct Market {
-    pub id:       String,
+    pub id:       Option<String>,
     pub symbol:   String,
     pub base:     String,
     pub quote:    String,
     pub settle:   Option<String>,
-    pub base_id:  String,
-    pub quote_id: String,
+    pub base_id:  Option<String>,
+    pub quote_id: Option<String>,
     pub market_type: String,   // "spot" | "swap" | "future" | "option"
     pub spot:     bool,
-    pub margin:   bool,
+    pub margin:   Option<bool>,
     pub swap:     bool,
     pub future:   bool,
     pub option:   bool,
-    pub active:   bool,
+    pub active:   Option<bool>,
     pub contract: bool,
     pub linear:   Option<bool>,
     pub inverse:  Option<bool>,
@@ -79,23 +79,23 @@ impl Market {
     pub fn from_value(v: Value) -> Self {
         use crate::value::{safe_string, safe_bool, safe_number};
         let mut m = Market::default();
-        m.id      = safe_string(&v, "id",     None).unwrap_or_default();
+        m.id      = safe_string(&v, "id",     None);
         m.symbol  = safe_string(&v, "symbol", None).unwrap_or_default();
         m.base    = safe_string(&v, "base",   None).unwrap_or_default();
         m.quote   = safe_string(&v, "quote",  None).unwrap_or_default();
         m.settle  = safe_string(&v, "settle",  None);
-        m.base_id  = safe_string(&v, "baseId",  None).unwrap_or_default();
-        m.quote_id = safe_string(&v, "quoteId", None).unwrap_or_default();
+        m.base_id  = safe_string(&v, "baseId",  None);
+        m.quote_id = safe_string(&v, "quoteId", None);
         m.market_type = safe_string(&v, "type", None).unwrap_or_else(|| "spot".to_owned());
         m.spot    = safe_bool(&v, "spot",   Some(false)).unwrap_or(false);
-        m.margin  = safe_bool(&v, "margin", Some(false)).unwrap_or(false);
+        m.margin  = safe_bool(&v, "margin", None);
         m.swap    = safe_bool(&v, "swap",   Some(false)).unwrap_or(false);
         m.future  = safe_bool(&v, "future", Some(false)).unwrap_or(false);
         m.option  = safe_bool(&v, "option", Some(false)).unwrap_or(false);
         m.contract = safe_bool(&v, "contract", Some(false)).unwrap_or(false);
         m.linear  = safe_bool(&v, "linear",  None);
         m.inverse = safe_bool(&v, "inverse", None);
-        m.active  = safe_bool(&v, "active", Some(true)).unwrap_or(true);
+        m.active  = safe_bool(&v, "active", None);
         m.taker   = safe_number(&v, "taker", None);
         m.maker   = safe_number(&v, "maker", None);
         let sub = |parent: &Value, key: &str| crate::value::get_value(parent, &Value::Str(key.to_string().into()));
@@ -427,6 +427,8 @@ pub struct Balances {
     pub free:  HashMap<String, f64>,
     pub used:  HashMap<String, f64>,
     pub total: HashMap<String, f64>,
+    /// The full unified balance dict this was decoded from.
+    pub raw:   Value,
 }
 
 impl Balances {
@@ -454,6 +456,7 @@ impl Balances {
         b.free  = extract("free");
         b.used  = extract("used");
         b.total = extract("total");
+        b.raw = v;
         b
     }
 }
@@ -517,10 +520,10 @@ impl Transaction {
 /// Unified currency descriptor.
 #[derive(Debug, Clone, Default)]
 pub struct Currency {
-    pub id:        String,
-    pub code:      String,
+    pub id:        Option<String>,
+    pub code:      Option<String>,
     pub name:      Option<String>,
-    pub active:    bool,
+    pub active:    Option<bool>,
     pub precision: Option<f64>,
     pub raw:       Value,
 }
@@ -529,10 +532,10 @@ impl Currency {
     pub fn from_value(v: Value) -> Self {
         use crate::value::{safe_string, safe_bool, safe_number};
         let mut c = Currency::default();
-        c.id        = safe_string(&v, "id",   None).unwrap_or_default();
-        c.code      = safe_string(&v, "code", None).unwrap_or_default();
+        c.id        = safe_string(&v, "id",   None);
+        c.code      = safe_string(&v, "code", None);
         c.name      = safe_string(&v, "name", None);
-        c.active    = safe_bool(&v, "active", Some(true)).unwrap_or(true);
+        c.active    = safe_bool(&v, "active", None);
         c.precision = safe_number(&v, "precision", None);
         c.raw = v;
         c
@@ -1497,7 +1500,6 @@ impl DepositWithdrawFee {
 // Collection aliases (mirror the plural names used in Go's exchange_types.go)
 // -----------------------------------------------------------------------------
 
-pub type Markets       = HashMap<String, Market>;
 pub type Currencies    = HashMap<String, Currency>;
 pub type Tickers       = HashMap<String, Ticker>;
 pub type OrderBooks    = HashMap<String, OrderBook>;
@@ -1522,6 +1524,86 @@ pub type DepositWithdrawFees = HashMap<String, DepositWithdrawFee>;
 pub type AllGreeks           = HashMap<String, Greeks>;
 /// `fetchDepositAddresses` — currency code → [`DepositAddress`].
 pub type DepositAddresses    = HashMap<String, DepositAddress>;
+/// `watchOHLCVForSymbols` — symbol → timeframe → candles.
+pub type OHLCVsBySymbol      = HashMap<String, HashMap<String, Vec<OHLCV>>>;
+
+/// A prediction-market event: a group of markets (`fetchEvents` / `fetchEvent`).
+#[derive(Debug, Clone, Default)]
+pub struct PredictionEvent {
+    pub id:          String,
+    pub event:       String,
+    pub title:       Option<String>,
+    pub description: Option<String>,
+    pub slug:        Option<String>,
+    pub category:    Option<String>,
+    pub active:      Option<bool>,
+    pub resolved:    Option<bool>,
+    pub volume:      Option<f64>,
+    pub liquidity:   Option<f64>,
+    pub end:         Option<i64>,
+    pub url:         Option<String>,
+    pub raw:         Value,
+}
+
+impl PredictionEvent {
+    pub fn from_value(v: Value) -> Self {
+        use crate::value::{safe_string, safe_number, safe_integer, safe_bool};
+        PredictionEvent {
+            id:          safe_string(&v, "id", None).unwrap_or_default(),
+            event:       safe_string(&v, "event", None).unwrap_or_default(),
+            title:       safe_string(&v, "title", None),
+            description: safe_string(&v, "description", None),
+            slug:        safe_string(&v, "slug", None),
+            category:    safe_string(&v, "category", None),
+            active:      safe_bool(&v, "active", None),
+            resolved:    safe_bool(&v, "resolved", None),
+            volume:      safe_number(&v, "volume", None),
+            liquidity:   safe_number(&v, "liquidity", None),
+            end:         safe_integer(&v, "end", None),
+            url:         safe_string(&v, "url", None),
+            raw:         v,
+        }
+    }
+}
+
+/// A settled prediction position (`fetchSettlements`).
+#[derive(Debug, Clone, Default)]
+pub struct PredictionSettlement {
+    pub id:        Option<String>,
+    pub timestamp: Option<i64>,
+    pub datetime:  Option<String>,
+    pub outcome:   Option<String>,
+    pub market:    Option<String>,
+    pub result:    Option<String>,
+    pub won:       Option<bool>,
+    pub amount:    Option<f64>,
+    pub price:     Option<f64>,
+    pub cost:      Option<f64>,
+    pub payout:    Option<f64>,
+    pub pnl:       Option<f64>,
+    pub raw:       Value,
+}
+
+impl PredictionSettlement {
+    pub fn from_value(v: Value) -> Self {
+        use crate::value::{safe_string, safe_number, safe_integer, safe_bool};
+        PredictionSettlement {
+            id:        safe_string(&v, "id", None),
+            timestamp: safe_integer(&v, "timestamp", None),
+            datetime:  safe_string(&v, "datetime", None),
+            outcome:   safe_string(&v, "outcome", None),
+            market:    safe_string(&v, "market", None),
+            result:    safe_string(&v, "result", None),
+            won:       safe_bool(&v, "won", None),
+            amount:    safe_number(&v, "amount", None),
+            price:     safe_number(&v, "price", None),
+            cost:      safe_number(&v, "cost", None),
+            payout:    safe_number(&v, "payout", None),
+            pnl:       safe_number(&v, "pnl", None),
+            raw:       v,
+        }
+    }
+}
 
 /// Walk a `Value::Dict` of `<key> → Value` and decode each value with
 /// the supplied `from_value` constructor. Returns an empty map on a
@@ -1615,9 +1697,9 @@ mod from_value_tests {
         ]);
         let m = Market::from_value(v);
         assert_eq!(m.settle.as_deref(), Some("USDT"));
-        assert_eq!(m.base_id, "BTC");
-        assert_eq!(m.quote_id, "USDT");
-        assert!(m.margin && m.contract);
+        assert_eq!(m.base_id.as_deref(), Some("BTC"));
+        assert_eq!(m.quote_id.as_deref(), Some("USDT"));
+        assert!(m.margin == Some(true) && m.contract);
         assert_eq!(m.linear, Some(true));
         assert_eq!(m.inverse, Some(false));
     }
@@ -1898,5 +1980,192 @@ mod from_value_tests {
         assert_eq!(g.charm, Some(-0.01));
 
         assert_eq!(LeverageTier::from_value(dict(&[("symbol", Value::Str("ETH/USDT:USDT".into()))])).symbol.as_deref(), Some("ETH/USDT:USDT"));
+    }
+}
+
+/// Decodes a transpiled body's `Value` result into a typed unified return.
+pub trait FromRaw { fn from_raw(v: Value) -> Self; }
+/// Lowers a typed unified return back to the `Value` the transpiled bodies and dispatch carry.
+pub trait IntoRaw { fn into_raw(self) -> Value; }
+
+macro_rules! raw_struct {
+    ($($t:ident),*) => { $(
+        impl FromRaw for $t { fn from_raw(v: Value) -> Self { $t::from_value(v) } }
+        impl IntoRaw for $t { fn into_raw(self) -> Value { self.raw } }
+    )* };
+}
+raw_struct!(Ticker, Trade, OrderBook, Order, Balances, Market, Currency, Position,
+    Transaction, DepositAddress, Transfer, LedgerEntry, TradingFee, DepositWithdrawFee);
+raw_struct!(FundingRate, FundingRateHistory, FundingHistory, Leverage, MarginMode, MarginModification, OpenInterest,
+    Liquidation, LeverageTier, Greeks, OptionContract, LastPrice, Status);
+raw_struct!(PredictionEvent, PredictionSettlement);
+raw_struct!(Account, BorrowRate, IsolatedBorrowRate, MarginLoan, Conversion, ADL, LongShortRatio, BorrowInterest,
+    PositionModeInfo, OrderBookL3);
+
+/// An untyped unified return (`setLeverage`, `setMarginMode`, unsubscribe acks) passes the payload through.
+impl FromRaw for Value { fn from_raw(v: Value) -> Self { v } }
+impl IntoRaw for Value { fn into_raw(self) -> Value { self } }
+/// The loaded markets keyed by unified symbol (`load_markets`). Holds the exchange's
+/// market dict as is; a `Market` decodes when read, so passing it around costs nothing.
+#[derive(Debug, Clone, Default)]
+pub struct Markets {
+    pub raw: Value,
+}
+
+impl Markets {
+    pub fn len(&self) -> usize { self.raw.as_map().map_or(0, |m| m.len()) }
+    pub fn is_empty(&self) -> bool { self.len() == 0 }
+    pub fn contains(&self, symbol: &str) -> bool { self.raw.as_map().is_some_and(|m| m.contains_key(symbol)) }
+    /// One market by unified symbol.
+    pub fn get(&self, symbol: &str) -> Option<Market> { self.raw.as_map()?.get(symbol).cloned().map(Market::from_value) }
+    /// The unified symbols, in load order.
+    pub fn symbols(&self) -> Vec<String> { self.raw.as_map().map_or_else(Vec::new, |m| m.keys().cloned().collect()) }
+    /// Every market with its symbol, decoded in load order.
+    pub fn iter(&self) -> impl Iterator<Item = (&str, Market)> + '_ {
+        self.raw.as_map().into_iter().flat_map(|m| m.iter()).map(|(k, v)| (k.as_str(), Market::from_value(v.clone())))
+    }
+}
+
+impl FromRaw for Markets { fn from_raw(v: Value) -> Self { Markets { raw: v } } }
+impl IntoRaw for Markets { fn into_raw(self) -> Value { self.raw } }
+
+/// A unit return (`setSandboxMode`): the body's trailing `Null` carries nothing.
+impl FromRaw for () { fn from_raw(_v: Value) -> Self {} }
+impl IntoRaw for () { fn into_raw(self) -> Value { Value::Null } }
+/// An integral scalar return (`fetchTime`); any other shape reads `None`.
+impl FromRaw for Option<i64> { fn from_raw(v: Value) -> Self { v.as_i64() } }
+impl IntoRaw for Option<i64> { fn into_raw(self) -> Value { Value::from(self) } }
+/// A string scalar return (`fetchOrderStatus`); any other shape reads `None`.
+impl FromRaw for Option<String> { fn from_raw(v: Value) -> Self { v.as_str().map(String::from) } }
+impl IntoRaw for Option<String> { fn into_raw(self) -> Value { self.map(Value::from).unwrap_or_default() } }
+
+/// One entry of a `cancel_orders_for_symbols` batch (TS `CancellationRequest`); `raw` keeps any other key.
+#[derive(Debug, Clone, Default)]
+pub struct CancellationRequest {
+    pub id:              Option<String>,
+    pub client_order_id: Option<String>,
+    pub symbol:          Option<String>,
+    pub raw:             Value,
+}
+
+impl CancellationRequest {
+    pub fn new(id: &str, symbol: &str) -> Self {
+        CancellationRequest { id: Some(id.into()), symbol: Some(symbol.into()), ..Default::default() }
+    }
+}
+
+impl FromRaw for CancellationRequest {
+    fn from_raw(v: Value) -> Self {
+        use crate::value::safe_string;
+        CancellationRequest {
+            id: safe_string(&v, "id", None), client_order_id: safe_string(&v, "clientOrderId", None),
+            symbol: safe_string(&v, "symbol", None), raw: v,
+        }
+    }
+}
+
+/// Keys whose field still decodes from `raw` keep the raw entry (and its position), so a decoded request lowers back unchanged.
+impl IntoRaw for CancellationRequest {
+    fn into_raw(self) -> Value {
+        let same = Self::from_raw(self.raw.clone());
+        let mut m = match &self.raw { Value::Dict(d) => (**d).clone(), _ => HashMap::new() };
+        let mut put = |k: &str, v: Option<String>| { match v { Some(v) => { m.insert(k.to_string(), Value::from(v)); } None => { m.shift_remove(k); } } };
+        if self.id != same.id { put("id", self.id); }
+        if self.client_order_id != same.client_order_id { put("clientOrderId", self.client_order_id); }
+        if self.symbol != same.symbol { put("symbol", self.symbol); }
+        Value::Dict(std::sync::Arc::new(m))
+    }
+}
+
+/// One order of a `create_orders` / `edit_orders` batch. Mirrors the TS `OrderRequest`
+/// (`id` for edits, `outcome` for prediction venues); `raw` keeps any other key.
+#[derive(Debug, Clone, Default)]
+pub struct OrderRequest {
+    pub id:         Option<String>,
+    pub symbol:     Option<String>,
+    pub outcome:    Option<String>,
+    pub order_type: Option<String>,
+    pub side:       Option<String>,
+    pub amount:     Option<f64>,
+    pub price:      Option<f64>,
+    pub params:     Option<crate::Params>,
+    pub raw:        Value,
+}
+
+impl OrderRequest {
+    pub fn new(symbol: &str, order_type: &str, side: &str, amount: f64, price: Option<f64>) -> Self {
+        OrderRequest { symbol: Some(symbol.into()), order_type: Some(order_type.into()), side: Some(side.into()), amount: Some(amount), price, ..Default::default() }
+    }
+}
+
+impl FromRaw for OrderRequest {
+    fn from_raw(v: Value) -> Self {
+        use crate::value::{safe_string, safe_number};
+        let params = match crate::get_value(&v, &Value::Str("params".into())) { Value::Dict(d) => Some(crate::Params::from(Value::Dict(d))), _ => None };
+        OrderRequest {
+            id: safe_string(&v, "id", None), symbol: safe_string(&v, "symbol", None), outcome: safe_string(&v, "outcome", None),
+            order_type: safe_string(&v, "type", None), side: safe_string(&v, "side", None),
+            amount: safe_number(&v, "amount", None), price: safe_number(&v, "price", None), params, raw: v,
+        }
+    }
+}
+
+/// Keys whose field still decodes from `raw` keep the raw entry (and its position), so a decoded request lowers back unchanged.
+impl IntoRaw for OrderRequest {
+    fn into_raw(self) -> Value {
+        let same = Self::from_raw(self.raw.clone());
+        let mut m = match &self.raw { Value::Dict(d) => (**d).clone(), _ => HashMap::new() };
+        let mut put = |k: &str, v: Option<Value>| { match v { Some(v) => { m.insert(k.to_string(), v); } None => { m.shift_remove(k); } } };
+        if self.id != same.id { put("id", self.id.map(Value::from)); }
+        if self.symbol != same.symbol { put("symbol", self.symbol.map(Value::from)); }
+        if self.outcome != same.outcome { put("outcome", self.outcome.map(Value::from)); }
+        if self.order_type != same.order_type { put("type", self.order_type.map(Value::from)); }
+        if self.side != same.side { put("side", self.side.map(Value::from)); }
+        if self.amount != same.amount { put("amount", self.amount.map(Value::Float)); }
+        if self.price != same.price { put("price", self.price.map(Value::Float)); }
+        if self.params != same.params { put("params", self.params.map(crate::Params::into_value_object)); }
+        Value::Dict(std::sync::Arc::new(m))
+    }
+}
+
+/// A candle row `[timestamp, open, high, low, close, volume]`; a missing or non-numeric field reads `0.0`.
+impl FromRaw for OHLCV {
+    fn from_raw(v: Value) -> Self {
+        let mut out = [0.0f64; 6];
+        if let Value::Arr(fields) = v {
+            for (slot, f) in out.iter_mut().zip(fields.iter()) { *slot = f.as_f64().unwrap_or(0.0); }
+        }
+        out
+    }
+}
+/// Integral fields (the timestamp, whole-number prices) lower to `Value::Int`, as the transpiled bodies build them.
+impl IntoRaw for OHLCV {
+    fn into_raw(self) -> Value {
+        Value::from(self.iter().map(|&f| if f.fract() == 0.0 && f.abs() < 9.0e15 { Value::Int(f as i64) } else { Value::Float(f) }).collect::<Vec<Value>>())
+    }
+}
+
+impl<T: FromRaw> FromRaw for Vec<T> {
+    fn from_raw(v: Value) -> Self {
+        // a ws cache (ArrayCache*) resolves as its marker dict; its rows live in the cache store
+        let v = crate::value::cache_entries_as_value(&v).unwrap_or(v);
+        match v { Value::Arr(rows) => rows.iter().map(|r| T::from_raw(r.clone())).collect(), _ => Vec::new() }
+    }
+}
+impl<T: IntoRaw> IntoRaw for Vec<T> {
+    fn into_raw(self) -> Value { Value::from(self.into_iter().map(IntoRaw::into_raw).collect::<Vec<Value>>()) }
+}
+impl<T: FromRaw> FromRaw for HashMap<String, T> {
+    fn from_raw(v: Value) -> Self {
+        match v { Value::Dict(d) => d.iter().map(|(k, x)| (k.clone(), T::from_raw(x.clone()))).collect(), _ => HashMap::new() }
+    }
+}
+impl<T: IntoRaw> IntoRaw for HashMap<String, T> {
+    fn into_raw(self) -> Value { Value::Dict(std::sync::Arc::new(self.into_iter().map(|(k, x)| (k, x.into_raw())).collect())) }
+}
+/// An `Err` re-raises as the `panic!("[Kind] message")` the untyped call raised.
+impl<T: IntoRaw> IntoRaw for crate::Result<T> {
+    fn into_raw(self) -> Value {
+        match self { Ok(t) => t.into_raw(), Err(e) => panic!("{}", e) }
     }
 }

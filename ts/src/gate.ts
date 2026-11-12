@@ -5648,7 +5648,7 @@ export default class gate extends Exchange {
         const spot = (type === 'spot') || (type === 'margin');
         const openStatus = (status === 'open');
         const openSpotOrders = spot && openStatus && (trigger !== true);
-        let response: Dict | List;
+        let response: List;
         if (spot) {
             if (trigger !== true) {
                 if (openStatus) {
@@ -5822,7 +5822,7 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
-        let result: Dict | List = response;
+        let result: List = response;
         if (openSpotOrders) {
             let spotResult: List = [];
             for (let i = 0; i < response.length; i++) {
@@ -6104,7 +6104,7 @@ export default class gate extends Exchange {
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, paramsOmitted);
         const [ request, requestParams ] = (type === 'spot') ? this.multiOrderSpotPrepareRequest (market, trigger, query) : this.prepareRequest (market, type, query);
-        let response: Dict;
+        let response: List;
         if (type === 'spot' || type === 'margin') {
             if (trigger === true) {
                 response = await this.privateSpotDeletePriceOrders (this.extend (request, requestParams));
@@ -7125,7 +7125,7 @@ export default class gate extends Exchange {
         if (limit !== undefined) {
             requestUntil['limit'] = limit;
         }
-        let response = undefined;
+        let response: List;
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchBorrowInterest', paramsUntil, 'cross');
         if (isUnifiedAccount) {
             response = await this.privateUnifiedGetInterestRecords (this.extend (requestUntil, paramsMarginMode));
@@ -7134,8 +7134,8 @@ export default class gate extends Exchange {
                 requestUntil['currency_pair'] = market['id'];
             }
             response = await this.privateMarginGetUniInterestRecords (this.extend (requestUntil, paramsMarginMode));
-        } else if (marginMode === 'cross') {
-            // deprecated and not present in the exchange's docs but still works
+        } else {
+            // cross: deprecated and not present in the exchange's docs but still works
             response = await this.privateMarginGetCrossInterestRecords (this.extend (requestUntil, paramsMarginMode));
         }
         const interest = this.parseBorrowInterests (response, market);

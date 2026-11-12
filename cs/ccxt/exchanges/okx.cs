@@ -4246,8 +4246,8 @@ public partial class okx : Exchange
             throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        object takeProfitPrice = this.safeValue2(parameters, "takeProfitPrice", "tpTriggerPx");
-        object stopLossPrice = this.safeValue2(parameters, "stopLossPrice", "slTriggerPx");
+        string? takeProfitPrice = this.safeString2(parameters, "takeProfitPrice", "tpTriggerPx");
+        string? stopLossPrice = this.safeString2(parameters, "stopLossPrice", "slTriggerPx");
         bool conditional = ((stopLossPrice != null)) || ((takeProfitPrice != null)) || ((type == "conditional"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },

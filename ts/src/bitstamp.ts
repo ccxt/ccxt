@@ -861,7 +861,7 @@ export default class bitstamp extends Exchange {
         return this.parseCurrencies (response);
     }
 
-    override parseCurrencies (rawCurrencies: any): Currencies {
+    override parseCurrencies (rawCurrencies: List): Currencies {
         // each market row yields two currencies so the accumulation happens
         // in a local dictionary here instead of a temp key inside this.options
         // because the shared scratch key raced between concurrent

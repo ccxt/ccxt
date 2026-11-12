@@ -1221,12 +1221,12 @@ func (this *PredictionExchange) createOrderBody(ch chan AsyncResult[PredictionOr
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[PredictionOrder] {
+func (this *PredictionExchange) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[PredictionOrder] {
 	ch := make(chan AsyncResult[PredictionOrder], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) cancelOrderBody(ch chan AsyncResult[PredictionOrder], id any, optionalArgs ...any) any {
+func (this *PredictionExchange) cancelOrderBody(ch chan AsyncResult[PredictionOrder], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1570,12 +1570,12 @@ func (this *PredictionExchange) createOrdersBody(ch chan AsyncResult[[]Predictio
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]PredictionOrder] {
+func (this *PredictionExchange) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]PredictionOrder] {
 	ch := make(chan AsyncResult[[]PredictionOrder], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) cancelOrdersBody(ch chan AsyncResult[[]PredictionOrder], ids any, optionalArgs ...any) any {
+func (this *PredictionExchange) cancelOrdersBody(ch chan AsyncResult[[]PredictionOrder], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)

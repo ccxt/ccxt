@@ -514,8 +514,8 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    watchMyLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
-        return this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
+    async watchMyLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        return await this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
     }
     /**
      * @method

@@ -948,7 +948,7 @@ class bitopro extends Exchange {
         $copyFrom = $firstCandle;
         $timestamp = null;
         if ($since === null) {
-            $timestamp = $this->safe_value($firstCandle, 0);
+            $timestamp = $this->safe_integer($firstCandle, 0);
         } else {
             $timestamp = $since;
         }
@@ -967,7 +967,7 @@ class bitopro extends Exchange {
             }
             $timestamp = $this->sum($timestamp, $distanceInMs);
             $resultLength = count($result);
-            $copyFrom = $this->safe_value($result, $resultLength - 1);
+            $copyFrom = $this->safe_list($result, $resultLength - 1);
         }
         return $result;
     }

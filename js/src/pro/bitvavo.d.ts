@@ -1,5 +1,5 @@
 import bitvavoRest from '../bitvavo.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, Strings, Tickers, Bool, Currencies, Market, Transaction } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, Strings, Tickers, Bool, Currencies, Market, Transaction, type int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bitvavo extends bitvavoRest {
@@ -288,7 +288,7 @@ export default class bitvavo extends bitvavoRest {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
-    requestId(): number;
+    requestId(): int;
     watchRequest(action: string, request: Dict): Promise<any>;
     /**
      * @method

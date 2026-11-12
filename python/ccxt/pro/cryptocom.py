@@ -75,7 +75,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             error = NetworkError(self.id + ' pong failed with error ' + self.exception_message(e))
             client.reset(error)
 
-    def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -88,9 +88,9 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param int [params.bookUpdateFrequency]: Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return self.watch_order_book_for_symbols([symbol], limit, params)
+        return await self.watch_order_book_for_symbols([symbol], limit, params)
 
-    def un_watch_order_book(self, symbol: str, params={}) -> object:
+    async def un_watch_order_book(self, symbol: str, params: dict = {}) -> object:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -102,7 +102,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param int [params.bookUpdateFrequency]: Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return self.un_watch_order_book_for_symbols([symbol], params)
+        return await self.un_watch_order_book_for_symbols([symbol], params)
 
     async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -190,7 +190,7 @@ class cryptocom(ccxt.async_support.cryptocom):
 
     def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
-            self.handle_delta(bookside, self.safe_value(deltas, i))
+            self.handle_delta(bookside, self.safe_list(deltas, i))
 
     def handle_order_book(self, client: Client, message: dict):
         #
@@ -281,7 +281,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
-    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -293,9 +293,9 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return self.watch_trades_for_symbols([symbol], since, limit, params)
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
-    def un_watch_trades(self, symbol: str, params: dict = {}):
+    async def un_watch_trades(self, symbol: str, params: dict = {}):
         """
         get the list of most recent trades for a particular symbol
 
@@ -305,7 +305,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return self.un_watch_trades_for_symbols([symbol], params)
+        return await self.un_watch_trades_for_symbols([symbol], params)
 
     async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -399,7 +399,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             return
         parsedTrades = self.parse_trades(data, market)
         for j in range(0, len(parsedTrades)):
-            stored.append(self.safe_value(parsedTrades, j))
+            stored.append(self.safe_dict(parsedTrades, j))
         channelReplaced = channel.replace('.' + marketId, '')
         client.resolve(stored, symbolSpecificMessageHash)
         client.resolve(stored, channelReplaced)

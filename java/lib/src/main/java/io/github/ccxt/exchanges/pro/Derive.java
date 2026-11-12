@@ -1127,7 +1127,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 Object cache = this.safeValue(this.positions, subaccountIdKey);
                 for (var i = 0; i < ((List<?>)positionsSnapshot).size(); i++)
                 {
-                    Object snapshotPosition = this.safeValue(positionsSnapshot, i);
+                    Map<String, Object> snapshotPosition = (Map<String, Object>) this.safeDict(positionsSnapshot, i, (Object) null);
                     ((io.github.ccxt.ws.ArrayCache) cache).append(snapshotPosition);
                 }
                 loadedSnapshots.put(subaccountIdKey, true);

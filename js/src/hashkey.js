@@ -1163,7 +1163,7 @@ export default class hashkey extends Exchange {
      */
     async fetchCurrencies(params = {}) {
         const response = await this.publicGetApiV1ExchangeInfo(params);
-        const coins = this.safeList(response, 'coins');
+        const coins = this.safeList(response, 'coins', []);
         //
         //     {
         //         ...

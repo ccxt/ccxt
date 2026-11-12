@@ -41,13 +41,13 @@ public partial class bittrade : ccxt.bittrade
         });
     }
 
-    public virtual string? requestId()
+    public virtual Int64 requestId()
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         this.options["requestId"] = requestId;
         this.unlockId();
-        return requestId.ToString();
+        return requestId;
     }
 
     /**
@@ -77,13 +77,13 @@ public partial class bittrade : ccxt.bittrade
             { "hostname", this.hostname },
         };
         string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
-        string requestId = this.requestId();
+        Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
-            { "id", requestId },
+            { "id", requestId.ToString() },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", requestId },
+            { "id", requestId.ToString() },
             { "messageHash", messageHash },
             { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "params", parameters },
@@ -159,13 +159,13 @@ public partial class bittrade : ccxt.bittrade
             { "hostname", this.hostname },
         };
         string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
-        string requestId = this.requestId();
+        Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
-            { "id", requestId },
+            { "id", requestId.ToString() },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", requestId },
+            { "id", requestId.ToString() },
             { "messageHash", messageHash },
             { "symbol", symbolValue },
             { "params", parameters },
@@ -261,13 +261,13 @@ public partial class bittrade : ccxt.bittrade
             { "hostname", this.hostname },
         };
         string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
-        string requestId = this.requestId();
+        Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
-            { "id", requestId },
+            { "id", requestId.ToString() },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", requestId },
+            { "id", requestId.ToString() },
             { "messageHash", messageHash },
             { "symbol", symbolValue },
             { "timeframe", timeframeVar },
@@ -359,13 +359,13 @@ public partial class bittrade : ccxt.bittrade
             { "hostname", this.hostname },
         };
         string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
-        string requestId = this.requestId();
+        Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
-            { "id", requestId },
+            { "id", requestId.ToString() },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", requestId },
+            { "id", requestId.ToString() },
             { "messageHash", messageHash },
             { "symbol", symbolValue },
             { "limit", limitValue },
@@ -440,22 +440,22 @@ public partial class bittrade : ccxt.bittrade
                 { "hostname", this.hostname },
             };
             string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
-            string requestId = this.requestId();
+            Int64 requestId = this.requestId();
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "req", messageHash },
-                { "id", requestId },
+                { "id", requestId.ToString() },
             };
             // this is a temporary subscription by a specific requestId
             // it has a very short lifetime until the snapshot is received over ws
             Dictionary<string, object> snapshotSubscription = new Dictionary<string, object>() {
-                { "id", requestId },
+                { "id", requestId.ToString() },
                 { "messageHash", messageHash },
                 { "symbol", symbol },
                 { "limit", limit },
                 { "params", parameters },
                 { "method", this.handleOrderBookSnapshot },
             };
-            ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, requestId, request, requestId, snapshotSubscription));
+            ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, requestId.ToString(), request, requestId.ToString(), snapshotSubscription));
             return (orderbook as IOrderBook).limit();
         } catch(Exception e)
         {

@@ -2556,7 +2556,7 @@ class ndax extends Exchange {
                 $type = 'withdrawal';
             }
         }
-        $templateForm = $this->parse_json($this->safe_value_2($transaction, 'TemplateForm', 'DepositInfo'));
+        $templateForm = $this->parse_json($this->safe_string_2($transaction, 'TemplateForm', 'DepositInfo'));
         $updated = $this->safe_integer($transaction, 'LastUpdateTimeStamp');
         if ($templateForm !== null) {
             $updated = $this->safe_integer($templateForm, 'LastUpdated', $updated);

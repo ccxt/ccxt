@@ -79,7 +79,7 @@ class nado(ccxt.async_support.nado):
             },
         })
 
-    def request_id(self) -> Int:
+    def request_id(self) -> int:
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         return requestId

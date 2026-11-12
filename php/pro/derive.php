@@ -57,7 +57,7 @@ class derive extends \ccxt\async\derive {
         ));
     }
 
-    public function request_id(string $url): float {
+    public function request_id(string $url): int {
         $options = $this->safe_dict($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
@@ -1013,7 +1013,7 @@ class derive extends \ccxt\async\derive {
             $positionsSnapshot = Async\await($this->fetch_positions(null, $snapshotParams));
             $cache = $this->safe_value($this->positions, $subaccountIdKey);
             for ($i = 0; $i < count($positionsSnapshot); $i++) {
-                $snapshotPosition = $this->safe_value($positionsSnapshot, $i);
+                $snapshotPosition = $this->safe_dict($positionsSnapshot, $i);
                 $cache->append($snapshotPosition);
             }
             $loadedSnapshots[$subaccountIdKey] = true;

@@ -160,7 +160,7 @@ class blofin(ccxt.async_support.blofin):
         if data is None:
             return
         for i in range(0, len(data)):
-            rawTrade = self.safe_value(data, i)
+            rawTrade = self.safe_dict(data, i, {})
             trade = self.parse_ws_trade(rawTrade)
             symbol = self.safe_string(trade, 'symbol', '')
             stored = self.safe_value(self.trades, symbol)
@@ -312,7 +312,7 @@ class blofin(ccxt.async_support.blofin):
         channelName = self.safe_string(arg, 'channel')
         data = self.safe_list(message, 'data')
         for i in range(0, len(data)):
-            ticker = self.parse_ws_ticker(self.safe_value(data, i))
+            ticker = self.parse_ws_ticker(self.safe_dict(data, i, {}))
             symbol = self.safe_string(ticker, 'symbol', '')
             self.tickers[symbol] = ticker
             if channelName is not None:
@@ -363,7 +363,7 @@ class blofin(ccxt.async_support.blofin):
     def handle_bid_ask(self, client: Client, message: dict):
         data = self.safe_list(message, 'data')
         for i in range(0, len(data)):
-            ticker = self.parse_ws_bid_ask(self.safe_value(data, i))
+            ticker = self.parse_ws_bid_ask(self.safe_dict(data, i, {}))
             symbol = self.safe_string(ticker, 'symbol', '')
             messageHash = 'bidask:' + symbol
             self.bidsasks[symbol] = ticker
@@ -485,7 +485,7 @@ class blofin(ccxt.async_support.blofin):
             stored = ArrayCacheByTimestamp(limit)
             self.ohlcvs[symbol][unifiedTimeframe] = stored
         for i in range(0, len(data)):
-            candle = self.safe_value(data, i)
+            candle = self.safe_list(data, i)
             parsed = self.parse_ohlcv(candle, market)
             stored.append(parsed)
         resolveData = [symbol, unifiedTimeframe, stored]
@@ -615,7 +615,7 @@ class blofin(ccxt.async_support.blofin):
         channelName = self.safe_string(arg, 'channel')
         data = self.safe_list(message, 'data')
         for i in range(0, len(data)):
-            order = self.parse_ws_order(self.safe_value(data, i))
+            order = self.parse_ws_order(self.safe_dict(data, i, {}))
             orders.append(order)
             if channelName is not None:
                 client.resolve(orders, channelName + ':' + self.safe_string(order, 'symbol', ''))
@@ -661,7 +661,7 @@ class blofin(ccxt.async_support.blofin):
         data = self.safe_list(message, 'data')
         newPositions = []
         for i in range(0, len(data)):
-            position = self.parse_ws_position(self.safe_value(data, i))
+            position = self.parse_ws_position(self.safe_dict(data, i, {}))
             newPositions.append(position)
             cache.append(position)
             if channelName is not None:
@@ -743,7 +743,7 @@ class blofin(ccxt.async_support.blofin):
                 channel = channelName
                 if isOHLCV:
                     market = self.market(current)
-                    tf = self.safe_string(self.safe_value(symbolsArray, i), 1)
+                    tf = self.safe_string(self.safe_list(symbolsArray, i), 1)
                     interval = self.safe_string(self.timeframes, tf, tf)
                     channel = channel + interval
                 else:

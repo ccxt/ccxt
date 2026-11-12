@@ -18,7 +18,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use ccxt::Params;
-use ccxt::Binance;
+use ccxt::{Binance, ExchangeRuntime};
 use tokio::sync::RwLock;
 use tokio::time::MissedTickBehavior;
 
@@ -49,7 +49,10 @@ fn wall_ms() -> u128 {
 async fn run_fetcher(symbol: &'static str, books: SharedBooks, every: Duration, rounds: Option<u64>) {
     let mut exchange = Binance::new(None);
     let t0 = Instant::now();
-    exchange.load_markets(false).await;
+    if let Err(e) = exchange.load_markets(false, ()).await {
+        eprintln!("[{symbol}] load_markets failed: {e}");
+        return;
+    }
     println!("[{symbol}] markets loaded in {} ms", t0.elapsed().as_millis());
     let mut tick = tokio::time::interval(every);
     tick.set_missed_tick_behavior(MissedTickBehavior::Delay);

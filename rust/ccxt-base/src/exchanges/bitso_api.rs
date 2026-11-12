@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::bitso::BitsoCore;
+use super::bitso::Bitso;
 use crate::exchange::ExchangeRuntime;
 
-impl BitsoCore {
+impl Bitso {
     /// Auto-generated wrapper for the `publicGetAvailableBooks` implicit endpoint.
     pub async fn public_get_available_books(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_available_books".into()), optional_args).await

@@ -1404,13 +1404,17 @@ class pacifica(ccxt.async_support.pacifica):
         client.lastPong = self.safe_integer(message, 'pong', self.milliseconds())
         return message
 
-    def request_id(self) -> str:
-        return self.uuid()  # uuid v4
+    def request_id(self) -> int:
+        # millisecond timestamp plus 3 random digits stays a safe integer
+        ts = str(self.milliseconds())
+        randomPart = str(self.rand_number(3))
+        return self.parse_to_int(ts + randomPart)
 
     def wrap_as_post_action(self, operationType: Str, request: dict) -> dict:
         if operationType is None:
             raise ArgumentsRequired(self.id + 'postAction() requires a "operationType" argument!')
-        requestId = self.request_id()
+        # the venue requires a full uuid v4 request id
+        requestId = self.uuid()
         postParams = {}
         postParams[operationType] = request
         payload = {

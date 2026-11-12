@@ -1069,7 +1069,11 @@ func (this *BaseExchange) watchMyLiquidationsBody(ch chan AsyncResult[[]Liquidat
 	_ = params
 	if (this.Has["watchMyLiquidationsForSymbols"] != nil) && (this.Has["watchMyLiquidationsForSymbols"] != false) {
 
-		ch <- <-this.DerivedExchange.WatchMyLiquidationsForSymbolsAsync([]any{symbol}, since, limit, params)
+		r := <-this.DerivedExchange.WatchMyLiquidationsForSymbolsAsync([]any{symbol}, since, limit, params)
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		ch <- AsyncResult[[]Liquidation]{Value: r.Value}
 		return nil
 	}
 	panic(NotSupported(this.Id + " watchMyLiquidations() is not supported yet"))
@@ -1878,8 +1882,8 @@ func (this *BaseExchange) AfterConstruct(optionalArgs ...any) {
 	// networksById: inverse of options.networks, explicit options.networksById entries win
 	var userConfig map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = userConfig
-	var networkIdsToCodesGenerated any = this.InvertFlatStringDictionary(this.SafeValue(this.Options, "networks", map[string]any{}))
-	this.Options["networksById"] = this.Extend(networkIdsToCodesGenerated, this.SafeValue(this.Options, "networksById", map[string]any{}))
+	var networkIdsToCodesGenerated any = this.InvertFlatStringDictionary(this.SafeDict(this.Options, "networks", map[string]any{}))
+	this.Options["networksById"] = this.Extend(networkIdsToCodesGenerated, this.SafeDict(this.Options, "networksById", map[string]any{}))
 	this.FeaturesGenerator()
 	this.HasAutocorrect()
 	// init predefined markets if any
@@ -2973,18 +2977,7 @@ func (this *BaseExchange) ParseOrders(orders any, optionalArgs ...any) []any {
 			results = append(results, order)
 		}
 	} else {
-		var ids []string = ObjectKeys(orders)
-		for i := 0; i < len(ids); i++ {
-			var id string = ids[i]
-			var idExtended map[string]any = this.Extend(map[string]any{
-				"id": id,
-			}, GetValue(orders, id))
-
-			var parsedOrder map[string]any = OrderToMap(this.DerivedExchange.ParseOrder(idExtended, market))
-			PanicOnError(parsedOrder) // don't  inline these calls
-			var order map[string]any = this.Extend(parsedOrder, params)
-			results = append(results, order)
-		}
+		return this.ParseOrders(this.AddKeyInArrayItems(orders, "id"), market, since, limit, params)
 	}
 	results = this.SortBy(results, "timestamp")
 	var symbol *string = this.SafeString(market, "symbol")
@@ -5668,11 +5661,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes707015 map[string]any = r.Value
-	if retRes707015 == nil {
+	var retRes706315 map[string]any = r.Value
+	if retRes706315 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes707015}
+		ch <- AsyncResult[map[string]any]{Value: retRes706315}
 	}
 	return nil
 }
@@ -11453,12 +11446,12 @@ func (this *Exchange) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 	_ = params
 	panic(NotSupported(this.Id + " createOrders() is not supported yet"))
 }
-func (this *Exchange) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Exchange) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Exchange) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Exchange) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -11500,12 +11493,12 @@ func (this *Exchange) cancelOrderWithClientOrderIdBody(ch chan AsyncResult[Order
 	ch <- AsyncResult[Order]{Value: r.Value}
 	return nil
 }
-func (this *Exchange) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Exchange) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Exchange) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Exchange) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -11540,16 +11533,16 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 		"clientOrderIds": clientOrderIds,
 	})
 
-	r := <-this.CancelOrdersAsync([]any{}, symbol, extendedParams)
+	r := <-this.CancelOrdersAsync([]string{}, symbol, extendedParams)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1048715Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048715 []any = retRes1048715Recv
-	if retRes1048715 == nil {
+	retRes1048015Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048015 []any = retRes1048015Recv
+	if retRes1048015 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048015)}
 	}
 	return nil
 }
@@ -11578,7 +11571,7 @@ func (this *Exchange) cancelUnifiedOrderBody(ch chan AsyncResult[Order], order a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.DerivedExchange.(ICancelOrder).CancelOrderAsync(this.SafeString(order, "id"), this.SafeString(order, "symbol"), params)
+	r := <-this.DerivedExchange.(ICancelOrder).CancelOrderAsync(*this.SafeString(order, "id", ""), this.SafeString(order, "symbol"), params)
 	if r.Err != nil {
 		panic(r.Err)
 	}

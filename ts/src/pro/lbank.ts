@@ -2,7 +2,7 @@
 import lbankRest from '../lbank.js';
 import { BadRequest, ExchangeError, NetworkError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, List, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, List, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -57,7 +57,7 @@ export default class lbank extends lbankRest {
         });
     }
 
-    requestId (): number {
+    requestId (): int {
         this.lockId ();
         const previousValue = this.safeInteger (this.options, 'requestId', 0);
         const newValue = this.sum (previousValue, 1);
@@ -1002,7 +1002,7 @@ export default class lbank extends lbankRest {
         //
         const marketId = this.safeString (message, 'pair');
         const symbol = this.safeSymbol (marketId);
-        const orderBook = this.safeValue (message, 'depth', message);
+        const orderBook = this.safeDict (message, 'depth', message);
         const datetime = this.safeString (message, 'TS');
         const timestamp = this.parse8601 (datetime);
         // let orderbook = this.safeValue (this.orderbooks, symbol);

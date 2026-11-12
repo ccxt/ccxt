@@ -3082,7 +3082,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # a websocket handshake, and the venue documents both forms
         return base + '?apiKey=' + self.apiKey
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         """
  @ignore
         a monotonic id the venue echoes back so a subscription reply can be matched to its request

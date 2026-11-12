@@ -4115,7 +4115,7 @@ class BaseExchange {
         throw new NotSupported($this->id . ' parseCurrency() is not supported yet');
     }
 
-    public function parse_currencies(mixed $rawCurrencies) {
+    public function parse_currencies(array $rawCurrencies) {
         $result = array();
         $arr = $this->to_array($rawCurrencies);
         for ($i = 0; $i < count($arr); $i++) {
@@ -4133,7 +4133,7 @@ class BaseExchange {
         throw new NotSupported($this->id . ' parseMarket() is not supported yet');
     }
 
-    public function parse_markets(mixed $markets) {
+    public function parse_markets(array $markets) {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $this->parse_market($markets[$i]);
@@ -4393,8 +4393,8 @@ class BaseExchange {
 
     public function after_construct(array $userConfig = array()) {
         // networksById: inverse of options.networks, explicit options.networksById entries win
-        $networkIdsToCodesGenerated = $this->invert_flat_string_dictionary($this->safe_value($this->options, 'networks', array()));
-        $this->options['networksById'] = $this->extend($networkIdsToCodesGenerated, $this->safe_value($this->options, 'networksById', array()));
+        $networkIdsToCodesGenerated = $this->invert_flat_string_dictionary($this->safe_dict($this->options, 'networks', array()));
+        $this->options['networksById'] = $this->extend($networkIdsToCodesGenerated, $this->safe_dict($this->options, 'networksById', array()));
         $this->features_generator();
         $this->has_autocorrect();
         // init predefined markets if any
@@ -5366,7 +5366,7 @@ class BaseExchange {
         ));
     }
 
-    public function parse_orders(mixed $orders, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function parse_orders(?array $orders, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()) {
         //
         // the value of orders is either a dict or a list
         //
@@ -5399,14 +5399,7 @@ class BaseExchange {
                 $results[] = $order;
             }
         } else {
-            $ids = is_array($orders) ? array_keys($orders) : array();
-            for ($i = 0; $i < count($ids); $i++) {
-                $id = $ids[$i];
-                $idExtended = $this->extend(array( 'id' => $id ), $orders[$id]);
-                $parsedOrder = $this->parse_order($idExtended, $market); // don't  inline these calls
-                $order = $this->extend($parsedOrder, $params);
-                $results[] = $order;
-            }
+            return $this->parse_orders($this->add_key_in_array_items($orders, 'id'), $market, $since, $limit, $params);
         }
         $results = $this->sort_by($results, 'timestamp');
         $symbol = $this->safe_string($market, 'symbol');
@@ -6307,7 +6300,7 @@ class BaseExchange {
         );
     }
 
-    public function parse_ohlcvs(mixed $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null, ?bool $tail = false) {
+    public function parse_ohlcvs(?array $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null, ?bool $tail = false) {
         if ($ohlcvs === null) {
             return array();
         }
@@ -8244,7 +8237,7 @@ class BaseExchange {
         return $this->filter_by_array_tickers($results, 'symbol', $this->market_symbols($symbols));
     }
 
-    public function parse_deposit_addresses(mixed $addresses, ?array $codes = null, $indexed = true, $params = array()) {
+    public function parse_deposit_addresses(array $addresses, ?array $codes = null, $indexed = true, $params = array()) {
         $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
             $address = $this->extend($this->parse_deposit_address($addresses[$i]), $params);
@@ -8259,7 +8252,7 @@ class BaseExchange {
         return $result;
     }
 
-    public function parse_borrow_interests(mixed $response, ?array $market = null) {
+    public function parse_borrow_interests(array $response, ?array $market = null) {
         $interests = array();
         for ($i = 0; $i < count($response); $i++) {
             $row = $this->safe_value($response, $i);
@@ -8283,7 +8276,7 @@ class BaseExchange {
         return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
     }
 
-    public function parse_isolated_borrow_rates(mixed $info) {
+    public function parse_isolated_borrow_rates(array $info) {
         $result = array();
         for ($i = 0; $i < count($info); $i++) {
             $item = $this->safe_value($info, $i);
@@ -8294,7 +8287,7 @@ class BaseExchange {
         return $result;
     }
 
-    public function parse_funding_rate_histories(mixed $response, ?array $market = null, ?int $since = null, ?int $limit = null) {
+    public function parse_funding_rate_histories(array $response, ?array $market = null, ?int $since = null, ?int $limit = null) {
         $rates = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -8314,7 +8307,7 @@ class BaseExchange {
         throw new NotSupported($this->id . ' parseFundingRate() is not supported yet');
     }
 
-    public function parse_funding_rates(mixed $response, ?array $symbols = null) {
+    public function parse_funding_rates(array $response, ?array $symbols = null) {
         $fundingRates = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -8330,7 +8323,7 @@ class BaseExchange {
         throw new NotSupported($this->id . ' parseLongShortRatio() is not supported yet');
     }
 
-    public function parse_long_short_ratio_history(mixed $response, ?array $market = null, ?int $since = null, ?int $limit = null) {
+    public function parse_long_short_ratio_history(array $response, ?array $market = null, ?int $since = null, ?int $limit = null) {
         $rates = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -8488,7 +8481,7 @@ class BaseExchange {
         throw new NotSupported($this->id . ' parseOpenInterest () is not supported yet');
     }
 
-    public function parse_open_interests(mixed $response, ?array $symbols = null) {
+    public function parse_open_interests(array $response, ?array $symbols = null) {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -10370,7 +10363,7 @@ class Exchange extends BaseExchange {
         return $this->safe_string($order, 'status');
     }
 
-    public function fetch_unified_order(mixed $order, $params = array()) {
+    public function fetch_unified_order(array $order, $params = array()) {
         return $this->fetchOrder($this->safe_string($order, 'id', ''), $this->safe_string($order, 'symbol'), $params);
     }
 
@@ -10608,7 +10601,7 @@ class Exchange extends BaseExchange {
     }
 
     public function cancel_unified_order(array $order, $params = array()) {
-        return $this->cancel_order($this->safe_string($order, 'id'), $this->safe_string($order, 'symbol'), $params);
+        return $this->cancel_order($this->safe_string($order, 'id', ''), $this->safe_string($order, 'symbol'), $params);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {

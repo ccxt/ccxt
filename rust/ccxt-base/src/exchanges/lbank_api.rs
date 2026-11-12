@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::lbank::LbankCore;
+use super::lbank::Lbank;
 use crate::exchange::ExchangeRuntime;
 
-impl LbankCore {
+impl Lbank {
     /// Auto-generated wrapper for the `spotPublicGetCurrencyPairs` implicit endpoint.
     pub async fn spot_public_get_currency_pairs(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_public_get_currency_pairs".into()), optional_args).await

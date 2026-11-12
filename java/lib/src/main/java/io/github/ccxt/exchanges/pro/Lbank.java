@@ -1130,7 +1130,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         //
         String marketId = this.safeString(message, "pair");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Object orderBook = this.safeValue(message, "depth", message);
+        Map<String, Object> orderBook = (Map<String, Object>) this.safeDict(message, "depth", message);
         String datetime = this.safeString(message, "TS");
         Long timestamp = this.parse8601(datetime);
         // let orderbook = this.safeValue (this.orderbooks, symbol);

@@ -3078,12 +3078,12 @@ func (this *Bithumb) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optio
  * @param {bool} [params.twap] if you want to cancel a generation 2 twap order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bithumb) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3188,12 +3188,12 @@ func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Bithumb) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Bithumb) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3264,7 +3264,7 @@ func (this *Bithumb) cancelUnifiedOrderBody(ch chan AsyncResult[Order], order an
 		"side": this.SafeString(order, "side"),
 	}
 
-	r := <-this.CancelOrderAsync(this.SafeString(order, "id", ""), this.SafeString(order, "symbol"), this.Extend(request, params))
+	r := <-this.CancelOrderAsync(*this.SafeString(order, "id", ""), this.SafeString(order, "symbol"), this.Extend(request, params))
 	if r.Err != nil {
 		panic(r.Err)
 	}

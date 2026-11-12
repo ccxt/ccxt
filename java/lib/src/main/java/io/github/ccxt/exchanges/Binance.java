@@ -6765,7 +6765,7 @@ public class Binance extends BinanceApi
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; }); i++)
         {
-            String marketId = this.safeString(this.safeValue(response, i), "symbol");
+            String marketId = this.safeString(this.safeDict(response, i, (Object) null), "symbol");
             Map<String, Object> tickerMarket = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "spot");
             Map<String, Object> parsedTicker = (Map<String, Object>) this.parseTicker(this.safeValue(response, i), (Map<String, Object>) null);
             parsedTicker.put("symbol", tickerMarket.get("symbol"));
@@ -10216,7 +10216,7 @@ public class Binance extends BinanceApi
                     request.put("startTime", (untilResolved - ((long) oneWeek)));
                 }
             }
-            Object response = null;
+            List<Object> response = null;
             if (Boolean.TRUE.equals(isOptionType))
             {
                 response = (this.eapiPrivateGetHistoryOrders(this.extend(request, paramsPaginate))).join();
@@ -10276,7 +10276,8 @@ public class Binance extends BinanceApi
                     response = (this.sapiGetMarginAllOrders(this.extend(request, paramsPaginate))).join();
                 } else if (Boolean.TRUE.equals(stock))
                 {
-                    response = (this.sapiGetEquityOrderHistory(this.extend(request, paramsPaginate))).join();
+                    Map<String, Object> equityResponse = (this.sapiGetEquityOrderHistory(this.extend(request, paramsPaginate))).join();
+                    response = (List<Object>) this.safeList(equityResponse, "rows", new ArrayList<Object>(Arrays.asList()));
                 } else
                 {
                     response = (this.privateGetAllOrders(this.extend(request, paramsPaginate))).join();
@@ -10488,11 +10489,6 @@ public class Binance extends BinanceApi
             //         ]
             //     }
             //
-            if (Boolean.TRUE.equals(stock))
-            {
-                List<Object> result = (List<Object>) this.safeList(response, "rows", new ArrayList<Object>(Arrays.asList()));
-                return this.parseOrders(result, market, since, limitResolved, new HashMap<String, Object>() {{}});
-            }
             return this.parseOrders(response, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -14078,7 +14074,7 @@ public class Binance extends BinanceApi
         for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
         {
             Object bracket = (leverageBracket == null || i < 0 || i >= leverageBracket.size() ? null : leverageBracket.get(i));
-            if (Precise.stringLt(notionalStringAbs, this.safeValue(bracket, 0)))
+            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0)))
             {
                 break;
             }
@@ -14323,7 +14319,7 @@ public class Binance extends BinanceApi
         for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
         {
             Object bracket = (leverageBracket == null || i < 0 || i >= leverageBracket.size() ? null : leverageBracket.get(i));
-            if (Precise.stringLt(notionalStringAbs, this.safeValue(bracket, 0)))
+            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0)))
             {
                 break;
             }
@@ -16719,7 +16715,7 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Object parameters)
+    public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -17151,7 +17147,7 @@ public class Binance extends BinanceApi
             //         ]
             //     }
             //
-            List<Object> rows = (List<Object>) this.safeList(response, "rows", (Object) null);
+            List<Object> rows = (List<Object>) this.safeList(response, "rows", new ArrayList<Object>(Arrays.asList()));
             List<Object> interest = this.parseBorrowInterests(rows, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));

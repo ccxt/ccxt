@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::dydx::DydxCore;
+use super::dydx::Dydx;
 use crate::exchange::ExchangeRuntime;
 
-impl DydxCore {
+impl Dydx {
     /// Auto-generated wrapper for the `indexerGetAddressesAddress` implicit endpoint.
     pub async fn indexer_get_addresses_address(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("indexer_get_addresses_address".into()), optional_args).await

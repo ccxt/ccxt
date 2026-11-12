@@ -1125,7 +1125,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['start_date'] = self.iso8601(since)
-        until = self.safe_value_2(paramsPaginate, 'until', 'end_date')
+        until = self.safe_integer_2(paramsPaginate, 'until', 'end_date')
         if until is not None:
             request['end_date'] = self.iso8601(until)
         paramsUntil = self.omit(paramsPaginate, ['until']) if (until is not None) else paramsPaginate
@@ -1250,7 +1250,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['granularity'] = parsedTimeframe
         else:
             request['granularity'] = timeframe
-        until = self.safe_value_2(paramsPaginate, 'until', 'end')
+        until = self.safe_integer_2(paramsPaginate, 'until', 'end')
         paramsOmitted = self.omit(paramsPaginate, ['until'])
         # https://docs.pro.coinbase.com/#get-historic-rates max = 300
         cappedLimit = self.parse_to_int(300 if (limit is None) else min(limit, 300))
@@ -1466,7 +1466,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['limit'] = limit  # default 100
         if since is not None:
             request['start_date'] = self.iso8601(since)
-        until = self.safe_value_2(paramsPaginate, 'until', 'end_date')
+        until = self.safe_integer_2(paramsPaginate, 'until', 'end_date')
         if until is not None:
             request['end_date'] = self.iso8601(until)
         paramsUntil = self.omit(paramsPaginate, ['until']) if (until is not None) else paramsPaginate
@@ -1788,7 +1788,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['start_date'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit  # default 100
-        until = self.safe_value_2(params, 'until', 'end_date')
+        until = self.safe_integer_2(params, 'until', 'end_date')
         if until is not None:
             request['end_date'] = self.iso8601(until)
         paramsUntil = self.omit(params, ['until']) if (until is not None) else params

@@ -106,10 +106,10 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }});
     }
 
-    public String requestId()
+    public Long requestId()
     {
         Long requestId = this.nextCounter("requestId", 1L);
-        return (String) (this.numberToString(requestId));
+        return requestId;
     }
 
     public CompletableFuture<Object> subscribePublic(Object messageHashes, Object channels, Boolean isContract, Map<String, Object> parameters, Map<String, Object> subscription)
@@ -117,7 +117,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
 
         return BaseExchange.supplyAsync(() -> {
 
-            String id = this.requestId();
+            Long id = this.requestId();
             String method = "SUBSCRIBE";
             Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
             if (Boolean.TRUE.equals(unsubscribe))
@@ -129,7 +129,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             message.put("method", method);
             message.put("params", channels);
             Map<String, Object> subscriptionExtended = this.extend(subscription, new HashMap<String, Object>() {{
-                put( "id", id );
+                put( "id", String.valueOf(id) );
             }});
             String type = "spot";
             if (java.util.Objects.requireNonNullElse(isContract, false))
@@ -160,13 +160,13 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 method = "UNSUBSCRIBE";
             }
-            String id = this.requestId();
+            Long id = this.requestId();
             Map<String, Object> message = new HashMap<String, Object>();
             message.put("id", id);
             message.put("method", method);
             message.put("params", new ArrayList<Object>(Arrays.asList(channel)));
             Map<String, Object> subscriptionExtended = this.extend(subscription, new HashMap<String, Object>() {{
-                put( "id", id );
+                put( "id", String.valueOf(id) );
             }});
             return (this.watch(url, messageHash, this.deepExtend(message, parameters), subscribeHash, subscriptionExtended)).join();
         });

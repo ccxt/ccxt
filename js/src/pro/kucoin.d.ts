@@ -1,12 +1,12 @@
 import kucoinRest from '../kucoin.js';
-import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class kucoin extends kucoinRest {
     describe(): Dict;
     negotiate(privateChannel: boolean, isFuturesMethod?: boolean, params?: Dict): Promise<any>;
     negotiateHelper(privateChannel: any, connectId: string, params?: Dict): Promise<Str>;
-    requestId(): number;
+    requestId(): int;
     subscribe(url: string, messageHash: string, subscriptionHash: string, params?: Dict, subscription?: NullableDict): Promise<any>;
     subscribePublicUta(messageHash: string, channel: string, symbol: string, params?: Dict, subscription?: NullableDict): Promise<any>;
     subscribePrivateUta(messageHashes: string[], subscribeHash: string, channel: string, symbol?: Str, params?: Dict, subscription?: NullableDict): Promise<any>;

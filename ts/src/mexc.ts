@@ -219,7 +219,7 @@ export default class mexc extends Exchange {
                             'capital/convert': { 'cost': 1 } as Endpoint<Dict>,
                             'capital/convert/list': { 'cost': 1 } as Endpoint<List>,
                             'margin/loan': { 'cost': 1 } as Endpoint<Dict>,
-                            'margin/allOrders': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/allOrders': { 'cost': 1 } as Endpoint<List>,
                             'margin/myTrades': { 'cost': 1 } as Endpoint<Dict>,
                             'margin/openOrders': { 'cost': 1 } as Endpoint<List>,
                             'margin/maxTransferable': { 'cost': 1 } as Endpoint<Dict>,
@@ -274,7 +274,7 @@ export default class mexc extends Exchange {
                         },
                         'delete': {
                             'order': { 'cost': 1 } as Endpoint<List>,
-                            'openOrders': { 'cost': 1 } as Endpoint<Dict>,
+                            'openOrders': { 'cost': 1 } as Endpoint<List>,
                             'order/all': { 'cost': 1 } as Endpoint<Dict>,
                             'sub-account/apiKey': { 'cost': 1 } as Endpoint<Dict>,
                             'strategy/group': { 'cost': 1 } as Endpoint<Dict>,
@@ -2923,7 +2923,7 @@ export default class mexc extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            let response: Dict;
+            let response: List;
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new BadRequest (this.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
@@ -3137,7 +3137,7 @@ export default class mexc extends Exchange {
             //     }
             //
             const data = this.safeList (response, 'data');
-            return this.parseOrders ((data as object), market);
+            return this.parseOrders (data, market);
         }
     }
 
@@ -3171,7 +3171,7 @@ export default class mexc extends Exchange {
                 request['symbol'] = this.safeString (market, 'id');
             }
             const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', paramsMarketType);
-            let response: Dict;
+            let response: List;
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new BadRequest (this.id + ' fetchOpenOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
@@ -3461,7 +3461,7 @@ export default class mexc extends Exchange {
             //     }
             //
             const data = this.safeList (response, 'data');
-            return this.parseOrders ((data as object), market);
+            return this.parseOrders (data, market);
         }
     }
 

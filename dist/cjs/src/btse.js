@@ -2532,7 +2532,7 @@ class btse extends btse$1["default"] {
             request['symbol'] = this.futuresRequestId(this.market(symbol));
             response = await this.privateDeleteFuturesApiV23Order(this.extend(request, paramsMarketType));
         }
-        return this.parseOrders(response, market);
+        return this.parseOrders(this.toArray(response), market);
     }
     /**
      * @method

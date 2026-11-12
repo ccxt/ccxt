@@ -1212,7 +1212,7 @@ public partial class whitebit : Exchange
             string? entry = ((string)currencyIds[i]);
             List<object> splitEntry = entry.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
             object currencyId = (splitEntry != null && 0 < splitEntry.Count ? splitEntry[0] : null);
-            object feeInfo = this.safeValue(response, entry);
+            IDictionary<string, object> feeInfo = this.safeDict(response, entry);
             string? code = this.safeCurrencyCode(currencyId);
             if (((code != null)) && (((codesValue == null)) || (this.inArray(code, codesValue))))
             {
@@ -3418,7 +3418,7 @@ public partial class whitebit : Exchange
                 throw new ArgumentsRequired ((this.id + " fetchDepositAddress() requires an amount when the ticker is fiat")) ;
             }
             request["amount"] = amount;
-            object uniqueId = this.safeValue(parameters, "uniqueId");
+            string? uniqueId = this.safeString(parameters, "uniqueId");
             if ((uniqueId == null))
             {
                 throw new ArgumentsRequired ((this.id + " fetchDepositAddress() requires an uniqueId when the ticker is fiat")) ;
@@ -4910,7 +4910,7 @@ public partial class whitebit : Exchange
         Dictionary<string, object> publicHeaders = new Dictionary<string, object>() {};
         publicHeaders["User-Agent"] = ((("ccxt/" + this.id) + "-") + this.version);
         string pathWithParams = ("/" + this.implodeParams(path, parameters));
-        string? apiUrl = this.safeString(this.safeValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), version), accessibility);
+        string? apiUrl = this.safeString(this.safeDict((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), version), accessibility);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;

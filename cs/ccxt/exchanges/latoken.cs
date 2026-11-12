@@ -712,10 +712,10 @@ public partial class latoken : Exchange
         List<object> merged = new List<object>() {};
         for (int i = 0; i < (rawCurrencies?.Count ?? 0); i++)
         {
-            object rawCurrency = this.safeValue(rawCurrencies, i);
+            IDictionary<string, object> rawCurrency = this.safeDict(rawCurrencies, i);
             IDictionary<string, object> bindingEntry = this.safeDict(bindingsById, this.safeString(rawCurrency, "id"));
             List<object> bindings = this.safeList(bindingEntry, "bindings");
-            object mergedCurrency = rawCurrency;
+            IDictionary<string, object> mergedCurrency = rawCurrency;
             if ((bindings != null))
             {
                 mergedCurrency = this.extend(rawCurrency, new Dictionary<string, object>() {

@@ -769,26 +769,29 @@ class btcturk(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limitResolved)
-
-    def parse_ohlcvs(self, ohlcvs: object, market: object = None, timeframe='1m', since: Int = None, limit: Int = None, tail: Bool = False):
-        results = []
-        timestamp = self.safe_list(ohlcvs, 't', [])
-        high = self.safe_list(ohlcvs, 'h', [])
-        open = self.safe_list(ohlcvs, 'o', [])
-        low = self.safe_list(ohlcvs, 'l', [])
-        close = self.safe_list(ohlcvs, 'c', [])
-        volume = self.safe_list(ohlcvs, 'v', [])
+        timestamp = self.safe_list(response, 't', [])
+        high = self.safe_list(response, 'h', [])
+        open = self.safe_list(response, 'o', [])
+        low = self.safe_list(response, 'l', [])
+        close = self.safe_list(response, 'c', [])
+        volume = self.safe_list(response, 'v', [])
+        rows = []
         for i in range(0, len(timestamp)):
-            ohlcv = {
+            rows.append({
                 'timestamp': self.safe_integer(timestamp, i),
                 'high': self.safe_number(high, i),
                 'open': self.safe_number(open, i),
                 'low': self.safe_number(low, i),
                 'close': self.safe_number(close, i),
                 'volume': self.safe_number(volume, i),
-            }
-            results.append(self.parse_ohlcv(ohlcv, market))
+            })
+        return self.parse_ohlcvs(rows, market, timeframe, since, limitResolved)
+
+    def parse_ohlcvs(self, ohlcvs: list, market: object = None, timeframe='1m', since: Int = None, limit: Int = None, tail: Bool = False):
+        rows = self.to_array(ohlcvs)
+        results = []
+        for i in range(0, len(rows)):
+            results.append(self.parse_ohlcv(self.safe_dict(rows, i, {}), market))
         sorted = self.sort_by(results, 0)
         return self.filter_by_since_limit(sorted, since, limit, 0, tail)
 

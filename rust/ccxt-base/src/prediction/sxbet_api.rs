@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::sxbet::SxbetCore;
+use super::sxbet::Sxbet;
 use crate::exchange::ExchangeRuntime;
 
-impl SxbetCore {
+impl Sxbet {
     /// Auto-generated wrapper for the `sxbetPublicGetMetadataObv3` implicit endpoint.
     pub async fn sxbet_public_get_metadata_obv3(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sxbet_public_get_metadata_obv3".into()), optional_args).await

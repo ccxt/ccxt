@@ -1094,7 +1094,7 @@ class digifinex(Exchange, ImplicitAPI):
         for i in range(0, len(tickers)):
             rawTicker = self.extend({
                 'date': date,
-            }, self.safe_value(tickers, i))
+            }, self.safe_dict(tickers, i))
             ticker = self.parse_ticker(rawTicker)
             symbol = ticker['symbol']
             if symbol is not None:
@@ -3187,7 +3187,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         "unrealized_pnl": "-0.049158102631998504"
         #     }
         #
-        rows = self.safe_list(response, 'positions')
+        rows = self.safe_list(response, 'positions', [])
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 

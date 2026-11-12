@@ -1,6 +1,6 @@
-// CCXT Rust CLI — mirrors `cli.go` / `cli.cs`, built on the TYPED crate.
+// CCXT Rust CLI — mirrors `cli.go` / `cli.cs`, built on the `ccxt` crate.
 // `ccxt::from_id(id, config)` builds a boxed `TypedExchange`; the method name
-// is dispatched dynamically through `TypedExchange::call_raw` (the typed crate's
+// is dispatched dynamically through `call` on `dyn TypedExchange` (the
 // runtime escape hatch), so this file needs no per-method signatures.
 //
 //   npm run cli.rs -- binance fetchTicker BTC/USDT
@@ -210,8 +210,8 @@ async fn main() {
     let no_keys = flags.iter().any(|f| f == "--no-keys");
 
     // Build the settings map `<Exchange>::new` takes: credentials + proxies +
-    // verbose all go in here so the typed wrapper (whose Core is private) is
-    // configured entirely at construction.
+    // verbose all go in here so the exchange is configured entirely at
+    // construction.
     let mut config: HashMap<String, Value> = HashMap::new();
     if !no_keys {
         for (k, v) in load_credentials(&id) { config.insert(k, Value::Str(v.into())); }
@@ -265,12 +265,12 @@ async fn run_rest(id: &str, m: &str, args: Vec<Value>, testnet: bool, demo: bool
             None => panic!("{RED}exchange not compiled in: {id} (build with --features all-venues){RESET}"),
         };
         // --testnet / --demo route through the runtime dispatch, same as any method.
-        if testnet { let _ = ex.call_raw("set_sandbox_mode", vec![Value::Bool(true)]).await; }
-        if demo { let _ = ex.call_raw("enable_demo_trading", vec![Value::Bool(true)]).await; }
+        if testnet { let _ = ex.call::<Value>("set_sandbox_mode", vec![Value::Bool(true)]).await; }
+        if demo { let _ = ex.call::<Value>("enable_demo_trading", vec![Value::Bool(true)]).await; }
         // Most unified methods need markets loaded first.
         let skip_load = ["load_markets", "fetch_markets", "fetch_currencies", "fetch_time", "fetch_status", "describe"].contains(&m);
-        if !skip_load { let _ = ex.load_markets(false).await; }
-        ex.call_raw(m, args).await
+        if !skip_load { let _ = ex.load_markets(false, ()).await; }
+        ex.call::<Value>(m, args).await
     }).catch_unwind().await;
 
     match result {
@@ -299,16 +299,16 @@ async fn run_ws(id: &str, m: &str, args: Vec<Value>, testnet: bool, demo: bool, 
             std::process::exit(1);
         }
     };
-    if testnet { let _ = ex.call_raw("set_sandbox_mode", vec![Value::Bool(true)]).await; }
-    if demo { let _ = ex.call_raw("enable_demo_trading", vec![Value::Bool(true)]).await; }
-    let _ = ex.load_markets(false).await;
+    if testnet { let _ = ex.call::<Value>("set_sandbox_mode", vec![Value::Bool(true)]).await; }
+    if demo { let _ = ex.call::<Value>("enable_demo_trading", vec![Value::Bool(true)]).await; }
+    let _ = ex.load_markets(false, ()).await;
     println!("{YELLOW}streaming {m} — press Ctrl-C to stop{RESET}");
 
     let mut i: u64 = 0;
     loop {
-        // The pro wrappers surface their panic-based errors as `Result`, so a
+        // The pro exchanges surface their panic-based errors as `Result`, so a
         // plain match suffices — no per-iteration unwind guard needed.
-        match ex.call_raw(m, args.clone()).await {
+        match ex.call::<Value>(m, args.clone()).await {
             Ok(v) => println!("\n{GREEN}[{i}]{RESET} {}", pretty(&materialize_book(&v), 0)),
             Err(e) => { eprintln!("\n{RED}error:{RESET} {e}"); std::process::exit(1); }
         }

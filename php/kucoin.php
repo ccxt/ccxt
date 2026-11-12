@@ -4824,8 +4824,7 @@ class kucoin extends Exchange {
         //           },
         // }
         //
-        $data = $this->safe_dict($response, 'data', array());
-        $data = $this->safe_list($data, 'data', array());
+        $data = $this->safe_list($this->safe_dict($response, 'data', array()), 'data', array());
         return $this->parse_orders($data);
     }
 
@@ -11054,9 +11053,8 @@ class kucoin extends Exchange {
                 'clientOid' => $this->safe_string($clientOrderIds, $i),
             );
         }
-        $idsList = $this->to_array($ids);
-        for ($i = 0; $i < count($idsList); $i++) {
-            $orderId = $this->safe_string($idsList, $i);
+        for ($i = 0; $i < count($ids); $i++) {
+            $orderId = $this->safe_string($ids, $i);
             if ($uta) {
                 $ordersRequests[] = array(
                     'orderId' => $orderId,

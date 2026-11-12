@@ -3200,7 +3200,7 @@ export default class grvt extends Exchange {
         return this.convertToBigIntCustom ('10000'); // multiply needed https://t.me/c/3396937126/88
     }
 
-    createSignedRequest (request: Dict, structureType: string, currencyObj: Dict | undefined = undefined, signerAddress: Str = undefined): Dict {
+    createSignedRequest (request: Dict, structureType: string, currencyObj: Currency = undefined, signerAddress: Str = undefined): Dict {
         let messageData: NullableDict = undefined;
         const requestSignature: Dict = this.safeDict (request, 'signature', {});
         if (structureType === 'EIP712_TRANSFER_TYPE') {
@@ -3302,7 +3302,7 @@ export default class grvt extends Exchange {
         return [ request, params ];
     }
 
-    requestId (): number {
+    requestId (): int {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         return requestId;

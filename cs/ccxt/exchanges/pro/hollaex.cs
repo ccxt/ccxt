@@ -192,7 +192,7 @@ public partial class hollaex : ccxt.hollaex
         IList<object> parsedTrades = ccxt.BaseExchange.FromTradeList(this.parseTrades(data, market));
         for (int i = 0; i < (parsedTrades?.Count ?? 0); i++)
         {
-            stored.append(this.safeValue(parsedTrades, i));
+            stored.append(this.safeDict(parsedTrades, i));
         }
         if ((channel != null))
         {

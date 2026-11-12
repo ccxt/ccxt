@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitvavo.js';
-import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, DepositAddress, DepositWithdrawFees } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, DepositAddress, DepositWithdrawFees, List } from './base/types.js';
 /**
  * @class bitvavo
  * @augments Exchange
@@ -24,7 +24,7 @@ export default class bitvavo extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
-    parseMarkets(markets: any): Market[];
+    parseMarkets(markets: List): Market[];
     /**
      * @method
      * @name bitvavo#fetchCurrencies

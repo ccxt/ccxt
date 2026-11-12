@@ -21,7 +21,7 @@ use std::time::Duration;
 
 use ccxt::types::OrderBook;
 use ccxt::{Config, Params};
-use ccxt_pro::{from_id_with_config, TypedExchange, TypedExchangeExt};
+use ccxt_pro::{from_id_with_config, TypedExchange};
 use futures::FutureExt;
 use tokio::sync::RwLock;
 use tokio::time::MissedTickBehavior;
@@ -158,7 +158,7 @@ async fn async_main() {
             Some(ex) => {
                 handles.push(tokio::spawn(watch_loop(name, ex, board.clone())));
             }
-            None => eprintln!("[{name}] no typed WS wrapper — skipping"),
+            None => eprintln!("[{name}] not a WS exchange — skipping"),
         }
     }
 

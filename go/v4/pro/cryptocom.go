@@ -306,7 +306,7 @@ func (this *Cryptocom) HandleDelta(bookside any, delta any) {
 }
 func (this *Cryptocom) HandleDeltas(bookside any, deltas any) {
 	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
-		this.HandleDelta(bookside, this.SafeValue(deltas, i))
+		this.HandleDelta(bookside, this.SafeList(deltas, i))
 	}
 }
 func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
@@ -615,7 +615,7 @@ func (this *Cryptocom) HandleTrades(client any, message any) {
 	}
 	var parsedTrades []any = this.ParseTrades(data, market)
 	for j := 0; j < len(parsedTrades); j++ {
-		stored.Append(this.SafeValue(parsedTrades, j))
+		stored.Append(this.SafeDict(parsedTrades, j))
 	}
 	var channelReplaced string = ccxt.Replace(channel, ccxt.Add(".", marketId), "")
 	client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)

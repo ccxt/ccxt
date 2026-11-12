@@ -23,8 +23,8 @@
 //
 // BINANCE_MARKET_TYPE=future streams USD-M instead of spot, and SHOW_RAW=1
 // adds each update's raw exchange payload (CCXT's `info` field).
-use ccxt::{Config, Params};
-use ccxt_pro::Binance;
+use ccxt::{Config, Params, ExchangeRuntime};
+use ccxt_pro::{Binance};
 use std::collections::HashSet;
 use std::time::{Duration, Instant};
 
@@ -77,7 +77,7 @@ async fn run(secs: u64) {
         .option_str("defaultType", &market_type);
 
     let mut ex = Binance::with_config(cfg);
-    if let Err(e) = ex.try_load_markets(false).await {
+    if let Err(e) = ex.load_markets(false, ()).await {
         println!("load_markets [{}] {}", e.kind, e.message);
         return;
     }

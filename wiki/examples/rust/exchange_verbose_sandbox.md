@@ -9,7 +9,7 @@
 // host actually being used — that URL is the proof sandbox took effect.
 //
 //   cargo run --release --bin exchange-verbose-sandbox
-use ccxt::{Binance, Config};
+use ccxt::{Binance, Config, ExchangeBase};
 
 fn state(label: &str, ex: &Binance) {
     println!(
@@ -40,7 +40,7 @@ async fn run() {
 
     b.set_verbose(true);
     if let Err(e) = b.set_sandbox_mode(true) {
-        println!("  set_sandbox_mode       [{}] {}", e.kind, e.message);
+        println!("  set_sandbox_mode   [{}] {}", e.kind, e.message);
     }
     state("after setters", &b);
     ping(&mut b).await;
@@ -48,7 +48,7 @@ async fn run() {
     println!("\n── setters also turn things back off");
     b.set_verbose(false);
     if let Err(e) = b.set_sandbox_mode(false) {
-        println!("  set_sandbox_mode       [{}] {}", e.kind, e.message);
+        println!("  set_sandbox_mode   [{}] {}", e.kind, e.message);
     }
     state("after reverting", &b);
     ping(&mut b).await;

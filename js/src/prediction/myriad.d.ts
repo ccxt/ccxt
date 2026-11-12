@@ -584,7 +584,7 @@ export default class myriad extends Exchange {
      * @returns {object} an event structure
      */
     parseEvent(rawEvent: Dict): PredictionEvent;
-    requestId(url: Str): number;
+    requestId(url: Str): int;
     fromWei(wei: Str): Num;
     marketOutcomeToSymbol(networkId: Str, marketId: Str, outcomeId: Str): Str;
     connectCentrifugo(url: Str): Promise<any>;

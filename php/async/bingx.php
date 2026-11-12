@@ -5761,7 +5761,7 @@ class bingx extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_list($this->safe_dict($response, 'data'), 'data');
+        $data = $this->safe_list($this->safe_dict($response, 'data'), 'data', array());
         $parsed = $this->parse_deposit_addresses($data, array( $currency['code'] ), false);
         return $this->index_by($parsed, 'network');
     }

@@ -7094,7 +7094,6 @@ class gate extends Exchange {
         if ($limit !== null) {
             $requestUntil['limit'] = $limit;
         }
-        $response = null;
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $paramsUntil, 'cross');
         if ($isUnifiedAccount) {
             $response = $this->privateUnifiedGetInterestRecords($this->extend($requestUntil, $paramsMarginMode));
@@ -7103,8 +7102,8 @@ class gate extends Exchange {
                 $requestUntil['currency_pair'] = $market['id'];
             }
             $response = $this->privateMarginGetUniInterestRecords($this->extend($requestUntil, $paramsMarginMode));
-        } elseif ($marginMode === 'cross') {
-            // deprecated and not present in the exchange's docs but still works
+        } else {
+            // cross: deprecated and not present in the exchange's docs but still works
             $response = $this->privateMarginGetCrossInterestRecords($this->extend($requestUntil, $paramsMarginMode));
         }
         $interest = $this->parse_borrow_interests($response, $market);

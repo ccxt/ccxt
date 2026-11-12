@@ -3713,12 +3713,12 @@ func (this *Phemex) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
  * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Phemex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Phemex) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Phemex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Phemex) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -6120,7 +6120,7 @@ func (this *Phemex) transferBody(ch chan AsyncResult[TransferEntry], code string
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
-	var scaledAmmount any = this.ToEv(amount, currency)
+	var scaledAmmount any = this.ToEn(amount, this.SafeInteger(currency, "valueScale"))
 	var direction any = nil
 	var transfer map[string]any = nil
 	if (fromId != nil && *fromId == "spot") && (toId != nil && *toId == "future") {

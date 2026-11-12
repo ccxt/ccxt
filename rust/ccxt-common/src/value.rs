@@ -134,7 +134,7 @@ impl Value {
     /// count of new updates since the last call (clamped by `limit`
     /// when supplied) and arms the per-symbol / global reset flag so
     /// the next `append` zeroes the counter.
-    pub fn get_limit(&mut self, symbol: Value, limit: Value) -> Value {
+    pub fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64> {
         if matches!(self, Value::Dict(d) if d.contains_key("__cacheKind")) {
             cache_get_limit(self, symbol, limit)
         } else {
@@ -228,6 +228,22 @@ impl Value {
     pub fn as_map(&self)   -> Option<&HashMap<String, Value>> {
         if let Value::Dict(m) = self { Some(&**m) } else { None }
     }
+    /// The map a dict-typed local holds, moved out of the box (an empty map for a non-dict).
+    pub fn into_dict(self) -> Dict {
+        if let Value::Dict(m) = self { m } else { Arc::new(HashMap::new()) }
+    }
+    /// The list a list-typed local holds, moved out of the box (an empty list for a non-list).
+    pub fn into_list(self) -> List {
+        if let Value::Arr(a) = self { a } else { Arc::new(Vec::new()) }
+    }
+    /// The map an optional dict local holds, moved out of the box (`None` for anything but a dict).
+    pub fn into_opt_dict(self) -> Option<Dict> {
+        if let Value::Dict(m) = self { Some(m) } else { None }
+    }
+    /// The list an optional list local holds, moved out of the box (`None` for anything but a list).
+    pub fn into_opt_list(self) -> Option<List> {
+        if let Value::Arr(a) = self { Some(a) } else { None }
+    }
     pub fn as_array(&self) -> Option<&Vec<Value>> {
         if let Value::Arr(a) = self { Some(&**a) } else { None }
     }
@@ -237,6 +253,19 @@ impl Value {
             Value::Arr(a) => a.iter().map(Value::to_string).collect(),
             _ => Vec::new(),
         }
+    }
+
+    /// Rows of [`Value::to_str_vec`]: the `Vec<Vec<String>>` (`symbolsAndTimeframes`) typed-argument bridge.
+    pub fn to_str_vec_vec(&self) -> Vec<Vec<String>> {
+        match self {
+            Value::Arr(a) => a.iter().map(Value::to_str_vec).collect(),
+            _ => Vec::new(),
+        }
+    }
+
+    /// `None` for `Null`, else [`Value::to_str_vec`]: the `Option<Vec<String>>` typed-argument bridge.
+    pub fn to_opt_str_vec(&self) -> Option<Vec<String>> {
+        if self.is_null() { None } else { Some(self.to_str_vec()) }
     }
 
     /// Length of array, map, or string; 0 for everything else.
@@ -268,13 +297,13 @@ impl Value {
     /// `client.reject(error, messageHash)` — stores a rejection the `watch`
     /// drive loop delivers to the awaiting caller. Routes by the client
     /// handle's `url` to the WS registry (no-op on a non-client Value).
-    pub fn reject(&self, args: &[Value]) -> Value {
-        crate::pro::ws_client::value_reject(self, args)
+    pub fn reject<'k>(&self, err: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value {
+        crate::pro::ws_client::value_reject(self, err.into(), hash.into())
     }
     /// `client.resolve(value, messageHash)` — stores the resolved value the
     /// `watch` drive loop returns. Routes by the client handle's `url`.
-    pub fn resolve(&self, args: &[Value]) -> Value {
-        crate::pro::ws_client::value_resolve(self, args)
+    pub fn resolve<'k>(&self, value: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value {
+        crate::pro::ws_client::value_resolve(self, value.into(), hash.into())
     }
     /// `client.future(messageHash)` — TS's atomic check-and-insert: opens a
     /// single-flight for the hash (or joins the open one) and hands back a
@@ -283,30 +312,26 @@ impl Value {
     /// does the work (venue `authenticate` leader election). Await the handle
     /// with `exchange_stubs::ws_await_flight`; the transpiler emits that
     /// wherever the TS source awaits.
-    pub fn future(&self, args: &[Value]) -> Value {
-        self.open_flight(args.get(0).cloned().unwrap_or(Value::Null))
+    pub fn future(&self, hash: impl Into<Value>) -> crate::pro::ws_client::Flight {
+        self.open_flight(hash.into())
     }
     /// `client.reusable_future(messageHash)` — shared flight per hash, i.e. the
     /// same registry and handle as `future`.
-    pub fn reusable_future(&self, msg_hash: Value) -> Value {
-        self.open_flight(msg_hash)
+    pub fn reusable_future(&self, hash: impl Into<Value>) -> crate::pro::ws_client::Flight {
+        self.open_flight(hash.into())
     }
     /// Shared body of `future` / `reusable_future`: open-or-join the flight on
     /// the client this handle names, and return a handle to it. A non-client
     /// receiver (or a non-string hash) degrades to the old pass-the-hash-back
     /// behaviour so unrelated transpiled code keeps compiling.
-    fn open_flight(&self, msg_hash: Value) -> Value {
+    fn open_flight(&self, msg_hash: Value) -> crate::pro::ws_client::Flight {
         let hash = match &msg_hash {
-            Value::Str(h) => h.clone(),
-            _ => return msg_hash,
+            Value::Str(h) => h.to_string(),
+            _ => return crate::pro::ws_client::Flight::default(),
         };
-        match crate::pro::ws_client::url_of(self) {
-            Some(url) => {
-                let led = crate::pro::ws_client::begin_flight(&url, &hash);
-                crate::pro::ws_client::flight_handle(&url, &hash, led)
-            }
-            None => msg_hash,
-        }
+        let url = crate::pro::ws_client::url_of(self);
+        let led = url.as_deref().is_some_and(|u| crate::pro::ws_client::begin_flight(u, &hash));
+        crate::pro::ws_client::Flight { url, hash: Some(hash), led, entry: false }
     }
     /// Field accessor: `cache.hashmap` — same as the WS Cache marker's
     /// hashmap sub-dict. Some transpiled WS code reads this directly
@@ -381,7 +406,7 @@ impl Value {
     pub fn network_id_to_code(&self, args: &[Value]) -> Value {
         #[cfg(feature = "engine")]
         {
-            return crate::exchange::BaseCore::new(self.snapshot_as_exchange()).network_id_to_code(args);
+            return Value::from(crate::exchange::BaseCore::new(self.snapshot_as_exchange()).network_id_to_code(args));
         }
         #[cfg(not(feature = "engine"))]
         {
@@ -432,7 +457,7 @@ impl Value {
             let result = ex.set_markets(markets, &[]);
             crate::runtime::add_element_to_object(self, &Value::Str("markets".into()), ex.markets.clone());
             crate::runtime::add_element_to_object(self, &Value::Str("markets_by_id".into()), ex.markets_by_id.clone());
-            crate::runtime::add_element_to_object(self, &Value::Str("symbols".into()), ex.symbols.clone());
+            crate::runtime::add_element_to_object(self, &Value::Str("symbols".into()), Value::Arr(ex.symbols.clone()));
             return result;
         }
         #[cfg(not(feature = "engine"))]
@@ -579,6 +604,14 @@ impl From<f64>     for Value { fn from(f: f64)    -> Self { Value::Float(f) } }
 impl From<bool>    for Value { fn from(b: bool)   -> Self { Value::Bool(b) } }
 impl From<Option<i64>> for Value { fn from(n: Option<i64>) -> Self { n.map_or(Value::Null, Value::Int) } }
 impl From<Option<f64>> for Value { fn from(n: Option<f64>) -> Self { n.map_or(Value::Null, Value::Float) } }
+impl From<Option<&str>> for Value { fn from(s: Option<&str>) -> Self { s.map_or(Value::Null, Value::from) } }
+impl From<Option<String>> for Value { fn from(s: Option<String>) -> Self { s.map_or(Value::Null, Value::from) } }
+impl From<Option<Vec<String>>> for Value {
+    fn from(l: Option<Vec<String>>) -> Self { l.map_or(Value::Null, |l| Value::from(l.into_iter().map(Value::from).collect::<Vec<Value>>())) }
+}
+impl From<Option<Vec<Vec<String>>>> for Value {
+    fn from(l: Option<Vec<Vec<String>>>) -> Self { l.map_or(Value::Null, |l| Value::from(l.into_iter().map(|r| Value::from(Some(r))).collect::<Vec<Value>>())) }
+}
 /// `From<ExchangeError>` makes `error.clone()` flow into `&[Value]`
 /// slices without an explicit conversion — surfaces the typed error
 /// as a `[Kind] message`-shaped string Value, matching how
@@ -652,7 +685,99 @@ fn live_set_markets_get() -> Option<LiveSetMarketsFn> {
 /// fast-path readers the transpiler routes literal-key calls through.
 #[inline]
 pub fn get_value_k(obj: &Value, key: &str) -> Value {
-    if let Value::Dict(m) = obj {
+    if let Value::Dict(m) = obj { get_map_value_k(m, key) } else { Value::Null }
+}
+
+/// The shared map a dict-typed local holds; a non-dict value reads like an empty map.
+pub type Dict = Arc<HashMap<String, Value>>;
+/// The shared list a list-typed local holds; a non-list value reads like an empty list.
+pub type List = Arc<Vec<Value>>;
+
+/// A container the `safe_*` readers accept: a `Value` by value, a map or list by reference.
+/// `key_read` takes a literal key, `read` any key (a string key on a list reads nothing, as `get_value` does).
+pub trait KeyRead: Clone {
+    fn key_read(&self, key: &str) -> Value;
+    fn read(&self, key: &Value) -> Value;
+}
+impl KeyRead for Value {
+    fn key_read(&self, key: &str) -> Value { get_value_k(self, key) }
+    fn read(&self, key: &Value) -> Value { get_value(self, key) }
+}
+impl KeyRead for &Value {
+    fn key_read(&self, key: &str) -> Value { get_value_k(self, key) }
+    fn read(&self, key: &Value) -> Value { get_value(self, key) }
+}
+impl KeyRead for &Dict {
+    fn key_read(&self, key: &str) -> Value { get_map_value_k(self, key) }
+    fn read(&self, key: &Value) -> Value { get_map_value(self, key) }
+}
+impl KeyRead for &HashMap<String, Value> {
+    fn key_read(&self, key: &str) -> Value { get_map_value_k(self, key) }
+    fn read(&self, key: &Value) -> Value { get_map_value(self, key) }
+}
+impl KeyRead for &Vec<Value> {
+    fn key_read(&self, _key: &str) -> Value { Value::Null }
+    fn read(&self, key: &Value) -> Value { get_list_value(self, key) }
+}
+impl KeyRead for &List {
+    fn key_read(&self, _key: &str) -> Value { Value::Null }
+    fn read(&self, key: &Value) -> Value { get_list_value(self, key) }
+}
+impl KeyRead for &Option<Dict> {
+    fn key_read(&self, key: &str) -> Value { self.as_ref().map_or(Value::Null, |m| get_map_value_k(m, key)) }
+    fn read(&self, key: &Value) -> Value { self.as_ref().map_or(Value::Null, |m| get_map_value(m, key)) }
+}
+impl KeyRead for &Option<List> {
+    fn key_read(&self, _key: &str) -> Value { Value::Null }
+    fn read(&self, key: &Value) -> Value { self.as_ref().map_or(Value::Null, |a| get_list_value(a, key)) }
+}
+/// An optional market reads its own map, as the boxed local did (Null when empty).
+impl KeyRead for &Option<crate::types::Market> {
+    fn key_read(&self, key: &str) -> Value { if let Some(m) = self { get_value_k(&m.raw, key) } else { Value::Null } }
+    fn read(&self, key: &Value) -> Value { if let Some(m) = self { get_value(&m.raw, key) } else { Value::Null } }
+}
+
+/// Extra operands of `extend` / `deep_extend`: a `Value` slice, or a dict local lent by reference.
+pub trait MergeOperands {
+    fn for_each_map(self, f: impl FnMut(&HashMap<String, Value>));
+    fn for_each_operand(self, f: impl FnMut(Value));
+}
+impl MergeOperands for &[Value] {
+    fn for_each_map(self, mut f: impl FnMut(&HashMap<String, Value>)) { for v in self { if let Value::Dict(m) = v { f(m) } } }
+    fn for_each_operand(self, mut f: impl FnMut(Value)) { for v in self { f(v.clone()) } }
+}
+impl<const N: usize> MergeOperands for &[Value; N] {
+    fn for_each_map(self, f: impl FnMut(&HashMap<String, Value>)) { (&self[..]).for_each_map(f) }
+    fn for_each_operand(self, f: impl FnMut(Value)) { (&self[..]).for_each_operand(f) }
+}
+impl MergeOperands for &[&Dict; 1] {
+    fn for_each_map(self, mut f: impl FnMut(&HashMap<String, Value>)) { f(self[0]) }
+    fn for_each_operand(self, mut f: impl FnMut(Value)) { f(Value::Dict(Arc::clone(self[0]))) }
+}
+
+/// The first operand of `extend`: a `Value` or a dict local (owned or lent); the map is copied only when shared.
+pub trait ExtendHead { fn into_head(self) -> HashMap<String, Value>; }
+impl ExtendHead for Value { fn into_head(self) -> HashMap<String, Value> { if let Value::Dict(m) = self { Arc::try_unwrap(m).unwrap_or_else(|x| (*x).clone()) } else { HashMap::new() } } }
+impl ExtendHead for &Value { fn into_head(self) -> HashMap<String, Value> { if let Value::Dict(m) = self { (**m).clone() } else { HashMap::new() } } }
+impl ExtendHead for Dict { fn into_head(self) -> HashMap<String, Value> { Arc::try_unwrap(self).unwrap_or_else(|x| (*x).clone()) } }
+impl ExtendHead for &Dict { fn into_head(self) -> HashMap<String, Value> { (**self).clone() } }
+
+/// The object `omit` drops keys from: a `Value` by value, or a dict local lent by reference (shares the map).
+pub trait OmitSource { fn into_operand(self) -> Value; }
+impl OmitSource for Value { fn into_operand(self) -> Value { self } }
+impl OmitSource for &Dict { fn into_operand(self) -> Value { Value::Dict(Arc::clone(self)) } }
+/// A dict local lent to a `params: impl Into<Value>` parameter: the shared map, not a copy.
+impl From<&Dict> for Value { fn from(m: &Dict) -> Self { Value::Dict(Arc::clone(m)) } }
+impl From<&List> for Value { fn from(a: &List) -> Self { Value::Arr(Arc::clone(a)) } }
+/// A dict local moved into a `Value` parameter: the map itself, no copy.
+impl From<Dict> for Value { fn from(m: Dict) -> Self { Value::Dict(m) } }
+impl From<&Option<List>> for Value { fn from(a: &Option<List>) -> Self { match a { Some(l) => Value::Arr(Arc::clone(l)), None => Value::Null } } }
+/// A ws hash or key slot reads a `Value` key as its string (any other variant is no key).
+impl<'a> From<&'a Value> for Option<&'a str> { fn from(v: &'a Value) -> Self { v.as_str() } }
+
+/// `get_value_k` on the map itself.
+pub fn get_map_value_k(m: &HashMap<String, Value>, key: &str) -> Value {
+    {
         // A shared order book keeps its scalar meta (nonce/timestamp/…) in the
         // book store; route those through it so the safe_* helpers (which go via
         // get_value_k) see the shared value, not the empty Dict slot.
@@ -679,6 +804,27 @@ pub fn get_value_k(obj: &Value, key: &str) -> Value {
 /// Access a value in a map by string key, or array by integer key encoded as
 /// a `Value::Str` / `Value::Int`. Returns `Value::Null` on miss.
 pub fn get_value(obj: &Value, key: &Value) -> Value {
+    match (obj, key) {
+        (Value::Dict(m), _) => get_map_value(m, key),
+        (Value::Arr(a), _) => get_list_value(a, key),
+        // JS string indexing: `s[i]` returns the i-th character as a
+        // 1-char string (e.g. bitfinex `amountString[0] === '-'` to detect
+        // a negative). Char-based so multi-byte UTF-8 is handled.
+        (Value::Str(s), Value::Int(i)) => {
+            if *i < 0 {
+                return Value::Null;
+            }
+            match s.chars().nth(*i as usize) {
+                Some(c) => Value::Str(c.to_string().into()),
+                None    => Value::Null,
+            }
+        }
+        _ => Value::Null,
+    }
+}
+
+/// `get_value` on the map itself.
+pub fn get_map_value(m: &HashMap<String, Value>, key: &Value) -> Value {
     // Cache / order-book / side markers expose numeric indexing as if
     // they were arrays — `cache[i]` reads `_data[i]`, `side[i]` reads
     // `_entries[i]`. Handle this before the regular dict lookup so the
@@ -687,7 +833,7 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
     // The index may arrive as an Int (`get_value(&side, &Value::Int(0))`) or as
     // a numeric string — the `safe_*` helpers stringify their key, so
     // `safe_value(cache, 0)` reaches here as `Str("0")`. Accept both.
-    if let Value::Dict(m) = obj {
+    {
         let idx = match key {
             Value::Int(i) if *i >= 0 => Some(*i as usize),
             Value::Str(s) => s.parse::<usize>().ok(),
@@ -705,8 +851,8 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
             }
         }
     }
-    match (obj, key) {
-        (Value::Dict(m), Value::Str(k)) => {
+    match key {
+        Value::Str(k) => {
             // A shared order book keeps its scalar meta (nonce/timestamp/…) in
             // the book store so mutations propagate across clones.
             if is_book_meta_key(k) {
@@ -755,24 +901,19 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
             }
             Value::Null
         }
-        (Value::Arr(a), Value::Int(i)) => a.get(*i as usize).cloned().unwrap_or(Value::Null),
-        (Value::Arr(a), Value::Str(k)) => {
+        _ => Value::Null,
+    }
+}
+
+/// `get_value` on the list itself.
+pub fn get_list_value(a: &[Value], key: &Value) -> Value {
+    match key {
+        Value::Int(i) => a.get(*i as usize).cloned().unwrap_or(Value::Null),
+        Value::Str(k) => {
             if let Ok(i) = k.parse::<usize>() {
                 a.get(i).cloned().unwrap_or(Value::Null)
             } else {
                 Value::Null
-            }
-        }
-        // JS string indexing: `s[i]` returns the i-th character as a
-        // 1-char string (e.g. bitfinex `amountString[0] === '-'` to detect
-        // a negative). Char-based so multi-byte UTF-8 is handled.
-        (Value::Str(s), Value::Int(i)) => {
-            if *i < 0 {
-                return Value::Null;
-            }
-            match s.chars().nth(*i as usize) {
-                Some(c) => Value::Str(c.to_string().into()),
-                None    => Value::Null,
             }
         }
         _ => Value::Null,
@@ -1540,8 +1681,9 @@ fn cache_append_inner(m: &mut HashMap<String, Value>, kind: &str, cap: Option<us
 }
 
 
-pub(crate) fn cache_get_limit(target: &mut Value, symbol: Value, limit: Value) -> Value {
+pub(crate) fn cache_get_limit(target: &mut Value, symbol: Option<&str>, limit: Option<i64>) -> Option<i64> {
     let kind = cache_kind(target).unwrap_or_default();
+    let symbol: Option<String> = symbol.map(String::from);
     if let Some(id) = cache_id_of(target) {
         return with_cache_cell(id, move |m| cache_get_limit_inner(m, &kind, symbol, limit));
     }
@@ -1557,40 +1699,33 @@ pub(crate) fn cache_get_limit(target: &mut Value, symbol: Value, limit: Value) -
 // symbol scope and arms its clear; `undefined` (Null) polls the global scope.
 // The count is `undefined` only when the key was never seen — then the caller's
 // `limit` passes through unclamped.
-fn cache_get_limit_inner(m: &mut HashMap<String, Value>, kind: &str, symbol: Value, limit: Value) -> Value {
-    {
-        // `ArrayCacheByTimestamp` doesn't track per-symbol updates —
-        // both `getLimit(undefined, …)` and `getLimit(sym, …)` return
-        // `this.newUpdates` and arm a single global `clearUpdates` flag.
-        if kind == "ArrayCacheByTimestamp" {
-            let v = cache_int_field(m, "_newUpdates");
-            cache_set_bool(m, "_clearUpdates", true);
-            return match limit {
-                Value::Int(l) => Value::Int(v.min(l)),
-                _             => Value::Int(v),
+fn cache_get_limit_inner(m: &mut HashMap<String, Value>, kind: &str, symbol: Option<String>, limit: Option<i64>) -> Option<i64> {
+    // `ArrayCacheByTimestamp` doesn't track per-symbol updates: both scopes
+    // return `this.newUpdates` and arm a single global `clearUpdates` flag.
+    if kind == "ArrayCacheByTimestamp" {
+        let v = cache_int_field(m, "_newUpdates");
+        cache_set_bool(m, "_clearUpdates", true);
+        return Some(match limit { Some(l) => v.min(l), None => v });
+    }
+    let new_updates_value: Option<i64> = match &symbol {
+        None => {
+            cache_set_bool(m, "_clearAllUpdates", true);
+            Some(cache_int_field(m, "_allNewUpdates"))
+        }
+        Some(sym) => {
+            let v = match cache_dict_field_mut(m, "_newUpdatesBySymbol").get(sym.as_str()) {
+                Some(Value::Int(n)) => Some(*n),
+                _ => None,
             };
+            cache_dict_field_mut(m, "_clearUpdatesBySymbol")
+                .insert(sym.clone(), Value::Bool(true));
+            v
         }
-        let new_updates_value: Option<i64> = match &symbol {
-            Value::Null => {
-                cache_set_bool(m, "_clearAllUpdates", true);
-                Some(cache_int_field(m, "_allNewUpdates"))
-            }
-            Value::Str(sym) => {
-                let v = match cache_dict_field_mut(m, "_newUpdatesBySymbol").get(sym.as_ref()) {
-                    Some(Value::Int(n)) => Some(*n),
-                    _ => None,
-                };
-                cache_dict_field_mut(m, "_clearUpdatesBySymbol")
-                    .insert(sym.to_string(), Value::Bool(true));
-                v
-            }
-            _ => None,
-        };
-        match (new_updates_value, &limit) {
-            (None,    _)              => limit.clone(),
-            (Some(v), Value::Int(l))  => Value::Int(v.min(*l)),
-            (Some(v), _)              => Value::Int(v),
-        }
+    };
+    match (new_updates_value, limit) {
+        (None,    _)       => limit,
+        (Some(v), Some(l)) => Some(v.min(l)),
+        (Some(v), None)    => Some(v),
     }
 }
 

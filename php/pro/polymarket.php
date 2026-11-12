@@ -72,7 +72,7 @@ class polymarket extends \ccxt\async\polymarket {
         ));
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
         return $requestId;

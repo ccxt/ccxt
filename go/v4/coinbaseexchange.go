@@ -1516,7 +1516,7 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan AsyncResult[[]Trade], op
 	if since != nil {
 		request["start_date"] = this.Iso8601(since)
 	}
-	var until any = this.SafeValue2(paramsPaginate, "until", "end_date")
+	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "end_date")
 	if until != nil {
 		request["end_date"] = this.Iso8601(until)
 	}
@@ -1733,7 +1733,7 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbo
 	} else {
 		request["granularity"] = timeframe
 	}
-	var until any = this.SafeValue2(paramsPaginate, "until", "end")
+	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "end")
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
 	// https://docs.pro.coinbase.com/#get-historic-rates max = 300
 	var cappedLimit int64 = this.ParseToInt(func() any {
@@ -2117,7 +2117,7 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], 
 	if since != nil {
 		request["start_date"] = this.Iso8601(since)
 	}
-	var until any = this.SafeValue2(paramsPaginate, "until", "end_date")
+	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "end_date")
 	if until != nil {
 		request["end_date"] = this.Iso8601(until)
 	}
@@ -2296,12 +2296,12 @@ func (this *Coinbaseexchange) createOrderBody(ch chan AsyncResult[Order], symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinbaseexchange) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Coinbaseexchange) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseexchange) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2636,7 +2636,7 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry]
 	if limit != nil {
 		request["limit"] = limit // default 100
 	}
-	var until any = this.SafeValue2(params, "until", "end_date")
+	var until *int64 = this.SafeInteger2(params, "until", "end_date")
 	if until != nil {
 		request["end_date"] = this.Iso8601(until)
 	}

@@ -1731,7 +1731,7 @@ class luno extends Exchange {
         if ($response === null) {
             return null;
         }
-        $error = $this->safe_value($response, 'error');
+        $error = $this->safe_string($response, 'error');
         if ($error !== null) {
             $feedback = $this->id . ' ' . $this->json($response);
             $errorCode = $this->safe_string($response, 'error_code');

@@ -11,30 +11,28 @@ use super::*;
 
 pub async fn testFetchPositions(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
     let mut method: Value = Value::Str("fetchPositions".into());
-    let mut now: Value = exchange.milliseconds();
+    let mut now: Value = Value::Int(exchange.milliseconds());
     // without symbol
     let mut positions: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_positions", vec![]).await;
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), positions.clone(), symbol.clone()]);
     {
-                let mut i: Value = Value::Int(0);
-        let mut __for_first_1590: bool = true;
-        while { if !__for_first_1590 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            } __for_first_1590 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-        testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), positions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Null, now.clone());
+                let mut i: i64 = 0;
+        let mut __for_first_1591: bool = true;
+        while { if !__for_first_1591 { i += 1; } __for_first_1591 = false; i < (positions.len() as i64) } {
+        testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::Null, now.clone());
     }
     }
     // testSharedMethods.assertTimestampOrder (exchange, method, undefined, positions); // currently order of positions does not make sense
     // with symbol
     let mut positionsForSymbol: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_positions", vec![Value::from(vec![symbol.clone()])]).await;
     assert!(ccxt::runtime::is_true(&((matches!(&positionsForSymbol, Value::Arr(_))))));
-    let mut positionsForSymbolLength: Value = Value::Int(positionsForSymbol.len() as i64);
-    assert!(ccxt::runtime::is_true(&((positionsForSymbolLength.as_f64().unwrap_or(f64::NAN) <= Value::Int(4).as_f64().unwrap_or(f64::NAN)))));
+    let mut positionsForSymbolLength: i64 = positionsForSymbol.len() as i64;
+    assert!(ccxt::runtime::is_true(&((positionsForSymbolLength <= 4))));
     {
-                let mut i: Value = Value::Int(0);
-        let mut __for_first_1591: bool = true;
-        while { if !__for_first_1591 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            } __for_first_1591 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positionsForSymbol.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-        testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), positionsForSymbol.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
+                let mut i: i64 = 0;
+        let mut __for_first_1592: bool = true;
+        while { if !__for_first_1592 { i += 1; } __for_first_1592 = false; i < (positionsForSymbol.len() as i64) } {
+        testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), positionsForSymbol.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
     }
     }
     return Value::Bool(true);

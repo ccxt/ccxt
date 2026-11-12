@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::deepcoin::DeepcoinCore;
+use super::deepcoin::Deepcoin;
 use crate::exchange::ExchangeRuntime;
 
-impl DeepcoinCore {
+impl Deepcoin {
     /// Auto-generated wrapper for the `publicGetDeepcoinMarketBooks` implicit endpoint.
     pub async fn public_get_deepcoin_market_books(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_deepcoin_market_books".into()), optional_args).await

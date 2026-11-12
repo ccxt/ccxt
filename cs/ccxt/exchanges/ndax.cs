@@ -2859,7 +2859,7 @@ public partial class ndax : Exchange
                 type = "withdrawal";
             }
         }
-        object templateForm = this.parseJson(this.safeValue2(transaction, "TemplateForm", "DepositInfo"));
+        object templateForm = JsonHelper.Deserialize(this.safeString2(transaction, "TemplateForm", "DepositInfo"));
         Int64? updated = this.safeInteger(transaction, "LastUpdateTimeStamp");
         if ((templateForm != null))
         {

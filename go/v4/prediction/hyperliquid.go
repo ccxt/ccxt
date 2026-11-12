@@ -1698,12 +1698,12 @@ func (this *Hyperliquid) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Predictio
  * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Hyperliquid) CancelOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Hyperliquid) CancelOrderAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id any, optionalArgs ...any) any {
+func (this *Hyperliquid) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1711,7 +1711,7 @@ func (this *Hyperliquid) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	r := <-this.CancelOrdersAsync([]any{id}, outcome, params)
+	r := <-this.CancelOrdersAsync([]string{id}, outcome, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1732,12 +1732,12 @@ func (this *Hyperliquid) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.Predictio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Hyperliquid) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
+func (this *Hyperliquid) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionOrder], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], ids any, optionalArgs ...any) any {
+func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1785,10 +1785,10 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 		}
 	} else {
 		cancelAction["type"] = "cancel"
-		for i := 0; i < ccxt.GetArrayLength(ids); i++ {
+		for i := 0; i < len(ids); i++ {
 			cancelReq = append(cancelReq, map[string]any{
 				"a": assetId,
-				"o": this.ParseToNumeric(ccxt.GetValue(ids, i)),
+				"o": this.ParseToNumeric(ids[i]),
 			})
 		}
 	}

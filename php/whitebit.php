@@ -918,7 +918,7 @@ class whitebit extends Exchange {
             $entry = $currencyIds[$i];
             $splitEntry = explode(' ', $entry);
             $currencyId = $splitEntry[0];
-            $feeInfo = $this->safe_value($response, $entry);
+            $feeInfo = $this->safe_dict($response, $entry);
             $code = $this->safe_currency_code($currencyId);
             if (($code !== null) && (($codesValue === null) || ($this->in_array($code, $codesValue)))) {
                 $depositWithdrawFee = $this->safe_dict($depositWithdrawFees, $code);
@@ -2891,7 +2891,7 @@ class whitebit extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires an amount when the ticker is fiat');
             }
             $request['amount'] = $amount;
-            $uniqueId = $this->safe_value($params, 'uniqueId');
+            $uniqueId = $this->safe_string($params, 'uniqueId');
             if ($uniqueId === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires an uniqueId when the ticker is fiat');
             }
@@ -4277,7 +4277,7 @@ class whitebit extends Exchange {
         $publicHeaders = array();
         $publicHeaders['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
         $pathWithParams = '/' . $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->safe_value($this->urls['api'], $version), $accessibility);
+        $apiUrl = $this->safe_string($this->safe_dict($this->urls['api'], $version), $accessibility);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }

@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::bitbank::BitbankCore;
+use super::bitbank::Bitbank;
 use crate::exchange::ExchangeRuntime;
 
-impl BitbankCore {
+impl Bitbank {
     /// Auto-generated wrapper for the `publicGetPairTicker` implicit endpoint.
     pub async fn public_get_pair_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_pair_ticker".into()), optional_args).await

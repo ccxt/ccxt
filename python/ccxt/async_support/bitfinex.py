@@ -1133,7 +1133,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def convert_derivatives_id(self, currency: dict, type: str) -> Str:
+    def convert_derivatives_id(self, currency: Currency, type: str) -> Str:
         # there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         # {
         #   "id": "fUSTF0",

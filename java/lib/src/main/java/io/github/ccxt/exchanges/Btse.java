@@ -2971,7 +2971,7 @@ public class Btse extends BtseApi
                 request.put("symbol", this.futuresRequestId((Map<String, Object>) (this.market(symbol))));
                 response = (this.privateDeleteFuturesApiV23Order(this.extend(request, paramsMarketType))).join();
             }
-            return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(this.toArray(response), market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

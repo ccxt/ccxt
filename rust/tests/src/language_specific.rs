@@ -21,6 +21,8 @@
 use ccxt::Value;
 use ccxt::{Binance, Myokx, Binanceusdm};
 use ccxt::types::*;
+// The typed unified methods an alias venue inherits (binanceusdm `fetch_ticker`) live on this trait.
+use ccxt::ExchangeBase;
 
 /// Compile-time assertion that `f` resolves to `ccxt::Result<T>`. The future
 /// is consumed and dropped without being polled — the call is a pure type
@@ -53,7 +55,9 @@ pub fn test_types_rest() -> Result<(), String> {
     // ── list-returning methods ────────────────────────────────────────
     returns::<Vec<Market>>(b.fetch_markets(n.clone()));
     returns::<Vec<Trade>>(b.fetch_trades("BTC/USDT", None, Some(5), n.clone()));
-    returns::<Vec<Order>>(b.create_orders(n.clone(), n.clone()));
+    returns::<Vec<Order>>(b.create_orders(vec![OrderRequest::new("BTC/USDT", "limit", "buy", 1.0, Some(20000.0))], n.clone()));
+    returns::<Vec<Order>>(b.cancel_orders(vec!["1".to_string()], Some("BTC/USDT"), n.clone()));
+    returns::<Order>(b.create_limit_order("BTC/USDT", "buy", 1.0, 20000.0, n.clone()));
     returns::<Vec<Position>>(b.fetch_positions(None, n.clone()));
     returns::<Vec<Transaction>>(b.fetch_deposits_withdrawals(None, None, None, n.clone()));
     returns::<Vec<Transfer>>(b.fetch_transfers(None, None, None, n.clone()));
@@ -86,9 +90,8 @@ pub fn test_types_rest() -> Result<(), String> {
     let _market: Option<Market> = None;
 
     // ── inheritance: alias + subclass reach the same typed surface ─────
-    // Myokx is a thin override of Okx (`MyokxCore: Deref<Target = OkxCore>`);
-    // `fetch_order` is defined nowhere in myokx_typed.rs but is callable
-    // because the generator walks the Deref chain.
+    // Myokx is a thin override of Okx (`parent: Okx`); `fetch_order` is not
+    // defined on Myokx but is reachable through the `ExchangeBase` trait.
     let mut myokx = Myokx::new(None);
     returns::<Order>(myokx.fetch_order("iddd", Some("BTC/USDT"), n.clone()));
 

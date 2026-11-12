@@ -1331,7 +1331,7 @@ public partial class digifinex : Exchange
         {
             Dictionary<string, object> rawTicker = this.extend(new Dictionary<string, object>() {
                 { "date", date },
-            }, this.safeValue(tickers, i));
+            }, this.safeDict(tickers, i));
             ccxt.Ticker ticker = this.parseTicker(rawTicker);
             string? symbol = ticker.symbol;
             if ((symbol != null))
@@ -3914,7 +3914,7 @@ public partial class digifinex : Exchange
         //         "unrealized_pnl": "-0.049158102631998504"
         //     }
         //
-        List<object> rows = this.safeList(response, "positions");
+        List<object> rows = this.safeList(response, "positions", new List<object>() {});
         List<object> interest = this.parseBorrowInterests(rows, market);
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }

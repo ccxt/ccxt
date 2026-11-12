@@ -2025,7 +2025,7 @@ public class Luno extends LunoApi
         {
             return null;
         }
-        Object error = this.safeValue(response, "error");
+        String error = this.safeString(response, "error");
         if (!java.util.Objects.equals(error, null))
         {
             String feedback = ((this.id + " ") + this.json(response));

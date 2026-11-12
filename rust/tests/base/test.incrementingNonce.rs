@@ -18,8 +18,8 @@ pub fn testIncrementingNonce() {
     // tick and must return n and n + 1 deterministically (avoids a second-boundary flake)
     let mut seed: Value = Value::Int(9999999999999);
     add_element_to_object(&mut exchange.options, &Value::Str("lastNonce".into()), seed.clone());
-    let mut first: Value = exchange.incrementing_nonce();
-    let mut second: Value = exchange.incrementing_nonce();
+    let mut first: Value = Value::Int(exchange.incrementing_nonce());
+    let mut second: Value = Value::Int(exchange.incrementing_nonce());
     assert!(ccxt::runtime::is_true(&((first.as_f64().unwrap_or(f64::NAN) > seed.as_f64().unwrap_or(f64::NAN)))));
     assert!(ccxt::runtime::is_true(&((second.as_f64() == (match (&(first), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }).as_f64()))));
     assert!(ccxt::runtime::is_true(&((second.as_f64().unwrap_or(f64::NAN) > first.as_f64().unwrap_or(f64::NAN)))));

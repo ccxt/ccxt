@@ -375,7 +375,7 @@ Seven parallel workflows (`.github/workflows/`), each on `ubuntu-latest` + Node 
 | C# | `cs.yml` | `pre-transpile-cs` | `transpileCS && transpileCSWs` | `buildCS` | `./run-tests-simul.sh --csharp` |
 | Go | `go-app.yml` | `export-exchanges && emitAPI` | `goTranspiler.ts && --ws` | `buildGO` + `go fmt` | `./run-tests-simul.sh --go` |
 | Java | `java.yml` | `pre-transpile-java` | `transpileJava` | `buildJava` | `./run-tests-simul.sh --java` |
-| Rust | `rust.yml` | `export-exchanges && emitAPI` | `rustTranspiler.ts` (+ `--ws`) & `emitRustTyped`; scoped PRs use `granular-rust-build.ts` | `buildRust` | `./run-tests-simul.sh --rust` |
+| Rust | `rust.yml` | `export-exchanges && emitAPI` | `rustTranspiler.ts` (+ `--ws`); scoped PRs use `granular-rust-build.ts` | `buildRust` | `./run-tests-simul.sh --rust` |
 
 Rust gotcha: base tests under `ts/src/test/base/**` auto-transpile to Rust too (`rust/tests/base/`), but the Rust `BaseCore` implements only part of the base surface — a base test calling an unimplemented method fails `cargo` compile (E0599) even though every other language passes. Skip such a test by name in `build/rustTranspiler.ts`'s base-test loop (its `tests.init` call is dropped automatically) until the method lands on `BaseCore`.
 

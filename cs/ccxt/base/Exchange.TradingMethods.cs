@@ -1130,7 +1130,7 @@ public partial class Exchange
     public async virtual Task<ccxt.Order> CancelUnifiedOrder(object order, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.CancelOrder(this.safeString(order, "id"),this.safeString(order, "symbol"), parameters);
+        return await this.CancelOrder(this.safeString(order, "id", ""),this.safeString(order, "symbol"), parameters);
     }
 
     public async virtual Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)

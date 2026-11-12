@@ -614,7 +614,7 @@ class latoken extends Exchange {
         $rawCurrencies = $this->to_array($response);
         $merged = array();
         for ($i = 0; $i < count($rawCurrencies); $i++) {
-            $rawCurrency = $this->safe_value($rawCurrencies, $i);
+            $rawCurrency = $this->safe_dict($rawCurrencies, $i);
             $bindingEntry = $this->safe_dict($bindingsById, $this->safe_string($rawCurrency, 'id'));
             $bindings = $this->safe_list($bindingEntry, 'bindings');
             $mergedCurrency = $rawCurrency;

@@ -165,7 +165,7 @@ class kucoin(ccxt.async_support.kucoin):
             del self.options['urls'][connectId]
         return None
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId

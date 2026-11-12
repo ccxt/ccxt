@@ -3,7 +3,7 @@
 
 import grvtRest from '../grvt.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Dict, List, Market, Position, Bool, Tickers } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Dict, List, Market, Position, Bool, Tickers, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -126,7 +126,7 @@ export default class grvt extends grvtRest {
         return await this.watchMultiple (this.urls['api']['ws'][apiPart], messageHashes, payload, rawHashes);
     }
 
-    override requestId (): number {
+    override requestId (): int {
         this.lockId ();
         const newValue = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = newValue;
@@ -299,8 +299,8 @@ export default class grvt extends grvtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**

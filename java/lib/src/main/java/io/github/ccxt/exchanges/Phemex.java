@@ -5658,7 +5658,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
-            Object scaledAmmount = this.toEv(amount, currency);
+            Object scaledAmmount = this.toEn(amount, this.safeInteger(currency, "valueScale"));
             Object direction = null;
             Map<String, Object> transfer = null;
             if (java.util.Objects.equals(fromId, "spot") && java.util.Objects.equals(toId, "future"))

@@ -54,7 +54,7 @@ class cex extends cex$1["default"] {
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         this.unlockId();
-        return requestId.toString();
+        return requestId;
     }
     /**
      * @method
@@ -66,7 +66,7 @@ class cex extends cex$1["default"] {
      */
     async watchBalance(params = {}) {
         await this.authenticate(params);
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const url = this.safeString(this.urls['api'], 'ws', '');
         const subscribe = {
             'e': 'get-balance',
@@ -287,7 +287,7 @@ class cex extends cex$1["default"] {
                 'data': [
                     market['baseId'], market['quoteId'],
                 ],
-                'oid': this.requestId(),
+                'oid': this.requestId().toString(),
             };
             subscriptionHash = 'ticker:' + symbolValue;
         }
@@ -346,7 +346,7 @@ class cex extends cex$1["default"] {
         }
         const market = this.market(symbol);
         const url = this.safeString(this.urls['api'], 'ws', '');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const request = this.extend({
             'e': 'ticker',
             'oid': messageHash,
@@ -459,7 +459,7 @@ class cex extends cex$1["default"] {
         }
         await this.authenticate();
         const url = this.safeString(this.urls['api'], 'ws', '');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const request = this.extend({
             'e': 'get-balance',
             'oid': messageHash,
@@ -990,7 +990,7 @@ class cex extends cex$1["default"] {
                 'subscribe': true,
                 'depth': depth,
             },
-            'oid': this.requestId(),
+            'oid': this.requestId().toString(),
         };
         const request = this.deepExtend(subscribe, params);
         const orderbook = await this.watch(url, messageHash, request, messageHash);
@@ -1297,7 +1297,7 @@ class cex extends cex$1["default"] {
             'order_id': id.toString(),
         }, params);
         const url = this.safeString(this.urls['api'], 'ws', '');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const request = {
             'e': 'get-order',
             'oid': messageHash,
@@ -1327,7 +1327,7 @@ class cex extends cex$1["default"] {
         await this.authenticate();
         const market = this.market(symbol);
         const url = this.safeString(this.urls['api'], 'ws', '');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const data = this.extend({
             'pair': [market['baseId'], market['quoteId']],
         }, params);
@@ -1363,7 +1363,7 @@ class cex extends cex$1["default"] {
         await this.authenticate();
         const market = this.market(symbol);
         const url = this.safeString(this.urls['api'], 'ws', '');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const data = this.extend({
             'pair': [market['baseId'], market['quoteId']],
             'amount': amount,
@@ -1411,7 +1411,7 @@ class cex extends cex$1["default"] {
             'price': price,
             'order_id': id,
         }, params);
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const url = this.safeString(this.urls['api'], 'ws', '');
         const request = {
             'e': 'cancel-replace-order',
@@ -1443,7 +1443,7 @@ class cex extends cex$1["default"] {
         const data = this.extend({
             'order_id': id,
         }, params);
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const url = this.safeString(this.urls['api'], 'ws', '');
         const request = {
             'e': 'cancel-order',
@@ -1471,7 +1471,7 @@ class cex extends cex$1["default"] {
             await this.loadMarkets();
         }
         await this.authenticate();
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const data = this.extend({
             'cancel-orders': ids,
         }, params);

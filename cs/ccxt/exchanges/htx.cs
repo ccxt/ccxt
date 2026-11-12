@@ -8912,7 +8912,7 @@ public partial class htx : Exchange
         //        ]
         //    }
         //
-        List<object> data = this.safeList(response, "data");
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> interest = this.parseBorrowInterests(data, market);
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }

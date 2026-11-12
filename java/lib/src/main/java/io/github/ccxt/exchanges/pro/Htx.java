@@ -158,10 +158,10 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }});
     }
 
-    public String requestId()
+    public Long requestId()
     {
         Long requestId = this.nextCounter("requestId", 1L);
-        return (String) (String.valueOf(requestId));
+        return requestId;
     }
 
     /**
@@ -751,14 +751,14 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Long attempts = this.safeInteger(subscription, "numAttempts", 0);
             Map<String, Object> market = this.market(symbol);
             String url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, true, false);
-            String requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("req", messageHash);
-            request.put("id", requestId);
+            request.put("id", String.valueOf(requestId));
             // this is a temporary subscription by a specific requestId
             // it has a very short lifetime until the snapshot is received over ws
             Map<String, Object> snapshotSubscription = new HashMap<String, Object>();
-            snapshotSubscription.put("id", requestId);
+            snapshotSubscription.put("id", String.valueOf(requestId));
             snapshotSubscription.put("messageHash", messageHash);
             snapshotSubscription.put("symbol", symbol);
             snapshotSubscription.put("limit", limit);
@@ -768,7 +768,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             snapshotSubscription.put("method", "handleOrderBookSnapshot");
             try
             {
-                io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, requestId, request, requestId, snapshotSubscription)).join();
+                io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, String.valueOf(requestId), request, String.valueOf(requestId), snapshotSubscription)).join();
                 return orderbook.limit();
             } catch(Exception e)
             {
@@ -3342,13 +3342,13 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
         return BaseExchange.supplyAsync(() -> {
 
-            String requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub", messageHash );
-                put( "id", requestId );
+                put( "id", String.valueOf(requestId) );
             }};
             Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "id", requestId );
+                put( "id", String.valueOf(requestId) );
                 put( "messageHash", messageHash );
                 put( "symbol", symbol );
                 put( "params", parameters );
@@ -3367,10 +3367,10 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
         return BaseExchange.supplyAsync(() -> {
 
-            String requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "unsub", subMessageHash );
-                put( "id", requestId );
+                put( "id", String.valueOf(requestId) );
             }};
             String messageHash = ("unsubscribe::" + subMessageHash);
             Boolean isFeed = (java.util.Objects.equals(topic, "orderbook"));
@@ -3381,7 +3381,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, isFeed, false);
             Map<String, Object> subscription = new HashMap<String, Object>();
             subscription.put("unsubscribe", true);
-            subscription.put("id", requestId);
+            subscription.put("id", String.valueOf(requestId));
             subscription.put("subMessageHashes", new ArrayList<Object>(Arrays.asList(subMessageHash)));
             subscription.put("messageHashes", new ArrayList<Object>(Arrays.asList(messageHash)));
             subscription.put("symbols", new ArrayList<Object>(Arrays.asList(market.get("symbol"))));
@@ -3402,9 +3402,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
         return BaseExchange.supplyAsync(() -> {
 
-            String requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "id", requestId );
+                put( "id", String.valueOf(requestId) );
                 put( "messageHash", messageHash );
                 put( "params", parameters );
             }};
@@ -3421,7 +3421,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 request = new HashMap<String, Object>() {{
                     put( "op", "sub" );
                     put( "topic", channel );
-                    put( "cid", requestId );
+                    put( "cid", String.valueOf(requestId) );
                 }};
             }
             Boolean isLinear = java.util.Objects.equals(subtype, "linear");
@@ -3517,9 +3517,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                         put( "Signature", signature );
                     }};
                 }
-                String requestId = this.requestId();
+                Long requestId = this.requestId();
                 Map<String, Object> subscription = new HashMap<String, Object>() {{
-                    put( "id", requestId );
+                    put( "id", String.valueOf(requestId) );
                     put( "messageHash", messageHash );
                     put( "params", parameters );
                 }};

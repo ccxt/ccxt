@@ -1626,15 +1626,19 @@ class pacifica extends \ccxt\async\pacifica {
         return $message;
     }
 
-    public function request_id(): string {
-        return $this->uuid(); // uuid v4
+    public function request_id(): int {
+        // millisecond timestamp plus 3 random digits stays a safe integer
+        $ts = (string) $this->milliseconds();
+        $randomPart = (string) $this->rand_number(3);
+        return $this->parse_to_int($ts . $randomPart);
     }
 
     public function wrap_as_post_action(?string $operationType, array $request): array {
         if ($operationType === null) {
             throw new ArgumentsRequired($this->id . 'postAction() requires a "operationType" argument!');
         }
-        $requestId = $this->request_id();
+        // the venue requires a full uuid v4 request id
+        $requestId = $this->uuid();
         $postParams = array();
         $postParams[$operationType] = $request;
         $payload = array(

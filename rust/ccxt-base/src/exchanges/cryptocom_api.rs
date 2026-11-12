@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::cryptocom::CryptocomCore;
+use super::cryptocom::Cryptocom;
 use crate::exchange::ExchangeRuntime;
 
-impl CryptocomCore {
+impl Cryptocom {
     /// Auto-generated wrapper for the `basePublicGetV1PublicGetAnnouncements` implicit endpoint.
     pub async fn base_public_get_v1_public_get_announcements(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("base_public_get_v1_public_get_announcements".into()), optional_args).await

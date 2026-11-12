@@ -145,12 +145,12 @@ class htx extends \ccxt\async\htx {
         ));
     }
 
-    public function request_id(): string {
+    public function request_id(): int {
         $this->lock_id();
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
         $this->unlock_id();
-        return (string) $requestId;
+        return $requestId;
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -674,12 +674,12 @@ class htx extends \ccxt\async\htx {
         $requestId = $this->request_id();
         $request = array(
             'req' => $messageHash,
-            'id' => $requestId,
+            'id' => (string) $requestId,
         );
         // this is a temporary subscription by a specific requestId
         // it has a very short lifetime until the snapshot is received over ws
         $snapshotSubscription = array(
-            'id' => $requestId,
+            'id' => (string) $requestId,
             'messageHash' => $messageHash,
             'symbol' => $symbol,
             'limit' => $limit,
@@ -689,7 +689,7 @@ class htx extends \ccxt\async\htx {
             'method' => array($this, 'handle_order_book_snapshot'),
         );
         try {
-            $orderbook = Async\await($this->watch($url, $requestId, $request, $requestId, $snapshotSubscription));
+            $orderbook = Async\await($this->watch($url, (string) $requestId, $request, (string) $requestId, $snapshotSubscription));
             return $orderbook->limit();
         } catch (Exception $e) {
             if ($messageHash !== null) {
@@ -2990,10 +2990,10 @@ class htx extends \ccxt\async\htx {
         $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
-            'id' => $requestId,
+            'id' => (string) $requestId,
         );
         $subscription = array(
-            'id' => $requestId,
+            'id' => (string) $requestId,
             'messageHash' => $messageHash,
             'symbol' => $symbol,
             'params' => $params,
@@ -3012,7 +3012,7 @@ class htx extends \ccxt\async\htx {
         $requestId = $this->request_id();
         $request = array(
             'unsub' => $subMessageHash,
-            'id' => $requestId,
+            'id' => (string) $requestId,
         );
         $messageHash = 'unsubscribe::' . $subMessageHash;
         $isFeed = ($topic === 'orderbook');
@@ -3022,7 +3022,7 @@ class htx extends \ccxt\async\htx {
         $url = $this->get_url_by_market_type($market['type'], $market['linear'], false, $isFeed);
         $subscription = array(
             'unsubscribe' => true,
-            'id' => $requestId,
+            'id' => (string) $requestId,
             'subMessageHashes' => array( $subMessageHash ),
             'messageHashes' => array( $messageHash ),
             'symbols' => array( $market['symbol'] ),
@@ -3043,7 +3043,7 @@ class htx extends \ccxt\async\htx {
     private function do_subscribe_private(?string $channel, ?string $messageHash, ?string $type, ?string $subtype, $params = array(), array $subscriptionParams = array()) {
         $requestId = $this->request_id();
         $subscription = array(
-            'id' => $requestId,
+            'id' => (string) $requestId,
             'messageHash' => $messageHash,
             'params' => $params,
         );
@@ -3058,7 +3058,7 @@ class htx extends \ccxt\async\htx {
             $request = array(
                 'op' => 'sub',
                 'topic' => $channel,
-                'cid' => $requestId,
+                'cid' => (string) $requestId,
             );
         }
         $isLinear = $subtype === 'linear';
@@ -3147,7 +3147,7 @@ class htx extends \ccxt\async\htx {
             }
             $requestId = $this->request_id();
             $subscription = array(
-                'id' => $requestId,
+                'id' => (string) $requestId,
                 'messageHash' => $messageHash,
                 'params' => $params,
             );

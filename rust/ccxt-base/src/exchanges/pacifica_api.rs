@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::pacifica::PacificaCore;
+use super::pacifica::Pacifica;
 use crate::exchange::ExchangeRuntime;
 
-impl PacificaCore {
+impl Pacifica {
     /// Auto-generated wrapper for the `publicGetInfo` implicit endpoint.
     pub async fn public_get_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_info".into()), optional_args).await

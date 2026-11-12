@@ -388,7 +388,7 @@ export default class hibachi extends Exchange {
         //     "underlyingDecimals": 9,
         //     "underlyingSymbol": "ETH"
         // },
-        const rows = this.safeList (response, 'futureContracts');
+        const rows = this.safeList (response, 'futureContracts', []);
         return this.parseMarkets (rows);
     }
 

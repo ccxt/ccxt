@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::kraken::KrakenCore;
+use super::kraken::Kraken;
 use crate::exchange::ExchangeRuntime;
 
-impl KrakenCore {
+impl Kraken {
     /// Auto-generated wrapper for the `zendeskGet201893608` implicit endpoint.
     pub async fn zendesk_get201893608(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("zendesk_get201893608".into()), optional_args).await

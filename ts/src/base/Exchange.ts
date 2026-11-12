@@ -1744,7 +1744,7 @@ export class BaseExchange {
             const onClose = this.onClose.bind (this);
             const onConnected = this.onConnected.bind (this);
             // decide client type here: ws / signalr / socketio
-            const wsOptions = this.safeValue (this.options, 'ws', {});
+            const wsOptions = this.safeDict (this.options, 'ws', {});
             // proxy agents
             const [ httpProxy, httpsProxy, socksProxy ] = this.checkWsProxySettings ();
             const chosenAgent = this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
@@ -3753,7 +3753,7 @@ export class BaseExchange {
 
     async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Liquidation[]> {
         if (this.has['watchMyLiquidationsForSymbols'] !== undefined && this.has['watchMyLiquidationsForSymbols'] !== false) {
-            return this.watchMyLiquidationsForSymbols ([ symbol ], since, limit, params);
+            return await this.watchMyLiquidationsForSymbols ([ symbol ], since, limit, params);
         }
         throw new NotSupported (this.id + ' watchMyLiquidations() is not supported yet');
     }
@@ -3836,7 +3836,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseCurrency() is not supported yet');
     }
 
-    parseCurrencies (rawCurrencies: any): Currencies {
+    parseCurrencies (rawCurrencies: List): Currencies {
         const result: Dict = {};
         const arr = this.toArray (rawCurrencies);
         for (let i = 0; i < arr.length; i++) {
@@ -3854,7 +3854,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseMarket() is not supported yet');
     }
 
-    parseMarkets (markets: any): Market[] {
+    parseMarkets (markets: List): Market[] {
         const result: Market[] = [];
         for (let i = 0; i < markets.length; i++) {
             const market = this.parseMarket (markets[i]);
@@ -4116,8 +4116,8 @@ export class BaseExchange {
 
     afterConstruct (userConfig: Dict = {}) {
         // networksById: inverse of options.networks, explicit options.networksById entries win
-        const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.safeValue (this.options, 'networks', {}));
-        this.options['networksById'] = this.extend (networkIdsToCodesGenerated, this.safeValue (this.options, 'networksById', {}));
+        const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.safeDict (this.options, 'networks', {}));
+        this.options['networksById'] = this.extend (networkIdsToCodesGenerated, this.safeDict (this.options, 'networksById', {}));
         this.featuresGenerator ();
         this.hasAutocorrect ();
         // init predefined markets if any
@@ -5093,7 +5093,7 @@ export class BaseExchange {
         });
     }
 
-    parseOrders (orders: Dict | Dict[] | undefined, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Order[] {
+    parseOrders (orders: NullableList, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Order[] {
         //
         // the value of orders is either a dict or a list
         //
@@ -5126,14 +5126,7 @@ export class BaseExchange {
                 results.push (order);
             }
         } else {
-            const ids = Object.keys (orders);
-            for (let i = 0; i < ids.length; i++) {
-                const id = ids[i];
-                const idExtended = this.extend ({ 'id': id }, orders[id]);
-                const parsedOrder = this.parseOrder (idExtended, market); // don't  inline these calls
-                const order = this.extend (parsedOrder, params);
-                results.push (order);
-            }
+            return this.parseOrders (this.addKeyInArrayItems (orders, 'id'), market, since, limit, params);
         }
         results = this.sortBy (results, 'timestamp');
         const symbol = this.safeString (market, 'symbol');
@@ -6047,7 +6040,7 @@ export class BaseExchange {
         } as any;
     }
 
-    parseOHLCVs (ohlcvs: object[] | undefined, market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false): OHLCV[] {
+    parseOHLCVs (ohlcvs: NullableList, market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false): OHLCV[] {
         if (ohlcvs === undefined) {
             return [];
         }
@@ -7131,7 +7124,7 @@ export class BaseExchange {
         }
     }
 
-    async fetchCrossBorrowRate (code: string, params = {}): Promise<CrossBorrowRate> {
+    async fetchCrossBorrowRate (code: string, params: Dict = {}): Promise<CrossBorrowRate> {
         await this.loadMarkets ();
         if (this.has['fetchBorrowRates'] === undefined || this.has['fetchBorrowRates'] === false) {
             throw new NotSupported (this.id + ' fetchCrossBorrowRate() is not supported yet');
@@ -8038,7 +8031,7 @@ export class BaseExchange {
         return this.filterByArrayTickers (results, 'symbol', this.marketSymbols (symbols));
     }
 
-    parseDepositAddresses (addresses: any, codes: Strings = undefined, indexed = true, params: Dict = {}): DepositAddress[] {
+    parseDepositAddresses (addresses: List, codes: Strings = undefined, indexed = true, params: Dict = {}): DepositAddress[] {
         let result: DepositAddress[] = [];
         for (let i = 0; i < addresses.length; i++) {
             const address = this.extend (this.parseDepositAddress (addresses[i]), params);
@@ -8053,7 +8046,7 @@ export class BaseExchange {
         return result;
     }
 
-    parseBorrowInterests (response: any, market: Market = undefined): BorrowInterest[] {
+    parseBorrowInterests (response: List, market: Market = undefined): BorrowInterest[] {
         const interests: BorrowInterest[] = [];
         for (let i = 0; i < response.length; i++) {
             const row = this.safeValue (response, i);
@@ -8077,7 +8070,7 @@ export class BaseExchange {
         return this.filterByCurrencySinceLimit (sorted, code, since, limit);
     }
 
-    parseIsolatedBorrowRates (info: any): IsolatedBorrowRates {
+    parseIsolatedBorrowRates (info: List): IsolatedBorrowRates {
         const result: Dict = {};
         for (let i = 0; i < info.length; i++) {
             const item = this.safeValue (info, i);
@@ -8088,7 +8081,7 @@ export class BaseExchange {
         return result as any;
     }
 
-    parseFundingRateHistories (response: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingRateHistory[] {
+    parseFundingRateHistories (response: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingRateHistory[] {
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -8108,7 +8101,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseFundingRate() is not supported yet');
     }
 
-    parseFundingRates (response: any, symbols: Strings = undefined): FundingRates {
+    parseFundingRates (response: List, symbols: Strings = undefined): FundingRates {
         const fundingRates: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -8124,7 +8117,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseLongShortRatio() is not supported yet');
     }
 
-    parseLongShortRatioHistory (response: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): LongShortRatio[] {
+    parseLongShortRatioHistory (response: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined): LongShortRatio[] {
         const rates: LongShortRatio[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -8285,7 +8278,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
     }
 
-    parseOpenInterests (response: any, symbols: Strings = undefined): OpenInterests {
+    parseOpenInterests (response: List, symbols: Strings = undefined): OpenInterests {
         const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -10281,7 +10274,7 @@ export default class Exchange extends BaseExchange {
         return this.safeString (order, 'status');
     }
 
-    async fetchUnifiedOrder (order: any, params: Dict = {}): Promise<Order> {
+    async fetchUnifiedOrder (order: Order, params: Dict = {}): Promise<Order> {
         return await this.fetchOrder (this.safeString (order, 'id', ''), this.safeString (order, 'symbol'), params);
     }
 
@@ -10541,7 +10534,7 @@ export default class Exchange extends BaseExchange {
     }
 
     async cancelUnifiedOrder (order: Order, params: Dict = {}): Promise<Order> {
-        return await this.cancelOrder (this.safeString (order, 'id') as string, this.safeString (order, 'symbol'), params);
+        return await this.cancelOrder (this.safeString (order, 'id', ''), this.safeString (order, 'symbol'), params);
     }
 
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {

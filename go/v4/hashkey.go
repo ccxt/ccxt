@@ -1336,7 +1336,7 @@ func (this *Hashkey) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var coins []any = SafeListTyped(response, "coins")
+	var coins []any = SafeListTypedDefault(response, "coins", []any{})
 
 	//
 	//     {
@@ -3191,7 +3191,7 @@ func (this *Hashkey) createSpotOrderBody(ch chan AsyncResult[Order], symbol stri
 	if (!isMarketBuy) && (cost != nil) {
 		panic(NotSupported(this.Id + " createOrder() supports cost parameter for spot market buy orders only"))
 	}
-	var request map[string]any = this.CreateSpotOrderRequest(SafeStringPtr(symbol), typeVar, side, amount, price, params)
+	var request map[string]any = this.CreateSpotOrderRequest(&symbol, typeVar, side, amount, price, params)
 	var response any = map[string]any{}
 	var test *bool = this.SafeBool(params, "test", false)
 	if test != nil && *test {
@@ -3411,7 +3411,7 @@ func (this *Hashkey) createSwapOrderBody(ch chan AsyncResult[Order], symbol stri
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var request map[string]any = this.CreateSwapOrderRequest(SafeStringPtr(symbol), typeVar, side, amount, price, params)
+	var request map[string]any = this.CreateSwapOrderRequest(&symbol, typeVar, side, amount, price, params)
 
 	r1 := <-this.PrivatePostApiV1FuturesOrder(this.Extend(request, params))
 	if r1.Err != nil {
@@ -3539,12 +3539,12 @@ func (this *Hashkey) createOrdersBody(ch chan AsyncResult[[]Order], orders []any
  * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Hashkey) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Hashkey) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3683,12 +3683,12 @@ func (this *Hashkey) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
  * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Hashkey) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Hashkey) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3704,7 +3704,7 @@ func (this *Hashkey) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opt
 		}
 	}
 	var request map[string]any = map[string]any{}
-	var orderIds string = Join(ids, ",")
+	var orderIds string = strings.Join(ids, ",")
 	request["ids"] = orderIds
 	var market map[string]any = nil
 	if symbol != nil {

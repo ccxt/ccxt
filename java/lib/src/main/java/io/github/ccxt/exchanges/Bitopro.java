@@ -1077,11 +1077,11 @@ public class Bitopro extends BitoproApi
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         List<Object> firstCandle = (List<Object>) this.safeList(candles, 0, new ArrayList<Object>(Arrays.asList()));
-        Object copyFrom = firstCandle;
+        List<Object> copyFrom = firstCandle;
         Object timestamp = null;
         if (java.util.Objects.equals(since, null))
         {
-            timestamp = this.safeValue(firstCandle, 0);
+            timestamp = this.safeInteger(firstCandle, 0);
         } else
         {
             timestamp = since;
@@ -1104,7 +1104,7 @@ public class Bitopro extends BitoproApi
             }
             timestamp = this.sum(timestamp, distanceInMs);
             resultLength = ((List<?>)result).size();
-            copyFrom = this.safeValue(result, (((long) resultLength) - 1L));
+            copyFrom = (List<Object>) this.safeList(result, (((long) resultLength) - 1L), (Object) null);
         }
         return result;
     }

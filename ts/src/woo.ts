@@ -2895,7 +2895,7 @@ export default class woo extends Exchange {
         return this.parseDepositAddress (this.extend (data, { 'network': this.safeString (request, 'network') }), currency);
     }
 
-    getDedicatedNetworkId (currency: Dict, params: Dict): [Str, Dict] {
+    getDedicatedNetworkId (currency: Currency, params: Dict): [Str, Dict] {
         const [ networkCodeRaw, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         const networks = this.safeDict (currency, 'networks', {});
         const currencyCode = this.safeString (currency, 'code', '');
@@ -2922,7 +2922,7 @@ export default class woo extends Exchange {
         } as DepositAddress;
     }
 
-    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<any> {
+    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<[Currency, Dict[]]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

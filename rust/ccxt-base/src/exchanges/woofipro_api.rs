@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::woofipro::WoofiproCore;
+use super::woofipro::Woofipro;
 use crate::exchange::ExchangeRuntime;
 
-impl WoofiproCore {
+impl Woofipro {
     /// Auto-generated wrapper for the `v1PublicGetPublicVolumeStats` implicit endpoint.
     pub async fn v1_public_get_public_volume_stats(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_public_get_public_volume_stats".into()), optional_args).await

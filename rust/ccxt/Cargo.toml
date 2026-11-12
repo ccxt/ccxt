@@ -20,7 +20,7 @@ path = "src/lib.rs"
 # Pick venues instead to cut build time and memory by two orders of magnitude:
 #   ccxt = { version = "…", default-features = false, features = ["binance", "kraken"] }
 default = ["all"]
-# BEGIN GENERATED FEATURES (emitted by build/generateRustWrappers.ts)
+# BEGIN GENERATED FEATURES (emitted by build/rustTranspiler.ts)
 alpaca = ["ccxt-base/alpaca"]
 apex = ["ccxt-base/apex"]
 aster = ["ccxt-base/aster"]
@@ -128,17 +128,7 @@ all = ["alpaca", "apex", "aster", "backpack", "bequant", "bigone", "binance", "b
 # END GENERATED FEATURES
 
 [dependencies]
-# The untyped engine. The per-exchange typed wrappers wrap its REST/prediction
-# Cores and base method surface. Kept a separate crate so no single rustc
-# invocation compiles the whole generated surface at once (CI memory ceiling).
-# This `ccxt` crate re-exports ccxt-base at its root, so `ccxt::Value`,
-# `ccxt::exchanges::…`, `ccxt::runtime::…` resolve alongside the typed wrappers.
+# The engine holding the REST exchanges (`Binance`, …). Kept a separate crate so
+# no single rustc invocation compiles the whole generated surface at once (CI
+# memory ceiling); this crate re-exports it at its root.
 ccxt-base = { path = "../ccxt-base", version = "4.5.92", features = ["engine"] }
-
-# The generated typed wrappers (`src/exchanges/*_typed.rs`, `typed.rs`, emitted
-# by build/generateRustWrappers.ts) reference exactly one external crate
-# directly: `#[async_trait::async_trait]` on the `TypedExchange` trait. Every
-# other external type (tokio, serde_json, Decimal, IndexMap, chrono, …) is
-# reached through the `ccxt_base::*` re-exports above, so it is not
-# re-declared here.
-async-trait = "0.1"

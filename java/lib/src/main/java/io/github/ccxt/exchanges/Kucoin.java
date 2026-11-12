@@ -5769,8 +5769,7 @@ public class Kucoin extends KucoinApi
             //           },
             // }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            data = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -11418,7 +11417,7 @@ public class Kucoin extends KucoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Object parameters)
+    public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -13003,10 +13002,9 @@ public class Kucoin extends KucoinApi
                 mapLiteral18.put("clientOid", this.safeString(clientOrderIds, i));
                 ((List<Object>)ordersRequests).add(mapLiteral18);
             }
-            List<Object> idsList = this.toArray(ids);
-            for (var i = 0; i < ((List<?>)idsList).size(); i++)
+            for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                String orderId = this.safeString(idsList, i);
+                String orderId = this.safeString(ids, i);
                 if (Boolean.TRUE.equals(uta))
                 {
                     HashMap<String, Object> mapLiteral19 = new HashMap<String, Object>();

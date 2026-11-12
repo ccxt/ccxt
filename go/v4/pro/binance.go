@@ -1363,7 +1363,7 @@ func (this *Binance) HandleDelta(bookside any, delta any) {
 }
 func (this *Binance) HandleDeltas(bookside any, deltas any) {
 	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
-		this.HandleDelta(bookside, this.SafeValue(deltas, i))
+		this.HandleDelta(bookside, this.SafeList(deltas, i))
 	}
 }
 func (this *Binance) HandleOrderBookMessage(client any, message any, orderbook ccxt.OrderBookInterface) any {
@@ -4764,7 +4764,7 @@ func (this *Binance) fetchPositionsWsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			market = this.Market(symbolsNormalized[0])
-			payload["symbol"] = this.SafeValue(market, "id")
+			payload["symbol"] = this.SafeString(market, "id")
 		}
 	}
 	var typeVar any = this.GetMarketType("fetchPositionsWs", market, params)
@@ -5174,7 +5174,7 @@ func (this *Binance) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sym
 		panic(ccxt.NotSupported(this.Id + " createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead"))
 	}
 	var isAlgoOrder bool = (market["linear"] == true) && ((market["swap"] == true) || (market["future"] == true)) && (isConditional == true)
-	var payload map[string]any = this.CreateOrderRequest(symbol, typeVar, ccxt.SafeStringPtr(side), amount, price, this.Extend(paramsOmitted, map[string]any{
+	var payload map[string]any = this.CreateOrderRequest(symbol, typeVar, &side, amount, price, this.Extend(paramsOmitted, map[string]any{
 		"isAlgoOrder": isAlgoOrder,
 	}))
 	returnRateLimits, paramsReturnRateLimits := this.HandleOptionBoolAndParams(paramsOmitted, "createOrderWs", "returnRateLimits", false)
@@ -5362,7 +5362,7 @@ func (this *Binance) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id st
 	if ccxt.IsEqual(marketType, "spot") {
 		payload = this.EditSpotOrderRequest(id, symbol, typeVar, side, amount, price, params)
 	} else {
-		payload = this.EditContractOrderRequest(ccxt.SafeStringPtr(id), symbol, typeVar, side, amount, price, params)
+		payload = this.EditContractOrderRequest(&id, symbol, typeVar, side, amount, price, params)
 	}
 	returnRateLimits, paramsReturnRateLimits := this.HandleOptionBoolAndParams(params, "editOrderWs", "returnRateLimits", false)
 	ccxt.AddElementToObject(payload, "returnRateLimits", returnRateLimits)

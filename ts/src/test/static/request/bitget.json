@@ -1703,7 +1703,7 @@
                 "method": "setLeverage",
                 "url": "https://api.bitget.com/api/v2/mix/account/set-leverage",
                 "input": [
-                    "20",
+                    20,
                     "BTC/USD:BTC",
                     {
                         "holdSide": "long"

@@ -4914,7 +4914,7 @@ class phemex extends phemex$1["default"] {
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
-        const scaledAmmount = this.toEv(amount, currency);
+        const scaledAmmount = this.toEn(amount, this.safeInteger(currency, 'valueScale'));
         let direction = undefined;
         let transfer = undefined;
         if (fromId === 'spot' && toId === 'future') {

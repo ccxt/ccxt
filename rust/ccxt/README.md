@@ -3,16 +3,16 @@
 Typed Rust API for [CCXT](https://github.com/ccxt/ccxt) — a cryptocurrency trading library
 with support for 100+ exchanges and prediction markets.
 
-This crate is the **REST** surface: each exchange has a typed wrapper returning native Rust
+This crate is the **REST** surface: each exchange is a struct whose unified methods return native Rust
 types (`Ticker`, `Order`, `Market`, `OrderBook`) rather than a dynamic value. It re-exports
 the [`ccxt-base`](https://crates.io/crates/ccxt-base) engine, so `ccxt::Value`,
 `ccxt::Params` and `ccxt::Config` resolve here too.
 
 ```rust
-use ccxt::{Binance, Params};
+use ccxt::{Binance, Params, ExchangeBase, ExchangeRuntime};
 
 let mut exchange = Binance::new(None);
-exchange.load_markets(false).await;
+exchange.load_markets(false, ()).await?;
 
 let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
 println!("{} {:?}", ticker.symbol, ticker.last);
@@ -37,16 +37,16 @@ depend on. `from_id` only knows the venues that were compiled in.
 
 ## WebSocket (`watch*`)
 
-Streaming lives in [`ccxt-pro`](https://crates.io/crates/ccxt-pro). Its wrappers carry the
+Streaming lives in [`ccxt-pro`](https://crates.io/crates/ccxt-pro). Its exchange structs carry the
 REST surface too, so one instance can subscribe and trade. `watch_*` resolves with the next
 update, so call it in a loop:
 
 ```rust
 use ccxt::Params;
-use ccxt_pro::Binance;
+use ccxt_pro::{Binance, ExchangeBase, ExchangeRuntime};
 
 let mut exchange = Binance::new(None);
-exchange.load_markets(false).await;
+exchange.load_markets(false, ()).await?;
 
 loop {
     let book = exchange.watch_order_book("BTC/USDT", Some(10), Params::none()).await?;
@@ -65,10 +65,10 @@ share the unified surface, so the same `fetch_*` calls work against outcome mark
 
 ```rust
 use ccxt::Params;
-use ccxt_prediction::Polymarket;
+use ccxt_prediction::{Polymarket, ExchangeBase, ExchangeRuntime};
 
 let mut exchange = Polymarket::new(None);
-exchange.load_markets(false).await;
+exchange.load_markets(false, ()).await?;
 
 let book = exchange.fetch_order_book("TRUMP_WINS_2028:YES", Some(10), Params::none()).await?;
 println!("{:?} best bid {:?}", book.symbol, book.bids.first());

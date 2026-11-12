@@ -54,7 +54,7 @@ class derive(ccxt.async_support.derive):
             },
         })
 
-    def request_id(self, url: str) -> float:
+    def request_id(self, url: str) -> int:
         options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
@@ -866,7 +866,7 @@ class derive(ccxt.async_support.derive):
             positionsSnapshot = await self.fetch_positions(None, snapshotParams)
             cache = self.safe_value(self.positions, subaccountIdKey)
             for i in range(0, len(positionsSnapshot)):
-                snapshotPosition = self.safe_value(positionsSnapshot, i)
+                snapshotPosition = self.safe_dict(positionsSnapshot, i)
                 cache.append(snapshotPosition)
             loadedSnapshots[subaccountIdKey] = True
             self.options['loadedPositionsSnapshots'] = loadedSnapshots
