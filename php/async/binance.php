@@ -8073,7 +8073,8 @@ class binance extends Exchange {
                 }
                 $response = Async\await($this->sapiGetMarginAllOrders($this->extend($request, $paramsPaginate)));
             } elseif ($stock) {
-                $response = Async\await($this->sapiGetEquityOrderHistory($this->extend($request, $paramsPaginate)));
+                $equityResponse = Async\await($this->sapiGetEquityOrderHistory($this->extend($request, $paramsPaginate)));
+                $response = $this->safe_list($equityResponse, 'rows', array());
             } else {
                 $response = Async\await($this->privateGetAllOrders($this->extend($request, $paramsPaginate)));
             }
@@ -8284,10 +8285,6 @@ class binance extends Exchange {
         //         ]
         //     }
         //
-        if ($stock) {
-            $result = $this->safe_list($response, 'rows', array());
-            return $this->parse_orders($result, $market, $since, $limitResolved);
-        }
         return $this->parse_orders($response, $market, $since, $limitResolved);
     }
 
@@ -11450,7 +11447,6 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type', $defaultType);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchFundingRates', null, $params, 'linear');
         $query = $this->omit($paramsSubType, 'type');
-        $response = null;
         if ($this->is_linear($type, $subType)) {
             $response = Async\await($this->fapiPublicGetPremiumIndex($query));
         } elseif ($this->is_inverse($type, $subType)) {
@@ -16108,7 +16104,6 @@ class binance extends Exchange {
         }
         $type = 'swap';
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchFundingIntervals', $market, $params, 'linear');
-        $response = null;
         if ($this->is_linear($type, $subType)) {
             $response = Async\await($this->fapiPublicGetFundingInfo($paramsSubType));
         } elseif ($this->is_inverse($type, $subType)) {

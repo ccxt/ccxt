@@ -4823,8 +4823,7 @@ class kucoin extends Exchange {
         //           },
         // }
         //
-        $data = $this->safe_dict($response, 'data', array());
-        $data = $this->safe_list($data, 'data', array());
+        $data = $this->safe_list($this->safe_dict($response, 'data', array()), 'data', array());
         return $this->parse_orders($data);
     }
 

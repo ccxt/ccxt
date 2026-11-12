@@ -2697,7 +2697,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         ));
     }
 
-    public function parse_orders(mixed $orders, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function parse_orders(?array $orders, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()) {
         //
         // the value of orders is either a dict or a list
         //
@@ -2730,14 +2730,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 $results[] = $order;
             }
         } else {
-            $ids = is_array($orders) ? array_keys($orders) : array();
-            for ($i = 0; $i < count($ids); $i++) {
-                $id = $ids[$i];
-                $idExtended = $this->extend(array( 'id' => $id ), $orders[$id]);
-                $parsedOrder = $this->parse_order($idExtended, $market); // don't  inline these calls
-                $order = $this->extend($parsedOrder, $params);
-                $results[] = $order;
-            }
+            return $this->parse_orders($this->add_key_in_array_items($orders, 'id'), $market, $since, $limit, $params);
         }
         $results = $this->sort_by($results, 'timestamp');
         $symbol = $this->safe_string($market, 'symbol');
@@ -5713,7 +5706,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         throw new NotSupported($this->id . ' parseFundingRate() is not supported yet');
     }
 
-    public function parse_funding_rates(mixed $response, ?array $symbols = null) {
+    public function parse_funding_rates(array $response, ?array $symbols = null) {
         $fundingRates = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];

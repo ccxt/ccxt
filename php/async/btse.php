@@ -2630,7 +2630,7 @@ class btse extends Exchange {
             $request['symbol'] = $this->futures_request_id($this->market($symbol));
             $response = Async\await($this->privateDeleteFuturesApiV23Order($this->extend($request, $paramsMarketType)));
         }
-        return $this->parse_orders($response, $market);
+        return $this->parse_orders($this->to_array($response), $market);
     }
 
     public function cancel_all_orders_after(?int $timeout, $params = array()) {

@@ -1994,7 +1994,7 @@ class aster extends Exchange {
         //         }
         //     ]
         //
-        return $this->parse_funding_rates($response, $symbolsNormalized);
+        return $this->parse_funding_rates($this->to_array($response), $symbolsNormalized);
     }
 
     public function fetch_funding_intervals(?array $symbols = null, $params = array()): PromiseInterface {
