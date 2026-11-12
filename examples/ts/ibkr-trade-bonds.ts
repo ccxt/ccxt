@@ -1,5 +1,7 @@
 import ccxt from '../../js/ccxt.js';
 
+// @NO_AUTO_TRANSPILE (the python version in examples/py is hand-written)
+
 // Compare US treasury prices and yields on InteractiveBrokers through the Client Portal Gateway.
 // (you can alternatively use oauth 1.0 if your account allows it)
 //
