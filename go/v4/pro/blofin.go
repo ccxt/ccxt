@@ -469,7 +469,7 @@ func (this *Blofin) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbols == nil {
-		panic(ccxt.NotSupported(this.Id + " watchTickers() requires a list of symbols"))
+		panic(ccxt.ArgumentsRequired(this.Id + " watchTickers() requires a list of symbols"))
 	}
 
 	r := <-this.WatchMultipleWrapperAsync(true, "tickers", "watchTickers", symbols, params)
