@@ -718,7 +718,7 @@ impl Blofin {
     m
 }));
         if (symbols == Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() requires a list of symbols".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() requires a list of symbols".into()))));
         }
         let mut ticker: Value = self.watch_multiple_wrapper(Value::Bool(true), "tickers", "watchTickers", &[symbols.clone(), params]).await;
         if self.newUpdates.as_bool() == Some(true) {

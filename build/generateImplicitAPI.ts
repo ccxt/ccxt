@@ -1024,7 +1024,7 @@ function goEndpointBody (method: string, resolvable: any, callEndpoint: string, 
     const paths: string[] = resolvable.paths || []
     // the api argument is always the []string of walked path levels
     const api = `[]string{${paths.map (x => JSON.stringify (x)).join (', ')}}`
-    const call = `${JSON.stringify (resolvable.endpoint)}, ${api}, ${JSON.stringify (resolvable.method)}, ${pkgPrefix}GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(${resolvable.goCost})}`
+    const call = `${JSON.stringify (resolvable.endpoint)}, ${api}, ${JSON.stringify (resolvable.method)}, ${pkgPrefix}GetArg(args, 0, nil), map[string]any{"cost": float64(${resolvable.goCost})}`
     if (element === 'any') {
         return `\treturn this.Fetch2Async(${call})`
     }

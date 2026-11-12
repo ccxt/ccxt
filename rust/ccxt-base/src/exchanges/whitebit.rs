@@ -1308,6 +1308,7 @@ impl Whitebit {
         m.insert("limit must be less than or equal to".to_string(), Value::Str("BadRequest".into()));
         m.insert("The Price should be less than or equal to".to_string(), Value::Str("InvalidOrder".into()));
         m.insert("The Price should be greater than or equal to".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("Price must be a multiple of".to_string(), Value::Str("InvalidOrder".into()));
         m.insert("This action is unauthorized".to_string(), Value::Str("PermissionDenied".into()));
         m.insert("Given amount is less than min amount".to_string(), Value::Str("InvalidOrder".into()));
         m.insert("Min amount step".to_string(), Value::Str("InvalidOrder".into()));

@@ -734,6 +734,7 @@ func (this *Whitebit) Describe() map[string]any {
 				"limit must be less than or equal to":          BadRequest,
 				"The Price should be less than or equal to":    InvalidOrder,
 				"The Price should be greater than or equal to": InvalidOrder,
+				"Price must be a multiple of":                  InvalidOrder,
 				"This action is unauthorized":                  PermissionDenied,
 				"Given amount is less than min amount":         InvalidOrder,
 				"Min amount step":                              InvalidOrder,
@@ -5845,11 +5846,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes423719 []any = r.Value
-		if retRes423719 == nil {
+		var retRes423819 []any = r.Value
+		if retRes423819 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes423719)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes423819)}
 		}
 		return nil
 	}

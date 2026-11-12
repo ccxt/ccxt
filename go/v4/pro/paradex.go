@@ -23,24 +23,32 @@ func newParadex() *Paradex {
 func (this *Paradex) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
-			"ws":                       true,
-			"watchBidsAsks":            true,
-			"watchFundingRate":         true,
-			"watchFundingRates":        true,
-			"watchLiquidations":        true,
-			"watchMarkPrice":           true,
-			"watchMarkPrices":          true,
-			"watchTicker":              true,
-			"watchTickers":             true,
-			"watchOrderBook":           true,
-			"watchOrderBookForSymbols": true,
-			"watchOrders":              true,
-			"watchMyTrades":            true,
-			"watchPositions":           true,
-			"watchTrades":              true,
-			"watchTradesForSymbols":    true,
-			"watchBalance":             true,
-			"watchOHLCV":               false,
+			"ws":                         true,
+			"watchBidsAsks":              true,
+			"watchFundingRate":           true,
+			"watchFundingRates":          true,
+			"watchLiquidations":          true,
+			"watchMarkPrice":             true,
+			"watchMarkPrices":            true,
+			"watchTicker":                true,
+			"watchTickers":               true,
+			"watchOrderBook":             true,
+			"watchOrderBookForSymbols":   true,
+			"watchOrders":                true,
+			"watchMyTrades":              true,
+			"watchPositions":             true,
+			"watchTrades":                true,
+			"watchTradesForSymbols":      true,
+			"watchBalance":               true,
+			"watchOHLCV":                 false,
+			"unWatchBidsAsks":            true,
+			"unWatchFundingRate":         true,
+			"unWatchOrderBook":           true,
+			"unWatchOrderBookForSymbols": true,
+			"unWatchTicker":              true,
+			"unWatchTickers":             true,
+			"unWatchTrades":              true,
+			"unWatchTradesForSymbols":    true,
 		},
 		"urls": map[string]any{
 			"logo": "https://x.com/tradeparadex/photo",
@@ -62,6 +70,7 @@ func (this *Paradex) Describe() map[string]any {
 			"watchOrderBook": map[string]any{
 				"deltas": false,
 			},
+			"unsubscribeTimeout": 10000,
 			"ws": map[string]any{
 				"cost": 2,
 			},
@@ -197,6 +206,11 @@ func (this *Paradex) subscribeChannelsBody(ch chan ccxt.AsyncResult[any], url an
 	// starts a client without any. Each but the last is sent once the previous one is acknowledged
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
+
+	r := <-this.WaitForPendingUnsubscribeAsync(url, channels)
+	if r.Err != nil {
+		panic(r.Err)
+	}
 	var channelsLength int = ccxt.GetArrayLength(channels)
 	for attempt := 0; attempt < channelsLength; attempt++ {
 		var pending any = this.UnsubscribedChannels(url, channels)
@@ -207,9 +221,9 @@ func (this *Paradex) subscribeChannelsBody(ch chan ccxt.AsyncResult[any], url an
 		var channel *string = ccxt.SafeStringPtr(ccxt.GetValue(channels, ccxt.GetValue(pending, 0)))
 		var pendingRequest map[string]any = this.SubscribeRequest(channel)
 
-		r := <-this.SendRequestAsync(url, this.DeepExtend(pendingRequest, params), channel)
-		if r.Err != nil {
-			panic(r.Err)
+		r1 := <-this.SendRequestAsync(url, this.DeepExtend(pendingRequest, params), channel)
+		if r1.Err != nil {
+			panic(r1.Err)
 		}
 	}
 	// the last one goes with the watch, so that an update sent right after it is not missed
@@ -217,11 +231,11 @@ func (this *Paradex) subscribeChannelsBody(ch chan ccxt.AsyncResult[any], url an
 	var missingLength int = ccxt.GetArrayLength(missing)
 	if missingLength == 0 {
 
-		r1 := <-this.WatchMultiple(url, messageHashes, nil, channels)
-		if r1.Err != nil {
-			panic(r1.Err)
+		r2 := <-this.WatchMultiple(url, messageHashes, nil, channels)
+		if r2.Err != nil {
+			panic(r2.Err)
 		}
-		ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+		ch <- ccxt.AsyncResult[any]{Value: r2.Value}
 		return nil
 	}
 	var index any = ccxt.GetValue(missing, 0)
@@ -232,11 +246,11 @@ func (this *Paradex) subscribeChannelsBody(ch chan ccxt.AsyncResult[any], url an
 		"messageHashes": []any{ccxt.GetValue(messageHashes, index)},
 	}
 
-	r2 := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), []any{ccxt.GetValue(channels, index)}, subscription)
-	if r2.Err != nil {
-		panic(r2.Err)
+	r3 := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), []any{ccxt.GetValue(channels, index)}, subscription)
+	if r3.Err != nil {
+		panic(r3.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
+	ch <- ccxt.AsyncResult[any]{Value: r3.Value}
 	return nil
 }
 func (this *Paradex) UnsubscribedChannels(url any, channels any) any {
@@ -248,6 +262,303 @@ func (this *Paradex) UnsubscribedChannels(url any, channels any) any {
 		}
 	}
 	return result
+}
+
+/**
+ * @ignore
+ * @method
+ * @name paradex#sendUnsubscribe
+ * @description sends an unsubscribe or modify request and waits for its reply, which forgets the subscriptions it ends and rejects their watchers
+ * @param {string} url the websocket url
+ * @param {string} unsubHash the message hash the reply resolves
+ * @param {object} request the json-rpc request
+ * @param {object} subscription what the reply cleans up: subscribeHashes, subMessageHashes, prefix, topic and symbols
+ * @param {object} [params] extra parameters merged into the request
+ * @returns {boolean} true once the reply is in
+ */
+func (this *Paradex) SendUnsubscribeAsync(url any, unsubHash string, request map[string]any, subscription map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.sendUnsubscribeBody(ch, url, unsubHash, request, subscription, optionalArgs...)
+	return ch
+}
+func (this *Paradex) sendUnsubscribeBody(ch chan ccxt.AsyncResult[any], url any, unsubHash string, request map[string]any, subscription map[string]any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	// an error reply rejects the unwatch only, the watchers keep their subscription
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var unsubscription map[string]any = this.Extend(subscription, map[string]any{
+		"id":            request["id"],
+		"messageHashes": []any{unsubHash},
+	})
+	// a lost acknowledgement is timed out, so that neither the unwatch nor a watch waiting on it can hang
+	var client ccxt.ClientInterface = this.Client(url)
+	var timeout *int64 = this.SafeInteger(this.Options, "unsubscribeTimeout", 10000)
+	this.Delay(timeout, this.ExpirePendingUnsubscribeAsync, client, unsubHash, this.SafeString(unsubscription, "id"))
+
+	r := <-this.Watch(url, unsubHash, this.DeepExtend(request, params), unsubHash, unsubscription)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @ignore
+ * @method
+ * @name paradex#unsubscribeChannels
+ * @description unsubscribes from a list of channels, one request per channel as the server takes one channel per request, each sent once the previous one is acknowledged, a refused channel does not stop the others
+ * @param {string} url the websocket url
+ * @param {string} topic the cache the replies clear, see cleanCache
+ * @param {string[]} channels the channels to unsubscribe from
+ * @param {string[]} subMessageHashes the message hash the watchers of each channel wait on
+ * @param {string[]} symbols the unified symbol of each channel, empty for an all-markets channel
+ * @param {object} [params] extra parameters merged into each unsubscribe request
+ * @returns {boolean} true once every channel is unsubscribed
+ */
+func (this *Paradex) UnsubscribeChannelsAsync(url any, topic string, channels any, subMessageHashes any, symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.unsubscribeChannelsBody(ch, url, topic, channels, subMessageHashes, symbols, optionalArgs...)
+	return ch
+}
+func (this *Paradex) unsubscribeChannelsBody(ch chan ccxt.AsyncResult[any], url any, topic string, channels any, subMessageHashes any, symbols any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	// catch block:
+	// a channel the server refuses (not subscribed) does not stop the others, its error is thrown once they are sent
+	// try block:
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	for i := 0; i < ccxt.GetArrayLength(channels); i++ {
+
+		{
+			func(this *Paradex) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *Paradex) any {
+
+							r := <-this.UnsubscribeChannelsFromAsync(url, topic, channels, subMessageHashes, symbols, i+1, params)
+							if r.Err != nil {
+								panic(r.Err)
+							}
+							panic(e)
+
+						}(this)
+					}
+				}()
+
+				r1 := <-this.UnsubscribeChannelAtAsync(url, topic, channels, subMessageHashes, symbols, i, params)
+				if r1.Err != nil {
+					panic(r1.Err)
+				}
+				return nil
+			}(this)
+
+		}
+	}
+
+	ch <- ccxt.AsyncResult[any]{Value: true}
+	return nil
+}
+
+/**
+ * @ignore
+ * @method
+ * @name paradex#unsubscribeChannelsFrom
+ * @description unsubscribes from the channels from an index on, after one was refused, their errors are dropped as the first one is thrown
+ * @param {string} url the websocket url
+ * @param {string} topic the cache the replies clear, see cleanCache
+ * @param {string[]} channels the channels to unsubscribe from
+ * @param {string[]} subMessageHashes the message hash the watchers of each channel wait on
+ * @param {string[]} symbols the unified symbol of each channel, empty for an all-markets channel
+ * @param {int} start the index of the first channel to unsubscribe from
+ * @param {object} [params] extra parameters merged into each unsubscribe request
+ * @returns {int} the number of channels refused
+ */
+func (this *Paradex) UnsubscribeChannelsFromAsync(url any, topic string, channels any, subMessageHashes any, symbols any, start any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.unsubscribeChannelsFromBody(ch, url, topic, channels, subMessageHashes, symbols, start, optionalArgs...)
+	return ch
+}
+func (this *Paradex) unsubscribeChannelsFromBody(ch chan ccxt.AsyncResult[any], url any, topic string, channels any, subMessageHashes any, symbols any, start any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var refused any = 0
+	for i := 0; i < ccxt.GetArrayLength(channels); i++ {
+		if ccxt.IsGreaterThanOrEqual(i, start) {
+
+			{
+				func(this *Paradex) (ret_ any) {
+					defer func() {
+						if e := recover(); e != nil {
+							if e == "break" {
+								return
+							}
+							ret_ = func(this *Paradex) any {
+								// catch block:
+								refused = ccxt.Add(refused, 1)
+								return nil
+							}(this)
+						}
+					}()
+					// try block:
+
+					r := <-this.UnsubscribeChannelAtAsync(url, topic, channels, subMessageHashes, symbols, i, params)
+					if r.Err != nil {
+						panic(r.Err)
+					}
+					return nil
+				}(this)
+
+			}
+		}
+	}
+
+	ch <- ccxt.AsyncResult[any]{Value: refused}
+	return nil
+}
+
+/**
+ * @ignore
+ * @method
+ * @name paradex#unsubscribeChannelAt
+ * @description unsubscribes from one channel of a list, the reply forgets its subscription and rejects its watchers, the liquidations of a market with its trades
+ * @param {string} url the websocket url
+ * @param {string} topic the cache the reply clears, see cleanCache
+ * @param {string[]} channels the channels of the list
+ * @param {string[]} subMessageHashes the message hash the watchers of each channel wait on
+ * @param {string[]} symbols the unified symbol of each channel, empty for an all-markets channel
+ * @param {int} index the index of the channel to unsubscribe from
+ * @param {object} [params] extra parameters merged into the unsubscribe request
+ * @returns {boolean} true once unsubscribed
+ */
+func (this *Paradex) UnsubscribeChannelAtAsync(url any, topic string, channels any, subMessageHashes any, symbols any, index any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.unsubscribeChannelAtBody(ch, url, topic, channels, subMessageHashes, symbols, index, optionalArgs...)
+	return ch
+}
+func (this *Paradex) unsubscribeChannelAtBody(ch chan ccxt.AsyncResult[any], url any, topic string, channels any, subMessageHashes any, symbols any, index any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var channel *string = ccxt.SafeStringPtr(ccxt.GetValue(channels, index))
+	var symbol *string = this.SafeString(symbols, index)
+	var hashes []any = []any{ccxt.GetValue(subMessageHashes, index)}
+	var channelSymbols []any = []any{}
+	if symbol != nil {
+		channelSymbols = append(channelSymbols, symbol)
+		if topic == "trades" {
+			// the liquidations of a market come from its trades channel
+			hashes = append(hashes, "liquidations:"+*symbol)
+		}
+	}
+	var subscription map[string]any = map[string]any{
+		"topic":            topic,
+		"subscribeHashes":  []any{channel},
+		"subMessageHashes": hashes,
+		"symbols":          channelSymbols,
+	}
+	var request map[string]any = this.UnsubscribeRequest(channel)
+
+	r := <-this.SendUnsubscribeAsync(url, "unsubscribe:"+*channel, request, subscription, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @ignore
+ * @method
+ * @name paradex#waitForPendingUnsubscribe
+ * @description waits for the unsubscribes in flight of any of these subscriptions, a watch made meanwhile would find the subscription still there, send nothing, and be rejected by the reply
+ * @param {string} url the websocket url
+ * @param {string[]} subscribeHashes the subscriptions the watch relies on
+ * @returns {undefined}
+ */
+func (this *Paradex) WaitForPendingUnsubscribeAsync(url any, subscribeHashes any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.waitForPendingUnsubscribeBody(ch, url, subscribeHashes)
+	return ch
+}
+func (this *Paradex) waitForPendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool], url any, subscribeHashes any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	if !(ccxt.InOp(this.Clients, url)) {
+
+		return nil
+	}
+	var client ccxt.ClientInterface = this.Client(url)
+	var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+	for i := 0; i < len(keys); i++ {
+		var unsubHash string = keys[i]
+		if strings.Index(unsubHash, "unsubscribe:") != 0 {
+			continue
+		}
+		var unsubscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(unsubHash)
+		var pendingHashes []any = ccxt.SafeListTyped(unsubscription, "subscribeHashes")
+		var pending bool = false
+		for j := 0; j < len(pendingHashes); j++ {
+			if this.InArray(ccxt.DerefScalar(pendingHashes[j]), subscribeHashes) {
+				pending = true
+			}
+		}
+		if pending {
+
+			{
+				func(this *Paradex) (ret_ any) {
+					defer func() {
+						if e := recover(); e != nil {
+							if e == "break" {
+								return
+							}
+							ret_ = func(this *Paradex) any {
+								// catch block:
+								// the error of the unsubscribe belongs to the unwatch, the watch goes on with the subscriptions as the reply left them
+								pending = false
+								return nil
+							}(this)
+						}
+					}()
+					// try block:
+
+					r := <-client.(ccxt.ClientInterface).Future(unsubHash)
+					if r.Err != nil {
+						panic(r.Err)
+					}
+					return nil
+				}(this)
+
+			}
+		}
+	}
+
+	return nil
+}
+func (this *Paradex) ExpirePendingUnsubscribeAsync(client any, unsubHash string, requestId any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.expirePendingUnsubscribeBody(ch, client, unsubHash, requestId)
+	return ch
+}
+func (this *Paradex) expirePendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool], client any, unsubHash string, requestId any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var unsubscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubHash, map[string]any{})
+	if ccxt.IsEqual(this.SafeString(unsubscription, "id"), requestId) {
+		error := ccxt.RequestTimeout(this.Id + " " + unsubHash + " was not acknowledged")
+		client.(ccxt.ClientInterface).Reject(error, unsubHash)
+		// the subscriptions are forgotten, so that the next watch subscribes them again
+		this.CleanUnsubscribed(client, unsubHash, unsubscription)
+	}
+	return nil
 }
 func (this *Paradex) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
 	ch := make(chan ccxt.AsyncResult[*string], 1)
@@ -344,6 +655,7 @@ func (this *Paradex) HandleRequestReply(client any, message any) {
 		this.HandleAuthenticationMessage(client, message)
 	}
 	if requestId != nil {
+		this.HandleUnsubscribeReply(client, *requestId)
 		// sendRequest waits on the request id, a request without a subscription of its own is kept under it
 		var requestHash string = "request:" + *requestId
 		if client.(ccxt.ClientInterface).SubscriptionHas(requestHash) {
@@ -351,6 +663,55 @@ func (this *Paradex) HandleRequestReply(client any, message any) {
 		}
 		client.(ccxt.ClientInterface).Resolve(message, requestHash)
 	}
+}
+func (this *Paradex) HandleUnsubscribeReply(client any, requestId string) {
+	//
+	// the reply to an unsubscribe, a modify_subscription with remove is acknowledged the same way
+	//
+	//     {
+	//         "jsonrpc": "2.0",
+	//         "id": 2,
+	//         "result": { "channel": "trades.BTC-USD-PERP" }
+	//     }
+	//
+	//     {
+	//         "jsonrpc": "2.0",
+	//         "id": 4,
+	//         "result": { "channel": "markets_summary", "remove": [ "ETH-USD-PERP" ] }
+	//     }
+	//
+	var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+	for i := 0; i < len(keys); i++ {
+		var unsubHash string = keys[i]
+		if strings.Index(unsubHash, "unsubscribe:") != 0 {
+			continue
+		}
+		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubHash, map[string]any{})
+		if this.SafeString(subscription, "id") != nil && *this.SafeString(subscription, "id") == requestId {
+			this.CleanUnsubscribed(client, unsubHash, subscription)
+		}
+	}
+}
+func (this *Paradex) CleanUnsubscribed(client any, unsubHash string, subscription any) {
+	var subscribeHashes []any = ccxt.SafeListTyped(subscription, "subscribeHashes")
+	for j := 0; j < len(subscribeHashes); j++ {
+		var subscribeHash any = subscribeHashes[j]
+		if client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash) {
+			client.(ccxt.ClientInterface).SubscriptionDel(subscribeHash)
+		}
+		// a market moved to the deltas feed goes back to the snapshots on its next watch
+		var requestedHash any = ccxt.Add(subscribeHash, ":requested")
+		if client.(ccxt.ClientInterface).SubscriptionHas(requestedHash) {
+			client.(ccxt.ClientInterface).SubscriptionDel(requestedHash)
+		}
+	}
+	var prefix *bool = this.SafeBool(subscription, "prefix", false)
+	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
+	for j := 0; j < len(subMessageHashes); j++ {
+		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHashes[j], unsubHash, prefix)
+	}
+	this.CleanCache(subscription)
+	client.(ccxt.ClientInterface).Resolve(true, unsubHash)
 }
 
 /**
@@ -391,17 +752,22 @@ func (this *Paradex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 		messageHash = ccxt.Add("trades.", market["id"])
 	}
 	var url any = this.GetWsUrl()
+
+	r1 := <-this.WaitForPendingUnsubscribeAsync(url, []any{messageHash})
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 	var request map[string]any = this.SubscribeRequest(messageHash)
 	var subscription map[string]any = map[string]any{
 		"id":            request["id"],
 		"messageHashes": []any{messageHash},
 	}
 
-	r1 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription)
-	if r1.Err != nil {
-		panic(r1.Err)
+	r2 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription)
+	if r2.Err != nil {
+		panic(r2.Err)
 	}
-	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
@@ -469,6 +835,110 @@ func (this *Paradex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.T
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
+	return nil
+}
+
+/**
+ * @method
+ * @name paradex#unWatchTrades
+ * @description unsubscribes from the trades channel of a market
+ * @see https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
+ * @param {string} symbol unified symbol of the market, the all-markets channel when undefined
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once unsubscribed
+ */
+func (this *Paradex) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Paradex) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if true {
+
+		r := <-this.UnWatchTradesForSymbolsAsync([]string{symbol}, params)
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		ch <- ccxt.AsyncResult[bool]{Value: r.Value}
+		return nil
+	}
+	var channel string = "trades.ALL"
+
+	r1 := <-this.UnsubscribeChannelsAsync(this.GetWsUrl(), "trades", []any{channel}, []any{channel}, []any{}, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
+	return nil
+}
+
+/**
+ * @method
+ * @name paradex#unWatchTradesForSymbols
+ * @description unsubscribes from the trades channels of a list of markets, the liquidations of those markets end with them
+ * @see https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
+ * @param {string[]} symbols unified symbols of the markets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once unsubscribed
+ */
+func (this *Paradex) UnWatchTradesForSymbolsAsync(symbols []string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchTradesForSymbolsBody(ch, symbols, optionalArgs...)
+	return ch
+}
+func (this *Paradex) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbols []string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
+	var channels []any = []any{}
+	for i := 0; i < len(symbolsNormalized); i++ {
+		var market map[string]any = this.Market(symbolsNormalized[i])
+		channels = append(channels, ccxt.Add("trades.", market["id"]))
+	}
+
+	// the watchers of a market wait on its channel
+	r1 := <-this.UnsubscribeChannelsAsync(this.GetWsUrl(), "trades", channels, channels, symbolsNormalized, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 
@@ -682,6 +1152,18 @@ func (this *Paradex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	var paramsDeltas map[string]any = ccxt.MapTyped(deltasOptionparamsDeltasVariable[1])
 	var deltas bool = (deltasOption == true) || ((limit != nil) && (*limit > 15))
 	var url any = this.GetWsUrl()
+	// an unwatch in flight decides which feed each market is on once acknowledged
+	var feeds []any = []any{}
+	for i := 0; i < symbolsLength; i++ {
+		var feedMarket map[string]any = this.Market(symbolsNormalized[i])
+		feeds = append(feeds, this.GetOrderBookChannel(feedMarket["id"], true))
+		feeds = append(feeds, this.GetOrderBookChannel(feedMarket["id"], false))
+	}
+
+	r1 := <-this.WaitForPendingUnsubscribeAsync(url, feeds)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
 	var client ccxt.ClientInterface = this.Client(url)
 	var channels []any = []any{}
 	var messageHashes []any = []any{}
@@ -704,9 +1186,9 @@ func (this *Paradex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 			var unsubscribe map[string]any = this.UnsubscribeRequest(snapshotChannel)
 			client.(ccxt.ClientInterface).SubscriptionDel(snapshotChannel)
 
-			r1 := <-this.SendRequestAsync(url, unsubscribe)
-			if r1.Err != nil {
-				panic(r1.Err)
+			r2 := <-this.SendRequestAsync(url, unsubscribe)
+			if r2.Err != nil {
+				panic(r2.Err)
 			}
 		}
 		var channel any = func() any {
@@ -719,13 +1201,119 @@ func (this *Paradex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 		messageHashes = append(messageHashes, "orderbook:"+market["symbol"].(string))
 	}
 
-	r2 := <-this.SubscribeChannelsAsync(url, messageHashes, channels, paramsDeltas)
-	if r2.Err != nil {
-		panic(r2.Err)
+	r3 := <-this.SubscribeChannelsAsync(url, messageHashes, channels, paramsDeltas)
+	if r3.Err != nil {
+		panic(r3.Err)
 	}
-	var orderbook ccxt.OrderBookInterface = r2.Value.(ccxt.OrderBookInterface)
+	var orderbook ccxt.OrderBookInterface = r3.Value.(ccxt.OrderBookInterface)
 
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
+	return nil
+}
+
+/**
+ * @method
+ * @name paradex#unWatchOrderBook
+ * @description unsubscribes from the order book feed of a market
+ * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
+ * @param {string} symbol unified symbol of the market
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.deltas] the feed to unsubscribe from when the market is not watched on this connection, true for the full-depth deltas, default false
+ * @returns {boolean} true once unsubscribed
+ */
+func (this *Paradex) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Paradex) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	r := <-this.UnWatchOrderBookForSymbolsAsync([]string{symbol}, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @name paradex#unWatchOrderBookForSymbols
+ * @description unsubscribes from the order book feeds of a list of markets
+ * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
+ * @param {string[]} symbols unified symbols of the markets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.deltas] the feed to unsubscribe from when a market is not watched on this connection, true for the full-depth deltas, default false
+ * @returns {boolean} true once unsubscribed
+ */
+func (this *Paradex) UnWatchOrderBookForSymbolsAsync(symbols []string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
+	return ch
+}
+func (this *Paradex) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbols []string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
+	var deltasOptionparamsDeltasVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "deltas", false)
+	deltasOption := ccxt.GetValue(deltasOptionparamsDeltasVariable, 0)
+	var paramsDeltas map[string]any = ccxt.MapTyped(deltasOptionparamsDeltasVariable[1])
+	var url any = this.GetWsUrl()
+	var client ccxt.ClientInterface = this.Client(url)
+	var channels []any = []any{}
+	var subMessageHashes []any = []any{}
+	for i := 0; i < len(symbolsNormalized); i++ {
+		var market map[string]any = this.Market(symbolsNormalized[i])
+		// the feed the market is on, a market is on one of them at a time
+		var deltasChannel any = this.GetOrderBookChannel(market["id"], true)
+		var snapshotChannel any = this.GetOrderBookChannel(market["id"], false)
+		var channel any = func() any {
+			if deltasOption == true {
+				return deltasChannel
+			}
+			return snapshotChannel
+		}()
+		// a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
+		var requestedHash any = ccxt.Add(deltasChannel, ":requested")
+		if (client.(ccxt.ClientInterface).SubscriptionHas(deltasChannel)) || (client.(ccxt.ClientInterface).SubscriptionHas(requestedHash)) {
+			channel = deltasChannel
+		} else if client.(ccxt.ClientInterface).SubscriptionHas(snapshotChannel) {
+			channel = snapshotChannel
+		}
+		channels = append(channels, channel)
+		subMessageHashes = append(subMessageHashes, "orderbook:"+market["symbol"].(string))
+	}
+
+	r1 := <-this.UnsubscribeChannelsAsync(url, "orderbook", channels, subMessageHashes, symbolsNormalized, paramsDeltas)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
@@ -995,8 +1583,13 @@ func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	} else {
 		// every listed market, options included
 		var url any = this.GetWsUrl()
-		var client ccxt.ClientInterface = this.Client(url)
 		var scopedHash string = channel + ":scoped"
+
+		r2 := <-this.WaitForPendingUnsubscribeAsync(url, []any{channel, scopedHash})
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		var client ccxt.ClientInterface = this.Client(url)
 		if client.(ccxt.ClientInterface).SubscriptionHas(scopedHash) {
 			// a scoped subscription keeps its filter through a plain subscribe, it is unsubscribed first
 			var subscribeHashes []string = client.(ccxt.ClientInterface).SubscriptionKeys()
@@ -1007,9 +1600,9 @@ func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 			}
 			var unsubscribe map[string]any = this.UnsubscribeRequest(channel)
 
-			r2 := <-this.SendRequestAsync(url, unsubscribe)
-			if r2.Err != nil {
-				panic(r2.Err)
+			r3 := <-this.SendRequestAsync(url, unsubscribe)
+			if r3.Err != nil {
+				panic(r3.Err)
 			}
 		}
 		var request map[string]any = this.SubscribeRequest(channel)
@@ -1018,11 +1611,11 @@ func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 			"messageHashes": []any{channel},
 		}
 
-		r3 := <-this.Watch(url, channel, this.DeepExtend(request, params), channel, subscription)
-		if r3.Err != nil {
-			panic(r3.Err)
+		r4 := <-this.Watch(url, channel, this.DeepExtend(request, params), channel, subscription)
+		if r4.Err != nil {
+			panic(r4.Err)
 		}
-		newTicker = r3.Value
+		newTicker = r4.Value
 	}
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
@@ -1036,6 +1629,175 @@ func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	}
 
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsNormalized)}
+	return nil
+}
+
+/**
+ * @method
+ * @name paradex#unWatchTicker
+ * @description stops watching the market summary of a market
+ * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+ * @param {string} symbol unified symbol of the market
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once unsubscribed
+ */
+func (this *Paradex) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchTickerBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Paradex) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	r := <-this.UnWatchTickersAsync([]any{symbol}, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @name paradex#unWatchTickers
+ * @description stops watching the market summaries of a list of markets, they are removed from the scoped subscription in place, the last ones unsubscribe it
+ * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+ * @param {string[]} [symbols] unified symbols of the markets, the whole channel when undefined
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once unsubscribed
+ */
+func (this *Paradex) UnWatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchTickersBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Paradex) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
+	var symbolsLength int = 0
+	if symbolsNormalized != nil {
+		symbolsLength = len(symbolsNormalized)
+	}
+	var channel string = "markets_summary"
+	var scopedHash string = channel + ":scoped"
+	var url any = this.GetWsUrl()
+	var client ccxt.ClientInterface = this.Client(url)
+	var marketIds []any = []any{}
+	var subscribeHashes []any = []any{}
+	var subMessageHashes []any = []any{}
+	for i := 0; i < symbolsLength; i++ {
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
+		var marketId *string = ccxt.SafeStringPtr(this.Market(symbol)["id"])
+		marketIds = append(marketIds, marketId)
+		subscribeHashes = append(subscribeHashes, channel+"."+*marketId)
+		subMessageHashes = append(subMessageHashes, channel+"."+*symbol)
+	}
+	var tickerSymbols any = func() any {
+		if symbolsNormalized == nil {
+			return []any{}
+		}
+		return symbolsNormalized
+	}()
+	if (symbolsLength > 0) && (client.(ccxt.ClientInterface).SubscriptionHas(channel)) {
+		// the all-markets subscription has no market filter to remove these from, their watchers are ended here
+		for i := 0; i < len(subMessageHashes); i++ {
+			this.CleanUnsubscription(ccxt.AsClient(client), ccxt.DerefScalar(subMessageHashes[i]), ccxt.Add("unsubscribe:", ccxt.DerefScalar(subMessageHashes[i])))
+		}
+		this.CleanCache(map[string]any{
+			"topic":   "ticker",
+			"symbols": tickerSymbols,
+		})
+
+		ch <- ccxt.AsyncResult[bool]{Value: true}
+		return nil
+	}
+	// the markets left in the scoped subscription once these are removed
+	var remaining any = 0
+	var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+	for i := 0; i < len(keys); i++ {
+		if (strings.Index(keys[i], channel+".") == 0) && !this.InArray(keys[i], subscribeHashes) {
+			remaining = ccxt.Add(remaining, 1)
+		}
+	}
+	if (symbolsLength == 0) || ((client.(ccxt.ClientInterface).SubscriptionHas(scopedHash)) && (ccxt.IsEqual(remaining, 0))) {
+		// a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
+		var channelSubscription map[string]any = map[string]any{
+			"topic":            "ticker",
+			"subscribeHashes":  []any{channel, scopedHash},
+			"subMessageHashes": []any{channel},
+			"prefix":           true,
+			"symbols":          tickerSymbols,
+		}
+		var unsubscribe map[string]any = this.UnsubscribeRequest(channel)
+
+		r1 := <-this.SendUnsubscribeAsync(url, "unsubscribe:"+channel, unsubscribe, channelSubscription, params)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var resolved bool
+		switch resolvedBox := r1.Value.(type) {
+		case bool:
+			resolved = resolvedBox
+		case []any:
+			resolved = len(resolvedBox) > 0
+		case map[string]any:
+			resolved = true
+		case nil:
+		default:
+			panic(ccxt.ExchangeError("resolved value is not bool"))
+		}
+		ch <- ccxt.AsyncResult[bool]{Value: resolved}
+		return nil
+	}
+	var request map[string]any = map[string]any{
+		"jsonrpc": "2.0",
+		"id":      this.RequestId(),
+		"method":  "modify_subscription",
+		"params": map[string]any{
+			"channel": channel,
+			"remove":  marketIds,
+		},
+	}
+	var subscription map[string]any = map[string]any{
+		"topic":            "ticker",
+		"subscribeHashes":  subscribeHashes,
+		"subMessageHashes": subMessageHashes,
+		"symbols":          tickerSymbols,
+	}
+	var unsubHash string = "unsubscribe:" + channel + ":" + ccxt.Join(marketIds, ",")
+
+	r2 := <-this.SendUnsubscribeAsync(url, unsubHash, request, subscription, params)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var resolved1 bool
+	switch resolved1Box := r2.Value.(type) {
+	case bool:
+		resolved1 = resolved1Box
+	case []any:
+		resolved1 = len(resolved1Box) > 0
+	case map[string]any:
+		resolved1 = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved1}
 	return nil
 }
 
@@ -1061,16 +1823,25 @@ func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = this.GetWsUrl()
-	var client ccxt.ClientInterface = this.Client(url)
 	var channel string = "markets_summary"
+	var pendingHashes []any = []any{channel, channel + ":scoped"}
+	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
+		pendingHashes = append(pendingHashes, ccxt.Add(channel+".", this.Market(ccxt.GetValue(symbols, i))["id"]))
+	}
+
+	r := <-this.WaitForPendingUnsubscribeAsync(url, pendingHashes)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var client ccxt.ClientInterface = this.Client(url)
 	if client.(ccxt.ClientInterface).SubscriptionHas(channel) {
 
 		// the all-markets subscription carries these markets already
-		r := <-this.WatchMultiple(url, messageHashes, nil, []any{channel})
-		if r.Err != nil {
-			panic(r.Err)
+		r1 := <-this.WatchMultiple(url, messageHashes, nil, []any{channel})
+		if r1.Err != nil {
+			panic(r1.Err)
 		}
-		ch <- ccxt.AsyncResult[any]{Value: r.Value}
+		ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 		return nil
 	}
 	// one subscription with a market filter: a subscription per market is a request per market, and
@@ -1092,11 +1863,11 @@ func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], 
 	var missingLength int = len(missing)
 	if missingLength == 0 {
 
-		r1 := <-this.WatchMultiple(url, messageHashes, nil, subscribeHashes)
-		if r1.Err != nil {
-			panic(r1.Err)
+		r2 := <-this.WatchMultiple(url, messageHashes, nil, subscribeHashes)
+		if r2.Err != nil {
+			panic(r2.Err)
 		}
-		ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+		ch <- ccxt.AsyncResult[any]{Value: r2.Value}
 		return nil
 	}
 	var request map[string]any = nil
@@ -1122,11 +1893,11 @@ func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], 
 		"messageHashes": missingHashes,
 	}
 
-	r2 := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), subscribeHashes, subscription)
-	if r2.Err != nil {
-		panic(r2.Err)
+	r3 := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), subscribeHashes, subscription)
+	if r3.Err != nil {
+		panic(r3.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
+	ch <- ccxt.AsyncResult[any]{Value: r3.Value}
 	return nil
 }
 
@@ -1254,6 +2025,79 @@ func (this *Paradex) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	}
 
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Bidsasks, symbolsNormalized)}
+	return nil
+}
+
+/**
+ * @method
+ * @name paradex#unWatchBidsAsks
+ * @description unsubscribes from the best bid & ask channels of a list of markets
+ * @see https://docs.paradex.trade/ws/web-socket-channels/bbo-market-symbol/bbo-market-symbol
+ * @param {string[]} [symbols] unified symbols of the markets, the all-markets channel when undefined
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once unsubscribed
+ */
+func (this *Paradex) UnWatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchBidsAsksBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Paradex) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
+	var symbolsLength int = 0
+	if symbolsNormalized != nil {
+		symbolsLength = len(symbolsNormalized)
+	}
+	var channels []any = []any{}
+	var subMessageHashes []any = []any{}
+	var bidAskSymbols []any = []any{}
+	if symbolsLength > 0 {
+		for i := 0; i < symbolsLength; i++ {
+			var market map[string]any = this.Market(func() any {
+				if i >= 0 && i < len(symbolsNormalized) {
+					return symbolsNormalized[i]
+				}
+				return nil
+			}())
+			channels = append(channels, ccxt.Add("bbo.", market["id"]))
+			subMessageHashes = append(subMessageHashes, ccxt.Add("bidask:", market["symbol"]))
+			bidAskSymbols = append(bidAskSymbols, market["symbol"])
+		}
+	} else {
+		channels = append(channels, "bbo.ALL")
+		subMessageHashes = append(subMessageHashes, "bidask")
+	}
+
+	r1 := <-this.UnsubscribeChannelsAsync(this.GetWsUrl(), "bidsasks", channels, subMessageHashes, bidAskSymbols, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 func (this *Paradex) HandleBidAsk(client any, message map[string]any) {
@@ -1869,13 +2713,64 @@ func (this *Paradex) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingR
 	// the per-market channel, the all-markets one sends every perpetual's funding
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("funding_data.", market["id"]))
 	var url any = this.GetWsUrl()
-	var messageHash *string = ccxt.SafeStringPtr("funding_data." + market["symbol"].(string))
+	// its own hash: funding_data.<symbol> is the hash of watchFundingRates on the all-markets channel
+	var messageHash *string = ccxt.SafeStringPtr("fundingRate:" + market["symbol"].(string))
 
 	r1 := <-this.SubscribeChannelsAsync(url, []any{messageHash}, []any{channel}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	ch <- ccxt.AsyncResult[ccxt.FundingRate]{Value: ccxt.FundingRateFromMap(r1.Value)}
+	return nil
+}
+
+/**
+ * @method
+ * @name paradex#unWatchFundingRate
+ * @description unsubscribes from the funding data channel of a market
+ * @see https://docs.paradex.trade/ws/web-socket-channels/funding-data-market-symbol/funding-data-market-symbol
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once unsubscribed
+ */
+func (this *Paradex) UnWatchFundingRateAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchFundingRateBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Paradex) unWatchFundingRateBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add("funding_data.", market["id"]))
+	var messageHash *string = ccxt.SafeStringPtr("fundingRate:" + market["symbol"].(string))
+
+	r1 := <-this.UnsubscribeChannelsAsync(this.GetWsUrl(), "fundingRate", []any{channel}, []any{messageHash}, []any{market["symbol"]}, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 
@@ -1972,10 +2867,11 @@ func (this *Paradex) HandleFundingRate(client any, message map[string]any) {
 	var fundingRate any = this.ParseFundingRateWs(data)
 	var symbol *string = this.SafeString(fundingRate, "symbol")
 	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
-	// watchFundingRates without symbols waits on the bare channel, the per-market and all-markets
-	// channels carry the same frame
+	// watchFundingRates waits on the bare channel without symbols and on funding_data.<symbol> with them,
+	// watchFundingRate on fundingRate:<symbol>, the per-market and all-markets channels carry the same frame
 	client.(ccxt.ClientInterface).Resolve(fundingRate, "funding_data")
 	client.(ccxt.ClientInterface).Resolve(fundingRate, ccxt.Add("funding_data.", symbol))
+	client.(ccxt.ClientInterface).Resolve(fundingRate, ccxt.Add("fundingRate:", symbol))
 }
 func (this *Paradex) ParseFundingRateWs(contract map[string]any, optionalArgs ...any) any {
 	//
@@ -2868,6 +3764,52 @@ func (this *Paradex) WatchTradesForSymbols(symbols []string, options ...ccxt.Wat
 
 /**
  * @method
+ * @name paradex#unWatchTrades
+ * @description unsubscribes from the trades channel of a market
+ * @see https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
+ * @param {string} symbol unified symbol of the market, the all-markets channel when undefined
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once unsubscribed
+ */
+func (this *Paradex) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {
+
+	opts := ccxt.UnWatchTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchTradesAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
+ * @name paradex#unWatchTradesForSymbols
+ * @description unsubscribes from the trades channels of a list of markets, the liquidations of those markets end with them
+ * @see https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
+ * @param {string[]} symbols unified symbols of the markets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once unsubscribed
+ */
+func (this *Paradex) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (any, error) {
+
+	opts := ccxt.UnWatchTradesForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchTradesForSymbolsAsync(symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
  * @name paradex#watchLiquidations
  * @description watch the public liquidations of a trading pair, from the liquidation trades of the trades channel
  * @see https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
@@ -2946,6 +3888,54 @@ func (this *Paradex) WatchOrderBookForSymbols(symbols []string, options ...ccxt.
 
 /**
  * @method
+ * @name paradex#unWatchOrderBook
+ * @description unsubscribes from the order book feed of a market
+ * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
+ * @param {string} symbol unified symbol of the market
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.deltas] the feed to unsubscribe from when the market is not watched on this connection, true for the full-depth deltas, default false
+ * @returns {boolean} true once unsubscribed
+ */
+func (this *Paradex) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (any, error) {
+
+	opts := ccxt.UnWatchOrderBookOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
+ * @name paradex#unWatchOrderBookForSymbols
+ * @description unsubscribes from the order book feeds of a list of markets
+ * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
+ * @param {string[]} symbols unified symbols of the markets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.deltas] the feed to unsubscribe from when a market is not watched on this connection, true for the full-depth deltas, default false
+ * @returns {boolean} true once unsubscribed
+ */
+func (this *Paradex) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (any, error) {
+
+	opts := ccxt.UnWatchOrderBookForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchOrderBookForSymbolsAsync(symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
  * @name paradex#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
@@ -2990,6 +3980,52 @@ func (this *Paradex) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tic
 	}
 	var res ccxt.Tickers = ccxt.Tickers{Tickers: r.Value}
 	return res, nil
+}
+
+/**
+ * @method
+ * @name paradex#unWatchTicker
+ * @description stops watching the market summary of a market
+ * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+ * @param {string} symbol unified symbol of the market
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once unsubscribed
+ */
+func (this *Paradex) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptions) (any, error) {
+
+	opts := ccxt.UnWatchTickerOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchTickerAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
+ * @name paradex#unWatchTickers
+ * @description stops watching the market summaries of a list of markets, they are removed from the scoped subscription in place, the last ones unsubscribe it
+ * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+ * @param {string[]} [symbols] unified symbols of the markets, the whole channel when undefined
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once unsubscribed
+ */
+func (this *Paradex) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, error) {
+
+	opts := ccxt.UnWatchTickersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchTickersAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
 }
 
 /**
@@ -3062,6 +4098,29 @@ func (this *Paradex) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.T
 	}
 	var res ccxt.Tickers = ccxt.Tickers{Tickers: r.Value}
 	return res, nil
+}
+
+/**
+ * @method
+ * @name paradex#unWatchBidsAsks
+ * @description unsubscribes from the best bid & ask channels of a list of markets
+ * @see https://docs.paradex.trade/ws/web-socket-channels/bbo-market-symbol/bbo-market-symbol
+ * @param {string[]} [symbols] unified symbols of the markets, the all-markets channel when undefined
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once unsubscribed
+ */
+func (this *Paradex) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {
+
+	opts := ccxt.UnWatchBidsAsksOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchBidsAsksAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
 }
 
 /**
@@ -3182,6 +4241,29 @@ func (this *Paradex) WatchFundingRate(symbol string, options ...ccxt.WatchFundin
 	}
 	var res ccxt.FundingRate = r.Value
 	return res, nil
+}
+
+/**
+ * @method
+ * @name paradex#unWatchFundingRate
+ * @description unsubscribes from the funding data channel of a market
+ * @see https://docs.paradex.trade/ws/web-socket-channels/funding-data-market-symbol/funding-data-market-symbol
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once unsubscribed
+ */
+func (this *Paradex) UnWatchFundingRate(symbol string, options ...ccxt.UnWatchFundingRateOptions) (any, error) {
+
+	opts := ccxt.UnWatchFundingRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchFundingRateAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
 }
 
 /**

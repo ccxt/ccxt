@@ -722,6 +722,7 @@ public partial class whitebit : Exchange
                     { "limit must be less than or equal to", typeof(BadRequest) },
                     { "The Price should be less than or equal to", typeof(InvalidOrder) },
                     { "The Price should be greater than or equal to", typeof(InvalidOrder) },
+                    { "Price must be a multiple of", typeof(InvalidOrder) },
                     { "This action is unauthorized", typeof(PermissionDenied) },
                     { "Given amount is less than min amount", typeof(InvalidOrder) },
                     { "Min amount step", typeof(InvalidOrder) },
