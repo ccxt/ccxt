@@ -106,7 +106,7 @@ impl crate::exchange_generated::ExchangeBase for Bithumb {
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_canceled_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_deposit" => self.fetch_deposit(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
+                "fetch_deposit" => self.fetch_deposit(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), &args[2.min(args.len())..]).await,
                 "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposit_addresses" => crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -119,7 +119,7 @@ impl crate::exchange_generated::ExchangeBase for Bithumb {
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_withdrawal" => self.fetch_withdrawal(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
+                "fetch_withdrawal" => self.fetch_withdrawal(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), &args[2.min(args.len())..]).await,
                 "fetch_withdrawal_whitelist" => self.fetch_withdrawal_whitelist(&args[..]).await,
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "get_gen2_market_id" => self.get_gen2_market_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -1365,8 +1365,8 @@ impl Bithumb {
                 m
             });
         }  else {
-            request.insert("baseId".into(), Value::from((market).base_id.clone()));
-            request.insert("quoteId".into(), Value::from((market).quote_id.clone()));
+            request.insert("baseId".into(), Value::from((market).base_id.as_deref()));
+            request.insert("quoteId".into(), Value::from((market).quote_id.as_deref()));
             if (limit != Value::Null) {
                 request.insert("count".into(), limit); // default 30, max 30
             }
@@ -1859,8 +1859,8 @@ impl Bithumb {
     m
 })]);
         }  else {
-            request.insert("baseId".into(), Value::from((market).base_id.clone()));
-            request.insert("quoteId".into(), Value::from((market).quote_id.clone()));
+            request.insert("baseId".into(), Value::from((market).base_id.as_deref()));
+            request.insert("quoteId".into(), Value::from((market).quote_id.as_deref()));
             let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsGeneration]);
             response = self.public_get_public_ticker_base_id_quote_id(&[__ws_arg_8]).await;
             //
@@ -2036,8 +2036,8 @@ impl Bithumb {
                 m
             });
             request.insert("interval".into(), self.safe_string(&legacyTimeframes, timeframe.clone(), &[timeframe.clone()]));
-            request.insert("baseId".into(), Value::from((market).base_id.clone()));
-            request.insert("quoteId".into(), Value::from((market).quote_id.clone()));
+            request.insert("baseId".into(), Value::from((market).base_id.as_deref()));
+            request.insert("quoteId".into(), Value::from((market).quote_id.as_deref()));
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsGeneration]);
             response = self.public_get_public_candlestick_base_id_quote_id_interval(&[__ws_arg_13]).await;
             //
@@ -2272,8 +2272,8 @@ impl Bithumb {
             //
             data = response.clone();
         }  else {
-            request.insert("baseId".into(), Value::from((market).base_id.clone()));
-            request.insert("quoteId".into(), Value::from((market).quote_id.clone()));
+            request.insert("baseId".into(), Value::from((market).base_id.as_deref()));
+            request.insert("quoteId".into(), Value::from((market).quote_id.as_deref()));
             let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsGeneration]);
             response = self.public_get_public_transaction_history_base_id_quote_id(&[__ws_arg_15]).await;
             //
@@ -3749,7 +3749,7 @@ impl Bithumb {
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), currencyResolved.get("code").cloned().unwrap_or(Value::Null));
-        m.insert("status".to_string(), self.parse_transaction_status_by_type((self.safe_string_k(transaction.clone(), "state", &[])).as_str(), &[type_var.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_transaction_status_by_type((self.safe_string_k(transaction.clone(), "state", &[])).as_str(), type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), Value::Null);
@@ -3770,9 +3770,9 @@ impl Bithumb {
     Value::Null
 }
 
-    pub fn parse_transaction_status_by_type(&self, status: Option<&str>, optional_args: &[Value]) -> Option<String> {
+    pub fn parse_transaction_status_by_type(&self, status: Option<&str>, type_var: Option<&str>) -> Option<String> {
         let mut status: Value = status.into();
-        let mut type_var = get_arg(optional_args, 0, Value::Null);
+        let mut type_var: Value = type_var.into();
         if (type_var == Value::Null) {
             return status.as_str().map(str::to_owned);
         }
@@ -3848,10 +3848,10 @@ impl Bithumb {
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-    pub async fn fetch_withdrawal(&mut self, id: &str, optional_args: &[Value]) -> Value {
+    pub async fn fetch_withdrawal(&mut self, id: &str, code: Option<&str>, optional_args: &[Value]) -> Value {
         let mut id: Value = id.into();
-        let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+        let mut code: Value = code.into();
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -3961,10 +3961,10 @@ impl Bithumb {
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-    pub async fn fetch_deposit(&mut self, id: &str, optional_args: &[Value]) -> Value {
+    pub async fn fetch_deposit(&mut self, id: &str, code: Option<&str>, optional_args: &[Value]) -> Value {
         let mut id: Value = id.into();
-        let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+        let mut code: Value = code.into();
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));

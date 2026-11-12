@@ -129,7 +129,7 @@ impl crate::exchange_generated::ExchangeBase for Dydx {
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_transactions_helper" => self.fetch_transactions_helper(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
+                "fetch_transactions_helper" => self.fetch_transactions_helper(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await,
                 "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "get_wallet_address" => self.get_wallet_address(),
@@ -1221,7 +1221,7 @@ impl Dydx {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from((market).id.as_deref()));
             m
         });
         if (limit != Value::Null) {
@@ -1290,7 +1290,7 @@ impl Dydx {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from((market).id.as_deref()));
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
@@ -1368,7 +1368,7 @@ impl Dydx {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from((market).id.as_deref()));
             m
         });
         if (limit != Value::Null) {
@@ -2210,14 +2210,18 @@ impl Dydx {
         let mut clientOrderIdValue: Value = (if (clientOrderId == Value::Null) { Value::Int(0) } else { clientOrderId });
         let mut orderFlagValue: Value = (if (orderFlag.is_none()) { Value::Int(0) } else { Value::from(orderFlag) });
         let mut clobPairIdValue: Value = (if (clobPairId == Value::Null) { Value::Int(0) } else { clobPairId });
-        let mut orderId: Value = self.create_order_id_from_parts(walletAddress.as_deref().unwrap_or_default(), subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue).map(Value::from).unwrap_or(Value::Null);
+        let mut orderId: Value = self.create_order_id_from_parts(walletAddress.as_deref().unwrap_or_default(), subaccountIdValue.as_f64().unwrap_or_default(), clientOrderIdValue.as_f64().unwrap_or_default(), orderFlagValue.as_f64().unwrap_or_default(), clobPairIdValue.as_f64().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
         return Value::from(vec![orderId, self.extend(Value::Map(signingPayload), &[paramsOmitted])]);
 
     Value::Null
 }
 
-    pub fn create_order_id_from_parts(&self, address: &str, mut subAccountNumber: Value, mut clientOrderId: Value, mut orderFlags: Value, mut clobPairId: Value) -> Option<String> {
+    pub fn create_order_id_from_parts(&self, address: &str, subAccountNumber: f64, clientOrderId: f64, orderFlags: f64, clobPairId: f64) -> Option<String> {
         let mut address: Value = address.into();
+        let mut subAccountNumber: Value = subAccountNumber.into();
+        let mut clientOrderId: Value = clientOrderId.into();
+        let mut orderFlags: Value = orderFlags.into();
+        let mut clobPairId: Value = clobPairId.into();
         let mut nameSp: String = self.safe_string_k(self.options.clone(), "namespace", &[Value::Str("0f9da948-a6fb-4c45-9edc-4685c3f3317d".into())]).as_str().unwrap_or("0f9da948-a6fb-4c45-9edc-4685c3f3317d").to_string();
         let mut clientOrderIdString: Option<String> = self.number_to_string(clientOrderId).as_str().map(str::to_owned);
         let mut clobPairIdString: Option<String> = self.number_to_string(clobPairId).as_str().map(str::to_owned);
@@ -2623,7 +2627,7 @@ impl Dydx {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("market".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
@@ -2740,7 +2744,7 @@ impl Dydx {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut response: Value = self.fetch_transactions_helper("fetchLedger", &[code, since.clone(), limit.clone(), self.omit(params, Value::Str("methodName".into()), &[])]).await;
+        let mut response: Value = self.fetch_transactions_helper("fetchLedger", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await;
         return self.parse_ledger(response, &[currency, since, limit]);
         Value::Null
         }).await?))
@@ -3018,7 +3022,7 @@ impl Dydx {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut response: Value = self.fetch_transactions_helper("fetchTransfers", &[code, since.clone(), limit.clone(), self.omit(params, Value::Str("methodName".into()), &[])]).await;
+        let mut response: Value = self.fetch_transactions_helper("fetchTransfers", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await;
         let mut transferIn: Value = self.filter_by(response.clone(), Value::Str("type".into()), Value::Str("TRANSFER_IN".into()), &[]);
         let mut transferOut: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("TRANSFER_OUT".into()), &[]);
         let mut rows: Value = self.array_concat(transferIn, transferOut);
@@ -3213,7 +3217,7 @@ impl Dydx {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut response: Value = self.fetch_transactions_helper("fetchWithdrawals", &[code, since.clone(), limit.clone(), self.omit(params, Value::Str("methodName".into()), &[])]).await;
+        let mut response: Value = self.fetch_transactions_helper("fetchWithdrawals", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await;
         let mut rows: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]);
         return self.parse_transactions(rows, &[currency, since, limit]);
         Value::Null
@@ -3253,7 +3257,7 @@ impl Dydx {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut response: Value = self.fetch_transactions_helper("fetchDeposits", &[code, since.clone(), limit.clone(), self.omit(params, Value::Str("methodName".into()), &[])]).await;
+        let mut response: Value = self.fetch_transactions_helper("fetchDeposits", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await;
         let mut rows: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]);
         return self.parse_transactions(rows, &[currency, since, limit]);
         Value::Null
@@ -3293,7 +3297,7 @@ impl Dydx {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut response: Value = self.fetch_transactions_helper("fetchDepositsWithdrawals", &[code, since.clone(), limit.clone(), self.omit(params, Value::Str("methodName".into()), &[])]).await;
+        let mut response: Value = self.fetch_transactions_helper("fetchDepositsWithdrawals", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await;
         let mut withdrawals: Value = self.filter_by(response.clone(), Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]);
         let mut deposits: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]);
         let mut rows: Value = self.array_concat(withdrawals, deposits);
@@ -3302,12 +3306,12 @@ impl Dydx {
         }).await?))
     }
 
-    pub async fn fetch_transactions_helper(&mut self, methodName: &str, optional_args: &[Value]) -> Value {
+    pub async fn fetch_transactions_helper(&mut self, methodName: &str, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
         let mut methodName: Value = methodName.into();
-        let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
+        let mut code: Value = code.into();
+        let mut since: Value = since.into();
+        let mut limit: Value = limit.into();
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));

@@ -115,23 +115,23 @@ impl crate::exchange_generated::ExchangeBase for Opinion {
                 "load_multi_sign_address" => self.load_multi_sign_address().await,
                 "load_quote_token" => self.load_quote_token(args.get(0).and_then(crate::Value::as_str)).await,
                 "load_trade_market" => self.load_trade_market(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
-                "opinion_order_raw_amounts" => self.opinion_order_raw_amounts(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null)),
-                "opinion_outcome_by_market_id_side" => self.opinion_outcome_by_market_id_side(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "opinion_order_raw_amounts" => self.opinion_order_raw_amounts(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64), args.get(3).and_then(crate::Value::as_f64), args.get(4).and_then(crate::Value::as_i64)),
+                "opinion_outcome_by_market_id_side" => self.opinion_outcome_by_market_id_side(args.get(0).and_then(crate::Value::as_i64), args.get(1).and_then(crate::Value::as_i64)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_opinion_market" => self.parse_opinion_market(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_opinion_market" => self.parse_opinion_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str)),
                 "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "seed_order_book" => self.seed_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), &args[2.min(args.len())..]).await,
+                "seed_order_book" => self.seed_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64)).await,
                 "set_api_credentials" => self.set_api_credentials(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign_hash" => self.sign_hash(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str).unwrap_or_default()),
-                "subscribe_opinion_channel" => self.subscribe_opinion_channel(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "subscribe_opinion_channel" => self.subscribe_opinion_channel(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_i64)).await,
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -500,7 +500,7 @@ impl Opinion {
                         eventsList.push(event);
                     }
                 }  else {
-                    flatMarkets.push(self.parse_opinion_market(raw, &[]));
+                    flatMarkets.push(self.parse_opinion_market(raw, None));
                 }
             }
             }
@@ -552,8 +552,8 @@ impl Opinion {
  * @param {string} [eventSlug] the slug of the parent event
  * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
  */
-    pub fn parse_opinion_market(&self, mut raw: Value, optional_args: &[Value]) -> Value {
-        let mut eventSlug = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_opinion_market(&self, mut raw: Value, eventSlug: Option<&str>) -> Value {
+        let mut eventSlug: Value = eventSlug.into();
         // {
         //     "chainId": "56",
         //     "conditionId": "469db44df1309dac7cf9fcaa142562f3c89719d47277e095d021c1561166539a",
@@ -820,10 +820,10 @@ impl Opinion {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1391: bool = true;
-            while { if !__for_first_1391 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1391 = false; i.as_f64().unwrap_or(f64::NAN) < rawEventsLength } {
-            let mut event: Value = self.parse_event(rawEvents.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+            while { if !__for_first_1391 { i += 1; } __for_first_1391 = false; (i as f64) < rawEventsLength } {
+            let mut event: Value = self.parse_event(rawEvents.get(i as usize).cloned().unwrap_or(Value::Null));
             parsedEvents.push(event.clone());
             // register the parsed markets so populateOutcomes can index their outcomes
             let mut eventMarkets: crate::value::List = self.safe_list_k(event, "markets", &[Value::from(vec![])]).into_list();
@@ -1009,7 +1009,7 @@ impl Opinion {
                         let mut i: i64 = 0;
             let mut __for_first_1392: bool = true;
             while { if !__for_first_1392 { i += 1; } __for_first_1392 = false; (i as f64) < rawChildrenLength } {
-            marketsList.push(self.parse_opinion_market(rawChildren.get(i as usize).cloned().unwrap_or(Value::Null), &[slug.clone().map(Value::from).unwrap_or(Value::Null)]));
+            marketsList.push(self.parse_opinion_market(rawChildren.get(i as usize).cloned().unwrap_or(Value::Null), slug.as_deref()));
         }
         }
         let mut statusEnum: Option<String> = self.safe_string_k(rawEvent.clone(), "statusEnum", &[]).as_str().map(str::to_owned);
@@ -1020,9 +1020,9 @@ impl Opinion {
             end = self.safe_timestamp_k(rawEvent.clone(), "cutoffAt", &[]).as_i64();
         }
         let mut created: Option<i64> = self.safe_timestamp_k(rawEvent.clone(), "createdAt", &[]).as_i64();
-        let mut labels: Value = self.safe_list_k(rawEvent.clone(), "labels", &[Value::from(vec![])]);
+        let mut labels: crate::value::List = self.safe_list_k(rawEvent.clone(), "labels", &[Value::from(vec![])]).into_list();
         let __ws_arg_6 = self.safe_string_k(rawEvent.clone(), "rules", &[]);
-        let __ws_arg_7 = self.safe_string(labels.clone(), Value::Int(0), &[]);
+        let __ws_arg_7 = self.safe_string(&labels, Value::Int(0), &[]);
         let __ws_arg_8 = self.safe_number_k(rawEvent.clone(), "volume", &[]);
         let __ws_arg_9 = self.iso8601(Value::from(created));
         let __ws_arg_10 = self.iso8601(Value::from(end));
@@ -1035,7 +1035,7 @@ impl Opinion {
         m.insert("description".to_string(), __ws_arg_6);
         m.insert("slug".to_string(), slug.map(Value::from).unwrap_or(Value::Null));
         m.insert("category".to_string(), __ws_arg_7);
-        m.insert("tags".to_string(), labels);
+        m.insert("tags".to_string(), Value::from(&labels));
         m.insert("markets".to_string(), Value::from(marketsList));
         m.insert("active".to_string(), active);
         m.insert("resolved".to_string(), resolved);
@@ -1308,12 +1308,12 @@ impl Opinion {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(result.clone(), "timestamp", &[]).as_i64();
-        let mut orderbook: Value = self.parse_order_book(result, self.safe_outcome_symbol(outcome, &[outcomeObj.clone()]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
+        })]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&result, "timestamp", &[]).as_i64();
+        let mut orderbook: Value = self.parse_order_book(Value::Dict(result), self.safe_outcome_symbol(outcome, &[outcomeObj.clone()]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
         return self.safe_prediction_order_book(orderbook, &[outcomeObj]);
         Value::Null
         }).await?))
@@ -1584,8 +1584,11 @@ impl Opinion {
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.remove0x_prefix(self.safe_string_k(sig.clone(), "r", &[]))).into()), self.remove0x_prefix(self.safe_string_k(sig.clone(), "s", &[]))).into()), self.int_to_base16(self.safe_integer_k(sig, "v", &[]), &[])).into()).as_str().map(str::to_owned);
 }
 
-    pub fn opinion_order_raw_amounts(&self, isMarket: bool, side: &str, mut amount: Value, mut price: Value, mut decimals: Value) -> Value {
+    pub fn opinion_order_raw_amounts(&self, isMarket: bool, side: &str, amount: Option<f64>, price: Option<f64>, decimals: Option<i64>) -> Value {
         let mut side: Value = side.into();
+        let mut amount: Value = amount.into();
+        let mut price: Value = price.into();
+        let mut decimals: Value = decimals.into();
         let mut decimalsStr: String = "1".to_string();
         if (decimals != Value::Null) {
             let mut decimalsCount: Value = self.parse_to_int(decimals);
@@ -1696,7 +1699,7 @@ impl Opinion {
         let mut topicId: Option<i64> = self.safe_integer_k(&info, "marketId", &[]).as_i64();
         let mut quoteTokenAddress: Option<String> = self.safe_string_k(&info, "quoteToken", &[]).as_str().map(str::to_owned);
         let mut quoteToken: Value = self.load_quote_token(quoteTokenAddress.as_deref()).await;
-        let mut amounts: Value = self.opinion_order_raw_amounts(isMarket.clone(), sideStr.as_str().unwrap_or_default(), amount, price.clone(), self.safe_integer_k(quoteToken.clone(), "decimal", &[Value::Int(18)]));
+        let mut amounts: Value = self.opinion_order_raw_amounts(isMarket.clone(), sideStr.as_str().unwrap_or_default(), amount.as_f64(), price.as_f64(), (self.safe_integer_k(quoteToken.clone(), "decimal", &[Value::Int(18)])).as_i64());
         let mut makerAmount: Option<String> = self.safe_string_k(amounts.clone(), "makerAmount", &[]).as_str().map(str::to_owned);
         let mut takerAmount: Option<String> = self.safe_string_k(amounts, "takerAmount", &[]).as_str().map(str::to_owned);
         let mut sideInt: i64 = (if (sideStr.as_str() == Some("BUY")) { 0 } else { 1 });
@@ -2182,7 +2185,7 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut market: Value = self.parse_opinion_market(data, &[]);
+        let mut market: Value = self.parse_opinion_market(data, None);
         if (market == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" loadTradeMarket() could not parse market ".into())).into()), idStr)));
         }
@@ -2684,9 +2687,10 @@ if _try_result.is_err() {
  * @param {int} marketId the numeric binary market id
  * @returns {any} the first resolved payload
  */
-    pub async fn subscribe_opinion_channel(&mut self, messageHash: &str, channel: &str, mut marketId: Value) -> Value {
+    pub async fn subscribe_opinion_channel(&mut self, messageHash: &str, channel: &str, marketId: Option<i64>) -> Value {
         let mut messageHash: Value = messageHash.into();
         let mut channel: Value = channel.into();
+        let mut marketId: Value = marketId.into();
         self.load_api_key().await;
         let mut url: Option<String> = self.opinion_ws_url();
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
@@ -2697,7 +2701,7 @@ if _try_result.is_err() {
             m
         });
         let mut subscriptionKey: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), self.safe_string(Value::Map(subscribeMsg.clone()), Value::Str("marketId".into()), &[Value::Str("".into())]));
-        return self.watch(url.as_deref(), &messageHash, &[Value::Map(subscribeMsg), Value::from(subscriptionKey)]).await;
+        return self.watch(url.as_deref(), &messageHash, Value::Map(subscribeMsg), subscriptionKey.as_str(), Value::Null).await;
 
     Value::Null
 }
@@ -2733,7 +2737,9 @@ if _try_result.is_err() {
  * @param {int} outcomeSide 1 for the yes token, 2 for the no token
  * @returns {object} the outcome object, or undefined
  */
-    pub fn opinion_outcome_by_market_id_side(&self, mut marketId: Value, mut outcomeSide: Value) -> Value {
+    pub fn opinion_outcome_by_market_id_side(&self, marketId: Option<i64>, outcomeSide: Option<i64>) -> Value {
+        let mut marketId: Value = marketId.into();
+        let mut outcomeSide: Value = outcomeSide.into();
         if (marketId == Value::Null) || (self.markets.clone() == Value::Null) {
             return Value::Null;
         }
@@ -2804,9 +2810,9 @@ if _try_result.is_err() {
         let mut subscriptionKey: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), self.safe_string(Value::Map(subscribeMsg.clone()), Value::Str("marketId".into()), &[Value::Str("".into())]));
         let mut isNewSubscription: bool = self.safe_value((client).subscriptions.clone(), Value::from(subscriptionKey.clone()), &[]) == Value::Null;
         if isNewSubscription {
-            self.seed_order_book(outcome.as_str().unwrap_or_default(), sym.as_deref(), &[limit.clone()]).await;
+            self.seed_order_book(outcome.as_str().unwrap_or_default(), sym.as_deref(), limit.as_i64()).await;
         }
-        let mut future: Value = self.watch(&url, messageHash.as_str(), &[Value::Map(subscribeMsg), Value::from(subscriptionKey)]).await;
+        let mut future: Value = self.watch(&url, messageHash.as_str(), Value::Map(subscribeMsg), subscriptionKey.as_str(), Value::Null).await;
         if isNewSubscription {
             // return the freshly-seeded book immediately instead of blocking until the next delta
             client.resolve(self.safe_value(self.orderbooks.clone(), sym.map(Value::from).unwrap_or(Value::Null), &[]), messageHash.as_str());
@@ -2817,10 +2823,10 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub async fn seed_order_book(&mut self, outcome: &str, sym: Option<&str>, optional_args: &[Value]) -> Value {
+    pub async fn seed_order_book(&mut self, outcome: &str, sym: Option<&str>, limit: Option<i64>) -> Value {
         let mut outcome: Value = outcome.into();
         let mut sym: Value = sym.into();
-        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut limit: Value = limit.into();
         // the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
         let mut snapshot: crate::types::OrderBook = (match self.fetch_order_book(outcome.as_str().unwrap_or_default(), limit.as_i64(), Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut orderbook: Value = self.order_book(&[Value::Map({
@@ -2895,7 +2901,7 @@ if _try_result.is_err() {
         let mut marketId: Option<i64> = self.safe_integer_k(&info, "marketId", &[]).as_i64();
         let mut sym: Value = self.safe_outcome_symbol(outcome, &[outcomeObj]);
         let mut messageHash: String = format!("{}{}", Value::Str("ticker::".into()), sym);
-        return self.subscribe_opinion_channel(messageHash.as_str(), "market.last.price", Value::from(marketId)).await;
+        return self.subscribe_opinion_channel(messageHash.as_str(), "market.last.price", marketId).await;
         Value::Null
         }).await?))
     }
@@ -2973,7 +2979,7 @@ if _try_result.is_err() {
         let mut marketId: Option<i64> = self.safe_integer_k(&info, "marketId", &[]).as_i64();
         let mut sym: Value = self.safe_outcome_symbol(outcome, &[outcomeObj]);
         let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), sym);
-        let mut trades: Value = self.subscribe_opinion_channel(messageHash.as_str(), "market.last.trade", Value::from(marketId)).await;
+        let mut trades: Value = self.subscribe_opinion_channel(messageHash.as_str(), "market.last.trade", marketId).await;
         return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
@@ -3066,7 +3072,7 @@ if _try_result.is_err() {
 })]).into_dict();
         let mut marketId: Option<i64> = self.safe_integer_k(&info, "marketId", &[]).as_i64();
         let mut messageHash: String = "orders".to_string();
-        let mut orders: Value = self.subscribe_opinion_channel(messageHash.as_str(), "trade.order.update", Value::from(marketId)).await;
+        let mut orders: Value = self.subscribe_opinion_channel(messageHash.as_str(), "trade.order.update", marketId).await;
         let mut sym: Value = self.safe_outcome_symbol(outcome, &[outcomeObj]);
         return self.filter_by_value_since_limit(orders, Value::Str("outcome".into()), &[sym, since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
@@ -3081,7 +3087,8 @@ if _try_result.is_err() {
  * @param {int} status the numeric order status
  * @returns {string} a unified order status, or undefined
  */
-    pub fn parse_ws_order_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_ws_order_status(&self, status: Option<i64>) -> Option<String> {
+        let mut status: Value = status.into();
         // per the venue docs: 1 pending, 2 finished, 3 canceled, 4 expired, 5 failed
         if (status.as_f64() == Some(1.0)) {
             return Value::Str("open".into()).as_str().map(str::to_owned);
@@ -3130,7 +3137,7 @@ if _try_result.is_err() {
             Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut outcomeSide: Option<i64> = (match __pro_message.get("outcomeSide").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
             Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut outcomeObj: Value = self.opinion_outcome_by_market_id_side(Value::from(marketId), Value::from(outcomeSide));
+        let mut outcomeObj: Value = self.opinion_outcome_by_market_id_side(marketId, outcomeSide);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(message.clone(), "createdAt", &[]).as_i64();
         // unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
         // per the docs and confirmed live
@@ -3154,8 +3161,8 @@ if _try_result.is_err() {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parse_ws_order_status((match __pro_message.get("status").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
-            Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null })).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_ws_order_status(((match __pro_message.get("status").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
+            Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null })).as_i64()).map(Value::from).unwrap_or(Value::Null));
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]));
         m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
@@ -3213,7 +3220,7 @@ if _try_result.is_err() {
 })]).into_dict();
         let mut marketId: Option<i64> = self.safe_integer_k(&info, "marketId", &[]).as_i64();
         let mut messageHash: String = "myTrades".to_string();
-        let mut trades: Value = self.subscribe_opinion_channel(messageHash.as_str(), "trade.record.new", Value::from(marketId)).await;
+        let mut trades: Value = self.subscribe_opinion_channel(messageHash.as_str(), "trade.record.new", marketId).await;
         let mut sym: Value = self.safe_outcome_symbol(outcome, &[outcomeObj]);
         return self.filter_by_value_since_limit(trades, Value::Str("outcome".into()), &[sym, since, limit, Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
@@ -3248,7 +3255,7 @@ if _try_result.is_err() {
             Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut outcomeSide: Option<i64> = (match __pro_message.get("outcomeSide").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
             Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut outcomeObj: Value = self.opinion_outcome_by_market_id_side(Value::from(marketId), Value::from(outcomeSide));
+        let mut outcomeObj: Value = self.opinion_outcome_by_market_id_side(marketId, outcomeSide);
         let mut sym: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcome", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(message.clone(), "createdAt", &[]).as_i64();
         let mut trade: Value = self.safe_prediction_trade(Value::Map({

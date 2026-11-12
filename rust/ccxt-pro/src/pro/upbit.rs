@@ -345,7 +345,7 @@ impl Upbit {
             finalMessage.push((if let (Some(__m), Some(__k)) = (subscriptions.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
         }
         }
-        return self.watch_multiple(url.as_str(), &messageHashes, &[Value::from(finalMessage), Value::Arr(messageHashes.clone())]).await;
+        return self.watch_multiple(url.as_str(), &messageHashes, Value::from(finalMessage), &messageHashes, Value::Null).await;
 
     Value::Null
 }
@@ -807,7 +807,7 @@ impl Upbit {
             message.push(get_value(&subscriptions, &channelKeys.get(i as usize).cloned().unwrap_or(Value::Null)));
         }
         }
-        return self.watch(url.as_str(), &messageHashResolved[..], &[Value::from(message), Value::from(messageHashResolved.clone())]).await;
+        return self.watch(url.as_str(), &messageHashResolved[..], Value::from(message), &messageHashResolved[..], Value::Null).await;
 
     Value::Null
 }

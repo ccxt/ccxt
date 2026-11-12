@@ -205,7 +205,7 @@ impl crate::exchange_generated::ExchangeBase for Hitbtc {
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_trades" => self.parse_ws_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "subscribe_private" => self.subscribe_private(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "subscribe_private" => self.subscribe_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str), &args[2.min(args.len())..]).await,
                 "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), &args[2.min(args.len())..]).await,
                 "trade_request" => self.trade_request(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
                 "un_subscribe_public" => self.un_subscribe_public(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
@@ -429,7 +429,7 @@ impl Hitbtc {
 }));
                 m
             });
-            self.watch(url.as_deref(), &messageHash[..], &[Value::Map(request), Value::from(messageHash.clone())]).await;
+            self.watch(url.as_deref(), &messageHash[..], Value::Map(request), &messageHash[..], Value::Null).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -481,13 +481,13 @@ impl Hitbtc {
                 m.insert("ch".to_string(), name);
             m
         });
-        let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
+        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe), &[params]).into_dict();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId);
             m
         });
-        return self.watch_multiple(url.as_deref(), &messageHashes, &[request, Value::Arr(messageHashes.clone()), Value::Map(subscription)]).await;
+        return self.watch_multiple(url.as_deref(), &messageHashes, &request, &messageHashes, Value::Map(subscription)).await;
 
     Value::Null
 }
@@ -535,16 +535,16 @@ impl Hitbtc {
 }));
             m
         });
-        let mut unsubscription: Value = self.extend(subscription, &[Value::Map({
+        let mut unsubscription: crate::value::Dict = self.extend(subscription, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId);
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("subMessageHashes".to_string(), Value::from(subMessageHashes));
                 m.insert("messageHashes".to_string(), messageHashes.clone());
             m
-        })]);
+        })]).into_dict();
         let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
-        return self.watch_multiple(url.as_deref(), messageHashes.clone(), &[__ws_arg_0, messageHashes.clone(), unsubscription]).await;
+        return self.watch_multiple(url.as_deref(), messageHashes.clone(), __ws_arg_0, messageHashes.clone(), &unsubscription).await;
 
     Value::Null
 }
@@ -556,9 +556,9 @@ impl Hitbtc {
  * @param {string} [symbol] unified CCXT symbol
  * @param {object} [params] extra parameters specific to the hitbtc api
  */
-    pub async fn subscribe_private(&mut self, mut name: Value, optional_args: &[Value]) -> Value {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+    pub async fn subscribe_private(&mut self, mut name: Value, symbol: Option<&str>, optional_args: &[Value]) -> Value {
+        let mut symbol: Value = symbol.into();
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -587,7 +587,7 @@ impl Hitbtc {
                 m.insert("id".to_string(), requestId);
             m
         });
-        return self.watch(url.as_deref(), &messageHash[..], &[Value::Map(subscribe), Value::from(messageHash.clone()), Value::Map(subscription)]).await;
+        return self.watch(url.as_deref(), &messageHash[..], Value::Map(subscribe), &messageHash[..], Value::Map(subscription)).await;
 
     Value::Null
 }
@@ -619,7 +619,7 @@ impl Hitbtc {
                 m.insert("id".to_string(), messageHash.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
-        return self.watch(url.as_deref(), (&messageHash).as_deref(), &[Value::Map(subscribe), messageHash.clone().map(Value::from).unwrap_or(Value::Null)]).await;
+        return self.watch(url.as_deref(), (&messageHash).as_deref(), Value::Map(subscribe), (&messageHash).as_deref(), Value::Null).await;
 
     Value::Null
 }
@@ -669,7 +669,7 @@ impl Hitbtc {
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbols".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+        m.insert("symbols".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
     m
 }));
             m
@@ -1190,7 +1190,7 @@ impl Hitbtc {
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbols".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+        m.insert("symbols".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
     m
 }));
             m
@@ -1409,7 +1409,7 @@ impl Hitbtc {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut subscribeParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+                m.insert("symbols".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
             m
         });
         if (limit != Value::Null) {
@@ -1602,7 +1602,7 @@ impl Hitbtc {
                 m.insert("future".to_string(), Value::Str("futures_subscribe".into()));
             m
         })]);
-        let mut orders: Value = self.subscribe_private(name, &[symbol.clone(), paramsMarketType]).await;
+        let mut orders: Value = self.subscribe_private(name, symbol.as_str(), &[paramsMarketType]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
@@ -1895,7 +1895,7 @@ impl Hitbtc {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        return self.subscribe_private(name, &[Value::Null, __ws_arg_3]).await;
+        return self.subscribe_private(name, None, &[__ws_arg_3]).await;
         Value::Null
         }).await?))
     }

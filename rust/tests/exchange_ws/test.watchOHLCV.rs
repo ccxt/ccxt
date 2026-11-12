@@ -48,10 +48,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if success && (response != Value::Null) {
             crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone(), symbol.clone()]);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1605: bool = true;
-                while { if !__for_first_1605 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1605 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-                testOHLCV(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&response, &i), symbol.clone(), now.clone());
+                while { if !__for_first_1605 { i += 1; } __for_first_1605 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+                testOHLCV(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&response, &Value::Int(i)), symbol.clone(), now.clone());
             }
             }
             if ((match (&(now), &(startTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > maxIdleTime.as_f64().unwrap_or(f64::NAN) {

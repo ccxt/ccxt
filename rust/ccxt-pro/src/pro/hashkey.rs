@@ -339,7 +339,7 @@ impl Hashkey {
         });
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
         let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), &messageHash, &[__ws_arg_0, messageHash.clone()]).await;
+        return self.watch(url.as_deref(), &messageHash, __ws_arg_0, &messageHash, Value::Null).await;
 
     Value::Null
 }
@@ -348,7 +348,7 @@ impl Hashkey {
         let mut messageHash: Value = messageHash.into();
         let mut listenKey: Value = self.authenticate(&[]).await;
         let mut url: Option<String> = self.get_private_url(listenKey);
-        return self.watch(url.as_deref(), &messageHash, &[Value::Null, messageHash.clone()]).await;
+        return self.watch(url.as_deref(), &messageHash, Value::Null, &messageHash, Value::Null).await;
 
     Value::Null
 }
@@ -1071,7 +1071,7 @@ impl Hashkey {
             }
         }
         let mut url: Option<String> = self.get_private_url(listenKey);
-        let mut positions: Value = self.watch_multiple(url.as_deref(), &messageHashes, &[Value::Null, Value::Arr(messageHashes.clone())]).await;
+        let mut positions: Value = self.watch_multiple(url.as_deref(), &messageHashes, Value::Null, &messageHashes, Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }
@@ -1191,7 +1191,7 @@ impl Hashkey {
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
             crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", typeMarketType, Value::Str(":fetchBalanceSnapshot".into())).into()))).await;
         }
-        return self.watch(&url, &messageHash[..], &[Value::Null, Value::from(messageHash.clone())]).await;
+        return self.watch(&url, &messageHash[..], Value::Null, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }

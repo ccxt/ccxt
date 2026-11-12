@@ -120,8 +120,8 @@ impl crate::exchange_generated::ExchangeBase for Lbank {
                 "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
-                "fetch_order_default" => self.fetch_order_default(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
-                "fetch_order_supplement" => self.fetch_order_supplement(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
+                "fetch_order_default" => self.fetch_order_default(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), &args[2.min(args.len())..]).await,
+                "fetch_order_supplement" => self.fetch_order_supplement(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), &args[2.min(args.len())..]).await,
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_private_deposit_withdraw_fees" => self.fetch_private_deposit_withdraw_fees(&args[..]).await,
                 "fetch_private_transaction_fees" => self.fetch_private_transaction_fees(&args[..]).await,
@@ -1395,7 +1395,7 @@ impl Lbank {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -1561,7 +1561,7 @@ impl Lbank {
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(60);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrderBook".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
@@ -1781,7 +1781,7 @@ impl Lbank {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
         if (since != Value::Null) {
@@ -1883,7 +1883,7 @@ impl Lbank {
             _ => Value::Null }), &Value::Int(2000)); // max 2000;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("type".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
                 m.insert("time".to_string(), parsedSince);
                 m.insert("size".to_string(), parsedLimit);
@@ -2332,7 +2332,7 @@ impl Lbank {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let __ws_arg_10 = self.extend(params, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("category".to_string(), Value::from((market).id.clone()));
+        m.insert("category".to_string(), Value::from((market).id.as_deref()));
     m
 })]);
         let mut result: crate::types::TradingFees = (match self.fetch_trading_fees(__ws_arg_10).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2465,7 +2465,7 @@ impl Lbank {
         let mut paramsRequest: Value = self.omit(params, Value::from(vec![Value::Str("custom_id".into()), Value::Str("clientOrderId".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let mut ioc: bool = timeInForce.as_deref() == Some("IOC");
@@ -2544,14 +2544,14 @@ impl Lbank {
         //          "ts":1648162321043
         //      }
         //
-        let mut result: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_k(result.clone(), "order_id", &[]));
-        m.insert("info".to_string(), result);
+        m.insert("id".to_string(), self.safe_string_k(&result, "order_id", &[]));
+        m.insert("info".to_string(), Value::from(&result));
     m
 }), &[(market).raw.clone()]);
         Value::Null
@@ -2760,17 +2760,17 @@ impl Lbank {
             method = self.safe_string_k(&options, "method", &[Value::Str("fetchOrderSupplement".into())]).as_str().map(str::to_owned);
         }
         if (method.as_deref() == Some("fetchOrderSupplement")) {
-            return self.fetch_order_supplement(id.as_str().unwrap_or_default(), &[symbol.clone(), params.clone()]).await;
+            return self.fetch_order_supplement(id.as_str().unwrap_or_default(), symbol.as_str(), &[params.clone()]).await;
         }
-        return self.fetch_order_default(id.as_str().unwrap_or_default(), &[symbol, params]).await;
+        return self.fetch_order_default(id.as_str().unwrap_or_default(), symbol.as_str(), &[params]).await;
         Value::Null
         }).await?))
     }
 
-    pub async fn fetch_order_supplement(&mut self, id: &str, optional_args: &[Value]) -> Value {
+    pub async fn fetch_order_supplement(&mut self, id: &str, symbol: Option<&str>, optional_args: &[Value]) -> Value {
         let mut id: Value = id.into();
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+        let mut symbol: Value = symbol.into();
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -2783,7 +2783,7 @@ impl Lbank {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("orderId".to_string(), id);
             m
         });
@@ -2819,10 +2819,10 @@ impl Lbank {
     Value::Null
 }
 
-    pub async fn fetch_order_default(&mut self, id: &str, optional_args: &[Value]) -> Value {
+    pub async fn fetch_order_default(&mut self, id: &str, symbol: Option<&str>, optional_args: &[Value]) -> Value {
         let mut id: Value = id.into();
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+        let mut symbol: Value = symbol.into();
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -2836,7 +2836,7 @@ impl Lbank {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("order_id".to_string(), id.clone());
             m
         });
@@ -2911,7 +2911,7 @@ impl Lbank {
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("start_date".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
         if (limit != Value::Null) {
@@ -2986,7 +2986,7 @@ impl Lbank {
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("current_page".to_string(), Value::Int(1));
                 m.insert("page_length".to_string(), Value::from(limitResolved));
             m
@@ -3064,7 +3064,7 @@ impl Lbank {
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("current_page".to_string(), Value::Int(1));
                 m.insert("page_length".to_string(), Value::from(limitResolved));
             m
@@ -3141,7 +3141,7 @@ impl Lbank {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("orderId".to_string(), id);
             m
         });
@@ -3201,7 +3201,7 @@ impl Lbank {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
@@ -3463,14 +3463,14 @@ impl Lbank {
         //          "ts":1648992501414
         //      }
         //
-        let mut result: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), result.clone());
-        m.insert("id".to_string(), self.safe_string_k(result, "withdrawId", &[]));
+        m.insert("info".to_string(), Value::from(&result));
+        m.insert("id".to_string(), self.safe_string_k(&result, "withdrawId", &[]));
     m
 });
         Value::Null

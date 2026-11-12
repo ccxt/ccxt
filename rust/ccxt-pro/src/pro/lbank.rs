@@ -428,7 +428,7 @@ if _try_result.is_err() {
                 m.insert("action".to_string(), Value::Str("request".into()));
                 m.insert("request".to_string(), Value::Str("kbar".into()));
                 m.insert("kbar".to_string(), timeframeId);
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         if (since != Value::Null) {
@@ -440,7 +440,7 @@ if _try_result.is_err() {
         }
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut requestId: Value = self.request_id();
-        return self.watch(url.as_deref(), messageHash.as_str(), &[request.clone(), requestId, request.clone()]).await;
+        return self.watch(url.as_deref(), messageHash.as_str(), request.clone(), requestId.to_string().as_str(), request).await;
         Value::Null
         }).await?))
     }
@@ -492,11 +492,11 @@ if _try_result.is_err() {
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
                 m.insert("subscribe".to_string(), Value::Str("kbar".into()));
                 m.insert("kbar".to_string(), timeframeId);
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
@@ -550,7 +550,7 @@ if _try_result.is_err() {
                 m.insert("action".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("subscribe".to_string(), Value::Str("kbar".into()));
                 m.insert("kbar".to_string(), timeframeId.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -709,12 +709,12 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("request".into()));
                 m.insert("request".to_string(), Value::Str("tick".into()));
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut requestId: Value = self.request_id();
-        return self.watch(url.as_deref(), messageHash.as_str(), &[request.clone(), requestId, request.clone()]).await;
+        return self.watch(url.as_deref(), messageHash.as_str(), request.clone(), requestId.to_string().as_str(), request).await;
         Value::Null
         }).await?))
     }
@@ -750,11 +750,11 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
                 m.insert("subscribe".to_string(), Value::Str("tick".into()));
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], &[request.clone(), Value::from(messageHash.clone()), request]).await;
+        return self.watch(url.as_deref(), &messageHash[..], request.clone(), &messageHash[..], request).await;
         Value::Null
         }).await?))
     }
@@ -885,13 +885,13 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("request".into()));
                 m.insert("request".to_string(), Value::Str("trade".into()));
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from((market).id.as_deref()));
                 m.insert("size".to_string(), limitResolved);
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut requestId: Value = self.request_id();
-        return self.watch(url.as_deref(), messageHash.as_str(), &[request.clone(), requestId, request.clone()]).await;
+        return self.watch(url.as_deref(), messageHash.as_str(), request.clone(), requestId.to_string().as_str(), request).await;
         Value::Null
         }).await?))
     }
@@ -931,11 +931,11 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
                 m.insert("subscribe".to_string(), Value::Str("trade".into()));
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[request.clone(), Value::from(messageHash.clone()), request]).await;
+        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], request.clone(), &messageHash[..], request).await;
         let mut result: Value = self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         return self.sort_by(result, Value::Str("timestamp".into()), &[]);
         Value::Null
@@ -971,7 +971,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("subscribe".to_string(), Value::Str("trade".into()));
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -1138,7 +1138,7 @@ if _try_result.is_err() {
         }  else {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             messageHash = Some(format!("{}{}", Value::Str("orders:".into()), Value::from((market).symbol.clone())));
-            pair = Value::from((market).id.clone());
+            pair = Value::from((market).id.as_deref());
         }
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1149,7 +1149,7 @@ if _try_result.is_err() {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut orders: Value = self.watch(url.as_deref(), messageHash.as_deref(), &[request.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null), request]).await;
+        let mut orders: Value = self.watch(url.as_deref(), messageHash.as_deref(), request.clone(), messageHash.as_deref(), request).await;
         return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
@@ -1328,7 +1328,7 @@ if _try_result.is_err() {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], &[request.clone(), Value::from(messageHash.clone()), request]).await;
+        return self.watch(url.as_deref(), &messageHash[..], request.clone(), &messageHash[..], request).await;
         Value::Null
         }).await?))
     }
@@ -1408,11 +1408,11 @@ if _try_result.is_err() {
                 m.insert("action".to_string(), Value::Str("request".into()));
                 m.insert("request".to_string(), Value::Str("depth".into()));
                 m.insert("depth".to_string(), limitResolved);
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1454,11 +1454,11 @@ if _try_result.is_err() {
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
                 m.insert("subscribe".to_string(), Value::Str("depth".into()));
                 m.insert("depth".to_string(), limitResolved);
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[&paramsOmitted]);
-        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await;
         return orderbook.limit();
         Value::Null
         }).await?))

@@ -371,8 +371,8 @@ impl Krakenfutures {
                     m.insert("api_key".to_string(), self.apiKey.clone());
                 m
             });
-            let mut message: Value = self.extend(Value::Map(request), &[params]);
-            self.watch(&url, &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
+            let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+            self.watch(&url, &messageHash[..], &message, &messageHash[..], Value::Null).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -453,8 +453,8 @@ impl Krakenfutures {
             messageHash.push_str(&format!("{}{}", Value::Str(":".into()), Value::from((market).symbol.clone())));
         }
         subscribe.insert("product_ids".into(), marketIds);
-        let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe), &[params]).into_dict();
+        return self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
 
     Value::Null
 }
@@ -489,8 +489,8 @@ impl Krakenfutures {
                 m.insert("signed_challenge".to_string(), self.options.as_map().and_then(|__m| __m.get("signedChallenge")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
-        return self.watch(url.as_deref(), &messageHash, &[request, messageHash.clone()]).await;
+        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe), &[params]).into_dict();
+        return self.watch(url.as_deref(), &messageHash, &request, &messageHash, Value::Null).await;
 
     Value::Null
 }
@@ -2364,7 +2364,7 @@ impl Krakenfutures {
             std::sync::Arc::make_mut(&mut messageHashes).push(messageHash.clone());
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if !(self.subscription_exists_for_hash(url.clone(), messageHash).as_bool() == Some(true)) {
-                rawSubs.push(Value::from((market).id.clone()));
+                rawSubs.push(Value::from((market).id.as_deref()));
             }
         }
         }
@@ -2383,7 +2383,7 @@ impl Krakenfutures {
             });
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        return self.watch_multiple(&url, &messageHashes, &[__ws_arg_1, Value::Arr(messageHashes.clone()), subscriptionArgs]).await;
+        return self.watch_multiple(&url, &messageHashes, __ws_arg_1, &messageHashes, subscriptionArgs).await;
 
     Value::Null
 }

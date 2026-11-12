@@ -398,7 +398,7 @@ impl Deribit {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], &[request.clone(), Value::from(messageHash.clone()), request]).await;
+        return self.watch(url.as_deref(), &messageHash[..], request.clone(), &messageHash[..], request).await;
         Value::Null
         }).await?))
     }
@@ -514,7 +514,7 @@ impl Deribit {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[&paramsOmitted]);
-        return self.watch(url.as_deref(), &channel[..], &[request.clone(), Value::from(channel.clone()), request]).await;
+        return self.watch(url.as_deref(), &channel[..], request.clone(), &channel[..], request).await;
         Value::Null
         }).await?))
     }
@@ -575,7 +575,7 @@ impl Deribit {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[&paramsOmitted]);
-        let mut newTickers: Value = self.watch_multiple(url.as_deref(), channels.clone(), &[request.clone(), channels.clone(), request.clone()]).await;
+        let mut newTickers: Value = self.watch_multiple(url.as_deref(), channels.clone(), request.clone(), channels.clone(), request.clone()).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -625,13 +625,13 @@ impl Deribit {
         //     }
         //
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut marketId: Option<String> = self.safe_string_k(data.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut marketId: Option<String> = self.safe_string_k(&data, "instrument_name", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-        let mut ticker: Value = self.parse_ticker(data, &[]);
+        let mut ticker: Value = self.parse_ticker(Value::Dict(data), &[]);
         let mut messageHash: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
         client.resolve(ticker, messageHash.as_deref());
@@ -684,7 +684,7 @@ impl Deribit {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut newTickers: Value = self.watch_multiple(url.as_deref(), channels.clone(), &[request.clone(), channels.clone(), request.clone()]).await;
+        let mut newTickers: Value = self.watch_multiple(url.as_deref(), channels.clone(), request.clone(), channels.clone(), request.clone()).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -926,7 +926,7 @@ impl Deribit {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[&paramsOmitted]);
-        let mut trades: Value = self.watch(url.as_deref(), &channel[..], &[request.clone(), Value::from(channel.clone()), request]).await;
+        let mut trades: Value = self.watch(url.as_deref(), &channel[..], request.clone(), &channel[..], request).await;
         return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
@@ -1257,7 +1257,7 @@ impl Deribit {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(message), &[&paramsOmitted]);
-        let mut orders: Value = self.watch(url.as_deref(), &channel[..], &[request.clone(), Value::from(channel.clone()), request]).await;
+        let mut orders: Value = self.watch(url.as_deref(), &channel[..], request.clone(), &channel[..], request).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -1514,9 +1514,9 @@ impl Deribit {
                 market = Some(match self.market((self.safe_string(symbolsArray.clone(), Value::Int(i), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 currentDescriptor = channelDescriptor.clone();
             }
-            let mut message: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, Value::Str(".".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), currentDescriptor).into());
+            let mut message: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, Value::Str(".".into())).into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), currentDescriptor).into());
             rawSubscriptions.push(message);
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, Value::Str("|".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())])).into()), Value::Str("|".into())).into()), currentDescriptor).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, Value::Str("|".into())).into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into()), Value::Str("|".into())).into()), currentDescriptor).into()));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1537,7 +1537,7 @@ impl Deribit {
         if ((jsonedText.as_deref().unwrap_or_default().chars().count() as i64)) >= maxMessageByteLimit {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" requested subscription length over limit, try to reduce symbols amount".into()))));
         }
-        return self.watch_multiple(url.as_deref(), Value::from(messageHashes), &[extendedRequest, Value::from(rawSubscriptions)]).await;
+        return self.watch_multiple(url.as_deref(), Value::from(messageHashes), extendedRequest, Value::from(rawSubscriptions), Value::Null).await;
 
     Value::Null
 }
@@ -1704,7 +1704,7 @@ impl Deribit {
                 m
             });
             let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-            future = self.watch(&url, &messageHash, &[__ws_arg_0, messageHash.clone()]).await;
+            future = self.watch(&url, &messageHash, __ws_arg_0, &messageHash, Value::Null).await;
             client.add_subscription(&messageHash, future.clone());
         }
         return future;

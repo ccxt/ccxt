@@ -371,7 +371,7 @@ impl Whitebit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut interval: Option<i64> = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("timeframes")).cloned().unwrap_or(Value::Null), timeframe, &[]).as_i64();
-        let mut marketId: Value = Value::from((market).id.clone());
+        let mut marketId: Value = Value::from((market).id.as_deref());
         // currently there is no way of knowing
         // the interval upon getting an update
         // so that can't be part of the message hash, and the user can only subscribe
@@ -474,7 +474,7 @@ impl Whitebit {
         let mut defaultPriceInterval: String = self.safe_string(self.options.as_map().and_then(|__m| __m.get("watchOrderBook")).cloned().unwrap_or(Value::Null), Value::Str("priceInterval".into()), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut priceInterval: Option<String> = self.safe_string_k(params.clone(), "priceInterval", &[Value::from(defaultPriceInterval)]).as_str().map(str::to_owned);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("priceInterval".into()), &[]);
-        let mut reqParams: Value = Value::from(vec![Value::from((market).id.clone()), limitValue, priceInterval.map(Value::from).unwrap_or(Value::Null), Value::Bool(true)]);
+        let mut reqParams: Value = Value::from(vec![Value::from((market).id.as_deref()), limitValue, priceInterval.map(Value::from).unwrap_or(Value::Null), Value::Bool(true)]);
         let mut orderbook: Value = self.watch_public(messageHash.as_str(), method.as_str(), &[reqParams, paramsOmitted]).await;
         return orderbook.limit();
         Value::Null
@@ -633,7 +633,7 @@ impl Whitebit {
             while { if !__for_first_707 { i += 1; } __for_first_707 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.clone())).into()));
-            args.push(Value::from((market).id.clone()));
+            args.push(Value::from((market).id.as_deref()));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -644,7 +644,7 @@ impl Whitebit {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        self.watch_multiple(url.as_deref(), &messageHashes, &[__ws_arg_0, Value::Arr(messageHashes.clone())]).await;
+        self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_0, &messageHashes, Value::Null).await;
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
@@ -1381,8 +1381,8 @@ impl Whitebit {
                 m.insert("params".to_string(), reqParams);
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), &messageHash, &[message, messageHash.clone()]).await;
+        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+        return self.watch(url.as_deref(), &messageHash, &message, &messageHash, Value::Null).await;
 
     Value::Null
 }
@@ -1426,8 +1426,8 @@ impl Whitebit {
                     m.insert("params".to_string(), marketIds);
                 m
             });
-            let mut message: Value = self.extend(request.clone(), &[params]);
-            return self.watch(url.as_deref(), &messageHash, &[message, method.clone(), Value::Map(subscription)]).await;
+            let mut message: crate::value::Dict = self.extend(request.clone(), &[params]).into_dict();
+            return self.watch(url.as_deref(), &messageHash, &message, &method, Value::Map(subscription)).await;
         }  else {
             let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), method.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1444,7 +1444,7 @@ impl Whitebit {
                 hasSymbolSubscription = false;
             }
             if hasSymbolSubscription {
-                return self.watch(url.as_deref(), &messageHash, &[request, method.clone(), subscription.clone()]).await;
+                return self.watch(url.as_deref(), &messageHash, request, &method, subscription.clone()).await;
             }  else {
                 // resubscribe
                 let mut marketIdsNew: Value = Value::from(vec![]);
@@ -1462,7 +1462,7 @@ impl Whitebit {
                 if (__ch.has_subscription(&method)) {
                     __ch.remove_subscription(&method);
                 }
-                return self.watch(url.as_deref(), &messageHash, &[Value::Map(resubRequest), method, subscription]).await;
+                return self.watch(url.as_deref(), &messageHash, Value::Map(resubRequest), &method, subscription).await;
             }
         }
 
@@ -1488,8 +1488,8 @@ impl Whitebit {
                 m.insert("params".to_string(), reqParams);
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), &messageHash, &[message, messageHash.clone()]).await;
+        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+        return self.watch(url.as_deref(), &messageHash, &message, &messageHash, Value::Null).await;
 
     Value::Null
 }
@@ -1556,7 +1556,7 @@ impl Whitebit {
                     m.insert("method".to_string(), Value::Str("handle_authenticate".into()).clone());
                 m
             });
-            self.watch(url.as_deref(), &subscribeHash[..], &[Value::Map(request), Value::from(subscribeHash.clone()), Value::Map(subscription)]).await;
+            self.watch(url.as_deref(), &subscribeHash[..], Value::Map(request), &subscribeHash[..], Value::Map(subscription)).await;
             // settle the flight and wake every waiter - resolve () also drops
             // the registry entry, so a later cold call can re-lead
             client.resolve(authorized.clone(), messageHash.as_str());

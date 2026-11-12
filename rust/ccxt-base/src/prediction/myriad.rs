@@ -89,7 +89,7 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "clob_order_message" => self.clob_order_message(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "connect_centrifugo" => self.connect_centrifugo(args.get(0).and_then(crate::Value::as_str)).await,
-                "create_amm_order" => self.create_amm_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "create_amm_order" => self.create_amm_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..]).await,
                 "create_market_buy_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_buy_order_with_cost(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
@@ -99,7 +99,7 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "ensure_erc20_allowance" => self.ensure_erc20_allowance(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_str), args.get(3).and_then(crate::Value::as_str), args.get(4).and_then(crate::Value::as_str)).await,
                 "eth_rpc" => self.eth_rpc(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
-                "fetch_amm_orders" => self.fetch_amm_orders(&args[..]).await,
+                "fetch_amm_orders" => self.fetch_amm_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..]).await,
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_canceled_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -135,7 +135,7 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
                 "parse_amm_event_to_order" => self.parse_amm_event_to_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_market_to_event" => self.parse_market_to_event(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "parse_myriad_market" => self.parse_myriad_market(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_myriad_market" => self.parse_myriad_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -146,7 +146,7 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
                 "parse_wei_order_book" => self.parse_wei_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str)),
                 "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "request_id" => self.request_id(args.get(0).and_then(crate::Value::as_str)),
-                "seed_order_book" => self.seed_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), &args[2.min(args.len())..]).await,
+                "seed_order_book" => self.seed_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64)).await,
                 "seed_position_balances" => self.seed_position_balances(args.get(0).and_then(crate::Value::as_str).unwrap_or_default()).await,
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign_evm_transaction" => self.sign_evm_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -594,7 +594,7 @@ impl Myriad {
             let mut __for_first_1339: bool = true;
             while { if !__for_first_1339 { i += 1; } __for_first_1339 = false; i < (rawMarkets.len() as i64) } {
             let mut raw: Value = rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut m: Value = self.parse_myriad_market(raw.clone(), &[]);
+            let mut m: Value = self.parse_myriad_market(raw.clone(), None);
             flatMarkets.push(m.clone());
             let mut ev: Value = self.parse_market_to_event(raw, m);
             let mut evKey: Option<String> = self.safe_string_k(ev.clone(), "event", &[]).as_str().map(str::to_owned);
@@ -763,7 +763,7 @@ impl Myriad {
             return orderBookEvent;
         }
         let mut response: Value = self.fetch_raw_market_by_id(id.as_str().unwrap_or_default(), &[params]).await;
-        let mut market: Value = self.parse_myriad_market(response.clone(), &[]);
+        let mut market: Value = self.parse_myriad_market(response.clone(), None);
         let mut event: Value = self.parse_market_to_event(response, market);
         self.index_event_outcomes(event.clone());
         return event;
@@ -849,16 +849,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: i64 = 0;
                 let mut __for_first_1343: bool = true;
                 while { if !__for_first_1343 { i += 1; } __for_first_1343 = false; (i as f64) < questionsLength } {
-                let mut q: Value = self.safe_dict(&questions, Value::Int(i), &[Value::Map({
+                let mut q: crate::value::Dict = self.safe_dict(&questions, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                let mut qId: String = self.safe_string_k(q.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let mut qSlug: String = self.safe_string_k(q.clone(), "slug", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let mut qTitle: String = self.safe_string_k(q.clone(), "title", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+})]).into_dict();
+                let mut qId: String = self.safe_string_k(&q, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut qSlug: String = self.safe_string_k(&q, "slug", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut qTitle: String = self.safe_string_k(&q, "title", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut qHandle: Option<String> = self.shorten_slug(Value::from(qSlug.clone())).as_str().map(str::to_owned);
                 if ((qId.to_lowercase()) == idLower) || ((qSlug.to_lowercase()) == idLower) || ((qTitle.to_lowercase()) == idLower) || ((qHandle.is_some()) && ((qHandle.as_deref().map(str::to_lowercase)).as_deref() == Some(idLower.as_str()))) {
-                    return q;
+                    return Value::Dict(q);
                 }
             }
             }
@@ -1374,7 +1374,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !(enableAmm == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in".into()))));
         }
-        return self.create_amm_order(outcome.as_str().unwrap_or_default(), type_var.as_str(), side.as_str().unwrap_or_default(), amount, &[price, self.omit(rest, Value::from(vec![Value::Str("enableAmm".into()), Value::Str("enableAmmOrders".into())]), &[])]).await;
+        return self.create_amm_order(outcome.as_str().unwrap_or_default(), type_var.as_str(), side.as_str().unwrap_or_default(), amount, price.as_f64(), &[self.omit(rest, Value::from(vec![Value::Str("enableAmm".into()), Value::Str("enableAmmOrders".into())]), &[])]).await;
         Value::Null
         }).await?))
     }
@@ -1506,7 +1506,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut marketPrice: Value = (if (sideInt == 0) { Value::Int(1) } else { Value::Int(0) });
         let mut priceValue: Value = (if (price != Value::Null) { price } else { marketPrice });
-        let mut priceWei: Value = self.to_orderbook_wei(priceValue).map(Value::from).unwrap_or(Value::Null);
+        let mut priceWei: Value = self.to_orderbook_wei(priceValue.as_f64()).map(Value::from).unwrap_or(Value::Null);
         if crate::precise::Precise::stringLt(&priceWei, &Value::Str("1".into())).as_bool() == Some(true) {
             priceWei = Value::Str("1".into());
         }
@@ -1514,7 +1514,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if crate::precise::Precise::stringGt(&priceWei, &Value::Str("1000000000000000000".into())).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() price must be a fraction between 0 and 1".into()))));
         }
-        let mut amountWei: Value = self.to_orderbook_wei(amount).map(Value::from).unwrap_or(Value::Null);
+        let mut amountWei: Value = self.to_orderbook_wei(amount.as_f64()).map(Value::from).unwrap_or(Value::Null);
         // shares are integer wei (1e18 = 1 share); a sub-wei amount that rounds to zero is invalid
         if crate::precise::Precise::stringLt(&amountWei, &Value::Str("1".into())).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() amount is too small (rounds to zero shares)".into()))));
@@ -1665,12 +1665,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {boolean} [params.skipWaitForReceipt] optional override to skip the post-send receipt wait; implied true when params.transactionHash is provided
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-    pub async fn create_amm_order(&mut self, outcome: &str, type_var: Option<&str>, side: &str, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_amm_order(&mut self, outcome: &str, type_var: Option<&str>, side: &str, mut amount: Value, price: Option<f64>, optional_args: &[Value]) -> Value {
         let mut outcome: Value = outcome.into();
         let mut type_var: Value = type_var.into();
         let mut side: Value = side.into();
-        let mut price = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+        let mut price: Value = price.into();
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -1984,13 +1984,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: i64 = 0;
                 let mut __for_first_1351: bool = true;
                 while { if !__for_first_1351 { i += 1; } __for_first_1351 = false; (i as f64) < responsesLength } {
-                let mut current: Value = self.safe_dict(&orderResponses, Value::Int(i), &[Value::Map({
+                let mut current: crate::value::Dict = self.safe_dict(&orderResponses, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                let mut currentId: Option<String> = self.safe_string_n(current.clone(), Value::from(vec![Value::Str("orderHash".into()), Value::Str("hash".into()), Value::Str("id".into())]), &[]).as_str().map(str::to_owned);
+})]).into_dict();
+                let mut currentId: Option<String> = self.safe_string_n(&current, Value::from(vec![Value::Str("orderHash".into()), Value::Str("hash".into()), Value::Str("id".into())]), &[]).as_str().map(str::to_owned);
                 if (currentId.is_some()) && (currentId == id.as_str().map(str::to_owned)) {
-                    return current;
+                    return Value::Dict(current);
                 }
             }
             }
@@ -2007,7 +2007,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @description scales a decimal value by 1e18 and truncates to an integer wei string
  * @returns {string} the integer wei string
  */
-    pub fn to_orderbook_wei(&self, mut value: Value) -> Option<String> {
+    pub fn to_orderbook_wei(&self, value: Option<f64>) -> Option<String> {
+        let mut value: Value = value.into();
         let mut valueStr: Option<String> = self.number_to_string(value).as_str().map(str::to_owned);
         let mut scaled: Value = crate::precise::Precise::stringMul(&valueStr.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000".into()));
         // use > -1 (not >= 0): when '.' is absent PHP's mb_strpos returns false, and false >= 0
@@ -2202,11 +2203,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of closed [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-    pub async fn fetch_amm_orders(&mut self, optional_args: &[Value]) -> Value {
-        let mut outcome = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut params = get_arg(optional_args, 3, Value::Map({
+    pub async fn fetch_amm_orders(&mut self, outcome: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+        let mut outcome: Value = outcome.into();
+        let mut since: Value = since.into();
+        let mut limit: Value = limit.into();
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -2688,7 +2689,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         if (requestedTradingModel.as_deref() == Some("amm")) {
-            return self.fetch_amm_orders(&[outcome, since.clone(), limit.clone(), paramsOmitted.clone()]).await;
+            return self.fetch_amm_orders(outcome.as_str(), since.as_i64(), limit.as_i64(), &[paramsOmitted.clone()]).await;
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: crate::value::Dict = self.myriad_public_get_orders(&[__ws_arg_18]).await.into_dict();
@@ -2974,7 +2975,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }), Value::Str("latest".into())]);
         let mut raw: Value = self.eth_rpc(rpcUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("eth_call".into()), callParams).await;
-        let mut balanceString: Value = self.from_wei_with_decimals(raw.clone(), Value::from(decimals)).map(Value::from).unwrap_or(Value::Null);
+        let mut balanceString: Value = self.from_wei_with_decimals(raw.clone(), decimals).map(Value::from).unwrap_or(Value::Null);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), Value::Map({
@@ -3023,7 +3024,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn from_wei_with_decimals(&self, mut hexValue: Value, mut decimals: Value) -> Option<String> {
+    pub fn from_wei_with_decimals(&self, mut hexValue: Value, decimals: Option<i64>) -> Option<String> {
+        let mut decimals: Value = decimals.into();
         let mut decimalString: Option<String> = self.hex_to_decimal_string(hexValue.as_str().unwrap_or_default()).as_str().map(str::to_owned);
         if (decimalString.is_none()) {
             return None;
@@ -3128,8 +3130,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {string} [eventSlug] the slug of the parent event
  * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
  */
-    pub fn parse_myriad_market(&self, mut raw: Value, optional_args: &[Value]) -> Value {
-        let mut eventSlug = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_myriad_market(&self, mut raw: Value, eventSlug: Option<&str>) -> Value {
+        let mut eventSlug: Value = eventSlug.into();
         let mut networkId: Option<String> = self.safe_string_k(raw.clone(), "networkId", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(raw.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut slug: Value = self.safe_string_k(raw.clone(), "slug", &[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -4041,10 +4043,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut promises: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1366: bool = true;
-            while { if !__for_first_1366 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1366 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketKeys.len() as i64) as f64) } {
-            let mut key: Value = marketKeys.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1366 { i += 1; } __for_first_1366 = false; i < (marketKeys.len() as i64) } {
+            let mut key: Value = marketKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut grouped: Value = (if let (Some(__m), Some(__k)) = (outcomesByMarket.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut firstOutcome: crate::value::Dict = self.safe_dict(grouped.clone(), Value::Int(0), &[]).into_dict();
             let mut info: Value = self.safe_dict_k(&firstOutcome, "info", &[Value::Map({
@@ -4062,11 +4064,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut responses: Vec<Value> = promise_all(&Value::from(promises)).await.as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1368: bool = true;
-            while { if !__for_first_1368 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1368 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketKeys.len() as i64) as f64) } {
-            let mut key: Value = marketKeys.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut response: Value = responses.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1368 { i += 1; } __for_first_1368 = false; i < (marketKeys.len() as i64) } {
+            let mut key: Value = marketKeys.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut response: Value = responses.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut grouped: Value = (if let (Some(__m), Some(__k)) = (outcomesByMarket.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             {
                                 let mut j: i64 = 0;
@@ -4350,7 +4352,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1373: bool = true;
             while { if !__for_first_1373 { i += 1; } __for_first_1373 = false; (i as f64) < rawMarketsLength } {
             let mut raw: Value = rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut m: Value = self.parse_myriad_market(raw.clone(), &[]);
+            let mut m: Value = self.parse_myriad_market(raw.clone(), None);
             let mut marketHandle: Option<String> = self.safe_string_k_opt(m.clone(), "market", &[]);
             if (marketHandle.is_some()) && (matches!(&marketHandle.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if seenMarketHandles.contains_key(__k.as_ref()))) {
                 if let Value::Dict(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(marketHandle.as_deref().unwrap_or("null").to_string(), m.clone()); }
@@ -4392,7 +4394,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1374: bool = true;
             while { if !__for_first_1374 { i += 1; } __for_first_1374 = false; i < (rawMarkets.len() as i64) } {
             let mut rawMarket: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
-            marketsList.push(self.parse_myriad_market(rawMarket, &[questionSlug.clone()]));
+            marketsList.push(self.parse_myriad_market(rawMarket, questionSlug.as_str()));
         }
         }
         let mut endDate: Value = self.safe_string_k(rawEvent.clone(), "expiresAt", &[self.safe_string(rawEvent.clone(), Value::Str("endDate".into()), &[])]);
@@ -4503,7 +4505,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("id".to_string(), requestId);
                 m
             });
-            return self.watch(&url, "centrifugoConnected", &[Value::Map(connectMsg), Value::Str("connect".into())]).await;
+            return self.watch(&url, "centrifugoConnected", Value::Map(connectMsg), "connect", Value::Null).await;
         }
         if matches!(self.safe_bool_k(self.options.clone(), "wsConnected", &[Value::Bool(false)]), Value::Bool(true)) {
             return Value::Null;
@@ -4542,7 +4544,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("id".to_string(), requestId);
             m
         });
-        return self.watch(url.as_deref(), &messageHash, &[Value::Map(subscribeMsg), channel]).await;
+        return self.watch(url.as_deref(), &messageHash, Value::Map(subscribeMsg), &channel, Value::Null).await;
 
     Value::Null
 }
@@ -4656,7 +4658,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isNewSubscription {
             // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
             // fresh subscription (first call or after a reconnect that cleared client.subscriptions)
-            self.seed_order_book(outcome.as_str().unwrap_or_default(), sym.as_deref(), &[limit.clone()]).await;
+            self.seed_order_book(outcome.as_str().unwrap_or_default(), sym.as_deref(), limit.as_i64()).await;
         }
         let mut requestId: Value = self.request_id(url.as_deref());
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
@@ -4669,7 +4671,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut future: Value = self.watch(url.as_deref(), messageHash.as_str(), &[Value::Map(subscribeMsg), Value::from(channel)]).await;
+        let mut future: Value = self.watch(url.as_deref(), messageHash.as_str(), Value::Map(subscribeMsg), channel.as_str(), Value::Null).await;
         if isNewSubscription {
             // return the freshly-seeded book immediately instead of blocking until the next delta
             client.resolve(self.safe_value(self.orderbooks.clone(), sym.map(Value::from).unwrap_or(Value::Null), &[]), messageHash.as_str());
@@ -4680,10 +4682,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }).await?))
     }
 
-    pub async fn seed_order_book(&mut self, outcome: &str, sym: Option<&str>, optional_args: &[Value]) -> Value {
+    pub async fn seed_order_book(&mut self, outcome: &str, sym: Option<&str>, limit: Option<i64>) -> Value {
         let mut outcome: Value = outcome.into();
         let mut sym: Value = sym.into();
-        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut limit: Value = limit.into();
         // the order book channel streams deltas only, so seed the live book from the REST snapshot
         let mut snapshot: crate::types::OrderBook = (match self.fetch_order_book(outcome.as_str().unwrap_or_default(), limit.as_i64(), Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut orderbook: Value = self.order_book(&[Value::Map({
@@ -4957,10 +4959,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
                 let mut myStored: Value = self.myTrades.clone();
                 {
-                                        let mut k: Value = Value::Int(0);
+                                        let mut k: i64 = 0;
                     let mut __for_first_1379: bool = true;
-                    while { if !__for_first_1379 { if let Value::Int(n) = &mut k { *n += 1; } } __for_first_1379 = false; k.as_f64().unwrap_or(f64::NAN) < myLegsLength } {
-                    myStored.append(myLegs.get((k).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+                    while { if !__for_first_1379 { k += 1; } __for_first_1379 = false; (k as f64) < myLegsLength } {
+                    myStored.append(myLegs.get(k as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
                 client.resolve(myStored, "myTrades");
@@ -5062,7 +5064,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         m.insert("id".to_string(), requestId);
                     m
                 });
-                self.watch(url.as_deref(), "tickers", &[Value::Map(subscribeMsg), channel.clone()]).await;
+                self.watch(url.as_deref(), "tickers", Value::Map(subscribeMsg), &channel, Value::Null).await;
             }
         }
         }
@@ -5324,7 +5326,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut positions: Value = self.watch(url.as_deref(), messageHash.as_str(), &[Value::Map(subscribeMsg), Value::from(channel)]).await;
+        let mut positions: Value = self.watch(url.as_deref(), messageHash.as_str(), Value::Map(subscribeMsg), channel.as_str(), Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }

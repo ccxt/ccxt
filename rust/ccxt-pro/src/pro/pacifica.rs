@@ -464,7 +464,7 @@ impl Pacifica {
         }  else if (operationType.as_deref() == Some("set_position_tpsl")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!".into()))));
         }
-        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &[wsRequest, requestId.clone().map(Value::from).unwrap_or(Value::Null)]).await;
+        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), wsRequest, (&requestId).as_deref(), Value::Null).await;
         //
         // market order
         // {
@@ -581,7 +581,7 @@ impl Pacifica {
         }
         let mut wsRequest: Value = self.wrap_as_post_action(Value::from(batchOperationType), request);
         let mut requestId: Option<String> = self.safe_string_k(wsRequest.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &[wsRequest, requestId.clone().map(Value::from).unwrap_or(Value::Null)]).await;
+        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), wsRequest, (&requestId).as_deref(), Value::Null).await;
         // {
         //   "code": 200,
         //   "data": {
@@ -657,7 +657,7 @@ impl Pacifica {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str("cancelOrders() requires a \"symbol\" argument!".into()))));
         }
-        let mut request: Value = self.parent.cancel_orders_request(ids, &[symbol, params]);
+        let mut request: Value = self.parent.cancel_orders_request(ids, symbol.as_str(), &[params]);
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -677,7 +677,7 @@ impl Pacifica {
         }
         let mut wsRequest: Value = self.wrap_as_post_action(Value::from(batchOperationType), request);
         let mut requestId: Option<String> = self.safe_string_k(wsRequest.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &[wsRequest, requestId.clone().map(Value::from).unwrap_or(Value::Null)]).await;
+        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), wsRequest, (&requestId).as_deref(), Value::Null).await;
         //
         // {
         //   "code": 200,
@@ -774,7 +774,7 @@ impl Pacifica {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrderWs() requires a symbol argument".into()))));
         }
-        let mut request: Value = self.parent.cancel_order_request(id.clone(), &[symbol.clone(), params]);
+        let mut request: Value = self.parent.cancel_order_request(id.clone(), symbol.as_str(), &[params]);
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -794,7 +794,7 @@ impl Pacifica {
         }
         let mut wsRequest: Value = self.wrap_as_post_action(Value::from(operationType), request);
         let mut requestId: Option<String> = self.safe_string_k(wsRequest.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &[wsRequest, requestId.clone().map(Value::from).unwrap_or(Value::Null)]).await;
+        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), wsRequest, (&requestId).as_deref(), Value::Null).await;
         //
         //  {
         //   "code": 200,
@@ -886,7 +886,7 @@ impl Pacifica {
         }
         let mut wsRequest: Value = self.wrap_as_post_action(Value::from(operationType), request);
         let mut requestId: Option<String> = self.safe_string_k(wsRequest.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &[wsRequest, requestId.clone().map(Value::from).unwrap_or(Value::Null)]).await;
+        let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), wsRequest, (&requestId).as_deref(), Value::Null).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
@@ -951,14 +951,14 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("book".into()));
-        m.insert("symbol".to_string(), Value::from((market).id.clone()));
+        m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
         m.insert("agg_level".to_string(), aggLevel);
     m
 }));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[&paramsAggLevel]);
-        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
+        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsAggLevel]).into_dict();
+        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1017,14 +1017,14 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("book".into()));
-        m.insert("symbol".to_string(), Value::from((market).id.clone()));
+        m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
         m.insert("agg_level".to_string(), aggLevel);
     m
 }));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[&paramsAggLevel]);
-        return self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
+        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsAggLevel]).into_dict();
+        return self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -1172,7 +1172,7 @@ impl Pacifica {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut tickers: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_0, Value::from(messageHash.clone())]).await;
+        let mut tickers: Value = self.watch(url.as_deref(), &messageHash[..], __ws_arg_0, &messageHash[..], Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
             return self.filter_by_array_tickers(tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
         }
@@ -1235,7 +1235,7 @@ impl Pacifica {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_1, Value::from(messageHash.clone())]).await;
+        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_1, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -1305,8 +1305,8 @@ impl Pacifica {
 }));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
+        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]).into_dict();
+        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -1375,8 +1375,8 @@ impl Pacifica {
 }));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-        return self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
+        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]).into_dict();
+        return self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -1554,13 +1554,13 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("trades".into()));
-        m.insert("symbol".to_string(), Value::from((market).id.clone()));
+        m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
     m
 }));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
+        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
@@ -1620,13 +1620,13 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("trades".into()));
-        m.insert("symbol".to_string(), Value::from((market).id.clone()));
+        m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
     m
 }));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
+        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+        return self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -1827,15 +1827,15 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("candle".into()));
-        m.insert("symbol".to_string(), Value::from((market).id.clone()));
+        m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
         m.insert("interval".to_string(), parsedTf.clone());
     m
 }));
             m
         });
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), parsedTf).into()), Value::Str(":".into())).into()), symbolValue);
-        let mut message: Value = self.extend(Value::Map(request), &[params]);
-        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
+        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
@@ -1895,7 +1895,7 @@ impl Pacifica {
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("candle".into()));
-        m.insert("symbol".to_string(), Value::from((market).id.clone()));
+        m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
         m.insert("interval".to_string(), timeframe.clone());
     m
 }));
@@ -1903,8 +1903,8 @@ impl Pacifica {
         });
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue);
         let mut messagehash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
-        let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), &messagehash[..], &[message, Value::from(messagehash.clone())]).await;
+        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+        return self.watch(url.as_deref(), &messagehash[..], &message, &messagehash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -1995,8 +1995,8 @@ impl Pacifica {
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned);
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[Value::Str("".into())]));
+            symbolResolved = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
@@ -2026,8 +2026,8 @@ impl Pacifica {
 }));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-        let mut orders: Value = self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
+        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]).into_dict();
+        let mut orders: Value = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -2096,8 +2096,8 @@ impl Pacifica {
 }));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-        return self.watch(url.as_deref(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
+        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]).into_dict();
+        return self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -2321,23 +2321,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut method: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (method.as_deref() == Some("unsubscribe")) {
-            let mut subscription: Value = self.safe_dict_k(&data, "data", &[Value::Map({
+            let mut subscription: crate::value::Dict = self.safe_dict_k(&data, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut type_var: Option<String> = self.safe_string_k(subscription.clone(), "source", &[]).as_str().map(str::to_owned);
+            })]).into_dict();
+            let mut type_var: Option<String> = self.safe_string_k(&subscription, "source", &[]).as_str().map(str::to_owned);
             if (type_var.as_deref() == Some("book")) {
-                self.handle_order_book_unsubscription(client.clone(), subscription.clone());
+                self.handle_order_book_unsubscription(client.clone(), Value::from(&subscription));
             }  else if (type_var.as_deref() == Some("trades")) {
-                self.handle_trades_unsubscription(client.clone(), subscription.clone());
+                self.handle_trades_unsubscription(client.clone(), Value::from(&subscription));
             }  else if (type_var.as_deref() == Some("prices")) {
-                self.handle_tickers_unsubscription(client.clone(), subscription.clone());
+                self.handle_tickers_unsubscription(client.clone(), Value::from(&subscription));
             }  else if (type_var.as_deref() == Some("candle")) {
-                self.handle_ohlcv_unsubscription(client.clone(), subscription.clone());
+                self.handle_ohlcv_unsubscription(client.clone(), Value::from(&subscription));
             }  else if (type_var.as_deref() == Some("account_order_updates")) {
-                self.handle_order_unsubscription(client.clone(), subscription.clone());
+                self.handle_order_unsubscription(client.clone(), Value::from(&subscription));
             }  else if (type_var.as_deref() == Some("account_trades")) {
-                self.handle_my_trades_unsubscription(client, subscription);
+                self.handle_my_trades_unsubscription(client, Value::Dict(subscription));
             }
         }
 }

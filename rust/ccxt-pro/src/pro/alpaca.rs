@@ -365,11 +365,11 @@ impl Alpaca {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
-                m.insert("quotes".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+                m.insert("quotes".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_0, Value::from(messageHash.clone())]).await;
+        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_0, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -476,12 +476,12 @@ impl Alpaca {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
-                m.insert("bars".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+                m.insert("bars".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
             m
         });
         let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbolValue);
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_1, Value::from(messageHash.clone())]).await;
+        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], __ws_arg_1, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
@@ -555,11 +555,11 @@ impl Alpaca {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
-                m.insert("orderbooks".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+                m.insert("orderbooks".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_2, Value::from(messageHash.clone())]).await;
+        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], __ws_arg_2, &messageHash[..], Value::Null).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -654,11 +654,11 @@ impl Alpaca {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
-                m.insert("trades".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+                m.insert("trades".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_3, Value::from(messageHash.clone())]).await;
+        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], __ws_arg_3, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
@@ -745,7 +745,7 @@ impl Alpaca {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_4, Value::from(messageHash.clone())]).await;
+        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], __ws_arg_4, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -802,7 +802,7 @@ impl Alpaca {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut orders: Value = self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_5, Value::from(messageHash.clone())]).await;
+        let mut orders: Value = self.watch(url.as_deref(), &messageHash[..], __ws_arg_5, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -1061,7 +1061,7 @@ impl Alpaca {
                     m
                 });
             }
-            self.watch(&url, &messageHash[..], &[Value::Map(request), Value::from(messageHash.clone()), future.clone()]).await;
+            self.watch(&url, &messageHash[..], Value::Map(request), &messageHash[..], future.clone()).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

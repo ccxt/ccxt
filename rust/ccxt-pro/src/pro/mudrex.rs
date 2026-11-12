@@ -342,8 +342,8 @@ impl Mudrex {
                 m.insert("assets".to_string(), Value::from(vec![Value::from(assetId)]));
             m
         });
-        let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe), &[params]).into_dict();
+        return self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -390,8 +390,8 @@ impl Mudrex {
                 m.insert("assets".to_string(), Value::from(assets));
             m
         });
-        let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
-        let mut ticker: Value = self.watch_multiple(url.as_deref(), &messageHashes, &[request, Value::Arr(messageHashes.clone())]).await;
+        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe), &[params]).into_dict();
+        let mut ticker: Value = self.watch_multiple(url.as_deref(), &messageHashes, &request, &messageHashes, Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -450,8 +450,8 @@ impl Mudrex {
                 m.insert("params".to_string(), Value::from(vec![Value::from(stream)]));
             m
         });
-        let mut request: Value = self.extend(Value::Map(subscribe), &[&paramsOmitted]);
-        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe), &[&paramsOmitted]).into_dict();
+        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());

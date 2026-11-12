@@ -845,8 +845,8 @@ impl Hollaex {
                 m.insert("args".to_string(), Value::from(vec![messageHash.clone()]));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), &messageHash, &[message, messageHash.clone()]).await;
+        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+        return self.watch(url.as_deref(), &messageHash, &message, &messageHash, Value::Null).await;
 
     Value::Null
 }
@@ -884,8 +884,8 @@ impl Hollaex {
                 m.insert("args".to_string(), Value::from(vec![messageHash.clone()]));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[params]);
-        return self.watch(signedUrl.as_str(), &messageHash, &[message, messageHash.clone()]).await;
+        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+        return self.watch(signedUrl.as_str(), &messageHash, &message, &messageHash, Value::Null).await;
 
     Value::Null
 }

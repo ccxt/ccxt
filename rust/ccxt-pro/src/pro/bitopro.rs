@@ -300,7 +300,7 @@ impl Bitopro {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchPublic() has no public websocket url".into()))));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), path).into()), Value::Str("/".into())).into()), marketId);
-        return self.watch(url.as_str(), &messageHash, &[Value::Null, messageHash.clone()]).await;
+        return self.watch(url.as_str(), &messageHash, Value::Null, &messageHash, Value::Null).await;
 
     Value::Null
 }
@@ -425,7 +425,7 @@ impl Bitopro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("TRADE".into()), Value::Str(":".into())).into()), symbolValue);
-        let mut trades: Value = self.watch_public("trades", messageHash.as_str(), (Value::from((market).id.clone())).as_str()).await;
+        let mut trades: Value = self.watch_public("trades", messageHash.as_str(), (Value::from((market).id.as_deref())).as_str()).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
@@ -523,7 +523,7 @@ impl Bitopro {
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), Value::Str("user-trades".into()));
         self.authenticate(Value::from(url.clone()));
-        let mut trades: Value = self.watch(url.as_str(), &messageHash[..], &[Value::Null, Value::from(messageHash.clone())]).await;
+        let mut trades: Value = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
@@ -694,7 +694,7 @@ impl Bitopro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("TICKER".into()), Value::Str(":".into())).into()), symbolValue);
-        return self.watch_public("tickers", messageHash.as_str(), (Value::from((market).id.clone())).as_str()).await;
+        return self.watch_public("tickers", messageHash.as_str(), (Value::from((market).id.as_deref())).as_str()).await;
         Value::Null
         }).await?))
     }
@@ -824,7 +824,7 @@ impl Bitopro {
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), Value::Str("account-balance".into()));
         self.authenticate(Value::from(url.clone()));
-        return self.watch(url.as_str(), &messageHash[..], &[Value::Null, Value::from(messageHash.clone())]).await;
+        return self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }

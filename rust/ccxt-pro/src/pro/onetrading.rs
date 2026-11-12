@@ -395,7 +395,7 @@ impl Onetrading {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        return self.watch(url.as_deref(), messageHash.as_str(), &[request.clone(), Value::from(subscribeHash), request]).await;
+        return self.watch(url.as_deref(), messageHash.as_str(), request.clone(), subscribeHash.as_str(), request).await;
         Value::Null
         }).await?))
     }
@@ -680,7 +680,7 @@ impl Onetrading {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params.clone()]);
-        let mut trades: Value = self.watch(url.as_deref(), messageHash.as_str(), &[request.clone(), Value::from(subscribeHash), request]).await;
+        let mut trades: Value = self.watch(url.as_deref(), messageHash.as_str(), request.clone(), subscribeHash.as_str(), request).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_str(), limit.as_i64());
@@ -826,10 +826,10 @@ impl Onetrading {
 
     pub fn handle_book_deltas(&self, mut orderbook: Value, mut deltas: Value) {
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_560: bool = true;
-            while { if !__for_first_560 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_560 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
-            self.handle_book_delta(orderbook.clone(), get_value(&deltas, &i));
+            while { if !__for_first_560 { i += 1; } __for_first_560 = false; (i as f64) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
+            self.handle_book_delta(orderbook.clone(), get_value(&deltas, &Value::Int(i)));
         }
         }
 }
@@ -886,7 +886,7 @@ impl Onetrading {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params.clone()]);
-        let mut orders: Value = self.watch(url.as_deref(), messageHash.as_str(), &[request.clone(), Value::from(subscribeHash), request]).await;
+        let mut orders: Value = self.watch(url.as_deref(), messageHash.as_str(), request.clone(), subscribeHash.as_str(), request).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
@@ -1630,7 +1630,7 @@ impl Onetrading {
             m
         });
         let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
-        let mut ohlcv: Value = self.watch(url.as_deref(), messageHash.as_str(), &[__ws_arg_0, subscriptionHash, subscription]).await;
+        let mut ohlcv: Value = self.watch(url.as_deref(), messageHash.as_str(), __ws_arg_0, &subscriptionHash, subscription).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
@@ -1880,7 +1880,7 @@ impl Onetrading {
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::from(type_var)); }
         add_element_to_object(get_value_mut(get_value_mut(&mut request, &Value::Str("channels".into())), &Value::Int(0)), &Value::Str("instrument_codes".into()), object_keys(&subscription));
         let __ws_arg_1 = self.deep_extend(request, &[params]);
-        return self.watch(url.as_deref(), &messageHash, &[__ws_arg_1, subscriptionHash, subscription]).await;
+        return self.watch(url.as_deref(), &messageHash, __ws_arg_1, &subscriptionHash, subscription).await;
 
     Value::Null
 }
@@ -1904,7 +1904,7 @@ impl Onetrading {
                 m
             });
             let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-            self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_2, Value::from(messageHash.clone())]).await;
+            self.watch(url.as_deref(), &messageHash[..], __ws_arg_2, &messageHash[..], Value::Null).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

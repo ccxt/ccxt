@@ -409,8 +409,8 @@ impl Modetrade {
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut request: Value = self.extend(Value::Map(subscribe.clone()), &[message]);
-        return self.watch(url.as_str(), &messageHash, &[request, messageHash.clone(), Value::Map(subscribe)]).await;
+        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe.clone()), &[message]).into_dict();
+        return self.watch(url.as_str(), &messageHash, &request, &messageHash, Value::Map(subscribe)).await;
 
     Value::Null
 }
@@ -1148,8 +1148,8 @@ impl Modetrade {
 }));
                 m
             });
-            let mut message: Value = self.extend(Value::Map(request), &[params]);
-            self.watch(url.as_str(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
+            let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+            self.watch(url.as_str(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -1182,8 +1182,8 @@ impl Modetrade {
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut request: Value = self.extend(Value::Map(subscribe.clone()), &[message]);
-        return self.watch(url.as_str(), &messageHash, &[request, messageHash.clone(), Value::Map(subscribe)]).await;
+        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe.clone()), &[message]).into_dict();
+        return self.watch(url.as_str(), &messageHash, &request, &messageHash, Value::Map(subscribe)).await;
 
     Value::Null
 }
@@ -1213,8 +1213,8 @@ impl Modetrade {
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut request: Value = self.extend(Value::Map(subscribe.clone()), &[message]);
-        return self.watch_multiple(url.as_str(), messageHashes.clone(), &[request, messageHashes.clone(), Value::Map(subscribe)]).await;
+        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe.clone()), &[message]).into_dict();
+        return self.watch_multiple(url.as_str(), messageHashes.clone(), &request, messageHashes.clone(), Value::Map(subscribe)).await;
 
     Value::Null
 }
@@ -1259,7 +1259,7 @@ impl Modetrade {
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolResolved = Value::from((market).symbol.clone()).as_str().map(str::to_owned);
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(":".into())).into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]));
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(":".into())).into()), Value::from((market).symbol.as_str()));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1318,7 +1318,7 @@ impl Modetrade {
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolResolved = Value::from((market).symbol.clone()).as_str().map(str::to_owned);
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str(":".into())).into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]));
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str(":".into())).into()), Value::from((market).symbol.as_str()));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

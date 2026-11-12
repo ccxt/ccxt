@@ -404,8 +404,8 @@ impl Woofipro {
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut request: Value = self.extend(Value::Map(subscribe.clone()), &[message]);
-        return self.watch(url.as_str(), &messageHash, &[request, messageHash.clone(), Value::Map(subscribe)]).await;
+        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe.clone()), &[message]).into_dict();
+        return self.watch(url.as_str(), &messageHash, &request, &messageHash, Value::Map(subscribe)).await;
 
     Value::Null
 }
@@ -1119,8 +1119,8 @@ impl Woofipro {
 }));
                 m
             });
-            let mut message: Value = self.extend(Value::Map(request), &[params]);
-            self.watch(url.as_str(), &messageHash[..], &[message, Value::from(messageHash.clone())]).await;
+            let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+            self.watch(url.as_str(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -1147,8 +1147,8 @@ impl Woofipro {
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut request: Value = self.extend(Value::Map(subscribe.clone()), &[message]);
-        return self.watch(url.as_str(), &messageHash, &[request, messageHash.clone(), Value::Map(subscribe)]).await;
+        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe.clone()), &[message]).into_dict();
+        return self.watch(url.as_str(), &messageHash, &request, &messageHash, Value::Map(subscribe)).await;
 
     Value::Null
 }
@@ -1172,8 +1172,8 @@ impl Woofipro {
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut request: Value = self.extend(Value::Map(subscribe.clone()), &[message]);
-        return self.watch_multiple(url.as_str(), messageHashes.clone(), &[request, messageHashes.clone(), Value::Map(subscribe)]).await;
+        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe.clone()), &[message]).into_dict();
+        return self.watch_multiple(url.as_str(), messageHashes.clone(), &request, messageHashes.clone(), Value::Map(subscribe)).await;
 
     Value::Null
 }
@@ -1218,7 +1218,7 @@ impl Woofipro {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned) } else { None });
+        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) } else { None });
         if (symbol != Value::Null) {
             messageHash.push_str(&format!("{}{}", Value::Str(":".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())), Value::Str("symbol".into()), &[Value::Str("".into())])));
         }
@@ -1279,7 +1279,7 @@ impl Woofipro {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]).as_str().map(str::to_owned) } else { None });
+        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) } else { None });
         if (symbol != Value::Null) {
             messageHash.push_str(&format!("{}{}", Value::Str(":".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())), Value::Str("symbol".into()), &[Value::Str("".into())])));
         }

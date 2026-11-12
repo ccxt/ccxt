@@ -336,8 +336,8 @@ impl P2b {
                 m.insert("id".to_string(), self.milliseconds());
             m
         });
-        let mut query: Value = self.extend(Value::Map(subscribe), &[params]);
-        return self.watch(url.as_deref(), &messageHash, &[query, messageHash.clone()]).await;
+        let mut query: crate::value::Dict = self.extend(Value::Map(subscribe), &[params]).into_dict();
+        return self.watch(url.as_deref(), &messageHash, &query, &messageHash, Value::Null).await;
 
     Value::Null
 }
@@ -380,7 +380,7 @@ impl P2b {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV cannot take a timeframe of ".into())).into()), timeframe)));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: Value = Value::from(vec![Value::from((market).id.clone()), Value::from(channel)]);
+        let mut request: Value = Value::from(vec![Value::from((market).id.as_deref()), Value::from(channel)]);
         let mut messageHash: String = format!("{}{}", Value::Str("kline::".into()), Value::from((market).symbol.clone()));
         let mut ohlcv: Value = self.subscribe(Value::Str("kline.subscribe".into()), Value::from(messageHash), request, &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -420,13 +420,13 @@ impl P2b {
         let mut watchTickerOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchTicker", &[]).into_dict();
         let mut name: String = self.safe_string_k(&watchTickerOptions, "name", &[Value::Str("state".into())]).as_str().unwrap_or("state").to_string(); // or price
         let nameOptionparamsNameVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchTicker".into()), Value::Str("name".into()), &[Value::from(name)]).as_array().cloned().unwrap_or_default();
-        let mut nameOption: Value = nameOptionparamsNameVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut nameOption: Option<String> = nameOptionparamsNameVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsName: Value = nameOptionparamsNameVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        add_element_to_object(get_value_mut(&mut self.options, &Value::Str("tickerSubs".into())), &Value::from((market).id.clone()), Value::Bool(true)); // we need to re-subscribe to all tickers upon watching a new ticker
+        add_element_to_object(get_value_mut(&mut self.options, &Value::Str("tickerSubs".into())), &Value::from((market).id.as_deref()), Value::Bool(true)); // we need to re-subscribe to all tickers upon watching a new ticker
         let mut tickerSubs: Value = self.options.as_map().and_then(|__m| __m.get("tickerSubs")).cloned().unwrap_or(Value::Null);
         let mut request: Value = object_keys(&tickerSubs);
-        return self.subscribe(Value::Str(format!("{}{}", nameOption, Value::Str(".subscribe".into())).into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", nameOption, Value::Str("::".into())).into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())])).into()), request, &[paramsName]).await;
+        return self.subscribe(Value::Str(format!("{}{}", nameOption.as_deref().unwrap_or("null"), Value::Str(".subscribe".into())).into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", nameOption.as_deref().unwrap_or("null"), Value::Str("::".into())).into()), Value::from((market).symbol.as_str())).into()), request, &[paramsName]).await;
         Value::Null
         }).await?))
     }
@@ -469,8 +469,8 @@ impl P2b {
             let mut __for_first_569: bool = true;
             while { if !__for_first_569 { i += 1; } __for_first_569 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", nameOption, Value::Str("::".into())).into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())])).into()));
-            args.push(Value::from((market).id.clone()));
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", nameOption, Value::Str("::".into())).into()), Value::from((market).symbol.as_str())).into()));
+            args.push(Value::from((market).id.as_deref()));
         }
         }
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
@@ -482,7 +482,7 @@ impl P2b {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsName]);
-        self.watch_multiple(url.as_deref(), &messageHashes, &[__ws_arg_0, Value::Arr(messageHashes.clone())]).await;
+        self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_0, &messageHashes, Value::Null).await;
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
@@ -564,8 +564,8 @@ impl P2b {
                 m.insert("id".to_string(), self.milliseconds());
             m
         });
-        let mut query: Value = self.extend(Value::Map(subscribe), &[params]);
-        let mut trades: Value = self.watch_multiple(url.as_deref(), &messageHashes, &[query, Value::Arr(messageHashes.clone())]).await;
+        let mut query: crate::value::Dict = self.extend(Value::Map(subscribe), &[params]).into_dict();
+        let mut trades: Value = self.watch_multiple(url.as_deref(), &messageHashes, &query, &messageHashes, Value::Null).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -608,7 +608,7 @@ impl P2b {
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), Value::from((market).symbol.clone()));
         let mut interval: String = self.safe_string_k(params.clone(), "interval", &[Value::Str("0.001".into())]).as_str().unwrap_or("0.001").to_string();
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() });
-        let mut request: Value = Value::from(vec![Value::from((market).id.clone()), limitResolved, Value::from(interval)]);
+        let mut request: Value = Value::from(vec![Value::from((market).id.as_deref()), limitResolved, Value::from(interval)]);
         let mut orderbook: Value = self.subscribe(Value::from(name), Value::from(messageHash), request, &[params]).await;
         return orderbook.limit();
         Value::Null

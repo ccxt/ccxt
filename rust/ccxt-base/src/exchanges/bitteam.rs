@@ -1032,10 +1032,10 @@ impl Bitteam {
         let mut maxWithdraw: Option<String> = self.safe_string_k(&txLimits, "maxWithdraw", &[]).as_str().map(str::to_owned);
         let mut minDeposit: Option<String> = self.safe_string_k(&txLimits, "minDeposit", &[]).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
-        let mut withdrawCommissionFixed: Value = self.safe_dict_k(&txLimits, "withdrawCommissionFixed", &[Value::Map({
+        let mut withdrawCommissionFixed: crate::value::Dict = self.safe_dict_k(&txLimits, "withdrawCommissionFixed", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut feesByNetworkId: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1043,7 +1043,7 @@ impl Bitteam {
         let mut blockChain: Option<String> = self.safe_string_k_opt(currency.clone(), "blockChain", &[]);
         // if only one blockChain
         if (blockChain.is_some()) && (blockChain.as_deref() != Some("")) {
-            fee = self.parse_number(withdrawCommissionFixed.clone(), &[]);
+            fee = self.parse_number(Value::from(&withdrawCommissionFixed), &[]);
             if let Value::Dict(__d) = &mut feesByNetworkId { std::sync::Arc::make_mut(__d).insert(blockChain.as_deref().unwrap_or("null").to_string(), fee.clone()); }
         }  else {
             feesByNetworkId = self.extend(withdrawCommissionFixed, &[Value::Map({
@@ -1183,7 +1183,7 @@ impl Bitteam {
         let mut resolution: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pairName".to_string(), Value::from((market).id.clone()));
+                m.insert("pairName".to_string(), Value::from((market).id.as_deref()));
                 m.insert("resolution".to_string(), resolution.map(Value::from).unwrap_or(Value::Null));
             m
         });
@@ -1261,7 +1261,7 @@ impl Bitteam {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -1792,7 +1792,7 @@ impl Bitteam {
         });
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            request.insert("pairId".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "numericId", &[]));
+            request.insert("pairId".into(), self.safe_string_k(&market, "numericId", &[]));
         }  else {
             request.insert("pairId".into(), Value::Str("0".into())); // '0' for all markets
         }
@@ -2106,7 +2106,7 @@ impl Bitteam {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("name".to_string(), Value::from((market).id.clone()));
+                m.insert("name".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
@@ -2477,7 +2477,7 @@ impl Bitteam {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), Value::from((market).id.clone()));
+                m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);

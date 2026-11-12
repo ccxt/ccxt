@@ -604,10 +604,10 @@ impl Phemex {
             }
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_622: bool = true;
-            while { if !__for_first_622 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_622 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
-            let mut ticker: Value = tickers.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_622 { i += 1; } __for_first_622 = false; i < (tickers.len() as i64) } {
+            let mut ticker: Value = tickers.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symbol: String = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol);
             let mut timestamp: Value = self.safe_integer_product_k(message.clone(), "timestamp", Value::Float(0.000001), &[]);
@@ -899,7 +899,7 @@ impl Phemex {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        return self.watch(url.as_deref(), messageHash.as_str(), &[request, Value::from(subscriptionHash)]).await;
+        return self.watch(url.as_deref(), messageHash.as_str(), request, subscriptionHash.as_str(), Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -958,7 +958,7 @@ impl Phemex {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut ticker: Value = self.watch_multiple(url.as_deref(), &messageHashes, &[request, Value::Arr(messageHashes.clone())]).await;
+        let mut ticker: Value = self.watch_multiple(url.as_deref(), &messageHashes, request, &messageHashes, Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1021,11 +1021,11 @@ impl Phemex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::from(method));
                 m.insert("id".to_string(), requestId);
-                m.insert("params".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+                m.insert("params".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
@@ -1080,11 +1080,11 @@ impl Phemex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::from(method));
                 m.insert("id".to_string(), requestId);
-                m.insert("params".to_string(), Value::from(vec![Value::from((market).id.clone())]));
+                m.insert("params".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1138,11 +1138,11 @@ impl Phemex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::from(method));
                 m.insert("id".to_string(), requestId);
-                m.insert("params".to_string(), Value::from(vec![Value::from((market).id.clone()), self.safe_integer(self.timeframes.clone(), timeframe, &[])]));
+                m.insert("params".to_string(), Value::from(vec![Value::from((market).id.as_deref()), self.safe_integer(self.timeframes.clone(), timeframe, &[])]));
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &[request, Value::from(messageHash.clone())]).await;
+        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
@@ -1167,16 +1167,16 @@ impl Phemex {
                 m.insert("params".to_string(), marketParams);
             m
         });
-        let mut unsubscription: Value = self.extend(subscription, &[Value::Map({
+        let mut unsubscription: crate::value::Dict = self.extend(subscription, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(requestId));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("subMessageHash".to_string(), subMessageHash);
                 m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
             m
-        })]);
+        })]).into_dict();
         let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], &[__ws_arg_0, Value::from(messageHash.clone()), unsubscription]).await;
+        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_0, &messageHash[..], &unsubscription).await;
 
     Value::Null
 }
@@ -1217,7 +1217,7 @@ impl Phemex {
                 m.insert("symbols".to_string(), Value::from(vec![symbolValue.clone()]));
             m
         });
-        return self.un_subscribe_public(Value::Str(format!("{}{}", name, Value::Str(".unsubscribe".into())).into()), Value::Str(format!("{}{}", Value::Str("trade:".into()), symbolValue).into()), Value::from(vec![Value::from((market).id.clone())]), Value::Map(subscription), &[params]).await;
+        return self.un_subscribe_public(Value::Str(format!("{}{}", name, Value::Str(".unsubscribe".into())).into()), Value::Str(format!("{}{}", Value::Str("trade:".into()), symbolValue).into()), Value::from(vec![Value::from((market).id.as_deref())]), Value::Map(subscription), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1261,7 +1261,7 @@ impl Phemex {
             m
         });
         // phemex drops only the given interval when it is sent along with the symbol
-        let mut marketParams: Value = Value::from(vec![Value::from((market).id.clone()), self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[])]);
+        let mut marketParams: Value = Value::from(vec![Value::from((market).id.as_deref()), self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[])]);
         return self.un_subscribe_public(Value::Str(format!("{}{}", name, Value::Str(".unsubscribe".into())).into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue).into()), marketParams, Value::Map(subscription), &[params]).await;
         Value::Null
         }).await?))
@@ -1888,10 +1888,10 @@ impl Phemex {
                 return;
             }
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_632: bool = true;
-                while { if !__for_first_632 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_632 = false; i.as_f64().unwrap_or(f64::NAN) < messageLength.as_f64().unwrap_or(f64::NAN) } {
-                let mut update: Value = get_value(&message, &i);
+                while { if !__for_first_632 { i += 1; } __for_first_632 = false; (i as f64) < messageLength.as_f64().unwrap_or(f64::NAN) } {
+                let mut update: Value = get_value(&message, &Value::Int(i));
                 let mut action: Option<String> = self.safe_string_k(update.clone(), "action", &[]).as_str().map(str::to_owned);
                 if (action.is_some()) && (action.as_deref() != Some("Cancel")) {
                     // order + trade info together
@@ -1914,10 +1914,10 @@ impl Phemex {
         let mut type_var: Value = Value::Null;
         let mut stored: Value = self.orders.clone();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_633: bool = true;
-            while { if !__for_first_633 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_633 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsedOrders.len() as i64) as f64) } {
-            let mut parsed: Value = parsedOrders.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_633 { i += 1; } __for_first_633 = false; i < (parsedOrders.len() as i64) } {
+            let mut parsed: Value = parsedOrders.get(i as usize).cloned().unwrap_or(Value::Null);
             stored.append(parsed.clone());
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2324,7 +2324,7 @@ impl Phemex {
             m
         });
         request = self.extend(request.clone(), &[&paramsOmitted]);
-        return self.watch(url.as_deref(), &messageHash, &[request, Value::from(channel)]).await;
+        return self.watch(url.as_deref(), &messageHash, request, channel.as_str(), Value::Null).await;
 
     Value::Null
 }
@@ -2354,11 +2354,11 @@ impl Phemex {
                 m
             });
             let mut subscriptionHash: Value = Value::Str(format!("{}", requestId).into());
-            let mut message: Value = self.extend(Value::Map(request), &[params]);
+            let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
             if !(client.has_subscription(&messageHash)) {
                 client.add_subscription(&subscriptionHash, Value::Str("handle_authenticate".into()).clone());
             }
-            future = self.watch(&url, &messageHash, &[message, messageHash.clone()]).await;
+            future = self.watch(&url, &messageHash, &message, &messageHash, Value::Null).await;
             client.add_subscription(&messageHash, future.clone());
         }
         return future;

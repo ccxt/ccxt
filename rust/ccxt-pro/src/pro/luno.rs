@@ -330,7 +330,7 @@ impl Luno {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut trades: Value = self.watch(url.as_str(), messageHash.as_str(), &[request, Value::from(subscriptionHash), Value::Map(subscription)]).await;
+        let mut trades: Value = self.watch(url.as_str(), messageHash.as_str(), request, subscriptionHash.as_str(), Value::Map(subscription)).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
@@ -476,7 +476,7 @@ impl Luno {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut orderbook: Value = self.watch(url.as_str(), messageHash.as_str(), &[request, Value::from(subscriptionHash), Value::Map(subscription)]).await;
+        let mut orderbook: Value = self.watch(url.as_str(), messageHash.as_str(), request, subscriptionHash.as_str(), Value::Map(subscription)).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -704,10 +704,10 @@ impl Luno {
     pub fn reduce_order_volume(&self, mut orderSide: Value, mut orderId: Value, mut tradedAmount: Value) -> Value {
         let mut sideLength: Value = get_array_length(&orderSide);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_483: bool = true;
-            while { if !__for_first_483 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_483 = false; i.as_f64().unwrap_or(f64::NAN) < sideLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut order: Value = get_value(&orderSide, &i);
+            while { if !__for_first_483 { i += 1; } __for_first_483 = false; (i as f64) < sideLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut order: Value = get_value(&orderSide, &Value::Int(i));
             let mut entryId: Option<String> = self.safe_string_opt(order.clone(), Value::Int(2), &[]);
             if (entryId.as_deref() == orderId.as_str()) {
                 let mut price: Option<f64> = self.safe_number(order.clone(), Value::Int(0), &[]).as_f64();

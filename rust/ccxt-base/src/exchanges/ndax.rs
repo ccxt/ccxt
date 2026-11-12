@@ -1418,7 +1418,7 @@ impl Ndax {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), Value::from(omsId));
-                m.insert("InstrumentId".to_string(), Value::from((market).id.clone()));
+                m.insert("InstrumentId".to_string(), Value::from((market).id.as_deref()));
                 m.insert("Depth".to_string(), limitValue);
             m
         });
@@ -1593,7 +1593,7 @@ impl Ndax {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), Value::from(omsId));
-                m.insert("InstrumentId".to_string(), Value::from((market).id.clone()));
+                m.insert("InstrumentId".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
@@ -1644,7 +1644,7 @@ impl Ndax {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), Value::from(omsId));
-                m.insert("InstrumentId".to_string(), Value::from((market).id.clone()));
+                m.insert("InstrumentId".to_string(), Value::from((market).id.as_deref()));
                 m.insert("Interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
@@ -1898,7 +1898,7 @@ impl Ndax {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), Value::from(omsId));
-                m.insert("InstrumentId".to_string(), Value::from((market).id.clone()));
+                m.insert("InstrumentId".to_string(), Value::from((market).id.as_deref()));
             m
         });
         if (limit != Value::Null) {
@@ -1942,7 +1942,7 @@ impl Ndax {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_get_user_accounts(&[__ws_arg_8]).await;
+        let mut response: crate::value::List = self.private_get_get_user_accounts(&[__ws_arg_8]).await.into_list();
         //
         //     [ 449 ] // comma-separated list of account ids
         //
@@ -1951,7 +1951,7 @@ impl Ndax {
                         let mut i: i64 = 0;
             let mut __for_first_997: bool = true;
             while { if !__for_first_997 { i += 1; } __for_first_997 = false; i < (response.len() as i64) } {
-            let mut accountId: Option<String> = self.safe_string(response.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
+            let mut accountId: Option<String> = self.safe_string(&response, Value::Int(i), &[]).as_str().map(str::to_owned);
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), accountId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2366,7 +2366,7 @@ impl Ndax {
         let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("InstrumentId".to_string(), self.parse_to_int(Value::from((market).id.clone())));
+                m.insert("InstrumentId".to_string(), self.parse_to_int(Value::from((market).id.as_deref())));
                 m.insert("omsId".to_string(), Value::from(omsId));
                 m.insert("AccountId".to_string(), accountId);
                 m.insert("TimeInForce".to_string(), Value::Int(1));
@@ -2437,7 +2437,7 @@ impl Ndax {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OrderIdToReplace".to_string(), self.parse_to_int(id.clone()));
-                m.insert("InstrumentId".to_string(), self.parse_to_int(Value::from((market).id.clone())));
+                m.insert("InstrumentId".to_string(), self.parse_to_int(Value::from((market).id.as_deref())));
                 m.insert("omsId".to_string(), Value::from(omsId));
                 m.insert("AccountId".to_string(), accountId);
                 m.insert("TimeInForce".to_string(), Value::Int(1));
@@ -2555,7 +2555,7 @@ impl Ndax {
         });
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            request.insert("IntrumentId".into(), Value::from((market).id.clone()));
+            request.insert("IntrumentId".into(), Value::from((market).id.as_deref()));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_cancel_all_orders(&[__ws_arg_14]).await;
@@ -3129,9 +3129,9 @@ impl Ndax {
         }).await?))
     }
 
-    pub fn parse_transaction_status_by_type(&self, optional_args: &[Value]) -> Option<String> {
-        let mut status = get_arg(optional_args, 0, Value::Null);
-        let mut type_var = get_arg(optional_args, 1, Value::Null);
+    pub fn parse_transaction_status_by_type(&self, status: Option<&str>, type_var: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
+        let mut type_var: Value = type_var.into();
         let mut statusesByType: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("deposit".to_string(), Value::Map({
@@ -3297,7 +3297,7 @@ impl Ndax {
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transaction, "Amount", &[]));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), self.parse_transaction_status_by_type(&[transactionStatus.map(Value::from).unwrap_or(Value::Null), type_var.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_transaction_status_by_type(transactionStatus.as_deref(), type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::from(updated));
         m.insert("fee".to_string(), Value::Map(fee));
         m.insert("internal".to_string(), Value::Null);

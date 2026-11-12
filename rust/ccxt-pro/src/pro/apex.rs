@@ -638,7 +638,7 @@ impl Apex {
             });
             message = self.extend(Value::Map(request), &[params]);
         }
-        return self.watch_multiple(&url, messageHashes.clone(), &[message, messageHashes.clone()]).await;
+        return self.watch_multiple(&url, messageHashes.clone(), message, messageHashes.clone(), Value::Null).await;
 
     Value::Null
 }
@@ -1488,7 +1488,7 @@ impl Apex {
                     m.insert("args".to_string(), Value::from(vec![json_stringify(&request)]));
                 m
             });
-            self.watch(&url, &messageHash[..], &[Value::Map(message), Value::from(messageHash.clone())]).await;
+            self.watch(&url, &messageHash[..], Value::Map(message), &messageHash[..], Value::Null).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

@@ -1034,7 +1034,7 @@ impl Onetrading {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.public_get_fees(&[params]).await;
+        let mut response: crate::value::List = self.public_get_fees(&[params]).await.into_list();
         //
         // [
         //     {
@@ -1077,15 +1077,15 @@ impl Onetrading {
         //     },
         // ];
         //
-        let mut spotFees: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut futuresFees: crate::value::Dict = self.safe_dict(response, Value::Int(1), &[Value::Map({
+        let mut spotFees: crate::value::Dict = self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut spotFeeTiers: Value = self.safe_list_k(spotFees.clone(), "fee_tiers", &[Value::from(vec![])]);
+        let mut futuresFees: crate::value::Dict = self.safe_dict(&response, Value::Int(1), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).into_dict();
+        let mut spotFeeTiers: Value = self.safe_list_k(&spotFees, "fee_tiers", &[Value::from(vec![])]);
         let mut futuresFeeTiers: Value = self.safe_list_k(&futuresFees, "fee_tiers", &[Value::from(vec![])]);
         let mut spotTiers: Value = self.parse_fee_tiers(spotFeeTiers, &[]);
         let mut futuresTiers: Value = self.parse_fee_tiers(futuresFeeTiers, &[]);
@@ -1107,11 +1107,11 @@ impl Onetrading {
             let mut __for_first_1036: bool = true;
             while { if !__for_first_1036 { i += 1; } __for_first_1036 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
-            let mut tierObject: Value = (if matches!((self.safe_bool_k(&market, "spot", &[Value::Bool(false)])), Value::Bool(true)) { firstSpotTier.clone() } else { firstFuturesTier.clone() });
+            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut tierObject: Value = (if (market).spot { firstSpotTier.clone() } else { firstFuturesTier.clone() });
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), spotFees.clone());
+        m.insert("info".to_string(), Value::from(&spotFees));
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.safe_number_k(tierObject.clone(), "maker_fee", &[]));
         m.insert("taker".to_string(), self.safe_number_k(tierObject, "taker_fee", &[]));
@@ -1196,9 +1196,9 @@ impl Onetrading {
             let mut __for_first_1037: bool = true;
             while { if !__for_first_1037 { i += 1; } __for_first_1037 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
-            let mut makerFee: Value = (if matches!((self.safe_bool_k(&market, "spot", &[Value::Bool(false)])), Value::Bool(true)) { spotMakerFee.clone().map(Value::from).unwrap_or(Value::Null) } else { futuresMakerFee.clone().map(Value::from).unwrap_or(Value::Null) });
-            let mut takerFee: Value = (if matches!((self.safe_bool_k(&market, "spot", &[Value::Bool(false)])), Value::Bool(true)) { spotTakerFee.clone().map(Value::from).unwrap_or(Value::Null) } else { futuresTakerFee.clone().map(Value::from).unwrap_or(Value::Null) });
+            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut makerFee: Value = (if (market).spot { spotMakerFee.clone().map(Value::from).unwrap_or(Value::Null) } else { futuresMakerFee.clone().map(Value::from).unwrap_or(Value::Null) });
+            let mut takerFee: Value = (if (market).spot { spotTakerFee.clone().map(Value::from).unwrap_or(Value::Null) } else { futuresTakerFee.clone().map(Value::from).unwrap_or(Value::Null) });
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -1330,7 +1330,7 @@ impl Onetrading {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_code".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_code".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
@@ -1434,7 +1434,7 @@ impl Onetrading {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_code".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_code".to_string(), Value::from((market).id.as_deref()));
             m
         });
         if (limit != Value::Null) {
@@ -1596,7 +1596,7 @@ impl Onetrading {
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(1500) } else { limit });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_code".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_code".to_string(), Value::from((market).id.as_deref()));
                 m.insert("period".to_string(), period);
                 m.insert("unit".to_string(), unit);
             m
@@ -1956,7 +1956,7 @@ impl Onetrading {
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_code".to_string(), Value::from((market).id.clone()));
+                m.insert("instrument_code".to_string(), Value::from((market).id.as_deref()));
                 m.insert("type".to_string(), Value::from(uppercaseType.clone()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount));
@@ -2076,7 +2076,7 @@ impl Onetrading {
         });
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            request.insert("instrument_code".into(), Value::from((market).id.clone()));
+            request.insert("instrument_code".into(), Value::from((market).id.as_deref()));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_delete_account_orders(&[__ws_arg_6]).await;

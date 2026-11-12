@@ -339,12 +339,12 @@ impl Extended {
         if ((query.as_deref().unwrap_or_default().chars().count() as i64)) > 0 {
             url.push_str(&format!("{}{}", Value::Str("?".into()), query.map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut orderbook: Value = self.watch(url.as_str(), &messageHash[..], &[Value::Null, Value::from(messageHash.clone()), Value::Map({
+        let mut orderbook: Value = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from(symbolValue));
                 m.insert("limit".to_string(), limit.clone());
             m
-        })]).await;
+        })).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -481,7 +481,7 @@ impl Extended {
             self.client(&[url.clone()]);
             if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("options".to_string(), originalOptions); } }
         }
-        return self.watch(&url, &messageHash, &[Value::Null, messageHash.clone(), subscription]).await;
+        return self.watch(&url, &messageHash, Value::Null, &messageHash, subscription).await;
 
     Value::Null
 }
@@ -1005,12 +1005,12 @@ impl Extended {
         if ((query.as_deref().unwrap_or_default().chars().count() as i64)) > 0 {
             url.push_str(&format!("{}{}", Value::Str("?".into()), query.map(Value::from).unwrap_or(Value::Null)));
         }
-        return self.watch(url.as_str(), &messageHash[..], &[Value::Null, Value::from(messageHash.clone()), Value::Map({
+        return self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::from(symbolValue));
         m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
     m
-})]).await;
+})).await;
         Value::Null
         }).await?))
     }
@@ -1106,13 +1106,13 @@ impl Extended {
         if ((query.as_deref().unwrap_or_default().chars().count() as i64)) > 0 {
             url.push_str(&format!("{}{}", Value::Str("?".into()), query.map(Value::from).unwrap_or(Value::Null)));
         }
-        return self.watch(url.as_str(), &messageHash[..], &[Value::Null, Value::from(messageHash.clone()), Value::Map({
+        return self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("markPrice".into()));
         m.insert("symbol".to_string(), Value::from(symbolValue));
         m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
     m
-})]).await;
+})).await;
         Value::Null
         }).await?))
     }
@@ -1189,12 +1189,12 @@ impl Extended {
         if ((query.as_deref().unwrap_or_default().chars().count() as i64)) > 0 {
             url.push_str(&format!("{}{}", Value::Str("?".into()), query.map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut trades: Value = self.watch(url.as_str(), &messageHash[..], &[Value::Null, Value::from(messageHash.clone()), Value::Map({
+        let mut trades: Value = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from(symbolValue.clone()));
                 m.insert("limit".to_string(), limit.clone());
             m
-        })]).await;
+        })).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
@@ -1317,7 +1317,7 @@ impl Extended {
         let mut query: Value = self.urlencode(__ws_arg_2, &[]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]),
             Value::Str("/candles/".into())).into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into()), Value::Str("/".into())).into()), candleType.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("?".into())).into()), query);
-        let mut ohlcv: Value = self.watch(url.as_str(), &messageHash[..], &[Value::Null, Value::from(messageHash.clone()), Value::Map({
+        let mut ohlcv: Value = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::Str("ohlcv".into()));
                 m.insert("symbol".to_string(), Value::from(symbolValue.clone()));
@@ -1326,7 +1326,7 @@ impl Extended {
                 m.insert("limit".to_string(), limit.clone());
                 m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
             m
-        })]).await;
+        })).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());

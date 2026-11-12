@@ -368,7 +368,7 @@ impl Bittrade {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.as_str(), &messageHash[..], &[__ws_arg_0, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
+        return self.watch(url.as_str(), &messageHash[..], __ws_arg_0, &messageHash[..], Value::Map(subscription)).await;
         Value::Null
         }).await?))
     }
@@ -483,7 +483,7 @@ impl Bittrade {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch(url.as_str(), &messageHash[..], &[__ws_arg_1, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
+        let mut trades: Value = self.watch(url.as_str(), &messageHash[..], __ws_arg_1, &messageHash[..], Value::Map(subscription)).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
@@ -615,7 +615,7 @@ impl Bittrade {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut ohlcv: Value = self.watch(url.as_str(), &messageHash[..], &[__ws_arg_2, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
+        let mut ohlcv: Value = self.watch(url.as_str(), &messageHash[..], __ws_arg_2, &messageHash[..], Value::Map(subscription)).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
@@ -740,7 +740,7 @@ impl Bittrade {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: Value = self.watch(url.as_str(), &messageHash[..], &[__ws_arg_3, Value::from(messageHash.clone()), Value::Map(subscription)]).await;
+        let mut orderbook: Value = self.watch(url.as_str(), &messageHash[..], __ws_arg_3, &messageHash[..], Value::Map(subscription)).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -786,10 +786,10 @@ impl Bittrade {
         // unroll the accumulated deltas
         let mut messages: Value = orderbook.book_field("cache");
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_143: bool = true;
-            while { if !__for_first_143 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_143 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
-            self.handle_order_book_message(client.clone(), get_value(&messages, &i), orderbook.clone());
+            while { if !__for_first_143 { i += 1; } __for_first_143 = false; (i as f64) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
+            self.handle_order_book_message(client.clone(), get_value(&messages, &Value::Int(i)), orderbook.clone());
         }
         }
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), orderbook.clone()); }
@@ -841,7 +841,7 @@ impl Bittrade {
                     m.insert("method".to_string(), Value::Str("handle_order_book_snapshot".into()).clone());
                 m
             });
-            let mut orderbook: Value = self.watch(url.as_str(), &(Value::Str(format!("{}", requestId).into())), &[Value::Map(request), Value::Str(format!("{}", requestId).into()), Value::Map(snapshotSubscription)]).await;
+            let mut orderbook: Value = self.watch(url.as_str(), &(Value::Str(format!("{}", requestId).into())), Value::Map(request), &(Value::Str(format!("{}", requestId).into())), Value::Map(snapshotSubscription)).await;
             return orderbook.limit();
          #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 

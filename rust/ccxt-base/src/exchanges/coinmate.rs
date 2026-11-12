@@ -997,18 +997,18 @@ impl Coinmate {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currencyPair".to_string(), Value::from((market).id.clone()));
+                m.insert("currencyPair".to_string(), Value::from((market).id.as_deref()));
                 m.insert("groupByPriceLimit".to_string(), Value::Str("False".into()));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_order_book(&[__ws_arg_0]).await.into_dict();
-        let mut orderbook: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut orderbook: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timestamp: Option<i64> = self.safe_timestamp_k(orderbook.clone(), "timestamp", &[]).as_i64();
-        return self.parse_order_book(orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
+        })]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_timestamp_k(&orderbook, "timestamp", &[]).as_i64();
+        return self.parse_order_book(Value::Dict(orderbook), Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
         Value::Null
         }).await?))
     }
@@ -1039,7 +1039,7 @@ impl Coinmate {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currencyPair".to_string(), Value::from((market).id.clone()));
+                m.insert("currencyPair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -1472,7 +1472,7 @@ impl Coinmate {
         });
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            request.insert("currencyPair".into(), Value::from((market).id.clone()));
+            request.insert("currencyPair".into(), Value::from((market).id.as_deref()));
         }
         if (since != Value::Null) {
             request.insert("timestampFrom".into(), since.clone());
@@ -1587,7 +1587,7 @@ impl Coinmate {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currencyPair".to_string(), Value::from((market).id.clone()));
+                m.insert("currencyPair".to_string(), Value::from((market).id.as_deref()));
                 m.insert("minutesIntoHistory".to_string(), Value::Int(10));
             m
         });
@@ -1641,7 +1641,7 @@ impl Coinmate {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currencyPair".to_string(), Value::from((market).id.clone()));
+                m.insert("currencyPair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
@@ -1653,17 +1653,17 @@ impl Coinmate {
         //         "data": { maker: '0.3', taker: "0.35", timestamp: "1646253217815" }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut makerString: Option<String> = self.safe_string_k(data.clone(), "maker", &[]).as_str().map(str::to_owned);
-        let mut takerString: Option<String> = self.safe_string_k(data.clone(), "taker", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut makerString: Option<String> = self.safe_string_k(&data, "maker", &[]).as_str().map(str::to_owned);
+        let mut takerString: Option<String> = self.safe_string_k(&data, "taker", &[]).as_str().map(str::to_owned);
         let mut maker: Value = self.parse_number(crate::precise::Precise::stringDiv(&makerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
         let mut taker: Value = self.parse_number(crate::precise::Precise::stringDiv(&takerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data);
+        m.insert("info".to_string(), Value::Dict(data));
         m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
         m.insert("maker".to_string(), maker);
         m.insert("taker".to_string(), taker);
@@ -1748,7 +1748,7 @@ impl Coinmate {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currencyPair".to_string(), Value::from((market).id.clone()));
+                m.insert("currencyPair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         // offset param that appears in other parts of the API doesn't appear to be supported here
@@ -1918,7 +1918,7 @@ impl Coinmate {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currencyPair".to_string(), Value::from((market).id.clone()));
+                m.insert("currencyPair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         if (type_var.as_str() == Some("market")) {

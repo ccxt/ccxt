@@ -1835,7 +1835,7 @@ impl Bitrue {
         if (market).swap {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("contractName".to_string(), Value::from((market).id.clone()));
+                    m.insert("contractName".to_string(), Value::from((market).id.as_deref()));
                 m
             });
             if (limit != Value::Null) {
@@ -1851,7 +1851,7 @@ impl Bitrue {
         }  else if (market).spot {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                    m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
             });
             if (limit != Value::Null) {
@@ -2004,7 +2004,7 @@ impl Bitrue {
         if (market).swap {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("contractName".to_string(), Value::from((market).id.clone()));
+                    m.insert("contractName".to_string(), Value::from((market).id.as_deref()));
                 m
             });
             if ((market).linear == Some(true)) {
@@ -2018,7 +2018,7 @@ impl Bitrue {
         }  else if (market).spot {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                    m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
             });
             let __ws_arg_5 = self.extend(request, &[params]);
@@ -2080,7 +2080,7 @@ impl Bitrue {
             })]).into_dict();
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("contractName".to_string(), Value::from((market).id.clone()));
+                    m.insert("contractName".to_string(), Value::from((market).id.as_deref()));
                     m.insert("interval".to_string(), self.safe_string(&timeframesFuture, timeframe.clone(), &[Value::Str("1min".into())]));
                 m
             });
@@ -2102,7 +2102,7 @@ impl Bitrue {
             })]).into_dict();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                    m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                     m.insert("scale".to_string(), self.safe_string(&timeframesSpot, timeframe.clone(), &[Value::Str("1m".into())]));
                 m
             });
@@ -2193,7 +2193,7 @@ impl Bitrue {
         if (market).swap {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("contractName".to_string(), Value::from((market).id.clone()));
+                    m.insert("contractName".to_string(), Value::from((market).id.as_deref()));
                 m
             });
             if ((market).linear == Some(true)) {
@@ -2206,7 +2206,7 @@ impl Bitrue {
         }  else if (market).spot {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                    m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
             });
             let __ws_arg_11 = self.extend(request, &[params]);
@@ -2242,7 +2242,7 @@ impl Bitrue {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        data.insert(crate::runtime::stringify_param(&(Value::from((market).id.clone()))), response);
+        data.insert(crate::runtime::stringify_param(&(Value::from((market).id.as_deref()))), response);
         return self.parse_tickers(Value::Map(data), &[Value::Arr(symbolsNormalized)]);
         Value::Null
         }).await?))
@@ -2505,7 +2505,7 @@ impl Bitrue {
         if (market).spot {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                    m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
             });
             if (limit != Value::Null) {
@@ -2770,7 +2770,7 @@ impl Bitrue {
             }  else if (timeInForce.as_deref() == Some("ioc")) {
                 request.insert("type".into(), Value::Str("IOC".into()));
             }
-            request.insert("contractName".into(), Value::from((market).id.clone()));
+            request.insert("contractName".into(), Value::from((market).id.as_deref()));
             let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
             let mut createMarketBuyOrderRequiresPrice: Value = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2818,7 +2818,7 @@ impl Bitrue {
     m
 })]);
         }  else if (market).spot {
-            request.insert("symbol".into(), Value::from((market).id.clone()));
+            request.insert("symbol".into(), Value::from((market).id.as_deref()));
             request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount));
             let mut validOrderTypes: Value = self.safe_list((market).raw.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("orderTypes".into()), &[Value::from(vec![])]);
             if !(self.in_array(Value::from(uppercaseType), validOrderTypes).as_bool() == Some(true)) {
@@ -2896,7 +2896,7 @@ impl Bitrue {
             }
         }
         if (market).swap {
-            request.insert("contractName".into(), Value::from((market).id.clone()));
+            request.insert("contractName".into(), Value::from((market).id.as_deref()));
             if ((market).linear == Some(true)) {
                 let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.fapi_v2_private_get_order(&[__ws_arg_18]).await;
@@ -2910,7 +2910,7 @@ impl Bitrue {
 })]);
         }  else if (market).spot {
             request.insert("orderId".into(), id.clone()); // spot market id is mandatory
-            request.insert("symbol".into(), Value::from((market).id.clone()));
+            request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.spot_v1_private_get_order(&[__ws_arg_20]).await;
             data = response;
@@ -2958,7 +2958,7 @@ impl Bitrue {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
         if (since != Value::Null) {
@@ -3013,7 +3013,7 @@ impl Bitrue {
             m
         });
         if (market).swap {
-            request.insert("contractName".into(), Value::from((market).id.clone()));
+            request.insert("contractName".into(), Value::from((market).id.as_deref()));
             if ((market).linear == Some(true)) {
                 let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.fapi_v2_private_get_open_orders(&[__ws_arg_22]).await;
@@ -3023,7 +3023,7 @@ impl Bitrue {
             }
             data = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         }  else if (market).spot {
-            request.insert("symbol".into(), Value::from((market).id.clone()));
+            request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
             response = self.spot_v1_private_get_open_orders(&[__ws_arg_24]).await;
             data = response;
@@ -3087,7 +3087,7 @@ impl Bitrue {
             }
         }
         if (market).swap {
-            request.insert("contractName".into(), Value::from((market).id.clone()));
+            request.insert("contractName".into(), Value::from((market).id.as_deref()));
             if ((market).linear == Some(true)) {
                 let __ws_arg_25 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.fapi_v2_private_post_cancel(&[__ws_arg_25]).await;
@@ -3100,7 +3100,7 @@ impl Bitrue {
     m
 })]);
         }  else if (market).spot {
-            request.insert("symbol".into(), Value::from((market).id.clone()));
+            request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.spot_v1_private_delete_order(&[__ws_arg_27]).await;
             data = response;
@@ -3143,7 +3143,7 @@ impl Bitrue {
         if (market).swap {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("contractName".to_string(), Value::from((market).id.clone()));
+                    m.insert("contractName".to_string(), Value::from((market).id.as_deref()));
                 m
             });
             if ((market).linear == Some(true)) {
@@ -3209,7 +3209,7 @@ impl Bitrue {
             request.insert("limit".into(), limitResolved.clone());
         }
         if (market).swap {
-            request.insert("contractName".into(), Value::from((market).id.clone()));
+            request.insert("contractName".into(), Value::from((market).id.as_deref()));
             if ((market).linear == Some(true)) {
                 let __ws_arg_30 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.fapi_v2_private_get_my_trades(&[__ws_arg_30]).await;
@@ -3219,7 +3219,7 @@ impl Bitrue {
             }
             data = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         }  else if (market).spot {
-            request.insert("symbol".into(), Value::from((market).id.clone()));
+            request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_32 = self.extend(Value::Map(request), &[params]);
             response = self.spot_v2_private_get_my_trades(&[__ws_arg_32]).await;
             data = response;
@@ -3392,9 +3392,9 @@ impl Bitrue {
         }).await?))
     }
 
-    pub fn parse_transaction_status_by_type(&self, status: Option<&str>, optional_args: &[Value]) -> Option<String> {
+    pub fn parse_transaction_status_by_type(&self, status: Option<&str>, type_var: Option<&str>) -> Option<String> {
         let mut status: Value = status.into();
-        let mut type_var = get_arg(optional_args, 0, Value::Null);
+        let mut type_var: Value = type_var.into();
         let mut statusesByType: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("deposit".to_string(), Value::Map({
@@ -3509,7 +3509,7 @@ impl Bitrue {
         if payAmount || ctime {
             type_var = "withdrawal".to_string();
         }
-        let mut status: Value = self.parse_transaction_status_by_type((self.safe_string_k(transaction.clone(), "status", &[])).as_str(), &[Value::from(type_var.clone())]).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Value = self.parse_transaction_status_by_type((self.safe_string_k(transaction.clone(), "status", &[])).as_str(), Some(type_var.as_str())).map(Value::from).unwrap_or(Value::Null);
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
         let mut network: Value = Value::Null;
         let mut currencyId: Option<String> = self.safe_string2(transaction.clone(), Value::Str("symbol".into()), Value::Str("coin".into()), &[]).as_str().map(str::to_owned);
@@ -3967,7 +3967,7 @@ impl Bitrue {
         });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("contractName".to_string(), Value::from((market).id.clone()));
+                m.insert("contractName".to_string(), Value::from((market).id.as_deref()));
                 m.insert("leverage".to_string(), leverage);
             m
         });
@@ -4040,7 +4040,7 @@ impl Bitrue {
         let mut response: Value = Value::Null;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("contractName".to_string(), Value::from((market).id.clone()));
+                m.insert("contractName".to_string(), Value::from((market).id.as_deref()));
                 m.insert("amount".to_string(), self.parse_to_numeric(amount));
             m
         });

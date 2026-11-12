@@ -569,7 +569,7 @@ impl Toobit {
         });
         let __ws_arg_0 = self.safe_string(crate::value::get_value_k(&crate::value::get_value_k(&self.urls, "api"), "ws"), Value::Str("common".into()), &[Value::Str("".into())]);
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch_multiple(&(Value::Str(format!("{}{}", __ws_arg_0, Value::Str("/quote/ws/v1".into())).into())), &messageHashes, &[__ws_arg_1, Value::Arr(messageHashes.clone())]).await;
+        let mut trades: Value = self.watch_multiple(&(Value::Str(format!("{}{}", __ws_arg_0, Value::Str("/quote/ws/v1".into())).into())), &messageHashes, __ws_arg_1, &messageHashes, Value::Null).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -713,7 +713,7 @@ impl Toobit {
             let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
             let mut symbolStr: String = self.safe_string(&data, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut market: crate::types::Market = (match self.market(symbolStr.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut marketId: Value = Value::from((market).id.clone());
+            let mut marketId: Value = Value::from((market).id.as_deref());
             let mut unfiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("1m".into())]).as_str().unwrap_or("1m").to_string();
             let mut rawTimeframe: Value = self.safe_string(&timeframes, Value::from(unfiedTimeframe.clone()), &[Value::from(unfiedTimeframe.clone())]);
             if (selectedTimeframe != Value::Null) && (selectedTimeframe.as_str() != rawTimeframe.as_str()) {
@@ -733,7 +733,7 @@ impl Toobit {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut symboltimeframestoredVariable = self.watch_multiple(url.as_str(), &messageHashes, &[__ws_arg_2, Value::Arr(messageHashes.clone())]).await;
+        let mut symboltimeframestoredVariable = self.watch_multiple(url.as_str(), &messageHashes, __ws_arg_2, &messageHashes, Value::Null).await;
         let mut symbol: Value = get_value(&symboltimeframestoredVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframestoredVariable, &Value::Int(1));
         let mut stored: Value = get_value(&symboltimeframestoredVariable, &Value::Int(2));
@@ -905,7 +905,7 @@ impl Toobit {
         });
         let __ws_arg_3 = self.safe_string(crate::value::get_value_k(&crate::value::get_value_k(&self.urls, "api"), "ws"), Value::Str("common".into()), &[Value::Str("".into())]);
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut ticker: Value = self.watch_multiple(&(Value::Str(format!("{}{}", __ws_arg_3, Value::Str("/quote/ws/v1".into())).into())), &messageHashes, &[__ws_arg_4, Value::Arr(messageHashes.clone())]).await;
+        let mut ticker: Value = self.watch_multiple(&(Value::Str(format!("{}{}", __ws_arg_3, Value::Str("/quote/ws/v1".into())).into())), &messageHashes, __ws_arg_4, &messageHashes, Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1078,7 +1078,7 @@ impl Toobit {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsChannel]);
-        let mut orderbook: Value = self.watch_multiple(url.as_str(), &messageHashes, &[__ws_arg_5, Value::Arr(messageHashes.clone())]).await;
+        let mut orderbook: Value = self.watch_multiple(url.as_str(), &messageHashes, __ws_arg_5, &messageHashes, Value::Null).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1231,7 +1231,7 @@ impl Toobit {
         self.authenticate(&[]).await;
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isSpot: bool = marketType.as_deref() == Some("spot");
         let mut type_var: String = "contract".to_string();
         if isSpot {
@@ -1251,9 +1251,9 @@ impl Toobit {
         }
         let mut url: Value = self.get_user_stream_url().map(Value::from).unwrap_or(Value::Null);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
-        self.set_balance_cache(client.as_value(), marketType.map(Value::from).unwrap_or(Value::Null), &[subscriptionHash.clone(), paramsMarketType.clone()]);
+        self.set_balance_cache(client.as_value(), marketType.map(Value::from).unwrap_or(Value::Null), &[subscriptionHash.clone(), Value::from(&paramsMarketType)]);
         client.future(Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into()));
-        return self.watch(&url, &messageHash, &[paramsMarketType, subscriptionHash]).await;
+        return self.watch(&url, &messageHash, &paramsMarketType, &subscriptionHash, Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -1414,7 +1414,7 @@ impl Toobit {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str(":".into())).into()), symbolValue);
         }
         let mut url: Option<String> = self.get_user_stream_url();
-        let mut orders: Value = self.watch(url.as_deref(), &messageHash[..], &[params, Value::from(messageHash.clone())]).await;
+        let mut orders: Value = self.watch(url.as_deref(), &messageHash[..], params, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolValue.as_str(), limit.as_i64());
@@ -1560,7 +1560,7 @@ impl Toobit {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str(":".into())).into()), symbolValue);
         }
         let mut url: Option<String> = self.get_user_stream_url();
-        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &[params, Value::from(messageHash.clone())]).await;
+        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], params, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
@@ -1678,7 +1678,7 @@ impl Toobit {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into()))).await;
             return self.filter_by_symbols_since_limit(snapshot, symbolsNormalized.clone(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
-        let mut newPositions: Value = self.watch(&url, &messageHash[..], &[Value::Null, Value::from(messageHash.clone())]).await;
+        let mut newPositions: Value = self.watch(&url, &messageHash[..], Value::Null, &messageHash[..], Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }

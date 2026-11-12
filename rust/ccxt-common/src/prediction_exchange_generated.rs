@@ -204,10 +204,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
             if (sortKey != Value::Null) {
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_188: bool = true;
-                    while { if !__for_first_188 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_188 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
-                    { let __be_tmp = self.safe_number(get_value(&result, &i), sortKey.clone(), &[Value::Int(0)]); add_element_to_object(get_value_mut(&mut result, &i), &sortKey, __be_tmp); };
+                    while { if !__for_first_188 { i += 1; } __for_first_188 = false; i < (result.len() as i64) } {
+                    { let __be_tmp = self.safe_number(get_value(&result, &Value::Int(i)), sortKey.clone(), &[Value::Int(0)]); add_element_to_object(get_value_mut(&mut result, &Value::Int(i)), &sortKey, __be_tmp); };
                 }
                 }
                 result = self.sort_by(result.clone(), sortKey, &[Value::Bool(true), Value::Int(0)]);
@@ -384,10 +384,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 if (tagLabel != Value::Null) {
                     let mut tagKey: Option<String> = self.normalize_tag_key(tagLabel).as_str().map(str::to_owned);
                     {
-                                                let mut wi: Value = Value::Int(0);
+                                                let mut wi: i64 = 0;
                         let mut __for_first_194: bool = true;
-                        while { if !__for_first_194 { if let Value::Int(n) = &mut wi { *n += 1; } } __for_first_194 = false; wi.as_f64().unwrap_or(f64::NAN) < ((wanted.len() as i64) as f64) } {
-                        if ((if let (Some(__h), Some(__n)) = (tagKey.as_deref(), (wanted.get((wi).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
+                        while { if !__for_first_194 { wi += 1; } __for_first_194 = false; wi < (wanted.len() as i64) } {
+                        if ((if let (Some(__h), Some(__n)) = (tagKey.as_deref(), (wanted.get(wi as usize).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                             matched = true;
                             break;
                         }

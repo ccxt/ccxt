@@ -384,7 +384,7 @@ impl Bullish {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchPublic() has no public websocket url".into()))));
         }
         let __ws_arg_0 = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(&(Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), url).into())), &messageHash, &[__ws_arg_0, messageHash.clone()]).await;
+        return self.watch(&(Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), url).into())), &messageHash, __ws_arg_0, &messageHash, Value::Null).await;
 
     Value::Null
 }
@@ -419,7 +419,7 @@ impl Bullish {
             m
         });
         let __ws_arg_1 = self.deep_extend(Value::Map(message), &[params]);
-        let mut result: Value = self.watch(url.as_deref(), &messageHash, &[__ws_arg_1, subscribeHash]).await;
+        let mut result: Value = self.watch(url.as_deref(), &messageHash, __ws_arg_1, &subscribeHash, Value::Null).await;
         return result;
 
     Value::Null
@@ -453,12 +453,12 @@ impl Bullish {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]));
+        let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), Value::from((market).symbol.as_str()));
         let mut url: String = "/trading-api/v1/market-data/trades".to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("anonymousTrades".into()));
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let mut trades: Value = self.watch_public(url.as_str(), messageHash.as_str(), &[Value::Map(request), params]).await;
@@ -557,7 +557,7 @@ impl Bullish {
         }
         let mut messageHash: String = format!("{}{}", Value::Str("ticker::".into()), symbolValue);
         let __ws_arg_2 = self.safe_string_k(&market, "id", &[Value::Str("".into())]);
-        return self.watch(&(Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/trading-api/v1/market-data/tick/".into())).into()), __ws_arg_2).into())), &messageHash[..], &[params, Value::from(messageHash.clone())]).await;
+        return self.watch(&(Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/trading-api/v1/market-data/tick/".into())).into()), __ws_arg_2).into())), &messageHash[..], params, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -661,11 +661,11 @@ impl Bullish {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut url: String = "/trading-api/v1/market-data/orderbook".to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]));
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), Value::from((market).symbol.as_str()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("l2Orderbook".into()));
-                m.insert("symbol".to_string(), Value::from((market).id.clone()));
+                m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let mut orderbook: Value = self.watch_public(url.as_str(), messageHash.as_str(), &[Value::Map(request), params]).await;

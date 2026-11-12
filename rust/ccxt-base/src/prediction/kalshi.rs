@@ -141,7 +141,7 @@ impl crate::exchange_generated::ExchangeBase for Kalshi {
                 "parse_settlement" => self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "resolve_event_series_tickers" => self.resolve_event_series_tickers(&args[..]).await,
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "sorted_orders" => self.sorted_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)),
+                "sorted_orders" => self.sorted_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)),
                 // Prediction Core: fall through to prediction base methods (then Exchange base).
                 _ => self.call_dynamic_prediction_base(method, args).await,
             }
@@ -1740,10 +1740,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
                 let mut grouped: Value = (if let (Some(__m), Some(__k)) = (outcomesByTicker.as_map(), marketTicker.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_1268: bool = true;
-                    while { if !__for_first_1268 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1268 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&grouped).as_f64().unwrap_or(f64::NAN) } {
-                    let mut ticker: Value = self.parse_prediction_ticker(&raw, &[get_value(&grouped, &j)]);
+                    while { if !__for_first_1268 { j += 1; } __for_first_1268 = false; (j as f64) < get_array_length(&grouped).as_f64().unwrap_or(f64::NAN) } {
+                    let mut ticker: Value = self.parse_prediction_ticker(&raw, &[get_value(&grouped, &Value::Int(j))]);
                     let mut symbolKey: Option<String> = self.safe_string_k(ticker.clone(), "outcome", &[]).as_str().map(str::to_owned);
                     if (symbolKey.is_some()) {
                         result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), ticker);
@@ -1848,7 +1848,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }
-        return self.safe_prediction_order_book(self.sorted_orders((self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome])).as_str(), Value::Null, Value::from(bids), Value::from(asks)), &[outcomeObj]);
+        return self.safe_prediction_order_book(self.sorted_orders((self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome])).as_str(), None, Value::from(bids), Value::from(asks)), &[outcomeObj]);
         Value::Null
         }).await?))
     }
@@ -1864,8 +1864,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object[]} asks array of [price, size] ask levels
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-    pub fn sorted_orders(&self, outcome: Option<&str>, mut timestamp: Value, mut bids: Value, mut asks: Value) -> Value {
+    pub fn sorted_orders(&self, outcome: Option<&str>, timestamp: Option<i64>, mut bids: Value, mut asks: Value) -> Value {
         let mut outcome: Value = outcome.into();
+        let mut timestamp: Value = timestamp.into();
         // Sort bids descending, asks ascending, match CCXT OrderBook shape
         let mut bidsValue: Value = self.sort_by(bids, Value::Int(0), &[Value::Bool(true)]);
         let mut asksValue: Value = self.sort_by(asks, Value::Int(0), &[]);
@@ -2257,10 +2258,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut wantedOutcome: Option<String> = self.safe_string_k_opt(wantedOutcomeObj, "outcome", &[]);
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1278: bool = true;
-            while { if !__for_first_1278 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1278 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
-            let mut trade: Value = trades.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1278 { i += 1; } __for_first_1278 = false; i < (trades.len() as i64) } {
+            let mut trade: Value = trades.get(i as usize).cloned().unwrap_or(Value::Null);
             if (wantedOutcome.is_none()) || (self.safe_string_k(trade.clone(), "outcome", &[]).as_str() == wantedOutcome.as_deref()) {
                 result.push(trade);
             }
@@ -2546,10 +2547,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut wantedOutcome: Option<String> = self.safe_string_k_opt(wantedOutcomeObj, "outcome", &[]);
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1282: bool = true;
-            while { if !__for_first_1282 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1282 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsed.len() as i64) as f64) } {
-            let mut settlement: Value = parsed.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1282 { i += 1; } __for_first_1282 = false; i < (parsed.len() as i64) } {
+            let mut settlement: Value = parsed.get(i as usize).cloned().unwrap_or(Value::Null);
             if (wantedOutcome.is_none()) || (self.safe_string_k(settlement.clone(), "outcome", &[]).as_str() == wantedOutcome.as_deref()) {
                 result.push(settlement);
             }
@@ -3429,15 +3430,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut limitOrZero: Value = (if hasLimit { limit } else { Value::Int(0) });
         let mut limitValue: Value = self.parse_to_int(limitOrZero);
         {
-                        let mut ei: Value = Value::Int(0);
+                        let mut ei: i64 = 0;
             let mut __for_first_1289: bool = true;
-            while { if !__for_first_1289 { if let Value::Int(n) = &mut ei { *n += 1; } } __for_first_1289 = false; ei.as_f64().unwrap_or(f64::NAN) < eventTickersLength } {
+            while { if !__for_first_1289 { ei += 1; } __for_first_1289 = false; (ei as f64) < eventTickersLength } {
             let mut collectedLength: f64 = ((rawEvents.len() as i64) as f64);
             if hasLimit && (collectedLength >= limitValue.as_f64().unwrap_or(f64::NAN)) {
                 break;
             }
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                let mut fullEvent: Value = self.fetch_raw_event_by_ticker((eventTickers.get((ei).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default(), &[rest.clone()]).await;
+                let mut fullEvent: Value = self.fetch_raw_event_by_ticker((eventTickers.get(ei as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default(), &[rest.clone()]).await;
                 rawEvents.push(fullEvent);
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);

@@ -1116,13 +1116,13 @@ impl Coinone {
                 m.insert("quote_currency".to_string(), Value::Str("KRW".into()));
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut response: Option<crate::value::Dict> = None;
         if (symbolsNormalized.is_some()) {
             let mut first: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
-            market = crate::types::IntoRaw::into_raw(self.market(first.as_deref().unwrap_or_default()));
-            request.insert("quote_currency".into(), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
-            request.insert("target_currency".into(), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(first.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("quote_currency".into(), crate::value::KeyRead::key_read(&&market, "quote"));
+            request.insert("target_currency".into(), crate::value::KeyRead::key_read(&&market, "base"));
             let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.v2_public_get_ticker_new_quote_currency_target_currency(&[__ws_arg_1]).await.into_opt_dict();
         }  else {
@@ -1497,8 +1497,8 @@ impl Coinone {
         // see https://github.com/ccxt/ccxt/issues/23174
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("quote_currency".to_string(), Value::from((market).quote_id.clone()));
-                m.insert("target_currency".to_string(), Value::from((market).base_id.clone()));
+                m.insert("quote_currency".to_string(), Value::from((market).quote_id.as_deref()));
+                m.insert("target_currency".to_string(), Value::from((market).base_id.as_deref()));
                 m.insert("type".to_string(), orderType);
                 m.insert("side".to_string(), orderSide);
                 m.insert("price".to_string(), self.price_to_precision(symbol.clone(), price));
@@ -1543,7 +1543,7 @@ impl Coinone {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id.clone());
-                m.insert("currency".to_string(), Value::from((market).id.clone()));
+                m.insert("currency".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
@@ -1727,8 +1727,8 @@ impl Coinone {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("quote_currency".to_string(), Value::from((market).quote_id.clone()));
-                m.insert("target_currency".to_string(), Value::from((market).base_id.clone()));
+                m.insert("quote_currency".to_string(), Value::from((market).quote_id.as_deref()));
+                m.insert("target_currency".to_string(), Value::from((market).base_id.as_deref()));
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
@@ -1788,7 +1788,7 @@ impl Coinone {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), Value::from((market).id.clone()));
+                m.insert("currency".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);

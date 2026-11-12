@@ -439,8 +439,8 @@ impl Woo {
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut request: Value = self.extend(Value::Map(subscribe.clone()), &[message]);
-        return self.watch(url.as_str(), &messageHash, &[request, messageHash.clone(), Value::Map(subscribe)]).await;
+        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe.clone()), &[message]).into_dict();
+        return self.watch(url.as_str(), &messageHash, &request, &messageHash, Value::Map(subscribe)).await;
 
     Value::Null
 }
@@ -484,7 +484,7 @@ impl Woo {
             subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes);
         }
         let __ws_arg_1 = self.extend(Value::Map(message), &[&paramsOmitted]);
-        return self.watch(url.as_str(), &unsubHash[..], &[__ws_arg_1, Value::from(unsubHash.clone()), Value::Map(subscription)]).await;
+        return self.watch(url.as_str(), &unsubHash[..], __ws_arg_1, &unsubHash[..], Value::Map(subscription)).await;
 
     Value::Null
 }
@@ -549,7 +549,7 @@ impl Woo {
             subscription.insert("method".into(), Value::Str("handle_order_book_subscription".into()).clone());
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsMethod]);
-        let mut orderbook: Value = self.watch(url.as_str(), &topic[..], &[__ws_arg_2, Value::from(topic.clone()), Value::Map(subscription)]).await;
+        let mut orderbook: Value = self.watch(url.as_str(), &topic[..], __ws_arg_2, &topic[..], Value::Map(subscription)).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -716,10 +716,10 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             orderbook.reset(snapshot);
             let mut messages: Value = orderbook.book_field("cache");
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_713: bool = true;
-                while { if !__for_first_713 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_713 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
-                let mut messageItem: Value = get_value(&messages, &i);
+                while { if !__for_first_713 { i += 1; } __for_first_713 = false; (i as f64) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
+                let mut messageItem: Value = get_value(&messages, &Value::Int(i));
                 let mut ts: Value = self.safe_integer_k(messageItem.clone(), "ts", &[]);
                 if (ts == Value::Null) {
                     continue;
@@ -1569,8 +1569,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
 }));
                 m
             });
-            let mut message: Value = self.extend(Value::Map(request), &[params]);
-            self.watch(url.as_str(), &messageHash[..], &[message.clone(), Value::from(messageHash.clone()), message.clone()]).await;
+            let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+            self.watch(url.as_str(), &messageHash[..], &message, &messageHash[..], &message).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -1592,8 +1592,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut request: Value = self.extend(Value::Map(subscribe.clone()), &[message.clone()]);
-        return self.watch(url.as_str(), &messageHash, &[request, messageHash.clone(), Value::Map(subscribe)]).await;
+        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe.clone()), &[message.clone()]).into_dict();
+        return self.watch(url.as_str(), &messageHash, &request, &messageHash, Value::Map(subscribe)).await;
 
     Value::Null
 }
@@ -1612,8 +1612,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 m.insert("id".to_string(), requestId);
             m
         });
-        let mut request: Value = self.extend(Value::Map(subscribe.clone()), &[message.clone()]);
-        return self.watch_multiple(url.as_str(), messageHashes.clone(), &[request, messageHashes.clone(), Value::Map(subscribe)]).await;
+        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe.clone()), &[message.clone()]).into_dict();
+        return self.watch_multiple(url.as_str(), messageHashes.clone(), &request, messageHashes.clone(), Value::Map(subscribe)).await;
 
     Value::Null
 }
@@ -2390,12 +2390,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let mut subscribeHash: String = (match message.get("data") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut unsubscribeHash: String = format!("{}{}", Value::Str("unsubscribe::".into()), subscribeHash);
-        let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), Value::from(unsubscribeHash), &[Value::Map({
+        let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(unsubscribeHash), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut subMessageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();
-        let mut unsubMessageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "unsubMessageHashes", &[Value::from(vec![])]).into_list();
+        })]).into_dict();
+        let mut subMessageHashes: crate::value::List = self.safe_list_k(&subscription, "subMessageHashes", &[Value::from(vec![])]).into_list();
+        let mut unsubMessageHashes: crate::value::List = self.safe_list_k(&subscription, "unsubMessageHashes", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_722: bool = true;
@@ -2405,7 +2405,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.clean_unsubscription(client.clone(), subHash, unsubHash, &[]);
         }
         }
-        self.clean_cache(subscription);
+        self.clean_cache(Value::Dict(subscription));
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {

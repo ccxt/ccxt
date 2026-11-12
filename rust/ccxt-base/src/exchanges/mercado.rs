@@ -1006,7 +1006,7 @@ impl Mercado {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin_pair".to_string(), Value::from((market).id.clone()));
+                m.insert("coin_pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let mut response: Value = Value::Null;
@@ -1077,7 +1077,7 @@ impl Mercado {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin_pair".to_string(), Value::from((market).id.clone()));
+                m.insert("coin_pair".to_string(), Value::from((market).id.as_deref()));
                 m.insert("order_id".to_string(), id);
             m
         });
@@ -1242,7 +1242,7 @@ impl Mercado {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin_pair".to_string(), Value::from((market).id.clone()));
+                m.insert("coin_pair".to_string(), Value::from((market).id.as_deref()));
                 m.insert("order_id".to_string(), self.parse_to_int(id));
             m
         });
@@ -1484,7 +1484,7 @@ impl Mercado {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin_pair".to_string(), Value::from((market).id.clone()));
+                m.insert("coin_pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
@@ -1531,7 +1531,7 @@ impl Mercado {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin_pair".to_string(), Value::from((market).id.clone()));
+                m.insert("coin_pair".to_string(), Value::from((market).id.as_deref()));
                 m.insert("status_list".to_string(), Value::Str("[2]".into()));
             m
         });
@@ -1579,7 +1579,7 @@ impl Mercado {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("coin_pair".to_string(), Value::from((market).id.clone()));
+                m.insert("coin_pair".to_string(), Value::from((market).id.as_deref()));
                 m.insert("has_fills".to_string(), Value::Bool(true));
             m
         });

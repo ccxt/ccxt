@@ -707,10 +707,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return preferredSwapSymbol;
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1623: bool = true;
-            while { if !__for_first_1623 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1623 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&symbols).as_f64().unwrap_or(f64::NAN) } {
-            let mut s: Value = get_value(&symbols, &i);
+            while { if !__for_first_1623 { i += 1; } __for_first_1623 = false; (i as f64) < get_array_length(&symbols).as_f64().unwrap_or(f64::NAN) } {
+            let mut s: Value = get_value(&symbols, &Value::Int(i));
             let mut market: Value = exchange.safe_value(get_value(&exchange, &Value::Str("markets".into())), s.clone(), &[]);
             if (market != Value::Null) {
                 let mut active: Value = exchange.safe_value(market.clone(), Value::Str("active".into()), &[]);
@@ -807,10 +807,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut activeMarkets: Value = exchange.filter_by(currentTypeMarkets.clone(), Value::Str("active".into()), Value::Bool(true), &[]);
             let mut activeSymbols: Vec<Value> = Vec::new();
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1627: bool = true;
-                while { if !__for_first_1627 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1627 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&activeMarkets).as_f64().unwrap_or(f64::NAN) } {
-                activeSymbols.push(get_value(&get_value(&activeMarkets, &i), &Value::Str("symbol".into())));
+                while { if !__for_first_1627 { i += 1; } __for_first_1627 = false; (i as f64) < get_array_length(&activeMarkets).as_f64().unwrap_or(f64::NAN) } {
+                activeSymbols.push(get_value(&get_value(&activeMarkets, &Value::Int(i)), &Value::Str("symbol".into())));
             }
             }
             symbol = self.get_test_symbol(exchange.clone(), spot.clone(), Value::from(activeSymbols));
@@ -1052,10 +1052,10 @@ if _try_result.is_err() {
                 let mut pinnedMarket: Value = get_value(&get_value(&exchange, &Value::Str("markets".into())), &pinnedKeys.get(i as usize).cloned().unwrap_or(Value::Null));
                 let mut pinnedOutcomes: Value = exchange.safe_list(pinnedMarket.clone(), Value::Str("outcomes".into()), &[Value::from(vec![])]);
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_1629: bool = true;
-                    while { if !__for_first_1629 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1629 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&pinnedOutcomes).as_f64().unwrap_or(f64::NAN) } {
-                    if is_equal(&exchange.safe_string(get_value(&pinnedOutcomes, &j), Value::Str("outcome".into()), &[]), &outcomeSymbol) {
+                    while { if !__for_first_1629 { j += 1; } __for_first_1629 = false; (j as f64) < get_array_length(&pinnedOutcomes).as_f64().unwrap_or(f64::NAN) } {
+                    if is_equal(&exchange.safe_string(get_value(&pinnedOutcomes, &Value::Int(j)), Value::Str("outcome".into()), &[]), &outcomeSymbol) {
                         pinFound = true;
                         break;
                     }
@@ -1177,18 +1177,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut extraScopes: Value = exchange.safe_list(self.skippedSettingsForExchange.clone(), Value::Str("preferredEventScopes".into()), &[Value::from(vec![])]);
                 let mut extraScopesLength: Value = get_array_length(&extraScopes);
                 {
-                                        let mut si: Value = Value::Int(0);
+                                        let mut si: i64 = 0;
                     let mut __for_first_1632: bool = true;
-                    while { if !__for_first_1632 { if let Value::Int(n) = &mut si { *n += 1; } } __for_first_1632 = false; si.as_f64().unwrap_or(f64::NAN) < extraScopesLength.as_f64().unwrap_or(f64::NAN) } {
-                    scopesToTest.push(get_value(&extraScopes, &si));
+                    while { if !__for_first_1632 { si += 1; } __for_first_1632 = false; (si as f64) < extraScopesLength.as_f64().unwrap_or(f64::NAN) } {
+                    scopesToTest.push(get_value(&extraScopes, &Value::Int(si)));
                 }
                 }
                 let mut scopesToTestLength: Value = Value::Int(scopesToTest.len() as i64);
                 {
-                                        let mut sj: Value = Value::Int(0);
+                                        let mut sj: i64 = 0;
                     let mut __for_first_1633: bool = true;
-                    while { if !__for_first_1633 { if let Value::Int(n) = &mut sj { *n += 1; } } __for_first_1633 = false; sj.as_f64().unwrap_or(f64::NAN) < scopesToTestLength.as_f64().unwrap_or(f64::NAN) } {
-                    let mut scope: Value = scopesToTest.get((sj).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                    while { if !__for_first_1633 { sj += 1; } __for_first_1633 = false; (sj as f64) < scopesToTestLength.as_f64().unwrap_or(f64::NAN) } {
+                    let mut scope: Value = scopesToTest.get(sj as usize).cloned().unwrap_or(Value::Null);
                     // fetchEvents scoped by a single parameter must return a non-empty, valid list
                     let mut scopedEvents: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".into()), Value::from(vec![scope.clone()])).await;
                     let mut scopedList: Value = exchange.safe_list(Value::Map({
@@ -1314,10 +1314,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketsLength: Value = get_array_length(&markets);
         assert((exchange.safe_string(event.clone(), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event must not carry the deprecated symbol key".into())).into()), logText).into())]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1636: bool = true;
-            while { if !__for_first_1636 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1636 = false; i.as_f64().unwrap_or(f64::NAN) < marketsLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut market: Value = get_value(&markets, &i);
+            while { if !__for_first_1636 { i += 1; } __for_first_1636 = false; (i as f64) < marketsLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut market: Value = get_value(&markets, &Value::Int(i));
             assert(Value::Bool(is_equal(&exchange.is_dictionary(market.clone()), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event market should be a dict".into())).into()), logText).into())]);
             assert((exchange.safe_string(market.clone(), Value::Str("market".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event market missing the unified market handle".into())).into()), logText).into())]);
             // 'symbol' is deprecated on prediction structures — the unified 'market' handle is the identity
@@ -1326,10 +1326,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             assert((outcomes != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event market missing outcomes".into())).into()), logText).into())]);
             let mut outcomesLength: Value = get_array_length(&outcomes);
             {
-                                let mut j: Value = Value::Int(0);
+                                let mut j: i64 = 0;
                 let mut __for_first_1635: bool = true;
-                while { if !__for_first_1635 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1635 = false; j.as_f64().unwrap_or(f64::NAN) < outcomesLength.as_f64().unwrap_or(f64::NAN) } {
-                assert((exchange.safe_string(get_value(&outcomes, &j), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event outcome must not carry the deprecated symbol key".into())).into()), logText).into())]);
+                while { if !__for_first_1635 { j += 1; } __for_first_1635 = false; (j as f64) < outcomesLength.as_f64().unwrap_or(f64::NAN) } {
+                assert((exchange.safe_string(get_value(&outcomes, &Value::Int(j)), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event outcome must not carry the deprecated symbol key".into())).into()), logText).into())]);
             }
             }
         }
@@ -2260,10 +2260,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut newInput: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1648: bool = true;
-            while { if !__for_first_1648 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1648 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&input).as_f64().unwrap_or(f64::NAN) } {
-            let mut current: Value = get_value(&input, &i);
+            while { if !__for_first_1648 { i += 1; } __for_first_1648 = false; (i as f64) < get_array_length(&input).as_f64().unwrap_or(f64::NAN) } {
+            let mut current: Value = get_value(&input, &Value::Int(i));
             if is_true(&isNullValue(current.clone())) {
                 newInput.push(Value::Null);
             }  else {
@@ -2376,10 +2376,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn ws_request_was_sent(&self, mut exchange: Value, mut url: Value, mut id: Value) -> Value {
         let mut sentMessages: Value = getWsSentMessages(exchange.clone(), url.clone());
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1650: bool = true;
-            while { if !__for_first_1650 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1650 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&sentMessages).as_f64().unwrap_or(f64::NAN) } {
-            if is_equal(&exchange.safe_string(get_value(&sentMessages, &i), Value::Str("id".into()), &[]), &id) {
+            while { if !__for_first_1650 { i += 1; } __for_first_1650 = false; (i as f64) < get_array_length(&sentMessages).as_f64().unwrap_or(f64::NAN) } {
+            if is_equal(&exchange.safe_string(get_value(&sentMessages, &Value::Int(i)), Value::Str("id".into()), &[]), &id) {
                 return Value::Bool(true);
             }
         }
@@ -2498,11 +2498,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         assert((sentLength.as_f64() == expectedLength.as_f64()), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("sent ws messages count mismatch: sent ".into()), to_string_val(&sentLength)).into()), Value::Str(", expected ".into())).into()),
             to_string_val(&expectedLength)).into()), Value::Str(" ".into())).into()), jsonStringify(sentMessages.clone())).into())]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1653: bool = true;
-            while { if !__for_first_1653 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1653 = false; i.as_f64().unwrap_or(f64::NAN) < expectedLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut unifiedSent: Value = jsonParse(jsonStringify(get_value(&sentMessages, &i)));
-            self.assert_static_response_output(exchange.clone(), sentSkipKeys.clone(), unifiedSent.clone(), get_value(&expectedSent, &i));
+            while { if !__for_first_1653 { i += 1; } __for_first_1653 = false; (i as f64) < expectedLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut unifiedSent: Value = jsonParse(jsonStringify(get_value(&sentMessages, &Value::Int(i))));
+            self.assert_static_response_output(exchange.clone(), sentSkipKeys.clone(), unifiedSent.clone(), get_value(&expectedSent, &Value::Int(i)));
         }
         }
 }
@@ -2576,10 +2576,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut method: Value = methodsNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut results: Value = get_value(&methods, &method);
             {
-                                let mut j: Value = Value::Int(0);
+                                let mut j: i64 = 0;
                 let mut __for_first_1654: bool = true;
-                while { if !__for_first_1654 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1654 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
-                let mut result: Value = get_value(&results, &j);
+                while { if !__for_first_1654 { j += 1; } __for_first_1654 = false; (j as f64) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
+                let mut result: Value = get_value(&results, &Value::Int(j));
                 let mut description: Value = get_value(&result, &Value::Str("description".into()));
                 if (testName != Value::Null) && (!is_equal(&testName, &description)) {
                     continue;
@@ -2829,10 +2829,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut method: Value = methodsNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut results: Value = get_value(&methods, &method);
             {
-                                let mut j: Value = Value::Int(0);
+                                let mut j: i64 = 0;
                 let mut __for_first_1658: bool = true;
-                while { if !__for_first_1658 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1658 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
-                let mut result: Value = get_value(&results, &j);
+                while { if !__for_first_1658 { j += 1; } __for_first_1658 = false; (j as f64) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
+                let mut result: Value = get_value(&results, &Value::Int(j));
                 let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".into())); // snapshot options;
                 let mut testExchangeOptions: Value = exchange.safe_value(result.clone(), Value::Str("options".into()), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -2939,10 +2939,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut method: Value = methodsNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut results: Value = get_value(&methods, &method);
             {
-                                let mut j: Value = Value::Int(0);
+                                let mut j: i64 = 0;
                 let mut __for_first_1660: bool = true;
-                while { if !__for_first_1660 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1660 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
-                let mut result: Value = get_value(&results, &j);
+                while { if !__for_first_1660 { j += 1; } __for_first_1660 = false; (j as f64) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
+                let mut result: Value = get_value(&results, &Value::Int(j));
                 let mut description: Value = exchange.safe_value(result.clone(), Value::Str("description".into()), &[]);
                 let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".into())); // snapshot options;
                 let mut testExchangeOptions: Value = exchange.safe_value(result.clone(), Value::Str("options".into()), &[Value::Map({
@@ -3375,10 +3375,10 @@ if _try_result.is_err() {
         }
         let mut batchOrders: Value = createOrdersRequest.as_map().and_then(|__m| __m.get("batchOrders")).cloned().unwrap_or(Value::Null);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1664: bool = true;
-            while { if !__for_first_1664 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1664 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&batchOrders).as_f64().unwrap_or(f64::NAN) } {
-            let mut current: Value = get_value(&batchOrders, &i);
+            while { if !__for_first_1664 { i += 1; } __for_first_1664 = false; (i as f64) < get_array_length(&batchOrders).as_f64().unwrap_or(f64::NAN) } {
+            let mut current: Value = get_value(&batchOrders, &Value::Int(i));
             let mut currentClientOrderId: Value = get_value(&current, &Value::Str("newClientOrderId".into()));
             assert((starts_with(&currentClientOrderId, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance createOrders - clientOrderId: ".into()), currentClientOrderId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
         }
