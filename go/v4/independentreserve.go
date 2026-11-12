@@ -452,8 +452,8 @@ func (this *Independentreserve) fetchMarketsBody(ch chan AsyncResult[[]MarketInt
 	//     }
 	//
 	var result []any = []any{}
-	var baseCurrencyIds []any = this.ToArray(this.SafeValue(responses, 0))
-	var quoteCurrencyIds []any = this.ToArray(this.SafeValue(responses, 1))
+	var baseCurrencyIds []any = this.ToArray(this.SafeList(responses, 0))
+	var quoteCurrencyIds []any = this.ToArray(this.SafeList(responses, 1))
 	for i := 0; i < len(baseCurrencyIds); i++ {
 		var baseId *string = this.SafeString(baseCurrencyIds, i, "")
 		var base *string = this.SafeCurrencyCode(baseId)

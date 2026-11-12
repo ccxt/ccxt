@@ -1516,7 +1516,7 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan AsyncResult[[]Trade], op
 	if since != nil {
 		request["start_date"] = this.Iso8601(since)
 	}
-	var until any = this.SafeValue2(paramsPaginate, "until", "end_date")
+	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "end_date")
 	if until != nil {
 		request["end_date"] = this.Iso8601(until)
 	}
@@ -1733,7 +1733,7 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbo
 	} else {
 		request["granularity"] = timeframe
 	}
-	var until any = this.SafeValue2(paramsPaginate, "until", "end")
+	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "end")
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
 	// https://docs.pro.coinbase.com/#get-historic-rates max = 300
 	var cappedLimit int64 = this.ParseToInt(func() any {
@@ -2117,7 +2117,7 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], 
 	if since != nil {
 		request["start_date"] = this.Iso8601(since)
 	}
-	var until any = this.SafeValue2(paramsPaginate, "until", "end_date")
+	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "end_date")
 	if until != nil {
 		request["end_date"] = this.Iso8601(until)
 	}
@@ -2636,7 +2636,7 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry]
 	if limit != nil {
 		request["limit"] = limit // default 100
 	}
-	var until any = this.SafeValue2(params, "until", "end_date")
+	var until *int64 = this.SafeInteger2(params, "until", "end_date")
 	if until != nil {
 		request["end_date"] = this.Iso8601(until)
 	}

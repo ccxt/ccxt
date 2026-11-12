@@ -232,7 +232,7 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var parsedTrades []any = this.ParseTrades(data, market)
 	for i := 0; i < len(parsedTrades); i++ {
-		stored.Append(this.SafeValue(parsedTrades, i))
+		stored.Append(this.SafeDict(parsedTrades, i))
 	}
 	if channel != nil {
 		var messageHash string = *channel + ":" + marketIdValue

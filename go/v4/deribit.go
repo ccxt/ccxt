@@ -2930,7 +2930,7 @@ func (this *Deribit) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var order map[string]any = this.Extend(this.SafeValue(result, "order"), map[string]any{
+	var order map[string]any = this.Extend(this.SafeDict(result, "order"), map[string]any{
 		"trades": this.SafeList(result, "trades", []any{}),
 	})
 
@@ -3000,7 +3000,7 @@ func (this *Deribit) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	}
 	var response map[string]any = r1.Value
 	var result map[string]any = SafeMapTyped(response, "result")
-	var order map[string]any = this.Extend(this.SafeValue(result, "order"), map[string]any{
+	var order map[string]any = this.Extend(this.SafeDict(result, "order"), map[string]any{
 		"trades": this.SafeList(result, "trades", []any{}),
 	})
 

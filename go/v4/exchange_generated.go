@@ -1882,8 +1882,8 @@ func (this *BaseExchange) AfterConstruct(optionalArgs ...any) {
 	// networksById: inverse of options.networks, explicit options.networksById entries win
 	var userConfig map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = userConfig
-	var networkIdsToCodesGenerated any = this.InvertFlatStringDictionary(this.SafeValue(this.Options, "networks", map[string]any{}))
-	this.Options["networksById"] = this.Extend(networkIdsToCodesGenerated, this.SafeValue(this.Options, "networksById", map[string]any{}))
+	var networkIdsToCodesGenerated any = this.InvertFlatStringDictionary(this.SafeDict(this.Options, "networks", map[string]any{}))
+	this.Options["networksById"] = this.Extend(networkIdsToCodesGenerated, this.SafeDict(this.Options, "networksById", map[string]any{}))
 	this.FeaturesGenerator()
 	this.HasAutocorrect()
 	// init predefined markets if any

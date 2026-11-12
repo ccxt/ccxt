@@ -3388,7 +3388,7 @@ func (this *Ndax) ParseTransaction(transaction any, optionalArgs ...any) Transac
 			typeVar = "withdrawal"
 		}
 	}
-	var templateForm any = this.ParseJson(this.SafeValue2(transaction, "TemplateForm", "DepositInfo"))
+	var templateForm any = this.ParseJson(this.SafeString2(transaction, "TemplateForm", "DepositInfo"))
 	var updated *int64 = this.SafeInteger(transaction, "LastUpdateTimeStamp")
 	if templateForm != nil {
 		updated = this.SafeInteger(templateForm, "LastUpdated", updated)

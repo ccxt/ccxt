@@ -6835,7 +6835,7 @@ func (this *Binance) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 func (this *Binance) ParseTickersForRolling(response any, symbols []string) map[string]any {
 	var results []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var marketId *string = this.SafeString(this.SafeValue(response, i), "symbol")
+		var marketId *string = this.SafeString(this.SafeDict(response, i), "symbol")
 		var tickerMarket map[string]any = this.SafeMarket(marketId, nil, nil, "spot")
 		var parsedTicker map[string]any = TickerToMap(this.ParseTicker(this.SafeValue(response, i)))
 		parsedTicker["symbol"] = tickerMarket["symbol"]
@@ -14886,7 +14886,7 @@ func (this *Binance) ParseAccountPosition(position map[string]any, optionalArgs 
 	var maintenanceMarginPercentageString *string = nil
 	for i := 0; i < len(leverageBracket); i++ {
 		var bracket any = DerefScalar(leverageBracket[i])
-		if Precise.StringLt(notionalStringAbs, this.SafeValue(bracket, 0)) {
+		if Precise.StringLt(notionalStringAbs, this.SafeString(bracket, 0)) {
 			break
 		}
 		maintenanceMarginPercentageString = this.SafeString(bracket, 1)
@@ -15118,7 +15118,7 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var maintenanceMarginPercentageString *string = nil
 	for i := 0; i < len(leverageBracket); i++ {
 		var bracket any = DerefScalar(leverageBracket[i])
-		if Precise.StringLt(notionalStringAbs, this.SafeValue(bracket, 0)) {
+		if Precise.StringLt(notionalStringAbs, this.SafeString(bracket, 0)) {
 			break
 		}
 		maintenanceMarginPercentageString = this.SafeString(bracket, 1)

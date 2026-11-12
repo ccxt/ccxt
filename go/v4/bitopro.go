@@ -1157,7 +1157,11 @@ func (this *Bitopro) InsertMissingCandles(candles []any, distanceInMs int64, sin
 	var copyFrom any = firstCandle
 	var timestamp any = nil
 	if IsEqual(since, nil) {
-		timestamp = this.SafeValue(firstCandle, 0)
+		if derefPtr := this.SafeInteger(firstCandle, 0); derefPtr != nil {
+			timestamp = *derefPtr
+		} else {
+			timestamp = nil
+		}
 	} else {
 		timestamp = since
 	}
@@ -1176,7 +1180,7 @@ func (this *Bitopro) InsertMissingCandles(candles []any, distanceInMs int64, sin
 		}
 		timestamp = this.Sum(timestamp, distanceInMs)
 		resultLength = len(result)
-		copyFrom = this.SafeValue(result, resultLength-1)
+		copyFrom = this.SafeList(result, resultLength-1)
 	}
 	return result
 }

@@ -4638,8 +4638,8 @@ func (this *Okx) CreateOrderRequest(symbol string, typeVar string, side any, amo
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	var market map[string]any = this.Market(symbol)
-	var takeProfitPrice any = this.SafeValue2(params, "takeProfitPrice", "tpTriggerPx")
-	var stopLossPrice any = this.SafeValue2(params, "stopLossPrice", "slTriggerPx")
+	var takeProfitPrice *string = this.SafeString2(params, "takeProfitPrice", "tpTriggerPx")
+	var stopLossPrice *string = this.SafeString2(params, "stopLossPrice", "slTriggerPx")
 	var conditional bool = (stopLossPrice != nil) || (takeProfitPrice != nil) || (typeVar == "conditional")
 	var request map[string]any = map[string]any{
 		"instId":  market["id"],

@@ -762,7 +762,7 @@ func (this *Latoken) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	var rawCurrencies []any = this.ToArray(response)
 	var merged []any = []any{}
 	for i := 0; i < len(rawCurrencies); i++ {
-		var rawCurrency any = this.SafeValue(rawCurrencies, i)
+		var rawCurrency any = this.SafeDict(rawCurrencies, i)
 		var bindingEntry map[string]any = SafeMapTyped(bindingsById, this.SafeString(rawCurrency, "id"))
 		var bindings []any = SafeListTyped(bindingEntry, "bindings")
 		var mergedCurrency any = rawCurrency

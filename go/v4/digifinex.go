@@ -1464,7 +1464,7 @@ func (this *Digifinex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], 
 	for i := 0; i < len(tickers); i++ {
 		var rawTicker map[string]any = this.Extend(map[string]any{
 			"date": date,
-		}, this.SafeValue(tickers, i))
+		}, this.SafeDict(tickers, i))
 		var ticker map[string]any = TickerToMap(this.ParseTicker(rawTicker))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {

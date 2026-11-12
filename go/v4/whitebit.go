@@ -1301,7 +1301,7 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 		var entry string = currencyIds[i]
 		var splitEntry []string = strings.Split(entry, " ")
 		var currencyId *string = SafeStringPtr(splitEntry[0])
-		var feeInfo any = this.SafeValue(response, entry)
+		var feeInfo any = this.SafeDict(response, entry)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((IsEqual(codesValue, nil)) || (this.InArray(code, codesValue))) {
 			var depositWithdrawFee map[string]any = SafeMapTyped(depositWithdrawFees, code)
@@ -4044,7 +4044,7 @@ func (this *Whitebit) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 			panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires an amount when the ticker is fiat"))
 		}
 		request["amount"] = amount
-		var uniqueId any = this.SafeValue(params, "uniqueId")
+		var uniqueId *string = this.SafeString(params, "uniqueId")
 		if uniqueId == nil {
 			panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires an uniqueId when the ticker is fiat"))
 		}
@@ -5923,7 +5923,7 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) map[string]any {
 	var publicHeaders map[string]any = map[string]any{}
 	publicHeaders["User-Agent"] = "ccxt/" + this.Id + "-" + this.Version
 	var pathWithParams string = "/" + this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(this.SafeValue(this.Urls["api"], version), accessibility)
+	var apiUrl *string = this.SafeString(this.SafeDict(this.Urls["api"], version), accessibility)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

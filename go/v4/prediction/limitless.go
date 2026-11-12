@@ -1476,8 +1476,8 @@ func (this *Limitless) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 	for i := 0; i < len(slugs); i++ {
 		var slug any = ccxt.DerefScalar(slugs[i])
 		var detailIndex int64 = int64(i) * 2
-		var detail any = this.SafeValue(responses, detailIndex)
-		var book any = this.SafeValue(responses, this.Sum(detailIndex, 1))
+		var detail any = this.SafeDict(responses, detailIndex)
+		var book any = this.SafeDict(responses, this.Sum(detailIndex, 1))
 		var tickerInput map[string]any = map[string]any{
 			"market": detail,
 			"book":   book,
@@ -1655,22 +1655,22 @@ func (this *Limitless) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Predicti
 	var bids []any = []any{}
 	var asks []any = []any{}
 	for bi := 0; bi < ccxt.GetArrayLength(bidsSource); bi++ {
-		var priceStr *string = this.SafeString(this.SafeValue(bidsSource, bi), "price")
+		var priceStr *string = this.SafeString(this.SafeDict(bidsSource, bi), "price")
 		if !isYes && (priceStr != nil) {
 			priceStr = ccxt.Precise.StringSub("1", priceStr)
 		}
-		var sizeStr *string = this.SafeString(this.SafeValue(bidsSource, bi), "size")
+		var sizeStr *string = this.SafeString(this.SafeDict(bidsSource, bi), "size")
 		if sizeStr != nil {
 			sizeStr = ccxt.Precise.StringDiv(sizeStr, scaleStr)
 		}
 		bids = append(bids, []any{this.ParseNumber(priceStr), this.ParseNumber(sizeStr)})
 	}
 	for ai := 0; ai < ccxt.GetArrayLength(asksSource); ai++ {
-		var priceStr *string = this.SafeString(this.SafeValue(asksSource, ai), "price")
+		var priceStr *string = this.SafeString(this.SafeDict(asksSource, ai), "price")
 		if !isYes && (priceStr != nil) {
 			priceStr = ccxt.Precise.StringSub("1", priceStr)
 		}
-		var sizeStr *string = this.SafeString(this.SafeValue(asksSource, ai), "size")
+		var sizeStr *string = this.SafeString(this.SafeDict(asksSource, ai), "size")
 		if sizeStr != nil {
 			sizeStr = ccxt.Precise.StringDiv(sizeStr, scaleStr)
 		}

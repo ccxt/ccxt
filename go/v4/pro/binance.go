@@ -1363,7 +1363,7 @@ func (this *Binance) HandleDelta(bookside any, delta any) {
 }
 func (this *Binance) HandleDeltas(bookside any, deltas any) {
 	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
-		this.HandleDelta(bookside, this.SafeValue(deltas, i))
+		this.HandleDelta(bookside, this.SafeList(deltas, i))
 	}
 }
 func (this *Binance) HandleOrderBookMessage(client any, message any, orderbook ccxt.OrderBookInterface) any {
@@ -4764,7 +4764,7 @@ func (this *Binance) fetchPositionsWsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			market = this.Market(symbolsNormalized[0])
-			payload["symbol"] = this.SafeValue(market, "id")
+			payload["symbol"] = this.SafeString(market, "id")
 		}
 	}
 	var typeVar any = this.GetMarketType("fetchPositionsWs", market, params)

@@ -2123,7 +2123,7 @@ func (this *Coinbaseinternational) HandleDelta(bookside any, delta any) {
 func (this *Coinbaseinternational) HandleDeltas(bookside any, deltas any) {
 	var deltasLength int = ccxt.GetArrayLength(deltas)
 	for i := 0; i < deltasLength; i++ {
-		this.HandleDelta(bookside, this.SafeValue(deltas, i))
+		this.HandleDelta(bookside, this.SafeList(deltas, i))
 	}
 }
 func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) bool {

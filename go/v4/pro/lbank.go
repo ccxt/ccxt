@@ -1341,7 +1341,7 @@ func (this *Lbank) HandleOrderBook(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "pair")
 	var symbol *string = this.SafeSymbol(marketId)
-	var orderBook any = this.SafeValue(message, "depth", message)
+	var orderBook any = this.SafeDict(message, "depth", message)
 	var datetime *string = this.SafeString(message, "TS")
 	var timestamp *int64 = this.Parse8601(datetime)
 	// let orderbook = this.safeValue (this.orderbooks, symbol)

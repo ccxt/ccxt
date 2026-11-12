@@ -2358,7 +2358,7 @@ func (this *Luno) HandleErrors(code int64, reason string, url string, method str
 	if response == nil {
 		return nil
 	}
-	var error any = this.SafeValue(response, "error")
+	var error *string = this.SafeString(response, "error")
 	if error != nil {
 		var feedback string = this.Id + " " + this.Json(response)
 		var errorCode *string = this.SafeString(response, "error_code")

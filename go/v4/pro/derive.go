@@ -1335,7 +1335,7 @@ func (this *Derive) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 		var positionsSnapshot []any = ccxt.PositionsToList(r1.Value)
 		var cache any = this.SafeValue(this.Positions, subaccountIdKey)
 		for i := 0; i < len(positionsSnapshot); i++ {
-			var snapshotPosition any = this.SafeValue(positionsSnapshot, i)
+			var snapshotPosition any = this.SafeDict(positionsSnapshot, i)
 			cache.(ccxt.Appender).Append(snapshotPosition)
 		}
 		if subaccountIdKey != nil {
