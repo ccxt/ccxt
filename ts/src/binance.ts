@@ -13509,7 +13509,7 @@ export default class binance extends Exchange {
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if (body !== undefined &&  body.startsWith ('<!DOCTYPE HTML')) {
+        if ((body !== undefined) && (body.startsWith ('<!DOCTYPE HTML'))) {
             throw new ExchangeError (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }
         if ((code >= 400) && (body !== undefined)) {
