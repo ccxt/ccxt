@@ -1330,7 +1330,7 @@ export default class interactivebrokers extends Exchange {
             const isContract = this.safeBool (market, 'contract', false);
             if ((symbol in seen) && isContract) {
                 const info = this.safeDict (market, 'info', {});
-                const listingExchange = this.safeString (info, 'listingExchange');
+                const listingExchange = this.safeString2 (info, 'listingExchange', 'exchange', 'default');
                 const marketBase = this.safeString (market, 'base');
                 const marketBaseId = this.safeString (market, 'baseId');
                 const isFuture = this.safeBool (market, 'future', false);
