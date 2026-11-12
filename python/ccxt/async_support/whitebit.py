@@ -3980,7 +3980,7 @@ class whitebit(Exchange, ImplicitAPI):
         maxLimit = 100
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, maxLimit)
+            return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, maxLimit)
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -3989,7 +3989,7 @@ class whitebit(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['startDate'] = int(round(since / 1000))
-        requestUntil, paramsUntil = self.handle_until_option('until_timestamp', request, paramsPaginate, 0.001)
+        requestUntil, paramsUntil = self.handle_until_option('endDate', request, paramsPaginate, 0.001)
         if limit is not None:
             requestUntil['limit'] = limit
         response = await self.v4PublicGetFundingHistoryMarket(self.extend(requestUntil, paramsUntil))
