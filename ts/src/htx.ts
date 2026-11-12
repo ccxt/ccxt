@@ -7178,7 +7178,7 @@ export default class htx extends Exchange {
         const market = this.market (symbol);
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            if (market['linear'] === true) {
+            if (market['linear']) {
                 return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 100) as FundingRateHistory[];
             }
             return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'current_page', 'page_index', 1, 50) as FundingRateHistory[];
