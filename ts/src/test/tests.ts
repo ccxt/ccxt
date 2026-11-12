@@ -2816,7 +2816,7 @@ class testMainClass {
             request = jsonParse (exchange.last_request_body);
         }
         const customClientOrderId = request['clientOrderId'];
-        assert (customClientOrderId === id + '-my-order', 'bit2me - custom clientOrderId: ' + customClientOrderId + ' should be prefixed with the broker id');
+        assert (customClientOrderId === 'my-order', 'bit2me - custom clientOrderId: ' + customClientOrderId + ' should be sent as given, the broker id is only added when none is provided');
         if (!isSync ()) {
             await close (exchange);
         }

@@ -489,7 +489,7 @@ export default class bit2me extends bit2meRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint, the same as for createOrder
      * @param {float} [params.triggerPrice] the price at which a stop-limit order is activated, requires a limit price
      * @param {float} [params.cost] for market orders only, the amount to trade in units of the quote currency, overrides amount
-     * @param {string} [params.clientOrderId] a unique identifier for the order, sent as CCXT-<clientOrderId>, CCXT-<uuid> when omitted, the response is matched by it
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {

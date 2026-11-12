@@ -1027,7 +1027,7 @@ export default class bit2me extends Exchange {
      * @param {float} [params.cost] for market orders only, the amount to trade in units of the quote currency, overrides amount
      * @param {string} [params.timeInForce] 'GTC' (default) or 'FOK' (limit orders only), IOC is not available on bit2me
      * @param {boolean} [params.postOnly] true to place a post-only limit order
-     * @param {string} [params.clientOrderId] a unique identifier for the order, it is sent prefixed with the broker id as CCXT-<clientOrderId>, when omitted CCXT-<uuid> is sent, up to 48 characters in total, not accepted for OCO
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure), for an OCO the take profit leg is returned and both legs are available in info, cancelling one leg does not cancel the other
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
