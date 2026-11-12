@@ -3867,10 +3867,6 @@ export default class interactivebrokers extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        if (this.validateServerSsl !== false) {
-            // for IBKR we disable server SSL certificate validation by default
-            this.setValidateServerSsl (false);
-        }
         const [ implodedPath, pathParams ] = this.ibkrImplodePath (path, params);
         const apiBase = api[0];
         const baseUrl = this.urls['api'][apiBase] + implodedPath;
@@ -3889,6 +3885,10 @@ export default class interactivebrokers extends Exchange {
         const isLiveSessionTokenRequest = path.endsWith ('v1/api/oauth/live_session_token');
         if (useGatewayOption || (!hasLiveSessionToken && !oauthConfigured && !isLiveSessionTokenRequest)) {
             // the client portal gateway holds the authenticated session, requests are sent unsigned
+            if (this.validateServerSsl !== false) {
+                // the gateway serves a self-signed certificate, so its validation is disabled, only in gateway mode (oauth requests to api.ibkr.com are always verified)
+                this.setValidateServerSsl (false);
+            }
             const gatewayUrl = this.safeString (this.options, 'gatewayUrl', 'https://localhost:5000/');
             url = this.ibkrGatewayBaseUrl (this.urls['api'][apiBase], gatewayUrl) + implodedPath;
             if (isGetOrDelete) {
