@@ -4804,7 +4804,11 @@ export default class binance extends Exchange {
             response = await this.dapiPublicGetTickerBookTicker (this.extend (request, paramsSubType));
         } else if (type === 'spot') {
             if (symbolsNormalized !== undefined) {
-                request['symbols'] = this.json (this.marketIds (symbolsNormalized));
+                const symbolsLength = symbolsNormalized.length;
+                // a long list overflows the url length limit, parseTickers filters the result
+                if (symbolsLength <= 100) {
+                    request['symbols'] = this.json (this.marketIds (symbolsNormalized));
+                }
             }
             response = await this.publicGetTickerBookTicker (this.extend (request, paramsSubType));
         } else {
@@ -4969,7 +4973,11 @@ export default class binance extends Exchange {
             } else {
                 const request: Dict = {};
                 if (symbolsNormalized !== undefined) {
-                    request['symbols'] = this.json (this.marketIds (symbolsNormalized));
+                    const symbolsLength = symbolsNormalized.length;
+                    // above 100 symbols the weight equals the all-tickers request and a long list overflows the url length limit, parseTickers filters the result
+                    if (symbolsLength <= 100) {
+                        request['symbols'] = this.json (this.marketIds (symbolsNormalized));
+                    }
                 }
                 response = await this.publicGetTicker24hr (this.extend (request, paramsMarketType));
             }
