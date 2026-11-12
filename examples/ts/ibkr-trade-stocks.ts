@@ -12,7 +12,7 @@ async function example () {
         'options': {
             'useGateway': true,
             'gatewayUrl': 'https://localhost:5001',
-            'accountId': 'UXXXXX', // optional, defaults to the first account of the session
+            // 'accountId': 'XXXX', // optional, defaults to the first account of the session
             'fetchMarkets': {
                 'types': [ 'stock' ], // only load stocks (skip crypto/forex/futures) for a faster loadMarkets
                 'exchanges': {
