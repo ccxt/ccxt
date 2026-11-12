@@ -1959,11 +1959,11 @@ export default class interactivebrokers extends Exchange {
         let base: Str = undefined;
         let contractSize: Str = undefined;
         let expiry: Int = undefined;
-        if (isPerp) {
+        if (isPerp && !isCfd) {
             if (nameLower.startsWith ('nano')) {
                 microNanoPrefix = 'NANO.';
             }
-            // atm only CB derivs provide perps
+            // atm only CB derivs provide perps, the cfds (also unified as swaps) are handled below
             base = this.safeString (cryptoCoinbasePerpSymbols, baseTickerId, baseTickerId);
             contractSize = this.safeString (market, 'multiplier'); // 0.01 BTC for BIP
         } else if (isFuture) {
