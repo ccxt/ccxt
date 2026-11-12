@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\RequestTimeout;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -37,6 +38,14 @@ class paradex extends \ccxt\async\paradex {
                 'watchTradesForSymbols' => true,
                 'watchBalance' => true,
                 'watchOHLCV' => false,
+                'unWatchBidsAsks' => true,
+                'unWatchFundingRate' => true,
+                'unWatchOrderBook' => true,
+                'unWatchOrderBookForSymbols' => true,
+                'unWatchTicker' => true,
+                'unWatchTickers' => true,
+                'unWatchTrades' => true,
+                'unWatchTradesForSymbols' => true,
             ),
             'urls' => array(
                 'logo' => 'https://x.com/tradeparadex/photo',
@@ -66,6 +75,8 @@ class paradex extends \ccxt\async\paradex {
                     // the book is the 15-level snapshot sent every 100ms
                     'deltas' => false,
                 ),
+                // ms a watch waits for the acknowledgement of an unsubscribe of its channel
+                'unsubscribeTimeout' => 10000,
                 'ws' => array(
                     // paces the requests sent on a connection: a subscribe per market adds up when
                     // many symbols are watched at once
@@ -175,6 +186,7 @@ class paradex extends \ccxt\async\paradex {
         // messageHashes[i] is the hash the updates of channels[i] resolve. The channels still to subscribe are
         // looked up again after each await: another watch may have subscribed one meanwhile, and a reconnect
         // starts a client without any. Each but the last is sent once the previous one is acknowledged
+        Async\await($this->wait_for_pending_unsubscribe($url, $channels));
         $channelsLength = count($channels);
         for ($attempt = 0; $attempt < $channelsLength; $attempt++) {
             $pending = $this->unsubscribed_channels($url, $channels);
@@ -211,6 +223,181 @@ class paradex extends \ccxt\async\paradex {
             }
         }
         return $result;
+    }
+
+    public function send_unsubscribe(string $url, string $unsubHash, array $request, array $subscription, $params = array()): PromiseInterface {
+        return Async\async(self::do_send_unsubscribe(...))($url, $unsubHash, $request, $subscription, $params);
+    }
+
+    private function do_send_unsubscribe(string $url, string $unsubHash, array $request, array $subscription, $params = array()) {
+        /**
+         * @ignore
+         * sends an unsubscribe or modify $request and waits for its reply, which forgets the subscriptions it ends and rejects their watchers
+         * @param {string} $url the websocket $url
+         * @param {string} $unsubHash the message hash the reply resolves
+         * @param {array} $request the json-rpc $request
+         * @param {array} $subscription what the reply cleans up => subscribeHashes, subMessageHashes, prefix, topic and symbols
+         * @param {array} [$params] extra parameters merged into the $request
+         * @return {boolean} true once the reply is in
+         */
+        // an error reply rejects the unwatch only, the watchers keep their subscription
+        $unsubscription = $this->extend($subscription, array(
+            'id' => $request['id'],
+            'messageHashes' => array( $unsubHash ),
+        ));
+        // a lost acknowledgement is timed out, so that neither the unwatch nor a watch waiting on it can hang
+        $client = $this->client($url);
+        $timeout = $this->safe_integer($this->options, 'unsubscribeTimeout', 10000);
+        $this->delay($timeout, array($this, 'expire_pending_unsubscribe'), $client, $unsubHash, $this->safe_string($unsubscription, 'id'));
+        return Async\await($this->watch($url, $unsubHash, $this->deep_extend($request, $params), $unsubHash, $unsubscription));
+    }
+
+    public function unsubscribe_channels(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, $params = array()): PromiseInterface {
+        return Async\async(self::do_unsubscribe_channels(...))($url, $topic, $channels, $subMessageHashes, $symbols, $params);
+    }
+
+    private function do_unsubscribe_channels(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, $params = array()) {
+        /**
+         * @ignore
+         * unsubscribes from a list of $channels, one request per channel as the server takes one channel per request, each sent once the previous one is acknowledged, a refused channel does not stop the others
+         * @param {string} $url the websocket $url
+         * @param {string} $topic the cache the replies clear, see cleanCache
+         * @param {string[]} $channels the $channels to unsubscribe from
+         * @param {string[]} $subMessageHashes the message hash the watchers of each channel wait on
+         * @param {string[]} $symbols the unified symbol of each channel, empty for an all-markets channel
+         * @param {array} [$params] extra parameters merged into each unsubscribe request
+         * @return {boolean} true once every channel is unsubscribed
+         */
+        for ($i = 0; $i < count($channels); $i++) {
+            try {
+                Async\await($this->unsubscribe_channel_at($url, $topic, $channels, $subMessageHashes, $symbols, $i, $params));
+            } catch (Exception $e) {
+                // a channel the server refuses (not subscribed) does not stop the others, its error is thrown once they are sent
+                Async\await($this->unsubscribe_channels_from($url, $topic, $channels, $subMessageHashes, $symbols, $i + 1, $params));
+                throw $e;
+            }
+        }
+        return true;
+    }
+
+    public function unsubscribe_channels_from(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, float $start, $params = array()): PromiseInterface {
+        return Async\async(self::do_unsubscribe_channels_from(...))($url, $topic, $channels, $subMessageHashes, $symbols, $start, $params);
+    }
+
+    private function do_unsubscribe_channels_from(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, float $start, $params = array()) {
+        /**
+         * @ignore
+         * unsubscribes from the $channels from an index on, after one was $refused, their errors are dropped as the first one is thrown
+         * @param {string} $url the websocket $url
+         * @param {string} $topic the cache the replies clear, see cleanCache
+         * @param {string[]} $channels the $channels to unsubscribe from
+         * @param {string[]} $subMessageHashes the message hash the watchers of each channel wait on
+         * @param {string[]} $symbols the unified symbol of each channel, empty for an all-markets channel
+         * @param {int} $start the index of the first channel to unsubscribe from
+         * @param {array} [$params] extra parameters merged into each unsubscribe request
+         * @return {int} the number of $channels $refused
+         */
+        $refused = 0;
+        for ($i = 0; $i < count($channels); $i++) {
+            if ($i >= $start) {
+                try {
+                    Async\await($this->unsubscribe_channel_at($url, $topic, $channels, $subMessageHashes, $symbols, $i, $params));
+                } catch (Exception $e) {
+                    $refused = $refused + 1;
+                }
+            }
+        }
+        return $refused;
+    }
+
+    public function unsubscribe_channel_at(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, float $index, $params = array()): PromiseInterface {
+        return Async\async(self::do_unsubscribe_channel_at(...))($url, $topic, $channels, $subMessageHashes, $symbols, $index, $params);
+    }
+
+    private function do_unsubscribe_channel_at(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, float $index, $params = array()) {
+        /**
+         * @ignore
+         * unsubscribes from one $channel of a list, the reply forgets its $subscription and rejects its watchers, the liquidations of a market with its trades
+         * @param {string} $url the websocket $url
+         * @param {string} $topic the cache the reply clears, see cleanCache
+         * @param {string[]} $channels the $channels of the list
+         * @param {string[]} $subMessageHashes the message hash the watchers of each $channel wait on
+         * @param {string[]} $symbols the unified $symbol of each $channel, empty for an all-markets $channel
+         * @param {int} $index the $index of the $channel to unsubscribe from
+         * @param {array} [$params] extra parameters merged into the unsubscribe $request
+         * @return {boolean} true once unsubscribed
+         */
+        $channel = $channels[$index];
+        $symbol = $this->safe_string($symbols, $index);
+        $hashes = array( $subMessageHashes[$index] );
+        $channelSymbols = array();
+        if ($symbol !== null) {
+            $channelSymbols[] = $symbol;
+            if ($topic === 'trades') {
+                // the liquidations of a market come from its trades channel
+                $hashes[] = 'liquidations:' . $symbol;
+            }
+        }
+        $subscription = array(
+            'topic' => $topic,
+            'subscribeHashes' => array( $channel ),
+            'subMessageHashes' => $hashes,
+            'symbols' => $channelSymbols,
+        );
+        $request = $this->unsubscribe_request($channel);
+        return Async\await($this->send_unsubscribe($url, 'unsubscribe:' . $channel, $request, $subscription, $params));
+    }
+
+    public function wait_for_pending_unsubscribe(string $url, array $subscribeHashes): PromiseInterface {
+        return Async\async(self::do_wait_for_pending_unsubscribe(...))($url, $subscribeHashes);
+    }
+
+    private function do_wait_for_pending_unsubscribe(string $url, array $subscribeHashes) {
+        /**
+         * @ignore
+         * waits for the unsubscribes in flight of any of these subscriptions, a watch made meanwhile would find the subscription still there, send nothing, and be rejected by the reply
+         * @param {string} $url the websocket $url
+         * @param {string[]} $subscribeHashes the subscriptions the watch relies on
+         * @return {null}
+         */
+        if (!(is_array($this->clients) && array_key_exists($url ?? '', $this->clients))) {
+            return null;
+        }
+        $client = $this->client($url);
+        $keys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $unsubHash = $keys[$i];
+            if (mb_strpos($unsubHash, 'unsubscribe:') !== 0) {
+                continue;
+            }
+            $unsubscription = $this->safe_dict($client->subscriptions, $unsubHash);
+            $pendingHashes = $this->safe_list($unsubscription, 'subscribeHashes', array());
+            $pending = false;
+            for ($j = 0; $j < count($pendingHashes); $j++) {
+                if ($this->in_array($pendingHashes[$j], $subscribeHashes)) {
+                    $pending = true;
+                }
+            }
+            if ($pending) {
+                try {
+                    Async\await($client->future($unsubHash));
+                } catch (Exception $e) {
+                    // the error of the unsubscribe belongs to the unwatch, the watch goes on with the subscriptions as the reply left them
+                    $pending = false;
+                }
+            }
+        }
+        return null;
+    }
+
+    public function expire_pending_unsubscribe(Client $client, string $unsubHash, string $requestId) {
+        $unsubscription = $this->safe_dict($client->subscriptions, $unsubHash, array());
+        if ($this->safe_string($unsubscription, 'id') === $requestId) {
+            $error = new RequestTimeout($this->id . ' ' . $unsubHash . ' was not acknowledged');
+            $client->reject($error, $unsubHash);
+            // the subscriptions are forgotten, so that the next watch subscribes them again
+            $this->clean_unsubscribed($client, $unsubHash, $unsubscription);
+        }
     }
 
     public function authenticate($params = array()) {
@@ -285,6 +472,7 @@ class paradex extends \ccxt\async\paradex {
             $this->handle_authentication_message($client, $message);
         }
         if ($requestId !== null) {
+            $this->handle_unsubscribe_reply($client, $requestId);
             // sendRequest waits on the request id, a request without a subscription of its own is kept under it
             $requestHash = 'request:' . $requestId;
             if (is_array($client->subscriptions) && array_key_exists($requestHash ?? '', $client->subscriptions)) {
@@ -292,6 +480,57 @@ class paradex extends \ccxt\async\paradex {
             }
             $client->resolve($message, $requestHash);
         }
+    }
+
+    public function handle_unsubscribe_reply(Client $client, string $requestId) {
+        //
+        // the reply to an unsubscribe, a modify_subscription with remove is acknowledged the same way
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 2,
+        //         "result": { "channel": "trades.BTC-USD-PERP" }
+        //     }
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 4,
+        //         "result": { "channel": "markets_summary", "remove": [ "ETH-USD-PERP" ] }
+        //     }
+        //
+        $keys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $unsubHash = $keys[$i];
+            if (mb_strpos($unsubHash, 'unsubscribe:') !== 0) {
+                continue;
+            }
+            $subscription = $this->safe_dict($client->subscriptions, $unsubHash, array());
+            if ($this->safe_string($subscription, 'id') === $requestId) {
+                $this->clean_unsubscribed($client, $unsubHash, $subscription);
+            }
+        }
+    }
+
+    public function clean_unsubscribed(Client $client, string $unsubHash, array $subscription) {
+        $subscribeHashes = $this->safe_list($subscription, 'subscribeHashes', array());
+        for ($j = 0; $j < count($subscribeHashes); $j++) {
+            $subscribeHash = $subscribeHashes[$j];
+            if (is_array($client->subscriptions) && array_key_exists($subscribeHash ?? '', $client->subscriptions)) {
+                unset($client->subscriptions[$subscribeHash]);
+            }
+            // a market moved to the deltas feed goes back to the snapshots on its next watch
+            $requestedHash = $subscribeHash . ':requested';
+            if (is_array($client->subscriptions) && array_key_exists($requestedHash ?? '', $client->subscriptions)) {
+                unset($client->subscriptions[$requestedHash]);
+            }
+        }
+        $prefix = $this->safe_bool($subscription, 'prefix', false);
+        $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
+        for ($j = 0; $j < count($subMessageHashes); $j++) {
+            $this->clean_unsubscription($client, $subMessageHashes[$j], $unsubHash, $prefix);
+        }
+        $this->clean_cache($subscription);
+        $client->resolve(true, $unsubHash);
     }
 
     public function watch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -319,6 +558,7 @@ class paradex extends \ccxt\async\paradex {
             $messageHash = 'trades.' . $market['id'];
         }
         $url = $this->get_ws_url();
+        Async\await($this->wait_for_pending_unsubscribe($url, array( $messageHash )));
         $request = $this->subscribe_request($messageHash);
         $subscription = array(
             'id' => $request['id'],
@@ -371,6 +611,54 @@ class paradex extends \ccxt\async\paradex {
             $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+    }
+
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         * unsubscribes from the trades $channel of a market
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-$symbol
+         *
+         * @param {string} $symbol unified $symbol of the market, the all-markets $channel when null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {boolean} true once unsubscribed
+         */
+        if ($symbol !== null) {
+            return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
+        }
+        $channel = 'trades.ALL';
+        return Async\await($this->unsubscribe_channels($this->get_ws_url(), 'trades', array( $channel ), array( $channel ), array(), $params));
+    }
+
+    public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades_for_symbols(...))($symbols, $params);
+    }
+
+    private function do_un_watch_trades_for_symbols(array $symbols, $params = array()) {
+        /**
+         * unsubscribes from the trades $channels of a list of markets, the liquidations of those markets end with them
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/trades-$market-symbol/trades-$market-symbol
+         *
+         * @param {string[]} $symbols unified $symbols of the markets
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {boolean} true once unsubscribed
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
+        $channels = array();
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $market = $this->market($symbolsNormalized[$i]);
+            $channels[] = 'trades.' . $market['id'];
+        }
+        // the watchers of a market wait on its channel
+        return Async\await($this->unsubscribe_channels($this->get_ws_url(), 'trades', $channels, $channels, $symbolsNormalized, $params));
     }
 
     public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -536,6 +824,14 @@ class paradex extends \ccxt\async\paradex {
         list($deltasOption, $paramsDeltas) = $this->handle_option_and_params($params, 'watchOrderBook', 'deltas', false);
         $deltas = ($deltasOption === true) || (($limit !== null) && ($limit > 15));
         $url = $this->get_ws_url();
+        // an unwatch in flight decides which feed each market is on once acknowledged
+        $feeds = array();
+        for ($i = 0; $i < $symbolsLength; $i++) {
+            $feedMarket = $this->market($symbolsNormalized[$i]);
+            $feeds[] = $this->get_order_book_channel($feedMarket['id'], true);
+            $feeds[] = $this->get_order_book_channel($feedMarket['id'], false);
+        }
+        Async\await($this->wait_for_pending_unsubscribe($url, $feeds));
         $client = $this->client($url);
         $channels = array();
         $messageHashes = array();
@@ -565,6 +861,67 @@ class paradex extends \ccxt\async\paradex {
         }
         $orderbook = Async\await($this->subscribe_channels($url, $messageHashes, $channels, $paramsDeltas));
         return $orderbook->limit();
+    }
+
+    public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_order_book(...))($symbol, $params);
+    }
+
+    private function do_un_watch_order_book(string $symbol, $params = array()) {
+        /**
+         * unsubscribes from the order book feed of a market
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-$symbol-feed-type-15-refresh-rate-price-tick/order-book-market-$symbol-feed-type-15-refresh-rate-price-tick
+         *
+         * @param {string} $symbol unified $symbol of the market
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->deltas] the feed to unsubscribe from when the market is not watched on this connection, true for the full-depth deltas, default false
+         * @return {boolean} true once unsubscribed
+         */
+        return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $params));
+    }
+
+    public function un_watch_order_book_for_symbols(array $symbols, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_order_book_for_symbols(...))($symbols, $params);
+    }
+
+    private function do_un_watch_order_book_for_symbols(array $symbols, $params = array()) {
+        /**
+         * unsubscribes from the order book feeds of a list of markets
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-$market-symbol-feed-type-15-refresh-rate-price-tick/order-book-$market-symbol-feed-type-15-refresh-rate-price-tick
+         *
+         * @param {string[]} $symbols unified $symbols of the markets
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->deltas] the feed to unsubscribe from when a $market is not watched on this connection, true for the full-depth deltas, default false
+         * @return {boolean} true once unsubscribed
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
+        list($deltasOption, $paramsDeltas) = $this->handle_option_and_params($params, 'watchOrderBook', 'deltas', false);
+        $url = $this->get_ws_url();
+        $client = $this->client($url);
+        $channels = array();
+        $subMessageHashes = array();
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $market = $this->market($symbolsNormalized[$i]);
+            // the feed the market is on, a market is on one of them at a time
+            $deltasChannel = $this->get_order_book_channel($market['id'], true);
+            $snapshotChannel = $this->get_order_book_channel($market['id'], false);
+            $channel = ($deltasOption === true) ? $deltasChannel : $snapshotChannel;
+            // a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
+            $requestedHash = $deltasChannel . ':requested';
+            if ((is_array($client->subscriptions) && array_key_exists($deltasChannel ?? '', $client->subscriptions)) || (is_array($client->subscriptions) && array_key_exists($requestedHash ?? '', $client->subscriptions))) {
+                $channel = $deltasChannel;
+            } elseif (is_array($client->subscriptions) && array_key_exists($snapshotChannel ?? '', $client->subscriptions)) {
+                $channel = $snapshotChannel;
+            }
+            $channels[] = $channel;
+            $subMessageHashes[] = 'orderbook:' . $market['symbol'];
+        }
+        return Async\await($this->unsubscribe_channels($url, 'orderbook', $channels, $subMessageHashes, $symbolsNormalized, $paramsDeltas));
     }
 
     public function handle_order_book(Client $client, array $message) {
@@ -784,8 +1141,9 @@ class paradex extends \ccxt\async\paradex {
         } else {
             // every listed market, options included
             $url = $this->get_ws_url();
-            $client = $this->client($url);
             $scopedHash = $channel . ':scoped';
+            Async\await($this->wait_for_pending_unsubscribe($url, array( $channel, $scopedHash )));
+            $client = $this->client($url);
             if (is_array($client->subscriptions) && array_key_exists($scopedHash ?? '', $client->subscriptions)) {
                 // a scoped subscription keeps its filter through a plain subscribe, it is unsubscribed first
                 $subscribeHashes = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
@@ -815,6 +1173,107 @@ class paradex extends \ccxt\async\paradex {
         return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
     }
 
+    public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_un_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * stops watching the market summary of a market
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-$symbol
+         *
+         * @param {string} $symbol unified $symbol of the market
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {boolean} true once unsubscribed
+         */
+        return Async\await($this->un_watch_tickers(array( $symbol ), $params));
+    }
+
+    public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_un_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * stops watching the market summaries of a list of markets, they are removed from the scoped $subscription in place, the last ones $unsubscribe it
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-$symbol
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets, the whole $channel when null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {boolean} true once unsubscribed
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbolsLength = 0;
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
+        }
+        $channel = 'markets_summary';
+        $scopedHash = $channel . ':scoped';
+        $url = $this->get_ws_url();
+        $client = $this->client($url);
+        $marketIds = array();
+        $subscribeHashes = array();
+        $subMessageHashes = array();
+        for ($i = 0; $i < $symbolsLength; $i++) {
+            $symbol = ($symbolsNormalized)[$i];
+            $marketId = $this->market($symbol)['id'];
+            $marketIds[] = $marketId;
+            $subscribeHashes[] = $channel . '.' . $marketId;
+            $subMessageHashes[] = $channel . '.' . $symbol;
+        }
+        $tickerSymbols = ($symbolsNormalized === null) ? array() : $symbolsNormalized;
+        if (($symbolsLength > 0) && (is_array($client->subscriptions) && array_key_exists($channel ?? '', $client->subscriptions))) {
+            // the all-markets subscription has no market filter to remove these from, their watchers are ended here
+            for ($i = 0; $i < count($subMessageHashes); $i++) {
+                $this->clean_unsubscription($client, $subMessageHashes[$i], 'unsubscribe:' . $subMessageHashes[$i]);
+            }
+            $this->clean_cache(array( 'topic' => 'ticker', 'symbols' => $tickerSymbols ));
+            return true;
+        }
+        // the markets left in the scoped subscription once these are removed
+        $remaining = 0;
+        $keys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            if ((mb_strpos($keys[$i], $channel . '.') === 0) && !$this->in_array($keys[$i], $subscribeHashes)) {
+                $remaining = $remaining + 1;
+            }
+        }
+        if (($symbolsLength === 0) || ((is_array($client->subscriptions) && array_key_exists($scopedHash ?? '', $client->subscriptions)) && ($remaining === 0))) {
+            // a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
+            $channelSubscription = array(
+                'topic' => 'ticker',
+                'subscribeHashes' => array( $channel, $scopedHash ),
+                'subMessageHashes' => array( $channel ),
+                'prefix' => true,
+                'symbols' => $tickerSymbols,
+            );
+            $unsubscribe = $this->unsubscribe_request($channel);
+            return Async\await($this->send_unsubscribe($url, 'unsubscribe:' . $channel, $unsubscribe, $channelSubscription, $params));
+        }
+        $request = array(
+            'jsonrpc' => '2.0',
+            'id' => $this->request_id(),
+            'method' => 'modify_subscription',
+            'params' => array(
+                'channel' => $channel,
+                'remove' => $marketIds,
+            ),
+        );
+        $subscription = array(
+            'topic' => 'ticker',
+            'subscribeHashes' => $subscribeHashes,
+            'subMessageHashes' => $subMessageHashes,
+            'symbols' => $tickerSymbols,
+        );
+        $unsubHash = 'unsubscribe:' . $channel . ':' . implode(',', $marketIds);
+        return Async\await($this->send_unsubscribe($url, $unsubHash, $request, $subscription, $params));
+    }
+
     public function subscribe_markets_summary(array $symbols, array $messageHashes, $params = array()): PromiseInterface {
         return Async\async(self::do_subscribe_markets_summary(...))($symbols, $messageHashes, $params);
     }
@@ -832,8 +1291,13 @@ class paradex extends \ccxt\async\paradex {
          * @return {array} the first ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~ updated
          */
         $url = $this->get_ws_url();
-        $client = $this->client($url);
         $channel = 'markets_summary';
+        $pendingHashes = array( $channel, $channel . ':scoped' );
+        for ($i = 0; $i < count($symbols); $i++) {
+            $pendingHashes[] = $channel . '.' . $this->market($symbols[$i])['id'];
+        }
+        Async\await($this->wait_for_pending_unsubscribe($url, $pendingHashes));
+        $client = $this->client($url);
         if (is_array($client->subscriptions) && array_key_exists($channel ?? '', $client->subscriptions)) {
             // the all-markets subscription carries these markets already
             return Async\await($this->watch_multiple($url, $messageHashes, null, array( $channel )));
@@ -959,6 +1423,45 @@ class paradex extends \ccxt\async\paradex {
             return $result;
         }
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);
+    }
+
+    public function un_watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_un_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         * unsubscribes from the best bid & ask $channels of a list of markets
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/bbo-$market-symbol/bbo-$market-symbol
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets, the all-markets channel when null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {boolean} true once unsubscribed
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbolsLength = 0;
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
+        }
+        $channels = array();
+        $subMessageHashes = array();
+        $bidAskSymbols = array();
+        if ($symbolsLength > 0) {
+            for ($i = 0; $i < $symbolsLength; $i++) {
+                $market = $this->market(($symbolsNormalized)[$i]);
+                $channels[] = 'bbo.' . $market['id'];
+                $subMessageHashes[] = 'bidask:' . $market['symbol'];
+                $bidAskSymbols[] = $market['symbol'];
+            }
+        } else {
+            $channels[] = 'bbo.ALL';
+            $subMessageHashes[] = 'bidask';
+        }
+        return Async\await($this->unsubscribe_channels($this->get_ws_url(), 'bidsasks', $channels, $subMessageHashes, $bidAskSymbols, $params));
     }
 
     public function handle_bid_ask(Client $client, array $message) {
@@ -1442,8 +1945,32 @@ class paradex extends \ccxt\async\paradex {
         // the per-market channel, the all-markets one sends every perpetual's funding
         $channel = 'funding_data.' . $market['id'];
         $url = $this->get_ws_url();
-        $messageHash = 'funding_data.' . $market['symbol'];
+        // its own hash: funding_data.<symbol> is the hash of watchFundingRates on the all-markets channel
+        $messageHash = 'fundingRate:' . $market['symbol'];
         return Async\await($this->subscribe_channels($url, array( $messageHash ), array( $channel ), $params));
+    }
+
+    public function un_watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_funding_rate(...))($symbol, $params);
+    }
+
+    private function do_un_watch_funding_rate(string $symbol, $params = array()) {
+        /**
+         * unsubscribes from the funding data $channel of a $market
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/funding-data-$market-symbol/funding-data-$market-$symbol
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {boolean} true once unsubscribed
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $channel = 'funding_data.' . $market['id'];
+        $messageHash = 'fundingRate:' . $market['symbol'];
+        return Async\await($this->unsubscribe_channels($this->get_ws_url(), 'fundingRate', array( $channel ), array( $messageHash ), array( $market['symbol'] ), $params));
     }
 
     public function watch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
@@ -1520,10 +2047,11 @@ class paradex extends \ccxt\async\paradex {
         $fundingRate = $this->parse_funding_rate_ws($data);
         $symbol = $this->safe_string($fundingRate, 'symbol');
         $this->fundingRates[$symbol] = $fundingRate;
-        // watchFundingRates without symbols waits on the bare channel, the per-market and all-markets
-        // channels carry the same frame
+        // watchFundingRates waits on the bare channel without symbols and on funding_data.<symbol> with them,
+        // watchFundingRate on fundingRate:<symbol>, the per-market and all-markets channels carry the same frame
         $client->resolve($fundingRate, 'funding_data');
         $client->resolve($fundingRate, 'funding_data.' . $symbol);
+        $client->resolve($fundingRate, 'fundingRate:' . $symbol);
     }
 
     public function parse_funding_rate_ws(array $contract, ?array $market = null): array {
