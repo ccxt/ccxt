@@ -1527,7 +1527,7 @@ export default class bullish extends Exchange {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
         const [ methodResolved, paramsMethod ] = this.handleOptionStringAndParams (paramsSinceAndUntil, 'fetchOrders', 'method', 'privateGetV2HistoryOrders');
-        let response: Dict | List = [];
+        let response: List = [];
         if (methodResolved === 'privateGetV2Orders') {
             //
             //     [

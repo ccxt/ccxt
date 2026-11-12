@@ -1485,8 +1485,8 @@ mod tests {
         // dispatch each to handle_message, return once "ticker" resolves.
         let result = ExchangeRuntime::watch(
             &mut core,
-            Value::Str(url.clone().into()),
-            Value::Str("ticker".into()),
+            url.as_str(),
+            "ticker",
             &[
                 Value::Str("{\"op\":\"subscribe\",\"channel\":\"ticker\"}".into()),
                 Value::Str("ticker".into()),

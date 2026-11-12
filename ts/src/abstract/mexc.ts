@@ -177,7 +177,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('margin/loan', [ 'spot', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
-    spotPrivateGetMarginAllOrders (params = {}): Promise<Dict> {
+    spotPrivateGetMarginAllOrders (params = {}): Promise<List> {
         return this.request ('margin/allOrders', [ 'spot', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
@@ -373,7 +373,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('order', [ 'spot', 'private' ], 'DELETE', params, { 'cost': 1 });
     }
 
-    spotPrivateDeleteOpenOrders (params = {}): Promise<Dict> {
+    spotPrivateDeleteOpenOrders (params = {}): Promise<List> {
         return this.request ('openOrders', [ 'spot', 'private' ], 'DELETE', params, { 'cost': 1 });
     }
 

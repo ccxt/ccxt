@@ -1639,7 +1639,7 @@ impl Exchange {
     /// wallet transfer; inherited by binancecoinm / binanceusdm.
     pub async fn futures_transfer(
         &self,
-        _code: Value,
+        _code: &str,
         _amount: Value,
         _transfer_type: Value,
         _optional_args: &[Value],

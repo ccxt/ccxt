@@ -5093,7 +5093,7 @@ export class BaseExchange {
         });
     }
 
-    parseOrders (orders: Dict | Dict[] | undefined, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Order[] {
+    parseOrders (orders: NullableList, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Order[] {
         //
         // the value of orders is either a dict or a list
         //
@@ -5126,14 +5126,7 @@ export class BaseExchange {
                 results.push (order);
             }
         } else {
-            const ids = Object.keys (orders);
-            for (let i = 0; i < ids.length; i++) {
-                const id = ids[i];
-                const idExtended = this.extend ({ 'id': id }, orders[id]);
-                const parsedOrder = this.parseOrder (idExtended, market); // don't  inline these calls
-                const order = this.extend (parsedOrder, params);
-                results.push (order);
-            }
+            return this.parseOrders (this.addKeyInArrayItems (orders, 'id'), market, since, limit, params);
         }
         results = this.sortBy (results, 'timestamp');
         const symbol = this.safeString (market, 'symbol');
@@ -8108,7 +8101,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseFundingRate() is not supported yet');
     }
 
-    parseFundingRates (response: any, symbols: Strings = undefined): FundingRates {
+    parseFundingRates (response: List, symbols: Strings = undefined): FundingRates {
         const fundingRates: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];

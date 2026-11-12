@@ -6,7 +6,7 @@ import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, NullResponse } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LastPrice, LastPrices, LedgerEntry, Leverage, Leverages, List, MarginMode, MarginModes, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, PositionModeInfo, Endpoint, FundingHistory } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LastPrice, LastPrices, LedgerEntry, Leverage, Leverages, List, NullableList, MarginMode, MarginModes, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, PositionModeInfo, Endpoint, FundingHistory } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 //  ---------------------------------------------------------------------------xs
@@ -1941,7 +1941,7 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
-        return this.parseFundingRates (response, symbolsNormalized);
+        return this.parseFundingRates (this.toArray (response), symbolsNormalized);
     }
 
     /**
@@ -2508,7 +2508,7 @@ export default class aster extends Exchange {
             request['startTime'] = since;
         }
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
-        let response: Dict;
+        let response: List;
         if (this.safeBool (market, 'swap', false)) {
             response = await this.fapiPrivateGetV3AllOrders (this.extend (requestUntil, paramsUntil));
         } else {
@@ -2579,7 +2579,7 @@ export default class aster extends Exchange {
         }
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, paramsMarketType);
-        let response: NullableDict = undefined;
+        let response: NullableList = undefined;
         if (this.isLinear (marketType, subType)) {
             response = await this.fapiPrivateGetV3OpenOrders (this.extend (request, paramsSubType));
         } else if (marketType === 'spot') {
@@ -3034,7 +3034,7 @@ export default class aster extends Exchange {
             }
             request['orderIdList'] = orderIdList;
         }
-        let response: Dict;
+        let response: List;
         if (this.safeBool (market, 'swap', false)) {
             response = await this.fapiPrivateDeleteV3BatchOrders (this.extend (request, params));
             //

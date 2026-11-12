@@ -2289,7 +2289,7 @@ export default class toobit extends Exchange {
             request['limit'] = limit;
         }
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        let response: Dict | List = [];
+        let response: List = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1SpotOpenOrders (this.extend (request, paramsMarketType));
             //
@@ -2354,7 +2354,7 @@ export default class toobit extends Exchange {
             requestUntil['symbol'] = market['id'];
         }
         const marketType = this.handleMarketTypeAndParams ('fetchOrders', market, paramsUntil)[0];
-        let response: Dict | List = [];
+        let response: List = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1SpotTradeOrders (requestUntil);
             //

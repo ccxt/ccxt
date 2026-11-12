@@ -6,7 +6,7 @@ import Exchange from './abstract/hashkey.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Fee, NullableDict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, MarginModification, Int, List, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int, Status, Endpoint } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Fee, NullableDict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, MarginModification, Int, List, NullableList, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int, Status, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -3340,7 +3340,7 @@ export default class hashkey extends Exchange {
         const paramsMethodName: Dict = this.omit (params, 'methodName');
         let market: Market = undefined;
         const request: Dict = {};
-        let response: NullableDict = undefined;
+        let response: NullableList = undefined;
         const [ accountId, paramsAccountId ] = this.handleOptionStringAndParams (paramsMethodName, methodNameOption, 'accountId');
         if (accountId !== undefined) {
             request['subAccountId'] = accountId;
@@ -3383,7 +3383,7 @@ export default class hashkey extends Exchange {
             //     ]
             //
         }
-        return this.parseOrders (response as Dict, market, since, limit);
+        return this.parseOrders (response, market, since, limit);
     }
 
     /**
@@ -3424,7 +3424,7 @@ export default class hashkey extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response: NullableDict = undefined;
+        let response: NullableList = undefined;
         const [ accountId, paramsAccountId ] = this.handleOptionStringAndParams (paramsTrigger, methodNameOption, 'accountId');
         if (accountId !== undefined) {
             request['subAccountId'] = accountId;
@@ -3475,7 +3475,7 @@ export default class hashkey extends Exchange {
             //         }
             //     ]
         }
-        return this.parseOrders (response as Dict, market, since, limit);
+        return this.parseOrders (response, market, since, limit);
     }
 
     /**
@@ -3522,7 +3522,7 @@ export default class hashkey extends Exchange {
             market = this.market (symbol);
         }
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams (methodName, market, paramsAccountId, 'spot');
-        let response: NullableDict = undefined;
+        let response: NullableList = undefined;
         if (marketType === 'spot') {
             if (market !== undefined) {
                 request['symbol'] = market['id'];
@@ -3605,7 +3605,7 @@ export default class hashkey extends Exchange {
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
-        return this.parseOrders (response as Dict, market, since, limit);
+        return this.parseOrders (response, market, since, limit);
     }
 
     checkTypeParam (methodName: string, params: Dict) {

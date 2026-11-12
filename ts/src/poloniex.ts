@@ -1923,7 +1923,7 @@ export default class poloniex extends Exchange {
         }
         const isTrigger = this.safeBool2 (paramsMarketType, 'trigger', 'stop');
         const paramsOmitted: Dict = this.omit (paramsMarketType, [ 'trigger', 'stop' ]);
-        let response: Dict | List = [];
+        let response: List = [];
         if (marketType !== 'spot') {
             const raw = await this.swapPrivateGetV3TradeOrderOpens (this.extend (request, paramsOmitted));
             //
@@ -2508,7 +2508,7 @@ export default class poloniex extends Exchange {
                 market['id'],
             ];
         }
-        let response: Dict | List = [];
+        let response: List = [];
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (marketType === 'swap' || marketType === 'future') {
             const raw = await this.swapPrivateDeleteV3TradeAllOrders (this.extend (request, paramsMarketType));

@@ -2016,7 +2016,7 @@ export default class hitbtc extends Exchange {
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchClosedOrders', paramsMarketType);
         const paramsOmitted: Dict = this.omit (paramsMarginMode, [ 'marginMode', 'margin' ]);
-        let response: Dict;
+        let response: List;
         if (marginMode !== undefined) {
             response = await this.privateGetMarginHistoryOrder (this.extend (request, paramsOmitted));
         } else {
@@ -2219,7 +2219,7 @@ export default class hitbtc extends Exchange {
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchOpenOrders', paramsMarketType);
         const paramsOmitted: Dict = this.omit (paramsMarginMode, [ 'marginMode', 'margin' ]);
-        let response: Dict;
+        let response: List;
         if (marginMode !== undefined) {
             response = await this.privateGetMarginOrder (this.extend (request, paramsOmitted));
         } else {
@@ -2326,7 +2326,7 @@ export default class hitbtc extends Exchange {
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('cancelAllOrders', paramsMarketType);
         const paramsOmitted: Dict = this.omit (paramsMarginMode, [ 'marginMode', 'margin' ]);
-        let response: Dict;
+        let response: List;
         if (marginMode !== undefined) {
             response = await this.privateDeleteMarginOrder (this.extend (request, paramsOmitted));
         } else {

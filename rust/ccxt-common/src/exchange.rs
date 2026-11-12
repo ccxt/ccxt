@@ -1607,28 +1607,25 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         crate::pro::ws_client::value_reject(&client, err(&self.id), message_hash.as_str());
     } }
 
-    fn watch(
+    fn watch<'a>(
         &mut self,
-        url: impl Into<Value>,
-        message_hash: impl Into<Value>,
+        url: impl Into<Option<&'a str>>,
+        message_hash: impl Into<Option<&'a str>>,
         optional_args: &[Value],
-    ) -> impl ::std::future::Future<Output = Value> + Send { let (url, message_hash): (Value, Value) = (url.into(), message_hash.into()); async move {
-        let url_s = match &url { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
-        let hash_s = match &message_hash { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
+    ) -> impl ::std::future::Future<Output = Value> + Send { let (url_s, hash_s): (String, String) = (url.into().unwrap_or("null").to_string(), message_hash.into().unwrap_or("null").to_string()); async move {
         let message = optional_args.get(0).cloned().unwrap_or(Value::Null);
-        let subscribe_hash = optional_args.get(1).cloned().unwrap_or(message_hash.clone());
+        let subscribe_hash = optional_args.get(1).cloned().unwrap_or(Value::from(hash_s.as_str()));
         let sub_hash_s = match &subscribe_hash { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
         let subscription = optional_args.get(2).cloned().unwrap_or(Value::Null);
         self.ws_run(url_s, vec![hash_s], message, vec![sub_hash_s], subscription).await
     } }
 
-    fn watch_multiple(
+    fn watch_multiple<'a>(
         &mut self,
-        url: impl Into<Value>,
+        url: impl Into<Option<&'a str>>,
         message_hashes: impl Into<Value>,
         optional_args: &[Value],
-    ) -> impl ::std::future::Future<Output = Value> + Send { let (url, message_hashes): (Value, Value) = (url.into(), message_hashes.into()); async move {
-        let url_s = match &url { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
+    ) -> impl ::std::future::Future<Output = Value> + Send { let (url_s, message_hashes): (String, Value) = (url.into().unwrap_or("null").to_string(), message_hashes.into()); async move {
         let hashes = ws_string_list(&message_hashes);
         let message = optional_args.get(0).cloned().unwrap_or(Value::Null);
         let subscribe_hashes = ws_string_list(&optional_args.get(1).cloned().unwrap_or(Value::Null));
