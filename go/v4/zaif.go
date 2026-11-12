@@ -955,7 +955,7 @@ func (this *Zaif) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "return", map[string]any{})
 
-	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(this.AddKeyInArrayItems(data, "id"), market, since, limit))}
 	return nil
 }
 
@@ -1013,7 +1013,7 @@ func (this *Zaif) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "return", map[string]any{})
 
-	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(this.AddKeyInArrayItems(data, "id"), market, since, limit))}
 	return nil
 }
 

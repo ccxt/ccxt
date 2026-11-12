@@ -2600,7 +2600,7 @@ func (this *Aster) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingR
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(response, symbolsNormalized))}
+	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(this.ToArray(response), symbolsNormalized))}
 	return nil
 }
 

@@ -3297,7 +3297,7 @@ func (this *Btse) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		response = r2.Value
 	}
 
-	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market))}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(this.ToArray(response), market))}
 	return nil
 }
 

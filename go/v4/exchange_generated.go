@@ -2977,18 +2977,7 @@ func (this *BaseExchange) ParseOrders(orders any, optionalArgs ...any) []any {
 			results = append(results, order)
 		}
 	} else {
-		var ids []string = ObjectKeys(orders)
-		for i := 0; i < len(ids); i++ {
-			var id string = ids[i]
-			var idExtended map[string]any = this.Extend(map[string]any{
-				"id": id,
-			}, GetValue(orders, id))
-
-			var parsedOrder map[string]any = OrderToMap(this.DerivedExchange.ParseOrder(idExtended, market))
-			PanicOnError(parsedOrder) // don't  inline these calls
-			var order map[string]any = this.Extend(parsedOrder, params)
-			results = append(results, order)
-		}
+		return this.ParseOrders(this.AddKeyInArrayItems(orders, "id"), market, since, limit, params)
 	}
 	results = this.SortBy(results, "timestamp")
 	var symbol *string = this.SafeString(market, "symbol")
@@ -5672,11 +5661,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes707015 map[string]any = r.Value
-	if retRes707015 == nil {
+	var retRes706315 map[string]any = r.Value
+	if retRes706315 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes707015}
+		ch <- AsyncResult[map[string]any]{Value: retRes706315}
 	}
 	return nil
 }
@@ -11548,12 +11537,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1048715Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048715 []any = retRes1048715Recv
-	if retRes1048715 == nil {
+	retRes1048015Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048015 []any = retRes1048015Recv
+	if retRes1048015 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048015)}
 	}
 	return nil
 }

@@ -217,9 +217,9 @@ func (this *Mexc) SpotPrivateGetMarginLoan(args ...any) <-chan EndpointResult[ma
 	return Fetch2Result[map[string]any](this, "margin/loan", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// SpotPrivateGetMarginAllOrders returns a channel that yields a JSON object.
-func (this *Mexc) SpotPrivateGetMarginAllOrders(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "margin/allOrders", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+// SpotPrivateGetMarginAllOrders returns a channel that yields a JSON array.
+func (this *Mexc) SpotPrivateGetMarginAllOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "margin/allOrders", []string{"spot", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateGetMarginMyTrades returns a channel that yields a JSON object.
@@ -462,9 +462,9 @@ func (this *Mexc) SpotPrivateDeleteOrder(args ...any) <-chan EndpointResult[[]an
 	return Fetch2Result[[]any](this, "order", []string{"spot", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// SpotPrivateDeleteOpenOrders returns a channel that yields a JSON object.
-func (this *Mexc) SpotPrivateDeleteOpenOrders(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "openOrders", []string{"spot", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+// SpotPrivateDeleteOpenOrders returns a channel that yields a JSON array.
+func (this *Mexc) SpotPrivateDeleteOpenOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "openOrders", []string{"spot", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivateDeleteOrderAll returns a channel that yields a JSON object.
