@@ -1764,16 +1764,23 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	}()
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
+		// klines return up to 1440 candles only for 1m, 1000 for 5m and above
+		var paginationLimit int = func() int {
+			if timeframe == "1m" {
+				return maxLimit
+			}
+			return 1000
+		}()
 
-		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit)
+		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, paginationLimit)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes123819 []any = r1.Value
-		if retRes123819 == nil {
+		var retRes124019 []any = r1.Value
+		if retRes124019 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes123819)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes124019)}
 		}
 		return nil
 	}
@@ -1801,7 +1808,13 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		return paramsPaginate
 	}()
 	if until != nil {
-		request["endTime"] = until
+		var endTime any = until
+		if since != nil {
+			// the exchange aligns the window to endTime, so keep it within limit candles of since
+			var duration int64 = this.ParseTimeframe(timeframe) * 1000
+			endTime = mathMin(until, this.Sum(since, Multiply(duration, requestLimit)))
+		}
+		request["endTime"] = endTime
 	} else if (*this.SafeBool(market, "inverse", false)) && (since != nil) {
 		var duration int64 = this.ParseTimeframe(timeframe) * 1000
 		request["endTime"] = this.Sum(since, Multiply(duration, requestLimit))
@@ -2635,11 +2648,11 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes189619 []any = r1.Value
-		if retRes189619 == nil {
+		var retRes190419 []any = r1.Value
+		if retRes190419 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes189619)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes190419)}
 		}
 		return nil
 	}
@@ -2755,11 +2768,11 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes197319 []any = r1.Value
-		if retRes197319 == nil {
+		var retRes198119 []any = r1.Value
+		if retRes198119 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes197319)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes198119)}
 		}
 		return nil
 	}
@@ -3011,7 +3024,7 @@ func (this *Bingx) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 	var response map[string]any = nil
 	if *this.SafeBool(market, "spot", false) {
 
-		r1 := <-this.SpotV1PublicGetTicker24hr(this.Extend(request, params))
+		r1 := <-this.SpotV2PublicGetQuoteTicker(this.Extend(request, params))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -3198,7 +3211,7 @@ func (this *Bingx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 	var response map[string]any = nil
 	if typeVar != nil && *typeVar == "spot" {
 
-		r1 := <-this.SpotV1PublicGetTicker24hr(paramsSubType)
+		r1 := <-this.SpotV2PublicGetQuoteTicker(paramsSubType)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -6537,11 +6550,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes552219 []any = r1.Value
-		if retRes552219 == nil {
+		var retRes553019 []any = r1.Value
+		if retRes553019 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes552219)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes553019)}
 		}
 		return nil
 	}

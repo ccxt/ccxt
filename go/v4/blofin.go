@@ -1521,7 +1521,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	paginate, query = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
-		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", query, 100)
+		r1 := <-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, query, 100)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}

@@ -792,10 +792,14 @@ func (this *Whitebit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//          "takerFee": "0.1",         // Default taker fee ratio
 	//          "minAmount": "0.001",      // Minimal amount of stock to trade
 	//          "minTotal": "0.001",       // Minimal amount of money to trade
+	//          "maxTotal": "1000000000",  // Maximum total(amount * price) of money to trade
 	//          "tradesEnabled": true,     // Is trading enabled
 	//          "isCollateral": true,      // Is margin trading enabled
 	//          "type": "spot",            // Market type. Possible values: "spot", "futures"
-	//          "maxTotal": "1000000000"   // Maximum total(amount * price) of money to trade
+	//          "isTradFiFutures": false,  // Indicates whether the market is a traditional-finance (TradFi) futures market
+	//          "delistedAt": 1786752000,  // Announced delisting date as a Unix timestamp in seconds
+	//          "tickSize": "0.01",        // Minimal price step a limit order price must be a multiple of
+	//          "stepSize": "0.001"        // Minimal quantity step an order amount must be a multiple of
 	//        },
 	//        {
 	//          ...
@@ -827,7 +831,6 @@ func (this *Whitebit) ParseMarket(market any) map[string]any {
 	var swap bool = (typeId != nil && *typeId == "futures") || (typeId != nil && *typeId == "tradfiFutures")
 	var margin bool = (isCollateral != nil && *isCollateral) && !swap
 	var contract bool = false
-	var amountPrecision *float64 = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "stockPrec")))
 	var linear any = nil
 	var inverse any = nil
 	if swap {
@@ -878,8 +881,8 @@ func (this *Whitebit) ParseMarket(market any) map[string]any {
 		"strike":         nil,
 		"optionType":     nil,
 		"precision": map[string]any{
-			"amount": amountPrecision,
-			"price":  this.ParseNumber(this.ParsePrecision(this.SafeString(market, "moneyPrec"))),
+			"amount": this.SafeNumber(market, "stepSize"),
+			"price":  this.SafeNumber(market, "tickSize"),
 		},
 		"limits": map[string]any{
 			"leverage": map[string]any{
@@ -5842,15 +5845,15 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
-		r := <-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, maxLimit)
+		r := <-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, maxLimit)
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes423819 []any = r.Value
-		if retRes423819 == nil {
+		var retRes424119 []any = r.Value
+		if retRes424119 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes423819)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes424119)}
 		}
 		return nil
 	}
@@ -5868,7 +5871,7 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	if since != nil {
 		request["startDate"] = math.Round(float64(*since) / 1000)
 	}
-	requestUntil, paramsUntil := this.HandleUntilOption("until_timestamp", request, paramsPaginate, 0.001)
+	requestUntil, paramsUntil := this.HandleUntilOption("endDate", request, paramsPaginate, 0.001)
 	if limit != nil {
 		requestUntil["limit"] = *limit
 	}

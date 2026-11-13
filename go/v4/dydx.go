@@ -955,12 +955,22 @@ func (this *Dydx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		request["limit"] = mathMin(limit, 1000)
 	}
 	if since != nil {
-		request["fromIso"] = this.Iso8601(since)
+		request["fromISO"] = this.Iso8601(since)
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 	if until != nil {
-		request["toIso"] = this.Iso8601(until)
+		request["toISO"] = this.Iso8601(until)
+	} else if since != nil {
+		// the indexer returns the newest candles in the range, so the range ends where the limit does
+		var duration int64 = this.ParseTimeframe(timeframe) * 1000
+		var count int64 = func() int64 {
+			if limit != nil {
+				return min(*limit, 1000)
+			}
+			return 1000
+		}()
+		request["toISO"] = this.Iso8601(this.Sum(since, (duration * count)))
 	}
 
 	r1 := <-this.IndexerGetCandlesPerpetualMarketsMarket(this.Extend(request, paramsOmitted))
@@ -1350,11 +1360,11 @@ func (this *Dydx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes106815 []any = OrdersToList(r.Value)
-	if retRes106815 == nil {
+	var retRes107315 []any = OrdersToList(r.Value)
+	if retRes107315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes106815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes107315)}
 	}
 	return nil
 }
@@ -1396,11 +1406,11 @@ func (this *Dydx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes108815 []any = OrdersToList(r.Value)
-	if retRes108815 == nil {
+	var retRes109315 []any = OrdersToList(r.Value)
+	if retRes109315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes108815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes109315)}
 	}
 	return nil
 }
