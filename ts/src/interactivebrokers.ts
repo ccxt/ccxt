@@ -2023,14 +2023,14 @@ export default class interactivebrokers extends Exchange {
             } 
         }
         if (isPerp && !isCfd) {
-            if (nameLower.startsWith ('nano')) {
+            if (nameLower.startsWith ('nano ')) {
                 microNanoPrefix = 'NANO.';
             }
             contractSize = this.safeString (market, 'multiplier'); // 0.01 BTC for BIP
         } else if (isFuture) {
-            if (nameLower.startsWith ('nano')) {
+            if (nameLower.startsWith ('nano ')) {
                 microNanoPrefix = 'NANO.';
-            } else if (nameLower.startsWith ('micro')) {
+            } else if (nameLower.startsWith ('micro ')) {
                 microNanoPrefix = 'MICRO.';
             } else if (name.indexOf ('New York Variant') !== -1) {
                 microNanoPrefix = 'NEWYORK.';
