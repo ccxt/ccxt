@@ -758,7 +758,7 @@ impl Ndax {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Map(subscription)).await;
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Map(subscription)).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -879,22 +879,22 @@ impl Ndax {
         //         ],
         //     ]
         //
-        let mut symbol: Option<String> = self.safe_string_k_opt(subscription.clone(), "symbol", &[]);
+        let mut symbol: Option<String> = self.safe_string_k(subscription.clone(), "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
         }
-        let mut snapshot: crate::value::Dict = self.parse_order_book(&payload, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&payload, Value::from(symbol.as_deref()), &[]).into_dict();
         let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
         // reset the existing orderbook instead of replacing it: a consumer
         // holds a reference to the old object and would never see updates
         // after a re-subscription snapshot
-        if !(self.orderbooks.has(&symbol.clone().map(Value::from).unwrap_or(Value::Null))) {
+        if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); CacheStore::put(&mut self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null), __cv); }
+}), limit]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
-        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         orderbook.reset(Value::Dict(snapshot));
         let mut messageHash: Option<String> = self.safe_string_k(subscription, "messageHash", &[]).as_str().map(str::to_owned);
         client.resolve(Value::from(&orderbook), messageHash.as_deref());

@@ -2580,8 +2580,8 @@ impl Deribit {
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
-        let mut now: Value = Value::Int(self.milliseconds());
+        let mut duration: i64 = self.parse_timeframe(timeframe.clone());
+        let mut now: i64 = self.milliseconds();
         // at max, it provides 5000 bars, but we set generous default here
         let mut defaultLimit: i64 = 1000;
         let mut windowLimit: i64 = limit.as_i64().unwrap_or(defaultLimit);
@@ -2589,25 +2589,23 @@ impl Deribit {
         let mut sinceResolved: Value = (if (since == Value::Null) { Value::Null } else { crate::runtime::Math::max(&(match (&(since), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &Value::Int(0)) });
         if (since == Value::Null) {
-            request.insert("start_timestamp".into(), (match (&(now), &((match (&((match (&((Value::Int((windowLimit - 1)))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
-            request.insert("end_timestamp".into(), now.clone());
+            request.insert("start_timestamp".into(), Value::Int((now - ((((((windowLimit - 1)) * duration)) * 1000)))));
+            request.insert("end_timestamp".into(), Value::from(now));
         }  else {
             request.insert("start_timestamp".into(), sinceResolved.clone());
             if (limit == Value::Null) {
-                request.insert("end_timestamp".into(), now);
+                request.insert("end_timestamp".into(), Value::from(now));
             }  else {
-                request.insert("end_timestamp".into(), self.sum(&[sinceResolved.clone(), (match (&((match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                request.insert("end_timestamp".into(), self.sum(&[sinceResolved.clone(), (match (&((match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
             }
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(&paramsPaginate, Value::Str("until".into()), &[]) } else { Value::from(&paramsPaginate) });
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsPaginate, Value::Str("until".into()), &[]).into_dict() } else { paramsPaginate });
         if (until.is_some()) {
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let __ws_arg_6 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_get_tradingview_chart_data(&[__ws_arg_6]).await.into_dict();
         //
         //     {
@@ -4884,31 +4882,28 @@ impl Deribit {
             })]).into_dict();
             return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(eachItemDuration.clone()), Value::Dict(paginationParams), Value::from(maxEntriesPerRequest)]).await;
         }
-        let mut duration: Value = (match (&(Value::Int(self.parse_timeframe(Value::from(eachItemDuration)))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-        let mut now: Value = Value::Int(self.milliseconds());
-        let mut month: Value = (match (&((match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-            _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x),
-            Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x),
-            Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-        let mut defaultSince: Value = (match (&(now), &(month)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-        let mut sinceResolved: Value = (if (since == Value::Null) { defaultSince } else { since.clone() });
-        let mut time: Value = now;
+        let mut duration: i64 = ((self.parse_timeframe(Value::from(eachItemDuration))) * 1000);
+        let mut now: i64 = self.milliseconds();
+        let mut month: i64 = (((((((30 * 24)) * 60)) * 60)) * 1000);
+        let mut defaultSince: i64 = (now - month);
+        let mut sinceResolved: i64 = since.as_i64().unwrap_or(defaultSince);
+        let mut time: Option<i64> = Some(now);
         if (since != Value::Null) {
-            time = Value::from(self.parse_to_int((match (&(since), &(month)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })));
+            time = self.parse_to_int((match (&(since), &(Value::from(month))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
-                m.insert("start_timestamp".to_string(), (match (&(sinceResolved), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+                m.insert("start_timestamp".to_string(), Value::Int((sinceResolved - 1)));
             m
         });
         let mut until: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("end_timestamp".into()), &[]).as_i64();
         let mut paramsUntil: Value = (if (until.is_some()) { self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]) } else { Value::from(&paramsPaginate) });
-        let mut endTimestamp: Value = time;
+        let mut endTimestamp: Option<i64> = time;
         if (until.is_some()) {
-            endTimestamp = Value::from(self.parse_to_int(Value::from(until)));
+            endTimestamp = self.parse_to_int(Value::from(until));
         }
-        request.insert("end_timestamp".into(), endTimestamp.clone());
+        request.insert("end_timestamp".into(), Value::from(endTimestamp));
         let mut isPaginationCall: bool = self.safe_bool_k(paramsUntil.clone(), "isDeribitPaginationCall", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: Value = paramsUntil.clone();
         if isPaginationCall {
@@ -4918,9 +4913,9 @@ impl Deribit {
             if (limit == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a limit argument".into()))));
             }
-            let mut maxUntil: Value = Value::from(self.parse_to_int(self.sum(&[sinceResolved.clone(), (match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })])));
-            request.insert("end_timestamp".into(), (if (endTimestamp.as_f64().unwrap_or(f64::NAN) < maxUntil.as_f64().unwrap_or(f64::NAN)) { endTimestamp } else { maxUntil }));
+            let mut maxUntil: Option<i64> = self.parse_to_int(self.sum(&[Value::from(sinceResolved), (match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+            request.insert("end_timestamp".into(), (if ((endTimestamp.is_some() && maxUntil.is_some() && endTimestamp < maxUntil)) { Value::from(endTimestamp) } else { Value::from(maxUntil) }));
         }
         let __ws_arg_41 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_get_funding_rate_history(&[__ws_arg_41]).await.into_dict();
@@ -4950,7 +4945,7 @@ impl Deribit {
             rates.push(Value::Dict(rate));
         }
         }
-        return self.filter_by_symbol_since_limit(Value::from(rates), symbol.as_str(), sinceResolved.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(Value::from(rates), symbol.as_str(), Some(sinceResolved), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -5085,8 +5080,8 @@ impl Deribit {
             m
         })]).into_dict();
         let mut cursor: Option<String> = self.safe_string_k(&result, "continuation", &[]).as_str().map(str::to_owned);
-        let mut settlements: Value = self.safe_list_k(&result, "settlements", &[Value::from(vec![])]);
-        let mut settlementsWithCursor: Value = self.add_pagination_cursor_to_result(cursor.as_deref(), settlements);
+        let mut settlements: crate::value::List = self.safe_list_k(&result, "settlements", &[Value::from(vec![])]).into_list();
+        let mut settlementsWithCursor: Value = self.add_pagination_cursor_to_result(cursor.as_deref(), Value::Arr(settlements));
         return self.parse_liquidations(settlementsWithCursor, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -5527,8 +5522,8 @@ impl Deribit {
         //         "testnet": false
         //     }
         //
-        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_option_chain(result, &[Value::Str("base_currency".into()), Value::Str("instrument_name".into())]);
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        return self.parse_option_chain(Value::Arr(result), &[Value::Str("base_currency".into()), Value::Str("instrument_name".into())]);
         Value::Null
         }).await?))
     }

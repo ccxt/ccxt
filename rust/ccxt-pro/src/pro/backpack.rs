@@ -1912,12 +1912,12 @@ impl Backpack {
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         orderbook.set_book_meta("nonce", self.safe_integer_k(delta.clone(), "u", &[]));
-        let mut bids: Value = self.safe_list_k(delta.clone(), "b", &[Value::from(vec![])]);
-        let mut asks: Value = self.safe_list_k(delta, "a", &[Value::from(vec![])]);
+        let mut bids: crate::value::List = self.safe_list_k(delta.clone(), "b", &[Value::from(vec![])]).into_list();
+        let mut asks: crate::value::List = self.safe_list_k(delta, "a", &[Value::from(vec![])]).into_list();
         let mut storedBids: Value = orderbook.book_field("bids");
         let mut storedAsks: Value = orderbook.book_field("asks");
-        self.handle_bid_asks(storedBids, bids);
-        self.handle_bid_asks(storedAsks, asks);
+        self.handle_bid_asks(storedBids, Value::Arr(bids));
+        self.handle_bid_asks(storedAsks, Value::Arr(asks));
 }
 
     pub fn handle_bid_asks(&self, mut bookSide: Value, mut bidAsks: Value) {
@@ -2291,10 +2291,10 @@ impl Backpack {
     m
 }));
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsBalanceAssets".into(), Value::Map(assets.clone())); }
-        let mut response: Value = self.parse_balance(Value::Map(assets.clone()));
+        let mut response: crate::value::Dict = self.parse_balance(Value::Map(assets.clone())).into_dict();
         let mut parsed: Value = self.safe_dict(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("balances".to_string(), response);
+                m.insert("balances".to_string(), Value::Dict(response));
             m
         }), Value::Str("balances".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();

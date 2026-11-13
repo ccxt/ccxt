@@ -967,11 +967,11 @@ impl Toobit {
                         let mut i: i64 = 0;
             let mut __for_first_669: bool = true;
             while { if !__for_first_669 { i += 1; } __for_first_669 = false; i < (data.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let mut ticker: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut ticker: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut parsed: Value = self.parse_ws_ticker(ticker, None);
+            })]).into_dict();
+            let mut parsed: Value = self.parse_ws_ticker(Value::Dict(ticker), None);
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
                 if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed.clone()); }
@@ -1126,10 +1126,10 @@ impl Toobit {
             }
             let mut orderBook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
             let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "t", &[]).as_i64();
-            let mut bids: Value = self.safe_list_k(&entry, "b", &[Value::from(vec![])]);
-            let mut asks: Value = self.safe_list_k(&entry, "a", &[Value::from(vec![])]);
-            self.handle_deltas(orderBook.book_field("asks"), asks);
-            self.handle_deltas(orderBook.book_field("bids"), bids);
+            let mut bids: crate::value::List = self.safe_list_k(&entry, "b", &[Value::from(vec![])]).into_list();
+            let mut asks: crate::value::List = self.safe_list_k(&entry, "a", &[Value::from(vec![])]).into_list();
+            self.handle_deltas(orderBook.book_field("asks"), Value::Arr(asks));
+            self.handle_deltas(orderBook.book_field("bids"), Value::Arr(bids));
             orderBook.set_book_meta("timestamp", Value::from(timestamp));
             CacheStore::put(&mut self.orderbooks, &symbol, orderBook.clone());
             client.resolve(Value::from(&orderBook), messageHash.as_str());
@@ -1685,8 +1685,8 @@ impl Toobit {
         if (self.positionsByType.has(&type_var)) {
             return;
         }
-        let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);
-        if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
+        let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]).as_bool();
+        if (fetchPositionsSnapshot == Some(true)) {
             let mut messageHash: String = format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into()));
             if !(__ch.has_future(messageHash.as_str())) {
                 client.future(messageHash.as_str());

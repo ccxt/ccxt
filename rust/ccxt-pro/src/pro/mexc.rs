@@ -1134,11 +1134,11 @@ impl Mexc {
             })]).into_dict();
             let mut rawOhlcv: Value = self.safe_dict_k(&d, "k", &[Value::from(&d)]);
             let mut timeframeId: Option<String> = self.safe_string2_opt(rawOhlcv.clone(), Value::Str("i".into()), Value::Str("interval".into()), &[]);
-            let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
+            let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            timeframe = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[timeframes]);
+            })]).into_dict();
+            timeframe = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[Value::Dict(timeframes)]);
             let mut marketId: Option<String> = self.safe_string2(message, Value::Str("s".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
             market = Some(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
             parsed = self.parse_ws_ohlcv(rawOhlcv, market.as_ref());
@@ -1456,12 +1456,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return;
         }
         orderbook.set_book_meta("nonce", Value::from(deltaNonce));
-        let mut asks: Value = self.safe_list_k(delta.clone(), "asks", &[Value::from(vec![])]);
-        let mut bids: Value = self.safe_list_k(delta, "bids", &[Value::from(vec![])]);
+        let mut asks: crate::value::List = self.safe_list_k(delta.clone(), "asks", &[Value::from(vec![])]).into_list();
+        let mut bids: crate::value::List = self.safe_list_k(delta, "bids", &[Value::from(vec![])]).into_list();
         let mut asksOrderSide: Value = orderbook.book_field("asks");
         let mut bidsOrderSide: Value = orderbook.book_field("bids");
-        self.handle_bookside_delta(asksOrderSide, asks);
-        self.handle_bookside_delta(bidsOrderSide, bids);
+        self.handle_bookside_delta(asksOrderSide, Value::Arr(asks));
+        self.handle_bookside_delta(bidsOrderSide, Value::Arr(bids));
 }
 
 /*

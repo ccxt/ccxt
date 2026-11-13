@@ -1294,7 +1294,7 @@ if _try_result.is_err() {
         if (self.safe_string_k(&data, "trade_type", &[]).as_str() == Some("LIQUIDATION")) {
             // one cache per market, kept in the options next to the request id counter: this.liquidations
             // is typed as a single cache in some languages and initialized as a map in others
-            let mut liquidation: Value = self.parse_ws_liquidation(Value::Dict(data), None);
+            let mut liquidation: crate::value::Dict = self.parse_ws_liquidation(Value::Dict(data), None).into_dict();
             let mut caches: Value = self.safe_dict_k(self.options.clone(), "liquidationsBySymbol", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1305,7 +1305,7 @@ if _try_result.is_err() {
                 if let Value::Dict(__d) = &mut caches { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), liquidations.clone()); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("liquidationsBySymbol".into(), caches); }
             }
-            liquidations.append(liquidation);
+            liquidations.append(Value::Dict(liquidation));
             client.resolve(liquidations, &(Value::Str(format!("{}{}", Value::Str("liquidations:".into()), symbol).into())));
         }
         // an SBE frame names its market but not the subscription it was sent for,
@@ -2244,11 +2244,11 @@ if _try_result.is_err() {
         //     }
         //
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut bidAsk: crate::value::Dict = self.parse_ws_bid_ask(data, None).into_dict();
+        })]).into_dict();
+        let mut bidAsk: crate::value::Dict = self.parse_ws_bid_ask(Value::Dict(data), None).into_dict();
         let mut symbol: Value = crate::value::KeyRead::key_read(&&bidAsk, "symbol");
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&bidAsk)); }
         client.resolve(Value::from(&bidAsk), &(Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into())));
@@ -2362,11 +2362,11 @@ if _try_result.is_err() {
         //     }
         //
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut parsed: Value = self.parse_order(data, None);
+        })]).into_dict();
+        let mut parsed: Value = self.parse_order(Value::Dict(data), None);
         let mut symbol: Option<String> = self.safe_string_k(parsed.clone(), "symbol", &[]).as_str().map(str::to_owned);
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -2464,11 +2464,11 @@ if _try_result.is_err() {
         //     }
         //
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut trade: crate::value::Dict = self.parse_trade(data, None).into_dict();
+        })]).into_dict();
+        let mut trade: crate::value::Dict = self.parse_trade(Value::Dict(data), None).into_dict();
         let mut symbol: Option<String> = self.safe_string_k(&trade, "symbol", &[]).as_str().map(str::to_owned);
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -2575,15 +2575,15 @@ if _try_result.is_err() {
         //     }
         //
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         if (self.positions.is_none()) {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
-        let mut position: crate::value::Dict = self.parse_position(data, None).into_dict();
+        let mut position: crate::value::Dict = self.parse_position(Value::Dict(data), None).into_dict();
         let mut symbol: Value = crate::value::KeyRead::key_read(&&position, "symbol");
         let mut newPositions: Value = Value::from(vec![]);
         // one position per market, so a fill through zero flips its side: the cache keys by
@@ -2683,10 +2683,10 @@ if _try_result.is_err() {
         //     }
         //
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         // merge the parsed update into the existing balance object instead of
         // replacing it: a consumer awakened by an earlier message holds a
         // reference to this.balance, and Client.resolve is a no-op while
@@ -2694,7 +2694,7 @@ if _try_result.is_err() {
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        let mut balance: Value = self.parse_ws_balance(data);
+        let mut balance: Value = self.parse_ws_balance(Value::Dict(data));
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2945,11 +2945,11 @@ if _try_result.is_err() {
         //     }
         //
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut fundingRate: Value = self.parse_funding_rate_ws(data, None);
+        })]).into_dict();
+        let mut fundingRate: Value = self.parse_funding_rate_ws(Value::Dict(data), None);
         let mut symbol: Option<String> = self.safe_string_k_opt(fundingRate.clone(), "symbol", &[]);
         if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), fundingRate.clone()); }
         // watchFundingRates waits on the bare channel without symbols and on funding_data.<symbol> with them,
@@ -3342,10 +3342,10 @@ if _try_result.is_err() {
             if Value::from((if let Some(__l) = position { Some(__l + 4) } else { None })).as_f64().unwrap_or(f64::NAN) > frameEnd.as_f64().unwrap_or(f64::NAN) {
                 return Value::Null;
             }
-            let mut entryLength: Value = Value::from(self.parse_to_int(self.sbe_read_uint(frameHex.clone(), Value::from(position), Value::Int(2))));
+            let mut entryLength: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), Value::from(position), Value::Int(2)));
             let mut numInGroup: Value = Value::from(self.parse_to_int(self.sbe_read_uint(frameHex.clone(), Value::from((if let Some(__l) = position { Some(__l + 2) } else { None })), Value::Int(2))));
             position = self.parse_to_int(Value::from((if let Some(__l) = position { Some(__l + 4) } else { None })));
-            if (entryLength.as_f64().unwrap_or(f64::NAN) < ((16i64) as f64)) || (Value::from(self.parse_to_int(self.sum(&[Value::from(position), (match (&(numInGroup), &(entryLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
+            if ((entryLength.is_some() && entryLength < Some(16))) || (Value::from(self.parse_to_int(self.sum(&[Value::from(position), (match (&(numInGroup), &(Value::from(entryLength))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
                 Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]))).as_f64().unwrap_or(f64::NAN) > frameEnd.as_f64().unwrap_or(f64::NAN)) {
                 return Value::Null;
             }
@@ -3360,7 +3360,7 @@ if _try_result.is_err() {
                         m.insert("size".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::from((if let Some(__l) = position { Some(__l + 8) } else { None }))).map(Value::from).unwrap_or(Value::Null));
                     m
                 })); }
-                position = self.parse_to_int(self.sum(&[Value::from(position), entryLength.clone()]));
+                position = self.parse_to_int(self.sum(&[Value::from(position), Value::from(entryLength)]));
             }
             }
         }

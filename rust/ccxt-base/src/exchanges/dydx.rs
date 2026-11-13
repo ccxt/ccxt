@@ -3346,8 +3346,8 @@ impl Dydx {
         //     ]
         // }
         //
-        let mut transfers: Value = self.safe_list_k(&response, "transfers", &[Value::from(vec![])]);
-        return transfers;
+        let mut transfers: crate::value::List = self.safe_list_k(&response, "transfers", &[Value::from(vec![])]).into_list();
+        return Value::Arr(transfers);
 
     Value::Null
 }

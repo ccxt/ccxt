@@ -2099,13 +2099,13 @@ impl Xt {
         //
         // note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
         //
-        let mut chainsData: Value = self.safe_list_k(chainsResponse, "result", &[Value::from(vec![])]);
+        let mut chainsData: crate::value::List = self.safe_list_k(chainsResponse, "result", &[Value::from(vec![])]).into_list();
         let mut currenciesResult: crate::value::Dict = self.safe_dict_k(currenciesResponse, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
         let mut currenciesData: crate::value::List = self.safe_list_k(&currenciesResult, "currencies", &[Value::from(vec![])]).into_list();
-        let mut chainsDataIndexed: crate::value::Dict = self.index_by(chainsData, Value::Str("currency".into())).into_dict();
+        let mut chainsDataIndexed: crate::value::Dict = self.index_by(Value::Arr(chainsData), Value::Str("currency".into())).into_dict();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2551,7 +2551,7 @@ impl Xt {
         let mut maxCost: Option<f64> = None;
         let mut minPrice: Option<f64> = None;
         let mut maxPrice: Option<f64> = None;
-        let mut amountPrecision: Value = Value::Null;
+        let mut amountPrecision: Option<f64> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_1188: bool = true;
@@ -2561,7 +2561,7 @@ impl Xt {
             if (filter.as_deref() == Some("QUANTITY")) {
                 minAmount = self.safe_number_k(&entry, "min", &[]).as_f64();
                 maxAmount = self.safe_number_k(&entry, "max", &[]).as_f64();
-                amountPrecision = self.safe_number_k(&entry, "tickSize", &[]);
+                amountPrecision = self.safe_number_k(&entry, "tickSize", &[]).as_f64();
             }
             if (filter.as_deref() == Some("QUOTE_QTY")) {
                 minCost = self.safe_number_k(&entry, "min", &[]).as_f64();
@@ -2572,8 +2572,8 @@ impl Xt {
             }
         }
         }
-        if (amountPrecision == Value::Null) {
-            amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]);
+        if (amountPrecision.is_none()) {
+            amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]).as_f64();
         }
         let mut underlyingType: Option<String> = self.safe_string_k(market.clone(), "underlyingType", &[]).as_str().map(str::to_owned);
         let mut linear: Option<bool> = None;
@@ -2656,7 +2656,7 @@ impl Xt {
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("price".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "pricePrecision", &[])]), &[]));
-        m.insert("amount".to_string(), amountPrecision);
+        m.insert("amount".to_string(), Value::from(amountPrecision));
         m.insert("base".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "baseCoinPrecision", &[])]), &[]));
         m.insert("quote".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quoteCoinPrecision", &[])]), &[]));
     m
@@ -2745,9 +2745,9 @@ impl Xt {
             // xt rounds startTime down to the candle boundary, which makes a mid-candle
             // window start return one pre-since candle, shifting paginated windows and
             // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
-            let mut duration: Value = (match (&(Value::Int(self.parse_timeframe(timeframe.clone()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            request.insert("startTime".into(), (match (&(Value::from(self.parse_to_int(((match ((since).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y),
-                (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+            let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
+            request.insert("startTime".into(), (match (&(Value::from(self.parse_to_int(((match ((since).as_f64(), (Value::from(duration)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)))), &(Value::from(duration))) { (Value::Int(x),
+                Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
         }
         let mut limitResolved: Value = limit.clone();
         if (limit != Value::Null) {
@@ -7099,11 +7099,11 @@ impl Xt {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_trading_fee(result, Some(&market));
+        })]).into_dict();
+        return self.parse_trading_fee(Value::Dict(result), Some(&market));
         Value::Null
         }).await?))
     }
@@ -7141,10 +7141,10 @@ impl Xt {
         //
         // same response as fetchTradingFee
         //
-        let mut fee: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut fee: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -7158,7 +7158,7 @@ impl Xt {
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut matchesSubType: Value = (if (isInverse) { (market).inverse.map(Value::Bool).unwrap_or_default() } else { (market).linear.map(Value::Bool).unwrap_or_default() });
             if (market).contract && (matchesSubType.as_bool() == Some(true)) {
-                result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(fee.clone(), Some(&market)));
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(Value::from(&fee), Some(&market)));
             }
         }
         }
@@ -7886,7 +7886,7 @@ impl Xt {
         let mut positionType: String = (if (marginModeLower == "cross") { "CROSSED".to_string() } else { "ISOLATED".to_string() });
         let mut posSide: Option<String> = self.safe_string_upper_k(params.clone(), "positionSide", &[]).as_str().map(str::to_owned);
         self.check_required_argument(Value::Str("setMarginMode".into()), posSide.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("positionSide".into()), &[Value::from(vec![Value::Str("LONG".into()), Value::Str("SHORT".into())])]);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("positionSide".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("positionSide".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("positionType".to_string(), Value::from(positionType));
@@ -7894,7 +7894,7 @@ impl Xt {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("setMarginMode".into()), Some(&market), &[paramsOmitted]).as_array().cloned().unwrap_or_default();
+        let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("setMarginMode".into()), Some(&market), &[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;

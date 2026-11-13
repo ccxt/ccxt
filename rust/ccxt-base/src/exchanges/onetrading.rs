@@ -1085,10 +1085,10 @@ impl Onetrading {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut spotFeeTiers: Value = self.safe_list_k(&spotFees, "fee_tiers", &[Value::from(vec![])]);
-        let mut futuresFeeTiers: Value = self.safe_list_k(&futuresFees, "fee_tiers", &[Value::from(vec![])]);
-        let mut spotTiers: crate::value::Dict = self.parse_fee_tiers(spotFeeTiers, None).into_dict();
-        let mut futuresTiers: crate::value::Dict = self.parse_fee_tiers(futuresFeeTiers, None).into_dict();
+        let mut spotFeeTiers: crate::value::List = self.safe_list_k(&spotFees, "fee_tiers", &[Value::from(vec![])]).into_list();
+        let mut futuresFeeTiers: crate::value::List = self.safe_list_k(&futuresFees, "fee_tiers", &[Value::from(vec![])]).into_list();
+        let mut spotTiers: crate::value::Dict = self.parse_fee_tiers(Value::Arr(spotFeeTiers), None).into_dict();
+        let mut futuresTiers: crate::value::Dict = self.parse_fee_tiers(Value::Arr(futuresFeeTiers), None).into_dict();
         let mut firstSpotTier: Value = self.safe_dict(&spotTiers, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1534,19 +1534,19 @@ impl Onetrading {
         }
         let mut timeframe: String = format!("{}{}", period.map(Value::from).unwrap_or(Value::Null), lowercaseUnit.map(Value::from).unwrap_or(Value::Null));
         let mut durationInSeconds: i64 = self.parse_timeframe(Value::from(timeframe));
-        let mut duration: Value = Value::Int((durationInSeconds * 1000));
-        let mut timestamp: Value = Value::from(self.parse8601(self.safe_string_k(ohlcv.clone(), "time", &[])));
-        if (timestamp == Value::Null) {
+        let mut duration: i64 = (durationInSeconds * 1000);
+        let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ohlcv.clone(), "time", &[]));
+        if (timestamp.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseOHLCV() missing timestamp".into()))));
         }
-        let mut periods: Value = Value::from(self.parse_to_int((match ((timestamp).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
-        let mut alignedTimestamp: Value = (match (&(duration), &(periods)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut periods: Option<i64> = self.parse_to_int((match ((Value::from(timestamp)).as_f64(), (Value::from(duration)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        let mut alignedTimestamp: Option<i64> = (if let Some(__r) = periods { Some(duration * __r) } else { None });
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchOHLCV", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
         let mut volumeField: String = self.safe_string_k(&options, "volume", &[Value::Str("total_amount".into())]).as_str().unwrap_or("total_amount").to_string();
-        return Value::from(vec![alignedTimestamp, self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number(ohlcv, Value::from(volumeField), &[])]);
+        return Value::from(vec![Value::from(alignedTimestamp), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number(ohlcv, Value::from(volumeField), &[])]);
 
     Value::Null
 }
@@ -1870,7 +1870,7 @@ impl Onetrading {
         let mut type_var: Option<String> = self.safe_string_lower_k(&rawOrder, "type", &[]).as_str().map(str::to_owned);
         let mut timeInForce: Value = self.parse_time_in_force((self.safe_string_k(&rawOrder, "time_in_force", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
         let mut postOnly: Option<bool> = self.safe_bool_k(&rawOrder, "is_post_only", &[]).as_bool();
-        let mut rawTrades: Value = self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]);
+        let mut rawTrades: crate::value::List = self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]).into_list();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -1892,7 +1892,7 @@ impl Onetrading {
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
-        m.insert("trades".to_string(), rawTrades);
+        m.insert("trades".to_string(), Value::Arr(rawTrades));
     m
 }), market);
 

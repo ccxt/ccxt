@@ -1455,11 +1455,11 @@ impl Hitbtc {
             let mut settle: Value = Value::Null;
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
             let mut type_var: String = "spot".to_string();
-            let mut contractSize: Value = Value::Null;
+            let mut contractSize: Option<f64> = None;
             let mut linear: Value = Value::Null;
             let mut inverse: Option<bool> = None;
             if matches!(&contract, Value::Bool(true)) {
-                contractSize = self.parse_number(Value::Str("1".into()), &[]);
+                contractSize = Some(1_f64);
                 settleId = feeCurrencyId.take();
                 let mut settleCode: Option<String> = self.safe_currency_code(Value::from(settleId.as_deref()), None);
                 settle = settleCode.clone().map(Value::from).unwrap_or(Value::Null);
@@ -1476,8 +1476,8 @@ impl Hitbtc {
             }
             let mut lotString: Option<String> = self.safe_string_k(&market, "quantity_increment", &[]).as_str().map(str::to_owned);
             let mut stepString: Option<String> = self.safe_string_k(&market, "tick_size", &[]).as_str().map(str::to_owned);
-            let mut lot: Value = self.parse_number(lotString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut step: Value = self.parse_number(stepString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut lot: Option<f64> = self.parse_number(lotString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+            let mut step: Option<f64> = self.parse_number(stepString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -1500,7 +1500,7 @@ impl Hitbtc {
                     m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
                     m.insert("taker".to_string(), self.safe_number_k(&market, "take_rate", &[]));
                     m.insert("maker".to_string(), self.safe_number_k(&market, "make_rate", &[]));
-                    m.insert("contractSize".to_string(), contractSize);
+                    m.insert("contractSize".to_string(), Value::from(contractSize));
                     m.insert("expiry".to_string(), Value::from(expiry));
                     m.insert("expiryDatetime".to_string(), Value::Null);
                     m.insert("strike".to_string(), Value::Null);
@@ -1508,8 +1508,8 @@ impl Hitbtc {
                     m.insert("feeCurrency".to_string(), feeCurrency.map(Value::from).unwrap_or(Value::Null));
                     m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), lot.clone());
-        m.insert("price".to_string(), step.clone());
+        m.insert("amount".to_string(), Value::from(lot));
+        m.insert("price".to_string(), Value::from(step));
     m
 }));
                     m.insert("limits".to_string(), Value::Map({
@@ -1522,13 +1522,13 @@ impl Hitbtc {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), lot);
+        m.insert("min".to_string(), Value::from(lot));
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), step);
+        m.insert("min".to_string(), Value::from(step));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -4427,10 +4427,10 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_755: bool = true;
             while { if !__for_first_755 { i += 1; } __for_first_755 = false; i < (positions.len() as i64) } {
-            let mut entry: Value = self.safe_dict(&positions, Value::Int(i), &[]);
-            liquidationPrice = self.safe_number_k(entry.clone(), "price_liquidation", &[]).as_f64();
-            entryPrice = self.safe_number_k(entry.clone(), "price_entry", &[]).as_f64();
-            contracts = self.safe_number_k(entry.clone(), "quantity", &[]).as_f64();
+            let mut entry: crate::value::Dict = self.safe_dict(&positions, Value::Int(i), &[]).into_dict();
+            liquidationPrice = self.safe_number_k(&entry, "price_liquidation", &[]).as_f64();
+            entryPrice = self.safe_number_k(&entry, "price_entry", &[]).as_f64();
+            contracts = self.safe_number_k(&entry, "quantity", &[]).as_f64();
         }
         }
         let mut currencies: crate::value::List = self.safe_list_k(position.clone(), "currencies", &[Value::from(vec![])]).into_list();
@@ -4439,8 +4439,8 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_756: bool = true;
             while { if !__for_first_756 { i += 1; } __for_first_756 = false; i < (currencies.len() as i64) } {
-            let mut entry: Value = self.safe_dict(&currencies, Value::Int(i), &[]);
-            collateral = self.safe_number_k(entry, "margin_balance", &[]).as_f64();
+            let mut entry: crate::value::Dict = self.safe_dict(&currencies, Value::Int(i), &[]).into_dict();
+            collateral = self.safe_number_k(&entry, "margin_balance", &[]).as_f64();
         }
         }
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
@@ -4772,11 +4772,11 @@ impl Hitbtc {
         //         "positions": null
         //     }
         //
-        let mut parsedAmount: Value = self.parse_number(amountValue.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut parsedAmount: Option<f64> = self.parse_number(amountValue.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let __ws_arg_70 = self.parse_margin_modification(response, Some(&market));
         return self.extend(__ws_arg_70, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), parsedAmount);
+        m.insert("amount".to_string(), Value::from(parsedAmount));
         m.insert("type".to_string(), type_var);
     m
 })]);

@@ -334,7 +334,7 @@ impl Coinone {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -384,10 +384,10 @@ impl Coinone {
             orderbook.reset0();
         }
         orderbook.set_book_meta("symbol", symbol.clone());
-        let mut asks: Value = self.safe_list_k(&data, "asks", &[Value::from(vec![])]);
-        let mut bids: Value = self.safe_list_k(&data, "bids", &[Value::from(vec![])]);
-        self.handle_deltas(orderbook.book_field("asks"), asks);
-        self.handle_deltas(orderbook.book_field("bids"), bids);
+        let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
+        let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
+        self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
+        self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
@@ -597,12 +597,12 @@ impl Coinone {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

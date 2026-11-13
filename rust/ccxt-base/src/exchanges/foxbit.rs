@@ -2834,7 +2834,7 @@ impl Foxbit {
         let mut direction: String = "in".to_string();
         let mut amount: Value = self.safe_number_k(item.clone(), "amount", &[]);
         let mut realAmount: Value = amount.clone();
-        let mut balance: Value = self.safe_number_k(item.clone(), "balance", &[]);
+        let mut balance: Option<f64> = self.safe_number_k(item.clone(), "balance", &[]).as_f64();
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), self.safe_number_k(item.clone(), "fee", &[]));
@@ -2844,12 +2844,12 @@ impl Foxbit {
         if (amount == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" parseLedgerEntry() requires a amount argument".into()))));
         }
-        if (balance == Value::Null) {
+        if (balance.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseLedgerEntry() missing balance".into()))));
         }
         let mut before: Value = Value::Null;
-        if (amount != Value::Null) && (balance != Value::Null) {
-            before = (match (&(balance), &(amount)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        if (amount != Value::Null) && (balance.is_some()) {
+            before = (match (&(Value::from(balance)), &(amount)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             if ((0i64) as f64) > amount.as_f64().unwrap_or(f64::NAN) {
                 direction = "out".to_string();
                 realAmount = (match &(amount) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null });
@@ -2869,7 +2869,7 @@ impl Foxbit {
         m.insert("currency".to_string(), currencySymbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), realAmount);
         m.insert("before".to_string(), before);
-        m.insert("after".to_string(), balance);
+        m.insert("after".to_string(), Value::from(balance));
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("fee".to_string(), Value::Map(fee));
     m

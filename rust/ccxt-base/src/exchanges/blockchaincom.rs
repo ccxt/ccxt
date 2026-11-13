@@ -628,15 +628,15 @@ impl Blockchaincom {
             let mut minOrderSizeScaleString: Option<String> = self.safe_string_k(&market, "min_order_size_scale", &[]).as_str().map(str::to_owned);
             let mut minOrderSizeScalePrecisionString: Option<String> = self.parse_precision(&[minOrderSizeScaleString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut minOrderSizePreciseString: Option<String> = crate::precise::Precise::stringMul(&minOrderSizeString.map(Value::from).unwrap_or(Value::Null), &minOrderSizeScalePrecisionString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-            let mut minOrderSize: Value = self.parse_number(minOrderSizePreciseString.map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut minOrderSize: Option<f64> = self.parse_number(minOrderSizePreciseString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             // maximum order size
-            let mut maxOrderSize: Value = Value::Null;
+            let mut maxOrderSize: Option<f64> = None;
             let mut maxOrderSizeRaw: Option<String> = self.safe_string_k(&market, "max_order_size", &[]).as_str().map(str::to_owned);
             if (maxOrderSizeRaw.as_deref() != Some("0")) {
                 let mut maxOrderSizeScaleString: Option<String> = self.safe_string_k(&market, "max_order_size_scale", &[]).as_str().map(str::to_owned);
                 let mut maxOrderSizeScalePrecisionString: Option<String> = self.parse_precision(&[maxOrderSizeScaleString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
                 let mut maxOrderSizeValueString: Option<String> = crate::precise::Precise::stringMul(&maxOrderSizeRaw.map(Value::from).unwrap_or(Value::Null), &maxOrderSizeScalePrecisionString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                maxOrderSize = self.parse_number(maxOrderSizeValueString.map(Value::from).unwrap_or(Value::Null), &[]);
+                maxOrderSize = self.parse_number(maxOrderSizeValueString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             }
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -681,8 +681,8 @@ impl Blockchaincom {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), minOrderSize);
-        m.insert("max".to_string(), maxOrderSize);
+        m.insert("min".to_string(), Value::from(minOrderSize));
+        m.insert("max".to_string(), Value::from(maxOrderSize));
     m
 }));
         m.insert("price".to_string(), Value::Map({

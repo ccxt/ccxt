@@ -1074,8 +1074,8 @@ impl Apex {
         }
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.clone().map(Value::from).unwrap_or(Value::Null));
         let mut expiry: i64 = 0;
-        let mut takerFee: Value = self.parse_number(Value::Str("0.0002".into()), &[]);
-        let mut makerFee: Value = self.parse_number(Value::Str("0.0005".into()), &[]);
+        let mut takerFee: Option<f64> = Some(0.0002_f64);
+        let mut makerFee: Option<f64> = Some(0.0005_f64);
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -1097,8 +1097,8 @@ impl Apex {
         m.insert("contract".to_string(), Value::Bool(true));
         m.insert("linear".to_string(), Value::Bool(true));
         m.insert("inverse".to_string(), Value::Bool(false));
-        m.insert("taker".to_string(), takerFee);
-        m.insert("maker".to_string(), makerFee);
+        m.insert("taker".to_string(), Value::from(takerFee));
+        m.insert("maker".to_string(), Value::from(makerFee));
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "minOrderSize", &[]));
         m.insert("expiry".to_string(), (if (expiry == 0) { Value::Null } else { Value::from(expiry) }));
         m.insert("expiryDatetime".to_string(), (if (expiry == 0) { Value::Null } else { self.iso8601(Value::from(expiry)) }));
@@ -2200,13 +2200,13 @@ impl Apex {
             });
             let __ws_arg_7 = self.extend(request.clone(), &[&paramsOmitted]);
             let mut response: crate::value::Dict = self.private_post_v3_contract_transfer_out(&[__ws_arg_7]).await.into_dict();
-            let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
+            })]).into_dict();
             let mut currentTime: i64 = self.milliseconds();
             let mut parsedAmount: Value = self.parse_number(amount.clone(), &[]);
-            let __ws_arg_8 = self.parse_transfer(data.clone(), Some(&self.currency(code.clone())));
+            let __ws_arg_8 = self.parse_transfer(&data, Some(&self.currency(code.clone())));
             let __ws_arg_9 = self.iso8601(Value::from(currentTime));
             return self.extend(__ws_arg_8, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2253,12 +2253,12 @@ impl Apex {
             });
             let __ws_arg_10 = self.extend(request, &[&paramsOmitted]);
             let mut response: crate::value::Dict = self.private_post_v3_transfer_out(&[__ws_arg_10]).await.into_dict();
-            let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
+            })]).into_dict();
             let mut currentTime: i64 = self.milliseconds();
-            let __ws_arg_11 = self.parse_transfer(data, Some(&self.currency(code)));
+            let __ws_arg_11 = self.parse_transfer(&data, Some(&self.currency(code)));
             let __ws_arg_12 = self.iso8601(Value::from(currentTime));
             let __ws_arg_13 = self.parse_number(amount, &[]);
             return self.extend(__ws_arg_11, &[Value::Map({
@@ -2378,11 +2378,11 @@ impl Apex {
             let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
             response = self.private_post_v3_delete_order(&[__ws_arg_16]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.safe_order(data, None);
+        })]).into_dict();
+        return self.safe_order(Value::Dict(data), None);
         Value::Null
         }).await?))
     }
@@ -2789,11 +2789,11 @@ impl Apex {
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_v3_set_initial_margin_rate(&[__ws_arg_23]).await.into_dict();
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return data;
+        })]).into_dict();
+        return Value::Dict(data);
         Value::Null
         }).await?))
     }

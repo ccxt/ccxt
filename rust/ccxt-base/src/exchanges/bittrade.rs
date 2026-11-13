@@ -2075,7 +2075,7 @@ impl Bittrade {
         let mut state: Option<String> = self.safe_string_k(currency.clone(), "state", &[]).as_str().map(str::to_owned);
         let mut active: Value = Value::Bool(((((visible && (depositEnabled == Some(true))) && (withdrawEnabled == Some(true))) && (state.as_deref() == Some("online"))) && (countryDisabled != true)));
         let mut name: Option<String> = self.safe_string_k(currency.clone(), "display-name", &[]).as_str().map(str::to_owned);
-        let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "withdraw-precision", &[])]), &[]);
+        let mut precision: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "withdraw-precision", &[])]), &[]).as_f64();
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -2086,13 +2086,13 @@ impl Bittrade {
         m.insert("deposit".to_string(), depositEnabled.map_or(Value::Null, Value::Bool));
         m.insert("withdraw".to_string(), withdrawEnabled.map_or(Value::Null, Value::Bool));
         m.insert("fee".to_string(), Value::Null);
-        m.insert("precision".to_string(), precision.clone());
+        m.insert("precision".to_string(), Value::from(precision));
         m.insert("networks".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), precision);
+        m.insert("min".to_string(), Value::from(precision));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -2936,11 +2936,11 @@ impl Bittrade {
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), Some(&currencyResolved));
         let mut networkId: Option<String> = self.safe_string_k(depositAddress.clone(), "chain", &[]).as_str().map(str::to_owned);
-        let mut networks: Value = self.safe_dict_k(&currencyResolved, "networks", &[Value::Map({
+        let mut networks: crate::value::Dict = self.safe_dict_k(&currencyResolved, "networks", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut networksById: crate::value::Dict = self.index_by(networks, Value::Str("id".into())).into_dict();
+        })]).into_dict();
+        let mut networksById: crate::value::Dict = self.index_by(Value::Dict(networks), Value::Str("id".into())).into_dict();
         let mut networkEntry: crate::value::Dict = self.safe_dict(&networksById, networkId.map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
         let mut network: Option<String> = self.safe_string_k(&networkEntry, "network", &[]).as_str().map(str::to_owned);
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -3224,8 +3224,8 @@ impl Bittrade {
                 request.insert("chain".into(), Value::Str(format!("{}{}", network, crate::value::KeyRead::key_read(&&currency, "id")).into()));
             }
         }
-        let mut paramsNetwork: Value = (if (network != Value::Null) { self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[]) } else { Value::from(&paramsWithdrawTag) });
-        let __ws_arg_19 = self.extend(Value::Map(request), &[paramsNetwork]);
+        let mut paramsNetwork: crate::value::Dict = (if (network != Value::Null) { self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[]).into_dict() } else { paramsWithdrawTag });
+        let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsNetwork]);
         let mut response: crate::value::Dict = self.private_post_dw_withdraw_api_create(&[__ws_arg_19]).await.into_dict();
         return self.parse_transaction(&response, Some(&currency));
         Value::Null

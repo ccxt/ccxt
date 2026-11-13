@@ -436,9 +436,9 @@ if _try_result.is_err() {
         if (limit != Value::Null) {
             message.insert("size".into(), limit);
         }
-        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
         let mut requestId: i64 = self.request_id();
-        return self.watch(url.as_deref(), messageHash.as_str(), request.clone(), (Value::from(requestId)).to_string().as_str(), request).await;
+        return self.watch(url.as_deref(), messageHash.as_str(), &request, (Value::from(requestId)).to_string().as_str(), &request).await;
         Value::Null
         }).await?))
     }
@@ -493,13 +493,13 @@ if _try_result.is_err() {
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
+        let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -623,10 +623,10 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut timeframes: Value = self.safe_dict_k(&watchOHLCVOptions, "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(&watchOHLCVOptions, "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut records: Option<crate::value::List> = message.get("records").cloned().unwrap_or_default().into_opt_list();
         let mut timeframeId: String = "".to_string();
         let mut messageHash: String = "".to_string();
@@ -643,7 +643,7 @@ if _try_result.is_err() {
                 return;
             }
         }
-        let mut timeframe: Option<String> = self.find_timeframe(Value::from(timeframeId), &[timeframes]);
+        let mut timeframe: Option<String> = self.find_timeframe(Value::from(timeframeId), &[Value::Dict(timeframes)]);
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
         if (stored.is_none()) {
@@ -656,12 +656,9 @@ if _try_result.is_err() {
             let mut parsed: Value = Value::from(vec![self.safe_integer(&rawOHLCV, Value::Int(0), &[]), self.safe_number(&rawOHLCV, Value::Int(1), &[]), self.safe_number(&rawOHLCV, Value::Int(2), &[]), self.safe_number(&rawOHLCV, Value::Int(3), &[]), self.safe_number(&rawOHLCV, Value::Int(4), &[]), self.safe_number(&rawOHLCV, Value::Int(5), &[])]);
             stored.append(parsed.clone());
         }  else {
-            let mut rawOHLCV: Value = (match message.get("kbar") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-            let mut datetime: Option<String> = self.safe_string_k(rawOHLCV.clone(), "t", &[]).as_str().map(str::to_owned);
-            let mut parsed: Value = Value::from(vec![Value::from(self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null))), self.safe_number_k(rawOHLCV.clone(), "o", &[]), self.safe_number_k(rawOHLCV.clone(), "h", &[]), self.safe_number_k(rawOHLCV.clone(), "l", &[]), self.safe_number_k(rawOHLCV.clone(), "c", &[]), self.safe_number_k(rawOHLCV, "v", &[])]);
+            let mut rawOHLCV: crate::value::Dict = message.get("kbar").cloned().unwrap_or_default().into_dict();
+            let mut datetime: Option<String> = self.safe_string_k(&rawOHLCV, "t", &[]).as_str().map(str::to_owned);
+            let mut parsed: Value = Value::from(vec![Value::from(self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null))), self.safe_number_k(&rawOHLCV, "o", &[]), self.safe_number_k(&rawOHLCV, "h", &[]), self.safe_number_k(&rawOHLCV, "l", &[]), self.safe_number_k(&rawOHLCV, "c", &[]), self.safe_number_k(&rawOHLCV, "v", &[])]);
             stored.append(parsed);
         }
         client.resolve(Value::from(&stored), messageHash.as_str());
@@ -701,9 +698,9 @@ if _try_result.is_err() {
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
         let mut requestId: i64 = self.request_id();
-        return self.watch(url.as_deref(), messageHash.as_str(), request.clone(), (Value::from(requestId)).to_string().as_str(), request).await;
+        return self.watch(url.as_deref(), messageHash.as_str(), &request, (Value::from(requestId)).to_string().as_str(), &request).await;
         Value::Null
         }).await?))
     }
@@ -742,8 +739,8 @@ if _try_result.is_err() {
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], request.clone(), &messageHash[..], request).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
+        return self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], &request).await;
         Value::Null
         }).await?))
     }
@@ -877,9 +874,9 @@ if _try_result.is_err() {
                 m.insert("size".to_string(), Value::from(limitResolved));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
         let mut requestId: i64 = self.request_id();
-        return self.watch(url.as_deref(), messageHash.as_str(), request.clone(), (Value::from(requestId)).to_string().as_str(), request).await;
+        return self.watch(url.as_deref(), messageHash.as_str(), &request, (Value::from(requestId)).to_string().as_str(), &request).await;
         Value::Null
         }).await?))
     }
@@ -922,9 +919,9 @@ if _try_result.is_err() {
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], request.clone(), &messageHash[..], request).await;
-        let mut result: Value = self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], &request).await.into();
+        let mut result: Value = self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         return self.sort_by(result, Value::Str("timestamp".into()), &[]);
         Value::Null
         }).await?))
@@ -1135,8 +1132,8 @@ if _try_result.is_err() {
                 m.insert("pair".to_string(), pair);
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut orders: Value = self.watch(url.as_deref(), messageHash.as_deref(), request.clone(), messageHash.as_deref(), request).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
+        let mut orders: Value = self.watch(url.as_deref(), messageHash.as_deref(), &request, messageHash.as_deref(), &request).await;
         return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
@@ -1313,8 +1310,8 @@ if _try_result.is_err() {
                 m.insert("subscribeKey".to_string(), key.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], request.clone(), &messageHash[..], request).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
+        return self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], &request).await;
         Value::Null
         }).await?))
     }
@@ -1397,8 +1394,8 @@ if _try_result.is_err() {
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1444,7 +1441,7 @@ if _try_result.is_err() {
             m
         });
         let mut request: Value = self.deep_extend(Value::Map(subscribe), &[&paramsOmitted]);
-        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await;
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))

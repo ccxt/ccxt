@@ -1493,12 +1493,12 @@ impl Delta {
             let mut expiryDatetime: Option<String> = self.safe_string_k(&market, "settlement_time", &[]).as_str().map(str::to_owned);
             let mut expiry: Option<i64> = self.parse8601(expiryDatetime.map(Value::from).unwrap_or(Value::Null));
             let mut contractSize: Option<f64> = self.safe_number_k(&market, "contract_value", &[]).as_f64();
-            let mut amountPrecision: Value = Value::Null;
+            let mut amountPrecision: Option<f64> = None;
             if matches!(&spot, Value::Bool(true)) {
-                amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(&productSpecs, "underlying_precision", &[])]), &[]); // seems inverse of 'impact_size'
+                amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(&productSpecs, "underlying_precision", &[])]), &[]).as_f64(); // seems inverse of 'impact_size'
             }  else {
                 // other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
-                amountPrecision = self.parse_number(Value::Str("1".into()), &[]);
+                amountPrecision = Some(1_f64);
             }
             let mut linear: Value = (Value::Bool(settle == quote));
             let mut optionType: Option<String> = None;
@@ -1557,7 +1557,7 @@ impl Delta {
         m.insert("optionType".to_string(), optionType.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), amountPrecision);
+        m.insert("amount".to_string(), Value::from(amountPrecision));
         m.insert("price".to_string(), self.safe_number_k(&market, "tick_size", &[]));
     m
 }));
@@ -2374,21 +2374,21 @@ impl Delta {
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
+        let mut duration: i64 = self.parse_timeframe(timeframe.clone());
         let mut limitValue: Option<i64> = Some(2000);
-        let mut windowSeconds: Value = (match (&(Value::Int(2000)), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut windowSeconds: Value = Value::Int((2000 * duration));
         if (limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0)) {
             limitValue = limit.as_i64(); // max 2000
-            windowSeconds = (match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            windowSeconds = (match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         }
         let mut until: Option<i64> = self.safe_integer_product_k(params.clone(), "until", Value::Float(0.001), &[]).as_i64();
         if (since == Value::Null) {
-            let mut end: Value = self.seconds();
+            let mut end: Option<i64> = Some(self.seconds().as_i64().unwrap_or_default());
             if (until.is_some()) {
-                end = Value::from(self.parse_to_int(Value::from(until)));
+                end = self.parse_to_int(Value::from(until));
             }
-            request.insert("end".into(), end.clone());
-            request.insert("start".into(), (match (&(end), &(windowSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            request.insert("end".into(), Value::from(end));
+            request.insert("start".into(), (match (&(Value::from(end)), &(windowSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }  else {
             let mut start: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             request.insert("start".into(), Value::from(start));
@@ -2848,15 +2848,15 @@ impl Delta {
             request.insert("limit_price".into(), self.price_to_precision(Value::from((market).symbol.clone()), price));
         }
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
         if (clientOrderId.is_some()) {
             request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut reduceOnly: Option<bool> = self.safe_bool_k(paramsOmitted.clone(), "reduceOnly", &[]).as_bool();
+        let mut reduceOnly: Option<bool> = self.safe_bool_k(&paramsOmitted, "reduceOnly", &[]).as_bool();
         if (reduceOnly == Some(true)) {
             request.insert("reduce_only".into(), reduceOnly.map_or(Value::Null, Value::Bool));
         }
-        let mut paramsOmitted2: crate::value::Dict = (if (reduceOnly == Some(true)) { self.omit(paramsOmitted.clone(), Value::Str("reduceOnly".into()), &[]) } else { paramsOmitted }).into_dict();
+        let mut paramsOmitted2: crate::value::Dict = (if (reduceOnly == Some(true)) { self.omit(&paramsOmitted, Value::Str("reduceOnly".into()), &[]).into_dict() } else { paramsOmitted });
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted2]);
         let mut response: crate::value::Dict = self.private_post_orders(&[__ws_arg_5]).await.into_dict();
         //
@@ -4384,8 +4384,8 @@ impl Delta {
         //         "success": true
         //     }
         //
-        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        let mut settlements: crate::value::List = self.parse_settlements(result, market.as_ref()).into_list();
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        let mut settlements: crate::value::List = self.parse_settlements(Value::Arr(result), market.as_ref()).into_list();
         let mut sorted: Value = self.sort_by(Value::Arr(settlements), Value::Str("timestamp".into()), &[]);
         return self.filter_by_symbol_since_limit(sorted, (self.safe_string_k(&market, "symbol", &[])).as_str(), since.as_i64(), limit.as_i64(), &[]);
 

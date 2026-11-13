@@ -387,8 +387,8 @@ impl Bitrue {
 }));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
+        return self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -539,13 +539,13 @@ impl Bitrue {
 }));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut orders: Value = self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
+        let mut orders: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -703,8 +703,8 @@ impl Bitrue {
 }));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(&url, &messageHash[..], request, &messageHash[..], Value::Null).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
+        return self.watch(&url, &messageHash[..], &request, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -767,12 +767,12 @@ impl Bitrue {
 }) });
         let mut parseable: Value = tick.clone();
         if isFutures {
-            let mut rawAsks: Value = self.safe_list_k(tick.clone(), "asks", &[Value::from(vec![])]);
-            let mut rawBuys: Value = self.safe_list_k(tick, "buys", &[Value::from(vec![])]);
+            let mut rawAsks: crate::value::List = self.safe_list_k(tick.clone(), "asks", &[Value::from(vec![])]).into_list();
+            let mut rawBuys: crate::value::List = self.safe_list_k(tick, "buys", &[Value::from(vec![])]).into_list();
             parseable = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("asks".to_string(), self.parse_contract_bids_asks(rawAsks, symbol.clone().map(Value::from).unwrap_or(Value::Null)));
-                    m.insert("buys".to_string(), self.parse_contract_bids_asks(rawBuys, symbol.clone().map(Value::from).unwrap_or(Value::Null)));
+                    m.insert("asks".to_string(), self.parse_contract_bids_asks(Value::Arr(rawAsks), symbol.clone().map(Value::from).unwrap_or(Value::Null)));
+                    m.insert("buys".to_string(), self.parse_contract_bids_asks(Value::Arr(rawBuys), symbol.clone().map(Value::from).unwrap_or(Value::Null)));
                 m
             });
         }
@@ -904,13 +904,13 @@ impl Bitrue {
 }));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut trades: Value = self.watch(&url, &messageHash[..], request, &messageHash[..], Value::Null).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch(&url, &messageHash[..], &request, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1061,13 +1061,13 @@ impl Bitrue {
 }));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        let mut ohlcv: Value = self.watch(&url, &messageHash[..], request, &messageHash[..], Value::Null).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
+        let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch(&url, &messageHash[..], &request, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1102,11 +1102,11 @@ impl Bitrue {
             return;
         }
         let mut wsInterval: Option<String> = self.safe_string(&parts, Value::Int(4), &[]).as_str().map(str::to_owned);
-        let mut futuresTimeframes: Value = self.safe_dict_k(self.options.clone(), "futuresTimeframes", &[Value::Map({
+        let mut futuresTimeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "futuresTimeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timeframe: Option<String> = self.find_timeframe(wsInterval.map(Value::from).unwrap_or(Value::Null), &[futuresTimeframes]);
+        })]).into_dict();
+        let mut timeframe: Option<String> = self.find_timeframe(wsInterval.map(Value::from).unwrap_or(Value::Null), &[Value::Dict(futuresTimeframes)]);
         if (timeframe.is_none()) {
             return;
         }
@@ -1190,8 +1190,8 @@ impl Bitrue {
 }));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(&url, &messageHash[..], request, &messageHash[..], Value::Null).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
+        return self.watch(&url, &messageHash[..], &request, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }

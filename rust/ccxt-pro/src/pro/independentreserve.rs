@@ -314,8 +314,8 @@ impl Independentreserve {
         let mut quoteId: String = self.safe_string_k(&market, "quote", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("?subscribe=ticker-".into())).into()), baseId).into()), Value::Str("-".into())).into()), quoteId);
         let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbolValue);
-        let mut trades: Value = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Null).await;
-        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Null).await.into();
+        return self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -436,7 +436,7 @@ impl Independentreserve {
                 m.insert("receivedSnapshot".to_string(), Value::Bool(false));
             m
         });
-        let mut orderbook: Value = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Map(subscription)).await;
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Map(subscription)).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -482,7 +482,7 @@ impl Independentreserve {
         if (base.is_none()) || (quote.is_none()) {
             return;
         }
-        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)).into());
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null));
         let mut orderBook: crate::value::Dict = message.get("Data").cloned().unwrap_or_default().into_dict();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into()), Value::Str(":".into())).into()), depth).into());
         let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({
@@ -500,7 +500,7 @@ impl Independentreserve {
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         if (event.as_deref() == Some("OrderBookSnapshot")) {
-            let mut snapshot: crate::value::Dict = self.parse_order_book(&orderBook, symbol.clone(), &[Value::from(timestamp), Value::Str("Bids".into()), Value::Str("Offers".into()), Value::Str("Price".into()), Value::Str("Volume".into())]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parse_order_book(&orderBook, Value::from(symbol.as_str()), &[Value::from(timestamp), Value::Str("Bids".into()), Value::Str("Offers".into()), Value::Str("Price".into()), Value::Str("Volume".into())]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
             // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag
@@ -510,10 +510,10 @@ impl Independentreserve {
     m
 })]));
         }  else {
-            let mut asks: Value = self.safe_list_k(&orderBook, "Offers", &[Value::from(vec![])]);
-            let mut bids: Value = self.safe_list_k(&orderBook, "Bids", &[Value::from(vec![])]);
-            self.handle_deltas(orderbook.book_field("asks"), asks);
-            self.handle_deltas(orderbook.book_field("bids"), bids);
+            let mut asks: crate::value::List = self.safe_list_k(&orderBook, "Offers", &[Value::from(vec![])]).into_list();
+            let mut bids: crate::value::List = self.safe_list_k(&orderBook, "Bids", &[Value::from(vec![])]).into_list();
+            self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
+            self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         }
@@ -545,7 +545,7 @@ impl Independentreserve {
             let mut calculatedChecksum: Value = self.crc32(&[Value::from(payload), Value::Bool(false)]);
             let mut responseChecksum: Value = self.safe_integer_k(&orderBook, "Crc32", &[]);
             if (calculatedChecksum.as_f64() != responseChecksum.as_f64()) {
-                let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), self.orderbook_checksum_message(symbol.clone()))));
+                let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), self.orderbook_checksum_message(Value::from(symbol.as_str())))));
                 __ch.remove_subscription(&messageHash);
                 CacheStore::forget(&mut self.orderbooks, &symbol);
                 client.reject(error, &messageHash);

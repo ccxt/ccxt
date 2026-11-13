@@ -1023,7 +1023,7 @@ impl Bitteam {
         let mut numericId: Option<i64> = self.safe_integer_k(currency.clone(), "id", &[]).as_i64();
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut active: bool = self.safe_bool_k(currency.clone(), "active", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "precision", &[])]), &[]);
+        let mut precision: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "precision", &[])]), &[]).as_f64();
         let mut txLimits: crate::value::Dict = self.safe_dict_k(currency.clone(), "txLimits", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1062,7 +1062,7 @@ impl Bitteam {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut networkPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "decimals", &[])]), &[]);
+        let mut networkPrecision: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "decimals", &[])]), &[]).as_f64();
         let mut typeRaw: Option<String> = self.safe_string_k(currency.clone(), "type", &[]).as_str().map(str::to_owned);
         {
                         let mut j: i64 = 0;
@@ -1080,7 +1080,7 @@ impl Bitteam {
         m.insert("withdraw".to_string(), withdraw.map_or(Value::Null, Value::Bool));
         m.insert("active".to_string(), Value::Bool(active));
         m.insert("fee".to_string(), Value::from(networkFee));
-        m.insert("precision".to_string(), networkPrecision.clone());
+        m.insert("precision".to_string(), Value::from(networkPrecision));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -1120,7 +1120,7 @@ impl Bitteam {
         m.insert("deposit".to_string(), deposit.map_or(Value::Null, Value::Bool));
         m.insert("withdraw".to_string(), withdraw.map_or(Value::Null, Value::Bool));
         m.insert("fee".to_string(), fee);
-        m.insert("precision".to_string(), precision);
+        m.insert("precision".to_string(), Value::from(precision));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -1805,11 +1805,11 @@ impl Bitteam {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut orders: Value = Value::from(vec![result]);
+        })]).into_dict();
+        let mut orders: Value = Value::from(vec![Value::Dict(result)]);
         return self.parse_orders(orders, market.as_ref(), &[]);
         Value::Null
         }).await?))

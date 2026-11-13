@@ -2680,11 +2680,11 @@ impl Coinsph {
         //       }
         //     ]
         //
-        let mut tradingFee: Value = self.safe_dict(&response, Value::Int(0), &[Value::Map({
+        let mut tradingFee: crate::value::Dict = self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        return self.parse_trading_fee(tradingFee, Some(&market));
+})]).into_dict();
+        return self.parse_trading_fee(Value::Dict(tradingFee), Some(&market));
         Value::Null
         }).await?))
     }

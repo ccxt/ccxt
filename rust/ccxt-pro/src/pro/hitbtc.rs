@@ -761,10 +761,10 @@ impl Hitbtc {
                 let mut parsedSnapshot: crate::value::Dict = self.parse_order_book(item.clone(), symbol.clone(), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
                 orderbook.reset(Value::Dict(parsedSnapshot));
             }  else {
-                let mut asks: Value = self.safe_list_k(item.clone(), "a", &[Value::from(vec![])]);
-                let mut bids: Value = self.safe_list_k(item, "b", &[Value::from(vec![])]);
-                self.handle_deltas(orderbook.book_field("asks"), asks);
-                self.handle_deltas(orderbook.book_field("bids"), bids);
+                let mut asks: crate::value::List = self.safe_list_k(item.clone(), "a", &[Value::from(vec![])]).into_list();
+                let mut bids: crate::value::List = self.safe_list_k(item, "b", &[Value::from(vec![])]).into_list();
+                self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
+                self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
             }
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));

@@ -1109,8 +1109,8 @@ impl Cryptomus {
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
-        return self.parse_balance_list(result);
+        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        return self.parse_balance_list(Value::Arr(result));
         Value::Null
         }).await?))
     }
@@ -1665,12 +1665,12 @@ impl Cryptomus {
         let mut takerFee: Option<String> = self.safe_string_k(&currentFeeTier, "taker_percent", &[]).as_str().map(str::to_owned);
         makerFee = crate::precise::Precise::stringDiv(&makerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         takerFee = crate::precise::Precise::stringDiv(&takerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
-        let mut feeTiers: Value = self.safe_list_k(&data, "tariff_steps", &[Value::from(vec![])]);
+        let mut feeTiers: crate::value::List = self.safe_list_k(&data, "tariff_steps", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut tiers: indexmap::IndexMap<String, Value> = self.parse_fee_tiers(feeTiers, None).as_map().cloned().unwrap_or_default();
+        let mut tiers: indexmap::IndexMap<String, Value> = self.parse_fee_tiers(Value::Arr(feeTiers), None).as_map().cloned().unwrap_or_default();
         let mut symbols: Value = Value::Arr(self.symbols.clone());
         if (symbols == Value::Null) {
             return Value::Map(result);

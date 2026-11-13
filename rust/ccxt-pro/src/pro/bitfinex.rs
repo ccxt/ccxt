@@ -884,10 +884,10 @@ impl Bitfinex {
             if (type_var.as_deref() == Some("tu")) {
                 return;
             }
-            let mut trade: Value = self.safe_list(message, Value::Int(2), &[Value::from(vec![])]);
+            let mut trade: crate::value::List = self.safe_list(message, Value::Int(2), &[Value::from(vec![])]).into_list();
             let mut parsed: crate::value::Dict = self.parse_ws_trade(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("result".to_string(), trade);
+                    m.insert("result".to_string(), Value::Arr(trade));
                 m
             }), Some(&market)).into_dict();
             stored.append(Value::Dict(parsed));
@@ -972,9 +972,9 @@ impl Bitfinex {
         let mut timestamp: Option<i64> = self.safe_integer(&trade, Value::from(createdKey), &[]).as_i64();
         let mut price: Option<String> = self.safe_string(&trade, Value::from(priceKey), &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string(&trade, Value::from(amountKey), &[]).as_str().map(str::to_owned);
-        let mut amount: Value = self.parse_number(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
+        let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
         let mut side: Option<String> = None;
-        if (amount != Value::Null) {
+        if (amount.is_some()) {
             side = (if crate::precise::Precise::stringGt(&amountString.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         }
         let mut symbol: Option<String> = self.safe_symbol(marketId, Some(&marketResolved), &[]).as_str().map(str::to_owned);
@@ -1007,7 +1007,7 @@ impl Bitfinex {
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), Value::from(amount));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
@@ -1211,13 +1211,13 @@ impl Bitfinex {
                                         let mut i: i64 = 0;
                     let mut __for_first_103: bool = true;
                     while { if !__for_first_103 { i += 1; } __for_first_103 = false; i < (deltas.len() as i64) } {
-                    let mut delta: Value = self.safe_list(&deltas, Value::Int(i), &[]);
-                    let mut deltaAmount: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
+                    let mut delta: crate::value::List = self.safe_list(&deltas, Value::Int(i), &[]).into_list();
+                    let mut deltaAmount: Value = self.safe_number(&delta, Value::Int(2), &[]);
                     if (deltaAmount == Value::Null) {
                         continue;
                     }
-                    let mut counter: Option<f64> = self.safe_number(delta.clone(), Value::Int(1), &[]).as_f64();
-                    let mut price: Option<f64> = self.safe_number(delta, Value::Int(0), &[]).as_f64();
+                    let mut counter: Option<f64> = self.safe_number(&delta, Value::Int(1), &[]).as_f64();
+                    let mut price: Option<f64> = self.safe_number(&delta, Value::Int(0), &[]).as_f64();
                     let mut size: Value = (if (deltaAmount.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { (match &(deltaAmount) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }) } else { deltaAmount.clone() });
                     let mut side: Value = (if (deltaAmount.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { Value::Str("asks".into()) } else { Value::Str("bids".into()) });
                     let mut bookside: Value = get_value(&orderbook, &side);
@@ -1229,22 +1229,22 @@ impl Bitfinex {
             client.resolve(orderbook.clone(), messageHash.as_str());
         }  else {
             let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));
-            let mut deltas: Value = self.safe_list(message, Value::Int(1), &[]);
+            let mut deltas: crate::value::List = self.safe_list(message, Value::Int(1), &[]).into_list();
             let mut orderbookItem: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
             if isRaw {
-                let mut price: Option<String> = self.safe_string_opt(deltas.clone(), Value::Int(1), &[]);
-                let mut deltas2: Value = self.safe_number(deltas.clone(), Value::Int(2), &[]);
+                let mut price: Option<String> = self.safe_string_opt(&deltas, Value::Int(1), &[]);
+                let mut deltas2: Value = self.safe_number(&deltas, Value::Int(2), &[]);
                 let mut size: Value = (if ((deltas2 != Value::Null) && deltas2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { (match &(deltas2) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }) } else { deltas2.clone() });
                 let mut side: Value = (if ((deltas2 != Value::Null) && deltas2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { Value::Str("asks".into()) } else { Value::Str("bids".into()) });
                 let mut bookside: Value = get_value(&Value::from(&orderbookItem), &side);
                 // price = 0 means that you have to remove the order from your book
                 let mut amount: Value = (if crate::precise::Precise::stringGt(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { size.clone() } else { Value::Str("0".into()) });
-                let mut idString: Option<String> = self.safe_string(deltas.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+                let mut idString: Option<String> = self.safe_string(&deltas, Value::Int(0), &[]).as_str().map(str::to_owned);
                 bookside.store_array(Value::from(vec![self.parse_number(price.map(Value::from).unwrap_or(Value::Null), &[]), self.parse_number(amount.clone(), &[]), idString.map(Value::from).unwrap_or(Value::Null)]));
             }  else {
-                let mut amount: Value = self.safe_string(deltas.clone(), Value::Int(2), &[]);
-                let mut counter: Option<String> = self.safe_string(deltas.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
-                let mut price: Option<String> = self.safe_string(deltas, Value::Int(0), &[]).as_str().map(str::to_owned);
+                let mut amount: Value = self.safe_string(&deltas, Value::Int(2), &[]);
+                let mut counter: Option<String> = self.safe_string(&deltas, Value::Int(1), &[]).as_str().map(str::to_owned);
+                let mut price: Option<String> = self.safe_string(&deltas, Value::Int(0), &[]).as_str().map(str::to_owned);
                 let mut size: Value = (if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) { crate::precise::Precise::stringNeg(&amount) } else { amount.clone() });
                 let mut side: Value = (if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("asks".into()) } else { Value::Str("bids".into()) });
                 let mut bookside: Value = get_value(&Value::from(&orderbookItem), &side);
@@ -1299,8 +1299,8 @@ impl Bitfinex {
         if (responseChecksum.as_f64() != localChecksum.as_f64()) {
             __ch.remove_subscription(messageHash.as_str());
             CacheStore::forget(&mut self.orderbooks, &symbol);
-            let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
-            if (match &(checksum) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
+            let mut checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]).as_bool();
+            if (checksum == Some(true)) {
                 let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), self.orderbook_checksum_message(symbol.map(Value::from).unwrap_or(Value::Null)))));
                 client.reject(error, messageHash.as_str());
             }

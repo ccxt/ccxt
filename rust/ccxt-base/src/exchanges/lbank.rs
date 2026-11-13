@@ -931,8 +931,8 @@ impl Lbank {
         //        "ts": "1747973911431"
         //    }
         //
-        let mut currenciesData: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut grouped: Value = self.group_by(currenciesData, Value::Str("assetCode".into()), &[]);
+        let mut currenciesData: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut grouped: Value = self.group_by(Value::Arr(currenciesData), Value::Str("assetCode".into()), &[]);
         let mut values: crate::value::List = Value::Array(grouped.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).into_list();
         return self.parse_currencies(&values);
         Value::Null
@@ -2014,12 +2014,12 @@ impl Lbank {
                                 let mut i: i64 = 0;
                 let mut __for_first_920: bool = true;
                 while { if !__for_first_920 { i += 1; } __for_first_920 = false; i < (balances.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let mut item: Value = self.safe_dict(&balances, Value::Int(i), &[]);
-                let mut currencyId: Option<String> = self.safe_string_k(item.clone(), "asset", &[]).as_str().map(str::to_owned);
+                let mut item: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
+                let mut currencyId: Option<String> = self.safe_string_k(&item, "asset", &[]).as_str().map(str::to_owned);
                 let mut codeInner: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 let mut account: crate::value::Dict = self.account().into_dict();
-                std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(item.clone(), "free", &[]));
-                std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string_k(item.clone(), "locked", &[]));
+                std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(&item, "free", &[]));
+                std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string_k(&item, "locked", &[]));
                 if (codeInner.is_some()) {
                     result.insert(codeInner.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
                 }
@@ -2034,12 +2034,12 @@ impl Lbank {
                                 let mut i: i64 = 0;
                 let mut __for_first_921: bool = true;
                 while { if !__for_first_921 { i += 1; } __for_first_921 = false; i < (data.len() as i64) } {
-                let mut item: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
-                let mut currencyId: Option<String> = self.safe_string_k(item.clone(), "coin", &[]).as_str().map(str::to_owned);
+                let mut item: crate::value::Dict = self.safe_dict(data.clone(), Value::Int(i), &[]).into_dict();
+                let mut currencyId: Option<String> = self.safe_string_k(&item, "coin", &[]).as_str().map(str::to_owned);
                 let mut codeInner: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 let mut account: crate::value::Dict = self.account().into_dict();
-                std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(item.clone(), "usableAmt", &[]));
-                std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string_k(item, "freezeAmt", &[]));
+                std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(&item, "usableAmt", &[]));
+                std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string_k(&item, "freezeAmt", &[]));
                 if (codeInner.is_some()) {
                     result.insert(codeInner.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
                 }
@@ -4097,8 +4097,8 @@ impl Lbank {
         //        "ts": "1663364435973"
         //    }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_public_deposit_withdraw_fees(data, &[codes]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_public_deposit_withdraw_fees(Value::Arr(data), &[codes]);
 
     Value::Null
 }

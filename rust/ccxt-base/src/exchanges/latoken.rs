@@ -884,11 +884,11 @@ impl Latoken {
         if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let mut currencies: Value = self.safe_dict_k(self.options.clone(), "cachedCurrencies", &[Value::Map({
+        let mut currencies: crate::value::Dict = self.safe_dict_k(self.options.clone(), "cachedCurrencies", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut currenciesById: crate::value::Dict = self.index_by(currencies, Value::Str("id".into())).into_dict();
+})]).into_dict();
+        let mut currenciesById: crate::value::Dict = self.index_by(Value::Dict(currencies), Value::Str("id".into())).into_dict();
         let mut result: Vec<Value> = Vec::new();
         let mut rawMarkets: crate::value::List = self.to_array(&response).into_list();
         {
@@ -1101,8 +1101,8 @@ impl Latoken {
                         let mut i: i64 = 0;
             let mut __for_first_912: bool = true;
             while { if !__for_first_912 { i += 1; } __for_first_912 = false; i < (bindings.len() as i64) } {
-            let mut binding: Value = bindings.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut networkId: Option<String> = self.safe_string_k(binding.clone(), "providerName", &[]).as_str().map(str::to_owned);
+            let mut binding: crate::value::Dict = bindings.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut networkId: Option<String> = self.safe_string_k(&binding, "providerName", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
             // entries would land on the same unified code - keep the first one for a
@@ -1110,13 +1110,13 @@ impl Latoken {
             if (networkCode != Value::Null) && !(matches!(&networkCode, Value::Str(__k) if networks.contains_key(__k.as_ref()))) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), binding.clone());
-        m.insert("id".to_string(), self.safe_string_k(binding.clone(), "id", &[]));
+        m.insert("info".to_string(), Value::from(&binding));
+        m.insert("id".to_string(), self.safe_string_k(&binding, "id", &[]));
         m.insert("network".to_string(), networkCode.clone());
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
-        m.insert("fee".to_string(), self.safe_number_k(binding.clone(), "fee", &[]));
+        m.insert("fee".to_string(), self.safe_number_k(&binding, "fee", &[]));
         m.insert("precision".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1128,7 +1128,7 @@ impl Latoken {
 }));
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(binding, "minAmount", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&binding, "minAmount", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));

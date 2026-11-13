@@ -1653,8 +1653,8 @@ impl Hashkey {
                 subType = Some("linear".to_string());
             }
         }
-        let mut filtersList: Value = self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]);
-        let mut filters: crate::value::Dict = self.index_by(filtersList, Value::Str("filterType".into())).into_dict();
+        let mut filtersList: crate::value::List = self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]).into_list();
+        let mut filters: crate::value::Dict = self.index_by(Value::Arr(filtersList), Value::Str("filterType".into())).into_dict();
         let mut priceFilter: crate::value::Dict = self.safe_dict_k(&filters, "PRICE_FILTER", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2524,11 +2524,11 @@ impl Hashkey {
             //         }
             //     ]
             //
-            let mut balance: Value = self.safe_dict(&response, Value::Int(0), &[Value::Map({
+            let mut balance: crate::value::Dict = self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            return self.parse_swap_balance(balance);
+})]).into_dict();
+            return self.parse_swap_balance(Value::Dict(balance));
         }  else if (marketTypeOption.as_deref() == Some("spot")) {
             let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsMarketType]);
             let mut response: crate::value::Dict = self.private_get_api_v1_account(&[__ws_arg_9]).await.into_dict();
@@ -3289,7 +3289,7 @@ impl Hashkey {
             direction = "out".to_string();
         }
         let mut afterString: Option<String> = self.safe_string_k(item.clone(), "total", &[]).as_str().map(str::to_owned);
-        let mut after: Value = self.parse_number(afterString.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut after: Option<f64> = self.parse_number(afterString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut status: String = "ok".to_string();
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3306,7 +3306,7 @@ impl Hashkey {
         m.insert("symbol".to_string(), Value::Null);
         m.insert("amount".to_string(), amount);
         m.insert("before".to_string(), Value::Null);
-        m.insert("after".to_string(), after);
+        m.insert("after".to_string(), Value::from(after));
         m.insert("status".to_string(), Value::from(status));
         m.insert("fee".to_string(), Value::Null);
     m
@@ -3636,12 +3636,12 @@ impl Hashkey {
             request.insert("clientOrderId".into(), Value::from(self.uuid(&[])));
         }
         let mut triggerPrice: Option<String> = self.safe_string_k(&paramsPostOnly, "triggerPrice", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = (if (triggerPrice.is_some()) { self.omit(&paramsPostOnly, Value::Str("triggerPrice".into()), &[]) } else { Value::from(&paramsPostOnly) });
+        let mut paramsOmitted: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(&paramsPostOnly, Value::Str("triggerPrice".into()), &[]).into_dict() } else { paramsPostOnly });
         if (triggerPrice.is_some()) {
             request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
             request.insert("type".into(), Value::Str("STOP".into()));
         }
-        return self.extend(Value::Map(request), &[paramsOmitted]);
+        return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
 }
@@ -3720,11 +3720,11 @@ impl Hashkey {
             let mut side: Option<String> = self.safe_string_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
             let mut amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
             let mut price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
-            let mut orderParams: Value = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
+            let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), orderParams]).into_dict();
+            })]).into_dict();
+            let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), Value::Dict(orderParams)]).into_dict();
             let mut clientOrderId: Option<String> = self.safe_string_k(&orderRequest, "clientOrderId", &[]).as_str().map(str::to_owned);
             if (clientOrderId.is_none()) {
                 std::sync::Arc::make_mut(&mut orderRequest).insert("clientOrderId".into(), Value::from(self.uuid(&[]))); // both spot and swap endpoints require clientOrderId
@@ -5456,11 +5456,11 @@ impl Hashkey {
                         let mut i: i64 = 0;
             let mut __for_first_732: bool = true;
             while { if !__for_first_732 { i += 1; } __for_first_732 = false; i < (data.len() as i64) } {
-            let mut fee: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut fee: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut parsedFee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(fee, None).as_map().cloned().unwrap_or_default();
+})]).into_dict();
+            let mut parsedFee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(Value::Dict(fee), None).as_map().cloned().unwrap_or_default();
             result.insert(crate::runtime::stringify_param(&(parsedFee.get("symbol").cloned().unwrap_or(Value::Null))), Value::Map(parsedFee));
         }
         }

@@ -1573,17 +1573,17 @@ impl Bitget {
                     m
                 }));
             }
-            let mut asks: Value = self.safe_list2(rawOrderBook.clone(), Value::Str("asks".into()), Value::Str("a".into()), &[Value::from(vec![])]);
-            let mut bids: Value = self.safe_list2(rawOrderBook.clone(), Value::Str("bids".into()), Value::Str("b".into()), &[Value::from(vec![])]);
-            self.handle_deltas(storedOrderBook.book_field("asks"), asks);
-            self.handle_deltas(storedOrderBook.book_field("bids"), bids);
+            let mut asks: crate::value::List = self.safe_list2(rawOrderBook.clone(), Value::Str("asks".into()), Value::Str("a".into()), &[Value::from(vec![])]).into_list();
+            let mut bids: crate::value::List = self.safe_list2(rawOrderBook.clone(), Value::Str("bids".into()), Value::Str("b".into()), &[Value::from(vec![])]).into_list();
+            self.handle_deltas(storedOrderBook.book_field("asks"), Value::Arr(asks));
+            self.handle_deltas(storedOrderBook.book_field("bids"), Value::Arr(bids));
             storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
             storedOrderBook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
-            let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
+            let mut checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]).as_bool();
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
             let mut responseChecksum: Value = self.safe_integer_k(rawOrderBook.clone(), "checksum", &[]);
-            if !isSnapshot && ((match &(checksum) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && (responseChecksum != Value::Null) {
+            if !isSnapshot && (checksum == Some(true)) && (responseChecksum != Value::Null) {
                 let mut storedAsks: Value = storedOrderBook.book_field("asks");
                 let mut storedBids: Value = storedOrderBook.book_field("bids");
                 let mut asksLength: Value = get_array_length(&storedAsks);
@@ -4033,18 +4033,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let mut argsList: Option<crate::value::List> = (match __pro_message.get("args").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
         if (argsList.is_none()) {
-            let mut arg: Value = (match __pro_message.get("arg").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-            argsList = Value::from(vec![arg.clone()]).into_opt_list();
+            let mut arg: crate::value::Dict = __pro_message.get("arg").cloned().unwrap_or_default().into_dict();
+            argsList = Value::from(vec![Value::Dict(arg)]).into_opt_list();
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_125: bool = true;
             while { if !__for_first_125 { i += 1; } __for_first_125 = false; i < (argsList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let mut arg: Value = self.safe_dict(&argsList, Value::Int(i), &[]);
-            let mut channel: String = self.safe_string2(arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut arg: crate::value::Dict = self.safe_dict(&argsList, Value::Int(i), &[]).into_dict();
+            let mut channel: String = self.safe_string2(&arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if channel.contains("books") {
                 // for now only unWatchOrderBook is supported
                 self.handle_order_book_un_subscription(client.clone(), message.clone());

@@ -1188,7 +1188,7 @@ impl Gemini {
         if isFiat {
             type_var = "fiat".to_string();
         }
-        let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string(rawCurrency.clone(), Value::Int(5), &[])]), &[]);
+        let mut precision: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string(rawCurrency.clone(), Value::Int(5), &[])]), &[]).as_f64();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1207,7 +1207,7 @@ impl Gemini {
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
-        m.insert("precision".to_string(), precision.clone());
+        m.insert("precision".to_string(), Value::from(precision));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
@@ -1239,7 +1239,7 @@ impl Gemini {
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
         m.insert("type".to_string(), Value::from(type_var));
-        m.insert("precision".to_string(), precision);
+        m.insert("precision".to_string(), Value::from(precision));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
@@ -1499,7 +1499,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut brokenPairs: Value = self.safe_list_k(self.options.clone(), "brokenPairs", &[Value::from(vec![])]);
+        let mut brokenPairs: crate::value::List = self.safe_list_k(self.options.clone(), "brokenPairs", &[Value::from(vec![])]).into_list();
         let mut marketIds: Vec<Value> = Vec::new();
         let mut allMarketIds: Value = Value::from(vec![]);
         if (matches!(&marketIdsRaw, Value::Arr(_))) {
@@ -1509,7 +1509,7 @@ impl Gemini {
                         let mut i: i64 = 0;
             let mut __for_first_713: bool = true;
             while { if !__for_first_713 { i += 1; } __for_first_713 = false; i < (allMarketIds.len() as i64) } {
-            if !(self.in_array(allMarketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), brokenPairs.clone()).as_bool() == Some(true)) {
+            if !(self.in_array(allMarketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&brokenPairs)).as_bool() == Some(true)) {
                 marketIds.push(allMarketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             }
         }
@@ -1552,7 +1552,7 @@ impl Gemini {
                     while { if !__for_first_716 { i += 1; } __for_first_716 = false; i < (marketIds.len() as i64) } {
                     let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                     let mut pairInfo: Option<crate::value::List> = self.safe_list(&indexedTradingPairs, marketId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), &[]).into_opt_list();
-                    if (pairInfo.is_some()) && !(self.in_array(marketId.map(Value::from).unwrap_or(Value::Null), brokenPairs.clone()).as_bool() == Some(true)) {
+                    if (pairInfo.is_some()) && !(self.in_array(marketId.map(Value::from).unwrap_or(Value::Null), Value::from(&brokenPairs)).as_bool() == Some(true)) {
                         let mut parsed: Value = self.parse_market(pairInfo.map_or(Value::Null, Value::Arr));
                         if (parsed != Value::Null) {
                             result.push(parsed.clone());
@@ -1565,7 +1565,7 @@ impl Gemini {
                                         let mut i: i64 = 0;
                     let mut __for_first_717: bool = true;
                     while { if !__for_first_717 { i += 1; } __for_first_717 = false; i < (marketIds.len() as i64) } {
-                    if !(self.in_array(marketIds.get(i as usize).cloned().unwrap_or(Value::Null), brokenPairs.clone()).as_bool() == Some(true)) {
+                    if !(self.in_array(marketIds.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&brokenPairs)).as_bool() == Some(true)) {
                         let mut parsed: Value = self.parse_market(marketIds.get(i as usize).cloned().unwrap_or(Value::Null));
                         if (parsed != Value::Null) {
                             result.push(parsed);
@@ -1618,8 +1618,8 @@ impl Gemini {
         let mut baseId: Value = Value::Null;
         let mut quoteId: Value = Value::Null;
         let mut settleId: Value = Value::Null;
-        let mut tickSize: Value = Value::Null;
-        let mut amountPrecision: Value = Value::Null;
+        let mut tickSize: Option<f64> = None;
+        let mut amountPrecision: Option<f64> = None;
         let mut minSize: Option<f64> = None;
         let mut status: Value = Value::Null;
         let mut swap: bool = false;
@@ -1630,8 +1630,8 @@ impl Gemini {
         let mut isArray: bool = matches!(&response, Value::Arr(_));
         if !isString && !(isArray) {
             marketId = self.safe_string_lower_k(response.clone(), "symbol", &[]);
-            amountPrecision = self.safe_number_k(response.clone(), "tick_size", &[]); // right, exchange has an imperfect naming and this turns out to be an amount-precision
-            tickSize = self.safe_number_k(response.clone(), "quote_increment", &[]); // this is tick-size actually
+            amountPrecision = self.safe_number_k(response.clone(), "tick_size", &[]).as_f64(); // right, exchange has an imperfect naming and this turns out to be an amount-precision
+            tickSize = self.safe_number_k(response.clone(), "quote_increment", &[]).as_f64(); // this is tick-size actually
             minSize = self.safe_number_k(response.clone(), "min_order_size", &[]).as_f64();
             status = self.parse_market_active((self.safe_string_k(response.clone(), "status", &[])).as_str());
             baseId = self.safe_string_k(response.clone(), "base_currency", &[]);
@@ -1643,8 +1643,8 @@ impl Gemini {
                 marketId = response.clone();
             }  else {
                 marketId = self.safe_string_lower(response.clone(), Value::Int(0), &[]);
-                tickSize = self.parse_number(self.parse_precision(&[self.safe_string(response.clone(), Value::Int(1), &[])]), &[]); // priceTickDecimalPlaces
-                amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string(response.clone(), Value::Int(2), &[])]), &[]); // quantityTickDecimalPlaces
+                tickSize = self.parse_number(self.parse_precision(&[self.safe_string(response.clone(), Value::Int(1), &[])]), &[]).as_f64(); // priceTickDecimalPlaces
+                amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string(response.clone(), Value::Int(2), &[])]), &[]).as_f64(); // quantityTickDecimalPlaces
                 minSize = self.safe_number(response.clone(), Value::Int(3), &[]).as_f64(); // quantityMinimum
             }
             let mut marketIdUpper: Value = (if let Some(__s) = marketId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
@@ -1696,7 +1696,7 @@ impl Gemini {
         if (settle.is_some()) {
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.clone().map(Value::from).unwrap_or(Value::Null));
             swap = true;
-            contractSize = tickSize.clone(); // always same
+            contractSize = Value::from(tickSize); // always same
             linear = Some(true); // always linear
             inverse = Some(false);
         }
@@ -1732,8 +1732,8 @@ impl Gemini {
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("price".to_string(), tickSize);
-        m.insert("amount".to_string(), amountPrecision);
+        m.insert("price".to_string(), Value::from(tickSize));
+        m.insert("amount".to_string(), Value::from(amountPrecision));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
@@ -2061,8 +2061,8 @@ impl Gemini {
         //     ]
         //
         let mut result: Value = self.parse_tickers(&response, &[symbols]);
-        let mut brokenPairs: Value = self.safe_list_k(self.options.clone(), "brokenPairs", &[Value::from(vec![])]);
-        return self.remove_keys_from_dict(result, brokenPairs);
+        let mut brokenPairs: crate::value::List = self.safe_list_k(self.options.clone(), "brokenPairs", &[Value::from(vec![])]).into_list();
+        return self.remove_keys_from_dict(result, Value::Arr(brokenPairs));
         Value::Null
         }).await?))
     }
@@ -2264,8 +2264,8 @@ impl Gemini {
         let mut takerBps: Option<String> = self.safe_string_k(response.clone(), "api_taker_fee_bps", &[]).as_str().map(str::to_owned);
         let mut makerString: Option<String> = crate::precise::Precise::stringDiv(&makerBps.map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())).as_str().map(str::to_owned);
         let mut takerString: Option<String> = crate::precise::Precise::stringDiv(&takerBps.map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())).as_str().map(str::to_owned);
-        let mut maker: Value = self.parse_number(makerString.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut taker: Value = self.parse_number(takerString.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut maker: Option<f64> = self.parse_number(makerString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+        let mut taker: Option<f64> = self.parse_number(takerString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2280,8 +2280,8 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("maker".to_string(), maker.clone());
-        m.insert("taker".to_string(), taker.clone());
+        m.insert("maker".to_string(), Value::from(maker));
+        m.insert("taker".to_string(), Value::from(taker));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m

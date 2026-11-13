@@ -1071,10 +1071,10 @@ impl Grvt {
             let mut snapshot: crate::value::Dict = self.parse_order_book(&data, symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
         }  else {
-            let mut asks: Value = self.safe_list_k(&data, "asks", &[Value::from(vec![])]);
-            let mut bids: Value = self.safe_list_k(&data, "bids", &[Value::from(vec![])]);
-            self.handle_deltas_with_keys(orderbook.book_field("asks"), asks, &[Value::Str("price".into()), Value::Str("size".into())]);
-            self.handle_deltas_with_keys(orderbook.book_field("bids"), bids, &[Value::Str("price".into()), Value::Str("size".into())]);
+            let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
+            let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
+            self.handle_deltas_with_keys(orderbook.book_field("asks"), Value::Arr(asks), &[Value::Str("price".into()), Value::Str("size".into())]);
+            self.handle_deltas_with_keys(orderbook.book_field("bids"), Value::Arr(bids), &[Value::Str("price".into()), Value::Str("size".into())]);
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         }

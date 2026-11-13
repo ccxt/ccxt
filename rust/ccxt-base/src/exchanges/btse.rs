@@ -1369,9 +1369,10 @@ impl Btse {
             if (since != Value::Null) {
                 // check if the requested time range is too large for one request
                 // if so, just omit until for correct paginated calls for not to get an error from the exchange
-                let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
-                let mut maxDelta: Value = (match (&((match (&(duration), &(maxLimit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })),
-                    &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }); // parseTimeframe returns seconds, the difference below is in milliseconds
+                let mut duration: i64 = self.parse_timeframe(timeframe.clone());
+                let mut maxDelta: Value = (match (&((match (&(Value::from(duration)), &(maxLimit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
+                    _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+                    // parseTimeframe returns seconds, the difference below is in milliseconds
                 if ((match (&(until), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) < maxDelta.as_f64().unwrap_or(f64::NAN) {
                     request.insert("end".into(), Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
                 }
@@ -1792,11 +1793,11 @@ impl Btse {
         //
         // a single-symbol request returns the entry directly in data
         //
-        let mut single: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut single: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![single])]).as_array().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut data: Vec<Value> = self.safe_list_k(&response, "data", &[Value::from(vec![Value::Dict(single)])]).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3227,12 +3228,12 @@ impl Btse {
         }  else {
             request.insert("orderId".into(), id);
         }
-        let mut paramsOmitted: Value = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::Str("clientOrderId".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::Str("clientOrderId".into()), &[]) } else { params }).into_dict();
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrder".into()), market.as_ref(), &[paramsOmitted, Value::Str("spot".into())]).as_array().cloned().unwrap_or_default();
+        let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrder".into()), market.as_ref(), &[Value::from(&paramsOmitted), Value::Str("spot".into())]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
@@ -3307,26 +3308,26 @@ impl Btse {
         }  else {
             request.insert("orderId".into(), id.clone());
         }
-        let mut paramsOmitted: Value = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::Str("clientOrderId".into()), &[]) } else { params });
-        let mut triggerPrice: Option<String> = self.safe_string_k(paramsOmitted.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::Str("clientOrderId".into()), &[]) } else { params }).into_dict();
+        let mut triggerPrice: Option<String> = self.safe_string_k(&paramsOmitted, "triggerPrice", &[]).as_str().map(str::to_owned);
         if (triggerPrice.is_some()) {
             request.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut query: Value = (if (triggerPrice.is_some()) { self.omit(paramsOmitted.clone(), Value::Str("triggerPrice".into()), &[]) } else { paramsOmitted });
+        let mut query: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(&paramsOmitted, Value::Str("triggerPrice".into()), &[]).into_dict() } else { paramsOmitted });
         if (amount != Value::Null) {
             request.insert("orderSize".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
         }
         if (price != Value::Null) {
             request.insert("orderPrice".into(), self.price_to_precision(symbol, price.clone()));
         }
-        let mut isSlide: bool = self.safe_bool_k(query.clone(), "slide", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSlide: bool = self.safe_bool_k(&query, "slide", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if (amount == Value::Null) && (price == Value::Null) && (triggerPrice.is_none()) && (!isSlide) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an amount argument, a price argument or a triggerPrice parameter".into()))));
         }
         let mut response: Value = Value::Null;
         if (market).spot {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
-            let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+            let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&query]);
             response = self.private_put_spot_api_v4_trade_orders(&[__ws_arg_18]).await;
         }  else {
             // the futures amend requires an explicit amendType discriminator
@@ -3344,7 +3345,7 @@ impl Btse {
             }  else {
                 request.insert("amendType".into(), Value::Str("PRICE".into()));
             }
-            let __ws_arg_19 = self.extend(Value::Map(request), &[query]);
+            let __ws_arg_19 = self.extend(Value::Map(request), &[&query]);
             response = self.private_put_futures_api_v3_trade_orders(&[__ws_arg_19]).await;
         }
         let mut order: crate::value::Dict = self.safe_dict(response, Value::Int(0), &[Value::Map({
@@ -4854,8 +4855,8 @@ impl Btse {
             }
             request.insert("orderPrice".into(), self.price_to_precision(symbol, price.map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut paramsOmitted: Value = (if (typeUpper.as_deref() == Some("LIMIT")) { self.omit(&paramsOrderType, Value::Str("price".into()), &[]) } else { Value::from(&paramsOrderType) });
-        let __ws_arg_37 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (typeUpper.as_deref() == Some("LIMIT")) { self.omit(&paramsOrderType, Value::Str("price".into()), &[]).into_dict() } else { paramsOrderType });
+        let __ws_arg_37 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_delete_futures_api_v3_trade_positions(&[__ws_arg_37]).await;
         let mut order: Value = self.safe_dict(response.clone(), Value::Int(0), &[response]);
         return self.parse_order(order, Some(&market));

@@ -1122,7 +1122,7 @@ impl Deepcoin {
         maxLeverage = crate::precise::Precise::stringMax(&maxLeverage.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())).as_str().map(str::to_owned);
         let mut maxMarketSize: Option<String> = self.safe_string_k(market.clone(), "maxMktSz", &[]).as_str().map(str::to_owned);
         let mut maxLimitSize: Option<String> = self.safe_string_k(market.clone(), "maxLmtSz", &[]).as_str().map(str::to_owned);
-        let mut maxAmount: Value = self.parse_number(crate::precise::Precise::stringMax(&maxMarketSize.map(Value::from).unwrap_or(Value::Null), &maxLimitSize.map(Value::from).unwrap_or(Value::Null)), &[]);
+        let mut maxAmount: Option<f64> = self.parse_number(crate::precise::Precise::stringMax(&maxMarketSize.map(Value::from).unwrap_or(Value::Null), &maxLimitSize.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
         let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
         let mut isMargin: Value = Value::Bool(matches!(&spot, Value::Bool(true)) && crate::precise::Precise::stringGt(&maxLeverage.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())).as_bool() == Some(true));
         let mut isInverse: Value = (if swap { (Value::Bool(isLinear != Some(true))) } else { Value::Null });
@@ -1175,7 +1175,7 @@ impl Deepcoin {
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), __ws_arg_6);
-        m.insert("max".to_string(), maxAmount);
+        m.insert("max".to_string(), Value::from(maxAmount));
     m
 }));
         m.insert("price".to_string(), Value::Map({
@@ -1358,9 +1358,9 @@ impl Deepcoin {
             if (since != Value::Null) {
                 // the exchange do not have a since param for this endpoint
                 // we calculate until (after) for correct pagination
-                let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
+                let mut duration: i64 = self.parse_timeframe(timeframe.clone());
                 let mut numberOfCandles: Value = (if (limit == Value::Null) { maxLimit } else { limit.clone() });
-                let mut endTime: Value = Value::from(self.parse_to_int((match (&(since), &((match (&(((match (&(duration), &(numberOfCandles)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                let mut endTime: Value = Value::from(self.parse_to_int((match (&(since), &((match (&(((match (&(Value::from(duration)), &(numberOfCandles)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                     _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })));
                 if (until != Value::Null) {
@@ -4377,8 +4377,8 @@ impl Deepcoin {
         if (until.is_some()) {
             request.insert("end".into(), Value::from(until));
         }
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(&paramsMarketType, Value::Str("until".into()), &[]) } else { Value::from(&paramsMarketType) });
-        let __ws_arg_37 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsMarketType, Value::Str("until".into()), &[]).into_dict() } else { paramsMarketType });
+        let __ws_arg_37 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_deepcoin_trade_fills(&[__ws_arg_37]).await.into_dict();
         //
         //     {

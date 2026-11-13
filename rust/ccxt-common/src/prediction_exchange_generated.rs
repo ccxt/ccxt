@@ -2004,8 +2004,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut status: Option<String> = self.safe_string_k(outcomeOrder.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut lastTradeTimestamp: Value = self.safe_integer_k(outcomeOrder.clone(), "lastTradeTimestamp", &[]);
         // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
-        let mut rawTrades: Value = self.safe_list_k(outcomeOrder.clone(), "trades", &[Value::from(vec![])]);
-        let mut trades: Value = self.parse_prediction_trades(rawTrades, &[outcomeObj]);
+        let mut rawTrades: crate::value::List = self.safe_list_k(outcomeOrder.clone(), "trades", &[Value::from(vec![])]).into_list();
+        let mut trades: Value = self.parse_prediction_trades(Value::Arr(rawTrades), &[outcomeObj]);
         let mut tradesLength: f64 = ((trades.len() as i64) as f64);
         let mut feeList: Vec<Value> = Vec::new();
         if tradesLength > ((0i64) as f64) {

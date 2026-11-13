@@ -622,7 +622,7 @@ impl Limitless {
         let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into())]), &[]).into_dict();
         // scope the listing: without a search query loadMarkets would otherwise page through
         // every active limitless market. Cap the total number of markets collected.
-        let mut maxMarkets: Value = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchMarketsLimit".into()), &[Value::Int(1000)])]);
+        let mut maxMarkets: Option<i64> = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchMarketsLimit".into()), &[Value::Int(1000)])]).as_i64();
         let mut allRaw: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut queriesLength: i64 = queries.len() as i64;
         if queriesLength > 0 {
@@ -679,9 +679,9 @@ impl Limitless {
             let mut firstData: crate::value::List = self.safe_list_k(&firstPageResponse, "data", &[Value::from(vec![])]).into_list();
             allRaw = self.array_concat(Value::Arr(allRaw), &firstData).into_list();
             let mut promises: Vec<Value> = Vec::new();
-            let mut cappedPages: Value = ((match ((maxMarkets).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
-            let mut knownTotal: Value = self.safe_integer_k(&firstPageResponse, "totalMarketsCount", &[Value::Int(0)]);
-            let mut allPages: Value = Value::from(self.parse_to_int(((match ((knownTotal).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)));
+            let mut cappedPages: Value = ((match ((Value::from(maxMarkets)).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
+            let mut knownTotal: i64 = self.safe_integer_k(&firstPageResponse, "totalMarketsCount", &[Value::Int(0)]).as_i64().unwrap_or(0);
+            let mut allPages: Value = Value::from(self.parse_to_int(((match ((Value::from(knownTotal)).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)));
             {
                                 let mut i: Value = Value::Int(2);
                 let mut __for_first_1301: bool = true;
@@ -701,8 +701,8 @@ impl Limitless {
                                 let mut j: i64 = 0;
                 let mut __for_first_1302: bool = true;
                 while { if !__for_first_1302 { j += 1; } __for_first_1302 = false; (j as f64) < length.as_f64().unwrap_or(f64::NAN) } {
-                let mut response: Value = self.safe_dict(responses.clone(), Value::Int(j), &[]);
-                let mut data: crate::value::List = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_list();
+                let mut response: crate::value::Dict = self.safe_dict(responses.clone(), Value::Int(j), &[]).into_dict();
+                let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
                 allRaw = self.array_concat(Value::Arr(allRaw), &data).into_list();
             }
             }
@@ -710,8 +710,8 @@ impl Limitless {
                 Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).into_dict();
             let mut lastPageData: crate::value::List = self.safe_list_k(&lastPageResponse, "data", &[Value::from(vec![])]).into_list();
             let mut lastPageLength: f64 = ((lastPageData.len() as i64) as f64);
-            let mut allRawLength: f64 = ((allRaw.len() as i64) as f64);
-            if lastPageLength >= pageSize.as_f64().unwrap_or(f64::NAN) && allRawLength < maxMarkets.as_f64().unwrap_or(f64::NAN) {
+            let mut allRawLength: i64 = allRaw.len() as i64;
+            if lastPageLength >= pageSize.as_f64().unwrap_or(f64::NAN) && Some(allRawLength) < maxMarkets {
                 loop {
                     page = self.sum(&[page.clone(), Value::Int(1)]);
                     request.insert("page".into(), page.clone());
@@ -734,8 +734,8 @@ impl Limitless {
                         std::sync::Arc::make_mut(&mut allRaw).push(raw.clone());
                     }
                     }
-                    let mut allRawCount: f64 = ((allRaw.len() as i64) as f64);
-                    if pageMarketsLength < pageSize.as_f64().unwrap_or(f64::NAN) || allRawCount >= maxMarkets.as_f64().unwrap_or(f64::NAN) {
+                    let mut allRawCount: i64 = allRaw.len() as i64;
+                    if pageMarketsLength < pageSize.as_f64().unwrap_or(f64::NAN) || (maxMarkets.is_some() && Some(allRawCount) >= maxMarkets) {
                         break;
                     }
                 }
@@ -797,9 +797,9 @@ impl Limitless {
         }
         }
         self.exchange.events = eventsDict.clone();
-        let mut marketsLength: f64 = ((markets.len() as i64) as f64);
-        if marketsLength > maxMarkets.as_f64().unwrap_or(f64::NAN) {
-            return self.array_slice(Value::from(markets), Value::Int(0), &[maxMarkets]);
+        let mut marketsLength: i64 = markets.len() as i64;
+        if (maxMarkets.is_some() && Some(marketsLength) > maxMarkets) {
+            return self.array_slice(Value::from(markets), Value::Int(0), &[Value::from(maxMarkets)]);
         }
         return Value::from(markets);
         Value::Null
@@ -1848,10 +1848,10 @@ impl Limitless {
                                 let mut j: i64 = 0;
                 let mut __for_first_1312: bool = true;
                 while { if !__for_first_1312 { j += 1; } __for_first_1312 = false; j < (grouped.len() as i64) } {
-                let mut ticker: Value = self.parse_prediction_ticker(Value::Map(tickerInput.clone()), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(grouped.get(j as usize).cloned().unwrap_or(Value::Null)).as_ref());
-                let mut symbolKey: Option<String> = self.safe_string_k(ticker.clone(), "outcome", &[]).as_str().map(str::to_owned);
+                let mut ticker: crate::value::Dict = self.parse_prediction_ticker(Value::Map(tickerInput.clone()), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(grouped.get(j as usize).cloned().unwrap_or(Value::Null)).as_ref()).into_dict();
+                let mut symbolKey: Option<String> = self.safe_string_k(&ticker, "outcome", &[]).as_str().map(str::to_owned);
                 if (symbolKey.is_some()) {
-                    result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), ticker);
+                    result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
                 }
             }
             }
@@ -2169,12 +2169,12 @@ impl Limitless {
                         let mut i: i64 = 0;
             let mut __for_first_1318: bool = true;
             while { if !__for_first_1318 { i += 1; } __for_first_1318 = false; i < (history.len() as i64) } {
-            let mut point: Value = self.safe_dict(history.clone(), Value::Int(i), &[]);
-            let mut pointPrice: Option<f64> = self.safe_number_k(point.clone(), "price", &[]).as_f64();
-            let mut rawTs: Option<i64> = self.safe_integer_k(point.clone(), "timestamp", &[]).as_i64();
+            let mut point: crate::value::Dict = self.safe_dict(history.clone(), Value::Int(i), &[]).into_dict();
+            let mut pointPrice: Option<f64> = self.safe_number_k(&point, "price", &[]).as_f64();
+            let mut rawTs: Option<i64> = self.safe_integer_k(&point, "timestamp", &[]).as_i64();
             let mut pointTs: Option<i64> = rawTs;
             if (rawTs.is_none()) {
-                let mut tsString: Option<String> = self.safe_string_k(point.clone(), "timestamp", &[]).as_str().map(str::to_owned);
+                let mut tsString: Option<String> = self.safe_string_k(&point, "timestamp", &[]).as_str().map(str::to_owned);
                 pointTs = (if ((tsString.is_some()) && (tsString.as_deref() != Some(""))) { self.parse8601(tsString.clone().map(Value::from).unwrap_or(Value::Null)) } else { None });
             }  else if (rawTs.is_some() && rawTs < Some(1000000000000)) {
                 // old responses may return unix seconds
@@ -2196,7 +2196,7 @@ impl Limitless {
         // — the first point seen would be the latest, not the earliest. sortBy is stable, so equal
         // timestamps keep their relative order consistently across languages
         let mut sorted: Vec<Value> = self.sort_by(Value::from(pseudoTrades), Value::Str("timestamp".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut ms: Value = (match (&(Value::Int(self.parse_timeframe(timeframe))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut ms: i64 = ((self.parse_timeframe(timeframe)) * 1000);
         let mut candles: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2206,17 +2206,17 @@ impl Limitless {
                         let mut i: i64 = 0;
             let mut __for_first_1319: bool = true;
             while { if !__for_first_1319 { i += 1; } __for_first_1319 = false; i < (sorted.len() as i64) } {
-            let mut point: Value = self.safe_dict(&sorted, Value::Int(i), &[]);
-            let mut pTs: Value = self.safe_integer_k(point.clone(), "timestamp", &[]);
-            let mut pPrice: Option<f64> = self.safe_number_k(point, "price", &[]).as_f64();
-            if (pTs == Value::Null) {
+            let mut point: crate::value::Dict = self.safe_dict(&sorted, Value::Int(i), &[]).into_dict();
+            let mut pTs: Option<i64> = self.safe_integer_k(&point, "timestamp", &[]).as_i64();
+            let mut pPrice: Option<f64> = self.safe_number_k(&point, "price", &[]).as_f64();
+            if (pTs.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing pTs".into()))));
             }
             if (pPrice.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing pPrice".into()))));
             }
-            let mut bucketIndex: Value = Value::from(self.parse_to_int((match ((pTs).as_f64(), (ms).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
-            let mut bucket: Value = (match (&(bucketIndex), &(ms)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            let mut bucketIndex: Option<i64> = self.parse_to_int((match ((Value::from(pTs)).as_f64(), (Value::from(ms)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+            let mut bucket: Value = Value::from((if let Some(__l) = bucketIndex { Some(__l * ms) } else { None }));
             let mut key: Value = Value::Str(format!("{}", bucket).into());
             if !(matches!((&candles, &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if let Value::Dict(__d) = &mut candles { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), Value::from(vec![bucket, Value::from(pPrice), Value::from(pPrice), Value::from(pPrice), Value::from(pPrice), Value::Int(0)])); }
@@ -3068,13 +3068,13 @@ if _try_result.is_err() {
         }
         let __ws_arg_24 = self.extend(Value::Map(request), &[paramsValue]);
         let mut response: crate::value::Dict = self.limitless_private_post_orders(&[__ws_arg_24]).await.into_dict();
-        let mut parsedOrder: Value = self.parse_prediction_order(&response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
+        let mut parsedOrder: crate::value::Dict = self.parse_prediction_order(&response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).into_dict();
         // the create-order response omits a status field; a freshly accepted order is open
-        let mut parsedStatus: Option<String> = self.safe_string_k(parsedOrder.clone(), "status", &[]).as_str().map(str::to_owned);
+        let mut parsedStatus: Option<String> = self.safe_string_k(&parsedOrder, "status", &[]).as_str().map(str::to_owned);
         if (parsedStatus.is_none()) {
-            if let Value::Dict(__rda) = &mut parsedOrder { std::sync::Arc::make_mut(__rda).insert("status".to_string(), Value::Str("open".into())); }
+            std::sync::Arc::make_mut(&mut parsedOrder).insert("status".into(), Value::Str("open".into()));
         }
-        return parsedOrder;
+        return Value::Dict(parsedOrder);
         Value::Null
         }).await?))
     }
@@ -3399,7 +3399,7 @@ if _try_result.is_err() {
         });
         let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.limitless_private_post_orders_cancel_batch(&[__ws_arg_27]).await.into_dict();
-        let mut canceled: Value = self.safe_list_k(&response, "canceled", &[Value::from(vec![])]);
+        let mut canceled: crate::value::List = self.safe_list_k(&response, "canceled", &[Value::from(vec![])]).into_list();
         let mut failed: crate::value::List = self.safe_list_k(&response, "failed", &[Value::from(vec![])]).into_list();
         let mut failedLethgn: i64 = failed.len() as i64;
         if failedLethgn > 0 {
@@ -3407,7 +3407,7 @@ if _try_result.is_err() {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders failed: ".into())).into()), message.map(Value::from).unwrap_or(Value::Null)).into());
             panic!("{}", crate::exchange_errors::order_not_found(feedback));
         }
-        return self.parse_prediction_orders(canceled, &[]);
+        return self.parse_prediction_orders(Value::Arr(canceled), &[]);
         Value::Null
         }).await?))
     }
@@ -4081,8 +4081,8 @@ if _try_result.is_err() {
         }  else {
             // tags scope: resolve the tags to limitless categories and page only those
             // categories' listings server-side — never the whole active listing
-            let mut requestedTags: Value = self.safe_list_k(params.clone(), "tags", &[Value::from(vec![])]);
-            let mut listRaw: Vec<Value> = self.fetch_raw_markets_by_tags(requestedTags, &[params.clone()]).await.as_array().cloned().unwrap_or_default();
+            let mut requestedTags: crate::value::List = self.safe_list_k(params.clone(), "tags", &[Value::from(vec![])]).into_list();
+            let mut listRaw: Vec<Value> = self.fetch_raw_markets_by_tags(Value::Arr(requestedTags), &[params.clone()]).await.as_array().cloned().unwrap_or_default();
             let mut listRawLength: f64 = ((listRaw.len() as i64) as f64);
             {
                                 let mut i: i64 = 0;

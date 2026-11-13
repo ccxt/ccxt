@@ -1341,27 +1341,27 @@ impl Poloniex {
         let mut data: Option<crate::value::Dict> = self.safe_dict(&dataList, Value::Int(0), &[]).into_opt_dict();
         let mut channel: Option<String> = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(&data, "symbol", &[]).as_str().map(str::to_owned);
-        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut market: crate::types::Market = self.safe_market(symbol.clone(), None, &[]);
-        let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
+        let mut market: crate::types::Market = self.safe_market(Value::from(symbol.as_deref()), None, &[]);
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timeframe: Option<String> = self.find_timeframe(channel.clone().map(Value::from).unwrap_or(Value::Null), &[timeframes]);
+        })]).into_dict();
+        let mut timeframe: Option<String> = self.find_timeframe(channel.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Dict(timeframes)]);
         let mut parsed: crate::value::List = self.parse_ws_ohlcv(data.map_or(Value::Null, Value::Dict), Some(&market)).into_list();
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         let mut stored: Option<crate::pro::cache::Cache> = (if (timeframe.is_none()) { None } else { self.ohlcvs.shelf_text(&symbol).lookup(&timeframe) });
-        if (symbol != Value::Null) {
+        if (symbol.is_some()) {
             if (stored.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 stored = Some(ArrayCacheByTimestamp::new(limit));
-                if (symbol != Value::Null) && (timeframe.is_some()) {
+                if (symbol.is_some()) && (timeframe.is_some()) {
                     CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
                 }
             }
             stored.append(Value::Arr(parsed));
             if (channel.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), symbol);
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
                 client.resolve(Value::from(&stored), messageHash.as_str());
             }
         }
@@ -2148,11 +2148,11 @@ impl Poloniex {
         //
         let mut channel: String = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut marketIds: crate::value::List = message.get("symbols").cloned().unwrap_or_default().into_list();
-        let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timeframe: Option<String> = self.find_timeframe(Value::from(channel.clone()), &[timeframes]);
+        })]).into_dict();
+        let mut timeframe: Option<String> = self.find_timeframe(Value::from(channel.clone()), &[Value::Dict(timeframes)]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_648: bool = true;

@@ -329,13 +329,13 @@ impl Luno {
                 m.insert("api_key_secret".to_string(), self.secret.clone());
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut trades: Value = self.watch(url.as_str(), messageHash.as_str(), request, subscriptionHash.as_str(), Value::Map(subscription)).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), messageHash.as_str(), &request, subscriptionHash.as_str(), Value::Map(subscription)).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -474,8 +474,8 @@ impl Luno {
                 m.insert("api_key_secret".to_string(), self.secret.clone());
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut orderbook: Value = self.watch(url.as_str(), messageHash.as_str(), request, subscriptionHash.as_str(), Value::Map(subscription)).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_str(), messageHash.as_str(), &request, subscriptionHash.as_str(), Value::Map(subscription)).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -516,7 +516,7 @@ impl Luno {
         //         "timestamp": 1660598775360
         //     }
         //
-        let mut symbol: Value = self.safe_string_k(subscription, "symbol", &[Value::Str("".into())]);
+        let mut symbol: String = self.safe_string_k(subscription, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         let mut timestamp: Option<i64> = self.safe_integer_k(message.clone(), "timestamp", &[]).as_i64();
         if !(self.orderbooks.has(&symbol)) {
@@ -528,13 +528,13 @@ impl Luno {
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let mut asks: Option<crate::value::List> = (match __pro_message.get("asks").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
         if (asks.is_none()) {
-            let mut inSequence: bool = self.is_order_book_delta_in_sequence(client.clone(), message.clone(), symbol.clone()).as_bool() == Some(true);
+            let mut inSequence: bool = self.is_order_book_delta_in_sequence(client.clone(), message.clone(), Value::from(symbol.as_str())).as_bool() == Some(true);
             if !inSequence {
                 return;
             }
         }
         if (asks.is_some()) {
-            let mut snapshot: crate::value::Dict = self.custom_parse_order_book(message.clone(), symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into()), Value::Str("id".into())]).into_dict();
+            let mut snapshot: crate::value::Dict = self.custom_parse_order_book(message.clone(), Value::from(symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into()), Value::Str("id".into())]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
         }  else {
             self.handle_book_delta(Value::from(&orderbook), message);

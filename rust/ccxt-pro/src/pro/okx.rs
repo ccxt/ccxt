@@ -1361,11 +1361,11 @@ impl Okx {
         let mut marketId: Option<String> = self.safe_string_k(&arg, "instId", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut ticker: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
+        let mut ticker: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut parsedTicker: crate::value::Dict = self.parse_ws_bid_ask(ticker, Some(&market)).into_dict();
+        })]).into_dict();
+        let mut parsedTicker: crate::value::Dict = self.parse_ws_bid_ask(Value::Dict(ticker), Some(&market)).into_dict();
         let mut symbol: Option<String> = self.safe_string_k(&parsedTicker, "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_some()) {
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
@@ -1523,16 +1523,16 @@ impl Okx {
             let mut __for_first_535: bool = true;
             while { if !__for_first_535 { i += 1; } __for_first_535 = false; i < (rawLiquidations.len() as i64) } {
             let mut rawLiquidation: Value = rawLiquidations.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut liquidation: Value = self.parse_ws_liquidation(rawLiquidation, None);
-            let mut symbol: String = self.safe_string_k(liquidation.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut liquidation: crate::value::Dict = self.parse_ws_liquidation(rawLiquidation, None).into_dict();
+            let mut symbol: String = self.safe_string_k(&liquidation, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.liquidations.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.liquidations = Some(ArrayCache::new(limit));
             }
             let mut cache: Option<crate::pro::cache::Cache> = self.liquidations.clone();
-            cache.append(liquidation.clone());
-            client.resolve(Value::from(vec![liquidation.clone()]), "liquidations");
-            client.resolve(Value::from(vec![liquidation]), &(Value::Str(format!("{}{}", Value::Str("liquidations::".into()), symbol).into())));
+            cache.append(Value::from(&liquidation));
+            client.resolve(Value::from(vec![Value::from(&liquidation)]), "liquidations");
+            client.resolve(Value::from(vec![Value::Dict(liquidation)]), &(Value::Str(format!("{}{}", Value::Str("liquidations::".into()), symbol).into())));
         }
         }
 }
@@ -1659,16 +1659,16 @@ impl Okx {
             if (eventType.as_deref() != Some("liquidation")) {
                 return;
             }
-            let mut liquidation: Value = self.parse_ws_my_liquidation(Value::Dict(rawLiquidation), None);
-            let mut symbol: String = self.safe_string_k(liquidation.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut liquidation: crate::value::Dict = self.parse_ws_my_liquidation(Value::Dict(rawLiquidation), None).into_dict();
+            let mut symbol: String = self.safe_string_k(&liquidation, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.liquidations.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.liquidations = Some(ArrayCache::new(limit));
             }
             let mut cache: Option<crate::pro::cache::Cache> = self.liquidations.clone();
-            cache.append(liquidation.clone());
-            client.resolve(Value::from(vec![liquidation.clone()]), "myLiquidations");
-            client.resolve(Value::from(vec![liquidation]), &(Value::Str(format!("{}{}", Value::Str("myLiquidations::".into()), symbol).into())));
+            cache.append(Value::from(&liquidation));
+            client.resolve(Value::from(vec![Value::from(&liquidation)]), "myLiquidations");
+            client.resolve(Value::from(vec![Value::Dict(liquidation)]), &(Value::Str(format!("{}{}", Value::Str("myLiquidations::".into()), symbol).into())));
         }
         }
 }
@@ -2199,7 +2199,7 @@ impl Okx {
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut depth: Option<String> = None;
         let mut paramsDepth: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("depth".into()), &[Value::Str("books".into())]).as_array().cloned().unwrap_or_default(); depth = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsDepth = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("depth".into()), &[Value::Str("books".into())]).as_array().cloned().unwrap_or_default(); depth = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsDepth = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut limit: Option<i64> = self.safe_integer_k(paramsDepth, "limit", &[]).as_i64();
         if (limit.is_some()) {
             if (limit == Some(1)) {
@@ -2711,7 +2711,7 @@ impl Okx {
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        let mut balance: Value = self.parent.parse_trading_balance(message);
+        let mut balance: crate::value::Dict = self.parent.parse_trading_balance(message).into_dict();
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2719,7 +2719,7 @@ impl Okx {
             });
         }
         let mut reserved: Value = Value::from(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
-        let mut keys: Vec<Value> = object_keys(&balance).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(balance.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_548: bool = true;
@@ -2728,7 +2728,7 @@ impl Okx {
             if self.in_array(key.clone(), reserved.clone()).as_bool() == Some(true) {
                 continue;
             }
-            { let __be_tmp = self.safe_value(balance.clone(), key.clone(), &[]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), __be_tmp); } }
+            { let __be_tmp = self.safe_value(&balance, key.clone(), &[]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), __be_tmp); } }
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }

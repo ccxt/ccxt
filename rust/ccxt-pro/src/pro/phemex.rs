@@ -395,15 +395,15 @@ impl Phemex {
         let mut last: Value = self.parse_number(lastString.clone(), &[]);
         let mut quoteVolume: Value = self.parse_number(self.from_ev(self.safe_string_k(ticker.clone(), "turnover", &[]), &[marketValue.clone()]), &[]);
         let mut baseVolume: Value = self.parse_number(self.from_ev(self.safe_string_k(ticker.clone(), "volume", &[]), &[marketValue.clone()]), &[]);
-        let mut change: Value = Value::Null;
-        let mut percentage: Value = Value::Null;
-        let mut average: Value = Value::Null;
+        let mut change: Option<f64> = None;
+        let mut percentage: Option<f64> = None;
+        let mut average: Option<f64> = None;
         let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string_k(ticker.clone(), "open", &[]), &[marketValue.clone()]));
-        let mut open: Value = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut open: Option<f64> = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         if (openString.is_some()) && (lastString != Value::Null) {
-            change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
-            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("2".into())), &[]);
-            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString.map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into())), &Value::Str("100".into())), &[]);
+            change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("2".into())), &[]).as_f64();
+            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString.map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into())), &Value::Str("100".into())), &[]).as_f64();
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -417,13 +417,13 @@ impl Phemex {
         m.insert("ask".to_string(), Value::Null);
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), open);
+        m.insert("open".to_string(), Value::from(open));
         m.insert("close".to_string(), last.clone());
         m.insert("last".to_string(), last);
         m.insert("previousClose".to_string(), Value::Null);
-        m.insert("change".to_string(), change);
-        m.insert("percentage".to_string(), percentage);
-        m.insert("average".to_string(), average);
+        m.insert("change".to_string(), Value::from(change));
+        m.insert("percentage".to_string(), Value::from(percentage));
+        m.insert("average".to_string(), Value::from(average));
         m.insert("baseVolume".to_string(), baseVolume);
         m.insert("quoteVolume".to_string(), quoteVolume);
         m.insert("markPrice".to_string(), self.parse_number(self.from_ep(self.safe_string_k(ticker.clone(), "markPrice", &[]), &[marketValue.clone()]), &[]));
@@ -460,15 +460,15 @@ impl Phemex {
         let mut last: Value = self.parse_number(lastString.clone(), &[]);
         let mut quoteVolume: Value = self.parse_number(self.from_ev(self.safe_string(ticker.clone(), Value::Int(6), &[]), &[marketValue.clone()]), &[]);
         let mut baseVolume: Value = self.parse_number(self.from_ev(self.safe_string(ticker.clone(), Value::Int(5), &[]), &[marketValue.clone()]), &[]);
-        let mut change: Value = Value::Null;
-        let mut percentage: Value = Value::Null;
-        let mut average: Value = Value::Null;
+        let mut change: Option<f64> = None;
+        let mut percentage: Option<f64> = None;
+        let mut average: Option<f64> = None;
         let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string(ticker.clone(), Value::Int(1), &[]), &[marketValue.clone()]));
-        let mut open: Value = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut open: Option<f64> = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         if (openString.is_some()) && (lastString != Value::Null) {
-            change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
-            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("2".into())), &[]);
-            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString.map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into())), &Value::Str("100".into())), &[]);
+            change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("2".into())), &[]).as_f64();
+            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString.map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into())), &Value::Str("100".into())), &[]).as_f64();
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -482,13 +482,13 @@ impl Phemex {
         m.insert("ask".to_string(), Value::Null);
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), open);
+        m.insert("open".to_string(), Value::from(open));
         m.insert("close".to_string(), last.clone());
         m.insert("last".to_string(), last);
         m.insert("previousClose".to_string(), Value::Null);
-        m.insert("change".to_string(), change);
-        m.insert("percentage".to_string(), percentage);
-        m.insert("average".to_string(), average);
+        m.insert("change".to_string(), Value::from(change));
+        m.insert("percentage".to_string(), Value::from(percentage));
+        m.insert("average".to_string(), Value::from(average));
         m.insert("baseVolume".to_string(), baseVolume);
         m.insert("quoteVolume".to_string(), quoteVolume);
         m.insert("info".to_string(), ticker);
@@ -891,8 +891,8 @@ impl Phemex {
                 m.insert("params".to_string(), Value::from(vec![]));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        return self.watch(url.as_deref(), messageHash.as_str(), request, subscriptionHash.as_str(), Value::Null).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
+        return self.watch(url.as_deref(), messageHash.as_str(), &request, subscriptionHash.as_str(), Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -950,8 +950,8 @@ impl Phemex {
                 m.insert("params".to_string(), Value::from(vec![]));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut ticker: Value = self.watch_multiple(url.as_deref(), &messageHashes, request, &messageHashes, Value::Null).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
+        let mut ticker: Value = self.watch_multiple(url.as_deref(), &messageHashes, &request, &messageHashes, Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1017,8 +1017,8 @@ impl Phemex {
                 m.insert("params".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
+        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
@@ -1076,8 +1076,8 @@ impl Phemex {
                 m.insert("params".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
+        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1134,8 +1134,8 @@ impl Phemex {
                 m.insert("params".to_string(), Value::from(vec![Value::from((market).id.as_deref()), self.safe_integer(self.timeframes.clone(), timeframe, &[])]));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
+        let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
@@ -1379,11 +1379,11 @@ impl Phemex {
             Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut timestamp: Option<i64> = self.safe_integer_product_k(message.clone(), "timestamp", Value::Float(0.000001), &[]).as_i64();
         if (type_var.as_deref() == Some("snapshot")) {
-            let mut book: Value = self.safe_dict2(message.clone(), Value::Str("book".into()), Value::Str("orderbook_p".into()), &[Value::Map({
+            let mut book: crate::value::Dict = self.safe_dict2(message.clone(), Value::Str("book".into()), Value::Str("orderbook_p".into()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut snapshot: crate::value::Dict = self.parent.custom_parse_order_book(book, symbol.as_str().unwrap_or_default(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), market.clone()]).into_dict();
+            })]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parent.custom_parse_order_book(Value::Dict(book), symbol.as_str().unwrap_or_default(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), market.clone()]).into_dict();
             std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), Value::from(nonce));
             // reset the existing orderbook instead of replacing it: a consumer
             // holds a reference to the old object and would never see updates
@@ -1404,10 +1404,10 @@ impl Phemex {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]).into_dict();
-                let mut asks: Value = self.safe_list_k(&changes, "asks", &[Value::from(vec![])]);
-                let mut bids: Value = self.safe_list_k(&changes, "bids", &[Value::from(vec![])]);
-                self.custom_handle_deltas(orderbook.book_field("asks"), asks, &[market.clone()]);
-                self.custom_handle_deltas(orderbook.book_field("bids"), bids, &[market]);
+                let mut asks: crate::value::List = self.safe_list_k(&changes, "asks", &[Value::from(vec![])]).into_list();
+                let mut bids: crate::value::List = self.safe_list_k(&changes, "bids", &[Value::from(vec![])]).into_list();
+                self.custom_handle_deltas(orderbook.book_field("asks"), Value::Arr(asks), &[market.clone()]);
+                self.custom_handle_deltas(orderbook.book_field("bids"), Value::Arr(bids), &[market]);
                 orderbook.set_book_meta("nonce", Value::from(nonce));
                 orderbook.set_book_meta("timestamp", Value::from(timestamp));
                 orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
@@ -2240,11 +2240,11 @@ impl Phemex {
             return;
         }
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("orders"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("orders_p"))) {
-            let mut orders: Value = self.safe_dict2(message.clone(), Value::Str("orders".into()), Value::Str("orders_p".into()), &[Value::Map({
+            let mut orders: crate::value::Dict = self.safe_dict2(message.clone(), Value::Str("orders".into()), Value::Str("orders_p".into()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            self.handle_orders(client.clone(), orders);
+            })]).into_dict();
+            self.handle_orders(client.clone(), Value::Dict(orders));
         }
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts_p"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("wallets"))) {
             let mut type_var: String = "spot".to_string();
@@ -2254,8 +2254,8 @@ impl Phemex {
             if (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts_p"))) {
                 type_var = "perpetual".to_string();
             }
-            let mut accounts: Value = self.safe_list_n(message.clone(), Value::from(vec![Value::Str("accounts".into()), Value::Str("accounts_p".into()), Value::Str("wallets".into())]), &[Value::from(vec![])]);
-            self.handle_balance(Value::from(type_var), client, accounts);
+            let mut accounts: crate::value::List = self.safe_list_n(message.clone(), Value::from(vec![Value::Str("accounts".into()), Value::Str("accounts_p".into()), Value::Str("wallets".into())]), &[Value::from(vec![])]).into_list();
+            self.handle_balance(Value::from(type_var), client, Value::Arr(accounts));
         }
 }
 

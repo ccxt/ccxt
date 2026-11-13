@@ -656,10 +656,10 @@ impl Blofin {
             std::sync::Arc::make_mut(&mut orderBookSnapshot).insert("nonce".into(), self.safe_integer_k(&data, "seqId", &[]));
             orderbook.reset(Value::Dict(orderBookSnapshot));
         }  else {
-            let mut asks: Value = self.safe_list_k(&data, "asks", &[Value::from(vec![])]);
-            let mut bids: Value = self.safe_list_k(&data, "bids", &[Value::from(vec![])]);
-            self.handle_deltas_with_keys(orderbook.book_field("asks"), asks, &[]);
-            self.handle_deltas_with_keys(orderbook.book_field("bids"), bids, &[]);
+            let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
+            let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
+            self.handle_deltas_with_keys(orderbook.book_field("asks"), Value::Arr(asks), &[]);
+            self.handle_deltas_with_keys(orderbook.book_field("bids"), Value::Arr(bids), &[]);
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         }
@@ -1442,11 +1442,11 @@ impl Blofin {
         //     }
         //
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut first: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
+        let mut first: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut fundingRate: Value = self.parse_funding_rate(first, None);
+        })]).into_dict();
+        let mut fundingRate: Value = self.parse_funding_rate(Value::Dict(first), None);
         let mut symbol: Value = self.safe_string_k(fundingRate.clone(), "symbol", &[Value::Str("".into())]);
         if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fundingRate.clone()); }
         let mut messageHash: String = format!("{}{}", Value::Str("fundingRate:".into()), symbol);

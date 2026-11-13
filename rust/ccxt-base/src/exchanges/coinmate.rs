@@ -1659,14 +1659,14 @@ impl Coinmate {
         })]).into_dict();
         let mut makerString: Option<String> = self.safe_string_k(&data, "maker", &[]).as_str().map(str::to_owned);
         let mut takerString: Option<String> = self.safe_string_k(&data, "taker", &[]).as_str().map(str::to_owned);
-        let mut maker: Value = self.parse_number(crate::precise::Precise::stringDiv(&makerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
-        let mut taker: Value = self.parse_number(crate::precise::Precise::stringDiv(&takerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
+        let mut maker: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&makerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]).as_f64();
+        let mut taker: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&takerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]).as_f64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(data));
         m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
-        m.insert("maker".to_string(), maker);
-        m.insert("taker".to_string(), taker);
+        m.insert("maker".to_string(), Value::from(maker));
+        m.insert("taker".to_string(), Value::from(taker));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m

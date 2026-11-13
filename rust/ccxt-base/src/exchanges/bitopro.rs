@@ -1293,8 +1293,8 @@ impl Bitopro {
             request.insert("to".into(), Value::from(toSeconds));
             request.insert("from".into(), Value::from((if let Some(__r) = ((if let Some(__l) = limitResolved { Some(__l * timeframeInSeconds) } else { None })) { Some(toSeconds - __r) } else { None })));
         }  else {
-            let mut timeframeInMilliseconds: Value = Value::Int((timeframeInSeconds * 1000));
-            alignedSince = (match (&(Value::from(self.parse_to_int(((match ((since).as_f64(), (timeframeInMilliseconds).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null)))), &(timeframeInMilliseconds)) { (Value::Int(x),
+            let mut timeframeInMilliseconds: i64 = (timeframeInSeconds * 1000);
+            alignedSince = (match (&(Value::from(self.parse_to_int(((match ((since).as_f64(), (Value::from(timeframeInMilliseconds)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null)))), &(Value::from(timeframeInMilliseconds))) { (Value::Int(x),
                 Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             let mut fromSeconds: Value = ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null);
             request.insert("from".into(), fromSeconds.clone());
@@ -1424,8 +1424,8 @@ impl Bitopro {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: crate::value::Dict = self.private_get_accounts_balance(&[params]).await.into_dict();
-        let mut balances: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_balance_list(balances);
+        let mut balances: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_balance_list(Value::Arr(balances));
         Value::Null
         }).await?))
     }
@@ -1606,12 +1606,12 @@ impl Bitopro {
                 request.insert("condition".into(), condition.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut paramsOmitted: Value = (if (orderType == "STOP_LIMIT") { self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]) } else { params });
-        let mut postOnly: bool = self.is_post_only(Value::Bool(orderType == "MARKET"), Value::Null, &[paramsOmitted.clone()]).as_bool() == Some(true);
+        let mut paramsOmitted: crate::value::Dict = (if (orderType == "STOP_LIMIT") { self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]) } else { params }).into_dict();
+        let mut postOnly: bool = self.is_post_only(Value::Bool(orderType == "MARKET"), Value::Null, &[Value::from(&paramsOmitted)]).as_bool() == Some(true);
         if postOnly {
             request.insert("timeInForce".into(), Value::Str("POST_ONLY".into()));
         }
-        let __ws_arg_4 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_orders_pair(&[__ws_arg_4]).await.into_dict();
         return self.parse_order(&response, Some(&market));
         Value::Null
@@ -1738,11 +1738,11 @@ impl Bitopro {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_cancel_orders(data);
+        })]).into_dict();
+        return self.parse_cancel_orders(Value::Dict(data));
         Value::Null
         }).await?))
     }
@@ -1784,11 +1784,11 @@ impl Bitopro {
             let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
             response = self.private_delete_orders_all(&[__ws_arg_8]).await.into_opt_dict();
         }
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_cancel_orders(data);
+        })]).into_dict();
+        return self.parse_cancel_orders(Value::Dict(data));
         Value::Null
         }).await?))
     }

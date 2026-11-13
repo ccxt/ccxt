@@ -2576,15 +2576,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let timeInForceparamsTimeInForceRawVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPostOnly, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("GTC".into())]).as_array().cloned().unwrap_or_default();
         let mut timeInForce: Option<String> = timeInForceparamsTimeInForceRawVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTimeInForceRaw: crate::value::Dict = timeInForceparamsTimeInForceRawVariable.get(1).cloned().unwrap_or(Value::Null).into_dict(); // is mandatory
-        let mut paramsTimeInForce: Value = self.extend(paramsTimeInForceRaw, &[Value::Map({
+        let mut paramsTimeInForce: crate::value::Dict = self.extend(paramsTimeInForceRaw, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timeInForce".to_string(), timeInForce.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
             m
-        })]);
+        })]).into_dict();
         if !(matches!(&isMarketOrder, Value::Bool(true))) {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
         }
-        let mut triggerPrice: Option<String> = self.safe_string_k(paramsTimeInForce.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
+        let mut triggerPrice: Option<String> = self.safe_string_k(&paramsTimeInForce, "triggerPrice", &[]).as_str().map(str::to_owned);
         if (triggerPrice.is_some()) {
             if matches!(&isMarketOrder, Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support market trigger orders".into()))));
@@ -2592,7 +2592,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
             orderType = "STOP_LIMIT".to_string();
         }
-        let mut paramsOmitted: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(paramsTimeInForce.clone(), Value::Str("triggerPrice".into()), &[]) } else { paramsTimeInForce }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(&paramsTimeInForce, Value::Str("triggerPrice".into()), &[]).into_dict() } else { paramsTimeInForce });
         request.insert("type".into(), Value::from(orderType.to_uppercase()));
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_v2_orders(&[__ws_arg_14]).await.into_dict();

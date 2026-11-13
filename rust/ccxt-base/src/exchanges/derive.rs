@@ -2225,8 +2225,8 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut expiries: Value = self.safe_list_k(&result, "expiries", &[Value::from(vec![])]);
-        let mut settlements: crate::value::List = self.parse_settlements(expiries, None).into_list();
+        let mut expiries: crate::value::List = self.safe_list_k(&result, "expiries", &[Value::from(vec![])]).into_list();
+        let mut settlements: crate::value::List = self.parse_settlements(Value::Arr(expiries), None).into_list();
         let mut sorted: Value = self.sort_by(Value::Arr(settlements), Value::Str("timestamp".into()), &[]);
         return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[]);
 
@@ -2293,8 +2293,8 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut settlements: Value = self.safe_list_k(&result, "settlements", &[Value::from(vec![])]);
-        let mut parsed: crate::value::List = self.parse_settlements(settlements, market.as_ref()).into_list();
+        let mut settlements: crate::value::List = self.safe_list_k(&result, "settlements", &[Value::from(vec![])]).into_list();
+        let mut parsed: crate::value::List = self.parse_settlements(Value::Arr(settlements), market.as_ref()).into_list();
         let mut sorted: Value = self.sort_by(Value::Arr(parsed), Value::Str("timestamp".into()), &[]);
         let mut symbolResolved: Value = (if (market.is_some()) { crate::value::KeyRead::key_read(&&market, "symbol") } else { Value::Null });
         return self.filter_by_symbol_since_limit(sorted, symbolResolved.as_str(), since.as_i64(), limit.as_i64(), &[]);
@@ -3149,10 +3149,10 @@ impl Derive {
         if (maxFeeString.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a max_fee argument in params".into()))));
         }
-        let mut paramsMaxFee: Value = self.safe_dict(maxFeeOptionAndParams, Value::Int(1), &[Value::Map({
+        let mut paramsMaxFee: crate::value::Dict = self.safe_dict(maxFeeOptionAndParams, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut amountString: Value = Value::from(self.number_to_string(amount));
         let mut marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "info", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3161,7 +3161,7 @@ impl Derive {
         let mut tradeModuleDataHash: crate::value::Bytes = self.hash_binary(self.eth_abi_encode(Value::from(vec![Value::Str("address".into()), Value::Str("uint".into()), Value::Str("int".into()), Value::Str("int".into()), Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("bool".into())]),
             Value::from(vec![marketInfo.get("base_asset_address").cloned().unwrap_or(Value::Null), self.convert_to_big_int(marketInfo.get("base_asset_sub_id").cloned().unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(priceString.clone(), &[]).map(Value::from).unwrap_or(Value::Null)),
             self.convert_to_big_int(self.parse_units(self.amount_to_precision(symbol, amountString.clone()), &[]).map(Value::from).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(maxFeeString.clone().map(Value::from).unwrap_or(Value::Null), &[]).map(Value::from).unwrap_or(Value::Null)), Value::from(subaccountId), orderSideIsBuy])), Value::Str("keccak".into()));
-        let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address("createOrder", paramsMaxFee).as_array().cloned().unwrap_or_default();
+        let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address("createOrder", &paramsMaxFee).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsDeriveWalletAddress: crate::value::Dict = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut signature: Value = self.sign_order(Value::from(vec![Value::from(&ACTION_TYPEHASH), Value::from(subaccountId), self.convert_to_big_int(nonce.clone()), Value::from(TRADE_MODULE_ADDRESS), Value::from(&tradeModuleDataHash), signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.walletAddress.clone()]),
@@ -4740,11 +4740,11 @@ impl Derive {
             let __ws_arg_29 = self.extend(Value::Map(subaccountRequest), &[&subaccountParams]);
             let mut subaccountResponse: crate::value::Dict = self.private_post_get_subaccount(&[__ws_arg_29]).await.into_dict();
             // the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
-            let mut subaccountResult: Value = self.safe_dict_k(&subaccountResponse, "result", &[Value::Map({
+            let mut subaccountResult: crate::value::Dict = self.safe_dict_k(&subaccountResponse, "result", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            return self.parse_balance_list(Value::from(vec![subaccountResult]));
+            })]).into_dict();
+            return self.parse_balance_list(Value::from(vec![Value::Dict(subaccountResult)]));
         }
         let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address("fetchBalance", params).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);

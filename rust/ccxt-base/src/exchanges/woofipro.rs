@@ -1704,8 +1704,8 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut chainRows: Value = self.safe_list_k(&chainData, "rows", &[Value::from(vec![])]);
-        let mut indexedChains: crate::value::Dict = self.index_by(chainRows, Value::Str("chain_id".into())).into_dict();
+        let mut chainRows: crate::value::List = self.safe_list_k(&chainData, "rows", &[Value::from(vec![])]).into_list();
+        let mut indexedChains: crate::value::Dict = self.index_by(Value::Arr(chainRows), Value::Str("chain_id".into())).into_dict();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1176: bool = true;
@@ -4340,8 +4340,8 @@ impl Woofipro {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
-        return rows;
+        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        return Value::Arr(rows);
 
     Value::Null
 }

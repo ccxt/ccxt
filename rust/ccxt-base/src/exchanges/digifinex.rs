@@ -1182,8 +1182,8 @@ impl Digifinex {
         //         "code":200
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut groupedById: Value = self.group_by(data, Value::Str("currency".into()), &[]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut groupedById: Value = self.group_by(Value::Arr(data), Value::Str("currency".into()), &[]);
         let mut values: crate::value::List = Value::Array(groupedById.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).into_list();
         return self.parse_currencies(&values);
         Value::Null
@@ -1719,8 +1719,8 @@ impl Digifinex {
         if !isMargin && (marketType.as_deref() == Some("swap")) {
             balanceRequest = "data".to_string();
         }
-        let mut balances: Value = self.safe_list(response, Value::from(balanceRequest), &[Value::from(vec![])]);
-        return self.parse_balance_list(balances);
+        let mut balances: crate::value::List = self.safe_list(response, Value::from(balanceRequest), &[Value::from(vec![])]).into_list();
+        return self.parse_balance_list(Value::Arr(balances));
         Value::Null
         }).await?))
     }
@@ -2526,28 +2526,28 @@ impl Digifinex {
             request.insert("period".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
             if (since != Value::Null) || (limit != Value::Null) || (until.is_some()) {
-                let mut endTime: Value = (if (until.is_some()) { Value::from(until) } else { Value::Int(self.milliseconds()) });
-                let mut startLimit: Value = (if (limit != Value::Null) { limit.clone() } else { Value::Int(200) });
-                let mut startTime: Option<i64> = (if (since != Value::Null) { self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { self.parse_to_int((match ((((match (&(endTime), &(((match (&((match (&(startLimit), &(duration)) { (Value::Int(x),
-                    Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y),
-                    (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y),
-                    (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) });
-                request.insert("start_time".into(), Value::from(startTime));
+                let mut endTime: Option<i64> = (if (until.is_some()) { until } else { Some(self.milliseconds()) });
+                let mut startLimit: i64 = limit.as_i64().unwrap_or(200);
+                let mut startTime: Value = (if (since != Value::Null) { Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))) } else { Value::from(self.parse_to_int((match ((((match (&(Value::from(endTime)),
+                    &(((match (&((match (&(Value::from(startLimit)), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })),
+                    &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x),
+                    Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))) });
+                request.insert("start_time".into(), startTime.clone());
                 if (limit != Value::Null) || (until.is_some()) {
                     if (until.is_some()) {
-                        let mut endByUntil: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })));
+                        let mut endByUntil: Value = Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None }))));
                         if (limit != Value::Null) {
-                            let mut endByLimit: Option<i64> = self.parse_to_int(self.sum(&[Value::from(startTime), (match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
-                            request.insert("end_time".into(), (if ((endByLimit.is_some() && endByUntil.is_some() && endByLimit < endByUntil)) { Value::from(endByLimit) } else { Value::from(endByUntil) }));
+                            let mut endByLimit: Value = Value::from(self.parse_to_int(self.sum(&[startTime.clone(), (match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })])));
+                            request.insert("end_time".into(), (if (endByLimit.as_f64().unwrap_or(f64::NAN) < endByUntil.as_f64().unwrap_or(f64::NAN)) { endByLimit } else { endByUntil.clone() }));
                         }  else {
-                            request.insert("end_time".into(), Value::from(endByUntil));
+                            request.insert("end_time".into(), endByUntil);
                         }
                     }  else {
                         if (limit == Value::Null) {
                             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() requires a limit argument".into()))));
                         }
-                        request.insert("end_time".into(), self.sum(&[Value::from(startTime), (match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+                        request.insert("end_time".into(), self.sum(&[startTime, (match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
                     }
                 }
             }
@@ -2708,8 +2708,8 @@ impl Digifinex {
                         let mut i: i64 = 0;
             let mut __for_first_643: bool = true;
             while { if !__for_first_643 { i += 1; } __for_first_643 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
-            let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
+            let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
+            let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             if (symbol == Value::Null) {
                 symbol = marketId.clone().map(Value::from).unwrap_or(Value::Null);
             }  else {
@@ -2717,15 +2717,15 @@ impl Digifinex {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires all orders to have the same symbol".into()))));
                 }
             }
-            let mut type_var: Option<String> = self.safe_string_k(rawOrder.clone(), "type", &[]).as_str().map(str::to_owned);
-            let mut side: Option<String> = self.safe_string_k(rawOrder.clone(), "side", &[]).as_str().map(str::to_owned);
-            let mut amount: Option<f64> = self.safe_number_k(rawOrder.clone(), "amount", &[]).as_f64();
-            let mut price: Option<f64> = self.safe_number_k(rawOrder.clone(), "price", &[]).as_f64();
-            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-            let mut marginResult: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[orderParams.clone()]).as_array().cloned().unwrap_or_default();
+            let mut type_var: Option<String> = self.safe_string_k(&rawOrder, "type", &[]).as_str().map(str::to_owned);
+            let mut side: Option<String> = self.safe_string_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
+            let mut amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
+            let mut price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
+            let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
+            let mut marginResult: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[Value::from(&orderParams)]).as_array().cloned().unwrap_or_default();
             let mut currentMarginMode: Value = marginResult.get(0).cloned().unwrap_or(Value::Null);
             if (currentMarginMode != Value::Null) {
                 if (marginMode == Value::Null) {
@@ -2736,7 +2736,7 @@ impl Digifinex {
                     }
                 }
             }
-            let mut orderRequest: crate::value::Dict = self.create_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), orderParams]).into_dict();
+            let mut orderRequest: crate::value::Dict = self.create_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), Value::Dict(orderParams)]).into_dict();
             ordersRequests.push(Value::Dict(orderRequest));
         }
         }
@@ -2786,15 +2786,15 @@ impl Digifinex {
                         let mut i: i64 = 0;
             let mut __for_first_644: bool = true;
             while { if !__for_first_644 { i += 1; } __for_first_644 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
+            let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut individualOrder: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
                 m
             };
             individualOrder.insert("order_id".into(), self.safe_string(&data, Value::Int(i), &[]));
             individualOrder.insert("instrument_id".into(), Value::from((market).id.as_deref()));
-            individualOrder.insert("amount".into(), self.safe_number_k(rawOrder.clone(), "amount", &[]));
-            individualOrder.insert("price".into(), self.safe_number_k(rawOrder, "price", &[]));
+            individualOrder.insert("amount".into(), self.safe_number_k(&rawOrder, "amount", &[]));
+            individualOrder.insert("price".into(), self.safe_number_k(&rawOrder, "price", &[]));
             result.push(Value::Map(individualOrder));
         }
         }
@@ -2915,8 +2915,8 @@ impl Digifinex {
                     }  else {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price);
-                        let mut costRequest: Value = self.parse_number(crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)), &[]);
-                        quantity = self.cost_to_precision(symbol.clone(), costRequest);
+                        let mut costRequest: Option<f64> = self.parse_number(crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
+                        quantity = self.cost_to_precision(symbol.clone(), Value::from(costRequest));
                     }
                 }  else {
                     quantity = self.cost_to_precision(symbol.clone(), amount.clone());
@@ -3283,14 +3283,14 @@ impl Digifinex {
             //     }
             //
             // ids that were not canceled are absent from data
-            let mut data: Value = self.safe_list_k(&swapResponse, "data", &[Value::from(vec![])]);
+            let mut data: crate::value::List = self.safe_list_k(&swapResponse, "data", &[Value::from(vec![])]).into_list();
             let mut result: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_650: bool = true;
                 while { if !__for_first_650 { i += 1; } __for_first_650 = false; i < (ids.len() as i64) } {
                 let mut orderId: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut isCanceled: Value = self.in_array(orderId.clone(), data.clone());
+                let mut isCanceled: Value = self.in_array(orderId.clone(), Value::from(&data));
                 let mut status: String = (if isCanceled.as_bool() == Some(true) { "canceled".to_string() } else { "failed".to_string() });
                 result.push(self.safe_order(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -4886,8 +4886,8 @@ impl Digifinex {
         //         "equity": 45.133305540922
         //     }
         //
-        let mut result: Value = self.safe_list_k(&response, "list", &[Value::from(vec![])]);
-        return self.parse_borrow_rates(result, Some("currency"));
+        let mut result: crate::value::List = self.safe_list_k(&response, "list", &[Value::from(vec![])]).into_list();
+        return self.parse_borrow_rates(Value::Arr(result), Some("currency"));
         Value::Null
         }).await?))
     }
@@ -5224,11 +5224,11 @@ impl Digifinex {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_trading_fee(data, Some(&market));
+        })]).into_dict();
+        return self.parse_trading_fee(Value::Dict(data), Some(&market));
         Value::Null
         }).await?))
     }

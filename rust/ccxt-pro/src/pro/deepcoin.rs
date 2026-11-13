@@ -1224,7 +1224,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut aggregation: Option<String> = None;
         let mut paramsAggregation: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, methodName.clone(), Value::Str("aggregation".into()), &[]).as_array().cloned().unwrap_or_default(); aggregation = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsAggregation = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params, methodName.clone(), Value::Str("aggregation".into()), &[]).as_array().cloned().unwrap_or_default(); aggregation = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsAggregation = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if (aggregation.is_none()) {
             let mut precision: crate::value::Dict = self.safe_dict_k(&market, "precision", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1307,7 +1307,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]).into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&data, "I", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("/".into())]);
-        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&market), &[]);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&market), &[]).as_str().map(str::to_owned);
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let mut bids: Vec<Value> = Vec::new();
         let mut asks: Vec<Value> = Vec::new();
@@ -1339,7 +1339,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut timestamp: i64 = (match message.get("mt") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Int(0) } }, _ => Value::Int(0) }).as_i64().unwrap_or(0);
-        let mut snapshot: crate::value::Dict = self.parse_order_book(Value::Map(orderedEntries), symbol.clone(), &[Value::from(timestamp)]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(Value::Map(orderedEntries), Value::from(symbol.as_deref()), &[Value::from(timestamp)]).into_dict();
         orderbook.reset(Value::Dict(snapshot));
         let mut cachedMessages: Value = orderbook.book_field("cache");
         {
@@ -1351,7 +1351,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         orderbook.set_book_meta("cache", Value::from(vec![]));
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str("::".into())).into()), symbol);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
@@ -1946,11 +1946,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             })]).into_dict(); // original watch subscription
             let mut subHash: String = self.safe_string_k(&subscription, "subHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut unsubHash: String = format!("{}{}", Value::Str("unsubscribe::".into()), subHash);
-            let mut unsubsciption: Value = self.safe_dict(__ch.subscriptions.clone(), Value::from(unsubHash), &[Value::Map({
+            let mut unsubsciption: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(unsubHash), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]); // unWatch subscription
-            self.handle_un_subscription(client, unsubsciption);
+            })]).into_dict(); // unWatch subscription
+            self.handle_un_subscription(client, Value::Dict(unsubsciption));
         }
 }
 

@@ -775,11 +775,11 @@ impl Nado {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: crate::value::Dict = self.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).await.into_dict();
-        let mut placeOrder: Value = self.safe_dict_k(&request, "place_order", &[Value::Map({
+        let mut placeOrder: crate::value::Dict = self.safe_dict_k(&request, "place_order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut isTriggerOrder: bool = matches!(&placeOrder, Value::Dict(__d) if __d.contains_key("trigger"));
+        })]).into_dict();
+        let mut isTriggerOrder: bool = placeOrder.contains_key("trigger");
         let mut response: Value = Value::Null;
         if isTriggerOrder {
             response = self.trigger_private_post_execute(&[Value::from(&request)]).await;
@@ -788,7 +788,7 @@ impl Nado {
         }
         let __ws_arg_0 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("place_order".to_string(), placeOrder);
+        m.insert("place_order".to_string(), Value::Dict(placeOrder));
     m
 }), &[response]);
         return self.parse_order(__ws_arg_0, Some(&market));
@@ -1983,8 +1983,8 @@ impl Nado {
         //     }
         //
         let mut matches: crate::value::List = self.safe_list_k(&response, "matches", &[Value::from(vec![])]).into_list();
-        let mut txs: Value = self.safe_list_k(&response, "txs", &[Value::from(vec![])]);
-        let mut txsBySubmission: crate::value::Dict = self.index_by(txs, Value::Str("submission_idx".into())).into_dict();
+        let mut txs: crate::value::List = self.safe_list_k(&response, "txs", &[Value::from(vec![])]).into_list();
+        let mut txsBySubmission: crate::value::Dict = self.index_by(Value::Arr(txs), Value::Str("submission_idx".into())).into_dict();
         let mut trades: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3797,9 +3797,9 @@ impl Nado {
         let mut vQuoteBalance: Option<String> = self.safe_string_k(&balance, "v_quote_balance", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
         let mut contracts: Value = Value::Null;
-        let mut entryPrice: Value = Value::Null;
+        let mut entryPrice: Option<f64> = None;
         let mut markPrice: Value = Value::Null;
-        let mut notional: Value = Value::Null;
+        let mut notional: Option<f64> = None;
         if (amountString.is_some()) {
             if crate::precise::Precise::stringGt(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                 side = Some("long".to_string());
@@ -3809,12 +3809,12 @@ impl Nado {
             let mut absoluteAmount: Option<String> = crate::precise::Precise::stringAbs(&amountString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             contracts = self.parse_x18(absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null));
             if (vQuoteBalance.is_some()) && !(crate::precise::Precise::stringEquals(&absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
-                entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAbs(&vQuoteBalance.map(Value::from).unwrap_or(Value::Null)), &absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
+                entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAbs(&vQuoteBalance.map(Value::from).unwrap_or(Value::Null)), &absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
             }
             if (markPriceX18.is_some()) {
                 markPrice = self.parse_x18(markPriceX18.clone().map(Value::from).unwrap_or(Value::Null));
                 let mut notionalX36: Option<String> = crate::precise::Precise::stringMul(&absoluteAmount.map(Value::from).unwrap_or(Value::Null), &markPriceX18.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                notional = self.parse_number(crate::precise::Precise::stringDiv(&notionalX36.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000000000000000000000".into())), &[]);
+                notional = self.parse_number(crate::precise::Precise::stringDiv(&notionalX36.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000000000000000000000".into())), &[]).as_f64();
             }
         }
         return self.safe_position(Value::Map({
@@ -3829,9 +3829,9 @@ impl Nado {
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("contracts".to_string(), contracts);
         m.insert("contractSize".to_string(), self.safe_number_k(&marketResolved, "contractSize", &[]));
-        m.insert("entryPrice".to_string(), entryPrice);
+        m.insert("entryPrice".to_string(), Value::from(entryPrice));
         m.insert("markPrice".to_string(), markPrice);
-        m.insert("notional".to_string(), notional);
+        m.insert("notional".to_string(), Value::from(notional));
         m.insert("leverage".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), Value::Null);

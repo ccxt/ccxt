@@ -370,18 +370,18 @@ impl Hollaex {
         let mut channel: Option<String> = (match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut marketIdValue: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
+        let mut symbol: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_some()) {
             let mut data: Option<crate::value::Dict> = __pro_message.get("data").cloned().unwrap_or_default().into_opt_dict();
             let mut timestamp: Option<String> = self.safe_string_k(&data, "timestamp", &[]).as_str().map(str::to_owned);
             let mut timestampMs: Option<i64> = self.parse8601(timestamp.map(Value::from).unwrap_or(Value::Null));
-            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(timestampMs)]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestampMs)]).into_dict();
             let mut orderbook: Option<crate::pro::order_book::Book> = None;
-            if !(self.orderbooks.has(&symbol.clone().map(Value::from).unwrap_or(Value::Null))) {
+            if !(self.orderbooks.has(&symbol)) {
                 orderbook = Some(self.order_book(&[Value::from(&snapshot)]));
-                CacheStore::put(&mut self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null), orderbook.clone());
+                CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
             }  else {
-                orderbook = self.orderbooks.at(&symbol.clone().map(Value::from).unwrap_or(Value::Null));
+                orderbook = self.orderbooks.at(&symbol);
                 if (orderbook.is_none()) {
                     return;
                 }

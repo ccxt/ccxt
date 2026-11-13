@@ -1511,8 +1511,8 @@ impl Paradex {
         let mut expiry: Option<i64> = self.safe_integer_k(market.clone(), "expiry_at", &[]).as_i64();
         let mut optionType: Option<String> = self.safe_string_k(market.clone(), "option_type", &[]).as_str().map(str::to_owned);
         let mut strikePrice: Option<String> = self.safe_string_k(market.clone(), "strike_price", &[]).as_str().map(str::to_owned);
-        let mut takerFee: Value = self.parse_number(Value::Str("0.0003".into()), &[]);
-        let mut makerFee: Value = self.parse_number(Value::Str("-0.00005".into()), &[]);
+        let mut takerFee: Option<f64> = Some(0.0003_f64);
+        let mut makerFee: Option<f64> = Some(-0.00005_f64);
         if isOption {
             let mut optionTypeSuffix: String = (if (optionType.as_deref() == Some("CALL")) { "C".to_string() } else { "P".to_string() });
             let mut deliveryValue: String = "".to_string();
@@ -1522,7 +1522,7 @@ impl Paradex {
             if (strikePrice.is_some()) {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), deliveryValue).into()), strikePrice.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), optionTypeSuffix);
             }
-            makerFee = self.parse_number(Value::Str("0.0003".into()), &[]);
+            makerFee = Some(0.0003_f64);
         }  else {
             expiry = None.clone();
         }
@@ -1547,8 +1547,8 @@ impl Paradex {
         m.insert("contract".to_string(), Value::Bool(!(matches!(&isSpot, Value::Bool(true)))));
         m.insert("linear".to_string(), (if (isSpot).as_bool() == Some(true) { Value::Null } else { Value::Bool(true) }));
         m.insert("inverse".to_string(), (if (isSpot).as_bool() == Some(true) { Value::Null } else { Value::Bool(false) }));
-        m.insert("taker".to_string(), takerFee);
-        m.insert("maker".to_string(), makerFee);
+        m.insert("taker".to_string(), Value::from(takerFee));
+        m.insert("maker".to_string(), Value::from(makerFee));
         m.insert("contractSize".to_string(), (if (isSpot).as_bool() == Some(true) { Value::Null } else { self.parse_number(Value::Str("1".into()), &[]) }));
         m.insert("expiry".to_string(), Value::from(expiry));
         m.insert("expiryDatetime".to_string(), expireDatetime.map(Value::from).unwrap_or(Value::Null));
@@ -1702,11 +1702,11 @@ impl Paradex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
-        let mut first: Value = self.safe_dict(&data, Value::Int(0), &[Value::Map({
+        let mut first: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        return self.parse_trading_fee(first, Some(&market));
+})]).into_dict();
+        return self.parse_trading_fee(Value::Dict(first), Some(&market));
         Value::Null
         }).await?))
     }
@@ -1809,7 +1809,7 @@ impl Paradex {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
+        let mut duration: i64 = self.parse_timeframe(timeframe.clone());
         let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         if (price.is_some()) {
             // the exchange names the index price "underlying" and rejects "index"
@@ -1822,7 +1822,7 @@ impl Paradex {
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUntil, Value::from(vec![Value::Str("price".into())]), &[]).into_dict();
         // exchange has undocumented limit slightly above, but 1000 is reliable limit
         let mut limitResolved: Option<i64> = (if ((limit == Value::Null) || (limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64))) { Some(1000) } else { limit.as_i64() });
-        let mut windowLength: Option<i64> = self.parse_to_int((match (&((match (&(duration), &(((match (&(Value::from(self.parse_to_int(Value::from(limitResolved)))), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
+        let mut windowLength: Option<i64> = self.parse_to_int((match (&((match (&(Value::from(duration)), &(((match (&(Value::from(self.parse_to_int(Value::from(limitResolved)))), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
             Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
         if (since != Value::Null) {
@@ -3782,8 +3782,8 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
-        return self.parse_balance_list(data);
+        let mut data: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
+        return self.parse_balance_list(Value::Arr(data));
         Value::Null
         }).await?))
     }
@@ -4060,7 +4060,7 @@ impl Paradex {
         // side carries the direction, the unified contracts is a magnitude whether or not size is signed
         let mut quantity: Option<String> = crate::precise::Precise::stringAbs(&self.safe_string_k(position.clone(), "size", &[])).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "created_at", &[]).as_i64();
-        let mut liquidationPrice: Value = self.parse_number(Value::from(self.omit_zero(self.safe_string_k(position.clone(), "liquidation_price", &[]))), &[]);
+        let mut liquidationPrice: Option<f64> = self.parse_number(Value::from(self.omit_zero(self.safe_string_k(position.clone(), "liquidation_price", &[]))), &[]).as_f64();
         // cost_usd is signed by side, the unified notional is a magnitude
         let mut notionalString: Option<String> = crate::precise::Precise::stringAbs(&self.safe_string_k(position.clone(), "cost_usd", &[])).as_str().map(str::to_owned);
         return self.safe_position(Value::Map({
@@ -4086,7 +4086,7 @@ impl Paradex {
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), self.safe_number_k(position, "leverage", &[]));
-        m.insert("liquidationPrice".to_string(), liquidationPrice);
+        m.insert("liquidationPrice".to_string(), Value::from(liquidationPrice));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("cross".into()));
         m.insert("percentage".to_string(), Value::Null);

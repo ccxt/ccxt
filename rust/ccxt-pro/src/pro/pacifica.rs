@@ -2186,12 +2186,12 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut wsHeadersFinal: Value = self.safe_dict_k(&wsHeaders, "headers", &[Value::Map({
+        let mut wsHeadersFinal: crate::value::Dict = self.safe_dict_k(&wsHeaders, "headers", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_errors(Value::Int(0), Value::from(error), Value::Str("".into()), Value::from(postType), wsHeadersFinal.clone(), json_stringify(&data), message.clone(), Value::Map({
+            self.handle_errors(Value::Int(0), Value::from(error), Value::Str("".into()), Value::from(postType), Value::Dict(wsHeadersFinal), json_stringify(&data), message.clone(), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             }), Value::Str("".into()));

@@ -763,7 +763,7 @@ impl Bithumb {
         }  else {
             request = self.extend(request.clone(), &[&paramsGeneration]);
         }
-        let mut orderbook: Value = self.watch(url.as_str(), &messageHash[..], request, &messageHash[..], Value::Null).await;
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_str(), &messageHash[..], request, &messageHash[..], Value::Null).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -848,8 +848,8 @@ impl Bithumb {
             return;
         }
         let mut marketId: Option<String> = (match __pro_message.get("code").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]);
-        if (symbol == Value::Null) {
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
+        if (symbol.is_none()) {
             return;
         }
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
@@ -894,9 +894,9 @@ impl Bithumb {
                 m.insert("bids".to_string(), Value::from(bidsSnapshot));
                 m.insert("asks".to_string(), Value::from(asksSnapshot));
             m
-        }), symbol.clone(), &[Value::from(timestamp)]).into_dict();
+        }), Value::from(symbol.as_deref()), &[Value::from(timestamp)]).into_dict();
         orderbook.reset(Value::Dict(snapshot));
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbol);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
@@ -985,12 +985,12 @@ impl Bithumb {
         }  else {
             request = self.extend(request.clone(), &[&paramsGeneration]);
         }
-        let mut trades: Value = self.watch(url.as_str(), &messageHash[..], request, &messageHash[..], Value::Null).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), &messageHash[..], request, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1419,11 +1419,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         })]).into_dict();
         let mut url: String = self.safe_string_k(&wsUrls, "privateGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = "myOrder".to_string();
-        let mut codes: Value = self.safe_list_k(params, "codes", &[Value::from(vec![])]);
+        let mut codes: crate::value::List = self.safe_list_k(params, "codes", &[Value::from(vec![])]).into_list();
         let mut request: Value = self.build_gen2_subscription_request(Value::from(messageHash.clone()), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::from(messageHash.clone()));
-                m.insert("codes".to_string(), codes);
+                m.insert("codes".to_string(), Value::Arr(codes));
             m
         }));
         let mut symbolResolved: Option<String> = None;

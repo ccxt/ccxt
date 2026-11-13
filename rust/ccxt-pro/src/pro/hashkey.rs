@@ -457,11 +457,11 @@ impl Hashkey {
                         let mut i: i64 = 0;
             let mut __for_first_357: bool = true;
             while { if !__for_first_357 { i += 1; } __for_first_357 = false; i < (data.len() as i64) } {
-            let mut candle: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut candle: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut parsed: crate::value::List = self.parse_ws_ohlcv(candle, Some(&market)).into_list();
+            })]).into_dict();
+            let mut parsed: crate::value::List = self.parse_ws_ohlcv(Value::Dict(candle), Some(&market)).into_list();
             stored.append(Value::Arr(parsed));
         }
         }

@@ -821,8 +821,8 @@ impl Luno {
         //         ]
         //     }
         //
-        let mut currenciesData: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        let mut grouped: Value = self.group_by(currenciesData, Value::Str("native_currency".into()), &[]);
+        let mut currenciesData: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut grouped: Value = self.group_by(Value::Arr(currenciesData), Value::Str("native_currency".into()), &[]);
         let mut values: crate::value::List = Value::Array(grouped.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).into_list();
         return self.parse_currencies(&values);
         Value::Null
@@ -975,28 +975,28 @@ impl Luno {
             // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
             let mut unverifiedQuotes: Value = Value::from(vec![Value::Str("MYR".into()), Value::Str("NGN".into()), Value::Str("IDR".into()), Value::Str("KES".into()), Value::Str("UGX".into()), Value::Str("AUD".into()), Value::Str("GBP".into()), Value::Str("EUR".into()), Value::Str("USD".into()), Value::Str("ZARU".into())]);
             let mut stablecoins: Value = Value::from(vec![Value::Str("USDT".into()), Value::Str("USDC".into())]);
-            let mut taker: Value = Value::Null;
-            let mut maker: Value = Value::Null;
+            let mut taker: Option<f64> = None;
+            let mut maker: Option<f64> = None;
             if self.in_array(quote.clone().map(Value::from).unwrap_or(Value::Null), fiats).as_bool() == Some(true) {
                 if self.in_array(base.clone().map(Value::from).unwrap_or(Value::Null), stablecoins).as_bool() == Some(true) {
-                    taker = self.parse_number(Value::Str("0.002".into()), &[]);
-                    maker = self.parse_number(Value::Str("-0.0001".into()), &[]); // a rebate, not a charge
+                    taker = Some(0.002_f64);
+                    maker = Some(-0.0001_f64); // a rebate, not a charge
                 }  else {
-                    taker = self.parse_number(Value::Str("0.006".into()), &[]);
-                    maker = self.parse_number(Value::Str("0.004".into()), &[]);
+                    taker = Some(0.006_f64);
+                    maker = Some(0.004_f64);
                 }
             }  else if !(self.in_array(quote.clone().map(Value::from).unwrap_or(Value::Null), unverifiedQuotes).as_bool() == Some(true)) {
                 // stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
                 // are both in Luno's crypto/crypto column
-                taker = self.parse_number(Value::Str("0.001".into()), &[]);
-                maker = self.parse_number(Value::Str("0.0008".into()), &[]);
+                taker = Some(0.001_f64);
+                maker = Some(0.0008_f64);
             }
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()));
-                    m.insert("taker".to_string(), taker);
-                    m.insert("maker".to_string(), maker);
+                    m.insert("taker".to_string(), Value::from(taker));
+                    m.insert("maker".to_string(), Value::from(maker));
                     m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), Value::Null);
@@ -1540,8 +1540,8 @@ impl Luno {
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.public_get_tickers(&[params]).await.into_dict();
-        let mut rawTickers: Value = self.safe_list_k(&response, "tickers", &[Value::from(vec![])]);
-        let mut tickers: Value = self.index_by(rawTickers, Value::Str("pair".into()));
+        let mut rawTickers: crate::value::List = self.safe_list_k(&response, "tickers", &[Value::from(vec![])]).into_list();
+        let mut tickers: Value = self.index_by(Value::Arr(rawTickers), Value::Str("pair".into()));
         let mut ids: Vec<Value> = Value::Array(tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2124,19 +2124,17 @@ impl Luno {
         if ((minRowParam.is_none()) || (maxRowParam.is_none())) && ((minRowParam.is_some()) || (maxRowParam.is_some())) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined".into()))));
         }
-        let mut maxRowBase: Value = self.safe_integer_k(params.clone(), "max_row", &[Value::Int(0)]); // Default to most recent transactions
-        let mut minRowBase: Value = self.safe_integer_k(params.clone(), "min_row", &[Value::Int(-1000)]); // Maximum number of records supported
-        let mut limitApplies: bool = (limit != Value::Null) && ((match (&(maxRowBase), &(minRowBase)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-            _ => Value::Null }).as_f64().unwrap_or(f64::NAN) > limit.as_f64().unwrap_or(f64::NAN));
-        let mut min_row: Value = (if (limitApplies && (limit != Value::Null) && maxRowBase.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64)) { (match (&(maxRowBase), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
-            Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }) } else { minRowBase.clone() });
-        let mut max_row: Value = maxRowBase.clone();
-        if limitApplies && maxRowBase.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) && minRowBase.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            max_row = (match (&(minRowBase), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+        let mut maxRowBase: i64 = self.safe_integer_k(params.clone(), "max_row", &[Value::Int(0)]).as_i64().unwrap_or(0); // Default to most recent transactions
+        let mut minRowBase: i64 = self.safe_integer_k(params.clone(), "min_row", &[Value::Int(-1000)]).as_i64().unwrap_or(-1000); // Maximum number of records supported
+        let mut limitApplies: bool = (limit != Value::Null) && ((limit.as_i64().is_some() && Some(((maxRowBase - minRowBase))) > limit.as_i64()));
+        let mut min_row: Value = (if (limitApplies && (limit != Value::Null) && maxRowBase <= 0) { (match (&(Value::from(maxRowBase)), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x - y), _ => Value::Null }) } else { Value::from(minRowBase) });
+        let mut max_row: Value = Value::from(maxRowBase);
+        if limitApplies && maxRowBase > 0 && minRowBase > 0 {
+            max_row = (match (&(Value::from(minRowBase)), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
         }
-        let mut limitAdjusts: bool = limitApplies && (maxRowBase.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64) || minRowBase.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)); // max_row - min_row becomes limit
-        if (limitAdjusts && limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64)) || (!limitAdjusts && (match (&(maxRowBase), &(minRowBase)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64)) {
+        let mut limitAdjusts: bool = limitApplies && (maxRowBase <= 0 || minRowBase > 0); // max_row - min_row becomes limit
+        if (limitAdjusts && limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64)) || (!limitAdjusts && ((maxRowBase - minRowBase)) > 1000) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() requires the params 'max_row' - 'min_row' <= 1000".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

@@ -1371,9 +1371,9 @@ impl Coinbase {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_228: bool = true;
                 while { if !__for_first_228 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_228 = false; j.as_f64().unwrap_or(f64::NAN) < tradesLength.as_f64().unwrap_or(f64::NAN) } {
-                let mut item: Value = get_value(&currentTrades, &(match (&((match (&(tradesLength), &(j)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-                    _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
-                tradesArray.append(self.parse_trade(item, None));
+                let mut item: crate::value::Dict = get_value(&currentTrades, &(match (&((match (&(tradesLength), &(j)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+                    Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).into_dict();
+                tradesArray.append(self.parse_trade(Value::Dict(item), None));
             }
             }
         }
@@ -1435,10 +1435,10 @@ impl Coinbase {
                                 let mut j: i64 = 0;
                 let mut __for_first_230: bool = true;
                 while { if !__for_first_230 { j += 1; } __for_first_230 = false; j < (responseOrders.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let mut responseOrder: Value = responseOrders.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
-                let mut parsed: crate::value::Dict = self.parse_ws_order(responseOrder.clone(), None).into_dict();
+                let mut responseOrder: crate::value::Dict = responseOrders.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut parsed: crate::value::Dict = self.parse_ws_order(&responseOrder, None).into_dict();
                 let mut cachedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
-                let mut marketId: Option<String> = self.safe_string_k_opt(responseOrder, "product_id", &[]);
+                let mut marketId: Option<String> = self.safe_string_k_opt(&responseOrder, "product_id", &[]);
                 if (marketId.is_some()) {
                     if !(in_op(&marketIds, &marketId.clone().map(Value::from).unwrap_or(Value::Null))) {
                         if let Value::Arr(__a) = &mut marketIds { std::sync::Arc::make_mut(__a).push(marketId.map(Value::from).unwrap_or(Value::Null)); }
@@ -1579,7 +1579,7 @@ impl Coinbase {
             let mut __for_first_234: bool = true;
             while { if !__for_first_234 { i += 1; } __for_first_234 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut event: crate::value::Dict = self.safe_dict(&events, Value::Int(i), &[]).into_dict();
-            let mut updates: Value = self.safe_list_k(&event, "updates", &[Value::from(vec![])]);
+            let mut updates: crate::value::List = self.safe_list_k(&event, "updates", &[Value::from(vec![])]).into_list();
             let mut marketId: Option<String> = self.safe_string_k(&event, "product_id", &[]).as_str().map(str::to_owned);
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -1609,7 +1609,7 @@ impl Coinbase {
                     m
                 }));
             }
-            self.handle_order_book_helper(Value::from(&orderbook), updates);
+            self.handle_order_book_helper(Value::from(&orderbook), Value::Arr(updates));
             orderbook.set_book_meta("timestamp", Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
             orderbook.set_book_meta("datetime", datetime.clone().map(Value::from).unwrap_or(Value::Null));
             orderbook.set_book_meta("symbol", Value::from(symbol));

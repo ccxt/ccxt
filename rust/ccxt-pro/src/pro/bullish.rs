@@ -784,11 +784,11 @@ impl Bullish {
             m
         });
         let mut tradingAccountId: Option<String> = self.safe_string_k(params.clone(), "tradingAccountId", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = (if (tradingAccountId.is_some()) { self.omit(params.clone(), Value::Str("tradingAccountId".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (tradingAccountId.is_some()) { self.omit(params.clone(), Value::Str("tradingAccountId".into()), &[]) } else { params }).into_dict();
         if (tradingAccountId.is_some()) {
             request.insert("tradingAccountId".into(), tradingAccountId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut orders: Value = self.watch_private(messageHash.as_str(), subscribeHash.as_str(), &[Value::Map(request), paramsOmitted]).await;
+        let mut orders: Value = self.watch_private(messageHash.as_str(), subscribeHash.as_str(), &[Value::Map(request), Value::Dict(paramsOmitted)]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -935,11 +935,11 @@ impl Bullish {
             m
         });
         let mut tradingAccountId: Option<String> = self.safe_string_k(params.clone(), "tradingAccountId", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = (if (tradingAccountId.is_some()) { self.omit(params.clone(), Value::Str("tradingAccountId".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (tradingAccountId.is_some()) { self.omit(params.clone(), Value::Str("tradingAccountId".into()), &[]) } else { params }).into_dict();
         if (tradingAccountId.is_some()) {
             request.insert("tradingAccountId".into(), tradingAccountId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut trades: Value = self.watch_private(messageHash.as_str(), subscribeHash.as_str(), &[Value::Map(request), paramsOmitted]).await;
+        let mut trades: Value = self.watch_private(messageHash.as_str(), subscribeHash.as_str(), &[Value::Map(request), Value::Dict(paramsOmitted)]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -1067,12 +1067,12 @@ impl Bullish {
         });
         let mut messageHash: String = "balance".to_string();
         let mut tradingAccountId: Option<String> = self.safe_string_k(params.clone(), "tradingAccountId", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = (if (tradingAccountId.is_some()) { self.omit(params.clone(), Value::Str("tradingAccountId".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (tradingAccountId.is_some()) { self.omit(params.clone(), Value::Str("tradingAccountId".into()), &[]) } else { params }).into_dict();
         if (tradingAccountId.is_some()) {
             request.insert("tradingAccountId".into(), tradingAccountId.clone().map(Value::from).unwrap_or(Value::Null));
             messageHash.push_str(&format!("{}{}", Value::Str("::".into()), tradingAccountId.map(Value::from).unwrap_or(Value::Null)));
         }
-        return self.watch_private(messageHash.as_str(), messageHash.as_str(), &[Value::Map(request), paramsOmitted]).await;
+        return self.watch_private(messageHash.as_str(), messageHash.as_str(), &[Value::Map(request), Value::Dict(paramsOmitted)]).await;
         Value::Null
         }).await?))
     }
@@ -1150,14 +1150,11 @@ impl Bullish {
             }
             { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), tradingAccountId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(tradingAccountId.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
         }  else {
-            let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-            let mut assetId: Option<String> = self.safe_string_k(data.clone(), "assetSymbol", &[]).as_str().map(str::to_owned);
+            let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+            let mut assetId: Option<String> = self.safe_string_k(&data, "assetSymbol", &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("total".into(), self.safe_string_k(data.clone(), "availableQuantity", &[]));
-            account.insert("used".into(), self.safe_string_k(data, "lockedQuantity", &[]));
+            account.insert("total".into(), self.safe_string_k(&data, "availableQuantity", &[]));
+            account.insert("used".into(), self.safe_string_k(&data, "lockedQuantity", &[]));
             let mut code: Value = self.safe_currency_code(assetId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
             if (tradingAccountId.is_some()) && (code != Value::Null) {
                 if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(tradingAccountId.as_deref().unwrap_or("null").to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); } }

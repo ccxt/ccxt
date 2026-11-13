@@ -1535,14 +1535,14 @@ impl Bitvavo {
             return;
         }
         let mut marketId: Option<String> = self.safe_string_k(&response, "market", &[]).as_str().map(str::to_owned);
-        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
         let mut name: String = "book".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), self.safe_string_k(&response, "market", &[Value::Str("".into())]));
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
         if (orderbook.is_none()) {
             return;
         }
-        let mut snapshot: crate::value::Dict = self.parse_order_book(&response, symbol.clone(), &[]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&response, Value::from(symbol.as_deref()), &[]).into_dict();
         std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), self.safe_integer_k(&response, "nonce", &[]));
         orderbook.reset(Value::Dict(snapshot));
         // unroll the accumulated deltas
@@ -2605,8 +2605,8 @@ impl Bitvavo {
         //
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut response: Value = (match message.get("response") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut balance: Value = self.parent.parse_balance_list(response);
-        client.resolve(balance, messageHash.as_deref());
+        let mut balance: crate::value::Dict = self.parent.parse_balance_list(response).into_dict();
+        client.resolve(Value::Dict(balance), messageHash.as_deref());
 }
 
     pub fn handle_single_order(&self, mut client: Value, mut message: Value) {

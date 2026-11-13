@@ -765,15 +765,15 @@ impl Bittrade {
         //         }
         //     }
         //
-        let mut symbol: Option<String> = self.safe_string_k_opt(subscription.clone(), "symbol", &[]);
+        let mut symbol: Option<String> = self.safe_string_k(subscription.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut messageHash: Option<String> = self.safe_string_k(subscription, "messageHash", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
         if (orderbook.is_none()) {
             return;
         }
         let mut data: Option<crate::value::Dict> = message.get("data").cloned().unwrap_or_default().into_opt_dict();
-        let mut snapshot: crate::value::Dict = self.parse_order_book(&data, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[]).into_dict();
         std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), self.safe_integer_k(&data, "seqNum", &[]));
         std::sync::Arc::make_mut(&mut snapshot).insert("timestamp".into(), Value::from(timestamp));
         std::sync::Arc::make_mut(&mut snapshot).insert("datetime".into(), self.iso8601(Value::from(timestamp)));
@@ -787,7 +787,7 @@ impl Bittrade {
             self.handle_order_book_message(client.clone(), get_value(&messages, &Value::Int(i)), Value::from(&orderbook));
         }
         }
-        CacheStore::put(&mut self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null), orderbook.clone());
+        CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(Value::from(&orderbook), messageHash.as_deref());
 }
 
@@ -885,10 +885,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut nonce: Option<i64> = self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_i64();
         if (nonce.is_some()) && ((prevSeqNum.is_some() && nonce.is_some() && prevSeqNum <= nonce)) && ((seqNum.is_some() && nonce.is_some() && seqNum > nonce)) {
-            let mut asks: Value = self.safe_list_k(&tick, "asks", &[Value::from(vec![])]);
-            let mut bids: Value = self.safe_list_k(&tick, "bids", &[Value::from(vec![])]);
-            self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), asks);
-            self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), bids);
+            let mut asks: crate::value::List = self.safe_list_k(&tick, "asks", &[Value::from(vec![])]).into_list();
+            let mut bids: crate::value::List = self.safe_list_k(&tick, "bids", &[Value::from(vec![])]).into_list();
+            self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), Value::Arr(asks));
+            self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), Value::Arr(bids));
             add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::from(seqNum));
             let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), Value::from(timestamp));

@@ -1345,7 +1345,7 @@ if _try_result.is_err() {
         let mut type_var: String = "spot".to_string();
         let mut linear: Option<bool> = None;
         let mut inverse: Option<bool> = None;
-        let mut contractSize: Value = Value::Null;
+        let mut contractSize: Option<f64> = None;
         let mut minLeverage: Option<i64> = None;
         let mut maxLeverage: Option<i64> = None;
         let mut crossMargin: Option<bool> = None;
@@ -1363,7 +1363,7 @@ if _try_result.is_err() {
             type_var = "swap".to_string();
             linear = Some(true);
             inverse = Some(false);
-            contractSize = self.parse_number(Value::Str("1".into()), &[]);
+            contractSize = Some(1_f64);
             minLeverage = Some(1);
             maxLeverage = self.safe_integer_k(market.clone(), "max_leverage", &[]).as_i64();
             crossMargin = Some(!(isolatedOnly));
@@ -1410,7 +1410,7 @@ if _try_result.is_err() {
         m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("taker".to_string(), Value::from(taker));
         m.insert("maker".to_string(), Value::from(maker));
-        m.insert("contractSize".to_string(), contractSize);
+        m.insert("contractSize".to_string(), Value::from(contractSize));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
@@ -2659,12 +2659,12 @@ if _try_result.is_err() {
             })]).as_map().cloned().unwrap_or_default();
             orderParams.insert("timestamp".into(), Value::from(timestamp));
             let mut amount: Option<String> = self.safe_string_k(&order, "amount", &[]).as_str().map(str::to_owned);
-            let mut amountNumber: Value = self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut priceNumber: Value = self.parse_number(price.map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut amountNumber: Option<f64> = self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+            let mut priceNumber: Option<f64> = self.parse_number(price.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             if (type_var != "limit") {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() supports only type = \"limit\"! Your value type=".into())).into()), type_var)));
             }
-            let mut requestList: Vec<Value> = self.create_order_request(symbol.as_deref(), Some(type_var.as_str()), side.as_deref(), amountNumber, &[priceNumber, Value::Map(orderParams)]).as_array().cloned().unwrap_or_default();
+            let mut requestList: Vec<Value> = self.create_order_request(symbol.as_deref(), Some(type_var.as_str()), side.as_deref(), Value::from(amountNumber), &[Value::from(priceNumber), Value::Map(orderParams)]).as_array().cloned().unwrap_or_default();
             let mut action: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("Create".into()));
@@ -3730,9 +3730,9 @@ if _try_result.is_err() {
         //   "code": null
         // }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
-        let mut sorted: Vec<Value> = self.sort_by(data, Value::Str("history_id".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
+        let mut sorted: Vec<Value> = self.sort_by(Value::Arr(data), Value::Str("history_id".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut lastIdx: i64 = sorted.len() as i64;
         let mut lastInfo: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4297,11 +4297,11 @@ if _try_result.is_err() {
         //   "error": null,
         //   "code": null
         // }
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_trading_fee(data, Some(&market));
+        })]).into_dict();
+        return self.parse_trading_fee(Value::Dict(data), Some(&market));
         Value::Null
         }).await?))
     }
@@ -4338,10 +4338,10 @@ if _try_result.is_err() {
         });
         let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
         let mut response: crate::value::Dict = self.public_get_account(&[__ws_arg_26]).await.into_dict();
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4352,7 +4352,7 @@ if _try_result.is_err() {
             let mut __for_first_1053: bool = true;
             while { if !__for_first_1053 { i += 1; } __for_first_1053 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(data.clone(), Some(&(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) }))));
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(Value::from(&data), Some(&(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) }))));
         }
         }
         return Value::Map(result);
@@ -5395,15 +5395,15 @@ if _try_result.is_err() {
         let __config_empty = indexmap::IndexMap::new();
         let config = config.as_map().unwrap_or(&__config_empty);
         let mut cost: String = (match config.get("cost") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("1".into()) }).as_str().unwrap_or("1").to_string();
-        let mut costNumber: Value = self.parse_number(Value::from(cost), &[]);
+        let mut costNumber: Option<f64> = self.parse_number(Value::from(cost), &[]).as_f64();
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
-        if costNumber.as_f64().unwrap_or(f64::NAN) > ((1i64) as f64) {
+        if costNumber > Some(1.0) {
             if (self.handle_option(method.clone(), Value::Str("apiKey".into()), &[]) != Value::Null) {
                 let mut costWithKey: Value = self.handle_option(method, Value::Str("maxCostHugeWithApiKey".into()), &[Value::Int(3)]);
                 return costWithKey;
             }
         }
-        return costNumber;
+        return Value::from(costNumber);
 
     Value::Null
 }
@@ -5478,9 +5478,9 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" action: ".into())).into()), operationType).into()), Value::Str(" postActionRequest() requires \"operationType\"".into()))));
         }
         if !(self.isSandboxModeEnabled.as_bool() == Some(true)) {
-            let mut useBuilder: Value = self.handle_option(Value::Str("postActionRequest".into()), Value::Str("builderFee".into()), &[Value::Bool(true)]);
+            let mut useBuilder: Option<bool> = self.handle_option(Value::Str("postActionRequest".into()), Value::Str("builderFee".into()), &[Value::Bool(true)]).as_bool();
             let mut builderCode: Value = Value::Null;
-            if (useBuilder.as_bool() == Some(true)) {
+            if (useBuilder == Some(true)) {
                 builderCode = self.handle_option(Value::Str("postActionRequest".into()), Value::Str("builderCode".into()), &[]);
             }
             if (builderCode != Value::Null) {

@@ -1719,13 +1719,13 @@ impl Weex {
         }  else {
             active = self.safe_bool_k(market.clone(), "enableTrade", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         }
-        let mut amountPrecision: Value = self.safe_number_k(market.clone(), "stepSize", &[]);
-        let mut pricePrecision: Value = self.safe_number_k(market.clone(), "tickSize", &[]);
-        if (amountPrecision == Value::Null) {
+        let mut amountPrecision: Option<f64> = self.safe_number_k(market.clone(), "stepSize", &[]).as_f64();
+        let mut pricePrecision: Option<f64> = self.safe_number_k(market.clone(), "tickSize", &[]).as_f64();
+        if (amountPrecision.is_none()) {
             let mut amountPrecisionString: Option<String> = self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]).as_str().map(str::to_owned);
             let mut pricePrecisionString: Option<String> = self.parse_precision(&[self.safe_string_k(market.clone(), "pricePrecision", &[])]).as_str().map(str::to_owned);
-            amountPrecision = self.parse_number(amountPrecisionString.map(Value::from).unwrap_or(Value::Null), &[]);
-            pricePrecision = self.parse_number(pricePrecisionString.map(Value::from).unwrap_or(Value::Null), &[]);
+            amountPrecision = self.parse_number(amountPrecisionString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+            pricePrecision = self.parse_number(pricePrecisionString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }
         let mut fees: indexmap::IndexMap<String, Value> = self.safe_dict(self.fees.clone(), (if isSpot { Value::Str("spot".into()) } else { Value::Str("contract".into()) }), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1766,8 +1766,8 @@ impl Weex {
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), amountPrecision);
-        m.insert("price".to_string(), pricePrecision);
+        m.insert("amount".to_string(), Value::from(amountPrecision));
+        m.insert("price".to_string(), Value::from(pricePrecision));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
@@ -2419,7 +2419,7 @@ impl Weex {
             })]).into_dict();
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), Value::Dict(paramsExtended), maxHistoricalLimit.clone()]).await;
         }
-        let mut until: Value = self.safe_integer_k(&paramsPaginate, "until", &[]);
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         let historicalparamsHistoricalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsPaginate, Value::Str("fetchOHLCV".into()), Value::Str("historical".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut historical: Value = historicalparamsHistoricalVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsHistorical: crate::value::Dict = historicalparamsHistoricalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2446,7 +2446,7 @@ impl Weex {
         // the recent-klines endpoints ignore startTime and endTime and only ever return the
         // latest candles, so a request bounded by since or until has to go through the history
         // endpoint, which honours both (endTime = since + limit * timeframe when until is absent)
-        let mut useHistory: bool = historical.as_bool() == Some(true) || (since != Value::Null) || (until != Value::Null);
+        let mut useHistory: bool = historical.as_bool() == Some(true) || (since != Value::Null) || (until.is_some());
         if useHistory {
             if (priceType.is_some()) {
                 request.insert("priceType".into(), priceType.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2454,10 +2454,10 @@ impl Weex {
             let mut now: Value = Value::Int(self.milliseconds());
             let mut startTime: Value = since.clone();
             let mut endTime: Value = now.clone();
-            if (until != Value::Null) {
-                endTime = until.clone();
+            if (until.is_some()) {
+                endTime = Value::from(until);
             }
-            if (since == Value::Null) || (until == Value::Null) {
+            if (since == Value::Null) || (until.is_none()) {
                 let mut duration: Option<i64> = self.parse_to_int((match (&(Value::Int(self.parse_timeframe(timeframe.clone()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
                 // the history endpoint returns at most maxHistoricalLimit candles and serves the
@@ -2467,18 +2467,18 @@ impl Weex {
                 if (limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0)) {
                     historyLimit = self.parse_to_int(crate::runtime::Math::min(&limit, &maxHistoricalLimit));
                 }
-                let mut timeDelta: Value = Value::from(self.parse_to_int(Value::from((if let (Some(__l), Some(__r)) = (historyLimit, duration) { Some(__l * __r) } else { None }))));
-                if (since == Value::Null) && (until == Value::Null) {
+                let mut timeDelta: Option<i64> = self.parse_to_int(Value::from((if let (Some(__l), Some(__r)) = (historyLimit, duration) { Some(__l * __r) } else { None })));
+                if (since == Value::Null) && (until.is_none()) {
                     endTime = now.clone();
-                    startTime = (match (&(now), &(timeDelta)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                    startTime = (match (&(now), &(Value::from(timeDelta))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                 }  else if (since == Value::Null) {
-                    if (until == Value::Null) {
+                    if (until.is_none()) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() requires a since or until argument".into()))));
                     }
-                    startTime = (match (&(until), &(timeDelta)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                    startTime = Value::from((if let (Some(__l), Some(__r)) = (until, timeDelta) { Some(__l - __r) } else { None }));
                 }  else {
                     // this.sum, a bare + is string concatenation in the php port
-                    endTime = self.sum(&[since.clone(), timeDelta]);
+                    endTime = self.sum(&[since.clone(), Value::from(timeDelta)]);
                 }
             }
             // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
@@ -4769,7 +4769,7 @@ impl Weex {
         let mut amountRaw: Option<String> = self.safe_string2(item.clone(), Value::Str("deltaAmount".into()), Value::Str("income".into()), &[]).as_str().map(str::to_owned);
         let mut after: Option<String> = self.safe_string2(item.clone(), Value::Str("afterAmount".into()), Value::Str("balance".into()), &[]).as_str().map(str::to_owned);
         let mut before: Option<String> = crate::precise::Precise::stringSub(&after.clone().map(Value::from).unwrap_or(Value::Null), &amountRaw.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut amount: Value = self.parse_number(crate::precise::Precise::stringAbs(&amountRaw.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
+        let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringAbs(&amountRaw.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
         let mut direction: String = "in".to_string();
         if (amountRaw.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseLedgerEntry() missing amountRaw".into()))));
@@ -4797,7 +4797,7 @@ impl Weex {
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("type".to_string(), self.parse_ledger_type(rawType.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), Value::from(amount));
         m.insert("before".to_string(), self.parse_number(before.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("after".to_string(), self.parse_number(after.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("status".to_string(), Value::Null);

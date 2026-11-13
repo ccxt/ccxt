@@ -808,7 +808,7 @@ impl Coinbaseexchange {
         });
         let mut authentication: crate::value::Dict = self.authenticate().into_dict();
         let __ws_arg_4 = self.extend(request, &[&authentication]);
-        let mut orderbook: Value = self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_4, &messageHashes, Value::Map(subscription)).await;
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_4, &messageHashes, Value::Map(subscription)).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -861,7 +861,7 @@ impl Coinbaseexchange {
         });
         let mut authentication: crate::value::Dict = self.authenticate().into_dict();
         let __ws_arg_5 = self.extend(request, &[&authentication]);
-        let mut orderbook: Value = self.watch(url.as_deref(), &messageHash[..], __ws_arg_5, &messageHash[..], Value::Map(subscription)).await;
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_deref(), &messageHash[..], __ws_arg_5, &messageHash[..], Value::Map(subscription)).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))

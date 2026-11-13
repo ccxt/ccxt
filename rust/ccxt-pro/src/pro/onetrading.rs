@@ -394,8 +394,8 @@ impl Onetrading {
 })]));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
-        return self.watch(url.as_deref(), messageHash.as_str(), request.clone(), subscribeHash.as_str(), request).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
+        return self.watch(url.as_deref(), messageHash.as_str(), &request, subscribeHash.as_str(), &request).await;
         Value::Null
         }).await?))
     }
@@ -678,8 +678,8 @@ impl Onetrading {
 })]));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params.clone()]);
-        let mut trades: Value = self.watch(url.as_deref(), messageHash.as_str(), request.clone(), subscribeHash.as_str(), request).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params.clone()]).into_dict();
+        let mut trades: Value = self.watch(url.as_deref(), messageHash.as_str(), &request, subscribeHash.as_str(), &request).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_str(), limit.as_i64());
@@ -884,8 +884,8 @@ impl Onetrading {
 })]));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params.clone()]);
-        let mut orders: Value = self.watch(url.as_deref(), messageHash.as_str(), request.clone(), subscribeHash.as_str(), request).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params.clone()]).into_dict();
+        let mut orders: Value = self.watch(url.as_deref(), messageHash.as_str(), &request, subscribeHash.as_str(), &request).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
@@ -1628,12 +1628,12 @@ impl Onetrading {
             m
         });
         let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
-        let mut ohlcv: Value = self.watch(url.as_deref(), messageHash.as_str(), __ws_arg_0, &subscriptionHash, subscription).await;
+        let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), messageHash.as_str(), __ws_arg_0, &subscriptionHash, subscription).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1679,11 +1679,11 @@ impl Onetrading {
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut dateTime: Option<String> = (match message.get("time") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut timeframeId: Option<crate::value::Dict> = message.get("granularity").cloned().unwrap_or_default().into_opt_dict();
-        let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timeframe: Value = Value::from(self.find_timeframe(timeframeId.map_or(Value::Null, Value::Dict), &[timeframes]));
+        })]).into_dict();
+        let mut timeframe: Value = Value::from(self.find_timeframe(timeframeId.map_or(Value::Null, Value::Dict), &[Value::Dict(timeframes)]));
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv.".into()), symbol).into()), Value::Str(".".into())).into()), timeframe);
         let mut parsed: Value = Value::from(vec![Value::from(self.parse8601(dateTime.map(Value::from).unwrap_or(Value::Null))), (match message.get("open") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n),
             Err(_) => Value::Null }, _ => Value::Null }), (match message.get("high") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }),

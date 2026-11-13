@@ -1167,8 +1167,8 @@ impl Tokocrypto {
             }
             let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
-            let mut filters: Value = self.safe_list_k(&market, "filters", &[Value::from(vec![])]);
-            let mut filtersByType: crate::value::Dict = self.index_by(filters, Value::Str("filterType".into())).into_dict();
+            let mut filters: crate::value::List = self.safe_list_k(&market, "filters", &[Value::from(vec![])]).into_list();
+            let mut filtersByType: crate::value::Dict = self.index_by(Value::Arr(filters), Value::Str("filterType".into())).into_dict();
             let mut status: Option<String> = self.safe_string_k(&market, "spotTradingEnable", &[]).as_str().map(str::to_owned);
             let mut active: bool = status.as_deref() == Some("1");
             let mut permissions: crate::value::List = self.safe_list_k(&market, "permissions", &[Value::from(vec![])]).into_list();
@@ -1221,44 +1221,44 @@ impl Tokocrypto {
                 m
             });
             if (filtersByType.contains_key("PRICE_FILTER")) {
-                let mut filter: Value = self.safe_dict_k(&filtersByType, "PRICE_FILTER", &[Value::Map({
+                let mut filter: crate::value::Dict = self.safe_dict_k(&filtersByType, "PRICE_FILTER", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
+                })]).into_dict();
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
                 // therefore limits['price']['max'] doesn't have any meaningful value except undefined
                 limits.insert("price".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(filter.clone(), "minPrice", &[]));
-        m.insert("max".to_string(), self.safe_number_k(filter.clone(), "maxPrice", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&filter, "minPrice", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&filter, "maxPrice", &[]));
     m
 }));
-                precision.insert("price".into(), filter.as_map().and_then(|__m| __m.get("tickSize")).cloned().unwrap_or(Value::Null));
+                precision.insert("price".into(), crate::value::KeyRead::key_read(&&filter, "tickSize"));
             }
             if (filtersByType.contains_key("LOT_SIZE")) {
-                let mut filter: Value = self.safe_dict_k(&filtersByType, "LOT_SIZE", &[Value::Map({
+                let mut filter: crate::value::Dict = self.safe_dict_k(&filtersByType, "LOT_SIZE", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                precision.insert("amount".into(), self.safe_number_k(filter.clone(), "stepSize", &[]));
+                })]).into_dict();
+                precision.insert("amount".into(), self.safe_number_k(&filter, "stepSize", &[]));
                 limits.insert("amount".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(filter.clone(), "minQty", &[]));
-        m.insert("max".to_string(), self.safe_number_k(filter.clone(), "maxQty", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&filter, "minQty", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&filter, "maxQty", &[]));
     m
 }));
             }
             if (filtersByType.contains_key("MARKET_LOT_SIZE")) {
-                let mut filter: Value = self.safe_dict_k(&filtersByType, "MARKET_LOT_SIZE", &[Value::Map({
+                let mut filter: crate::value::Dict = self.safe_dict_k(&filtersByType, "MARKET_LOT_SIZE", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
+                })]).into_dict();
                 limits.insert("market".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(filter.clone(), "minQty", &[]));
-        m.insert("max".to_string(), self.safe_number_k(filter.clone(), "maxQty", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&filter, "minQty", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&filter, "maxQty", &[]));
     m
 }));
             }
@@ -1295,11 +1295,11 @@ impl Tokocrypto {
                 m
             });
             if (filtersByType.contains_key("MIN_NOTIONAL")) {
-                let mut filter: Value = self.safe_dict_k(&filtersByType, "MIN_NOTIONAL", &[Value::Map({
+                let mut filter: crate::value::Dict = self.safe_dict_k(&filtersByType, "MIN_NOTIONAL", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
-                costMin = self.safe_number2(filter, Value::Str("minNotional".into()), Value::Str("notional".into()), &[]).as_f64();
+                })]).into_dict();
+                costMin = self.safe_number2(&filter, Value::Str("minNotional".into()), Value::Str("notional".into()), &[]).as_f64();
             }
             result.push(entry);
         }
@@ -2256,7 +2256,7 @@ impl Tokocrypto {
         }  else if (side.as_deref() == Some("1")) {
             side = Some("sell".to_string());
         }
-        let mut fills: Value = self.safe_list_k(order.clone(), "fills", &[Value::from(vec![])]);
+        let mut fills: crate::value::List = self.safe_list_k(order.clone(), "fills", &[Value::from(vec![])]).into_list();
         let mut clientOrderId: Option<String> = self.safe_string2(order.clone(), Value::Str("clientOrderId".into()), Value::Str("clientId".into()), &[]).as_str().map(str::to_owned);
         let mut timeInForce: Value = self.parse_time_in_force((self.safe_string_k(order.clone(), "timeInForce", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
         // the order type carries the post only flag on its own, 7 on the open/v1
@@ -2287,7 +2287,7 @@ impl Tokocrypto {
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
-        m.insert("trades".to_string(), fills);
+        m.insert("trades".to_string(), Value::Arr(fills));
     m
 }), market);
 

@@ -1143,12 +1143,12 @@ impl Polymarket {
 }));
         let __queries_empty = Vec::new();
         let queries = queries.as_array().unwrap_or(&__queries_empty);
-        let mut resultLimit: Value = self.safe_integer_k(params.clone(), "limit", &[]);
+        let mut resultLimit: Option<i64> = self.safe_integer_k(params.clone(), "limit", &[]).as_i64();
         // fixed page size (gamma's limit_per_type). do NOT tie it to `limit`: that made a small
         // limit fan out into many tiny-page requests (limit:1 -> ~one request per matching event).
         // tunable per-call via params.searchPageSize, else the exchange option, else 100
         let mut optionPageSize: i64 = self.safe_integer_k(self.options.clone(), "searchPageSize", &[Value::Int(100)]).as_i64().unwrap_or(100);
-        let mut pageSize: Value = self.safe_integer_k(params.clone(), "searchPageSize", &[Value::from(optionPageSize)]);
+        let mut pageSize: Option<i64> = self.safe_integer_k(params.clone(), "searchPageSize", &[Value::from(optionPageSize)]).as_i64();
         // map the unified sort/status onto the gamma search params
         let mut sort: Option<String> = self.safe_string_k(params.clone(), "sort", &[]).as_str().map(str::to_owned);
         let mut sortParam: String = "volume".to_string();
@@ -1179,7 +1179,7 @@ impl Polymarket {
             let mut baseRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("q".to_string(), q);
-                    m.insert("limit_per_type".to_string(), pageSize.clone());
+                    m.insert("limit_per_type".to_string(), Value::from(pageSize));
                     m.insert("sort".to_string(), Value::from(sortParam.clone()));
                     m.insert("ascending".to_string(), Value::Bool(false));
                 m
@@ -1201,12 +1201,12 @@ impl Polymarket {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut totalResults: Value = self.safe_integer_k(&pagination, "totalResults", &[Value::from(firstEventsLength)]);
-            let mut totalPages: Value = Value::from(self.parse_to_int(((match ((totalResults).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)));
+            let mut totalResults: Option<i64> = self.safe_integer_k(&pagination, "totalResults", &[Value::from(firstEventsLength)]).as_i64();
+            let mut totalPages: Value = Value::from(self.parse_to_int(((match ((Value::from(totalResults)).as_f64(), (Value::from(pageSize)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)));
             // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
             // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
-            if (resultLimit != Value::Null) {
-                let mut limitPages: Value = Value::from(self.parse_to_int(((match ((resultLimit).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)));
+            if (resultLimit.is_some()) {
+                let mut limitPages: Value = Value::from(self.parse_to_int(((match ((Value::from(resultLimit)).as_f64(), (Value::from(pageSize)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)));
                 if limitPages.as_f64().unwrap_or(f64::NAN) < totalPages.as_f64().unwrap_or(f64::NAN) {
                     totalPages = limitPages;
                 }
@@ -1341,8 +1341,8 @@ impl Polymarket {
         let mut pageSize: Value = self.safe_integer_k(self.options.clone(), "eventsPageSize", &[Value::Int(100)]);
         // scope the listing: without a search query loadMarkets would otherwise dump every
         // active event (tens of thousands of markets). Cap to `limit` events (most-traded first).
-        let mut limit: Value = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchMarketsLimit".into()), &[Value::Int(200)])]);
-        let mut maxPages: Value = ((match ((limit).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
+        let mut limit: Option<i64> = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchMarketsLimit".into()), &[Value::Int(200)])]).as_i64();
+        let mut maxPages: Value = ((match ((Value::from(limit)).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
         let mut status: Option<String> = self.safe_string_k(params.clone(), "status", &[self.safe_string(self.options.clone(), Value::Str("defaultEventStatus".into()), &[Value::Str("active".into())])]).as_str().map(str::to_owned);
         // sort maps to the gamma `order` field; 'volume' is the default ranking
         let mut sort: Option<String> = self.safe_string_k(params.clone(), "sort", &[]).as_str().map(str::to_owned);
@@ -1470,9 +1470,9 @@ impl Polymarket {
             }
             }
         }
-        let mut allRawEventsLength: f64 = ((allRawEvents.len() as i64) as f64);
-        if allRawEventsLength > limit.as_f64().unwrap_or(f64::NAN) {
-            return self.array_slice(Value::from(allRawEvents), Value::Int(0), &[limit]);
+        let mut allRawEventsLength: i64 = allRawEvents.len() as i64;
+        if (limit.is_some() && Some(allRawEventsLength) > limit) {
+            return self.array_slice(Value::from(allRawEvents), Value::Int(0), &[Value::from(limit)]);
         }
         return Value::from(allRawEvents);
 
@@ -1503,7 +1503,7 @@ impl Polymarket {
             let mut tickSize: Value = self.safe_number2(&market, Value::Str("orderPriceMinTickSize".into()), Value::Str("minimumTickSize".into()), &[Value::Float(0.01)]);
             // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
             let mut orderMinSize: Value = self.safe_number_k(&market, "orderMinSize", &[Value::Int(1)]);
-            let mut priceMax: Value = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(tickSize.clone()))), &[]);
+            let mut priceMax: Option<f64> = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(tickSize.clone()))), &[]).as_f64();
             let mut negRisk: bool = self.safe_bool_k(&market, "negRisk", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut endDate: Option<String> = self.safe_string_k(&market, "endDate", &[self.safe_string_k(&market, "end_date_iso", &[])]).as_str().map(str::to_owned);
             // Gamma API returns these arrays as JSON-encoded strings
@@ -1659,7 +1659,7 @@ impl Polymarket {
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), tickSize);
-        m.insert("max".to_string(), priceMax);
+        m.insert("max".to_string(), Value::from(priceMax));
     m
 }));
         m.insert("cost".to_string(), Value::Map({
@@ -2013,9 +2013,9 @@ impl Polymarket {
 })]));
                     m
                 });
-                let mut ticker: Value = self.parse_prediction_ticker(Value::Map(tickerInput), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
-                let mut symbolKey: Option<String> = self.safe_string_k(ticker.clone(), "outcome", &[tokenId.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-                result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), ticker);
+                let mut ticker: crate::value::Dict = self.parse_prediction_ticker(Value::Map(tickerInput), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).into_dict();
+                let mut symbolKey: Option<String> = self.safe_string_k(&ticker, "outcome", &[tokenId.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+                result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
             }
             }
             startIndex = self.sum(&[startIndex.clone(), Value::from(chunkSize)]);
@@ -2226,22 +2226,20 @@ impl Polymarket {
         }
         let mut outcomeObj: crate::value::Dict = self.load_outcome(outcome, &[]).await.into_dict();
         let mut tokenId: Option<String> = self.safe_string_k(&outcomeObj, "outcomeId", &[]).as_str().map(str::to_owned);
-        let mut fidelityMin: Value = self.safe_integer(self.timeframes.clone(), timeframe, &[Value::Int(1)]); // fidelity in minutes
+        let mut fidelityMin: i64 = self.safe_integer(self.timeframes.clone(), timeframe, &[Value::Int(1)]).as_i64().unwrap_or(1); // fidelity in minutes
         let mut nowS: Value = self.seconds();
         let mut startS: Value = Value::Null;
         let mut endS: Value = nowS.clone();
         if (since != Value::Null) {
             startS = Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
             if (limit != Value::Null) {
-                let mut endBound: Value = self.sum(&[startS.clone(), (match (&((match (&(limit), &(fidelityMin)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                    _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
+                let mut endBound: Value = self.sum(&[startS.clone(), (match (&((match (&(limit), &(Value::from(fidelityMin))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                    Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
                 endS = (if (endBound.as_f64().unwrap_or(f64::NAN) < nowS.as_f64().unwrap_or(f64::NAN)) { endBound } else { nowS.clone() });
             }
         }  else {
-            let mut barCount: Value = (if (limit != Value::Null) { limit.clone() } else { Value::Int(100) });
-            startS = (match (&(nowS), &(((match (&((match (&(barCount), &(fidelityMin)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })),
-                &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y),
-                (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            let mut barCount: i64 = limit.as_i64().unwrap_or(100);
+            startS = (match (&(nowS), &((Value::Int((((barCount * fidelityMin)) * 60))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }
         // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         // regardless of fidelity, so clamp the window to the cap: keep the requested
@@ -2258,7 +2256,7 @@ impl Polymarket {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), tokenId.map(Value::from).unwrap_or(Value::Null));
-                m.insert("fidelity".to_string(), fidelityMin.clone());
+                m.insert("fidelity".to_string(), Value::from(fidelityMin));
                 m.insert("startTs".to_string(), startS);
                 m.insert("endTs".to_string(), endS);
             m
@@ -2275,8 +2273,7 @@ impl Polymarket {
         let mut history: crate::value::List = self.safe_list_k(&response, "history", &[Value::from(vec![])]).into_list();
         // Client-side bucket aggregation: snap each tick to its candle boundary and
         // build open/high/low/close/volume. Assumes history is sorted ascending by time.
-        let mut resolutionMs: Value = (match (&((match (&(fidelityMin), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })),
-            &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut resolutionMs: i64 = (((fidelityMin * 60)) * 1000);
         let mut buckets: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2291,9 +2288,9 @@ impl Polymarket {
             if (t.is_none()) || (price == Value::Null) {
                 continue;
             }
-            let mut rawMs: Value = Value::from((if let Some(__l) = t { Some(__l * 1000) } else { None }));
-            let mut snappedMs: Value = (match (&(Value::from(self.parse_to_int((match ((rawMs).as_f64(), (resolutionMs).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))), &(resolutionMs)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
-                (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            let mut rawMs: Option<i64> = (if let Some(__l) = t { Some(__l * 1000) } else { None });
+            let mut snappedMs: Value = (match (&(Value::from(self.parse_to_int((match ((Value::from(rawMs)).as_f64(), (Value::from(resolutionMs)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))), &(Value::from(resolutionMs))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x),
+                Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
             // rather than fabricating a 0, probing s/v in case the field ever appears
             let mut vol: Option<f64> = self.safe_number_k(&item, "s", &[]).as_f64();
@@ -2834,15 +2831,15 @@ impl Polymarket {
         });
         // 'balance' is the raw USDC collateral in 6-decimal units (e.g. "8992211" = 8.992211 USDC)
         let mut raw: Option<String> = self.safe_string_k(response, "balance", &[]).as_str().map(str::to_owned);
-        let mut total: Value = Value::Null;
+        let mut total: Option<f64> = None;
         if (raw.is_some()) {
-            total = self.parse_number(crate::precise::Precise::stringDiv(&raw.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())), &[]);
+            total = self.parse_number(crate::precise::Precise::stringDiv(&raw.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())), &[]).as_f64();
         }
         result.insert("USDC".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("free".to_string(), total.clone());
+        m.insert("free".to_string(), Value::from(total));
         m.insert("used".to_string(), Value::Null);
-        m.insert("total".to_string(), total);
+        m.insert("total".to_string(), Value::from(total));
     m
 }));
         return self.safe_balance(Value::Map(result));
@@ -2887,13 +2884,13 @@ impl Polymarket {
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.data_public_get_positions(&[__ws_arg_9]).await.into_dict();
-        let mut positions: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+        let mut positions: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
         if (outcomesLength == 0) {
-            return self.parse_prediction_positions(positions.clone(), &[]);
+            return self.parse_prediction_positions(Value::from(&positions), &[]);
         }
-        let mut parsed: Vec<Value> = self.parse_prediction_positions(positions, &[]).as_array().cloned().unwrap_or_default();
+        let mut parsed: Vec<Value> = self.parse_prediction_positions(Value::Arr(positions), &[]).as_array().cloned().unwrap_or_default();
         let mut wantedIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3049,8 +3046,8 @@ impl Polymarket {
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.clob_private_get_data_orders(&[__ws_arg_10]).await.into_dict();
-        let mut orders: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_prediction_orders(orders, &[outcomeObj, since, limit]);
+        let mut orders: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        return self.parse_prediction_orders(Value::Arr(orders), &[outcomeObj, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3231,9 +3228,9 @@ impl Polymarket {
         // request echo first so the response's real orderID/status/success win on overlap
         let __ws_arg_12 = self.safe_dict_k(&built, "request", &[]);
         let mut enriched: crate::value::Dict = self.extend(__ws_arg_12, &[response.clone()]).into_dict();
-        let mut order: Value = self.parse_prediction_order(&enriched, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_dict_k(&built, "outcome", &[])).as_ref());
-        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("info".to_string(), response); } // keep info the raw exchange response, not the request echo
-        return order;
+        let mut order: crate::value::Dict = self.parse_prediction_order(&enriched, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_dict_k(&built, "outcome", &[])).as_ref()).into_dict();
+        std::sync::Arc::make_mut(&mut order).insert("info".into(), response); // keep info the raw exchange response, not the request echo
+        return Value::Dict(order);
         Value::Null
         }).await?))
     }
@@ -3266,8 +3263,8 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1440: bool = true;
             while { if !__for_first_1440 { i += 1; } __for_first_1440 = false; i < (orders.len() as i64) } {
-            let mut o: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
-            let mut __oc: Option<String> = self.safe_string_k(o.clone(), "outcome", &[]).as_str().map(str::to_owned);
+            let mut o: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
+            let mut __oc: Option<String> = self.safe_string_k(&o, "outcome", &[]).as_str().map(str::to_owned);
             if (__oc.is_some()) {
                 orderOutcomes.push(__oc.map(Value::from).unwrap_or(Value::Null));
             }
@@ -3281,11 +3278,11 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1441: bool = true;
             while { if !__for_first_1441 { i += 1; } __for_first_1441 = false; i < (orders.len() as i64) } {
-            let mut o: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
-            let mut orderParams: Value = self.safe_dict_k(o.clone(), "params", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut o: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
+            let mut orderParams: Value = self.safe_dict_k(&o, "params", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             if (self.safe_string_k(orderParams.clone(), "salt", &[]) == Value::Null) {
                 // a distinct salt per order so two identical orders don't collide, within a batch or across calls
                 let mut orderSalt: i64 = self.incrementing_nonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
@@ -3296,7 +3293,7 @@ impl Polymarket {
                     m
                 })]);
             }
-            let mut built: crate::value::Dict = self.build_clob_order_body((self.safe_string_k(o.clone(), "outcome", &[])).as_str(), (self.safe_string_k(o.clone(), "type", &[])).as_str(), (self.safe_string_k(o.clone(), "side", &[])).as_str(), self.safe_number_k(o.clone(), "amount", &[]), &[self.safe_number_k(o, "price", &[]), orderParams]).into_dict();
+            let mut built: crate::value::Dict = self.build_clob_order_body((self.safe_string_k(&o, "outcome", &[])).as_str(), (self.safe_string_k(&o, "type", &[])).as_str(), (self.safe_string_k(&o, "side", &[])).as_str(), self.safe_number_k(&o, "amount", &[]), &[self.safe_number_k(&o, "price", &[]), orderParams]).into_dict();
             bodies.push(self.safe_dict_k(&built, "body", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3321,9 +3318,9 @@ impl Polymarket {
                 // request echo first so the response's real orderID/status win on overlap
                 let mut rawItem: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut enriched: crate::value::Dict = self.extend(requests.get(i as usize).cloned().unwrap_or(Value::Null), &[rawItem.clone()]).into_dict();
-                let mut parsedItem: Value = self.parse_prediction_order(&enriched, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomes.get(i as usize).cloned().unwrap_or(Value::Null)).as_ref());
-                if let Value::Dict(__rda) = &mut parsedItem { std::sync::Arc::make_mut(__rda).insert("info".to_string(), rawItem); } // keep info the raw exchange response
-                result.push(parsedItem);
+                let mut parsedItem: crate::value::Dict = self.parse_prediction_order(&enriched, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomes.get(i as usize).cloned().unwrap_or(Value::Null)).as_ref()).into_dict();
+                std::sync::Arc::make_mut(&mut parsedItem).insert("info".into(), rawItem); // keep info the raw exchange response
+                result.push(Value::Dict(parsedItem));
             }
             }
         }  else {
@@ -5229,10 +5226,10 @@ if _try_result.is_err() {
             self.orders = Some(ArrayCacheByOutcomeById::new(limit));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
-        let mut parsed: Value = self.parse_prediction_order(event, None);
-        stored.append(parsed.clone());
+        let mut parsed: crate::value::Dict = self.parse_prediction_order(event, None).into_dict();
+        stored.append(Value::from(&parsed));
         client.resolve(Value::from(&stored), "orders");
-        let mut outcome: Option<String> = self.safe_string_k(parsed, "outcome", &[]).as_str().map(str::to_owned);
+        let mut outcome: Option<String> = self.safe_string_k(&parsed, "outcome", &[]).as_str().map(str::to_owned);
         if (outcome.is_some()) {
             client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", Value::Str("orders::".into()), outcome.map(Value::from).unwrap_or(Value::Null)).into())));
         }
@@ -5244,10 +5241,10 @@ if _try_result.is_err() {
             self.myTrades = Some(ArrayCacheByOutcomeById::new(limit));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
-        let mut parsed: Value = self.parse_prediction_trade(event, None);
-        stored.append(parsed.clone());
+        let mut parsed: crate::value::Dict = self.parse_prediction_trade(event, None).into_dict();
+        stored.append(Value::from(&parsed));
         client.resolve(Value::from(&stored), "myTrades");
-        let mut outcome: Option<String> = self.safe_string_k(parsed, "outcome", &[]).as_str().map(str::to_owned);
+        let mut outcome: Option<String> = self.safe_string_k(&parsed, "outcome", &[]).as_str().map(str::to_owned);
         if (outcome.is_some()) {
             client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", Value::Str("myTrades::".into()), outcome.map(Value::from).unwrap_or(Value::Null)).into())));
         }

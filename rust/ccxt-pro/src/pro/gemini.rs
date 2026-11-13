@@ -627,12 +627,12 @@ impl Gemini {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV() has no websocket url".into()))));
         }
         let mut url: String = format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/v2/marketdata".into()));
-        let mut ohlcv: Value = self.watch(url.as_str(), &messageHash[..], request, &messageHash[..], Value::Null).await;
+        let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), &messageHash[..], request, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -754,7 +754,7 @@ impl Gemini {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() has no websocket url".into()))));
         }
         let mut url: String = format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/v2/marketdata".into()));
-        let mut orderbook: Value = self.watch(url.as_str(), messageHash.as_str(), request, subscribeHash.as_str(), Value::Null).await;
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_str(), messageHash.as_str(), request, subscribeHash.as_str(), Value::Null).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -937,13 +937,13 @@ impl Gemini {
             if crate::precise::Precise::stringEq(&sizeString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
                 continue;
             }
-            let mut size: Value = self.parse_number(sizeString.map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut size: Option<f64> = self.parse_number(sizeString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             if (rawSide.as_deref() == Some("bid")) {
                 add_element_to_object(&mut currentBidAsk, &Value::Str("bid".into()), Value::from(price));
-                add_element_to_object(&mut currentBidAsk, &Value::Str("bidVolume".into()), size.clone());
+                add_element_to_object(&mut currentBidAsk, &Value::Str("bidVolume".into()), Value::from(size));
             }  else {
                 add_element_to_object(&mut currentBidAsk, &Value::Str("ask".into()), Value::from(price));
-                add_element_to_object(&mut currentBidAsk, &Value::Str("askVolume".into()), size);
+                add_element_to_object(&mut currentBidAsk, &Value::Str("askVolume".into()), Value::from(size));
             }
         }
         }
@@ -1145,12 +1145,12 @@ impl Gemini {
         }
         let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) } else { None });
         let mut messageHash: String = "orders".to_string();
-        let mut orders: Value = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Null).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

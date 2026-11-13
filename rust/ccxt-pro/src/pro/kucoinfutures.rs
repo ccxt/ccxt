@@ -335,11 +335,11 @@ impl Kucoinfutures {
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" transfer() only supports transfers between future/swap, spot and funding accounts".into()))));
         }
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let __ws_arg_3 = self.parse_transfer(data, Some(&currency));
+        })]).into_dict();
+        let __ws_arg_3 = self.parse_transfer(Value::Dict(data), Some(&currency));
         let __ws_arg_4 = self.parse_number(amountToPrecision, &[]);
         return self.extend(__ws_arg_3, &[Value::Map({
     let mut m = indexmap::IndexMap::new();

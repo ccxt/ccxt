@@ -668,16 +668,16 @@ impl Derive {
         //
         let mut params: crate::value::Dict = __pro_message.get("params").cloned().unwrap_or_default().into_dict();
         let mut rawData: crate::value::Dict = self.safe_dict_k(&params, "data", &[]).into_dict();
-        let mut data: Value = self.safe_dict_k(&rawData, "instrument_ticker", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&rawData, "instrument_ticker", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut topic: String = self.safe_string_k(&params, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         // the slim payload does not carry the instrument name, so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
         let mut parts: crate::value::List = Value::Array(topic.split(".").map(Value::from).collect()).into_list();
         let mut marketId: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut ticker: crate::value::Dict = self.parse_ticker(data.clone(), Some(&market)).into_dict();
+        let mut ticker: crate::value::Dict = self.parse_ticker(Value::from(&data), Some(&market)).into_dict();
         let mut tickerSymbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         if (tickerSymbol.is_some()) {
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
@@ -690,7 +690,7 @@ impl Derive {
                     m.insert("bidVolume".to_string(), self.safe_number_k(&ticker, "bidVolume", &[]));
                     m.insert("ask".to_string(), self.safe_number_k(&ticker, "ask", &[]));
                     m.insert("askVolume".to_string(), self.safe_number_k(&ticker, "askVolume", &[]));
-                    m.insert("info".to_string(), data);
+                    m.insert("info".to_string(), Value::Dict(data));
                 m
             }), Some(&market));
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), bidAsk.clone()); }

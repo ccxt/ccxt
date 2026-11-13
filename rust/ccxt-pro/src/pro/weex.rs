@@ -769,11 +769,11 @@ impl Weex {
             return;
         }
         let mut tickers: crate::value::List = __pro_message.get("d").cloned().unwrap_or_default().into_list();
-        let mut data: Value = self.safe_dict(&tickers, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict(&tickers, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ws_ticker(data, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()).as_map().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ws_ticker(Value::Dict(data), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()).as_map().cloned().unwrap_or_default();
         let mut symbol: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("ticker::".into()), symbol);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::Map(ticker)); }
@@ -1388,11 +1388,11 @@ impl Weex {
                         let mut i: i64 = 0;
             let mut __for_first_690: bool = true;
             while { if !__for_first_690 { i += 1; } __for_first_690 = false; i < (data.len() as i64) } {
-            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut parsed: crate::value::List = self.parse_ws_ohlcv(entry, None).into_list();
+            })]).into_dict();
+            let mut parsed: crate::value::List = self.parse_ws_ohlcv(Value::Dict(entry), None).into_list();
             stored.append(Value::Arr(parsed));
         }
         }
@@ -2007,11 +2007,11 @@ impl Weex {
                         let mut i: i64 = 0;
             let mut __for_first_695: bool = true;
             while { if !__for_first_695 { i += 1; } __for_first_695 = false; i < (data.len() as i64) } {
-            let mut trade: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut trade: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut parsed: crate::value::Dict = self.parse_ws_my_trade(trade, None).into_dict();
+            })]).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_ws_my_trade(Value::Dict(trade), None).into_dict();
             let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (symbol.is_some()) {
                 if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
@@ -2696,10 +2696,9 @@ impl Weex {
         }
         let mut channel: String = "positions".to_string();
         self.set_positions_cache(client.as_value(), &[params.clone()]);
-        let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
-        let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]);
-        if ((match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
-            Some(__y) if __y == 1.0) })) && ((match &(awaitPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && (self.positions.is_none()) {
+        let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
+        let mut awaitPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
+        if (fetchPositionsSnapshot == Some(true)) && (awaitPositionsSnapshot == Some(true)) && (self.positions.is_none()) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
             return self.filter_by_symbols_since_limit(snapshot, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
@@ -2718,8 +2717,8 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);
-        if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
+        let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]).as_bool();
+        if (fetchPositionsSnapshot == Some(true)) {
             let mut messageHash: String = "fetchPositionsSnapshot".to_string();
             if !(__ch.has_future(messageHash.as_str())) {
                 client.future(messageHash.as_str());
@@ -2842,11 +2841,11 @@ impl Weex {
                         let mut i: i64 = 0;
             let mut __for_first_701: bool = true;
             while { if !__for_first_701 { i += 1; } __for_first_701 = false; i < (data.len() as i64) } {
-            let mut rawPosition: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut rawPosition: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut position: Value = self.parse_ws_position(rawPosition, None);
+            })]).into_dict();
+            let mut position: Value = self.parse_ws_position(Value::Dict(rawPosition), None);
             cache.append(position.clone());
             if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position); }
         }

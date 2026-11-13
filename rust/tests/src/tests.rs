@@ -2171,19 +2171,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Bool(true);
         }
         let mut side: Option<String> = exchange.safe_string(entry.clone(), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
-        let mut entryPrice: Value = exchange.safe_number(entry.clone(), Value::Str("entryPrice".into()), &[]);
-        let mut liquidationPrice: Value = exchange.safe_number(entry.clone(), Value::Str("liquidationPrice".into()), &[]);
-        let mut contracts: Value = exchange.safe_number(entry.clone(), Value::Str("contracts".into()), &[]);
-        let mut contractSize: Value = exchange.safe_number(entry.clone(), Value::Str("contractSize".into()), &[]);
+        let mut entryPrice: Option<f64> = exchange.safe_number(entry.clone(), Value::Str("entryPrice".into()), &[]).as_f64();
+        let mut liquidationPrice: Option<f64> = exchange.safe_number(entry.clone(), Value::Str("liquidationPrice".into()), &[]).as_f64();
+        let mut contracts: Option<f64> = exchange.safe_number(entry.clone(), Value::Str("contracts".into()), &[]).as_f64();
+        let mut contractSize: Option<f64> = exchange.safe_number(entry.clone(), Value::Str("contractSize".into()), &[]).as_f64();
         let mut maintenanceMargin: Value = exchange.safe_number(entry.clone(), Value::Str("maintenanceMargin".into()), &[]);
         let mut collateral: Option<f64> = exchange.safe_number(entry.clone(), Value::Str("collateral".into()), &[]).as_f64();
         let mut initialMargin: Option<f64> = exchange.safe_number(entry.clone(), Value::Str("initialMargin".into()), &[]).as_f64();
         let mut unrealizedPnl: Option<f64> = exchange.safe_number(entry.clone(), Value::Str("unrealizedPnl".into()), &[]).as_f64();
-        if (entryPrice != Value::Null) && (liquidationPrice != Value::Null) && (entryPrice.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (liquidationPrice.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) {
+        if (entryPrice.is_some()) && (liquidationPrice.is_some()) && (entryPrice > Some(0.0)) && (liquidationPrice > Some(0.0)) {
             if (side.as_deref() == Some("long")) {
-                self.assert_static_error(Value::Bool(liquidationPrice.as_f64().unwrap_or(f64::NAN) < entryPrice.as_f64().unwrap_or(f64::NAN)), Value::Str("isolated long liquidationPrice should be less than entryPrice".into()), entryPrice.clone(), liquidationPrice.clone(), &[]);
+                self.assert_static_error(Value::Bool((liquidationPrice.is_some() && entryPrice.is_some() && liquidationPrice < entryPrice)), Value::Str("isolated long liquidationPrice should be less than entryPrice".into()), Value::from(entryPrice), Value::from(liquidationPrice), &[]);
             }  else if (side.as_deref() == Some("short")) {
-                self.assert_static_error(Value::Bool(liquidationPrice.as_f64().unwrap_or(f64::NAN) > entryPrice.as_f64().unwrap_or(f64::NAN)), Value::Str("isolated short liquidationPrice should be greater than entryPrice".into()), entryPrice.clone(), liquidationPrice.clone(), &[]);
+                self.assert_static_error(Value::Bool((liquidationPrice.is_some() && entryPrice.is_some() && liquidationPrice > entryPrice)), Value::Str("isolated short liquidationPrice should be greater than entryPrice".into()), Value::from(entryPrice), Value::from(liquidationPrice), &[]);
             }
         }
         let mut entryMargin: Value = Value::Null;
@@ -2196,25 +2196,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else if (initialMargin.is_some()) {
             entryMargin = Value::from(initialMargin);
         }
-        if (entryMargin != Value::Null) && (entryPrice != Value::Null) && (liquidationPrice != Value::Null) && (contracts != Value::Null) && (contractSize != Value::Null) && (maintenanceMargin != Value::Null) {
-            if (entryMargin.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (entryPrice.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (liquidationPrice.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (contracts.as_f64().unwrap_or(f64::NAN) >
-                Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (contractSize.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (maintenanceMargin.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) {
+        if (entryMargin != Value::Null) && (entryPrice.is_some()) && (liquidationPrice.is_some()) && (contracts.is_some()) && (contractSize.is_some()) && (maintenanceMargin != Value::Null) {
+            if (entryMargin.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (entryPrice > Some(0.0)) && (liquidationPrice > Some(0.0)) && (contracts > Some(0.0)) && (contractSize > Some(0.0)) && (maintenanceMargin.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) {
                 let mut symbol: Value = exchange.safe_string(entry.clone(), Value::Str("symbol".into()), &[]);
                 let mut market: Value = (if (symbol != Value::Null) { exchange.safe_dict(get_value(&exchange, &Value::Str("markets".into())), symbol.clone(), &[]) } else { Value::Null });
                 let mut isInverse: bool = (market != Value::Null) && is_true(&exchange.safe_bool(market.clone(), Value::Str("inverse".into()), &[Value::Bool(false)]));
                 let mut priceDiff: Value = Value::Int(0);
                 if isInverse {
-                    let mut invEntry: Value = (match ((Value::Int(1)).as_f64(), (entryPrice).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
-                    let mut invLiq: Value = (match ((Value::Int(1)).as_f64(), (liquidationPrice).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
+                    let mut invEntry: Value = (match ((Value::Int(1)).as_f64(), (Value::from(entryPrice)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
+                    let mut invLiq: Value = (match ((Value::Int(1)).as_f64(), (Value::from(liquidationPrice)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
                     priceDiff = (if (invEntry.as_f64().unwrap_or(f64::NAN) > invLiq.as_f64().unwrap_or(f64::NAN)) { ((match (&(invEntry), &(invLiq)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
                         Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) } else { ((match (&(invLiq), &(invEntry)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) });
                 }  else {
-                    priceDiff = (if (entryPrice.as_f64().unwrap_or(f64::NAN) > liquidationPrice.as_f64().unwrap_or(f64::NAN)) { ((match (&(entryPrice), &(liquidationPrice)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64),
-                        (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) } else { ((match (&(liquidationPrice), &(entryPrice)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64),
-                        (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) });
+                    priceDiff = (if ((entryPrice.is_some() && liquidationPrice.is_some() && entryPrice > liquidationPrice)) { (Value::from((if let (Some(__l), Some(__r)) = (entryPrice, liquidationPrice) { Some(__l - __r) } else { None }))) } else { (Value::from((if let (Some(__l), Some(__r)) = (liquidationPrice, entryPrice) { Some(__l - __r) } else { None }))) });
                 }
-                let mut lossFromEntry: Value = (match (&((match (&(priceDiff), &(contracts)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })),
-                    &(contractSize)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+                let mut lossFromEntry: Value = (match (&((match (&(priceDiff), &(Value::from(contracts))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
+                    _ => Value::Null })), &(Value::from(contractSize))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
                 let mut calculatedMm: Value = (match (&(entryMargin), &(lossFromEntry)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                 self.assert_static_error(Value::Bool(calculatedMm.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)), Value::Str("isolated position remaining collateral at liquidationPrice should be greater than 0".into()), maintenanceMargin.clone(), calculatedMm.clone(), &[]);
                 let mut mmDiff: Value = (if (calculatedMm.as_f64().unwrap_or(f64::NAN) > maintenanceMargin.as_f64().unwrap_or(f64::NAN)) { ((match (&(calculatedMm), &(maintenanceMargin)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),

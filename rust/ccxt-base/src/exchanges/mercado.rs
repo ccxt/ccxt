@@ -1178,7 +1178,7 @@ impl Mercado {
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "quantity", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "executed_quantity", &[]).as_str().map(str::to_owned);
         let mut lastTradeTimestamp: Option<i64> = self.safe_timestamp_k(order.clone(), "updated_timestamp", &[]).as_i64();
-        let mut rawTrades: Value = self.safe_list_k(order.clone(), "operations", &[Value::from(vec![])]);
+        let mut rawTrades: crate::value::List = self.safe_list_k(order.clone(), "operations", &[Value::from(vec![])]).into_list();
         let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1202,7 +1202,7 @@ impl Mercado {
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map(fee));
-        m.insert("trades".to_string(), rawTrades);
+        m.insert("trades".to_string(), Value::Arr(rawTrades));
     m
 }), Some(&marketResolved));
 

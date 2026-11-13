@@ -4219,8 +4219,8 @@ impl Modetrade {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut rows: Value = self.safe_list_k(&data, "rows", &[Value::from(vec![])]);
-        return rows;
+        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        return Value::Arr(rows);
 
     Value::Null
 }
@@ -4251,13 +4251,13 @@ impl Modetrade {
             direction = (if (side.as_deref() == Some("DEPOSIT")) { Some("in".to_string()) } else { Some("out".to_string()) });
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(item.clone(), "created_time", &[]).as_i64();
-        let mut feeCost: Value = self.parse_number(self.safe_string_k(item.clone(), "fee", &[]), &[]);
+        let mut feeCost: Option<f64> = self.parse_number(self.safe_string_k(item.clone(), "fee", &[]), &[]).as_f64();
         let mut fee: Option<crate::value::Dict> = None;
-        if (feeCost != Value::Null) {
+        if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("cost".to_string(), feeCost);
+                    m.insert("cost".to_string(), Value::from(feeCost));
                 m
             }));
         }
@@ -4353,13 +4353,13 @@ impl Modetrade {
         if (movementDirection.as_deref() == Some("withdraw")) {
             movementDirection = Some("withdrawal".to_string());
         }
-        let mut feeCost: Value = self.parse_number(self.safe_string_k(transaction.clone(), "fee", &[]), &[]);
+        let mut feeCost: Option<f64> = self.parse_number(self.safe_string_k(transaction.clone(), "fee", &[]), &[]).as_f64();
         let mut fee: Option<crate::value::Dict> = None;
-        if (feeCost != Value::Null) {
+        if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("cost".to_string(), feeCost);
+                    m.insert("cost".to_string(), Value::from(feeCost));
                 m
             }));
         }

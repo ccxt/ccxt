@@ -1158,11 +1158,11 @@ impl Zaif {
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_active_orders(&[__ws_arg_5]).await.into_dict();
-        let mut data: Value = self.safe_dict_k(&response, "return", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "return", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_orders(self.add_key_in_array_items(data, Value::Str("id".into())), market.as_ref(), &[since, limit]);
+        })]).into_dict();
+        return self.parse_orders(self.add_key_in_array_items(Value::Dict(data), Value::Str("id".into())), market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1211,11 +1211,11 @@ impl Zaif {
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_trade_history(&[__ws_arg_6]).await.into_dict();
-        let mut data: Value = self.safe_dict_k(&response, "return", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "return", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.parse_orders(self.add_key_in_array_items(data, Value::Str("id".into())), market.as_ref(), &[since, limit]);
+        })]).into_dict();
+        return self.parse_orders(self.add_key_in_array_items(Value::Dict(data), Value::Str("id".into())), market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

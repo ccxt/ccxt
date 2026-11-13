@@ -758,11 +758,11 @@ impl Opinion {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut singleData: Value = self.safe_dict_k(&singleResult, "data", &[Value::Map({
+            let mut singleData: crate::value::Dict = self.safe_dict_k(&singleResult, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut single: crate::value::Dict = self.parse_event(singleData).into_dict();
+            })]).into_dict();
+            let mut single: crate::value::Dict = self.parse_event(Value::Dict(singleData)).into_dict();
             self.index_event_outcomes(Value::from(&single));
             return self.apply_event_fetch_params(Value::from(vec![Value::Dict(single)]), &[params.clone(), Value::from(&queries)]);
         }
@@ -885,11 +885,11 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Value = self.safe_dict_k(&result, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&result, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut event: crate::value::Dict = self.parse_event(data).into_dict();
+        })]).into_dict();
+        let mut event: crate::value::Dict = self.parse_event(Value::Dict(data)).into_dict();
         self.index_event_outcomes(Value::from(&event));
         return Value::Dict(event);
         Value::Null
@@ -1249,10 +1249,10 @@ impl Opinion {
                     m.insert("book".to_string(), bookResponse.map_or(Value::Null, Value::Dict));
                 m
             });
-            let mut ticker: Value = self.parse_prediction_ticker(Value::Map(response), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
-            let mut symbolKey: Option<String> = self.safe_string_k(ticker.clone(), "outcome", &[]).as_str().map(str::to_owned);
+            let mut ticker: crate::value::Dict = self.parse_prediction_ticker(Value::Map(response), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).into_dict();
+            let mut symbolKey: Option<String> = self.safe_string_k(&ticker, "outcome", &[]).as_str().map(str::to_owned);
             if (symbolKey.is_some()) {
-                result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), ticker);
+                result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
             }
         }
         }
@@ -1953,8 +1953,8 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut orders: Value = self.safe_list_k(&result, "list", &[Value::from(vec![])]);
-        return self.parse_prediction_orders(orders, &[outcomeObj, since, limit]);
+        let mut orders: crate::value::List = self.safe_list_k(&result, "list", &[Value::from(vec![])]).into_list();
+        return self.parse_prediction_orders(Value::Arr(orders), &[outcomeObj, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2113,11 +2113,11 @@ impl Opinion {
         });
         if (outcome != Value::Null) {
             outcomeObj = self.load_outcome(outcome, &[]).await;
-            let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+            let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            request.insert("marketId".into(), self.safe_integer_k(info.clone(), "marketId", &[]));
+})]).into_dict();
+            request.insert("marketId".into(), self.safe_integer_k(&info, "marketId", &[]));
         }
         let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.opinion_private_get_trade_user_wallet_address(&[__ws_arg_24]).await.into_dict();
@@ -2136,12 +2136,12 @@ impl Opinion {
             let mut marketId: Option<i64> = self.safe_integer_k(trade.clone(), "marketId", &[]).as_i64();
             if (tokenId.is_none()) && (marketId.is_some()) {
                 let mut tradeMarket: Value = self.load_trade_market(Value::from(marketId)).await;
-                let mut info: Value = self.safe_dict_k(tradeMarket, "info", &[Value::Map({
+                let mut info: crate::value::Dict = self.safe_dict_k(tradeMarket, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
                 let mut isYes: bool = self.safe_string_lower_k(trade.clone(), "outcomeSideEnum", &[]).as_str() == Some("yes");
-                add_element_to_object(&mut trade, &Value::Str("tokenId".into()), (if isYes { self.safe_string_k(info.clone(), "yesTokenId", &[]) } else { self.safe_string_k(info, "noTokenId", &[]) }));
+                add_element_to_object(&mut trade, &Value::Str("tokenId".into()), (if isYes { self.safe_string_k(&info, "yesTokenId", &[]) } else { self.safe_string_k(&info, "noTokenId", &[]) }));
             }
         }
         }
@@ -2178,11 +2178,11 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Value = self.safe_dict_k(&result, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&result, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut market: Value = self.parse_opinion_market(data, None);
+        })]).into_dict();
+        let mut market: Value = self.parse_opinion_market(Value::Dict(data), None);
         if (market == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" loadTradeMarket() could not parse market ".into())).into()), idStr)));
         }
@@ -2366,11 +2366,11 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut positions: Value = self.safe_list_k(&result, "list", &[Value::from(vec![])]);
+        let mut positions: crate::value::List = self.safe_list_k(&result, "list", &[Value::from(vec![])]).into_list();
         if (outcomesLength == 0) {
-            return self.parse_prediction_positions(positions.clone(), &[]);
+            return self.parse_prediction_positions(Value::from(&positions), &[]);
         }
-        let mut parsed: Vec<Value> = self.parse_prediction_positions(positions, &[]).as_array().cloned().unwrap_or_default();
+        let mut parsed: Vec<Value> = self.parse_prediction_positions(Value::Arr(positions), &[]).as_array().cloned().unwrap_or_default();
         let mut wantedTokenIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2531,11 +2531,11 @@ impl Opinion {
     m
 }));
         let mut response: crate::value::Dict = self.opinion_private_post_auth_api_key(&[params]).await.into_dict();
-        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.set_api_credentials(result);
+        })]).into_dict();
+        return self.set_api_credentials(Value::Dict(result));
 
     Value::Null
 }
@@ -2554,11 +2554,11 @@ impl Opinion {
     m
 }));
         let mut response: crate::value::Dict = self.opinion_private_get_auth_api_key(&[params]).await.into_dict();
-        let mut result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        return self.set_api_credentials(result);
+        })]).into_dict();
+        return self.set_api_credentials(Value::Dict(result));
 
     Value::Null
 }

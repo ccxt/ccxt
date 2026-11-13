@@ -436,8 +436,8 @@ impl Extended {
         let mut messageHash: Value = messageHash.into();
         let mut subscription = get_arg(optional_args, 0, Value::Null);
         self.check_required_credentials(&[]);
-        let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]), Value::Str("/account".into())).into());
-        if (self.clients.clone() == Value::Null) || !(matches!((&self.clients, &url), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        let mut url: String = format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]), Value::Str("/account".into()));
+        if (self.clients.clone() == Value::Null) || !(matches!(&self.clients, Value::Dict(__d) if __d.contains_key(url.as_str()))) {
             let mut defaultOptions: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ws".to_string(), Value::Map({
@@ -478,10 +478,10 @@ impl Extended {
         m.insert("headers".to_string(), __ws_arg_1);
     m
 })]); if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("options".to_string(), __be_tmp); } } };
-            self.client(&[url.clone()]);
+            self.client(&[Value::from(url.as_str())]);
             if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("options".to_string(), originalOptions); } }
         }
-        return self.watch(&url, &messageHash, Value::Null, &messageHash, subscription).await;
+        return self.watch(url.as_str(), &messageHash, Value::Null, &messageHash, subscription).await;
 
     Value::Null
 }

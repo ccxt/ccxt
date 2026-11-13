@@ -871,7 +871,7 @@ impl Zebpay {
         let mut currencyId: Option<String> = self.safe_string_k(rawCurrency.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut name: Option<String> = self.safe_string_k(rawCurrency.clone(), "name", &[]).as_str().map(str::to_owned);
-        let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "precision", &[])]), &[]);
+        let mut precision: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "precision", &[])]), &[]).as_f64();
         let mut chains: crate::value::List = self.safe_list_k(rawCurrency.clone(), "chains", &[Value::from(vec![])]).into_list();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -931,7 +931,7 @@ impl Zebpay {
         m.insert("deposit".to_string(), Value::Bool(depositAllowed));
         m.insert("withdraw".to_string(), Value::Bool(withdrawAllowed));
         m.insert("fee".to_string(), self.parse_number(withdrawFeeString.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("precision".to_string(), precision.clone());
+        m.insert("precision".to_string(), Value::from(precision));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
@@ -963,7 +963,7 @@ impl Zebpay {
         m.insert("deposit".to_string(), Value::Bool(deposit));
         m.insert("withdraw".to_string(), Value::Bool(withdraw));
         m.insert("fee".to_string(), self.parse_number(minWithdrawFeeString.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("precision".to_string(), precision);
+        m.insert("precision".to_string(), Value::from(precision));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -1590,11 +1590,11 @@ impl Zebpay {
         //             "fees": "0.00145",
         //         }
         //
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut trades: Value = Value::from(vec![data]);
+        })]).into_dict();
+        let mut trades: Value = Value::from(vec![Value::Dict(data)]);
         return self.parse_trades(trades, None, &[]);
         Value::Null
         }).await?))
@@ -1979,11 +1979,11 @@ impl Zebpay {
             }
             let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_spot_get_v2_ex_orders(&[__ws_arg_15]).await.into_opt_dict();
-            let mut responseData: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut responseData: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            orders = self.safe_list_k(responseData.clone(), "items", &[Value::from(vec![])]);
+            })]).into_dict();
+            orders = self.safe_list_k(&responseData, "items", &[Value::from(vec![])]);
         }  else {
             if (since != Value::Null) {
                 request.insert("since".into(), since);
@@ -1993,11 +1993,11 @@ impl Zebpay {
             }
             let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
             response = self.private_swap_get_v1_trade_order_open_orders(&[__ws_arg_16]).await.into_opt_dict();
-            let mut responseData: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut responseData: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            orders = self.safe_list_k(responseData, "data", &[Value::from(vec![])]);
+            })]).into_dict();
+            orders = self.safe_list_k(&responseData, "data", &[Value::from(vec![])]);
         }
         return self.parse_orders(orders, Some(&market), &[Value::Null, limit]);
         Value::Null

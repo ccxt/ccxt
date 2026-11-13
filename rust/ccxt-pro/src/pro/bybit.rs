@@ -1617,7 +1617,7 @@ impl Bybit {
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut channel: String = "orderbook.".to_string();
         let mut limitParam: Option<i64> = self.safe_integer_k(params.clone(), "limit", &[]).as_i64();
-        let mut paramsOmitted: Value = (if (limitParam.is_some()) { self.omit(params.clone(), Value::Str("limit".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (limitParam.is_some()) { self.omit(params.clone(), Value::Str("limit".into()), &[]) } else { params }).into_dict();
         let mut defaultLimit: i64 = 500;
         if (limitParam.is_none()) {
             let mut firstMarket: crate::types::Market = (match self.market((symbolsNormalized.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1641,8 +1641,8 @@ impl Bybit {
             topics.push(Value::from(topic));
         }
         }
-        let mut url: Value = self.get_url_by_market_type((symbolsNormalized.get(0).cloned().unwrap_or(Value::Null)).as_str(), &[Value::Bool(false), Value::Str("watchOrderBook".into()), paramsOmitted.clone()]).await;
-        return self.un_watch_topics(url.as_str().unwrap_or_default(), "orderbook", Value::Arr(symbolsNormalized), Value::from(messageHashes), Value::from(subMessageHashes), Value::from(topics), &[paramsOmitted]).await;
+        let mut url: Value = self.get_url_by_market_type((symbolsNormalized.get(0).cloned().unwrap_or(Value::Null)).as_str(), &[Value::Bool(false), Value::Str("watchOrderBook".into()), Value::from(&paramsOmitted)]).await;
+        return self.un_watch_topics(url.as_str().unwrap_or_default(), "orderbook", Value::Arr(symbolsNormalized), Value::from(messageHashes), Value::from(subMessageHashes), Value::from(topics), &[Value::Dict(paramsOmitted)]).await;
         Value::Null
         }).await?))
     }
@@ -1733,10 +1733,10 @@ impl Bybit {
             let mut snapshot: crate::value::Dict = self.parse_order_book(&data, symbol.clone(), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
         }  else {
-            let mut asks: Value = self.safe_list_k(&data, "a", &[Value::from(vec![])]);
-            let mut bids: Value = self.safe_list_k(&data, "b", &[Value::from(vec![])]);
-            self.handle_deltas(orderbook.book_field("asks"), asks);
-            self.handle_deltas(orderbook.book_field("bids"), bids);
+            let mut asks: crate::value::List = self.safe_list_k(&data, "a", &[Value::from(vec![])]).into_list();
+            let mut bids: crate::value::List = self.safe_list_k(&data, "b", &[Value::from(vec![])]).into_list();
+            self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
+            self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         }
@@ -2399,10 +2399,9 @@ impl Bybit {
         self.authenticate(url.as_str().unwrap_or_default(), &[]).await;
         self.set_positions_cache(client.as_value(), &[symbolsNormalized.clone()]);
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
-        let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
-        let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]);
-        if ((match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
-            Some(__y) if __y == 1.0) })) && ((match &(awaitPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && (cache.is_none()) {
+        let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
+        let mut awaitPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
+        if (fetchPositionsSnapshot == Some(true)) && (awaitPositionsSnapshot == Some(true)) && (cache.is_none()) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
             return self.filter_by_symbols_since_limit(snapshot, symbolsNormalized.clone(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
@@ -2422,8 +2421,8 @@ impl Bybit {
         if (self.positions.is_some()) {
             return;
         }
-        let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
-        if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
+        let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
+        if (fetchPositionsSnapshot == Some(true)) {
             let mut messageHash: String = "fetchPositionsSnapshot".to_string();
             if !(__ch.has_future(messageHash.as_str())) {
                 client.future(messageHash.as_str());
@@ -2687,38 +2686,35 @@ impl Bybit {
                                 let mut i: i64 = 0;
                 let mut __for_first_201: bool = true;
                 while { if !__for_first_201 { i += 1; } __for_first_201 = false; i < (rawLiquidations.len() as i64) } {
-                let mut rawLiquidation: Value = self.safe_dict(&rawLiquidations, Value::Int(i), &[]);
-                let mut marketId: Option<String> = self.safe_string_k(rawLiquidation.clone(), "s", &[]).as_str().map(str::to_owned);
+                let mut rawLiquidation: Option<crate::value::Dict> = self.safe_dict(&rawLiquidations, Value::Int(i), &[]).into_opt_dict();
+                let mut marketId: Option<String> = self.safe_string_k(&rawLiquidation, "s", &[]).as_str().map(str::to_owned);
                 let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("".into()), Value::Str("contract".into())]);
                 let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-                let mut liquidation: Value = self.parse_ws_liquidation(rawLiquidation.clone(), Some(&market));
+                let mut liquidation: crate::value::Dict = self.parse_ws_liquidation(rawLiquidation.map_or(Value::Null, Value::Dict), Some(&market)).into_dict();
                 if (self.liquidations.is_none()) {
                     let mut limit: Option<i64> = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]).as_i64();
                     self.liquidations = Some(ArrayCache::new(Value::from(limit)));
                 }
                 let mut cache: Value = Value::from(&self.liquidations);
-                cache.append(liquidation.clone());
-                client.resolve(Value::from(vec![liquidation.clone()]), "liquidations");
-                client.resolve(Value::from(vec![liquidation.clone()]), &(Value::Str(format!("{}{}", Value::Str("liquidations::".into()), symbol).into())));
+                cache.append(Value::from(&liquidation));
+                client.resolve(Value::from(vec![Value::from(&liquidation)]), "liquidations");
+                client.resolve(Value::from(vec![Value::Dict(liquidation)]), &(Value::Str(format!("{}{}", Value::Str("liquidations::".into()), symbol).into())));
             }
             }
         }  else {
-            let mut rawLiquidation: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-            let mut marketId: Option<String> = self.safe_string_k(rawLiquidation.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut rawLiquidation: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+            let mut marketId: Option<String> = self.safe_string_k(&rawLiquidation, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("".into()), Value::Str("contract".into())]);
             let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-            let mut liquidation: Value = self.parse_ws_liquidation(rawLiquidation, Some(&market));
+            let mut liquidation: crate::value::Dict = self.parse_ws_liquidation(Value::Dict(rawLiquidation), Some(&market)).into_dict();
             if (self.liquidations.is_none()) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]);
                 self.liquidations = Some(ArrayCache::new(limit));
             }
             let mut cache: Value = Value::from(&self.liquidations);
-            cache.append(liquidation.clone());
-            client.resolve(Value::from(vec![liquidation.clone()]), "liquidations");
-            client.resolve(Value::from(vec![liquidation]), &(Value::Str(format!("{}{}", Value::Str("liquidations::".into()), symbol).into())));
+            cache.append(Value::from(&liquidation));
+            client.resolve(Value::from(vec![Value::from(&liquidation)]), "liquidations");
+            client.resolve(Value::from(vec![Value::Dict(liquidation)]), &(Value::Str(format!("{}{}", Value::Str("liquidations::".into()), symbol).into())));
         }
 }
 

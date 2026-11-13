@@ -643,11 +643,11 @@ impl P2b {
         let mut channel: Option<String> = self.safe_string(&splitMethod, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string(&data, Value::Int(7), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut timeframe: Option<String> = self.find_timeframe(channel.clone().map(Value::from).unwrap_or(Value::Null), &[timeframes]);
+        })]).into_dict();
+        let mut timeframe: Option<String> = self.find_timeframe(channel.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Dict(timeframes)]);
         let mut symbol: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
         let mut parsed: crate::value::List = self.parse_ohlcv(data.map_or(Value::Null, Value::Arr), Some(&market)).into_list();
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
@@ -706,8 +706,8 @@ impl P2b {
                         let mut i: i64 = 0;
             let mut __for_first_570: bool = true;
             while { if !__for_first_570 { i += 1; } __for_first_570 = false; i < (trades.len() as i64) } {
-            let mut item: Value = trades.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut trade: crate::value::Dict = self.parse_trade(item, Some(&market)).into_dict();
+            let mut item: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut trade: crate::value::Dict = self.parse_trade(Value::Dict(item), Some(&market)).into_dict();
             tradesArray.append(Value::Dict(trade));
         }
         }
