@@ -86,7 +86,7 @@ dependencies = [
     # # transitive dependencies of aiodns
     # "pycares==5.0.1",
     # transitive dependencies of cryptography
-    "cffi==2.0.0",
+    "cffi==2.1.1",
     "pycparser==3.0",
     # transitive dependencies of requests
     "charset_normalizer==3.4.7",
