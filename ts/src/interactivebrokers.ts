@@ -1959,6 +1959,7 @@ export default class interactivebrokers extends Exchange {
         const isFut = (assetClass === 'FUT');
         const expirationDate = this.safeString2 (market, 'expirationDate', 'expiry'); // 20261127
         const isCoinbaseDerivatives = (listingExchange === 'COINDERIV');
+        const isCme = (listingExchange === 'CME');
         // checking for 'Perpetual' or 'Perp Style' in the name is weaker
         const isCoinbasePerp = isCoinbaseDerivatives && (expirationDate === '20301220'); // five year PERP cycle end
         const isPerpetual = isCoinbasePerp; // no other perp providers
@@ -1990,12 +1991,17 @@ export default class interactivebrokers extends Exchange {
         let base: Str = undefined;
         let contractSize: Str = undefined;
         let expiry: Int = undefined;
+        if (isCoinbaseDerivatives) {
+            base = this.safeString (cryptoCoinbasePerpSymbols, baseTickerId, baseTickerId);
+        } else if (isCme && isFuture) {
+            base = this.safeString (cryptoCmeFutureSymbols, baseTickerId, baseTickerId);
+        } else {
+            base = this.safeCurrencyCode (baseTickerId);
+        }
         if (isPerp && !isCfd) {
             if (nameLower.startsWith ('nano')) {
                 microNanoPrefix = 'NANO.';
             }
-            // atm only CB derivs provide perps, the cfds (also unified as swaps) are handled below
-            base = this.safeString (cryptoCoinbasePerpSymbols, baseTickerId, baseTickerId);
             contractSize = this.safeString (market, 'multiplier'); // 0.01 BTC for BIP
         } else if (isFuture) {
             if (nameLower.startsWith ('nano')) {
@@ -2005,7 +2011,6 @@ export default class interactivebrokers extends Exchange {
             } else if (name.indexOf ('New York Variant') !== -1) {
                 microNanoPrefix = 'NEWYORK.';
             }
-            base = this.safeString (cryptoCmeFutureSymbols, baseTickerId, baseTickerId);
             contractSize = this.safeString (market, 'multiplier'); // 0.1 BTC for MBT, 5 BTC for BRR
             if (expirationDate !== undefined) {
                 const expiryDatetime = expirationDate.slice (0, 4) + '-' + expirationDate.slice (4, 6) + '-' + expirationDate.slice (6, 8) + 'T00:00:00Z';
@@ -2030,7 +2035,6 @@ export default class interactivebrokers extends Exchange {
                 contractSize = '1'; // one cfd is one share or index point, the multiplier is reported as 0 or 1
             }
         } else {
-            base = this.safeCurrencyCode (baseTickerId);
             if (!isSpot) {
                 contractSize = this.safeString (this.options, 'defaultContractSize', '1');
             }
