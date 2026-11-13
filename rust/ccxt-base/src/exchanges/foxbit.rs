@@ -1029,7 +1029,7 @@ impl Foxbit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.v3_public_get_markets_ticker24hr(&[params]).await.into_dict();
         //  {
         //    "data": [
@@ -1053,7 +1053,7 @@ impl Foxbit {
         //    ]
         //  }
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_tickers(&data, &[symbolsNormalized]);
+        return self.parse_tickers(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -1259,11 +1259,11 @@ impl Foxbit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
+        let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
-                m.insert("interval".to_string(), interval.clone());
+                m.insert("interval".to_string(), Value::from(interval.as_deref()));
             m
         });
         if (since != Value::Null) {
@@ -1277,7 +1277,7 @@ impl Foxbit {
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.v3_public_get_markets_market_candlesticks(&[__ws_arg_3]).await.into_list();
-        return self.parse_ohlc_vs(self.to_array(&response), &[(market).raw.clone(), interval, since, limit]);
+        return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[interval.map(Value::from).unwrap_or(Value::Null), since, limit]);
         Value::Null
         }).await?))
     }

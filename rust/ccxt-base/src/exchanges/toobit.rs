@@ -1402,8 +1402,8 @@ impl Toobit {
                         let mut i: i64 = 0;
             let mut __for_first_1129: bool = true;
             while { if !__for_first_1129 { i += 1; } __for_first_1129 = false; i < (coins.len() as i64) } {
-            let mut coin: Value = coins.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parsed: Value = self.parse_currency(coin);
+            let mut coin: crate::value::Dict = coins.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut parsed: Value = self.parse_currency(&coin);
             if (parsed != Value::Null) {
                 let mut code: Value = parsed.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
                 result.insert(crate::runtime::stringify_param(&code), parsed);
@@ -2083,7 +2083,7 @@ impl Toobit {
         }  else {
             candles = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         }
-        return self.parse_ohlc_vs(candles, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2341,8 +2341,8 @@ impl Toobit {
             results.push(ticker);
         }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.filter_by_array_tickers(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        return self.filter_by_array_tickers(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
 
     Value::Null
 }
@@ -3600,7 +3600,7 @@ impl Toobit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: Value = Value::Null;
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTradingFees".into()), None, &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -3613,11 +3613,11 @@ impl Toobit {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees requires a params[\"symbol\"]".into()))));
             }
-            let mut symbolMarket: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            market = symbolMarket.clone();
+            let mut symbolMarket: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            market = Some(crate::types::Market::clone(&symbolMarket));
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), symbolMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                    m.insert("symbol".to_string(), Value::from((symbolMarket).id.as_deref()));
                 m
             });
             let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsSymbol]);
@@ -3636,7 +3636,7 @@ impl Toobit {
             m
         });
         let mut entry: Value = response;
-        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(self.safe_string_k(entry.clone(), "symbol", &[]), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]));
+        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(self.safe_string_k(entry.clone(), "symbol", &[]), market.as_ref(), &[]));
         let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(entry, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved.clone()).as_ref()).as_map().cloned().unwrap_or_default();
         result.insert(crate::runtime::stringify_param(&(marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Map(fee));
         return Value::Map(result);
@@ -3766,9 +3766,9 @@ impl Toobit {
             results.push(self.extend(__ws_arg_30, &[&paramsUntil]));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(results), Value::Str("timestamp".into()), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(results), Value::Str("timestamp".into()), &[]).into_list();
         let mut currencyCode: Value = (if (currency.is_some()) { crate::value::KeyRead::key_read(&&currency, "code") } else { Value::Null });
-        return self.filter_by_currency_since_limit(sorted, &[currencyCode, since, limit]);
+        return self.filter_by_currency_since_limit(Value::Arr(sorted), &[currencyCode, since, limit]);
 
     Value::Null
 }

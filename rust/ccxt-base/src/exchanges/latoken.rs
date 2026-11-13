@@ -809,11 +809,11 @@ impl Latoken {
 }
 
     pub fn nonce(&self) -> Value {
-        let mut timeDifference: Value = self.safe_integer_k(self.options.clone(), "timeDifference", &[]);
-        if (timeDifference == Value::Null) {
+        let mut timeDifference: Option<i64> = self.safe_integer_k(self.options.clone(), "timeDifference", &[]).as_i64();
+        if (timeDifference.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" nonce() requires a numeric options[\"timeDifference\"]".into()))));
         }
-        return (match (&(Value::Int(self.milliseconds())), &(timeDifference)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return Value::from((if let Some(__r) = timeDifference { Some((self.milliseconds()) - __r) } else { None }));
 
     Value::Null
 }
@@ -1196,7 +1196,7 @@ impl Latoken {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut defaultType: String = self.safe_string2(self.options.clone(), Value::Str("fetchBalance".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
-        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[Value::from(defaultType)]);
+        let mut type_var: Option<String> = self.safe_string_k(params.clone(), "type", &[Value::from(defaultType)]).as_str().map(str::to_owned);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("type".into()), &[]);
         let mut response: Value = self.private_get_auth_account(&[paramsOmitted]).await;
         //
@@ -1232,7 +1232,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut accountType: Option<String> = self.safe_string(&types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        let mut accountType: Option<String> = self.safe_string(&types, Value::from(type_var.as_deref()), &[Value::from(type_var.as_deref())]).as_str().map(str::to_owned);
         let mut balancesByType: Value = self.group_by(response, Value::Str("type".into()), &[]);
         let mut balances: crate::value::List = self.safe_list(balancesByType, accountType.map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
         let mut firstBalance: crate::value::Dict = self.safe_dict(&balances, Value::Int(0), &[]).into_dict();
@@ -1535,7 +1535,7 @@ impl Latoken {
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "quantity", &[]).as_str().map(str::to_owned);
         let mut costString: Option<String> = self.safe_string_k(trade.clone(), "cost", &[]).as_str().map(str::to_owned);
-        let mut makerBuyer: bool = self.safe_bool_k_opt(trade.clone(), "makerBuyer", &[Value::Bool(false)]).unwrap_or(false);
+        let mut makerBuyer: bool = self.safe_bool_k(trade.clone(), "makerBuyer", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "direction", &[]).as_str().map(str::to_owned);
         if (side.is_none()) {
             side = (if makerBuyer { Some("sell".to_string()) } else { Some("buy".to_string()) });
@@ -1547,7 +1547,7 @@ impl Latoken {
             }
         }
         let mut isBuy: bool = side.as_deref() == Some("buy");
-        let mut isMaker: bool = makerBuyer && isBuy;
+        let mut isMaker: bool = (makerBuyer && isBuy);
         let mut takerOrMaker: String = (if isMaker { "maker".to_string() } else { "taker".to_string() });
         let mut baseId: Option<String> = self.safe_string_k(trade.clone(), "baseCurrency", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(trade.clone(), "quoteCurrency", &[]).as_str().map(str::to_owned);
@@ -2645,7 +2645,7 @@ impl Latoken {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut requestBody: Option<String> = None;
         let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut requestString: String = request.clone();
@@ -2660,15 +2660,15 @@ impl Latoken {
             self.check_required_credentials(&[]);
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", method, request).into()), urlencodedQuery);
             let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);
-            requestHeaders = Value::Map({
+            requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-LA-APIKEY".to_string(), self.apiKey.clone());
                     m.insert("X-LA-SIGNATURE".to_string(), Value::from(signature));
                     m.insert("X-LA-DIGEST".to_string(), Value::Str("HMAC-SHA512".into()));
                 m
-            });
+            }));
             if (method.as_str() == Some("POST")) {
-                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
+                if let Some(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".to_string(), Value::Str("application/json".into())); }
                 requestBody = json_stringify(&query).as_str().map(str::to_owned);
             }
         }
@@ -2682,7 +2682,7 @@ impl Latoken {
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), requestHeaders);
+        m.insert("headers".to_string(), requestHeaders.map_or(Value::Null, Value::Dict));
     m
 });
 

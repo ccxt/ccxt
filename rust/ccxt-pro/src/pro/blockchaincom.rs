@@ -389,8 +389,8 @@ impl Blockchaincom {
         let mut balances: crate::value::List = __pro_message.get("balances").cloned().unwrap_or_default().into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_162: bool = true;
-            while { if !__for_first_162 { i += 1; } __for_first_162 = false; i < (balances.len() as i64) } {
+            let mut __for_first_163: bool = true;
+            while { if !__for_first_163 { i += 1; } __for_first_163 = false; i < (balances.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -492,20 +492,17 @@ impl Blockchaincom {
             let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbol);
             let mut request: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]).into_dict();
             let mut timeframeId: Option<String> = self.safe_string_k(&request, "granularity", &[]).as_str().map(str::to_owned);
-            let mut timeframe: Value = Value::from(self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]));
+            let mut timeframe: Option<String> = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut ohlcv: Value = (match __pro_message.get("price").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-            { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-            let mut stored: Value = self.safe_value((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), timeframe.clone(), &[]);
-            if (stored == Value::Null) {
+            CacheShelves::ensure(&mut self.ohlcvs, &symbol);
+            let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&timeframe);
+            if (stored.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                stored = Value::from(ArrayCacheByTimestamp::new(limit));
-                if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); } }
+                stored = Some(ArrayCacheByTimestamp::new(limit));
+                CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
             }
             stored.append(ohlcv);
-            client.resolve(stored, messageHash.as_str());
+            client.resolve(Value::from(&stored), messageHash.as_str());
         }  else if (event.as_deref() != Some("subscribed")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
         }
@@ -918,16 +915,16 @@ impl Blockchaincom {
             let mut orders: crate::value::List = __pro_message.get("orders").cloned().unwrap_or_default().into_list();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_163: bool = true;
-                while { if !__for_first_163 { i += 1; } __for_first_163 = false; i < (orders.len() as i64) } {
-                let mut order: Value = orders.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut parsedOrder: Value = self.parse_ws_order(order, None);
-                cachedOrders.append(parsedOrder.clone());
+                let mut __for_first_164: bool = true;
+                while { if !__for_first_164 { i += 1; } __for_first_164 = false; i < (orders.len() as i64) } {
+                let mut order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut parsedOrder: crate::value::Dict = self.parse_ws_order(&order, None).into_dict();
+                cachedOrders.append(Value::Dict(parsedOrder));
             }
             }
         }  else if (event.as_deref() == Some("updated")) {
-            let mut parsedOrder: Value = self.parse_ws_order(message, None);
-            cachedOrders.append(parsedOrder);
+            let mut parsedOrder: crate::value::Dict = self.parse_ws_order(message, None).into_dict();
+            cachedOrders.append(Value::Dict(parsedOrder));
         }
         self.orders = cachedOrders;
         client.resolve(Value::from(&self.orders), messageHash.as_str());
@@ -1151,8 +1148,8 @@ impl Blockchaincom {
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_164: bool = true;
-            while { if !__for_first_164 { i += 1; } __for_first_164 = false; i < (deltas.len() as i64) } {
+            let mut __for_first_165: bool = true;
+            while { if !__for_first_165 { i += 1; } __for_first_165 = false; i < (deltas.len() as i64) } {
             self.handle_delta(bookside.clone(), deltas.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }

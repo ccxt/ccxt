@@ -1545,7 +1545,7 @@ impl Gemini {
             // use trading-pairs info, if it was fetched
             let mut tradingPairs: Option<crate::value::List> = self.safe_list_k(self.options.clone(), "tradingPairs", &[]).into_opt_list();
             if (tradingPairs.is_some()) {
-                let mut indexedTradingPairs: Value = self.index_by(tradingPairs.clone().map_or(Value::Null, Value::Arr), Value::Int(0));
+                let mut indexedTradingPairs: Value = self.index_by(tradingPairs.map_or(Value::Null, Value::Arr), Value::Int(0));
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_716: bool = true;
@@ -1553,7 +1553,7 @@ impl Gemini {
                     let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                     let mut pairInfo: Option<crate::value::List> = self.safe_list(indexedTradingPairs.clone(), marketId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), &[]).into_opt_list();
                     if (pairInfo.is_some()) && !(self.in_array(marketId.map(Value::from).unwrap_or(Value::Null), brokenPairs.clone()).as_bool() == Some(true)) {
-                        let mut parsed: Value = self.parse_market(pairInfo.clone().map_or(Value::Null, Value::Arr));
+                        let mut parsed: Value = self.parse_market(pairInfo.map_or(Value::Null, Value::Arr));
                         if (parsed != Value::Null) {
                             result.push(parsed.clone());
                         }
@@ -1989,7 +1989,7 @@ impl Gemini {
             quoteId = self.safe_string_upper_k(&marketResolved, "quoteId", &[]);
         }
         let mut price: Option<String> = self.safe_string_k(ticker.clone(), "price", &[]).as_str().map(str::to_owned);
-        let mut last: Value = self.safe_string2(ticker.clone(), Value::Str("last".into()), Value::Str("close".into()), &[price.map(Value::from).unwrap_or(Value::Null)]);
+        let mut last: Option<String> = self.safe_string2(ticker.clone(), Value::Str("last".into()), Value::Str("close".into()), &[price.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut percentage: Option<String> = self.safe_string_k(ticker.clone(), "percentChange24h", &[]).as_str().map(str::to_owned);
         let mut open: Option<String> = self.safe_string_k(ticker.clone(), "open", &[]).as_str().map(str::to_owned);
         let mut baseVolume: Option<String> = self.safe_string(&volume, baseId, &[]).as_str().map(str::to_owned);
@@ -2007,8 +2007,8 @@ impl Gemini {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), open.map(Value::from).unwrap_or(Value::Null));
-        m.insert("close".to_string(), last.clone());
-        m.insert("last".to_string(), last);
+        m.insert("close".to_string(), Value::from(last.as_deref()));
+        m.insert("last".to_string(), Value::from(last.as_deref()));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), percentage.map(Value::from).unwrap_or(Value::Null));
@@ -3271,7 +3271,7 @@ impl Gemini {
         if (matches!(&response, Value::Arr(_))) {
             candles = response.clone();
         }
-        return self.parse_ohlc_vs(candles, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }

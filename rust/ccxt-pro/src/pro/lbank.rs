@@ -330,10 +330,10 @@ impl Lbank {
     pub fn request_id(&mut self) -> i64 {
         self.lock_id(&[]);
         let mut previousValue: i64 = self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut newValue: Value = Value::Int((previousValue + 1));
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), newValue.clone()); }
+        let mut newValue: i64 = (previousValue + 1);
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(newValue)); }
         self.unlock_id(&[]);
-        return newValue.as_i64().unwrap_or_default();
+        return newValue;
 }
 
     pub fn check_contract_market(&self, market: Option<&crate::types::Market>, mut methodName: Value) {
@@ -430,8 +430,8 @@ if _try_result.is_err() {
             m
         });
         if (since != Value::Null) {
-            let mut sinceInt: Value = Value::from(self.parse_to_int(since));
-            message.insert("start".into(), Value::from(self.parse_to_int((match ((sinceInt).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
+            let mut sinceInt: Option<i64> = self.parse_to_int(since);
+            message.insert("start".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = sinceInt { Some((__l as f64) / 1000.0) } else { None })))));
         }
         if (limit != Value::Null) {
             message.insert("size".into(), limit);
@@ -628,52 +628,43 @@ if _try_result.is_err() {
             m
         })]);
         let mut records: Option<crate::value::List> = message.get("records").cloned().unwrap_or_default().into_opt_list();
+        let mut timeframeId: String = "".to_string();
+        let mut messageHash: String = "".to_string();
+        if (records.is_some()) {
+            timeframeId = (match message.get("kbar") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("fetchOHLCV:".into()), symbol).into()), Value::Str(":".into())).into()), timeframeId);
+        }  else {
+            timeframeId = self.safe_string((match message.get("kbar") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) }), Value::Str("slot".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into()), Value::Str(":".into())).into()), timeframeId);
+            if !(__ch.has_subscription(messageHash.as_str())) {
+                return;
+            }
+        }
+        let mut timeframe: Option<String> = self.find_timeframe(Value::from(timeframeId), &[timeframes]);
+        CacheShelves::ensure(&mut self.ohlcvs, &symbol);
+        let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
+        if (stored.is_none()) {
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            stored = Some(ArrayCacheByTimestamp::new(limit));
+            CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
+        }
         if (records.is_some()) {
             let mut rawOHLCV: crate::value::List = self.safe_list(&records, Value::Int(0), &[Value::from(vec![])]).into_list();
             let mut parsed: Value = Value::from(vec![self.safe_integer(&rawOHLCV, Value::Int(0), &[]), self.safe_number(&rawOHLCV, Value::Int(1), &[]), self.safe_number(&rawOHLCV, Value::Int(2), &[]), self.safe_number(&rawOHLCV, Value::Int(3), &[]), self.safe_number(&rawOHLCV, Value::Int(4), &[]), self.safe_number(&rawOHLCV, Value::Int(5), &[])]);
-            let mut timeframeId: Value = (match message.get("kbar") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-            let mut timeframe: Value = Value::from(self.find_timeframe(timeframeId.clone(), &[timeframes.clone()]));
-            let mut ohlcvsForSymbol: Value = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
-            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ohlcvsForSymbol.clone()); }
-            let mut stored: Value = self.safe_value(ohlcvsForSymbol.clone(), timeframe.clone(), &[]);
-            if (stored == Value::Null) {
-                let mut limit: Option<i64> = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64();
-                stored = Value::from(ArrayCacheByTimestamp::new(Value::from(limit)));
-                if let Value::Dict(__d) = &mut ohlcvsForSymbol { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); }
-            }
             stored.append(parsed.clone());
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("fetchOHLCV:".into()), symbol).into()), Value::Str(":".into())).into()), timeframeId);
-            client.resolve(stored.clone(), messageHash.as_str());
         }  else {
             let mut rawOHLCV: Value = (match message.get("kbar") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-            let mut timeframeId: String = self.safe_string_k(rawOHLCV.clone(), "slot", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut datetime: Option<String> = self.safe_string_k(rawOHLCV.clone(), "t", &[]).as_str().map(str::to_owned);
             let mut parsed: Value = Value::from(vec![Value::from(self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null))), self.safe_number_k(rawOHLCV.clone(), "o", &[]), self.safe_number_k(rawOHLCV.clone(), "h", &[]), self.safe_number_k(rawOHLCV.clone(), "l", &[]), self.safe_number_k(rawOHLCV.clone(), "c", &[]), self.safe_number_k(rawOHLCV, "v", &[])]);
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into()), Value::Str(":".into())).into()), timeframeId);
-            if !(__ch.has_subscription(messageHash.as_str())) {
-                return;
-            }
-            let mut timeframe: Value = Value::from(self.find_timeframe(Value::from(timeframeId), &[timeframes]));
-            let mut ohlcvsForSymbol: Value = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
-            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ohlcvsForSymbol.clone()); }
-            let mut stored: Value = self.safe_value(ohlcvsForSymbol.clone(), timeframe.clone(), &[]);
-            if (stored == Value::Null) {
-                let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-                stored = Value::from(ArrayCacheByTimestamp::new(limit));
-                if let Value::Dict(__d) = &mut ohlcvsForSymbol { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); }
-            }
             stored.append(parsed);
-            client.resolve(stored, messageHash.as_str());
         }
+        client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
 /*
@@ -1029,11 +1020,11 @@ if _try_result.is_err() {
         let mut rawTrades: Vec<Value> = (match message.get("trades") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![rawTrade]) }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_467: bool = true;
-            while { if !__for_first_467 { i += 1; } __for_first_467 = false; i < (rawTrades.len() as i64) } {
-            let mut trade: Value = self.parse_ws_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market));
-            if let Value::Dict(__rda) = &mut trade { std::sync::Arc::make_mut(__rda).insert("symbol".to_string(), symbol.clone()); }
-            stored.append(trade);
+            let mut __for_first_468: bool = true;
+            while { if !__for_first_468 { i += 1; } __for_first_468 = false; i < (rawTrades.len() as i64) } {
+            let mut trade: crate::value::Dict = self.parse_ws_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market)).into_dict();
+            std::sync::Arc::make_mut(&mut trade).insert("symbol".into(), symbol.clone());
+            stored.append(Value::Dict(trade));
         }
         }
         CacheStore::put(&mut self.trades, &symbol, stored);

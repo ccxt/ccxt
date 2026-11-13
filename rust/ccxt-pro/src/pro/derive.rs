@@ -585,8 +585,8 @@ impl Derive {
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_298: bool = true;
-            while { if !__for_first_298 { i += 1; } __for_first_298 = false; i < (symbolsResolved.len() as i64) } {
+            let mut __for_first_299: bool = true;
+            while { if !__for_first_299 { i += 1; } __for_first_299 = false; i < (symbolsResolved.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsResolved.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -890,8 +890,8 @@ impl Derive {
             let mut topics: Vec<Value> = Value::Array(status.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_299: bool = true;
-                while { if !__for_first_299 { i += 1; } __for_first_299 = false; i < (topics.len() as i64) } {
+                let mut __for_first_300: bool = true;
+                while { if !__for_first_300 { i += 1; } __for_first_300 = false; i < (topics.len() as i64) } {
                 let mut topic: Value = topics.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut parsedTopic: Value = Value::Array(if let Some(__s) = topic.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
                 let mut suffix: Option<String> = self.safe_string(parsedTopic, Value::Int(1), &[]).as_str().map(str::to_owned);
@@ -993,8 +993,8 @@ impl Derive {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_300: bool = true;
-            while { if !__for_first_300 { i += 1; } __for_first_300 = false; i < (data.len() as i64) } {
+            let mut __for_first_301: bool = true;
+            while { if !__for_first_301 { i += 1; } __for_first_301 = false; i < (data.len() as i64) } {
             let mut trade: crate::value::Dict = self.parse_trade(get_value(&data, &Value::Int(i)), None).into_dict();
             tradesArray.append(Value::Dict(trade));
         }
@@ -1183,10 +1183,10 @@ impl Derive {
         let mut rawOrders: crate::value::List = self.safe_list_k(&params, "data", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_301: bool = true;
-            while { if !__for_first_301 { i += 1; } __for_first_301 = false; i < (rawOrders.len() as i64) } {
-            let mut data: Value = rawOrders.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parsed: Value = self.parse_order(data, None);
+            let mut __for_first_302: bool = true;
+            while { if !__for_first_302 { i += 1; } __for_first_302 = false; i < (rawOrders.len() as i64) } {
+            let mut data: crate::value::Dict = rawOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut parsed: Value = self.parse_order(Value::Dict(data), None);
             let mut symbol: Option<String> = self.safe_string_k(parsed.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut orderId: Option<String> = self.safe_string_k(parsed.clone(), "id", &[]).as_str().map(str::to_owned);
             if (symbol.is_some()) {
@@ -1357,8 +1357,8 @@ impl Derive {
         let mut rawTrades: crate::value::List = self.safe_list_k(&params, "data", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_302: bool = true;
-            while { if !__for_first_302 { i += 1; } __for_first_302 = false; i < (rawTrades.len() as i64) } {
+            let mut __for_first_303: bool = true;
+            while { if !__for_first_303 { i += 1; } __for_first_303 = false; i < (rawTrades.len() as i64) } {
             let mut trade: crate::value::Dict = self.parse_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
             myTrades.append(Value::from(&trade));
             client.resolve(Value::from(&myTrades), topic.as_deref());
@@ -1569,8 +1569,8 @@ impl Derive {
             let mut cache: Value = self.safe_value(self.positions.clone(), subaccountIdKey.clone(), &[]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_303: bool = true;
-                while { if !__for_first_303 { i += 1; } __for_first_303 = false; i < (positionsSnapshot.len() as i64) } {
+                let mut __for_first_304: bool = true;
+                while { if !__for_first_304 { i += 1; } __for_first_304 = false; i < (positionsSnapshot.len() as i64) } {
                 let mut snapshotPosition: Value = self.safe_dict(positionsSnapshot.clone(), Value::Int(i), &[]);
                 cache.append(snapshotPosition);
             }
@@ -1693,8 +1693,8 @@ impl Derive {
         let mut positionUpdates: Vec<Value> = vec![];
         {
                         let mut i: i64 = 0;
-            let mut __for_first_304: bool = true;
-            while { if !__for_first_304 { i += 1; } __for_first_304 = false; i < (data.len() as i64) } {
+            let mut __for_first_305: bool = true;
+            while { if !__for_first_305 { i += 1; } __for_first_305 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1708,11 +1708,11 @@ impl Derive {
                 }
                 continue;
             }
-            let mut code: Value = self.safe_currency_code(Value::from(name), None).map(Value::from).unwrap_or(Value::Null);
-            if (code == Value::Null) {
+            let mut code: Option<String> = self.safe_currency_code(Value::from(name), None);
+            if (code.is_none()) {
                 continue;
             }
-            let mut account: Value = self.safe_dict(subBalance.clone(), code.clone(), &[]);
+            let mut account: Value = self.safe_dict(subBalance.clone(), Value::from(code.as_deref()), &[]);
             if (account == Value::Null) {
                 account = self.account();
             }
@@ -1721,7 +1721,7 @@ impl Derive {
             // the margin requirements the rest free/used model needs are not part of the stream, so stale snapshot values are dropped instead of reporting free + used != total
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), Value::Null); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), Value::Null); }
-            if let Value::Dict(__d) = &mut subBalance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+            if let Value::Dict(__d) = &mut subBalance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), account); }
             updated = true;
         }
         }
@@ -1821,8 +1821,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut matched: bool = false;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_305: bool = true;
-                while { if !__for_first_305 { i += 1; } __for_first_305 = false; i < (subscriptionKeys.len() as i64) } {
+                let mut __for_first_306: bool = true;
+                while { if !__for_first_306 { i += 1; } __for_first_306 = false; i < (subscriptionKeys.len() as i64) } {
                 let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), subscriptionKeys.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m

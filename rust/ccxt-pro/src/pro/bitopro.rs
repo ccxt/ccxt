@@ -470,8 +470,8 @@ impl Bitopro {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_132: bool = true;
-            while { if !__for_first_132 { i += 1; } __for_first_132 = false; i < (trades.len() as i64) } {
+            let mut __for_first_133: bool = true;
+            while { if !__for_first_133 { i += 1; } __for_first_133 = false; i < (trades.len() as i64) } {
             let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             tradesCache.append(trade);
         }
@@ -872,8 +872,8 @@ impl Bitopro {
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), datetime.clone().map(Value::from).unwrap_or(Value::Null)); }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_133: bool = true;
-            while { if !__for_first_133 { i += 1; } __for_first_133 = false; i < (currencies.len() as i64) } {
+            let mut __for_first_134: bool = true;
+            while { if !__for_first_134 { i += 1; } __for_first_134 = false; i < (currencies.len() as i64) } {
             let mut currency: Option<String> = self.safe_string(&currencies, Value::Int(i), &[]).as_str().map(str::to_owned);
             let mut balance: crate::value::Dict = self.safe_dict(data.clone(), currency.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

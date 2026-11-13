@@ -2815,7 +2815,7 @@ impl Xt {
         //     }
         //
         let mut ohlcvs: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&ohlcvs, &[(market).raw.clone(), timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(&ohlcvs, Some(&market), &[timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -5106,8 +5106,8 @@ impl Xt {
             // the track endpoints do not support a server-side state filter
             // and return entries in every state, so filter by status first,
             // otherwise since/limit could cut off matching rows
-            let mut parsedOrders: Value = self.parse_orders(orders.clone(), market.as_ref(), &[]);
-            let mut filteredOrders: Value = self.filter_by(parsedOrders, Value::Str("status".into()), status, &[]);
+            let mut parsedOrders: crate::value::List = self.parse_orders(orders.clone(), market.as_ref(), &[]).into_list();
+            let mut filteredOrders: Value = self.filter_by(Value::Arr(parsedOrders), Value::Str("status".into()), status, &[]);
             return self.filter_by_since_limit(filteredOrders, since.as_i64(), limit.as_i64(), &[]);
         }
         return self.parse_orders(orders, market.as_ref(), &[since, limit]);
@@ -6535,8 +6535,8 @@ impl Xt {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.parse_leverage_tiers(&data, &[symbolsNormalized, Value::Str("symbol".into())]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        return self.parse_leverage_tiers(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("symbol".into())]);
         Value::Null
         }).await?))
     }
@@ -6573,13 +6573,13 @@ impl Xt {
             let mut entry: Option<crate::value::Dict> = self.safe_dict(response.clone(), Value::Int(i), &[]).into_opt_dict();
             let mut marketId: Option<String> = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into()), Value::Str("contract".into())]);
-            let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&market), &[]);
+            let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&market), &[]).as_str().map(str::to_owned);
             if (symbols != Value::Null) {
-                if self.in_array(symbol.clone(), symbols.clone()).as_bool() == Some(true) {
-                    result.insert(crate::runtime::stringify_param(&symbol), self.parse_market_leverage_tiers(&entry, Some(&market)));
+                if self.in_array(Value::from(symbol.as_deref()), symbols.clone()).as_bool() == Some(true) {
+                    result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_market_leverage_tiers(&entry, Some(&market)));
                 }
             }  else {
-                result.insert(crate::runtime::stringify_param(&symbol), self.parse_market_leverage_tiers(&entry, Some(&market)));
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_market_leverage_tiers(&entry, Some(&market)));
             }
         }
         }
@@ -6815,8 +6815,8 @@ impl Xt {
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -7271,8 +7271,8 @@ impl Xt {
             result.push(self.parse_funding_history(entry, Some(&market)));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_since_limit(Value::Arr(sorted), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -7668,8 +7668,8 @@ impl Xt {
             m
         })]).into_dict();
         let mut items: crate::value::List = self.safe_list_k(&result, "items", &[Value::from(vec![])]).into_list();
-        let mut positions: Value = self.parse_positions(&items, &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
-        return self.filter_by_since_limit(positions, since.as_i64(), limit.as_i64(), &[]);
+        let mut positions: crate::value::List = self.parse_positions(&items, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]).into_list();
+        return self.filter_by_since_limit(Value::Arr(positions), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

@@ -2521,21 +2521,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Str("".into());
         }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-        let mut byteLength: Value = Value::from(self.parse_to_int((match ((Value::Int(hex.len() as i64)).as_f64(), (Value::Int(2)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
-        if (byteLength.as_f64() == Some(0.0)) {
+        let mut byteLength: Option<i64> = self.parse_to_int((match ((Value::Int(hex.len() as i64)).as_f64(), (Value::Int(2)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        if (byteLength == Some(0)) {
             return Value::Str("80".into());
         }
-        if (byteLength.as_f64() == Some(1.0)) && ((match (hex.as_str(), Some("80")) { (Some(__x), Some(__y)) => (match (__x.parse::<f64>(), __y.parse::<f64>()) { (Ok(__p), Ok(__q)) => __p < __q, _ => __x < __y }), _ => false })) {
+        if (byteLength == Some(1)) && ((match (hex.as_str(), Some("80")) { (Some(__x), Some(__y)) => (match (__x.parse::<f64>(), __y.parse::<f64>()) { (Ok(__p), Ok(__q)) => __p < __q, _ => __x < __y }), _ => false })) {
             return hex;
         }
-        if byteLength.as_f64().unwrap_or(f64::NAN) < ((56i64) as f64) {
-            return Value::Str(format!("{}{}", self.int_to_base16((match (&(Value::Int(128)), &(byteLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[]), hex).into());
+        if (byteLength.is_some() && byteLength < Some(56)) {
+            return Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = byteLength { Some(128 + __r) } else { None })), &[]), hex).into());
         }
-        let mut lengthHex: Option<String> = Some(self.int_to_base16(byteLength, &[]));
+        let mut lengthHex: Option<String> = Some(self.int_to_base16(Value::from(byteLength), &[]));
         lengthHex = self.pad_hex_to_even(lengthHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut lengthOfLength: Value = Value::from(self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0))));
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16((match (&(Value::Int(183)), &(lengthOfLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[]), lengthHex.map(Value::from).unwrap_or(Value::Null)).into()), hex).into());
+        let mut lengthOfLength: Option<i64> = self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0)));
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = lengthOfLength { Some(183 + __r) } else { None })), &[]), lengthHex.map(Value::from).unwrap_or(Value::Null)).into()), hex).into());
 
     Value::Null
 }
@@ -2549,16 +2548,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             concatenated = format!("{}{}", concatenated, self.safe_string(items.clone(), Value::Int(i), &[Value::Str("".into())]));
         }
         }
-        let mut byteLength: Value = Value::from(self.parse_to_int(Value::Float(((((concatenated.chars().count() as i64)) as f64) / 2.0))));
-        if byteLength.as_f64().unwrap_or(f64::NAN) < ((56i64) as f64) {
-            return Value::Str(format!("{}{}", self.int_to_base16((match (&(Value::Int(192)), &(byteLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
-                _ => Value::Null }), &[]), concatenated).into());
+        let mut byteLength: Option<i64> = self.parse_to_int(Value::Float(((((concatenated.chars().count() as i64)) as f64) / 2.0)));
+        if (byteLength.is_some() && byteLength < Some(56)) {
+            return Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = byteLength { Some(192 + __r) } else { None })), &[]), concatenated).into());
         }
-        let mut lengthHex: Option<String> = Some(self.int_to_base16(byteLength, &[]));
+        let mut lengthHex: Option<String> = Some(self.int_to_base16(Value::from(byteLength), &[]));
         lengthHex = self.pad_hex_to_even(lengthHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut lengthOfLength: Value = Value::from(self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0))));
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16((match (&(Value::Int(247)), &(lengthOfLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[]), lengthHex.map(Value::from).unwrap_or(Value::Null)).into()), concatenated).into());
+        let mut lengthOfLength: Option<i64> = self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0)));
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = lengthOfLength { Some(247 + __r) } else { None })), &[]), lengthHex.map(Value::from).unwrap_or(Value::Null)).into()), concatenated).into());
 
     Value::Null
 }

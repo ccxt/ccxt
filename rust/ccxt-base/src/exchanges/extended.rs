@@ -1601,12 +1601,12 @@ impl Extended {
             m
         })]).into_dict();
         let mut timestamp: i64 = self.milliseconds();
-        let mut orderbook: Value = self.parse_order_book(&data, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bid".into()), Value::Str("ask".into()), Value::Str("price".into()), Value::Str("qty".into())]);
+        let mut orderbook: crate::value::Dict = self.parse_order_book(&data, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bid".into()), Value::Str("ask".into()), Value::Str("price".into()), Value::Str("qty".into())]).into_dict();
         if (limit != Value::Null) {
-            { let __be_tmp = self.array_slice(crate::value::get_value_k(&orderbook, "bids"), Value::Int(0), &[limit.clone()]); if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("bids".into(), __be_tmp); } };
-            { let __be_tmp = self.array_slice(crate::value::get_value_k(&orderbook, "asks"), Value::Int(0), &[limit]); if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("asks".into(), __be_tmp); } };
+            { let __be_tmp = self.array_slice(crate::value::KeyRead::key_read(&&orderbook, "bids"), Value::Int(0), &[limit.clone()]); std::sync::Arc::make_mut(&mut orderbook).insert("bids".into(), __be_tmp); }
+            { let __be_tmp = self.array_slice(crate::value::KeyRead::key_read(&&orderbook, "asks"), Value::Int(0), &[limit]); std::sync::Arc::make_mut(&mut orderbook).insert("asks".into(), __be_tmp); }
         }
-        return orderbook;
+        return Value::Dict(orderbook);
         Value::Null
         }).await?))
     }
@@ -2074,7 +2074,7 @@ impl Extended {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2127,17 +2127,17 @@ impl Extended {
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[Value::Int(self.milliseconds())]).as_i64();
-        let mut endTime: Value = self.safe_integer_k(&paramsPaginate, "endTime", &[Value::from(until)]);
+        let mut endTime: Option<i64> = self.safe_integer_k(&paramsPaginate, "endTime", &[Value::from(until)]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]).into_dict();
-        let mut sinceResolved: Value = since.clone();
-        if (endTime != Value::Null) && (since == Value::Null) {
-            sinceResolved = (match (&(endTime), &((Value::Int((((((limitResolved * 60)) * 60)) * 1000))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut sinceResolved: Option<i64> = since.as_i64();
+        if (endTime.is_some()) && (since == Value::Null) {
+            sinceResolved = (if let Some(__l) = endTime { Some(__l - ((((((limitResolved * 60)) * 60)) * 1000))) } else { None });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
-                m.insert("startTime".to_string(), sinceResolved.clone());
-                m.insert("endTime".to_string(), endTime);
+                m.insert("startTime".to_string(), Value::from(sinceResolved));
+                m.insert("endTime".to_string(), Value::from(endTime));
                 m.insert("limit".to_string(), Value::from(limitResolved));
             m
         });
@@ -2185,8 +2185,8 @@ impl Extended {
             result.push(self.parse_funding_rate_history(entry, Some(&market)));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, Some(symbolValue.as_str()), sinceResolved.as_i64(), Some(limitResolved), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), Some(symbolValue.as_str()), sinceResolved, Some(limitResolved), &[]);
         Value::Null
         }).await?))
     }
@@ -2250,18 +2250,18 @@ impl Extended {
         }
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[Value::Int(self.milliseconds())]).as_i64();
-        let mut endTime: Value = self.safe_integer_k(params.clone(), "endTime", &[Value::from(until)]);
+        let mut endTime: Option<i64> = self.safe_integer_k(params.clone(), "endTime", &[Value::from(until)]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]).into_dict();
         let mut sinceResolved: Value = since.clone();
-        if (endTime != Value::Null) && (since == Value::Null) {
-            sinceResolved = (match (&(endTime), &((Value::Int((((limitResolved * (self.parse_timeframe(timeframe)))) * 1000))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        if (endTime.is_some()) && (since == Value::Null) {
+            sinceResolved = Value::from((if let Some(__l) = endTime { Some(__l - ((((limitResolved * (self.parse_timeframe(timeframe)))) * 1000))) } else { None }));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
                 m.insert("interval".to_string(), interval.map(Value::from).unwrap_or(Value::Null));
                 m.insert("startTime".to_string(), sinceResolved.clone());
-                m.insert("endTime".to_string(), endTime);
+                m.insert("endTime".to_string(), Value::from(endTime));
                 m.insert("limit".to_string(), Value::from(limitResolved));
             m
         });
@@ -2280,7 +2280,7 @@ impl Extended {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_open_interests_history(&data, &[(market).raw.clone(), sinceResolved, Value::from(limitResolved)]);
+        return self.parse_open_interests_history(&data, Some(&market), &[sinceResolved, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -3319,10 +3319,10 @@ impl Extended {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut parsed: Value = self.parse_trading_fee(fee, None);
-            let mut symbol: Option<String> = self.safe_string_k(parsed.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut parsed: crate::value::Dict = self.parse_trading_fee(fee, None).into_dict();
+            let mut symbol: Option<String> = self.safe_string_k(&parsed, "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_some()) {
-                result.insert(symbol.as_deref().unwrap_or("null").to_string(), parsed);
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(parsed));
             }
         }
         }
@@ -3670,8 +3670,8 @@ impl Extended {
             result.push(entry);
         }
         }
-        let mut positions: Value = self.parse_positions(Value::from(result), &[symbolsList]);
-        return self.filter_by_since_limit(positions, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into())]);
+        let mut positions: crate::value::List = self.parse_positions(Value::from(result), &[symbolsList]).into_list();
+        return self.filter_by_since_limit(Value::Arr(positions), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -4415,12 +4415,12 @@ impl Extended {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut orderSymbol: Value = symbol.clone();
         if (symbol != Value::Null) {
-            let mut symbolMarket: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            market = symbolMarket.clone();
-            orderSymbol = symbolMarket.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            let mut symbolMarket: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            market = Some(crate::types::Market::clone(&symbolMarket));
+            orderSymbol = Value::from((symbolMarket).symbol.clone());
         }
         let mut response: Value = Value::Null;
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
@@ -4461,7 +4461,7 @@ impl Extended {
         m.insert("symbol".to_string(), orderSymbol);
         m.insert("status".to_string(), Value::Str("canceled".into()));
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+}), market.as_ref());
         Value::Null
         }).await?))
     }
@@ -4726,8 +4726,8 @@ impl Extended {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut orders: Value = self.parse_orders(&data, market.as_ref(), &[since.clone(), limit.clone()]);
-        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut orders: crate::value::List = self.parse_orders(&data, market.as_ref(), &[since.clone(), limit.clone()]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(orders), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4835,8 +4835,8 @@ impl Extended {
             result.push(entry);
         }
         }
-        let mut orders: Value = self.parse_orders(Value::from(result), market.as_ref(), &[since.clone(), limit.clone()]);
-        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut orders: crate::value::List = self.parse_orders(Value::from(result), market.as_ref(), &[since.clone(), limit.clone()]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(orders), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -5164,7 +5164,7 @@ impl Extended {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut requestBody: Option<String> = None;
         let mut accessibility: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
@@ -5179,14 +5179,14 @@ impl Extended {
             if (self.apiKey.clone() == Value::Null) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" sign() requires an apiKey for private endpoints".into()))));
             }
-            requestHeaders = Value::Map({
+            requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-Api-Key".to_string(), self.apiKey.clone());
                 m
-            });
+            }));
             if ((method.as_str() == Some("POST")) || (method.as_str() == Some("PATCH"))) && !queryPost {
                 requestBody = json_stringify(&query).as_str().map(str::to_owned);
-                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
+                if let Some(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".to_string(), Value::Str("application/json".into())); }
             }
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)), Value::Str("/api/".into())).into()), api.get(0).cloned().unwrap_or(Value::Null)).into()), endpoint);
@@ -5198,7 +5198,7 @@ impl Extended {
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), requestHeaders);
+        m.insert("headers".to_string(), requestHeaders.map_or(Value::Null, Value::Dict));
     m
 });
 

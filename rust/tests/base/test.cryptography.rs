@@ -20,12 +20,12 @@ fn equals(a: Value, b: Value) -> Value {
 pub fn testCryptography() {
     // const exchange = new Exchange ();
     // ---------------------------------------------------------------------------------------------------------------------
-    assert!(ccxt::runtime::is_true(&(Value::Bool(hash(encode(Value::Str("".into())), Value::Str("sha256".into()), Value::Str("hex".into())).as_str() == Some("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(hash(encode(Value::Str("cheese".into())), Value::Str("sha256".into()), Value::Str("hex".into())).as_str() == Some("873ac9ffea4dd04fa719e8920cd6938f0c23cd678af330939cff53c3d2855f34")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(hash(encode(Value::Str("".into())), Value::Str("md5".into()), Value::Str("hex".into())).as_str() == Some("d41d8cd98f00b204e9800998ecf8427e")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(hash(encode(Value::Str("sexyfish".into())), Value::Str("md5".into()), Value::Str("hex".into())).as_str() == Some("c8a35464aa9d5683585786f44d5889f8")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(hash(encode(Value::Str("".into())), Value::Str("sha1".into()), Value::Str("hex".into())).as_str() == Some("da39a3ee5e6b4b0d3255bfef95601890afd80709")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(hash(encode(Value::Str("nutella".into())), Value::Str("sha1".into()), Value::Str("hex".into())).as_str() == Some("b3d60a34b744159793c483b067c56d8affc5111a")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(hash(encode(Value::Str("".into())), Value::Str("sha256".into()), Value::Str("hex".into()))).as_str() == Some("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(hash(encode(Value::Str("cheese".into())), Value::Str("sha256".into()), Value::Str("hex".into()))).as_str() == Some("873ac9ffea4dd04fa719e8920cd6938f0c23cd678af330939cff53c3d2855f34")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(hash(encode(Value::Str("".into())), Value::Str("md5".into()), Value::Str("hex".into()))).as_str() == Some("d41d8cd98f00b204e9800998ecf8427e")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(hash(encode(Value::Str("sexyfish".into())), Value::Str("md5".into()), Value::Str("hex".into()))).as_str() == Some("c8a35464aa9d5683585786f44d5889f8")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(hash(encode(Value::Str("".into())), Value::Str("sha1".into()), Value::Str("hex".into()))).as_str() == Some("da39a3ee5e6b4b0d3255bfef95601890afd80709")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(hash(encode(Value::Str("nutella".into())), Value::Str("sha1".into()), Value::Str("hex".into()))).as_str() == Some("b3d60a34b744159793c483b067c56d8affc5111a")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(hmac(encode(Value::Str("hello".into())), encode(Value::Str("there".into())), Value::Str("sha256".into()), Value::Str("hex".into())).as_str() == Some("551e1c1ecbce0fe9b643745a376584a6289f5f43a46861b315fac9edc8d52a26")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(hmac(encode(Value::Str("a message".into())), encode(Value::Str("a secret".into())), Value::Str("md5".into()), Value::Str("hex".into())).as_str() == Some("0bfa503bdbc7358185fcd49b4869e23d")))));
     // ---------------------------------------------------------------------------------------------------------------------

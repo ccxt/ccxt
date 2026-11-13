@@ -928,13 +928,13 @@ impl Coinmate {
             let mut __for_first_568: bool = true;
             while { if !__for_first_568 { i += 1; } __for_first_568 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Option<String> = currencyIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(Value::from(currencyId.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
+            let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
             let mut balance: crate::value::Dict = self.safe_dict(&balances, currencyId.map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
             account.insert("used".into(), self.safe_string_k(&balance, "reserved", &[]));
             account.insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
-            result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
         }
         return self.safe_balance(Value::Map(result));
@@ -1090,7 +1090,7 @@ impl Coinmate {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.public_get_ticker_all(&[params]).await.into_dict();
         //
         //     {
@@ -1132,7 +1132,7 @@ impl Coinmate {
             result.insert(crate::runtime::stringify_param(&(Value::from((market).symbol.clone()))), Value::Map(ticker));
         }
         }
-        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2062,7 +2062,7 @@ impl Coinmate {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut bodySigned: Value = Value::Null;
-        let mut headersSigned: Value = Value::Null;
+        let mut headersSigned: Option<crate::value::Dict> = None;
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
@@ -2091,13 +2091,13 @@ impl Coinmate {
                 m
             }), &[params]);
             bodySigned = Value::from(self.urlencode(__ws_arg_10, &[]));
-            headersSigned = Value::Map({
+            headersSigned = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                 m
-            });
+            }));
         }
-        let mut headersResolved: Value = headersSigned;
+        let mut headersResolved: Value = headersSigned.map_or(Value::Null, Value::Dict);
         let mut bodyResolved: Value = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

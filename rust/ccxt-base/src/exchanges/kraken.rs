@@ -169,7 +169,7 @@ impl crate::exchange_generated::ExchangeBase for Kraken {
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transactions_by_type" => self.parse_transactions_by_type(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_str), args.get(3).and_then(crate::Value::as_i64), args.get(4).and_then(crate::Value::as_i64)),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1568,12 +1568,12 @@ impl Kraken {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        return self.parse_trading_fee(result, (market).raw.clone());
+        return self.parse_trading_fee(result, Some(&market));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, mut market: Value) -> Value {
+    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
         let mut makerFees: crate::value::Dict = self.safe_dict_k(fee.clone(), "fees_maker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1582,18 +1582,18 @@ impl Kraken {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut symbolMakerFee: crate::value::Dict = self.safe_dict(&makerFees, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::Map({
+        let mut symbolMakerFee: crate::value::Dict = self.safe_dict(&makerFees, crate::value::KeyRead::key_read(&market, "id"), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut symbolTakerFee: crate::value::Dict = self.safe_dict(&takerFees, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::Map({
+        let mut symbolTakerFee: crate::value::Dict = self.safe_dict(&takerFees, crate::value::KeyRead::key_read(&market, "id"), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee);
-        m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&market, "symbol"));
         m.insert("maker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(&symbolMakerFee, "fee", &[]), &Value::Str("100".into())), &[]));
         m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(&symbolTakerFee, "fee", &[]), &Value::Str("100".into())), &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
@@ -1900,25 +1900,24 @@ impl Kraken {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), Value::Int(720)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut parsedTimeframe: Value = self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[]);
+        let mut parsedTimeframe: Option<i64> = self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[]).as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        if (parsedTimeframe != Value::Null) {
-            request.insert("interval".into(), parsedTimeframe.clone());
+        if (parsedTimeframe.is_some()) {
+            request.insert("interval".into(), Value::from(parsedTimeframe));
         }  else {
             request.insert("interval".into(), timeframe.clone());
         }
         if (since != Value::Null) {
-            let mut scaledSince: Value = Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
-            if (parsedTimeframe == Value::Null) {
+            let mut scaledSince: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+            if (parsedTimeframe.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing parsedTimeframe".into()))));
             }
-            let mut timeFrameInSeconds: Value = (match (&(parsedTimeframe), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            request.insert("since".into(), Value::from(self.number_to_string((match (&(scaledSince), &(timeFrameInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x - y), _ => Value::Null })))); // expected to be in seconds
+            let mut timeFrameInSeconds: Option<i64> = (if let Some(__l) = parsedTimeframe { Some(__l * 60) } else { None });
+            request.insert("since".into(), Value::from(self.number_to_string(Value::from((if let (Some(__l), Some(__r)) = (scaledSince, timeFrameInSeconds) { Some(__l - __r) } else { None }))))); // expected to be in seconds
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsPaginate]);
         let mut response: crate::value::Dict = self.public_get_ohlc(&[__ws_arg_4]).await.into_dict();
@@ -1940,7 +1939,7 @@ impl Kraken {
             m
         })]).into_dict();
         let mut ohlcvs: crate::value::List = self.safe_list(&result, Value::from((market).id.as_deref()), &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&ohlcvs, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&ohlcvs, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2166,8 +2165,8 @@ impl Kraken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut items: Value = self.fetch_ledger_entries_by_ids(vec![id.to_string()], code.as_str(), &[params]).await;
-        let mut entry: Value = self.safe_dict(items, Value::Int(0), &[]);
+        let mut items: crate::value::List = self.fetch_ledger_entries_by_ids(vec![id.to_string()], code.as_str(), &[params]).await.into_list();
+        let mut entry: Value = self.safe_dict(&items, Value::Int(0), &[]);
         return entry;
         Value::Null
         }).await?))
@@ -2976,7 +2975,7 @@ impl Kraken {
             amount = orderAmount.take();
         }
         let mut filled: Option<String> = self.safe_string_k(orderOmitted.clone(), "vol_exec", &[]).as_str().map(str::to_owned);
-        let mut fee: Value = Value::Null;
+        let mut fee: Option<crate::value::Dict> = None;
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         // const cost = this.safeString (order, 'cost');
         // the guarded write keeps `price` a proven string local: a defaulted safeString returns `any`
@@ -3000,16 +2999,16 @@ impl Kraken {
             symbol = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (matches!(&orderOmitted, Value::Dict(__d) if __d.contains_key("fee"))) {
                 let mut feeCost: Option<String> = self.safe_string_k(orderOmitted.clone(), "fee", &[]).as_str().map(str::to_owned);
-                fee = Value::Map({
+                fee = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cost".to_string(), feeCost.map(Value::from).unwrap_or(Value::Null));
                         m.insert("rate".to_string(), Value::Null);
                     m
-                });
+                }));
                 if flags.contains("fciq") {
-                    if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("currency".into(), self.safe_string_k(marketResolved.clone(), "quote", &[])); }
+                    if let Some(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("currency".to_string(), self.safe_string_k(marketResolved.clone(), "quote", &[])); }
                 }  else if flags.contains("fcib") {
-                    if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("currency".into(), self.safe_string_k(marketResolved.clone(), "base", &[])); }
+                    if let Some(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("currency".to_string(), self.safe_string_k(marketResolved.clone(), "base", &[])); }
                 }
             }
         }
@@ -3106,7 +3105,7 @@ impl Kraken {
         m.insert("average".to_string(), Value::from(average));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), self.safe_bool2(orderOmitted, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]));
-        m.insert("fee".to_string(), fee);
+        m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::from(trades));
     m
 }), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
@@ -3557,8 +3556,8 @@ impl Kraken {
                 add_element_to_object(get_value_mut(&mut rawTrades, &ids.get(i as usize).cloned().unwrap_or(Value::Null)), &Value::Str("id".into()), ids.get(i as usize).cloned().unwrap_or(Value::Null));
             }
             }
-            let mut trades: Value = self.parse_trades(rawTrades, None, &[since.clone(), limit.clone()]);
-            let mut tradesFilteredBySymbol: Value = self.filter_by_symbol(trades, &[Value::from(symbolResolved.as_deref())]);
+            let mut trades: crate::value::List = self.parse_trades(rawTrades, None, &[since.clone(), limit.clone()]).into_list();
+            let mut tradesFilteredBySymbol: Value = self.filter_by_symbol(Value::Arr(trades), &[Value::from(symbolResolved.as_deref())]);
             result = self.array_concat(result.clone(), tradesFilteredBySymbol);
         }
         }
@@ -4869,10 +4868,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         ]
         //     }
         //
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut result: Option<crate::value::List> = self.safe_list_k(&response, "result", &[]).into_opt_list();
-        let mut results: Value = self.parse_positions(&result, &[symbolsNormalized.clone()]);
-        return self.filter_by_array_positions(results, Value::Str("symbol".into()), &[symbolsNormalized]);
+        let mut results: crate::value::List = self.parse_positions(&result, &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_list();
+        return self.filter_by_array_positions(Value::Arr(results), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -5115,9 +5114,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 bodySigned = Value::from(self.urlencode_nested(__ws_arg_30, &[]));
             }
             let mut auth: crate::value::Bytes = self.encode(Value::Str(format!("{}{}", nonce, bodySigned).into()));
-            let mut hash: Value = self.hash(&auth, Value::Str("sha256".into()), &[Value::Str("binary".into())]);
+            let mut hash: crate::value::Bytes = self.hash_binary(&auth, Value::Str("sha256".into()));
             let mut binary: crate::value::Bytes = self.encode(Value::from(url.clone()));
-            let mut binhash: crate::value::Bytes = self.binary_concat(&binary, &[hash]);
+            let mut binhash: crate::value::Bytes = self.binary_concat(&binary, &[Value::from(&hash)]);
             let mut secret: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
             let mut signature: String = self.hmac(&binhash, &secret, Value::Str("sha512".into()), &[Value::Str("base64".into())]);
             let mut headersSigned: indexmap::IndexMap<String, Value> = ({

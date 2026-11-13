@@ -1615,7 +1615,7 @@ impl Krakenfutures {
         //    }
         //
         let mut candles: Option<crate::value::List> = self.safe_list_k(&response, "candles", &[]).into_opt_list();
-        return self.parse_ohlc_vs(&candles, &[(market).raw.clone(), timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -3531,8 +3531,8 @@ impl Krakenfutures {
         //
         let mut fills: crate::value::List = self.safe_list_k(&response, "fills", &[Value::from(vec![])]).into_list();
         // the endpoint returns the fills of every contract, each row resolves its own market
-        let mut trades: Value = self.parse_trades(&fills, None, &[]);
-        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
+        let mut trades: crate::value::List = self.parse_trades(&fills, None, &[]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(trades), symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4319,8 +4319,8 @@ impl Krakenfutures {
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4490,8 +4490,8 @@ impl Krakenfutures {
             }
         }
         }
-        let mut positions: Value = self.parse_positions(Value::from(updates), &[symbols]);
-        return self.filter_by_since_limit(positions, since.as_i64(), limit.as_i64(), &[]);
+        let mut positions: crate::value::List = self.parse_positions(Value::from(updates), &[symbols]).into_list();
+        return self.filter_by_since_limit(Value::Arr(positions), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -5090,13 +5090,13 @@ impl Krakenfutures {
         let mut errors: crate::value::List = self.safe_list_k(response.clone(), "errors", &[]).into_list();
         let mut firstError: crate::value::Dict = self.safe_dict(&errors, Value::Int(0), &[]).into_dict();
         let mut firtErrorMessage: Option<String> = self.safe_string_k(&firstError, "message", &[]).as_str().map(str::to_owned);
-        let mut message: Value = self.safe_string_k(response, "error", &[firtErrorMessage.map(Value::from).unwrap_or(Value::Null)]);
-        if (message == Value::Null) {
+        let mut message: Option<String> = self.safe_string_k(response, "error", &[firtErrorMessage.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        if (message.is_none()) {
             return Value::Null;
         }
         let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
-        self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), Value::from(feedback.clone()));
-        self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message, Value::from(feedback.clone()));
+        self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::from(message.as_deref()), Value::from(feedback.clone()));
+        self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
         if (code.as_f64() == Some(400.0)) {
             panic!("{}", crate::exchange_errors::bad_request(feedback.clone()));
         }
@@ -5155,7 +5155,7 @@ impl Krakenfutures {
         }
         let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), query);
         let mut requestBody: Option<String> = (if (path.as_str() == Some("batchorder")) { Some(postData.clone()) } else { None });
-        let mut privateHeaders: Value = Value::Null;
+        let mut privateHeaders: Option<crate::value::Dict> = None;
         if (apiName.as_str() == Some("private")) || (access.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut auth: String = format!("{}{}", postData, Value::Str("/api/".into()));
@@ -5163,19 +5163,19 @@ impl Krakenfutures {
                 auth.push_str(&format!("{}{}", apiName, Value::Str("/".into())));
             }
             auth.push_str(&endpoint); // 1
-            let mut hash: Value = self.hash(self.encode(Value::from(auth)), Value::Str("sha256".into()), &[Value::Str("binary".into())]); // 2
+            let mut hash: crate::value::Bytes = self.hash_binary(self.encode(Value::from(auth)), Value::Str("sha256".into())); // 2
             let mut secret: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]); // 3
-            let mut signature: String = self.hmac(hash, &secret, Value::Str("sha512".into()), &[Value::Str("base64".into())]); // 4-5
-            privateHeaders = Value::Map({
+            let mut signature: String = self.hmac(&hash, &secret, Value::Str("sha512".into()), &[Value::Str("base64".into())]); // 4-5
+            privateHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("Accept".to_string(), Value::Str("application/json".into()));
                     m.insert("APIKey".to_string(), self.apiKey.clone());
                     m.insert("Authent".to_string(), Value::from(signature));
                 m
-            });
+            }));
         }
-        let mut requestHeaders: Value = privateHeaders;
+        let mut requestHeaders: Value = privateHeaders.map_or(Value::Null, Value::Dict);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));

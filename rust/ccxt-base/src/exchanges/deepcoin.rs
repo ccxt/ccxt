@@ -1408,7 +1408,7 @@ impl Deepcoin {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1436,8 +1436,8 @@ impl Deepcoin {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut market: Option<crate::types::Market> = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut market: Option<crate::types::Market> = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -1449,7 +1449,7 @@ impl Deepcoin {
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsMarketType]);
         let mut response: crate::value::Dict = self.public_get_deepcoin_market_tickers(&[__ws_arg_11]).await.into_dict();
         let mut tickers: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_tickers(&tickers, &[symbolsNormalized]);
+        return self.parse_tickers(&tickers, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -1731,12 +1731,12 @@ impl Deepcoin {
             while { if !__for_first_610 { i += 1; } __for_first_610 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&balance, "ccy", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(symbol.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+            let mut code: Option<String> = self.safe_currency_code(symbol.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&balance, "bal", &[]));
             account.insert("used".into(), self.safe_string_k(&balance, "frozenBal", &[]));
             account.insert("free".into(), self.safe_string_k(&balance, "availBal", &[]));
-            result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
         }
         return self.safe_balance(Value::Map(result));
@@ -2058,32 +2058,32 @@ impl Deepcoin {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut network: Value = self.safe_string_k(params.clone(), "network", &[]);
+        let mut network: Option<String> = self.safe_string_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
         let mut defaultNetworks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "defaultNetworks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
         let mut defaultNetwork: Option<String> = self.safe_string(&defaultNetworks, code.clone(), &[]).as_str().map(str::to_owned);
-        if (network == Value::Null) || (network.as_str() == Some("")) {
-            network = defaultNetwork.map(Value::from).unwrap_or(Value::Null);
+        if (network.is_none()) || (network.as_deref() == Some("")) {
+            network = defaultNetwork;
         }
-        if (network != Value::Null) {
-            network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
+        if (network.is_some()) {
+            network = self.safe_string(self.networkAliases.clone(), Value::from(network.as_deref()), &[Value::from(network.as_deref())]).as_str().map(str::to_owned);
         }
-        let mut paramsOmitted: Value = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
+        let mut paramsOmitted: Value = (if (network.is_some()) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
         let mut addressess: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses((Value::from(vec![code])).to_opt_str_vec(), paramsOmitted).await);
         let mut length: f64 = ((addressess.len() as i64) as f64);
         let mut index: Value = Value::Int(0);
-        if (network != Value::Null) && (length > ((1i64) as f64)) {
+        if (network.is_some()) && (length > ((1i64) as f64)) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_611: bool = true;
                 while { if !__for_first_611 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_611 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
-                let mut entryNetwork: Option<String> = self.safe_string_opt(self.safe_dict(addressess.clone(), i.clone(), &[Value::Map({
+                let mut entryNetwork: Option<String> = self.safe_string(self.safe_dict(addressess.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), Value::Str("network".into()), &[]);
-                if (entryNetwork.as_deref() == network.as_str()) {
+})]), Value::Str("network".into()), &[]).as_str().map(str::to_owned);
+                if (entryNetwork == network) {
                     index = i.clone();
                 }
             }

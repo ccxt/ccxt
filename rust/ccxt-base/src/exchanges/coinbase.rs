@@ -2850,8 +2850,8 @@ if _try_result.is_err() {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut isDisabled: bool = self.safe_bool_k_opt(market.clone(), "is_disabled", &[Value::Bool(false)]).unwrap_or(false);
-        let mut tradingDisabled: bool = isDisabled || (self.safe_bool_k(market.clone(), "trading_disabled", &[]).as_bool() == Some(true));
+        let mut isDisabled: bool = self.safe_bool_k(market.clone(), "is_disabled", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut tradingDisabled: bool = (isDisabled || (self.safe_bool_k(market.clone(), "trading_disabled", &[]).as_bool() == Some(true)));
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
         let mut type_var: Option<String> = None;
         if matches!(&isSwap, Value::Bool(true)) {
@@ -3223,7 +3223,7 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3268,7 +3268,7 @@ if _try_result.is_err() {
             result.insert(symbol, self.parse_ticker(rates.get(baseId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Some(&market)));
         }
         }
-        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
 
     Value::Null
 }
@@ -5502,9 +5502,9 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut maxLimit: i64 = 300;
-        let mut limitValue: Value = Value::from(self.parse_to_int(Value::from(maxLimit)));
+        let mut limitValue: Option<i64> = self.parse_to_int(Value::from(maxLimit));
         if (limit != Value::Null) && ((limit.as_i64().is_some() && limit.as_i64() < Some(maxLimit))) {
-            limitValue = Value::from(self.parse_to_int(limit.clone()));
+            limitValue = self.parse_to_int(limit.clone());
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -5519,10 +5519,10 @@ if _try_result.is_err() {
                 m.insert("granularity".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut until: Value = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("end".into()), &[]);
+        let mut until: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("end".into()), &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
-        let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
-        let mut requestedDuration: Value = (match (&(limitValue), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut duration: i64 = self.parse_timeframe(timeframe.clone());
+        let mut requestedDuration: Value = Value::from((if let Some(__l) = limitValue { Some(__l * duration) } else { None }));
         let mut sinceString: Value = Value::Null;
         if (since != Value::Null) {
             sinceString = Value::from(self.number_to_string(Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))));
@@ -5533,8 +5533,8 @@ if _try_result.is_err() {
         request.insert("start".into(), sinceString.clone());
         // 300 candles max
         let mut windowEnd: Option<String> = crate::precise::Precise::stringAdd(&sinceString, &Value::Str(format!("{}", requestedDuration).into())).as_str().map(str::to_owned);
-        if (until != Value::Null) {
-            let mut endString: Option<String> = self.number_to_string(Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
+        if (until.is_some()) {
+            let mut endString: Option<String> = self.number_to_string(Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })))));
             if (since != Value::Null) && crate::precise::Precise::stringLt(&windowEnd.clone().map(Value::from).unwrap_or(Value::Null), &endString.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
                 endString = windowEnd.clone();
             }
@@ -5568,7 +5568,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut candles: crate::value::List = self.safe_list_k(&response, "candles", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&candles, &[(market).raw.clone(), timeframe, since, limitValue]);
+        return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, Value::from(limitValue)]);
         Value::Null
         }).await?))
     }
@@ -6836,7 +6836,7 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.v3_private_get_brokerage_cfm_positions(&[params]).await.into_dict();
         //
         //     {
@@ -6855,7 +6855,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut positions: crate::value::List = self.safe_list_k(&response, "positions", &[Value::from(vec![])]).into_list();
-        return self.parse_positions(&positions, &[symbolsNormalized]);
+        return self.parse_positions(&positions, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -7256,11 +7256,11 @@ if _try_result.is_err() {
 }
 
     pub fn nonce(&self) -> Value {
-        let mut timeDifference: Value = self.safe_integer_k(self.options.clone(), "timeDifference", &[]);
-        if (timeDifference == Value::Null) {
+        let mut timeDifference: Option<i64> = self.safe_integer_k(self.options.clone(), "timeDifference", &[]).as_i64();
+        if (timeDifference.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" nonce() requires a numeric options[\"timeDifference\"]".into()))));
         }
-        return (match (&(Value::Int(self.milliseconds())), &(timeDifference)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return Value::from((if let Some(__r) = timeDifference { Some((self.milliseconds()) - __r) } else { None }));
 
     Value::Null
 }
@@ -7275,7 +7275,7 @@ if _try_result.is_err() {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestBody: Value = Value::Null;
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut version: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut signed: bool = api.get(1).cloned().unwrap_or(Value::Null).as_str() == Some("private");
         let mut isV3: bool = version.as_deref() == Some("v3");
@@ -7352,28 +7352,28 @@ if _try_result.is_err() {
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = Some(format!("{}{}", Value::Str("Bearer ".into()), token.map(Value::from).unwrap_or(Value::Null)));
                 }  else {
-                    let mut nonce: Value = Value::from(self.parse_to_int(self.nonce()));
-                    let mut timestamp: Value = Value::from(self.parse_to_int((match ((nonce).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+                    let mut nonce: Option<i64> = self.parse_to_int(self.nonce());
+                    let mut timestamp: Value = Value::from(self.parse_to_int(Value::from((if let Some(__l) = nonce { Some((__l as f64) / 1000.0) } else { None }))));
                     let mut timestampString: Value = Value::Str(format!("{}", timestamp).into());
                     let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestampString, method).into()), savedPath).into()), payload.map(Value::from).unwrap_or(Value::Null));
                     let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-                    requestHeaders = Value::Map({
+                    requestHeaders = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("CB-ACCESS-KEY".to_string(), self.apiKey.clone());
                             m.insert("CB-ACCESS-SIGN".to_string(), Value::from(signature));
                             m.insert("CB-ACCESS-TIMESTAMP".to_string(), timestampString);
                             m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                         m
-                    });
+                    }));
                 }
             }
             if (authorizationString.is_some()) {
-                requestHeaders = Value::Map({
+                requestHeaders = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Authorization".to_string(), authorizationString.map(Value::from).unwrap_or(Value::Null));
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m
-                });
+                }));
                 if (method.as_str() != Some("GET")) {
                     if queryLength > ((0i64) as f64) {
                         requestBody = json_stringify(&query);
@@ -7382,7 +7382,7 @@ if _try_result.is_err() {
             }
         }
         let mut bodyResolved: Value = requestBody;
-        let mut headersResolved: Value = requestHeaders;
+        let mut headersResolved: Value = requestHeaders.map_or(Value::Null, Value::Dict);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));

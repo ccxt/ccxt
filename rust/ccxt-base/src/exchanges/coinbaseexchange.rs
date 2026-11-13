@@ -1646,7 +1646,7 @@ impl Coinbaseexchange {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1691,7 +1691,7 @@ impl Coinbaseexchange {
             result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(first, Some(&market)));
         }
         }
-        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2032,14 +2032,14 @@ impl Coinbaseexchange {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), Value::Int(300)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut parsedTimeframe: Value = self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[]);
+        let mut parsedTimeframe: Option<i64> = self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[]).as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        if (parsedTimeframe != Value::Null) {
-            request.insert("granularity".into(), parsedTimeframe.clone());
+        if (parsedTimeframe.is_some()) {
+            request.insert("granularity".into(), Value::from(parsedTimeframe));
         }  else {
             request.insert("granularity".into(), timeframe.clone());
         }
@@ -2051,8 +2051,8 @@ impl Coinbaseexchange {
         if (since != Value::Null) {
             request.insert("start".into(), self.iso8601(since.clone()));
             if (until.is_none()) {
-                if (parsedTimeframe != Value::Null) {
-                    let mut parsedTimeframeMilliseconds: Value = (match (&(parsedTimeframe), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+                if (parsedTimeframe.is_some()) {
+                    let mut parsedTimeframeMilliseconds: Value = Value::from((if let Some(__l) = parsedTimeframe { Some(__l * 1000) } else { None }));
                     if self.is_round_number((match (&(since), &(parsedTimeframeMilliseconds)) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x),
                         Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_bool() == Some(true) {
                         request.insert("end".into(), self.iso8601(self.sum(&[(match (&(((match (&(cappedLimit), &(parsedTimeframeMilliseconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
@@ -2069,7 +2069,7 @@ impl Coinbaseexchange {
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.public_get_products_id_candles(&[__ws_arg_11]).await.into_list();
-        return self.parse_ohlc_vs(self.to_array(&response), &[(market).raw.clone(), timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -3099,18 +3099,18 @@ impl Coinbaseexchange {
         //        }
         //    ]
         //
-        let mut details: crate::value::Dict = self.safe_dict_k(transaction.clone(), "details", &[Value::Map({
+        let mut details: Value = self.safe_dict_k(transaction.clone(), "details", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]).into_dict();
+})]);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "created_at", &[]));
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
-        let mut amountRaw: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
-        let mut amount: Value = amountRaw.clone();
+        let mut amountRaw: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
+        let mut amount: Option<f64> = amountRaw;
         let mut type_var: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut address: Value = self.safe_string_k(&details, "crypto_address", &[]);
-        address = self.safe_string_k(transaction.clone(), "crypto_address", &[address.clone()]);
+        let mut address: Option<String> = self.safe_string_k(&details, "crypto_address", &[]).as_str().map(str::to_owned);
+        address = self.safe_string_k(transaction.clone(), "crypto_address", &[Value::from(address.as_deref())]).as_str().map(str::to_owned);
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), Value::Null);
@@ -3120,13 +3120,13 @@ impl Coinbaseexchange {
         });
         if (type_var.as_deref() == Some("withdraw")) {
             type_var = Some("withdrawal".to_string());
-            address = self.safe_string_k(&details, "sent_to_address", &[address.clone()]);
-            let mut feeCost: Value = self.safe_number_k(&details, "fee", &[]);
-            if (feeCost != Value::Null) {
-                if (amountRaw != Value::Null) {
-                    amount = (match (&(amountRaw), &(feeCost)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            address = self.safe_string_k(&details, "sent_to_address", &[Value::from(address.as_deref())]).as_str().map(str::to_owned);
+            let mut feeCost: Option<f64> = self.safe_number_k(&details, "fee", &[]).as_f64();
+            if (feeCost.is_some()) {
+                if (amountRaw.is_some()) {
+                    amount = (if let (Some(__l), Some(__r)) = (amountRaw, feeCost) { Some(__l - __r) } else { None });
                 }
-                fee.insert("cost".into(), feeCost);
+                fee.insert("cost".into(), Value::from(feeCost));
                 fee.insert("currency".into(), code.clone().map(Value::from).unwrap_or(Value::Null));
             }
         }
@@ -3139,11 +3139,11 @@ impl Coinbaseexchange {
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)])));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), Value::from(amount));
         m.insert("status".to_string(), self.parse_transaction_status(transaction.clone()));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("address".to_string(), address);
+        m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("addressTo".to_string(), self.safe_string_k(&details, "crypto_address", &[]));
         m.insert("tag".to_string(), self.safe_string_k(&details, "destination_tag", &[]));

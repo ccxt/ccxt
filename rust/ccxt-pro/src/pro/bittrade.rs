@@ -532,8 +532,8 @@ impl Bittrade {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_142: bool = true;
-            while { if !__for_first_142 { i += 1; } __for_first_142 = false; i < (data.len() as i64) } {
+            let mut __for_first_143: bool = true;
+            while { if !__for_first_143 { i += 1; } __for_first_143 = false; i < (data.len() as i64) } {
             let mut trade: crate::value::Dict = self.parse_trade(data.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market)).into_dict();
             tradesCache.append(Value::Dict(trade));
         }
@@ -651,21 +651,18 @@ impl Bittrade {
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut interval: Option<String> = self.safe_string(parts, Value::Int(3), &[]).as_str().map(str::to_owned);
-        let mut timeframe: Value = Value::from(self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]));
-        { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-        let mut stored: Value = self.safe_value((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), timeframe.clone(), &[]);
-        if (stored == Value::Null) {
+        let mut timeframe: Option<String> = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
+        CacheShelves::ensure(&mut self.ohlcvs, &symbol);
+        let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&timeframe);
+        if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Value::from(ArrayCacheByTimestamp::new(limit));
-            if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); } }
+            stored = Some(ArrayCacheByTimestamp::new(limit));
+            CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
         }
         let mut tick: Value = (match message.get("tick") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         let mut parsed: crate::value::List = self.parse_ohlcv(tick, Some(&market)).into_list();
         stored.append(Value::Arr(parsed));
-        client.resolve(stored, ch.as_deref());
+        client.resolve(Value::from(&stored), ch.as_deref());
 }
 
 /*
@@ -776,17 +773,17 @@ impl Bittrade {
             return;
         }
         let mut data: Option<crate::value::Dict> = message.get("data").cloned().unwrap_or_default().into_opt_dict();
-        let mut snapshot: Value = self.parse_order_book(&data, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        snapshot.set_book_meta("nonce", self.safe_integer_k(&data, "seqNum", &[]));
-        snapshot.set_book_meta("timestamp", Value::from(timestamp));
-        snapshot.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
-        orderbook.reset(snapshot);
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&data, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+        std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), self.safe_integer_k(&data, "seqNum", &[]));
+        std::sync::Arc::make_mut(&mut snapshot).insert("timestamp".into(), Value::from(timestamp));
+        std::sync::Arc::make_mut(&mut snapshot).insert("datetime".into(), self.iso8601(Value::from(timestamp)));
+        orderbook.reset(Value::Dict(snapshot));
         // unroll the accumulated deltas
         let mut messages: Value = orderbook.book_field("cache");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_143: bool = true;
-            while { if !__for_first_143 { i += 1; } __for_first_143 = false; (i as f64) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_144: bool = true;
+            while { if !__for_first_144 { i += 1; } __for_first_144 = false; (i as f64) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
             self.handle_order_book_message(client.clone(), get_value(&messages, &Value::Int(i)), orderbook.clone());
         }
         }

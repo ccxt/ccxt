@@ -754,10 +754,10 @@ impl Limitless {
             let mut __for_first_1304: bool = true;
             while { if !__for_first_1304 { i += 1; } __for_first_1304 = false; i < (expandedRaw.len() as i64) } {
             let mut raw: Value = expandedRaw.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut groupId: Value = self.safe_string_n(raw.clone(), Value::from(vec![Value::Str("groupSlug".into()), Value::Str("groupId".into())]), &[self.safe_string_k(raw.clone(), "slug", &[])]);
+            let mut groupId: Option<String> = self.safe_string_n(raw.clone(), Value::from(vec![Value::Str("groupSlug".into()), Value::Str("groupId".into())]), &[self.safe_string_k(raw.clone(), "slug", &[])]).as_str().map(str::to_owned);
             let mut eventKey: Value = Value::Null;
-            if (groupId != Value::Null) && (groupId.as_str() != Some("")) {
-                eventKey = self.shorten_slug(groupId.clone());
+            if (groupId.is_some()) && (groupId.as_deref() != Some("")) {
+                eventKey = self.shorten_slug(Value::from(groupId.as_deref()));
             }
             let mut m: crate::value::Dict = self.parse_market(raw.clone()).into_dict();
             markets.push(Value::from(&m));
@@ -765,8 +765,8 @@ impl Limitless {
                 if !(matches!((&eventGroups, &eventKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut eventGroups { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("groupId".to_string(), groupId.clone());
-        m.insert("title".to_string(), self.safe_string2(raw.clone(), Value::Str("groupTitle".into()), Value::Str("title".into()), &[groupId]));
+        m.insert("groupId".to_string(), Value::from(groupId.as_deref()));
+        m.insert("title".to_string(), self.safe_string2(raw.clone(), Value::Str("groupTitle".into()), Value::Str("title".into()), &[Value::from(groupId.as_deref())]));
         m.insert("raw".to_string(), raw);
         m.insert("markets".to_string(), Value::from(vec![]));
     m
@@ -885,10 +885,10 @@ impl Limitless {
         // }
         //
         let mut slug: Option<String> = self.safe_string_k(raw.clone(), "slug", &[]).as_str().map(str::to_owned);
-        let mut address: Value = self.safe_string_k(raw.clone(), "address", &[slug.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let mut address: Option<String> = self.safe_string_k(raw.clone(), "address", &[slug.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         // groupSlug is stamped by expandGroupRows on children of a group row — prefer it over
         // the child's own numeric groupId so symbols/handles derive from the readable slug
-        let mut groupId: Value = self.safe_string_n(raw.clone(), Value::from(vec![Value::Str("groupSlug".into()), Value::Str("groupId".into())]), &[slug.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let mut groupId: Option<String> = self.safe_string_n(raw.clone(), Value::from(vec![Value::Str("groupSlug".into()), Value::Str("groupId".into())]), &[slug.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         // CTF condition id — needed to redeem a resolved winning position
         let mut conditionId: Option<String> = self.safe_string_k(raw.clone(), "conditionId", &[]).as_str().map(str::to_owned);
         let mut tokens: Value = self.safe_dict_k(raw.clone(), "tokens", &[Value::Map({
@@ -897,9 +897,9 @@ impl Limitless {
 })]);
         // the listing exposes `expired` + `status` (FUNDED/RESOLVED/…), not an `active` flag; a
         // market is tradeable only while it is FUNDED and not yet expired
-        let mut isExpired: bool = self.safe_bool_k_opt(raw.clone(), "expired", &[Value::Bool(false)]).unwrap_or(false);
+        let mut isExpired: bool = self.safe_bool_k(raw.clone(), "expired", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut marketStatus: Option<String> = self.safe_string_k(raw.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut active: Value = Value::Bool((!(isExpired)) && (marketStatus.as_deref() == Some("FUNDED")));
+        let mut active: Value = Value::Bool((!(isExpired) && (marketStatus.as_deref() == Some("FUNDED"))));
         // expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
         let mut expiryTimestamp: Option<i64> = self.safe_integer_k(raw.clone(), "expirationTimestamp", &[]).as_i64();
         // limitless reports lifetime volume (human-readable in `volumeFormatted`), not a 24h figure
@@ -908,7 +908,7 @@ impl Limitless {
         let mut winningOutcomeIndex: Value = self.safe_integer_k(raw.clone(), "winningOutcomeIndex", &[]);
         let mut marketResolved: Value = (Value::Bool(winningOutcomeIndex != Value::Null));
         let mut resolvedOutcome: Value = Value::Null;
-        let mut marketSymbol: Value = self.slug_to_market_symbol(groupId.clone(), slug.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut marketSymbol: Value = self.slug_to_market_symbol(Value::from(groupId.as_deref()), slug.clone().map(Value::from).unwrap_or(Value::Null));
         // amount precision comes from the collateral token decimals (USDC, 6); limitless does not
         // expose a price tick, so 0.001 is the platform convention
         let mut collateralToken: crate::value::Dict = self.safe_dict_k(raw.clone(), "collateralToken", &[Value::Map({
@@ -931,7 +931,7 @@ impl Limitless {
             let mut outcomeLabel: Value = tokenEntries.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut tokenData: Value = (if let (Some(__m), Some(__k)) = (tokens.as_map(), outcomeLabel.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut tokenId: Value = tokenData;
-            let mut outcomeHandle: Value = self.slug_to_outcome_symbol(groupId.clone(), slug.clone().map(Value::from).unwrap_or(Value::Null), outcomeLabel.clone());
+            let mut outcomeHandle: Value = self.slug_to_outcome_symbol(Value::from(groupId.as_deref()), slug.clone().map(Value::from).unwrap_or(Value::Null), outcomeLabel.clone());
             // winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
             // limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
             // languages (Go randomizes map iteration), so map the leg to its canonical index by
@@ -969,7 +969,7 @@ impl Limitless {
                     m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("slug".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("address".to_string(), address.clone());
+        m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("conditionId".to_string(), conditionId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("outcomeLabel".to_string(), outcomeLabel);
         m.insert("tokenId".to_string(), tokenId);
@@ -1052,7 +1052,7 @@ impl Limitless {
         m.insert("info".to_string(), self.extend(raw, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("slug".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("address".to_string(), address);
+        m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("volume24h".to_string(), Value::from(volume24h));
     m
 })]));
@@ -1130,7 +1130,7 @@ impl Limitless {
             let mut nestedMarkets: Option<crate::value::List> = self.safe_list_k(raw.clone(), "markets", &[]).into_opt_list();
             if (rowType.as_deref() == Some("group")) && (nestedMarkets.is_some()) {
                 let mut groupSlug: Option<String> = self.safe_string_k(raw.clone(), "slug", &[]).as_str().map(str::to_owned);
-                let mut groupTitle: Value = self.safe_string_k(raw.clone(), "title", &[groupSlug.clone().map(Value::from).unwrap_or(Value::Null)]);
+                let mut groupTitle: Option<String> = self.safe_string_k(raw.clone(), "title", &[groupSlug.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
                 let mut nestedMarketsLength: f64 = ((nestedMarkets.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
                 {
                                         let mut j: i64 = 0;
@@ -1140,7 +1140,7 @@ impl Limitless {
                     let mut tagged: Value = self.extend(nestedMarkets.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("groupSlug".to_string(), groupSlug.clone().map(Value::from).unwrap_or(Value::Null));
-                            m.insert("groupTitle".to_string(), groupTitle.clone());
+                            m.insert("groupTitle".to_string(), Value::from(groupTitle.as_deref()));
                         m
                     })]);
                     result.push(tagged);
@@ -1381,16 +1381,16 @@ impl Limitless {
         //       }
         //    ]
         // }
-        let mut groupId: Value = self.safe_string_k(event.clone(), "address", &[self.safe_string(event.clone(), Value::Str("groupId".into()), &[self.safe_string(event.clone(), Value::Str("slug".into()), &[])])]);
-        let mut endDate: Value = self.safe_string_k(event.clone(), "deadline", &[self.safe_string(event.clone(), Value::Str("expiresAt".into()), &[])]);
-        let mut title: Option<String> = self.safe_string_k(event.clone(), "title", &[groupId.clone()]).as_str().map(str::to_owned);
-        let mut hasGroupId: bool = (groupId != Value::Null) && (groupId.as_str() != Some(""));
+        let mut groupId: Option<String> = self.safe_string_k(event.clone(), "address", &[self.safe_string(event.clone(), Value::Str("groupId".into()), &[self.safe_string(event.clone(), Value::Str("slug".into()), &[])])]).as_str().map(str::to_owned);
+        let mut endDate: Option<String> = self.safe_string_k(event.clone(), "deadline", &[self.safe_string(event.clone(), Value::Str("expiresAt".into()), &[])]).as_str().map(str::to_owned);
+        let mut title: Option<String> = self.safe_string_k(event.clone(), "title", &[Value::from(groupId.as_deref())]).as_str().map(str::to_owned);
+        let mut hasGroupId: bool = (groupId.is_some()) && (groupId.as_deref() != Some(""));
         let mut eventSlug: Option<String> = None;
         if hasGroupId {
-            eventSlug = self.shorten_slug(groupId.clone()).as_str().map(str::to_owned);
+            eventSlug = self.shorten_slug(Value::from(groupId.as_deref())).as_str().map(str::to_owned);
         }
-        let mut hasEndDate: bool = (endDate != Value::Null) && (endDate.as_str() != Some(""));
-        let mut endTimestamp: Option<i64> = (if hasEndDate { self.parse8601(endDate.clone()) } else { None });
+        let mut hasEndDate: bool = (endDate.is_some()) && (endDate.as_deref() != Some(""));
+        let mut endTimestamp: Option<i64> = (if hasEndDate { self.parse8601(Value::from(endDate.as_deref())) } else { None });
         let mut markets: Vec<Value> = Vec::new();
         let mut rawMarkets: crate::value::List = self.safe_list_k(event.clone(), "markets", &[Value::from(vec![])]).into_list();
         // aggregate 24h volume across the markets so sort by volume works
@@ -1429,8 +1429,8 @@ impl Limitless {
         let __ws_arg_16 = self.safe_string_k(event.clone(), "resolutionSource", &[]);
         return self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), groupId.clone());
-        m.insert("slug".to_string(), groupId);
+        m.insert("id".to_string(), Value::from(groupId.as_deref()));
+        m.insert("slug".to_string(), Value::from(groupId.as_deref()));
         m.insert("event".to_string(), eventSlug.map(Value::from).unwrap_or(Value::Null));
         m.insert("title".to_string(), title.map(Value::from).unwrap_or(Value::Null));
         m.insert("description".to_string(), __ws_arg_5);
@@ -1446,7 +1446,7 @@ impl Limitless {
         m.insert("created".to_string(), Value::from(__ws_arg_13));
         m.insert("createdDatetime".to_string(), __ws_arg_14);
         m.insert("end".to_string(), Value::from(endTimestamp));
-        m.insert("endDatetime".to_string(), endDate);
+        m.insert("endDatetime".to_string(), endDate.map(Value::from).unwrap_or(Value::Null));
         m.insert("lastUpdatedAt".to_string(), Value::from(__ws_arg_15));
         m.insert("resolutionSource".to_string(), __ws_arg_16);
         m.insert("info".to_string(), event);
@@ -1492,7 +1492,7 @@ impl Limitless {
     m
 })]).await]);
         let mut responses: Vec<Value> = promise_all(&promises).await.as_array().cloned().unwrap_or_default();
-        let mut response: Value = responses.get(0).cloned().unwrap_or(Value::Null);
+        let mut response: crate::value::Dict = responses.get(0).cloned().unwrap_or(Value::Null).into_dict();
         //
         //     {
         //         "id": "36814",
@@ -1558,7 +1558,7 @@ impl Limitless {
         //
         let mut tickerInput: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), response);
+                m.insert("market".to_string(), Value::Dict(response));
                 m.insert("book".to_string(), responses.get(1).cloned().unwrap_or(Value::Null));
             m
         });
@@ -2171,19 +2171,19 @@ impl Limitless {
             while { if !__for_first_1318 { i += 1; } __for_first_1318 = false; i < (history.len() as i64) } {
             let mut point: Value = self.safe_dict(history.clone(), Value::Int(i), &[]);
             let mut pointPrice: Option<f64> = self.safe_number_k(point.clone(), "price", &[]).as_f64();
-            let mut rawTs: Value = self.safe_integer_k(point.clone(), "timestamp", &[]);
-            let mut pointTs: Value = rawTs.clone();
-            if (rawTs == Value::Null) {
+            let mut rawTs: Option<i64> = self.safe_integer_k(point.clone(), "timestamp", &[]).as_i64();
+            let mut pointTs: Option<i64> = rawTs;
+            if (rawTs.is_none()) {
                 let mut tsString: Option<String> = self.safe_string_k(point.clone(), "timestamp", &[]).as_str().map(str::to_owned);
-                pointTs = (if ((tsString.is_some()) && (tsString.as_deref() != Some(""))) { Value::from(self.parse8601(tsString.clone().map(Value::from).unwrap_or(Value::Null))) } else { Value::Null });
-            }  else if rawTs.as_f64().unwrap_or(f64::NAN) < ((1000000000000i64) as f64) {
+                pointTs = (if ((tsString.is_some()) && (tsString.as_deref() != Some(""))) { self.parse8601(tsString.clone().map(Value::from).unwrap_or(Value::Null)) } else { None });
+            }  else if (rawTs.is_some() && rawTs < Some(1000000000000)) {
                 // old responses may return unix seconds
-                pointTs = (match (&(rawTs), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+                pointTs = (if let Some(__l) = rawTs { Some(__l * 1000) } else { None });
             }
-            if (pointPrice.is_some()) && (pointTs != Value::Null) {
+            if (pointPrice.is_some()) && (pointTs.is_some()) {
                 pseudoTrades.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("timestamp".to_string(), pointTs);
+                        m.insert("timestamp".to_string(), Value::from(pointTs));
                         m.insert("price".to_string(), Value::from(pointPrice));
                         m.insert("amount".to_string(), Value::Int(0));
                     m
@@ -2195,7 +2195,7 @@ impl Limitless {
         // otherwise candles come back descending and open/close are inverted within each bucket
         // — the first point seen would be the latest, not the earliest. sortBy is stable, so equal
         // timestamps keep their relative order consistently across languages
-        let mut sorted: Value = self.sort_by(Value::from(pseudoTrades), Value::Str("timestamp".into()), &[]);
+        let mut sorted: Vec<Value> = self.sort_by(Value::from(pseudoTrades), Value::Str("timestamp".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut ms: Value = (match (&(Value::Int(self.parse_timeframe(timeframe))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut candles: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2206,7 +2206,7 @@ impl Limitless {
                         let mut i: i64 = 0;
             let mut __for_first_1319: bool = true;
             while { if !__for_first_1319 { i += 1; } __for_first_1319 = false; i < (sorted.len() as i64) } {
-            let mut point: Value = self.safe_dict(sorted.clone(), Value::Int(i), &[]);
+            let mut point: Value = self.safe_dict(&sorted, Value::Int(i), &[]);
             let mut pTs: Value = self.safe_integer_k(point.clone(), "timestamp", &[]);
             let mut pPrice: Option<f64> = self.safe_number_k(point, "price", &[]).as_f64();
             if (pTs == Value::Null) {
@@ -3195,7 +3195,7 @@ if _try_result.is_err() {
             self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx.clone(), "maxFeePerGas", &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx.clone(), "gasLimit", &[]))), self.rlp_encode_bytes(self.remove0x_prefix(self.safe_string_k(tx.clone(), "to", &[]))),
             self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx.clone(), "value", &[Value::Str("0x0".into())]))), self.rlp_encode_bytes(self.remove0x_prefix(self.safe_string_k(tx, "data", &[Value::Str("0x".into())]))), accessList.map(Value::from).unwrap_or(Value::Null)]);
         let mut payload: String = format!("{}{}", Value::Str("02".into()), self.rlp_encode_list(fields.clone()));
-        let mut hashHex: Value = self.hash(self.base16_to_binary(Value::from(payload), &[]), Value::Str("keccak".into()), &[Value::Str("hex".into())]);
+        let mut hashHex: Value = Value::from(self.hash(self.base16_to_binary(Value::from(payload), &[]), Value::Str("keccak".into()), &[Value::Str("hex".into())]));
         let mut signature: crate::value::Dict = ecdsa(hashHex, self.remove0x_prefix(privateKey), Value::Str("secp256k1".into()), Value::Null);
         let mut rHex: Option<String> = self.safe_string_k(&signature, "r", &[]).as_str().map(str::to_owned);
         let mut sHex: Option<String> = self.safe_string_k(&signature, "s", &[]).as_str().map(str::to_owned);
@@ -3242,7 +3242,7 @@ if _try_result.is_err() {
         if (self.privateKey.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" approve() requires a privateKey to sign the on-chain transaction".into()))));
         }
-        let mut rpcUrl: Value = (match params.get("rpcUrl") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => self.safe_string_k(self.options.clone(), "rpcUrl", &[]) });
+        let mut rpcUrl: Option<String> = (match params.get("rpcUrl") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => self.safe_string_k(self.options.clone(), "rpcUrl", &[]) }).as_str().map(str::to_owned);
         let mut chainId: i64 = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(8453)]).as_i64().unwrap_or(8453);
         let mut token: Value = (match params.get("token") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => self.safe_string_k(self.options.clone(), "collateralAddress", &[]) });
         let mut spender: Value = (match params.get("spender") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => self.safe_string_k(self.options.clone(), "exchangeAddress", &[]) });
@@ -3264,8 +3264,8 @@ if _try_result.is_err() {
         }
         // approve(spender, amount) -> selector 0x095ea7b3
         let mut approveData: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x095ea7b3".into()), self.pad_hex_address(spender)).into()), amountHex);
-        let mut txHash: Value = self.send_evm_transaction(rpcUrl.clone(), Value::from(chainId), owner.map(Value::from).unwrap_or(Value::Null), token, Value::Str("0x0".into()), Value::from(approveData), Value::from(gasLimit)).await;
-        return self.wait_for_transaction_receipt(rpcUrl, txHash, &[]).await;
+        let mut txHash: Value = self.send_evm_transaction(Value::from(rpcUrl.as_deref()), Value::from(chainId), owner.map(Value::from).unwrap_or(Value::Null), token, Value::Str("0x0".into()), Value::from(approveData), Value::from(gasLimit)).await;
+        return self.wait_for_transaction_receipt(rpcUrl.map(Value::from).unwrap_or(Value::Null), txHash, &[]).await;
 
     Value::Null
 }
@@ -3591,8 +3591,8 @@ if _try_result.is_err() {
             }
         }
         }
-        let mut parsedTrades: Value = self.parse_prediction_trades(Value::from(trades), &[Value::Null]);
-        return self.filter_by_outcome_since_limit(parsedTrades, &[outcomeSymbol, since, limit]);
+        let mut parsedTrades: crate::value::List = self.parse_prediction_trades(Value::from(trades), &[Value::Null]).into_list();
+        return self.filter_by_outcome_since_limit(Value::Arr(parsedTrades), &[outcomeSymbol, since, limit]);
         Value::Null
         }).await?))
     }
@@ -4114,10 +4114,10 @@ if _try_result.is_err() {
             let mut __for_first_1331: bool = true;
             while { if !__for_first_1331 { i += 1; } __for_first_1331 = false; (i as f64) < rawMarketsLength } {
             let mut raw: Value = expandedMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut groupId: Value = self.safe_string_n(raw.clone(), Value::from(vec![Value::Str("groupSlug".into()), Value::Str("groupId".into())]), &[self.safe_string_k(raw.clone(), "slug", &[])]);
+            let mut groupId: Option<String> = self.safe_string_n(raw.clone(), Value::from(vec![Value::Str("groupSlug".into()), Value::Str("groupId".into())]), &[self.safe_string_k(raw.clone(), "slug", &[])]).as_str().map(str::to_owned);
             let mut eventKey: Value = Value::Null;
-            if (groupId != Value::Null) && (groupId.as_str() != Some("")) {
-                eventKey = self.shorten_slug(groupId.clone());
+            if (groupId.is_some()) && (groupId.as_deref() != Some("")) {
+                eventKey = self.shorten_slug(Value::from(groupId.as_deref()));
             }
             let mut m: Value = self.parse_market(raw.clone());
             if (m == Value::Null) {
@@ -4128,8 +4128,8 @@ if _try_result.is_err() {
                 if !(matches!((&eventGroups, &eventKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut eventGroups { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("groupId".to_string(), groupId.clone());
-        m.insert("title".to_string(), self.safe_string2(raw.clone(), Value::Str("groupTitle".into()), Value::Str("title".into()), &[groupId]));
+        m.insert("groupId".to_string(), Value::from(groupId.as_deref()));
+        m.insert("title".to_string(), self.safe_string2(raw.clone(), Value::Str("groupTitle".into()), Value::Str("title".into()), &[Value::from(groupId.as_deref())]));
         m.insert("raw".to_string(), raw);
         m.insert("markets".to_string(), Value::from(vec![]));
     m

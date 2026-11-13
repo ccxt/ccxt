@@ -1336,8 +1336,8 @@ impl Coinbaseinternational {
         let mut kind: String = self.safe_string_k(market.clone(), "kind", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut settlementPeriod: Option<String> = self.safe_string_k(market.clone(), "settlement_period", &[]).as_str().map(str::to_owned);
         let mut isSpot: Value = (Value::Bool(kind == "spot"));
-        let mut isPerpetual: Value = (Value::Bool(settlementPeriod.as_deref() == Some("perpetual")));
-        let mut isFuture: bool = !(matches!(&isPerpetual, Value::Bool(true))) && (kind.contains("future"));
+        let mut isPerpetual: bool = settlementPeriod.as_deref() == Some("perpetual");
+        let mut isFuture: bool = (!(isPerpetual) && (kind.contains("future")));
         let mut isOption: Value = (Value::Bool(kind.contains("option")));
         let mut comboPosition: i64 = (if let (Some(__h), Some(__n)) = (Some(kind.as_str()), Some("combo")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
         let mut isComboMarket: bool = comboPosition >= 0;
@@ -1396,7 +1396,7 @@ impl Coinbaseinternational {
                 m.insert("type".to_string(), Value::from(type_var));
                 m.insert("spot".to_string(), isSpot.clone());
                 m.insert("margin".to_string(), Value::Bool(false));
-                m.insert("swap".to_string(), isPerpetual);
+                m.insert("swap".to_string(), Value::Bool(isPerpetual));
                 m.insert("future".to_string(), Value::Bool(isFuture));
                 m.insert("option".to_string(), isOption);
                 m.insert("active".to_string(), active.map_or(Value::Null, Value::Bool));
@@ -1738,7 +1738,7 @@ impl Coinbaseinternational {
             m
         })]).into_dict();
         let mut candles: Value = self.convert_trading_view_to_ohlcv(&result, &[Value::Str("ticks".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("volume".into()), Value::Bool(true)]);
-        return self.parse_ohlc_vs(candles, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2931,8 +2931,8 @@ impl Coinbaseinternational {
         if self.is_empty(symbols.clone()).as_bool() == Some(true) {
             return self.parse_positions(&result, &[]);
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.parse_positions(&result, &[symbolsNormalized]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        return self.parse_positions(&result, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -4583,17 +4583,16 @@ impl Coinbaseinternational {
             m
         })]).into_dict();
         let mut accessToken: Value = self.safe_string_k(&result, "access_token", &[]);
-        let mut expiresIn: Value = self.safe_integer_k(&result, "expires_in", &[]);
+        let mut expiresIn: Option<i64> = self.safe_integer_k(&result, "expires_in", &[]).as_i64();
         if (accessToken == Value::Null) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" public/auth did not return an access token".into()))));
         }
-        if (expiresIn == Value::Null) {
+        if (expiresIn.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" public/auth did not return an expiry".into()))));
         }
         let mut ratio: Option<f64> = self.safe_number_k(self.options.clone(), "accessTokenRefreshRatio", &[]).as_f64();
-        let mut refreshRatio: Value = (if (ratio.is_none()) { Value::Float(0.8) } else { Value::from(ratio) });
-        let mut tokenRefreshInMilliseconds: Value = Value::from(self.parse_to_int((match (&((match (&(expiresIn), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(refreshRatio)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+        let mut refreshRatio: Option<f64> = (if (ratio.is_none()) { Some(0.8) } else { ratio });
+        let mut tokenRefreshInMilliseconds: Value = Value::from(self.parse_to_int(Value::from((if let (Some(__l), Some(__r)) = (((if let Some(__l) = expiresIn { Some(__l * 1000) } else { None })), refreshRatio) { Some((__l as f64) * __r) } else { None }))));
         self.token = accessToken.clone();
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("v2AccessToken".into(), accessToken.clone()); }
         { let __be_tmp = self.sum(&[Value::Int(now), tokenRefreshInMilliseconds]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("v2TokenExpires".into(), __be_tmp); } }

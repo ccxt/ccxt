@@ -1942,8 +1942,8 @@ impl Bigone {
         if (market).contract {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV () can only fetch ohlcvs for spot markets".into()))));
         }
-        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        let mut untilIsDefined: bool = until != Value::Null;
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
+        let mut untilIsDefined: bool = until.is_some();
         let mut sinceIsDefined: bool = since != Value::Null;
         // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
         let mut defaultLimit: i64 = 100;
@@ -1962,14 +1962,13 @@ impl Bigone {
             // const start = this.parseToInt (since / 1000);
             let mut duration: i64 = self.parse_timeframe(timeframe.clone());
             let mut endByLimit: Value = Value::from(self.parse_to_int(self.sum(&[since.clone(), Value::Int((((limitResolved * duration)) * 1000))])));
-            if (until != Value::Null) {
-                request.insert("time".into(), self.iso8601(crate::runtime::Math::min(&endByLimit, &(match (&(until), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x + y), _ => Value::Null }))));
+            if (until.is_some()) {
+                request.insert("time".into(), self.iso8601(crate::runtime::Math::min(&endByLimit, &Value::from((if let Some(__l) = until { Some(__l + 1) } else { None })))));
             }  else {
                 request.insert("time".into(), self.iso8601(endByLimit));
             }
-        }  else if (until != Value::Null) {
-            request.insert("time".into(), self.iso8601((match (&(until), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })));
+        }  else if (until.is_some()) {
+            request.insert("time".into(), self.iso8601(Value::from((if let Some(__l) = until { Some(__l + 1) } else { None }))));
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -1998,7 +1997,7 @@ impl Bigone {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

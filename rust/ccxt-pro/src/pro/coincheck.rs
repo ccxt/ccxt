@@ -422,8 +422,8 @@ impl Coincheck {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_265: bool = true;
-            while { if !__for_first_265 { i += 1; } __for_first_265 = false; i < (message.len() as i64) } {
+            let mut __for_first_266: bool = true;
+            while { if !__for_first_266 { i += 1; } __for_first_266 = false; i < (message.len() as i64) } {
             let mut data: Value = self.safe_value(message.clone(), Value::Int(i), &[]);
             let mut trade: crate::value::Dict = self.parse_ws_trade(data, None).into_dict();
             stored.append(Value::Dict(trade));

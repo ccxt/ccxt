@@ -401,8 +401,8 @@ impl Toobit {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_664: bool = true;
-            while { if !__for_first_664 { i += 1; } __for_first_664 = false; i < (message.len() as i64) } {
+            let mut __for_first_665: bool = true;
+            while { if !__for_first_665 { i += 1; } __for_first_665 = false; i < (message.len() as i64) } {
             let mut item: Value = message.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut event: Option<String> = self.safe_string_k(item.clone(), "e", &[]).as_str().map(str::to_owned);
             let mut method: Value = self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -553,8 +553,8 @@ impl Toobit {
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_665: bool = true;
-            while { if !__for_first_665 { i += 1; } __for_first_665 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_666: bool = true;
+            while { if !__for_first_666 { i += 1; } __for_first_666 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
         }
@@ -619,8 +619,8 @@ impl Toobit {
         let mut parsedTrades: crate::value::List = self.array_concat(self.parse_ws_trades(&data, Some(&market), &[]), Value::from(vec![])).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_666: bool = true;
-            while { if !__for_first_666 { i += 1; } __for_first_666 = false; i < (parsedTrades.len() as i64) } {
+            let mut __for_first_667: bool = true;
+            while { if !__for_first_667 { i += 1; } __for_first_667 = false; i < (parsedTrades.len() as i64) } {
             stored.append(parsedTrades.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -707,8 +707,8 @@ impl Toobit {
         let mut selectedTimeframe: Value = Value::Null;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_667: bool = true;
-            while { if !__for_first_667 { i += 1; } __for_first_667 = false; i < (symbolsAndTimeframes.len() as i64) } {
+            let mut __for_first_668: bool = true;
+            while { if !__for_first_668 { i += 1; } __for_first_668 = false; i < (symbolsAndTimeframes.len() as i64) } {
             let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
             let mut symbolStr: String = self.safe_string(&data, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut market: crate::types::Market = (match self.market(symbolStr.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -776,35 +776,32 @@ impl Toobit {
         //
         let mut marketId: Option<String> = self.safe_string_k(message, "symbol", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut params: crate::value::Dict = __pro_message.get("params").cloned().unwrap_or_default().into_dict();
         let mut timeframeId: Option<String> = self.safe_string_k(&params, "klineType", &[]).as_str().map(str::to_owned);
         let mut timeframe: Value = Value::from(self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]));
-        if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})); }
+        if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
+            CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }
-        let mut stored: Value = self.safe_value((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), timeframe.clone(), &[]);
-        if (stored == Value::Null) {
+        let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&timeframe);
+        if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("OHLCVLimit".into()), &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Value::from(ArrayCacheByTimestamp::new(limit));
+            stored = Some(ArrayCacheByTimestamp::new(limit));
             if (timeframe != Value::Null) {
-                if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); } }
+                CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
             }
         }
         let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_668: bool = true;
-            while { if !__for_first_668 { i += 1; } __for_first_668 = false; i < (data.len() as i64) } {
+            let mut __for_first_669: bool = true;
+            while { if !__for_first_669 { i += 1; } __for_first_669 = false; i < (data.len() as i64) } {
             let mut parsed: Value = self.parse_ws_ohlcv(data.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market));
             stored.append(parsed);
         }
         }
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), symbol).into()), Value::Str("::".into())).into()), timeframe);
-        let mut resolveData: Value = Value::from(vec![symbol, timeframe, stored]);
+        let mut resolveData: Value = Value::from(vec![Value::from(symbol), timeframe, Value::from(&stored)]);
         client.resolve(resolveData, messageHash.as_str());
 }
 
@@ -887,8 +884,8 @@ impl Toobit {
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_669: bool = true;
-            while { if !__for_first_669 { i += 1; } __for_first_669 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_670: bool = true;
+            while { if !__for_first_670 { i += 1; } __for_first_670 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("ticker::".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
         }
@@ -968,8 +965,8 @@ impl Toobit {
         };
         {
                         let mut i: i64 = 0;
-            let mut __for_first_670: bool = true;
-            while { if !__for_first_670 { i += 1; } __for_first_670 = false; i < (data.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_671: bool = true;
+            while { if !__for_first_671 { i += 1; } __for_first_671 = false; i < (data.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut ticker: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1059,8 +1056,8 @@ impl Toobit {
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_671: bool = true;
-            while { if !__for_first_671 { i += 1; } __for_first_671 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_672: bool = true;
+            while { if !__for_first_672 { i += 1; } __for_first_672 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook::".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("::".into())).into()), channel).into()));
         }
@@ -1116,8 +1113,8 @@ impl Toobit {
         let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_672: bool = true;
-            while { if !__for_first_672 { i += 1; } __for_first_672 = false; i < (data.len() as i64) } {
+            let mut __for_first_673: bool = true;
+            while { if !__for_first_673 { i += 1; } __for_first_673 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook::".into()), symbol).into()), Value::Str("::".into())).into()), Value::Str("diffDepth".into()));
             if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -1181,8 +1178,8 @@ impl Toobit {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_673: bool = true;
-            while { if !__for_first_673 { i += 1; } __for_first_673 = false; (i as f64) < length } {
+            let mut __for_first_674: bool = true;
+            while { if !__for_first_674 { i += 1; } __for_first_674 = false; (i as f64) < length } {
             let mut entry: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(i), &[]).into_opt_dict();
             let mut marketId: Option<String> = self.safe_string_k(&entry, "s", &[]).as_str().map(str::to_owned);
             let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -1330,8 +1327,8 @@ impl Toobit {
         { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&type_var)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } };
         {
                         let mut i: i64 = 0;
-            let mut __for_first_674: bool = true;
-            while { if !__for_first_674 { i += 1; } __for_first_674 = false; i < (data.len() as i64) } {
+            let mut __for_first_675: bool = true;
+            while { if !__for_first_675 { i += 1; } __for_first_675 = false; i < (data.len() as i64) } {
             let mut balance: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "a", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
@@ -1718,8 +1715,8 @@ impl Toobit {
         let mut cache: Value = (if let (Some(__m), Some(__k)) = (self.positions.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_675: bool = true;
-            while { if !__for_first_675 { i += 1; } __for_first_675 = false; i < (positions.len() as i64) } {
+            let mut __for_first_676: bool = true;
+            while { if !__for_first_676 { i += 1; } __for_first_676 = false; i < (positions.len() as i64) } {
             let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             cache.append(position);
         }
@@ -1781,8 +1778,8 @@ impl Toobit {
         let mut messageHashes: Vec<Value> = self.find_message_hashes(client.clone(), Value::Str(format!("{}{}", accountType, Value::Str(":positions::".into())).into())).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_676: bool = true;
-            while { if !__for_first_676 { i += 1; } __for_first_676 = false; i < (messageHashes.len() as i64) } {
+            let mut __for_first_677: bool = true;
+            while { if !__for_first_677 { i += 1; } __for_first_677 = false; i < (messageHashes.len() as i64) } {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
@@ -1925,8 +1922,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut messageHashes: Vec<Value> = client.future_keys();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_677: bool = true;
-                while { if !__for_first_677 { i += 1; } __for_first_677 = false; i < (messageHashes.len() as i64) } {
+                let mut __for_first_678: bool = true;
+                while { if !__for_first_678 { i += 1; } __for_first_678 = false; i < (messageHashes.len() as i64) } {
                 let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 client.reject(error.clone(), messageHash.as_deref());
             }

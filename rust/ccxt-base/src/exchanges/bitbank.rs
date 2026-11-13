@@ -1076,7 +1076,7 @@ impl Bitbank {
     m
 })]).into_dict();
         let mut ohlcv: crate::value::List = self.safe_list_k(&first, "ohlcv", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&ohlcv, &[(market).raw.clone(), timeframe, sinceResolved, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(&ohlcv, Some(&market), &[timeframe, sinceResolved, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

@@ -20,8 +20,8 @@ pub fn testUuid() {
     assert!(ccxt::runtime::is_true(&((true))));
     assert!(ccxt::runtime::is_true(&((true))));
     assert!(ccxt::runtime::is_true(&((id1 != id2))));
-    assert!(ccxt::runtime::is_true(&(((id1) == id1))));
-    assert!(ccxt::runtime::is_true(&(((id2) == id2))));
+    assert!(ccxt::runtime::is_true(&((id1 == id1))));
+    assert!(ccxt::runtime::is_true(&((id2 == id2))));
     assert!(ccxt::runtime::is_true(&((((id1.chars().count() as i64)) == 36))));
     assert!(ccxt::runtime::is_true(&((((id2.chars().count() as i64)) == 36))));
     assert!(ccxt::runtime::is_true(&((((if let (Some(__h), Some(__n)) = (Some(id1.as_str()), Some("-")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 8))));
@@ -31,8 +31,8 @@ pub fn testUuid() {
     assert!(ccxt::runtime::is_true(&((true))));
     assert!(ccxt::runtime::is_true(&((true))));
     assert!(ccxt::runtime::is_true(&((id16a != id16b))));
-    assert!(ccxt::runtime::is_true(&(((id16a) == id16a))));
-    assert!(ccxt::runtime::is_true(&(((id16b) == id16b))));
+    assert!(ccxt::runtime::is_true(&((id16a == id16a))));
+    assert!(ccxt::runtime::is_true(&((id16b == id16b))));
     assert!(ccxt::runtime::is_true(&((((id16a.chars().count() as i64)) == 16))));
     assert!(ccxt::runtime::is_true(&((((id16b.chars().count() as i64)) == 16))));
     // uuid22() - 22-char hex string
@@ -41,8 +41,8 @@ pub fn testUuid() {
     assert!(ccxt::runtime::is_true(&((true))));
     assert!(ccxt::runtime::is_true(&((true))));
     assert!(ccxt::runtime::is_true(&((id22a != id22b))));
-    assert!(ccxt::runtime::is_true(&(((id22a) == id22a))));
-    assert!(ccxt::runtime::is_true(&(((id22b) == id22b))));
+    assert!(ccxt::runtime::is_true(&((id22a == id22a))));
+    assert!(ccxt::runtime::is_true(&((id22b == id22b))));
     assert!(ccxt::runtime::is_true(&((((id22a.chars().count() as i64)) == 22))));
     assert!(ccxt::runtime::is_true(&((((id22b.chars().count() as i64)) == 22))));
 }

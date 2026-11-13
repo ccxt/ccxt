@@ -1361,7 +1361,7 @@ impl Onetrading {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::List = self.public_get_market_ticker(&[params]).await.into_list();
         //
         //     [
@@ -1399,7 +1399,7 @@ impl Onetrading {
             }
         }
         }
-        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -1616,7 +1616,7 @@ impl Onetrading {
         //     ]
         //
         let mut ohlcv: Option<crate::value::List> = self.safe_list_k(&response, "candlesticks", &[]).into_opt_list();
-        return self.parse_ohlc_vs(&ohlcv, &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(&ohlcv, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

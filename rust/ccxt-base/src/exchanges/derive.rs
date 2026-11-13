@@ -1748,11 +1748,11 @@ impl Derive {
         m.insert("type".to_string(), marketType.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("spot".to_string(), Value::Bool(spot));
         m.insert("margin".to_string(), Value::Bool(margin));
-        m.insert("swap".to_string(), Value::Bool(swap.clone()));
+        m.insert("swap".to_string(), Value::Bool(swap));
         m.insert("future".to_string(), Value::Bool(false));
-        m.insert("option".to_string(), Value::Bool(option.clone()));
+        m.insert("option".to_string(), Value::Bool(option));
         m.insert("active".to_string(), self.safe_bool_k(market.clone(), "is_active", &[]));
-        m.insert("contract".to_string(), Value::Bool((swap || option)));
+        m.insert("contract".to_string(), (Value::Bool((swap || option))));
         m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("contractSize".to_string(), Value::from(contractSize));
@@ -2465,11 +2465,11 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            let mut symbolMarket: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            market = symbolMarket.clone();
-            request.insert("instrument_name".into(), symbolMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut symbolMarket: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            market = Some(crate::types::Market::clone(&symbolMarket));
+            request.insert("instrument_name".into(), Value::from((symbolMarket).id.as_deref()));
         }
         let mut limitResolved: Value = limit.clone();
         if (limit != Value::Null) && limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64) {
@@ -2597,7 +2597,7 @@ impl Derive {
             m
         })]).into_dict();
         let mut data: crate::value::List = self.safe_list_k(&result, "trades", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&data, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[since, limitResolved]);
+        return self.parse_trades(&data, market.as_ref(), &[since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -2679,32 +2679,32 @@ impl Derive {
         let priceTypeparamsPriceVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("price".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut priceType: Option<String> = priceTypeparamsPriceVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPrice: crate::value::Dict = priceTypeparamsPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut until: Value = self.safe_integer_k(&paramsPrice, "until", &[]);
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPrice, "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPrice, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
-        let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
-        let mut untilSeconds: Value = self.seconds();
-        if (until != Value::Null) {
-            untilSeconds = Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+        let mut duration: i64 = self.parse_timeframe(timeframe.clone());
+        let mut untilSeconds: Option<i64> = Some(self.seconds().as_i64().unwrap_or_default());
+        if (until.is_some()) {
+            untilSeconds = self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })));
         }
         // the venue keeps only the latest 5000 buckets of the requested window
         let mut defaultLimit: i64 = (if (since == Value::Null) { 1000 } else { 5000 });
-        let mut limitResolved: Value = Value::from(self.parse_to_int(Value::from(defaultLimit)));
+        let mut limitResolved: Option<i64> = self.parse_to_int(Value::from(defaultLimit));
         if (limit != Value::Null) {
-            limitResolved = Value::from(self.parse_to_int(limit.clone()));
+            limitResolved = self.parse_to_int(limit.clone());
         }
-        if limitResolved.as_f64().unwrap_or(f64::NAN) > ((5000i64) as f64) {
-            limitResolved = Value::from(self.parse_to_int(Value::Int(5000)));
+        if limitResolved > Some(5000) {
+            limitResolved = self.parse_to_int(Value::Int(5000));
         }
-        let mut span: Value = Value::from(self.parse_to_int((match (&(limitResolved), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
-        let mut windowStart: Option<i64> = self.parse_to_int((match (&(untilSeconds), &(span)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+        let mut span: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = limitResolved { Some(__l * duration) } else { None })));
+        let mut windowStart: Option<i64> = self.parse_to_int(Value::from((if let (Some(__l), Some(__r)) = (untilSeconds, span) { Some(__l - __r) } else { None })));
         let mut start: Option<i64> = windowStart;
-        let mut end: Value = untilSeconds;
+        let mut end: Value = Value::from(untilSeconds);
         if (since != Value::Null) {
             let mut sinceSeconds: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             start = sinceSeconds.clone();
             // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
             if (sinceSeconds.is_some() && windowStart.is_some() && sinceSeconds < windowStart) {
-                end = self.sum(&[Value::from(sinceSeconds), span]);
+                end = self.sum(&[Value::from(sinceSeconds), Value::from(span)]);
             }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2725,7 +2725,7 @@ impl Derive {
             response = self.public_post_get_tradingview_chart_data(&[__ws_arg_10]).await.into_opt_dict();
         }
         let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&result, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&result, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2915,8 +2915,8 @@ impl Derive {
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3015,7 +3015,7 @@ impl Derive {
 }
 
     pub fn hash_order_message(&self, mut order: Value) -> Option<String> {
-        let mut accountHash: Value = self.hash(self.eth_abi_encode(Value::from(vec![Value::Str("bytes32".into()), Value::Str("uint256".into()), Value::Str("uint256".into()), Value::Str("address".into()), Value::Str("bytes32".into()), Value::Str("uint256".into()), Value::Str("address".into()), Value::Str("address".into())]), order), Value::Str("keccak".into()), &[Value::Str("binary".into())]);
+        let mut accountHash: crate::value::Bytes = self.hash_binary(self.eth_abi_encode(Value::from(vec![Value::Str("bytes32".into()), Value::Str("uint256".into()), Value::Str("uint256".into()), Value::Str("address".into()), Value::Str("bytes32".into()), Value::Str("uint256".into()), Value::Str("address".into()), Value::Str("address".into())]), order), Value::Str("keccak".into()));
         let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         // EIP712Domain (name "Matching", version "1.0", verifyingContract 0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD) precomputed for chainId 1 (mainnet) and 11155111 (sepolia testnet)
         let mut DOMAIN_SEPARATOR: String = "da616dfabb88681b08e1592820a41d55ddc62d68de110e327ae99d734506fe19".to_string();
@@ -3024,7 +3024,7 @@ impl Derive {
         }
         let mut binaryDomainSeparator: crate::value::Bytes = self.base16_to_binary(Value::from(DOMAIN_SEPARATOR), &[]);
         let mut prefix: crate::value::Bytes = self.base16_to_binary(Value::Str("1901".into()), &[]);
-        return self.hash(self.binary_concat(&prefix, &[Value::from(&binaryDomainSeparator), accountHash]), Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str().map(str::to_owned);
+        return Some(self.hash(self.binary_concat(&prefix, &[Value::from(&binaryDomainSeparator), Value::from(&accountHash)]), Value::Str("keccak".into()), &[Value::Str("hex".into())]));
 }
 
     pub fn sign_order(&self, mut order: Value, privateKey: &str) -> Option<String> {
@@ -3158,14 +3158,13 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut tradeModuleDataHash: Value = self.hash(self.eth_abi_encode(Value::from(vec![Value::Str("address".into()), Value::Str("uint".into()), Value::Str("int".into()), Value::Str("int".into()), Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("bool".into())]),
+        let mut tradeModuleDataHash: crate::value::Bytes = self.hash_binary(self.eth_abi_encode(Value::from(vec![Value::Str("address".into()), Value::Str("uint".into()), Value::Str("int".into()), Value::Str("int".into()), Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("bool".into())]),
             Value::from(vec![marketInfo.get("base_asset_address").cloned().unwrap_or(Value::Null), self.convert_to_big_int(marketInfo.get("base_asset_sub_id").cloned().unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(priceString.clone(), &[]).map(Value::from).unwrap_or(Value::Null)),
-            self.convert_to_big_int(self.parse_units(self.amount_to_precision(symbol, amountString.clone()), &[]).map(Value::from).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(maxFeeString.clone().map(Value::from).unwrap_or(Value::Null), &[]).map(Value::from).unwrap_or(Value::Null)), Value::from(subaccountId), orderSideIsBuy])),
-            Value::Str("keccak".into()), &[Value::Str("binary".into())]);
+            self.convert_to_big_int(self.parse_units(self.amount_to_precision(symbol, amountString.clone()), &[]).map(Value::from).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(maxFeeString.clone().map(Value::from).unwrap_or(Value::Null), &[]).map(Value::from).unwrap_or(Value::Null)), Value::from(subaccountId), orderSideIsBuy])), Value::Str("keccak".into()));
         let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address("createOrder", paramsMaxFee).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsDeriveWalletAddress: crate::value::Dict = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut signature: Value = self.sign_order(Value::from(vec![Value::from(&ACTION_TYPEHASH), Value::from(subaccountId), self.convert_to_big_int(nonce.clone()), Value::from(TRADE_MODULE_ADDRESS), tradeModuleDataHash, signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.walletAddress.clone()]),
+        let mut signature: Value = self.sign_order(Value::from(vec![Value::from(&ACTION_TYPEHASH), Value::from(subaccountId), self.convert_to_big_int(nonce.clone()), Value::from(TRADE_MODULE_ADDRESS), Value::from(&tradeModuleDataHash), signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.walletAddress.clone()]),
             (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3342,13 +3341,13 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut tradeModuleDataHash: Value = self.hash(self.eth_abi_encode(Value::from(vec![Value::Str("address".into()), Value::Str("uint".into()), Value::Str("int".into()), Value::Str("int".into()), Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("bool".into())]),
+        let mut tradeModuleDataHash: crate::value::Bytes = self.hash_binary(self.eth_abi_encode(Value::from(vec![Value::Str("address".into()), Value::Str("uint".into()), Value::Str("int".into()), Value::Str("int".into()), Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("bool".into())]),
             Value::from(vec![marketInfo.get("base_asset_address").cloned().unwrap_or(Value::Null), self.convert_to_big_int(marketInfo.get("base_asset_sub_id").cloned().unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(priceString.clone(), &[]).map(Value::from).unwrap_or(Value::Null)),
-            self.convert_to_big_int(self.parse_units(self.amount_to_precision(symbol, amountString.clone()), &[]).map(Value::from).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(maxFeeString.clone(), &[]).map(Value::from).unwrap_or(Value::Null)), Value::from(subaccountId), orderSideIsBuy])), Value::Str("keccak".into()), &[Value::Str("binary".into())]);
+            self.convert_to_big_int(self.parse_units(self.amount_to_precision(symbol, amountString.clone()), &[]).map(Value::from).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(maxFeeString.clone(), &[]).map(Value::from).unwrap_or(Value::Null)), Value::from(subaccountId), orderSideIsBuy])), Value::Str("keccak".into()));
         let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address("editOrder", &paramsDeriveSubaccountId).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsDeriveWalletAddress: crate::value::Dict = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut signature: Value = self.sign_order(Value::from(vec![Value::from(&ACTION_TYPEHASH), Value::from(subaccountId), self.convert_to_big_int(nonce.clone()), Value::from(TRADE_MODULE_ADDRESS), tradeModuleDataHash, signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.walletAddress.clone()]),
+        let mut signature: Value = self.sign_order(Value::from(vec![Value::from(&ACTION_TYPEHASH), Value::from(subaccountId), self.convert_to_big_int(nonce.clone()), Value::from(TRADE_MODULE_ADDRESS), Value::from(&tradeModuleDataHash), signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.walletAddress.clone()]),
             (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3780,8 +3779,8 @@ impl Derive {
             }
         }
         let mut orders: crate::value::List = self.safe_list_k(&data, "orders", &[Value::from(vec![])]).into_list();
-        let mut parsedOrders: Value = self.parse_orders(&orders, market.as_ref(), &[]);
-        return self.filter_by_symbol_since_limit(parsedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut parsedOrders: crate::value::List = self.parse_orders(&orders, market.as_ref(), &[]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(parsedOrders), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3937,8 +3936,8 @@ impl Derive {
         //
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "result", &[]).into_dict();
         let mut orders: crate::value::List = self.safe_list_k(&data, "orders", &[Value::from(vec![])]).into_list();
-        let mut parsedOrders: Value = self.parse_orders(&orders, market.as_ref(), &[]);
-        return self.filter_by_symbol_since_limit(parsedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut parsedOrders: crate::value::List = self.parse_orders(&orders, market.as_ref(), &[]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(parsedOrders), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4191,15 +4190,15 @@ impl Derive {
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("order_id".to_string(), id);
+                m.insert("order_id".to_string(), id.clone());
                 m.insert("subaccount_id".to_string(), Value::from(subaccountId));
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            let mut symbolMarket: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            market = symbolMarket.clone();
-            request.insert("instrument_name".into(), symbolMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut symbolMarket: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            market = Some(crate::types::Market::clone(&symbolMarket));
+            request.insert("instrument_name".into(), Value::from((symbolMarket).id.as_deref()));
         }
         if (limit != Value::Null) {
             request.insert("page_size".into(), limit.clone());
@@ -4253,7 +4252,7 @@ impl Derive {
             m
         })]).into_dict();
         let mut trades: crate::value::List = self.safe_list_k(&result, "trades", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&trades, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[since, limit, Value::Dict(paramsDeriveSubaccountId)]);
+        return self.parse_trades(&trades, market.as_ref(), &[since, limit, Value::Dict(paramsDeriveSubaccountId)]);
         Value::Null
         }).await?))
     }
@@ -4301,11 +4300,11 @@ impl Derive {
                 m.insert("subaccount_id".to_string(), Value::from(subaccountId));
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            let mut symbolMarket: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            market = symbolMarket.clone();
-            request.insert("instrument_name".into(), symbolMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut symbolMarket: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            market = Some(crate::types::Market::clone(&symbolMarket));
+            request.insert("instrument_name".into(), Value::from((symbolMarket).id.as_deref()));
         }
         if (limit != Value::Null) {
             request.insert("page_size".into(), limit.clone());
@@ -4392,7 +4391,7 @@ impl Derive {
             }
         }
         let mut trades: crate::value::List = self.safe_list_k(&result, "trades", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&trades, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[since, limit, Value::Dict(paramsDeriveSubaccountId)]);
+        return self.parse_trades(&trades, market.as_ref(), &[since, limit, Value::Dict(paramsDeriveSubaccountId)]);
         Value::Null
         }).await?))
     }
@@ -4608,11 +4607,11 @@ impl Derive {
                 m.insert("subaccount_id".to_string(), Value::from(subaccountId));
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            let mut symbolMarket: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            market = symbolMarket.clone();
-            request.insert("instrument_name".into(), symbolMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut symbolMarket: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            market = Some(crate::types::Market::clone(&symbolMarket));
+            request.insert("instrument_name".into(), Value::from((symbolMarket).id.as_deref()));
         }
         if (since != Value::Null) {
             request.insert("start_timestamp".into(), since.clone());
@@ -4673,7 +4672,7 @@ impl Derive {
             }
         }
         let mut events: crate::value::List = self.safe_list_k(&result, "events", &[Value::from(vec![])]).into_list();
-        return self.parse_incomes(&events, &[market, since, limit]);
+        return self.parse_incomes(&events, &[crate::Value::from(market.as_ref()), since, limit]);
         Value::Null
         }).await?))
     }
@@ -5005,8 +5004,8 @@ impl Derive {
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_list_k(&response, "result", &[]);
-        return self.parse_balance_list(result);
+        let mut result: Option<crate::value::List> = self.safe_list_k(&response, "result", &[]).into_opt_list();
+        return self.parse_balance_list(result.map_or(Value::Null, Value::Arr));
         Value::Null
         }).await?))
     }
@@ -5032,16 +5031,16 @@ impl Derive {
                 let mut __for_first_634: bool = true;
                 while { if !__for_first_634 { j += 1; } __for_first_634 = false; j < (collaterals.len() as i64) } {
                 let mut balance: crate::value::Dict = self.safe_dict(&collaterals, Value::Int(j), &[]).into_dict();
-                let mut code: Value = self.safe_currency_code(self.safe_string_k(&balance, "currency", &[]), None).map(Value::from).unwrap_or(Value::Null);
-                let mut account: Value = self.safe_dict(Value::Map(result.clone()), code.clone(), &[]);
+                let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "currency", &[]), None);
+                let mut account: Value = self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[]);
                 if (account == Value::Null) {
                     account = self.account();
                     if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(&balance, "amount", &[])); }
                 }  else {
                     { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string_k(account.clone(), "total", &[]), &self.safe_string_k(&balance, "amount", &[])); if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), __be_tmp); } }
                 }
-                if (code != Value::Null) {
-                    result.insert(crate::runtime::stringify_param(&code), account);
+                if (code.is_some()) {
+                    result.insert(code.as_deref().unwrap_or("null").to_string(), account);
                 }
             }
             }
@@ -5105,7 +5104,7 @@ impl Derive {
         if (assetAddress.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() ".into())).into()), code).into()), Value::Str(" has no deposit-enabled spot asset".into()))));
         }
-        let mut fromId: Option<i64> = self.parse_to_int(fromAccount);
+        let mut fromId: Value = Value::from(self.parse_to_int(fromAccount));
         // the destination is optional on the subaccount-creation path, an undefined must not reach the int conversion
         let mut toId: Option<i64> = self.parse_to_int((if (toAccount == Value::Null) { Value::Int(0) } else { toAccount }));
         let mut amountString: Option<String> = self.number_to_string(amount);
@@ -5118,31 +5117,30 @@ impl Derive {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() creating a subaccount charges a fee, set params.max_fee_usd to cover it".into()))));
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("max_fee_usd".into()), Value::Str("new_subaccount_manager".into())]), &[]).into_dict();
-        let mut nonce: Option<String> = self.nonce_string();
+        let mut nonce: Value = self.nonce_string().map(Value::from).unwrap_or(Value::Null);
         let mut signatureExpiry: Value = self.safe_integer_k(&paramsOmitted, "signature_expiry_sec", &[(match (&(self.seconds()), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
         let mut ACTION_TYPEHASH: crate::value::Bytes = self.base16_to_binary(Value::Str("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17".into()), &[]);
         let mut TRANSFER_MODULE_ADDRESS: String = "0x01259207A40925b794C8ac320456F7F6c8FE2636".to_string(); // shared across mainnet and testnet in v3
-        let mut transferModuleDataHash: Value = self.hash(self.eth_abi_encode(Value::from(vec![Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("address".into()), Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("uint".into())]), Value::from(vec![Value::from(toId), Value::from(newSubaccountManager),
-            assetAddress.map(Value::from).unwrap_or(Value::Null), Value::Int(0), self.convert_to_big_int(self.parse_units(amountString.clone().map(Value::from).unwrap_or(Value::Null), &[]).map(Value::from).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(Value::from(maxFeeUsd.clone()), &[]).map(Value::from).unwrap_or(Value::Null))])),
-            Value::Str("keccak".into()), &[Value::Str("binary".into())]);
+        let mut transferModuleDataHash: crate::value::Bytes = self.hash_binary(self.eth_abi_encode(Value::from(vec![Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("address".into()), Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("uint".into())]), Value::from(vec![Value::from(toId), Value::from(newSubaccountManager),
+            assetAddress.map(Value::from).unwrap_or(Value::Null), Value::Int(0), self.convert_to_big_int(self.parse_units(amountString.clone().map(Value::from).unwrap_or(Value::Null), &[]).map(Value::from).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(Value::from(maxFeeUsd.clone()), &[]).map(Value::from).unwrap_or(Value::Null))])), Value::Str("keccak".into()));
         let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address("transfer", &paramsOmitted).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsDeriveWalletAddress: crate::value::Dict = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut signature: Option<String> = self.sign_order(Value::from(vec![Value::from(&ACTION_TYPEHASH), Value::from(fromId), self.convert_to_big_int(Value::from(nonce.as_deref())), Value::from(TRANSFER_MODULE_ADDRESS), transferModuleDataHash, signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null),
-            self.walletAddress.clone()]), (self.privateKey.clone()).as_str().unwrap_or_default());
+        let mut signature: Value = self.sign_order(Value::from(vec![Value::from(&ACTION_TYPEHASH), fromId.clone(), self.convert_to_big_int(nonce.clone()), Value::from(TRANSFER_MODULE_ADDRESS), Value::from(&transferModuleDataHash), signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.walletAddress.clone()]),
+            (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("subaccount_id".to_string(), Value::from(fromId));
+                m.insert("subaccount_id".to_string(), fromId.clone());
                 m.insert("to_subaccount_id".to_string(), Value::from(toId));
                 m.insert("new_subaccount_manager".to_string(), Value::from(newSubaccountManager));
                 m.insert("asset_name".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("sub_id".to_string(), Value::Int(0));
                 m.insert("amount".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("max_fee_usd".to_string(), Value::from(maxFeeUsd));
-                m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
+                m.insert("nonce".to_string(), nonce);
                 m.insert("signer".to_string(), self.walletAddress.clone());
-                m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                m.insert("signature".to_string(), signature);
                 m.insert("signature_expiry_sec".to_string(), signatureExpiry);
             m
         });
@@ -5169,7 +5167,7 @@ impl Derive {
         let mut fillResponseFromRequest: bool = self.safe_bool_k(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if fillResponseFromRequest {
             // normalized through the int ids: the raw arguments arrive as strings in some languages and as numbers in others
-            transferEntry.insert("fromAccount".into(), Value::from(self.number_to_string(Value::from(fromId))));
+            transferEntry.insert("fromAccount".into(), Value::from(self.number_to_string(fromId)));
             transferEntry.insert("toAccount".into(), (if (toId != Some(0)) { Value::from(self.number_to_string(Value::from(toId))) } else { Value::Null }));
             transferEntry.insert("amount".into(), self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]));
         }
@@ -5286,8 +5284,8 @@ impl Derive {
 })]), None));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(parsed), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_currency_since_limit(sorted, &[code, since, limit]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(parsed), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_currency_since_limit(Value::Arr(sorted), &[code, since, limit]);
         Value::Null
         }).await?))
     }
@@ -5381,8 +5379,8 @@ impl Derive {
 })]), Some(&currency)));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_currency_since_limit(sorted, &[code, since, limit]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_currency_since_limit(Value::Arr(sorted), &[code, since, limit]);
 
     Value::Null
 }
@@ -5548,8 +5546,8 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut decimals: Value = self.safe_integer_k(&erc20, "decimals", &[]);
-        if (decimals == Value::Null) {
+        let mut decimals: Option<i64> = self.safe_integer_k(&erc20, "decimals", &[]).as_i64();
+        if (decimals.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() ".into())).into()), code).into()), Value::Str(" carries no erc20 decimals metadata".into()))));
         }
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.handle_derive_subaccount_id("withdraw", params).as_array().cloned().unwrap_or_default();
@@ -5557,37 +5555,37 @@ impl Derive {
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut forceBatch: bool = self.safe_bool2(Value::from(&paramsDeriveSubaccountId), Value::Str("force_batch".into()), Value::Str("forceBatch".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut defaultMaxFee: String = (if forceBatch { "10".to_string() } else { "1".to_string() });
-        let mut maxFeeUsd: Value = self.safe_string2(Value::from(&paramsDeriveSubaccountId), Value::Str("max_fee_usd".into()), Value::Str("maxFeeUsd".into()), &[Value::from(defaultMaxFee)]);
+        let mut maxFeeUsd: Option<String> = self.safe_string2(Value::from(&paramsDeriveSubaccountId), Value::Str("max_fee_usd".into()), Value::Str("maxFeeUsd".into()), &[Value::from(defaultMaxFee)]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsDeriveSubaccountId, Value::from(vec![Value::Str("max_fee_usd".into()), Value::Str("maxFeeUsd".into()), Value::Str("force_batch".into()), Value::Str("forceBatch".into())]), &[]).into_dict();
         // excess decimals are truncated away: a fractional scaled amount cannot be encoded, and the signature must commit to the exact wire amount
-        let mut amountString: Value = self.decimal_to_precision(Value::from(self.number_to_string(amount)), Value::Int(crate::runtime::TRUNCATE), decimals.clone(), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
+        let mut amountString: Value = self.decimal_to_precision(Value::from(self.number_to_string(amount)), Value::Int(crate::runtime::TRUNCATE), Value::from(decimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
         // the withdrawal amount is the protocol's only non-e18 action value, it is signed at the native decimals of the underlying erc20
         let mut one: Value = Value::Str("1".into());
-        let mut scale: Value = pad_end(&one, &(match (&(decimals), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &Value::Str("0".into()));
-        let mut amountScaled: Value = crate::precise::Precise::stringMul(&amountString, &scale);
-        let mut nonce: Value = self.nonce_string().map(Value::from).unwrap_or(Value::Null);
+        let mut scale: Value = pad_end(&one, &Value::from((if let Some(__l) = decimals { Some(__l + 1) } else { None })), &Value::Str("0".into()));
+        let mut amountScaled: Option<String> = crate::precise::Precise::stringMul(&amountString, &scale).as_str().map(str::to_owned);
+        let mut nonce: Option<String> = self.nonce_string();
         let mut signatureExpiry: Value = self.safe_integer_k(&paramsOmitted, "signature_expiry_sec", &[(match (&(self.seconds()), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
         let mut ACTION_TYPEHASH: crate::value::Bytes = self.base16_to_binary(Value::Str("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17".into()), &[]);
         let mut WITHDRAWAL_MODULE_ADDRESS: String = "0x9d0E8f5b25384C7310CB8C6aE32C8fbeb645d083".to_string(); // shared across mainnet and testnet in v3
-        let mut withdrawalModuleDataHash: Value = self.hash(self.eth_abi_encode(Value::from(vec![Value::Str("address".into()), Value::Str("uint".into()), Value::Str("address".into()), Value::Str("uint".into()), Value::Str("bool".into())]), Value::from(vec![assetAddress.map(Value::from).unwrap_or(Value::Null),
-            self.convert_to_big_int(self.parse_units(maxFeeUsd.clone(), &[]).map(Value::from).unwrap_or(Value::Null)), address.clone(), self.convert_to_big_int(amountScaled), Value::Bool(forceBatch)])), Value::Str("keccak".into()), &[Value::Str("binary".into())]);
+        let mut withdrawalModuleDataHash: crate::value::Bytes = self.hash_binary(self.eth_abi_encode(Value::from(vec![Value::Str("address".into()), Value::Str("uint".into()), Value::Str("address".into()), Value::Str("uint".into()), Value::Str("bool".into())]), Value::from(vec![assetAddress.map(Value::from).unwrap_or(Value::Null),
+            self.convert_to_big_int(self.parse_units(Value::from(maxFeeUsd.as_deref()), &[]).map(Value::from).unwrap_or(Value::Null)), address.clone(), self.convert_to_big_int(amountScaled.map(Value::from).unwrap_or(Value::Null)), Value::Bool(forceBatch)])), Value::Str("keccak".into()));
         let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address("withdraw", &paramsOmitted).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsDeriveWalletAddress: crate::value::Dict = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut signature: Value = self.sign_order(Value::from(vec![Value::from(&ACTION_TYPEHASH), Value::from(subaccountId), self.convert_to_big_int(nonce.clone()), Value::from(WITHDRAWAL_MODULE_ADDRESS), withdrawalModuleDataHash, signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.walletAddress.clone()]),
-            (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
+        let mut signature: Option<String> = self.sign_order(Value::from(vec![Value::from(&ACTION_TYPEHASH), Value::from(subaccountId), self.convert_to_big_int(Value::from(nonce.as_deref())), Value::from(WITHDRAWAL_MODULE_ADDRESS), Value::from(&withdrawalModuleDataHash), signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null),
+            self.walletAddress.clone()]), (self.privateKey.clone()).as_str().unwrap_or_default());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccount_id".to_string(), Value::from(subaccountId));
                 m.insert("asset_name".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("amount_in_underlying".to_string(), amountString.clone());
-                m.insert("max_fee_usd".to_string(), maxFeeUsd);
+                m.insert("max_fee_usd".to_string(), maxFeeUsd.map(Value::from).unwrap_or(Value::Null));
                 m.insert("force_batch".to_string(), Value::Bool(forceBatch));
                 m.insert("recipient".to_string(), address.clone());
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m.insert("signer".to_string(), self.walletAddress.clone());
-                m.insert("signature".to_string(), signature);
+                m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                 m.insert("signature_expiry_sec".to_string(), signatureExpiry);
             m
         });

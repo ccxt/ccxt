@@ -1436,9 +1436,9 @@ impl Hitbtc {
             let mut marketType: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
             let mut expiry: Option<i64> = self.safe_integer_k(market.clone(), "expiry", &[]).as_i64();
             let mut contract: Value = (Value::Bool(marketType.as_deref() == Some("futures")));
-            let mut spot: Value = (Value::Bool(marketType.as_deref() == Some("spot")));
-            let mut marginTrading: Value = self.safe_bool_k(market.clone(), "margin_trading", &[Value::Bool(false)]);
-            let mut margin: Value = Value::Bool(matches!(&spot, Value::Bool(true)) && marginTrading.as_bool() == Some(true));
+            let mut spot: bool = marketType.as_deref() == Some("spot");
+            let mut marginTrading: bool = self.safe_bool_k(market.clone(), "margin_trading", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut margin: Value = Value::Bool((spot && marginTrading));
             let mut future: Value = (Value::Bool(expiry.is_some()));
             let mut swap: Value = Value::Bool(matches!(&contract, Value::Bool(true)) && !(matches!(&future, Value::Bool(true))));
             let mut option: bool = false;
@@ -1489,7 +1489,7 @@ impl Hitbtc {
                     m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("type".to_string(), Value::from(type_var));
-                    m.insert("spot".to_string(), spot);
+                    m.insert("spot".to_string(), Value::Bool(spot));
                     m.insert("margin".to_string(), margin);
                     m.insert("swap".to_string(), swap);
                     m.insert("future".to_string(), future);
@@ -1727,16 +1727,16 @@ impl Hitbtc {
             m
         });
         let mut networkInput: Option<String> = self.safe_string_upper_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
-        let mut network: Value = (if (networkInput.is_some()) { self.safe_string(self.networkAliases.clone(), networkInput.clone().map(Value::from).unwrap_or(Value::Null), &[networkInput.clone().map(Value::from).unwrap_or(Value::Null)]) } else { Value::Null });
-        if (network != Value::Null) && (code.as_str() == Some("USDT")) {
+        let mut network: Option<String> = (if (networkInput.is_some()) { self.safe_string(self.networkAliases.clone(), networkInput.clone().map(Value::from).unwrap_or(Value::Null), &[networkInput.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned) } else { None });
+        if (network.is_some()) && (code.as_str() == Some("USDT")) {
             let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[]).into_dict();
-            let mut parsedNetwork: Option<String> = self.safe_string(&networks, network.clone(), &[]).as_str().map(str::to_owned);
+            let mut parsedNetwork: Option<String> = self.safe_string(&networks, Value::from(network.as_deref()), &[]).as_str().map(str::to_owned);
             if (parsedNetwork.is_some()) {
                 request.insert("currency".into(), parsedNetwork.map(Value::from).unwrap_or(Value::Null));
             }
         }
         let mut paramsOmitted: Value = params.clone();
-        if (network != Value::Null) && (code.as_str() == Some("USDT")) {
+        if (network.is_some()) && (code.as_str() == Some("USDT")) {
             paramsOmitted = self.omit(params, Value::Str("network".into()), &[]);
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[paramsOmitted]);
@@ -1788,16 +1788,16 @@ impl Hitbtc {
             m
         });
         let mut networkInput: Option<String> = self.safe_string_upper_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
-        let mut network: Value = (if (networkInput.is_some()) { self.safe_string(self.networkAliases.clone(), networkInput.clone().map(Value::from).unwrap_or(Value::Null), &[networkInput.clone().map(Value::from).unwrap_or(Value::Null)]) } else { Value::Null });
-        if (network != Value::Null) && (code.as_str() == Some("USDT")) {
+        let mut network: Option<String> = (if (networkInput.is_some()) { self.safe_string(self.networkAliases.clone(), networkInput.clone().map(Value::from).unwrap_or(Value::Null), &[networkInput.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned) } else { None });
+        if (network.is_some()) && (code.as_str() == Some("USDT")) {
             let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[]).into_dict();
-            let mut parsedNetwork: Option<String> = self.safe_string(&networks, network.clone(), &[]).as_str().map(str::to_owned);
+            let mut parsedNetwork: Option<String> = self.safe_string(&networks, Value::from(network.as_deref()), &[]).as_str().map(str::to_owned);
             if (parsedNetwork.is_some()) {
                 request.insert("currency".into(), parsedNetwork.map(Value::from).unwrap_or(Value::Null));
             }
         }
         let mut paramsOmitted: Value = params.clone();
-        if (network != Value::Null) && (code.as_str() == Some("USDT")) {
+        if (network.is_some()) && (code.as_str() == Some("USDT")) {
             paramsOmitted = self.omit(params, Value::Str("network".into()), &[]);
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[paramsOmitted]);
@@ -2107,8 +2107,8 @@ impl Hitbtc {
             let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut marketInner: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut rawTrades: crate::value::List = self.safe_list(&response, marketId.map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
-            let mut parsed: Value = self.parse_trades(&rawTrades, Some(&marketInner), &[]);
-            trades = self.array_concat(trades.clone(), parsed);
+            let mut parsed: crate::value::List = self.parse_trades(&rawTrades, Some(&marketInner), &[]).into_list();
+            trades = self.array_concat(trades.clone(), &parsed);
         }
         }
         return trades;
@@ -2485,8 +2485,8 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut transactions: Value = self.fetch_transactions_helper(Some("DEPOSIT,WITHDRAW"), code.as_str(), since.as_i64(), limit.as_i64(), params).await;
-        return self.to_array(transactions);
+        let mut transactions: crate::value::List = self.fetch_transactions_helper(Some("DEPOSIT,WITHDRAW"), code.as_str(), since.as_i64(), limit.as_i64(), params).await.into_list();
+        return self.to_array(&transactions);
         Value::Null
         }).await?))
     }
@@ -2515,8 +2515,8 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut transactions: Value = self.fetch_transactions_helper(Some("DEPOSIT"), code.as_str(), since.as_i64(), limit.as_i64(), params).await;
-        return self.to_array(transactions);
+        let mut transactions: crate::value::List = self.fetch_transactions_helper(Some("DEPOSIT"), code.as_str(), since.as_i64(), limit.as_i64(), params).await.into_list();
+        return self.to_array(&transactions);
         Value::Null
         }).await?))
     }
@@ -2545,8 +2545,8 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut transactions: Value = self.fetch_transactions_helper(Some("WITHDRAW"), code.as_str(), since.as_i64(), limit.as_i64(), params).await;
-        return self.to_array(transactions);
+        let mut transactions: crate::value::List = self.fetch_transactions_helper(Some("WITHDRAW"), code.as_str(), since.as_i64(), limit.as_i64(), params).await.into_list();
+        return self.to_array(&transactions);
         Value::Null
         }).await?))
     }
@@ -2891,7 +2891,7 @@ impl Hitbtc {
         //     ]
         //
         let mut ohlcvs: Value = self.to_array(response);
-        return self.parse_ohlc_vs(ohlcvs, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(ohlcvs, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2973,15 +2973,15 @@ impl Hitbtc {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders() not support this market type".into()))));
             }
         }
-        let mut parsed: Value = self.parse_orders(response, market.as_ref(), &[since, limit]);
+        let mut parsed: Vec<Value> = self.parse_orders(response, market.as_ref(), &[since, limit]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_750: bool = true;
             while { if !__for_first_750 { i += 1; } __for_first_750 = false; i < (parsed.len() as i64) } {
-            let mut status: Option<String> = self.safe_string_k(parsed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "status", &[]).as_str().map(str::to_owned);
+            let mut status: Option<String> = self.safe_string_k(parsed.get(i as usize).cloned().unwrap_or(Value::Null), "status", &[]).as_str().map(str::to_owned);
             if (status.as_deref() == Some("closed")) || (status.as_deref() == Some("canceled")) {
-                result.push(parsed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+                result.push(parsed.get(i as usize).cloned().unwrap_or(Value::Null));
             }
         }
         }
@@ -3733,7 +3733,7 @@ impl Hitbtc {
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]).as_str().map(str::to_owned);
         let mut postOnly: Option<bool> = self.safe_bool_k(order.clone(), "post_only", &[]).as_bool();
         let mut timeInForce: Option<String> = self.safe_string_k(order.clone(), "time_in_force", &[]).as_str().map(str::to_owned);
-        let mut rawTrades: Value = self.safe_list_k(order.clone(), "trades", &[]);
+        let mut rawTrades: Option<crate::value::List> = self.safe_list_k(order.clone(), "trades", &[]).into_opt_list();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -3756,7 +3756,7 @@ impl Hitbtc {
         m.insert("cost".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
-        m.insert("trades".to_string(), rawTrades);
+        m.insert("trades".to_string(), rawTrades.map_or(Value::Null, Value::Arr));
         m.insert("fee".to_string(), Value::Null);
         m.insert("triggerPrice".to_string(), self.safe_string_k(order, "stop_price", &[]));
         m.insert("takeProfitPrice".to_string(), Value::Null);
@@ -4002,15 +4002,15 @@ impl Hitbtc {
     m
 })]).into_dict();
         let mut networkInput: Option<String> = self.safe_string_upper_k(&paramsWithdrawTag, "network", &[]).as_str().map(str::to_owned);
-        let mut network: Value = (if (networkInput.is_some()) { self.safe_string(self.networkAliases.clone(), networkInput.clone().map(Value::from).unwrap_or(Value::Null), &[networkInput.clone().map(Value::from).unwrap_or(Value::Null)]) } else { Value::Null });
-        if (network != Value::Null) && (code.as_str() == Some("USDT")) {
-            let mut parsedNetwork: Option<String> = self.safe_string(&networks, network.clone(), &[]).as_str().map(str::to_owned);
+        let mut network: Option<String> = (if (networkInput.is_some()) { self.safe_string(self.networkAliases.clone(), networkInput.clone().map(Value::from).unwrap_or(Value::Null), &[networkInput.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned) } else { None });
+        if (network.is_some()) && (code.as_str() == Some("USDT")) {
+            let mut parsedNetwork: Option<String> = self.safe_string(&networks, Value::from(network.as_deref()), &[]).as_str().map(str::to_owned);
             if (parsedNetwork.is_some()) {
                 request.insert("network_code".into(), parsedNetwork.map(Value::from).unwrap_or(Value::Null));
             }
         }
         let mut paramsOmitted: Value = Value::from(&paramsWithdrawTag);
-        if (network != Value::Null) && (code.as_str() == Some("USDT")) {
+        if (network.is_some()) && (code.as_str() == Some("USDT")) {
             paramsOmitted = self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[]);
         }
         let mut withdrawOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
@@ -4212,9 +4212,9 @@ impl Hitbtc {
             }
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
         let mut symbolResolved: Option<String> = (if (market.is_none()) { symbol.as_str().map(str::to_owned) } else { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) });
-        return self.filter_by_symbol_since_limit(sorted, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

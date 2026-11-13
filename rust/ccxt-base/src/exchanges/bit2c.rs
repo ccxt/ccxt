@@ -600,16 +600,16 @@ impl Bit2c {
                         let mut i: i64 = 0;
             let mut __for_first_330: bool = true;
             while { if !__for_first_330 { i += 1; } __for_first_330 = false; i < (codes.len() as i64) } {
-            let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut code: Option<String> = codes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            let mut currency: crate::types::Currency = self.currency(code.clone());
+            let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
             let mut currencyId: String = self.safe_string_k(&currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut uppercase: String = currencyId.to_uppercase();
             if (self.safe_string(response.clone(), Value::from(uppercase.clone()), &[]) != Value::Null) {
                 account.insert("free".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", Value::Str("AVAILABLE_".into()), uppercase).into()), &[]));
                 account.insert("total".into(), self.safe_string(response.clone(), Value::from(uppercase), &[]));
             }
-            result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
         }
         return self.safe_balance(Value::Map(result));
@@ -1544,7 +1544,7 @@ impl Bit2c {
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.implode_params(path, params.clone()));
         let mut requestBody: Value = Value::Null;
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("public")) {
             url.push_str(".json");
         }  else {
@@ -1565,16 +1565,16 @@ impl Bit2c {
                 requestBody = Value::from(auth.clone());
             }
             let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[Value::Str("base64".into())]);
-            requestHeaders = Value::Map({
+            requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("key".to_string(), self.apiKey.clone());
                     m.insert("sign".to_string(), Value::from(signature));
                 m
-            });
+            }));
         }
         let mut bodyResult: Value = requestBody;
-        let mut headersResult: Value = requestHeaders;
+        let mut headersResult: Value = requestHeaders.map_or(Value::Null, Value::Dict);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));

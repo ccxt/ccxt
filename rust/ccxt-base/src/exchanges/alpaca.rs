@@ -1474,8 +1474,8 @@ impl Alpaca {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut marketId: Option<String> = self.safe_string_k(market.clone(), "id", &[]).as_str().map(str::to_owned);
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut marketId: Option<String> = self.safe_string_k(&market, "id", &[]).as_str().map(str::to_owned);
         let mut loc: String = self.safe_string_k(params.clone(), "loc", &[Value::Str("us".into())]).as_str().unwrap_or("us").to_string();
         let mut method: String = self.safe_string_k(params.clone(), "method", &[Value::Str("marketPublicGetV1beta3CryptoLocBars".into())]).as_str().unwrap_or("marketPublicGetV1beta3CryptoLocBars").to_string();
         let mut paginate: bool = false;
@@ -1601,7 +1601,7 @@ impl Alpaca {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() does not support ".into())).into()), method).into()), Value::Str(", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported".into()))));
         }
-        return self.parse_ohlc_vs(ohlcvs, &[market, timeframe, since, limit]);
+        return self.parse_ohlc_vs(ohlcvs, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1685,9 +1685,9 @@ impl Alpaca {
         // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
         // symbol iteration order differs per language
         let mut symbolsSorted: Value = (if (symbols == Value::Null) { self.sort(Value::Arr(self.symbols.clone()), &[]) } else { symbols });
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbolsSorted]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbolsSorted]).into_opt_list();
         let mut loc: String = self.safe_string_k(params.clone(), "loc", &[Value::Str("us".into())]).as_str().unwrap_or("us").to_string();
-        let mut ids: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone()]).into_opt_list();
+        let mut ids: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbols".to_string(), Value::Str(ids.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
@@ -1806,7 +1806,7 @@ impl Alpaca {
             results.push(ticker);
         }
         }
-        return self.filter_by_array_tickers(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2841,8 +2841,8 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut transactions: Value = self.fetch_transactions_helper("BOTH", code.as_str(), since.as_i64(), limit.as_i64(), params).await;
-        return self.to_array(transactions);
+        let mut transactions: crate::value::List = self.fetch_transactions_helper("BOTH", code.as_str(), since.as_i64(), limit.as_i64(), params).await.into_list();
+        return self.to_array(&transactions);
         Value::Null
         }).await?))
     }
@@ -2871,8 +2871,8 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut transactions: Value = self.fetch_transactions_helper("INCOMING", code.as_str(), since.as_i64(), limit.as_i64(), params).await;
-        return self.to_array(transactions);
+        let mut transactions: crate::value::List = self.fetch_transactions_helper("INCOMING", code.as_str(), since.as_i64(), limit.as_i64(), params).await.into_list();
+        return self.to_array(&transactions);
         Value::Null
         }).await?))
     }
@@ -2901,8 +2901,8 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut transactions: Value = self.fetch_transactions_helper("OUTGOING", code.as_str(), since.as_i64(), limit.as_i64(), params).await;
-        return self.to_array(transactions);
+        let mut transactions: crate::value::List = self.fetch_transactions_helper("OUTGOING", code.as_str(), since.as_i64(), limit.as_i64(), params).await.into_list();
+        return self.to_array(&transactions);
         Value::Null
         }).await?))
     }

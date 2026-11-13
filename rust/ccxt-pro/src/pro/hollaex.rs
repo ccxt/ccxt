@@ -465,12 +465,12 @@ impl Hollaex {
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
-        let mut parsedTrades: Value = self.parse_trades(&data, Some(&market), &[]);
+        let mut parsedTrades: crate::value::List = self.parse_trades(&data, Some(&market), &[]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_378: bool = true;
-            while { if !__for_first_378 { i += 1; } __for_first_378 = false; i < (parsedTrades.len() as i64) } {
-            stored.append(self.safe_dict(parsedTrades.clone(), Value::Int(i), &[]));
+            let mut __for_first_379: bool = true;
+            while { if !__for_first_379 { i += 1; } __for_first_379 = false; i < (parsedTrades.len() as i64) } {
+            stored.append(self.safe_dict(&parsedTrades, Value::Int(i), &[]));
         }
         }
         if (channel.is_some()) {
@@ -570,8 +570,8 @@ impl Hollaex {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_379: bool = true;
-            while { if !__for_first_379 { i += 1; } __for_first_379 = false; i < (rawTrades.len() as i64) } {
+            let mut __for_first_380: bool = true;
+            while { if !__for_first_380 { i += 1; } __for_first_380 = false; i < (rawTrades.len() as i64) } {
             let mut trade: Value = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: crate::value::Dict = self.parse_trade(trade.clone(), None).into_dict();
             stored.append(Value::Dict(parsed));
@@ -588,8 +588,8 @@ impl Hollaex {
         let mut keys: Vec<Value> = Value::Array(marketIds.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_380: bool = true;
-            while { if !__for_first_380 { i += 1; } __for_first_380 = false; i < (keys.len() as i64) } {
+            let mut __for_first_381: bool = true;
+            while { if !__for_first_381 { i += 1; } __for_first_381 = false; i < (keys.len() as i64) } {
             let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (channel.is_some()) {
                 let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId.map(Value::from).unwrap_or(Value::Null));
@@ -726,8 +726,8 @@ impl Hollaex {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_381: bool = true;
-            while { if !__for_first_381 { i += 1; } __for_first_381 = false; i < (rawOrders.len() as i64) } {
+            let mut __for_first_382: bool = true;
+            while { if !__for_first_382 { i += 1; } __for_first_382 = false; i < (rawOrders.len() as i64) } {
             let mut order: Value = self.safe_value(rawOrders.clone(), Value::Int(i), &[]);
             let mut parsed: crate::value::Dict = self.parse_order(order.clone(), None).into_dict();
             stored.append(Value::Dict(parsed));
@@ -744,8 +744,8 @@ impl Hollaex {
         let mut keys: Vec<Value> = Value::Array(marketIds.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_382: bool = true;
-            while { if !__for_first_382 { i += 1; } __for_first_382 = false; i < (keys.len() as i64) } {
+            let mut __for_first_383: bool = true;
+            while { if !__for_first_383 { i += 1; } __for_first_383 = false; i < (keys.len() as i64) } {
             let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (channel.is_some()) {
                 let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId.map(Value::from).unwrap_or(Value::Null));
@@ -810,8 +810,8 @@ impl Hollaex {
         { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_383: bool = true;
-            while { if !__for_first_383 { i += 1; } __for_first_383 = false; i < (keys.len() as i64) } {
+            let mut __for_first_384: bool = true;
+            while { if !__for_first_384 { i += 1; } __for_first_384 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Value = Value::Array(if let Some(__s) = key.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut currencyId: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -860,8 +860,8 @@ impl Hollaex {
         self.check_required_credentials(&[]);
         let mut expires: Value = self.safe_string_k(self.options.clone(), "ws-expires", &[Value::Str("".into())]);
         if (expires.as_str() == Some("")) {
-            let mut timeoutMs: Value = Value::from(self.parse_to_int(self.timeout.clone()));
-            let mut timeout: Option<i64> = self.parse_to_int((match ((timeoutMs).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+            let mut timeoutMs: Option<i64> = self.parse_to_int(self.timeout.clone());
+            let mut timeout: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = timeoutMs { Some((__l as f64) / 1000.0) } else { None })));
             expires = Value::from(self.number_to_string(Value::from(self.parse_to_int(self.sum(&[self.seconds(), Value::from(timeout)])))));
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message

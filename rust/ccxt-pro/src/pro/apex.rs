@@ -1029,16 +1029,13 @@ impl Apex {
             marketType = "spot".to_string();
         }
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::from(marketType)]);
-        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
-        { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-        let mut stored: Value = self.safe_value(self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
-        if (stored == Value::Null) {
+        let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        CacheShelves::ensure(&mut self.ohlcvs, &symbol);
+        let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
+        if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Value::from(ArrayCacheByTimestamp::new(limit));
-            if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); } }
+            stored = Some(ArrayCacheByTimestamp::new(limit));
+            CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
         }
         {
                         let mut i: i64 = 0;
@@ -1049,7 +1046,7 @@ impl Apex {
         }
         }
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), symbol).into()), Value::Str("::".into())).into()), timeframe);
-        let mut resolveData: Value = Value::from(vec![symbol, timeframe, stored]);
+        let mut resolveData: Value = Value::from(vec![Value::from(symbol), timeframe, Value::from(&stored)]);
         client.resolve(resolveData, messageHash.as_str());
 }
 
@@ -1410,22 +1407,22 @@ impl Apex {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut position: Value = self.parse_position(rawPosition, None);
-            let mut side: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
+            let mut position: crate::value::Dict = self.parse_position(rawPosition, None).into_dict();
+            let mut side: Option<String> = self.safe_string_k(&position, "side", &[]).as_str().map(str::to_owned);
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later
-            if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
+            if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(Value::from(&position)); }
             if (side.is_none()) || (side.as_deref() == Some("")) {
                 // closing update, adding both sides to "reset" both sides
                 // since we don't know which side is being closed
-                if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), Value::Str("long".into())); }
-                cache.append(position.clone());
-                if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), Value::Str("short".into())); }
-                cache.append(position.clone());
-                if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), Value::Null); }
+                std::sync::Arc::make_mut(&mut position).insert("side".into(), Value::Str("long".into()));
+                cache.append(Value::from(&position));
+                std::sync::Arc::make_mut(&mut position).insert("side".into(), Value::Str("short".into()));
+                cache.append(Value::from(&position));
+                std::sync::Arc::make_mut(&mut position).insert("side".into(), Value::Null);
             }  else {
                 // regular update
-                cache.append(position);
+                cache.append(Value::Dict(position));
             }
         }
         }

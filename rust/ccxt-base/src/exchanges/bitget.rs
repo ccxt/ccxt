@@ -6081,7 +6081,7 @@ if _try_result.is_err() {
         let mut assetType: Option<String> = self.safe_string_lower_k(market.clone(), "symbolType", &[]).as_str().map(str::to_owned);
         let mut reality: Option<String> = self.safe_string_lower_k(market.clone(), "isReality", &[]).as_str().map(str::to_owned);
         let mut isReality: bool = reality.as_deref() == Some("yes");
-        let mut stock: bool = (assetType.as_deref() == Some("stock")) || ((assetType.is_none()) && isReality);
+        let mut stock: bool = ((assetType.as_deref() == Some("stock")) || ((assetType.is_none()) && isReality));
         let mut category: Option<String> = self.safe_string_k(market.clone(), "category", &[]).as_str().map(str::to_owned);
         if (category.is_some()) {
             let mut utaMarket: crate::value::Dict = self.parse_uta_market(market.clone(), (stock)).into_dict();
@@ -6522,8 +6522,8 @@ if _try_result.is_err() {
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId);
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("spot".to_string(), Value::Bool(spot.clone()));
-        m.insert("margin".to_string(), Value::Bool(spot && isMarginTradingAllowed));
+        m.insert("spot".to_string(), Value::Bool(spot));
+        m.insert("margin".to_string(), Value::Bool((spot && isMarginTradingAllowed)));
         m.insert("marginModes".to_string(), marginModes.map_or(Value::Null, Value::Dict));
         m.insert("swap".to_string(), Value::Bool(swap));
         m.insert("future".to_string(), Value::Bool(future));
@@ -9097,7 +9097,7 @@ if _try_result.is_err() {
         }
         let mut defaultLimit: i64 = 100; // default 100, max 1000
         let mut maxLimitForRecentEndpoint: i64 = 1000;
-        let mut maxLimitForHistoryEndpoint: Value = Value::Int(200); // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
+        let mut maxLimitForHistoryEndpoint: i64 = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
         let mut useHistoryEndpoint: bool = self.safe_bool_k(params.clone(), "useHistoryEndpoint", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut useHistoryEndpointForPagination: bool = self.safe_bool_k(params.clone(), "useHistoryEndpointForPagination", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
@@ -9107,16 +9107,16 @@ if _try_result.is_err() {
         let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (uta.as_bool() == Some(true)) {
-            maxLimitForHistoryEndpoint = Value::Int(100); // the uta history endpoint rejects a limit above 100
+            maxLimitForHistoryEndpoint = 100; // the uta history endpoint rejects a limit above 100
         }
         if paginate {
-            let mut limitForPagination: Value = (if useHistoryEndpointForPagination { maxLimitForHistoryEndpoint.clone() } else { Value::from(maxLimitForRecentEndpoint) });
+            let mut limitForPagination: i64 = (if useHistoryEndpointForPagination { maxLimitForHistoryEndpoint } else { maxLimitForRecentEndpoint });
             let mut paramsWithUta: Value = self.extend(&paramsUTA, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("uta".to_string(), uta.clone());
                 m
             })]);
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsWithUta, limitForPagination]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsWithUta, Value::from(limitForPagination)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -9139,11 +9139,11 @@ if _try_result.is_err() {
             timeframes = self.safe_dict(timeframesOption, marketType.map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
             request.insert("granularity".into(), self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]));
         }
-        let mut msInDay: Value = Value::Int(86400000);
-        let mut now: Value = Value::Int(self.milliseconds());
+        let mut msInDay: i64 = 86400000;
+        let mut now: i64 = self.milliseconds();
         let mut timeframeSeconds: i64 = self.parse_timeframe(timeframe.clone());
-        let mut duration: Value = Value::Int((timeframeSeconds * 1000));
-        let mut until: Value = self.safe_integer_k(&paramsStock, "until", &[]);
+        let mut duration: i64 = (timeframeSeconds * 1000);
+        let mut until: Option<i64> = self.safe_integer_k(&paramsStock, "until", &[]).as_i64();
         let mut limitDefined: bool = limit != Value::Null;
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsStock, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         // retrievable periods listed here:
@@ -9167,14 +9167,14 @@ if _try_result.is_err() {
         let mut requestedLimit: i64 = limit.as_i64().unwrap_or(defaultLimit);
         let mut limitCapped: i64 = (if (requestedLimit > maxLimitForRecentEndpoint) { maxLimitForRecentEndpoint } else { requestedLimit });
         // the per-timeframe cap only applies to a user-supplied limit
-        let mut recentLimit: Value = (if ((limit != Value::Null) && ((timeframeLimit.is_some() && Some(limitCapped) > timeframeLimit))) { Value::from(timeframeLimit) } else { Value::from(limitCapped) });
-        let mut limitResolved: Value = recentLimit.clone();
-        let mut recentDuration: Value = (match (&(recentLimit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut recentLimit: Option<i64> = (if ((limit != Value::Null) && ((timeframeLimit.is_some() && Some(limitCapped) > timeframeLimit))) { timeframeLimit } else { Some(limitCapped) });
+        let mut limitResolved: Option<i64> = recentLimit;
+        let mut recentDuration: Option<i64> = (if let Some(__l) = recentLimit { Some(__l * duration) } else { None });
         let mut recentEndpointDaysMap: crate::value::Dict = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("fetchOHLCV")).cloned().unwrap_or(Value::Null), Value::Str("maxRecentDaysPerTimeframe".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut recentEndpointAvailableDays: Value = self.safe_integer(&recentEndpointDaysMap, timeframe.clone(), &[]);
+        let mut recentEndpointAvailableDays: Option<i64> = self.safe_integer(&recentEndpointDaysMap, timeframe.clone(), &[]).as_i64();
         let mut historicalEndpointNeeded: bool = useHistoryEndpoint == true;
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
@@ -9183,53 +9183,49 @@ if _try_result.is_err() {
         if (since != Value::Null) {
             calculatedStartTime = since.clone();
             request.insert("startTime".into(), since.clone());
-            if (until == Value::Null) {
-                calculatedEndTime = self.sum(&[since.clone(), recentDuration.clone()]);
-                if since.as_f64().unwrap_or(f64::NAN) > (match (&(now), &(recentDuration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) {
-                    calculatedEndTime = now.clone();
+            if (until.is_none()) {
+                calculatedEndTime = self.sum(&[since.clone(), Value::from(recentDuration)]);
+                if since.as_f64().unwrap_or(f64::NAN) > Value::from((if let Some(__r) = recentDuration { Some(now - __r) } else { None })).as_f64().unwrap_or(f64::NAN) {
+                    calculatedEndTime = Value::from(now);
                 }
                 request.insert("endTime".into(), calculatedEndTime.clone());
             }
-            if (recentEndpointAvailableDays != Value::Null) && (since.as_f64().unwrap_or(f64::NAN) <= (match (&(now), &((match (&(((match (&(recentEndpointAvailableDays), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
-                Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))), &(msInDay)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
-                (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN)) {
+            if (recentEndpointAvailableDays.is_some()) && (since.as_f64().unwrap_or(f64::NAN) <= Value::from((if let Some(__r) = ((if let Some(__l) = ((if let Some(__l) = recentEndpointAvailableDays { Some(__l - 1) } else { None })) { Some(__l * msInDay) } else { None })) { Some(now - __r) } else { None })).as_f64().unwrap_or(f64::NAN)) {
                 historicalEndpointNeeded = true;
             }
         }
-        if (until != Value::Null) {
-            let mut untilEndTime: Value = (if (until.as_f64().unwrap_or(f64::NAN) > now.as_f64().unwrap_or(f64::NAN)) { now.clone() } else { until });
-            calculatedEndTime = untilEndTime.clone();
-            request.insert("endTime".into(), untilEndTime.clone());
+        if (until.is_some()) {
+            let mut untilEndTime: Option<i64> = (if (until > Some(now)) { Some(now) } else { until });
+            calculatedEndTime = Value::from(untilEndTime);
+            request.insert("endTime".into(), Value::from(untilEndTime));
             if (since == Value::Null) {
-                let mut untilStartTime: Value = (match (&(untilEndTime), &(recentDuration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                let mut untilStartTime: Value = Value::from((if let (Some(__l), Some(__r)) = (untilEndTime, recentDuration) { Some(__l - __r) } else { None }));
                 calculatedStartTime = untilStartTime.clone();
                 // we do not need to set "startTime" here
-                if (recentEndpointAvailableDays != Value::Null) && (untilStartTime.as_f64().unwrap_or(f64::NAN) <= (match (&(now), &((match (&(((match (&(recentEndpointAvailableDays), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
-                    Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))), &(msInDay)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
-                    (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN)) {
+                if (recentEndpointAvailableDays.is_some()) && (untilStartTime.as_f64().unwrap_or(f64::NAN) <= Value::from((if let Some(__r) = ((if let Some(__l) = ((if let Some(__l) = recentEndpointAvailableDays { Some(__l - 1) } else { None })) { Some(__l * msInDay) } else { None })) { Some(now - __r) } else { None })).as_f64().unwrap_or(f64::NAN)) {
                     historicalEndpointNeeded = true;
                 }
             }
         }
         if historicalEndpointNeeded {
             // only for "historical-candles" - ensure we use correct max limit
-            let mut historicalLimit: Value = (if (recentLimit.as_f64().unwrap_or(f64::NAN) > maxLimitForHistoryEndpoint.as_f64().unwrap_or(f64::NAN)) { maxLimitForHistoryEndpoint } else { recentLimit });
+            let mut historicalLimit: Option<i64> = (if (recentLimit > Some(maxLimitForHistoryEndpoint)) { Some(maxLimitForHistoryEndpoint) } else { recentLimit });
             limitResolved = historicalLimit.clone();
-            let mut historicalDuration: Value = (match (&(historicalLimit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            let mut historicalDuration: Value = Value::from((if let Some(__l) = historicalLimit { Some(__l * duration) } else { None }));
             calculatedStartTime = (match (&(calculatedEndTime), &(historicalDuration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             request.insert("startTime".into(), calculatedStartTime.clone());
             // for contract, maximum 90 days allowed between start-end times
             if !(market).spot {
-                let mut maxDistanceForContracts: Value = (match (&(Value::Int(90)), &(msInDay)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+                let mut maxDistanceForContracts: i64 = (90 * msInDay);
                 // endTime - startTime is historicalDuration here; an undefined endTime never passed this check
-                if (calculatedEndTime != Value::Null) && (historicalDuration.as_f64().unwrap_or(f64::NAN) > maxDistanceForContracts.as_f64().unwrap_or(f64::NAN)) {
-                    calculatedEndTime = self.sum(&[calculatedStartTime, maxDistanceForContracts]);
+                if (calculatedEndTime != Value::Null) && (historicalDuration.as_f64().unwrap_or(f64::NAN) > (maxDistanceForContracts as f64)) {
+                    calculatedEndTime = self.sum(&[calculatedStartTime, Value::Int(maxDistanceForContracts)]);
                     request.insert("endTime".into(), calculatedEndTime);
                 }
             }
         }
         // we need to set limit to safely cover the period
-        request.insert("limit".into(), limitResolved.clone());
+        request.insert("limit".into(), Value::from(limitResolved));
         // make request
         let mut response: Value = Value::Null;
         let priceTypeparamsPriceVariable: Vec<Value> = self.handle_param_string(&paramsOmitted, Value::Str("price".into()), &[]).as_array().cloned().unwrap_or_default();
@@ -9265,7 +9261,7 @@ if _try_result.is_err() {
             }  else {
                 if !limitDefined {
                     request.insert("limit".into(), Value::Int(1000));
-                    limitResolved = Value::Int(1000);
+                    limitResolved = Some(1000);
                 }
                 let __ws_arg_39 = self.extend(Value::Map(request.clone()), &[&paramsProductType]);
                 response = self.public_spot_get_v2_spot_market_candles(&[__ws_arg_39]).await;
@@ -9276,7 +9272,7 @@ if _try_result.is_err() {
             if !(historicalEndpointNeeded) && ((priceType.as_deref() == Some("mark")) || (priceType.as_deref() == Some("index"))) {
                 if !limitDefined {
                     if let Value::Dict(__rda) = &mut extended { std::sync::Arc::make_mut(__rda).insert("limit".to_string(), Value::Int(1000)); }
-                    limitResolved = Value::Int(1000);
+                    limitResolved = Some(1000);
                 }
                 // Recent endpoint for mark/index prices
                 // https://www.bitget.com/api-doc/contract/market/Get-Candle-Data
@@ -9296,7 +9292,7 @@ if _try_result.is_err() {
                 }  else {
                     if !limitDefined {
                         if let Value::Dict(__rda) = &mut extended { std::sync::Arc::make_mut(__rda).insert("limit".to_string(), Value::Int(1000)); }
-                        limitResolved = Value::Int(1000);
+                        limitResolved = Some(1000);
                     }
                     response = self.public_mix_get_v2_mix_market_candles(&[extended]).await;
                 }
@@ -9312,7 +9308,7 @@ if _try_result.is_err() {
         }  else {
             candles = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         }
-        return self.parse_ohlc_vs(candles, &[(market).raw.clone(), timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -10110,24 +10106,24 @@ if _try_result.is_err() {
                 response = self.private_uta_post_v3_trade_place_order(&[request.clone()]).await.into_opt_dict();
             }
         }  else {
-            let mut request: Value = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, Value::Dict(paramsUTA)]);
+            let mut request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, Value::Dict(paramsUTA)]).into_dict();
             if (market).spot {
                 if isTriggerOrder {
-                    response = self.private_spot_post_v2_spot_trade_place_plan_order(&[request.clone()]).await.into_opt_dict();
+                    response = self.private_spot_post_v2_spot_trade_place_plan_order(&[Value::from(&request)]).await.into_opt_dict();
                 }  else if (marginMode.as_str() == Some("isolated")) {
-                    response = self.private_margin_post_v2_margin_isolated_place_order(&[request.clone()]).await.into_opt_dict();
+                    response = self.private_margin_post_v2_margin_isolated_place_order(&[Value::from(&request)]).await.into_opt_dict();
                 }  else if (marginMode.as_str() == Some("cross")) {
-                    response = self.private_margin_post_v2_margin_crossed_place_order(&[request.clone()]).await.into_opt_dict();
+                    response = self.private_margin_post_v2_margin_crossed_place_order(&[Value::from(&request)]).await.into_opt_dict();
                 }  else {
-                    response = self.private_spot_post_v2_spot_trade_place_order(&[request.clone()]).await.into_opt_dict();
+                    response = self.private_spot_post_v2_spot_trade_place_order(&[Value::from(&request)]).await.into_opt_dict();
                 }
             }  else {
                 if isTriggerOrder || isTrailingPercentOrder {
-                    response = self.private_mix_post_v2_mix_order_place_plan_order(&[request.clone()]).await.into_opt_dict();
+                    response = self.private_mix_post_v2_mix_order_place_plan_order(&[Value::from(&request)]).await.into_opt_dict();
                 }  else if isStopLossOrTakeProfitTrigger {
-                    response = self.private_mix_post_v2_mix_order_place_tpsl_order(&[request.clone()]).await.into_opt_dict();
+                    response = self.private_mix_post_v2_mix_order_place_tpsl_order(&[Value::from(&request)]).await.into_opt_dict();
                 }  else {
-                    response = self.private_mix_post_v2_mix_order_place_order(&[request]).await.into_opt_dict();
+                    response = self.private_mix_post_v2_mix_order_place_order(&[Value::Dict(request)]).await.into_opt_dict();
                 }
             }
         }
@@ -11081,7 +11077,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut trailing: bool = self.safe_bool_k_opt(paramsMarginMode.clone(), "trailing", &[Value::Bool(false)]).unwrap_or(false);
+        let mut trailing: bool = self.safe_bool_k(paramsMarginMode.clone(), "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut trigger: Option<bool> = self.safe_bool2(paramsMarginMode.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         paramsMarginMode = self.omit(paramsMarginMode.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]);
         if !((market).spot && (trigger == Some(true))) {
@@ -11090,7 +11086,7 @@ if _try_result.is_err() {
         let mut uta: Option<bool> = None;
         { let __destr_tmp: Vec<Value> = self.handle_uta_and_params(paramsMarginMode.clone(), Some("cancelOrder"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool(); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut isStockOrUta: bool = isStockSpot || (uta == Some(true));
-        let mut isPlanOrder: bool = (trigger == Some(true)) || trailing;
+        let mut isPlanOrder: bool = ((trigger == Some(true)) || trailing);
         let mut isContract: bool = ((market).swap) || ((market).future);
         let mut isContractTriggerEndpoint: bool = isContract && isPlanOrder && !isStockOrUta;
         let mut clientOrderId: Option<String> = self.safe_string2(paramsMarginMode.clone(), Value::Str("clientOrderId".into()), Value::Str("clientOid".into()), &[]).as_str().map(str::to_owned);
@@ -13857,8 +13853,8 @@ if _try_result.is_err() {
             result.push(Value::Dict(parsedPosition));
         }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -14228,9 +14224,9 @@ if _try_result.is_err() {
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
         let mut marketSymbol: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(sorted, marketSymbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), marketSymbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -14414,9 +14410,9 @@ if _try_result.is_err() {
             let __ws_arg_119 = self.extend(Value::Map(request), &[&paramsMethod]);
             response = self.public_mix_get_v2_mix_market_current_fund_rate(&[__ws_arg_119]).await.into_opt_dict();
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_funding_rates(&data, &[symbolsNormalized]);
+        return self.parse_funding_rates(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -14704,12 +14700,12 @@ if _try_result.is_err() {
             result.push(Value::Dict(parsedFunding));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]).into_list();
         let mut symbol: Option<String> = None;
         if (market.is_some()) {
             symbol = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
         }
-        return self.filter_by_symbol_since_limit(sorted, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -16052,7 +16048,7 @@ if _try_result.is_err() {
             m
         })]).into_dict();
         let mut liquidations: crate::value::List = self.safe_list_k(&data, "resultList", &[Value::from(vec![])]).into_list();
-        return self.parse_liquidations(&liquidations, &[crate::Value::from(market.as_ref()), since, limit]);
+        return self.parse_liquidations(&liquidations, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -16868,8 +16864,8 @@ if _try_result.is_err() {
             m
         })]).into_dict();
         let mut responseList: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
-        let mut positions: Value = self.parse_positions(&responseList, &[symbols, Value::Dict(paramsUTA)]);
-        return self.filter_by_since_limit(positions, since.as_i64(), limit.as_i64(), &[]);
+        let mut positions: crate::value::List = self.parse_positions(&responseList, &[symbols, Value::Dict(paramsUTA)]).into_list();
+        return self.filter_by_since_limit(Value::Arr(positions), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -17431,11 +17427,11 @@ if _try_result.is_err() {
 }
 
     pub fn nonce(&self) -> Value {
-        let mut timeDifference: Value = self.safe_integer_k(self.options.clone(), "timeDifference", &[]);
-        if (timeDifference == Value::Null) {
+        let mut timeDifference: Option<i64> = self.safe_integer_k(self.options.clone(), "timeDifference", &[]).as_i64();
+        if (timeDifference.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" nonce() requires a numeric options[\"timeDifference\"]".into()))));
         }
-        return (match (&(Value::Int(self.milliseconds())), &(timeDifference)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return Value::from((if let Some(__r) = timeDifference { Some((self.milliseconds()) - __r) } else { None }));
 
     Value::Null
 }
@@ -17466,7 +17462,7 @@ if _try_result.is_err() {
             }
         }
         let mut requestBody: Value = Value::Null;
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         if signed {
             self.check_required_credentials(&[]);
             let mut timestamp: Option<String> = self.number_to_string(self.nonce());
@@ -17492,7 +17488,7 @@ if _try_result.is_err() {
             }
             let mut signature: String = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             let mut broker: Option<String> = self.safe_string_k(self.options.clone(), "broker", &[]).as_str().map(str::to_owned);
-            requestHeaders = Value::Map({
+            requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("ACCESS-SIGN".to_string(), Value::from(signature));
@@ -17500,12 +17496,12 @@ if _try_result.is_err() {
                     m.insert("ACCESS-PASSPHRASE".to_string(), self.password.clone());
                     m.insert("X-CHANNEL-API-CODE".to_string(), broker.map(Value::from).unwrap_or(Value::Null));
                 m
-            });
+            }));
             if (method.as_str() == Some("POST")) {
-                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
+                if let Some(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".to_string(), Value::Str("application/json".into())); }
             }
         }
-        let mut headersResult: Value = requestHeaders;
+        let mut headersResult: Value = requestHeaders.map_or(Value::Null, Value::Dict);
         let mut sandboxMode: bool = self.safe_bool2(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if sandboxMode && (path.as_str() != Some("v2/public/time")) && (path.as_str() != Some("v3/market/current-fund-rate")) {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336

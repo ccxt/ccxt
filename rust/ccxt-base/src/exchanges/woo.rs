@@ -2215,10 +2215,10 @@ impl Woo {
                     m.insert("_networks_by_id".to_string(), (if let (Some(__m), Some(__k)) = (networksById.as_map(), id.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
                 m
             });
-            let mut parsed: Value = self.parse_currency(Value::Map(customCurrency));
-            let mut code: Option<String> = self.safe_string_k(parsed.clone(), "code", &[]).as_str().map(str::to_owned);
+            let mut parsed: crate::value::Dict = self.parse_currency(Value::Map(customCurrency)).into_dict();
+            let mut code: Option<String> = self.safe_string_k(&parsed, "code", &[]).as_str().map(str::to_owned);
             if (code.is_some()) {
-                result.insert(code.as_deref().unwrap_or("null").to_string(), parsed);
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(parsed));
             }
         }
         }
@@ -3799,7 +3799,7 @@ impl Woo {
             m
         })]).into_dict();
         let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&rows, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&rows, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -5459,7 +5459,7 @@ impl Woo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.v3_public_get_funding_rate(&[params]).await.into_dict();
         //
         //     {
@@ -5486,7 +5486,7 @@ impl Woo {
             m
         })]).into_dict();
         let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
-        return self.parse_funding_rates(&rows, &[symbolsNormalized]);
+        return self.parse_funding_rates(&rows, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -5590,8 +5590,8 @@ impl Woo {
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, symbolValue.as_deref(), since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbolValue.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

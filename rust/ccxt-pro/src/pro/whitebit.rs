@@ -413,28 +413,25 @@ impl Whitebit {
         let mut params: crate::value::List = __pro_message.get("params").cloned().unwrap_or_default().into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_705: bool = true;
-            while { if !__for_first_705 { i += 1; } __for_first_705 = false; i < (params.len() as i64) } {
+            let mut __for_first_706: bool = true;
+            while { if !__for_first_706 { i += 1; } __for_first_706 = false; i < (params.len() as i64) } {
             let mut data: Value = params.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string(data.clone(), Value::Int(7), &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles".into()), Value::Str(":".into())).into()), symbol);
             let mut parsed: crate::value::List = self.parse_ohlcv(data, Some(&market)).into_list();
-            if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})); }
+            if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
+                CacheShelves::reset(&mut self.ohlcvs, &symbol);
             }
-            if !(matches!(&(if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Dict(__d) if __d.contains_key("unknown"))) {
+            if !(self.ohlcvs.shelf(&symbol).has(&(Value::Str("unknown".into())))) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 let mut stored: crate::pro::cache::Cache = ArrayCacheByTimestamp::new(limit);
-                if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("unknown".to_string(), Value::from(&stored)); } }
+                CacheShelves::put2(&mut self.ohlcvs, &symbol, &(Value::Str("unknown".into())), stored);
             }
-            let mut ohlcv: Value = (if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().and_then(|__m| __m.get("unknown")).cloned().unwrap_or(Value::Null);
+            let mut ohlcv: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&(Value::Str("unknown".into())));
             ohlcv.append(Value::Arr(parsed));
-            client.resolve(ohlcv, messageHash.as_str());
+            client.resolve(Value::from(&ohlcv), messageHash.as_str());
         }
         }
         return message;
@@ -559,8 +556,8 @@ impl Whitebit {
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_706: bool = true;
-            while { if !__for_first_706 { i += 1; } __for_first_706 = false; i < (deltas.len() as i64) } {
+            let mut __for_first_707: bool = true;
+            while { if !__for_first_707 { i += 1; } __for_first_707 = false; i < (deltas.len() as i64) } {
             self.handle_delta(bookside.clone(), deltas.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -629,8 +626,8 @@ impl Whitebit {
         let mut args: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_707: bool = true;
-            while { if !__for_first_707 { i += 1; } __for_first_707 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_708: bool = true;
+            while { if !__for_first_708 { i += 1; } __for_first_708 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.clone())).into()));
             args.push(Value::from((market).id.as_deref()));
@@ -690,8 +687,8 @@ impl Whitebit {
         let mut messageHashes: Vec<Value> = __ch.future_keys();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_708: bool = true;
-            while { if !__for_first_708 { i += 1; } __for_first_708 = false; i < (messageHashes.len() as i64) } {
+            let mut __for_first_709: bool = true;
+            while { if !__for_first_709 { i += 1; } __for_first_709 = false; i < (messageHashes.len() as i64) } {
             let mut currentMessageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if currentMessageHash.as_deref().unwrap_or_default().contains("tickers") && ((if let (Some(__h), Some(__n)) = (currentMessageHash.as_deref(), (symbol).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                 // Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
@@ -795,8 +792,8 @@ impl Whitebit {
         let mut parsedTrades: Value = self.parse_trades(&data, Some(&market), &[]);
         {
                         let mut j: i64 = 0;
-            let mut __for_first_709: bool = true;
-            while { if !__for_first_709 { j += 1; } __for_first_709 = false; j < (parsedTrades.len() as i64) } {
+            let mut __for_first_710: bool = true;
+            while { if !__for_first_710 { j += 1; } __for_first_710 = false; j < (parsedTrades.len() as i64) } {
             stored.append(parsedTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -1309,8 +1306,8 @@ impl Whitebit {
         let mut data: crate::value::List = message.get("params").cloned().unwrap_or_default().into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_711: bool = true;
-            while { if !__for_first_711 { i += 1; } __for_first_711 = false; i < (data.len() as i64) } {
+            let mut __for_first_712: bool = true;
+            while { if !__for_first_712 { i += 1; } __for_first_712 = false; i < (data.len() as i64) } {
             let mut balanceDict: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1333,8 +1330,8 @@ impl Whitebit {
                 let mut keys: Vec<Value> = Value::Array(balanceDict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_710: bool = true;
-                    while { if !__for_first_710 { j += 1; } __for_first_710 = false; j < (keys.len() as i64) } {
+                    let mut __for_first_711: bool = true;
+                    while { if !__for_first_711 { j += 1; } __for_first_711 = false; j < (keys.len() as i64) } {
                     let mut currencyId: Value = keys.get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut rawBalance: crate::value::Dict = self.safe_dict(&balanceDict, currencyId.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -1401,7 +1398,7 @@ impl Whitebit {
         let mut id: i64 = self.incrementing_nonce();
         let mut client: Value = self.safe_value(self.clients.clone(), url.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut request: Value = Value::Null;
+        let mut request: Option<crate::value::Dict> = None;
         let mut marketIds: Value = Value::from(vec![]);
         if (client == Value::Null) {
             let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -1417,14 +1414,14 @@ impl Whitebit {
             if isNested {
                 marketIds = Value::from(vec![marketIds.clone()]);
             }
-            request = Value::Map({
+            request = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(id));
                     m.insert("method".to_string(), method.clone());
                     m.insert("params".to_string(), marketIds);
                 m
-            });
-            let mut message: crate::value::Dict = self.extend(request.clone(), &[params]).into_dict();
+            }));
+            let mut message: crate::value::Dict = self.extend(request.clone().map_or(Value::Null, Value::Dict), &[params]).into_dict();
             return self.watch(url.as_deref(), &messageHash, &message, &method, Value::Map(subscription)).await;
         }  else {
             let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), method.clone(), &[Value::Map({
@@ -1442,7 +1439,7 @@ impl Whitebit {
                 hasSymbolSubscription = false;
             }
             if hasSymbolSubscription {
-                return self.watch(url.as_deref(), &messageHash, request, &method, subscription.clone()).await;
+                return self.watch(url.as_deref(), &messageHash, request.map_or(Value::Null, Value::Dict), &method, subscription.clone()).await;
             }  else {
                 // resubscribe
                 let mut marketIdsNew: Value = Value::from(vec![]);
@@ -1682,8 +1679,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut values: Vec<Value> = object_values(&subs).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_712: bool = true;
-            while { if !__for_first_712 { i += 1; } __for_first_712 = false; i < (values.len() as i64) } {
+            let mut __for_first_713: bool = true;
+            while { if !__for_first_713 { i += 1; } __for_first_713 = false; i < (values.len() as i64) } {
             let mut subscription: Value = values.get(i as usize).cloned().unwrap_or(Value::Null);
             if !(match &(subscription) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
                 let mut subId: Value = self.safe_integer_k(subscription.clone(), "id", &[]);

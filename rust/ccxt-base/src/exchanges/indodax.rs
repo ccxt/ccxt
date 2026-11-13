@@ -1006,10 +1006,10 @@ impl Indodax {
             while { if !__for_first_840 { i += 1; } __for_first_840 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut rawTicker: Value = tickers.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
-            let mut marketId: Value = (if let Some(__s) = key.as_deref() { Some(__s.replace("_", "")) } else { None }).map(Value::from).unwrap_or(Value::Null);
-            let mut market: crate::types::Market = self.safe_market(marketId.clone(), None, &[]);
+            let mut marketId: Option<String> = (if let Some(__s) = key.as_deref() { Some(__s.replace("_", "")) } else { None });
+            let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
             let mut parsed: indexmap::IndexMap<String, Value> = self.parse_ticker(rawTicker, Some(&market)).as_map().cloned().unwrap_or_default();
-            parsedTickers.insert(crate::runtime::stringify_param(&marketId), Value::Map(parsed));
+            parsedTickers.insert(marketId.as_deref().unwrap_or("null").to_string(), Value::Map(parsed));
         }
         }
         return self.filter_by_array_tickers(Value::Map(parsedTickers), Value::Str("symbol".into()), &[symbols]);
@@ -1145,7 +1145,7 @@ impl Indodax {
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.public_get_tradingview_history_v2(&[__ws_arg_3]).await.into_list();
-        return self.parse_ohlc_vs(self.to_array(&response), &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -1382,8 +1382,8 @@ impl Indodax {
             let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut marketOrders: Value = ordersDict.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             market = Some(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
-            let mut parsedOrders: Value = self.parse_orders(marketOrders, market.as_ref(), &[since.clone(), limit.clone()]);
-            exchangeOrders = self.array_concat(exchangeOrders.clone(), parsedOrders);
+            let mut parsedOrders: crate::value::List = self.parse_orders(marketOrders, market.as_ref(), &[since.clone(), limit.clone()]).into_list();
+            exchangeOrders = self.array_concat(exchangeOrders.clone(), &parsedOrders);
         }
         }
         return exchangeOrders;
@@ -2156,7 +2156,7 @@ impl Indodax {
         }
         let mut url: Option<String> = apiUrl.clone();
         let mut privateBody: Value = Value::Null;
-        let mut privateHeaders: Value = Value::Null;
+        let mut privateHeaders: Option<crate::value::Dict> = None;
         let mut isPublic: bool = apiName.as_deref() == Some("public");
         if isPublic {
             let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
@@ -2175,19 +2175,19 @@ impl Indodax {
                 m
             }), &[params]);
             privateBody = Value::from(self.urlencode(__ws_arg_14, &[]));
-            privateHeaders = Value::Map({
+            privateHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("Key".to_string(), self.apiKey.clone());
                     m.insert("Sign".to_string(), Value::from(self.hmac(self.encode(privateBody.clone()), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
                 m
-            });
+            }));
         }
         let mut requestBody: Value = privateBody;
         if isPublic {
             requestBody = Value::Null;
         }
-        let mut requestHeaders: Value = privateHeaders;
+        let mut requestHeaders: Value = privateHeaders.map_or(Value::Null, Value::Dict);
         if isPublic {
             requestHeaders = Value::Null;
         }

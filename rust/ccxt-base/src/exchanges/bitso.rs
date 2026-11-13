@@ -1393,7 +1393,7 @@ impl Bitso {
         //     }
         //
         let mut payload: crate::value::List = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&payload, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&payload, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1876,8 +1876,8 @@ impl Bitso {
                         let mut i: i64 = 0;
             let mut __for_first_422: bool = true;
             while { if !__for_first_422 { i += 1; } __for_first_422 = false; i < (payload.len() as i64) } {
-            let mut id: Value = payload.get(i as usize).cloned().unwrap_or(Value::Null);
-            orders.push(self.parse_order(id, market.as_ref()));
+            let mut id: crate::value::Dict = payload.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            orders.push(self.parse_order(&id, market.as_ref()));
         }
         }
         return Value::from(orders);

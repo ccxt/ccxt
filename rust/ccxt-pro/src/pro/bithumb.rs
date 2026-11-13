@@ -445,8 +445,8 @@ impl Bithumb {
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_127: bool = true;
-            while { if !__for_first_127 { i += 1; } __for_first_127 = false; (i as f64) < symbolsLengthDefined } {
+            let mut __for_first_128: bool = true;
+            while { if !__for_first_128 { i += 1; } __for_first_128 = false; (i as f64) < symbolsLengthDefined } {
             let mut symbol: Option<String> = symbolsResolved.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut streamMarketId: Value = Value::Null;
@@ -666,17 +666,17 @@ impl Bithumb {
             time.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()),
             time.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
-        let mut timestamp: Value = Value::Null;
-        let mut kstTimestamp: Value = Value::from(self.parse8601(Value::from(kstDatetime)));
-        if (kstTimestamp != Value::Null) {
-            timestamp = (match (&(kstTimestamp), &(Value::Int(32400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut timestamp: Option<i64> = None;
+        let mut kstTimestamp: Option<i64> = self.parse8601(Value::from(kstDatetime));
+        if (kstTimestamp.is_some()) {
+            timestamp = (if let Some(__l) = kstTimestamp { Some(__l - 32400000) } else { None });
         }
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Str("_".into())]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "highPrice", &[]));
         m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "lowPrice", &[]));
         m.insert("bid".to_string(), Value::Null);
@@ -874,8 +874,8 @@ impl Bithumb {
         let mut asksSnapshot: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_128: bool = true;
-            while { if !__for_first_128 { i += 1; } __for_first_128 = false; i < (units.len() as i64) } {
+            let mut __for_first_129: bool = true;
+            while { if !__for_first_129 { i += 1; } __for_first_129 = false; i < (units.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&units, Value::Int(i), &[]).into_dict();
             let mut bidPrice: Option<f64> = self.safe_number_k(&entry, "bid_price", &[]).as_f64();
             let mut bidSize: Option<f64> = self.safe_number_k(&entry, "bid_size", &[]).as_f64();
@@ -1041,8 +1041,8 @@ impl Bithumb {
         let mut rawTrades: Vec<Value> = self.safe_list_k(&content, "list", &[Value::from(vec![message])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_129: bool = true;
-            while { if !__for_first_129 { i += 1; } __for_first_129 = false; i < (rawTrades.len() as i64) } {
+            let mut __for_first_130: bool = true;
+            while { if !__for_first_130 { i += 1; } __for_first_130 = false; i < (rawTrades.len() as i64) } {
             let mut rawTrade: crate::value::Dict = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string2(&rawTrade, Value::Str("symbol".into()), Value::Str("code".into()), &[]).as_str().map(str::to_owned);
             if (marketId.is_none()) {
@@ -1119,18 +1119,18 @@ impl Bithumb {
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut datetime: Option<String> = self.safe_string_k(trade.clone(), "contDtm", &[]).as_str().map(str::to_owned);
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        let mut timestamp: Value = Value::Null;
-        let mut kstTimestamp: Value = Value::from(self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null)));
-        if (kstTimestamp != Value::Null) {
-            timestamp = (match (&(kstTimestamp), &(Value::Int(32400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut timestamp: Option<i64> = None;
+        let mut kstTimestamp: Option<i64> = self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null));
+        if (kstTimestamp.is_some()) {
+            timestamp = (if let Some(__l) = kstTimestamp { Some(__l - 32400000) } else { None });
         }
         let mut sideId: Option<String> = self.safe_string_k(trade.clone(), "buySellGb", &[]).as_str().map(str::to_owned);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Null);
         m.insert("info".to_string(), trade.clone());
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Str("_".into())]));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
@@ -1266,8 +1266,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_130: bool = true;
-            while { if !__for_first_130 { i += 1; } __for_first_130 = false; i < (assets.len() as i64) } {
+            let mut __for_first_131: bool = true;
+            while { if !__for_first_131 { i += 1; } __for_first_131 = false; i < (assets.len() as i64) } {
             let mut asset: crate::value::Dict = self.safe_dict(&assets, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&asset, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -1319,8 +1319,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut keys: Vec<Value> = Value::Array(subscriptions.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_131: bool = true;
-            while { if !__for_first_131 { i += 1; } __for_first_131 = false; i < (keys.len() as i64) } {
+            let mut __for_first_132: bool = true;
+            while { if !__for_first_132 { i += 1; } __for_first_132 = false; i < (keys.len() as i64) } {
             request.push(get_value(&subscriptions, &keys.get(i as usize).cloned().unwrap_or(Value::Null)));
         }
         }

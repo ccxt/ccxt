@@ -2176,9 +2176,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut contracts: Value = exchange.safe_number(entry.clone(), Value::Str("contracts".into()), &[]);
         let mut contractSize: Value = exchange.safe_number(entry.clone(), Value::Str("contractSize".into()), &[]);
         let mut maintenanceMargin: Value = exchange.safe_number(entry.clone(), Value::Str("maintenanceMargin".into()), &[]);
-        let mut collateral: Value = exchange.safe_number(entry.clone(), Value::Str("collateral".into()), &[]);
-        let mut initialMargin: Value = exchange.safe_number(entry.clone(), Value::Str("initialMargin".into()), &[]);
-        let mut unrealizedPnl: Value = exchange.safe_number(entry.clone(), Value::Str("unrealizedPnl".into()), &[]);
+        let mut collateral: Option<f64> = exchange.safe_number(entry.clone(), Value::Str("collateral".into()), &[]).as_f64();
+        let mut initialMargin: Option<f64> = exchange.safe_number(entry.clone(), Value::Str("initialMargin".into()), &[]).as_f64();
+        let mut unrealizedPnl: Option<f64> = exchange.safe_number(entry.clone(), Value::Str("unrealizedPnl".into()), &[]).as_f64();
         if (entryPrice != Value::Null) && (liquidationPrice != Value::Null) && (entryPrice.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (liquidationPrice.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) {
             if (side.as_deref() == Some("long")) {
                 self.assert_static_error(Value::Bool(liquidationPrice.as_f64().unwrap_or(f64::NAN) < entryPrice.as_f64().unwrap_or(f64::NAN)), Value::Str("isolated long liquidationPrice should be less than entryPrice".into()), entryPrice.clone(), liquidationPrice.clone(), &[]);
@@ -2187,14 +2187,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut entryMargin: Value = Value::Null;
-        if (collateral != Value::Null) {
-            if (unrealizedPnl != Value::Null) && (collateral.as_f64() != initialMargin.as_f64()) {
-                entryMargin = (match (&(collateral), &(unrealizedPnl)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        if (collateral.is_some()) {
+            if (unrealizedPnl.is_some()) && (collateral != initialMargin) {
+                entryMargin = Value::from((if let (Some(__l), Some(__r)) = (collateral, unrealizedPnl) { Some(__l - __r) } else { None }));
             }  else {
-                entryMargin = collateral.clone();
+                entryMargin = Value::from(collateral);
             }
-        }  else if (initialMargin != Value::Null) {
-            entryMargin = initialMargin.clone();
+        }  else if (initialMargin.is_some()) {
+            entryMargin = Value::from(initialMargin);
         }
         if (entryMargin != Value::Null) && (entryPrice != Value::Null) && (liquidationPrice != Value::Null) && (contracts != Value::Null) && (contractSize != Value::Null) && (maintenanceMargin != Value::Null) {
             if (entryMargin.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (entryPrice.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (liquidationPrice.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (contracts.as_f64().unwrap_or(f64::NAN) >

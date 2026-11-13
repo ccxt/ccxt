@@ -1221,7 +1221,7 @@ impl Bitteam {
             m
         })]).into_dict();
         let mut data: crate::value::List = self.safe_list_k(&result, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2068,8 +2068,8 @@ impl Bitteam {
                         let mut i: i64 = 0;
             let mut __for_first_441: bool = true;
             while { if !__for_first_441 { i += 1; } __for_first_441 = false; i < (rawTickers.len() as i64) } {
-            let mut rawTicker: Value = rawTickers.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut ticker: crate::value::Dict = self.parse_ticker(rawTicker, None).into_dict();
+            let mut rawTicker: crate::value::Dict = rawTickers.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut ticker: crate::value::Dict = self.parse_ticker(&rawTicker, None).into_dict();
             tickers.push(Value::Dict(ticker));
         }
         }
@@ -3176,7 +3176,7 @@ impl Bitteam {
         let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), endpoint);
         let mut query: String = self.urlencode(request.clone(), &[]);
         let mut requestBody: Value = Value::Null;
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) {
@@ -3187,17 +3187,17 @@ impl Bitteam {
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(":".into())).into()), self.secret.clone());
             let mut auth64: String = self.string_to_base64(Value::from(auth), &[]);
             let mut signature: String = format!("{}{}", Value::Str("Basic ".into()), auth64);
-            requestHeaders = Value::Map({
+            requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Authorization".to_string(), Value::from(signature));
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                 m
-            });
+            }));
         }  else if (((query.chars().count() as i64)) != 0) {
             url.push_str(&format!("{}{}", Value::Str("?".into()), query));
         }
         let mut bodyResolved: Value = requestBody;
-        let mut headersResolved: Value = requestHeaders;
+        let mut headersResolved: Value = requestHeaders.map_or(Value::Null, Value::Dict);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));

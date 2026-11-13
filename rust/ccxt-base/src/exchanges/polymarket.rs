@@ -1110,7 +1110,7 @@ impl Polymarket {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut promises: Value = Value::from(vec![self.public_get_info_tickers(&[params.clone()]).await, self.public_get_info_statistics(&[params.clone()]).await, self.public_get_info_bbo(&[params]).await]);
         let mut responses: Value = promise_all(&promises).await;
         //
@@ -1166,7 +1166,7 @@ impl Polymarket {
             let mut __for_first_1100: bool = true;
             while { if !__for_first_1100 { i += 1; } __for_first_1100 = false; i < (statistics.len() as i64) } {
             let mut entry: Value = statistics.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut instrumentId: Option<String> = self.safe_string_k_opt(entry.clone(), "instrument_id", &[]);
+            let mut instrumentId: Option<String> = self.safe_string_k(entry.clone(), "instrument_id", &[]).as_str().map(str::to_owned);
             // the 24 hourly kline rows are dropped from the merged payload to keep tickers light, candles are served by fetchOHLCV
             merged.insert(instrumentId.as_deref().unwrap_or("null").to_string(), self.omit(entry.clone(), Value::Str("klines".into()), &[]));
         }
@@ -1201,7 +1201,7 @@ impl Polymarket {
             result.push(self.extend(previous, &[entry]));
         }
         }
-        return self.parse_tickers(Value::from(result), &[symbolsNormalized]);
+        return self.parse_tickers(Value::from(result), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -1284,9 +1284,9 @@ impl Polymarket {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::List = self.public_get_info_bbo(&[params]).await.into_list();
-        return self.parse_tickers(&response, &[symbolsNormalized]);
+        return self.parse_tickers(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -1520,9 +1520,9 @@ impl Polymarket {
             // the venue requires an explicit range start - the window covers
             // exactly the requested number of candle bins including the
             // current one, so the newest candle never falls off the range
-            let mut end: Value = (if (until.is_some()) { Value::from(until) } else { Value::Int(self.milliseconds()) });
+            let mut end: Option<i64> = (if (until.is_some()) { until } else { Some(self.milliseconds()) });
             let mut requestedLimit: i64 = limit.as_i64().unwrap_or(100);
-            request.insert("start_timestamp".into(), (match (&(end), &(Value::Int((((requestedLimit - 1)) * duration)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            request.insert("start_timestamp".into(), Value::from((if let Some(__l) = end { Some(__l - ((((requestedLimit - 1)) * duration))) } else { None })));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_info_klines(&[__ws_arg_2]).await.into_dict();
@@ -1535,7 +1535,7 @@ impl Polymarket {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1737,8 +1737,8 @@ impl Polymarket {
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -1884,7 +1884,7 @@ impl Polymarket {
             let mut __for_first_1104: bool = true;
             while { if !__for_first_1104 { i += 1; } __for_first_1104 = false; i < (schedule.len() as i64) } {
             let mut entry: Value = schedule.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut category: Option<String> = self.safe_string_k_opt(entry.clone(), "category", &[]);
+            let mut category: Option<String> = self.safe_string_k(entry.clone(), "category", &[]).as_str().map(str::to_owned);
             byCategory.insert(category.as_deref().unwrap_or("null").to_string(), entry.clone());
         }
         }
@@ -2172,9 +2172,9 @@ impl Polymarket {
             }  else {
                 if let Value::Dict(__d) = &mut merged { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Null); }
             }
-            let mut parsed: Value = self.parse_order(merged, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketInner).as_ref());
-            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("info".to_string(), ack); }
-            results.push(parsed);
+            let mut parsed: crate::value::Dict = self.parse_order(merged, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketInner).as_ref()).into_dict();
+            std::sync::Arc::make_mut(&mut parsed).insert("info".into(), ack);
+            results.push(Value::Dict(parsed));
         }
         }
         return Value::from(results);
@@ -2255,8 +2255,8 @@ impl Polymarket {
                     m.insert("args".to_string(), clientOrderIds);
                 m
             });
-            let mut signed: Value = self.sign_perps_op(signable.clone(), bodyOp.clone(), &[paramsOmitted.clone()]).await;
-            response = self.trade_delete_trade_orders_coid(&[signed.clone()]).await;
+            let mut signed: crate::value::Dict = self.sign_perps_op(signable.clone(), bodyOp.clone(), &[paramsOmitted.clone()]).await.into_dict();
+            response = self.trade_delete_trade_orders_coid(&[Value::Dict(signed)]).await;
         }  else {
             let mut numericIds: Value = Value::from(vec![]);
             {
@@ -2273,8 +2273,8 @@ impl Polymarket {
                     m.insert("args".to_string(), numericIds);
                 m
             });
-            let mut signed: Value = self.sign_perps_op(signable, bodyOp, &[paramsOmitted]).await;
-            response = self.trade_delete_trade_orders(&[signed]).await;
+            let mut signed: crate::value::Dict = self.sign_perps_op(signable, bodyOp, &[paramsOmitted]).await.into_dict();
+            response = self.trade_delete_trade_orders(&[Value::Dict(signed)]).await;
         }
         //
         //     [
@@ -2300,9 +2300,9 @@ impl Polymarket {
                     m.insert("status".to_string(), Value::from(unified));
                 m
             });
-            let mut parsed: Value = self.parse_order(Value::Map(merged), None);
-            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("info".to_string(), ack); }
-            results.push(parsed);
+            let mut parsed: crate::value::Dict = self.parse_order(Value::Map(merged), None).into_dict();
+            std::sync::Arc::make_mut(&mut parsed).insert("info".into(), ack);
+            results.push(Value::Dict(parsed));
         }
         }
         return Value::from(results);
@@ -2699,7 +2699,7 @@ impl Polymarket {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.private_get_account_portfolio(&[params]).await.into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
         let mut rows: crate::value::List = self.safe_list_k(&response, "positions", &[Value::from(vec![])]).into_list();
@@ -2717,7 +2717,7 @@ impl Polymarket {
             positions.push(self.parse_position(&extended, None));
         }
         }
-        return self.filter_by_array_positions(Value::from(positions), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_positions(Value::from(positions), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -3084,15 +3084,15 @@ impl Polymarket {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (symbol != Value::Null) {
-            let mut symbolMarket: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            market = symbolMarket.clone();
-            request.insert("instrument_id".into(), symbolMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut symbolMarket: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            market = Some(crate::types::Market::clone(&symbolMarket));
+            request.insert("instrument_id".into(), Value::from((symbolMarket).id.as_deref()));
         }
         if (since != Value::Null) {
             request.insert("start_timestamp".into(), since.clone());
@@ -3133,7 +3133,7 @@ impl Polymarket {
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
-                    m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]));
+                    m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.as_ref(), &[]));
                     m.insert("code".to_string(), self.safe_currency_code(self.safe_string_k(entry.clone(), "funding_asset", &[]), None).map(Value::from).unwrap_or(Value::Null));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
@@ -3848,12 +3848,12 @@ impl Polymarket {
         // secret and unique per provisioning, the paradex stark-key idiom
         let mut nonceMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("polymarket-perps-proxy:".into()), Value::Str(format!("{}", Value::Int(self.milliseconds())).into())).into()), Value::Str(":".into())).into()), Value::Str(format!("{}", self.rand_number(Value::Int(9))).into()));
         let mut seedSignature: Value = self.sign_message(Value::from(nonceMessage), self.privateKey.clone());
-        let mut proxyPrivateKey: Option<String> = self.hash(self.encode(seedSignature), Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str().map(str::to_owned);
-        let mut proxyAddress: Value = self.eth_get_address_from_private_key(Value::from(proxyPrivateKey.as_deref()), &[]);
+        let mut proxyPrivateKey: String = self.hash(self.encode(seedSignature), Value::Str("keccak".into()), &[Value::Str("hex".into())]);
+        let mut proxyAddress: Value = self.eth_get_address_from_private_key(Value::from(proxyPrivateKey.clone()), &[]);
         let mut owner: Option<String> = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str().map(str::to_owned);
         let mut ts: i64 = self.milliseconds();
         let mut lifetime: i64 = self.safe_integer_k(self.options.clone(), "proxyExpiry", &[Value::Int(604800000)]).as_i64().unwrap_or(604800000);
-        let mut expiry: Value = Value::Int((ts + lifetime));
+        let mut expiry: i64 = (ts + lifetime);
         let mut salt: Value = self.rand_number(Value::Int(9));
         let mut chainId: i64 = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(137)]).as_i64().unwrap_or(137);
         let mut domain: indexmap::IndexMap<String, Value> = ({
@@ -3891,7 +3891,7 @@ impl Polymarket {
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("addr".to_string(), proxyAddress.clone());
-                m.insert("exp".to_string(), expiry.clone());
+                m.insert("exp".to_string(), Value::from(expiry));
                 m.insert("salt".to_string(), salt.clone());
                 m.insert("ts".to_string(), Value::from(ts));
             m
@@ -3905,7 +3905,7 @@ impl Polymarket {
         m.insert("type".to_string(), Value::Str("createProxy".into()));
         m.insert("args".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("expiry".to_string(), expiry.clone());
+        m.insert("expiry".to_string(), Value::from(expiry));
         m.insert("owner".to_string(), owner.map(Value::from).unwrap_or(Value::Null));
         m.insert("proxy".to_string(), proxyAddress.clone());
     m
@@ -3925,9 +3925,9 @@ impl Polymarket {
         let mut credentials: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("proxy".to_string(), proxyAddress);
-                m.insert("privateKey".to_string(), proxyPrivateKey.map(Value::from).unwrap_or(Value::Null));
+                m.insert("privateKey".to_string(), Value::from(proxyPrivateKey));
                 m.insert("secret".to_string(), self.safe_string_k(&response, "secret", &[]));
-                m.insert("expires".to_string(), expiry);
+                m.insert("expires".to_string(), Value::from(expiry));
             m
         });
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("proxyCredentials".into(), Value::Map(credentials.clone())); }
@@ -3951,13 +3951,13 @@ impl Polymarket {
 }));
         let mut credentials: Value = self.safe_dict_k(self.options.clone(), "proxyCredentials", &[]);
         if (credentials != Value::Null) {
-            let mut expires: Value = self.safe_integer_k(credentials.clone(), "expires", &[]);
-            let mut margin: Value = self.safe_integer_k(self.options.clone(), "proxyRefreshMargin", &[Value::Int(3600000)]);
-            if (expires == Value::Null) {
+            let mut expires: Option<i64> = self.safe_integer_k(credentials.clone(), "expires", &[]).as_i64();
+            let mut margin: i64 = self.safe_integer_k(self.options.clone(), "proxyRefreshMargin", &[Value::Int(3600000)]).as_i64().unwrap_or(3600000);
+            if (expires.is_none()) {
                 return credentials;
             }
-            let mut refreshAfter: Value = (match (&(expires), &(margin)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            if Value::Int(self.milliseconds()).as_f64().unwrap_or(f64::NAN) < refreshAfter.as_f64().unwrap_or(f64::NAN) {
+            let mut refreshAfter: Option<i64> = (if let Some(__l) = expires { Some(__l - margin) } else { None });
+            if Some((self.milliseconds())) < refreshAfter {
                 return credentials;
             }
         }

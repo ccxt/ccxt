@@ -1480,7 +1480,7 @@ impl Paradex {
         let mut isSpot: Value = (Value::Bool(assetKind.as_deref() == Some("SPOT")));
         let mut isOptionPerpetual: bool = assetKind.as_deref() == Some("PERP_OPTION");
         let mut isOptionDelivery: bool = assetKind.as_deref() == Some("OPTION");
-        let mut isOption: bool = isOptionPerpetual || isOptionDelivery;
+        let mut isOption: bool = (isOptionPerpetual || isOptionDelivery);
         let mut type_var: String = "swap".to_string();
         if matches!(&isSpot, Value::Bool(true)) {
             type_var = "spot".to_string();
@@ -1822,22 +1822,20 @@ impl Paradex {
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUntil, Value::from(vec![Value::Str("price".into())]), &[]).into_dict();
         // exchange has undocumented limit slightly above, but 1000 is reliable limit
         let mut limitResolved: Option<i64> = (if ((limit == Value::Null) || (limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64))) { Some(1000) } else { limit.as_i64() });
-        let mut windowLength: Value = Value::from(self.parse_to_int((match (&((match (&(duration), &(((match (&(Value::from(self.parse_to_int(Value::from(limitResolved)))), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
+        let mut windowLength: Option<i64> = self.parse_to_int((match (&((match (&(duration), &(((match (&(Value::from(self.parse_to_int(Value::from(limitResolved)))), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
             Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+            Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_at".into(), since.clone()); }
             if !hasEnd {
-                let mut sinceInt: Value = Value::from(self.parse_to_int(since.clone()));
-                if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("end_at".into(), (match (&((match (&(sinceInt), &(windowLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
-                    (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
+                let mut sinceInt: Option<i64> = self.parse_to_int(since.clone());
+                if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("end_at".into(), Value::from((if let Some(__l) = ((if let (Some(__l), Some(__r)) = (sinceInt, windowLength) { Some(__l + __r) } else { None })) { Some(__l - 1) } else { None }))); }
             }
         }  else {
             let mut endAtRaw: Option<i64> = self.safe_integer_k(requestUntil.clone(), "end_at", &[Value::Int(self.milliseconds())]).as_i64();
-            let mut endAt: Value = Value::from(self.parse_to_int(Value::from(endAtRaw)));
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("end_at".into(), endAt.clone()); }
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_at".into(), (match (&((match (&(endAt), &(windowLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64),
-                (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })); }
+            let mut endAt: Option<i64> = self.parse_to_int(Value::from(endAtRaw));
+            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("end_at".into(), Value::from(endAt)); }
+            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_at".into(), Value::from((if let Some(__l) = ((if let (Some(__l), Some(__r)) = (endAt, windowLength) { Some(__l - __r) } else { None })) { Some(__l + 1) } else { None }))); }
         }
         let __ws_arg_1 = self.extend(requestUntil, &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_markets_klines(&[__ws_arg_1]).await.into_dict();
@@ -1856,7 +1854,7 @@ impl Paradex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1890,7 +1888,7 @@ impl Paradex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::Str("ALL".into()));
@@ -1920,7 +1918,7 @@ impl Paradex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
-        return self.parse_tickers(&data, &[symbolsNormalized]);
+        return self.parse_tickers(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2513,8 +2511,8 @@ impl Paradex {
 }
 
     pub fn hash_message(&self, mut message: Value) -> Option<String> {
-        let mut hashed: Option<String> = self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str().map(str::to_owned);
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), hashed.map(Value::from).unwrap_or(Value::Null)).into()).as_str().map(str::to_owned);
+        let mut hashed: String = self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())]);
+        return Value::Str(format!("{}{}", Value::Str("0x".into()), hashed).into()).as_str().map(str::to_owned);
 }
 
     pub fn sign_hash(&self, hash: &str, mut privateKey: Value) -> Option<String> {
@@ -2642,25 +2640,25 @@ impl Paradex {
     m
 }));
         let mut cachedToken: Option<String> = self.safe_string_k(self.options.clone(), "authToken", &[]).as_str().map(str::to_owned);
-        let mut now: Value = Value::from(self.parse_to_int(self.nonce()));
+        let mut now: Option<i64> = self.parse_to_int(self.nonce());
         if (cachedToken.is_some()) {
-            let mut cachedExpires: Value = self.safe_integer_k(self.options.clone(), "expires", &[]);
-            if (cachedExpires == Value::Null) {
+            let mut cachedExpires: Option<i64> = self.safe_integer_k(self.options.clone(), "expires", &[]).as_i64();
+            if (cachedExpires.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" authenticateRest() missing cachedExpires".into()))));
             }
-            if now.as_f64().unwrap_or(f64::NAN) < cachedExpires.as_f64().unwrap_or(f64::NAN) {
+            if (now.is_some() && cachedExpires.is_some() && now < cachedExpires) {
                 return cachedToken.map(Value::from).unwrap_or(Value::Null);
             }
         }
         let mut account: Value = self.retrieve_account().await;
         // https://docs.paradex.trade/api-reference/general-information/authentication
-        let mut expires: Value = (match (&(now), &(Value::Int(180))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+        let mut expires: Value = Value::from((if let Some(__l) = now { Some(__l + 180) } else { None }));
         let mut req: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("POST".into()));
                 m.insert("path".to_string(), Value::Str("/v1/auth".into()));
                 m.insert("body".to_string(), Value::Str("".into()));
-                m.insert("timestamp".to_string(), now);
+                m.insert("timestamp".to_string(), Value::from(now));
                 m.insert("expiration".to_string(), expires.clone());
             m
         });
@@ -2789,7 +2787,7 @@ impl Paradex {
         let mut flags: Option<crate::value::List> = self.safe_list_k(order.clone(), "flags", &[]).into_opt_list();
         let mut reduceOnly: Value = Value::Null;
         if (flags.is_some()) {
-            reduceOnly = self.in_array(Value::Str("REDUCE_ONLY".into()), flags.clone().map_or(Value::Null, Value::Arr));
+            reduceOnly = self.in_array(Value::Str("REDUCE_ONLY".into()), flags.map_or(Value::Null, Value::Arr));
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3948,8 +3946,8 @@ impl Paradex {
             }
         }
         }
-        let mut positions: Value = self.parse_positions(Value::from(matching), &[Value::from(vec![Value::from((market).symbol.clone())])]);
-        return self.safe_dict(positions, Value::Int(0), &[Value::Map({
+        let mut positions: crate::value::List = self.parse_positions(Value::from(matching), &[Value::from(vec![Value::from((market).symbol.clone())])]).into_list();
+        return self.safe_dict(&positions, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3981,7 +3979,7 @@ impl Paradex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.private_get_positions(&[params]).await.into_dict();
         //
         //     {
@@ -4025,7 +4023,7 @@ impl Paradex {
             }
         }
         }
-        return self.parse_positions(Value::from(openPositions), &[symbolsNormalized]);
+        return self.parse_positions(Value::from(openPositions), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -4156,7 +4154,7 @@ impl Paradex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
-        return self.parse_liquidations(&data, &[crate::Value::from(market.as_ref()), since, limit]);
+        return self.parse_liquidations(&data, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4974,7 +4972,7 @@ impl Paradex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::Str("ALL".into()));
@@ -5017,7 +5015,7 @@ impl Paradex {
         //     }
         //
         let mut results: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
-        return self.parse_all_greeks(&results, &[symbolsNormalized]);
+        return self.parse_all_greeks(&results, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -5305,8 +5303,8 @@ impl Paradex {
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

@@ -1029,9 +1029,9 @@ impl Lighter {
             return Value::from(vec![Value::from(self.parse_to_int(Value::from(apiKeyIndex))), paramsApiKeyIndex.clone()]);
         }
         // apiKeyIndex = this.randNumber (2);
-        let mut defaultApiKeyIndex: Value = Value::Int(254);
-        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("apiKeyIndex".into(), defaultApiKeyIndex.clone()); }; // default to a value to avoid overriding other keys
-        return Value::from(vec![defaultApiKeyIndex, paramsApiKeyIndex]);
+        let mut defaultApiKeyIndex: i64 = 254;
+        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("apiKeyIndex".into(), Value::from(defaultApiKeyIndex)); }; // default to a value to avoid overriding other keys
+        return Value::from(vec![Value::from(defaultApiKeyIndex), paramsApiKeyIndex]);
 
     Value::Null
 }
@@ -1164,10 +1164,9 @@ impl Lighter {
         let mut auths: crate::value::Dict = self.safe_dict_k(self.options.clone(), "auths", &[]).into_dict();
         let mut accountAuths: crate::value::Dict = self.safe_dict(&auths, accountIndex.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
         let mut cachedAuth: crate::value::Dict = self.safe_dict(&accountAuths, apiKeyIndex.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
-        let mut cachedDeadline: Value = self.safe_integer_k(&cachedAuth, "deadline", &[]);
-        let mut minimumRemaining: Value = self.safe_integer_k(self.options.clone(), "authDeadlineMinimumRemaining", &[Value::Int(60)]);
-        if (cachedDeadline != Value::Null) && (minimumRemaining != Value::Null) && ((match (&(cachedDeadline), &(minimumRemaining)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) >= self.seconds().as_f64().unwrap_or(f64::NAN)) {
+        let mut cachedDeadline: Option<i64> = self.safe_integer_k(&cachedAuth, "deadline", &[]).as_i64();
+        let mut minimumRemaining: i64 = self.safe_integer_k(self.options.clone(), "authDeadlineMinimumRemaining", &[Value::Int(60)]).as_i64().unwrap_or(60);
+        if (cachedDeadline.is_some()) && (true) && (((if let Some(__l) = cachedDeadline { Some(__l - minimumRemaining) } else { None })) >= Some((self.seconds().as_i64().unwrap_or_default()))) {
             return self.safe_string_k(&cachedAuth, "token", &[]).as_str().map(str::to_owned);
         }
         let mut deadline: i64 = ((self.seconds().as_i64().unwrap_or_default()) + (self.safe_integer_k(self.options.clone(), "authDeadlineExpiry", &[Value::Int(28800)]).as_i64().unwrap_or(28800)));
@@ -1287,8 +1286,8 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-        let mut accountIndexStr: Value = Value::from(self.number_to_string(accountIndex.clone()));
-        let mut isStandardTier: Option<bool> = self.safe_bool(Value::Map(tiersForAccountIndexes.clone()), accountIndexStr.clone(), &[]).as_bool();
+        let mut accountIndexStr: Option<String> = self.number_to_string(accountIndex.clone());
+        let mut isStandardTier: Option<bool> = self.safe_bool(Value::Map(tiersForAccountIndexes.clone()), Value::from(accountIndexStr.as_deref()), &[]).as_bool();
         if (isStandardTier.is_some()) {
             let mut cachedIsStandard: Value = (Value::Bool(isStandardTier == Some(true)));
             return cachedIsStandard;
@@ -1315,7 +1314,7 @@ if _try_result.is_err() {
         //
         let mut tier: Option<String> = self.safe_string_k(&accountLimits, "user_tier", &[]).as_str().map(str::to_owned);
         let mut isStandard: bool = tier.as_deref() == Some("standard");
-        tiersForAccountIndexes.insert(crate::runtime::stringify_param(&accountIndexStr), Value::Bool(isStandard));
+        tiersForAccountIndexes.insert(accountIndexStr.as_deref().unwrap_or("null").to_string(), Value::Bool(isStandard));
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tiersForAccountIndexes".into(), Value::Map(tiersForAccountIndexes)); }
         return Value::Bool(isStandard);
 
@@ -2566,12 +2565,12 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.public_get_order_book_details(&[params]).await.into_dict();
         let mut spotTickers: crate::value::List = self.safe_list_k(&response, "spot_order_book_details", &[Value::from(vec![])]).into_list();
         let mut swapTickers: crate::value::List = self.safe_list_k(&response, "order_book_details", &[Value::from(vec![])]).into_list();
         let mut tickers: Value = self.array_concat(&spotTickers, &swapTickers);
-        return self.parse_tickers(tickers, &[symbolsNormalized]);
+        return self.parse_tickers(tickers, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2616,21 +2615,21 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
-        let mut now: Value = Value::Int(self.milliseconds());
+        let mut now: i64 = self.milliseconds();
         let mut startTs: Value = Value::Null;
         let mut endTs: Value = Value::Null;
         if (since != Value::Null) {
             startTs = since.clone();
-            if (until != Value::Null) {
-                endTs = until.clone();
+            if (until.is_some()) {
+                endTs = Value::from(until);
             }  else if (limit != Value::Null) {
                 let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
                 endTs = self.sum(&[since.clone(), (match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })),
                     &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
             }  else {
-                endTs = now.clone();
+                endTs = Value::from(now);
             }
         }  else {
             let mut count: i64 = self.safe_integer(Value::Map({
@@ -2639,13 +2638,13 @@ if _try_result.is_err() {
     m
 }), Value::Str("limit".into()), &[Value::Int(100)]).as_i64().unwrap_or(100);
             let mut timeframeMs: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
-            let mut span: Value = Value::Int((timeframeMs * count));
-            if (until != Value::Null) {
-                endTs = until.clone();
-                startTs = (match (&(until), &(span)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            let mut span: i64 = (timeframeMs * count);
+            if (until.is_some()) {
+                endTs = Value::from(until);
+                startTs = Value::from((if let Some(__l) = until { Some(__l - span) } else { None }));
             }  else {
-                endTs = now.clone();
-                startTs = (match (&(now), &(span)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                endTs = Value::from(now);
+                startTs = Value::Int((now - span));
             }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2682,7 +2681,7 @@ if _try_result.is_err() {
         // }
         //
         let mut ohlcvs: crate::value::List = self.safe_list_k(&response, "c", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&ohlcvs, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&ohlcvs, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2879,17 +2878,17 @@ if _try_result.is_err() {
                     while { if !__for_first_933 { j += 1; } __for_first_933 = false; j < (assets.len() as i64) } {
                     let mut asset: crate::value::Dict = self.safe_dict(&assets, Value::Int(j), &[]).into_dict();
                     let mut codeId: Option<String> = self.safe_string_k(&asset, "symbol", &[]).as_str().map(str::to_owned);
-                    let mut code: Value = self.safe_currency_code(codeId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+                    let mut code: Option<String> = self.safe_currency_code(codeId.map(Value::from).unwrap_or(Value::Null), None);
                     let __ws_arg_17 = self.account();
-                    let __ws_arg_18 = self.safe_dict(Value::Map(result.clone()), code.clone(), &[Value::Map({
+                    let __ws_arg_18 = self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
                     let mut balance: Value = self.extend(__ws_arg_17, &[__ws_arg_18]);
                     { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&balance, "total"), &self.safe_string_k(&asset, "balance", &[])); if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("total".into(), __be_tmp); } }
                     { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&balance, "used"), &self.safe_string_k(&asset, "locked_balance", &[])); if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("used".into(), __be_tmp); } }
-                    if (code != Value::Null) {
-                        result.insert(crate::runtime::stringify_param(&code), balance);
+                    if (code.is_some()) {
+                        result.insert(code.as_deref().unwrap_or("null").to_string(), balance);
                     }
                 }
                 }

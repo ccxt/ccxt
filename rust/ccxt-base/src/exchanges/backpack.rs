@@ -1367,12 +1367,12 @@ impl Backpack {
             let mut __for_first_245: bool = true;
             while { if !__for_first_245 { i += 1; } __for_first_245 = false; i < (requestedTypes.len() as i64) } {
             let mut requestedType: String = self.safe_string(requestedTypes.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut normalizedType: Value = self.safe_string(&aliases, Value::from(requestedType.clone()), &[Value::from(requestedType.clone())]);
-            if !(self.in_array(normalizedType.clone(), supportedTypes.clone()).as_bool() == Some(true)) {
+            let mut normalizedType: Option<String> = self.safe_string(&aliases, Value::from(requestedType.clone()), &[Value::from(requestedType.clone())]).as_str().map(str::to_owned);
+            if !(self.in_array(Value::from(normalizedType.as_deref()), supportedTypes.clone()).as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() unsupported marketType ".into())).into()), requestedType)));
             }
-            if !(self.in_array(normalizedType.clone(), marketTypes.clone()).as_bool() == Some(true)) {
-                if let Value::Arr(__a) = &mut marketTypes { std::sync::Arc::make_mut(__a).push(normalizedType); }
+            if !(self.in_array(Value::from(normalizedType.as_deref()), marketTypes.clone()).as_bool() == Some(true)) {
+                if let Value::Arr(__a) = &mut marketTypes { std::sync::Arc::make_mut(__a).push(normalizedType.map(Value::from).unwrap_or(Value::Null)); }
             }
         }
         }
@@ -2375,22 +2375,22 @@ impl Backpack {
                         let mut i: i64 = 0;
             let mut __for_first_251: bool = true;
             while { if !__for_first_251 { i += 1; } __for_first_251 = false; i < (symbolsResolved.len() as i64) } {
-            let mut marketSymbol: Value = symbolsResolved.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(marketSymbol.as_str().unwrap_or_default()));
+            let mut marketSymbol: Option<String> = symbolsResolved.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(marketSymbol.as_deref().unwrap_or_default()));
             if stockOnly && (market.as_map().and_then(|__m| __m.get("stock")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
                 continue;
             }
             let mut marketIsRfq: bool = self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketType".into()), &[]).as_str() == Some("RFQ");
-            let mut ticker: Value = self.safe_dict(tickers.clone(), marketSymbol.clone(), &[]);
+            let mut ticker: Value = self.safe_dict(tickers.clone(), Value::from(marketSymbol.as_deref()), &[]);
             if (ticker != Value::Null) && ((source.as_deref() != Some("External")) || (market.as_map().and_then(|__m| __m.get("stock")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) {
-                result.insert(crate::runtime::stringify_param(&marketSymbol), ticker);
+                result.insert(marketSymbol.as_deref().unwrap_or("null").to_string(), ticker);
             }  else if marketIsRfq {
                 let mut underlyingId: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]), Value::Str("_".into())).into()), self.safe_string_k(market.clone(), "quoteId", &[Value::Str("".into())]));
                 let mut useExternal: bool = (source.as_deref() == Some("External")) || needsExternalRfqTickers;
                 let mut tickerSource: Value = (if (useExternal) { externalResponseById.clone() } else { responseById.clone() });
                 let mut underlyingTicker: Option<crate::value::Dict> = self.safe_dict(tickerSource, Value::from(underlyingId), &[]).into_opt_dict();
                 if (underlyingTicker.is_some()) {
-                    result.insert(crate::runtime::stringify_param(&marketSymbol), self.parse_ticker(&underlyingTicker, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref()));
+                    result.insert(marketSymbol.as_deref().unwrap_or("null").to_string(), self.parse_ticker(&underlyingTicker, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref()));
                 }
             }
         }
@@ -2559,18 +2559,18 @@ impl Backpack {
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[self.omit(&query, Value::Str("source".into()), &[])]);
         let mut response: crate::value::Dict = self.public_get_api_v1_depth(&[__ws_arg_5]).await.into_dict();
-        let mut microseconds: Value = self.safe_integer_k(&response, "timestamp", &[]);
-        if (microseconds == Value::Null) {
+        let mut microseconds: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
+        if (microseconds.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() missing microseconds".into()))));
         }
-        let mut timestamp: Option<i64> = self.parse_to_int((match ((microseconds).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-        let mut orderbook: Value = self.parse_order_book(&response, symbol, &[Value::from(timestamp)]);
-        orderbook.set_book_meta("nonce", self.safe_integer_k(&response, "lastUpdateId", &[]));
+        let mut timestamp: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = microseconds { Some((__l as f64) / 1000.0) } else { None })));
+        let mut orderbook: crate::value::Dict = self.parse_order_book(&response, symbol, &[Value::from(timestamp)]).into_dict();
+        std::sync::Arc::make_mut(&mut orderbook).insert("nonce".into(), self.safe_integer_k(&response, "lastUpdateId", &[]));
         if (limit != Value::Null) {
-            { let __be_tmp = self.array_slice(crate::value::get_value_k(&orderbook, "bids"), Value::Int(0), &[limit.clone()]); if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("bids".into(), __be_tmp); } };
-            { let __be_tmp = self.array_slice(crate::value::get_value_k(&orderbook, "asks"), Value::Int(0), &[limit]); if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("asks".into(), __be_tmp); } };
+            { let __be_tmp = self.array_slice(crate::value::KeyRead::key_read(&&orderbook, "bids"), Value::Int(0), &[limit.clone()]); std::sync::Arc::make_mut(&mut orderbook).insert("bids".into(), __be_tmp); }
+            { let __be_tmp = self.array_slice(crate::value::KeyRead::key_read(&&orderbook, "asks"), Value::Int(0), &[limit]); std::sync::Arc::make_mut(&mut orderbook).insert("asks".into(), __be_tmp); }
         }
-        return orderbook;
+        return Value::Dict(orderbook);
         Value::Null
         }).await?))
     }
@@ -2657,7 +2657,7 @@ impl Backpack {
         let __ws_arg_6 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: crate::value::List = self.public_get_api_v1_klines(&[__ws_arg_6]).await.into_list();
         let mut ohlcvs: Value = self.to_array(&response);
-        return self.parse_ohlc_vs(ohlcvs, &[market, timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(ohlcvs, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -2892,8 +2892,8 @@ impl Backpack {
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3058,8 +3058,8 @@ impl Backpack {
                 }
             }
             }
-            let mut sorted: Value = self.sort_by(Value::from(filtered), Value::Str("timestamp".into()), &[]);
-            return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[]);
+            let mut sorted: crate::value::List = self.sort_by(Value::from(filtered), Value::Str("timestamp".into()), &[]).into_list();
+            return self.filter_by_since_limit(Value::Arr(sorted), since.as_i64(), limit.as_i64(), &[]);
         }
         if (since != Value::Null) {
             request.insert("from".into(), since.clone());
@@ -4792,8 +4792,8 @@ impl Backpack {
         if self.is_empty(symbols.clone()).as_bool() == Some(true) {
             return self.parse_positions(&response, &[]);
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.parse_positions(&response, &[symbolsNormalized]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        return self.parse_positions(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -4970,11 +4970,11 @@ impl Backpack {
 }
 
     pub fn nonce(&self) -> Value {
-        let mut timeDifference: Value = self.safe_integer_k(self.options.clone(), "timeDifference", &[]);
-        if (timeDifference == Value::Null) {
+        let mut timeDifference: Option<i64> = self.safe_integer_k(self.options.clone(), "timeDifference", &[]).as_i64();
+        if (timeDifference.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" nonce() requires a numeric options[\"timeDifference\"]".into()))));
         }
-        return (match (&(Value::Int(self.milliseconds())), &(timeDifference)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return Value::from((if let Some(__r) = timeDifference { Some((self.milliseconds()) - __r) } else { None }));
 
     Value::Null
 }

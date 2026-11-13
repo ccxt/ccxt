@@ -2120,7 +2120,7 @@ impl Bitrue {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV only support spot & swap markets".into()))));
         }
-        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(data, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -4055,7 +4055,7 @@ impl Bitrue {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestBody: Value = Value::Null;
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut type_var: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut version: Value = api.get(1).cloned().unwrap_or(Value::Null);
         let mut access: Option<String> = api.get(2).and_then(Value::as_str).map(str::to_owned);
@@ -4084,19 +4084,19 @@ impl Bitrue {
                 query = Value::Str(format!("{}{}", query, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("&".into()), Value::Str("signature=".into())).into()), signature).into())).into());
                 if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), query));
-                    requestHeaders = Value::Map({
+                    requestHeaders = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());
                         m
-                    });
+                    }));
                 }  else {
                     requestBody = query.clone();
-                    requestHeaders = Value::Map({
+                    requestHeaders = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());
                             m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                         m
-                    });
+                    }));
                 }
             }  else {
                 let mut timestamp: Value = Value::Str(format!("{}", self.nonce()).into());
@@ -4111,14 +4111,14 @@ impl Bitrue {
                     if ((Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                         signMessage = Value::Str(format!("{}{}", signMessage, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])).into())).into());
                     }
-                    let mut signature: Value = Value::from(self.hmac(self.encode(signMessage.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
-                    requestHeaders = Value::Map({
+                    let mut signature: String = self.hmac(self.encode(signMessage.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+                    requestHeaders = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("X-CH-APIKEY".to_string(), self.apiKey.clone());
-                            m.insert("X-CH-SIGN".to_string(), signature.clone());
+                            m.insert("X-CH-SIGN".to_string(), Value::from(signature));
                             m.insert("X-CH-TS".to_string(), timestamp.clone());
                         m
-                    });
+                    }));
                     url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])));
                 }  else {
                     let mut query: Value = self.extend(Value::Map({
@@ -4128,15 +4128,15 @@ impl Bitrue {
                     }), &[paramsOmitted.clone()]);
                     requestBody = json_stringify(&query);
                     signMessage = Value::Str(format!("{}{}", signMessage, requestBody).into());
-                    let mut signature: Value = Value::from(self.hmac(self.encode(signMessage), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
-                    requestHeaders = Value::Map({
+                    let mut signature: String = self.hmac(self.encode(signMessage), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+                    requestHeaders = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                             m.insert("X-CH-APIKEY".to_string(), self.apiKey.clone());
-                            m.insert("X-CH-SIGN".to_string(), signature);
+                            m.insert("X-CH-SIGN".to_string(), Value::from(signature));
                             m.insert("X-CH-TS".to_string(), timestamp);
                         m
-                    });
+                    }));
                 }
             }
         }  else {
@@ -4145,7 +4145,7 @@ impl Bitrue {
             }
         }
         let mut bodyResult: Value = requestBody;
-        let mut headersResult: Value = requestHeaders;
+        let mut headersResult: Value = requestHeaders.map_or(Value::Null, Value::Dict);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));

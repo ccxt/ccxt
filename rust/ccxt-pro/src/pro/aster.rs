@@ -2002,22 +2002,18 @@ impl Aster {
         if (timeframe == Value::Null) {
             return;
         }
-        let mut ohlcvsByTimeframe: Option<crate::value::Dict> = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]).into_opt_dict();
-        if (ohlcvsByTimeframe.is_none()) {
-            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})); }
+        if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
+            CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }
-        if (self.safe_value(&ohlcvsByTimeframe, timeframe.clone(), &[]) == Value::Null) {
+        if (self.ohlcvs.shelf_text(&symbol).lookup(&timeframe).is_none()) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-            if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), Value::from(ArrayCacheByTimestamp::new(limit))); } }
+            CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, ArrayCacheByTimestamp::new(limit));
         }
-        let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&timeframe);
         let mut parsed: crate::value::List = self.parse_ws_ohlcv(kline, None).into_list();
         stored.append(Value::Arr(parsed));
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into()), Value::Str(":".into())).into()), timeframe);
-        let mut resolveData: Value = Value::from(vec![symbol, timeframe, stored]);
+        let mut resolveData: Value = Value::from(vec![symbol, timeframe, Value::from(&stored)]);
         client.resolve(resolveData, messageHash.as_str());
 }
 
@@ -2500,21 +2496,21 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                         let mut i: i64 = 0;
             let mut __for_first_34: bool = true;
             while { if !__for_first_34 { i += 1; } __for_first_34 = false; i < (rawPositions.len() as i64) } {
-            let mut rawPosition: Value = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut position: Value = self.parse_ws_position(rawPosition, None);
+            let mut rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut position: crate::value::Dict = self.parse_ws_position(Value::Dict(rawPosition), None).into_dict();
             let mut timestamp: Option<i64> = (match message.get("E") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-            add_element_to_object(&mut position, &Value::Str("timestamp".into()), Value::from(timestamp));
-            add_element_to_object(&mut position, &Value::Str("datetime".into()), self.iso8601(Value::from(timestamp)));
-            if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
-            cache.append(position.clone());
+            std::sync::Arc::make_mut(&mut position).insert("timestamp".into(), Value::from(timestamp));
+            std::sync::Arc::make_mut(&mut position).insert("datetime".into(), self.iso8601(Value::from(timestamp)));
+            if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(Value::from(&position)); }
+            cache.append(Value::Dict(position));
         }
         }
         let mut messageHashes: crate::value::List = self.find_message_hashes(client.clone(), Value::from(messageHash.clone())).into_list();
         if !(self.is_empty(Value::Arr(messageHashes)).as_bool() == Some(true)) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_35: bool = true;
-                while { if !__for_first_35 { i += 1; } __for_first_35 = false; i < (newPositions.len() as i64) } {
+                let mut __for_first_36: bool = true;
+                while { if !__for_first_36 { i += 1; } __for_first_36 = false; i < (newPositions.len() as i64) } {
                 let mut position: Value = newPositions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), self.safe_string_k(position.clone(), "symbol", &[Value::Str("".into())]));
                 client.resolve(position, symbolMessageHash.as_str());
@@ -2761,8 +2757,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                             let mut insertNewFeeCurrency: bool = true;
                             {
                                                                 let mut i: i64 = 0;
-                                let mut __for_first_36: bool = true;
-                                while { if !__for_first_36 { i += 1; } __for_first_36 = false; i < (fees.len() as i64) } {
+                                let mut __for_first_37: bool = true;
+                                while { if !__for_first_37 { i += 1; } __for_first_37 = false; i < (fees.len() as i64) } {
                                 let mut orderFee: Value = fees.get(i as usize).cloned().unwrap_or(Value::Null);
                                 if (self.safe_string_k(orderFee.clone(), "currency", &[]).as_str() == self.safe_string_k(tradeFee.clone(), "currency", &[]).as_str()) {
                                     let mut feeCost: Value = self.sum(&[tradeFee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null), crate::value::get_value_k(&orderFee, "cost")]);

@@ -947,10 +947,10 @@ impl Coinspot {
                     let mut currencyId: Value = currencyIdsList.get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut balance: crate::value::Dict = self.safe_dict(&currencies, currencyId.clone(), &[]).into_dict();
                     let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), None);
-                    let mut account: Value = self.account();
-                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(&balance, "balance", &[])); }
+                    let mut account: crate::value::Dict = self.account().into_dict();
+                    std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
                     if (code.is_some()) {
-                        result.insert(code.as_deref().unwrap_or("null").to_string(), account.clone());
+                        result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
                     }
                 }
                 }
@@ -964,10 +964,10 @@ impl Coinspot {
                 while { if !__for_first_583 { i += 1; } __for_first_583 = false; i < (currencyIdsMap.len() as i64) } {
                 let mut currencyId: Value = currencyIdsMap.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), None);
-                let mut account: Value = self.account();
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(balances.clone(), currencyId, &[])); }
+                let mut account: crate::value::Dict = self.account().into_dict();
+                std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string(balances.clone(), currencyId, &[]));
                 if (code.is_some()) {
-                    result.insert(code.as_deref().unwrap_or("null").to_string(), account);
+                    result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
                 }
             }
             }

@@ -201,7 +201,7 @@ impl crate::exchange_generated::ExchangeBase for Hashkey {
                 "watch_private" => self.watch_private(args.get(0).and_then(crate::Value::as_str).unwrap_or_default()).await,
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "wath_public" => self.wath_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), &args[3.min(args.len())..]).await,
+                "wath_public" => self.wath_public(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), &args[3.min(args.len())..]).await,
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
                 _ => crate::exchange_generated::ExchangeBase::call_dynamic(&mut self.parent, method, args).await,
             }
@@ -323,7 +323,7 @@ impl Hashkey {
     Value::Null
 }
 
-    pub async fn wath_public(&mut self, mut market: Value, topic: &str, messageHash: &str, optional_args: &[Value]) -> Value {
+    pub async fn wath_public(&mut self, market: Option<&crate::types::Market>, topic: &str, messageHash: &str, optional_args: &[Value]) -> Value {
         let mut topic: Value = topic.into();
         let mut messageHash: Value = messageHash.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -332,7 +332,7 @@ impl Hashkey {
 }));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&market, "id"));
                 m.insert("topic".to_string(), topic);
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
@@ -391,12 +391,12 @@ impl Hashkey {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut topic: String = format!("{}{}", Value::Str("kline_".into()), interval.map(Value::from).unwrap_or(Value::Null));
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbolValue).into()), Value::Str(":".into())).into()), timeframe);
-        let mut ohlcv: Value = self.wath_public(market, topic.as_str(), messageHash.as_str(), &[params]).await;
+        let mut ohlcv: Value = self.wath_public(Some(&market), topic.as_str(), messageHash.as_str(), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
@@ -437,29 +437,26 @@ impl Hashkey {
         //
         let mut marketId: Option<String> = self.safe_string_k(message, "symbol", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut params: crate::value::Dict = __pro_message.get("params").cloned().unwrap_or_default().into_dict();
         let mut klineType: Option<String> = self.safe_string_k(&params, "klineType", &[]).as_str().map(str::to_owned);
-        let mut timeframe: Value = Value::from(self.find_timeframe(klineType.map(Value::from).unwrap_or(Value::Null), &[]));
-        if (timeframe == Value::Null) {
+        let mut timeframe: Option<String> = self.find_timeframe(klineType.map(Value::from).unwrap_or(Value::Null), &[]);
+        if (timeframe.is_none()) {
             return;
         }
-        if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})); }
+        if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
+            CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }
-        if !((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
+        if !(self.ohlcvs.shelf(&symbol).has(&timeframe)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-            if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), Value::from(ArrayCacheByTimestamp::new(limit))); } }
+            CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, ArrayCacheByTimestamp::new(limit));
         }
         let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
-        let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&timeframe);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_358: bool = true;
-            while { if !__for_first_358 { i += 1; } __for_first_358 = false; i < (data.len() as i64) } {
+            let mut __for_first_359: bool = true;
+            while { if !__for_first_359 { i += 1; } __for_first_359 = false; i < (data.len() as i64) } {
             let mut candle: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -468,8 +465,8 @@ impl Hashkey {
             stored.append(Value::Arr(parsed));
         }
         }
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into()), Value::Str(":".into())).into()), timeframe);
-        client.resolve(stored, messageHash.as_str());
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into()), Value::Str(":".into())).into()), timeframe.map(Value::from).unwrap_or(Value::Null));
+        client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {
@@ -502,11 +499,11 @@ impl Hashkey {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut topic: String = "realtimes".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolValue);
-        return self.wath_public(market, topic.as_str(), messageHash.as_str(), &[params]).await;
+        return self.wath_public(Some(&market), topic.as_str(), messageHash.as_str(), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -581,11 +578,11 @@ impl Hashkey {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut topic: String = "trade".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbolValue);
-        let mut trades: Value = self.wath_public(market, topic.as_str(), messageHash.as_str(), &[params]).await;
+        let mut trades: Value = self.wath_public(Some(&market), topic.as_str(), messageHash.as_str(), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
@@ -635,8 +632,8 @@ impl Hashkey {
             data = self.sort_by(data.clone(), Value::Str("t".into()), &[]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_359: bool = true;
-                while { if !__for_first_359 { i += 1; } __for_first_359 = false; i < (data.len() as i64) } {
+                let mut __for_first_360: bool = true;
+                while { if !__for_first_360 { i += 1; } __for_first_360 = false; i < (data.len() as i64) } {
                 let mut trade: Option<crate::value::Dict> = self.safe_dict(data.clone(), Value::Int(i), &[]).into_opt_dict();
                 let mut parsed: crate::value::Dict = self.parse_ws_trade(&trade, Some(&market)).into_dict();
                 stored.append(Value::Dict(parsed));
@@ -672,11 +669,11 @@ impl Hashkey {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut topic: String = "depth".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbolValue);
-        let mut orderbook: Value = self.wath_public(market, topic.as_str(), messageHash.as_str(), &[params]).await;
+        let mut orderbook: Value = self.wath_public(Some(&market), topic.as_str(), messageHash.as_str(), &[params]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -988,7 +985,7 @@ impl Hashkey {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "s", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "t", &[]).as_i64();
         let mut isBuyerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "m", &[]).as_bool();
         let mut isPublicTrade: bool = self.safe_string_k(trade.clone(), "e", &[]) == Value::Null;
@@ -1008,7 +1005,7 @@ impl Hashkey {
         m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("v".into()), Value::Str("T".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "p", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "q", &[]));
@@ -1019,7 +1016,7 @@ impl Hashkey {
         m.insert("fee".to_string(), Value::Null);
         m.insert("info".to_string(), trade);
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -1060,8 +1057,8 @@ impl Hashkey {
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_360: bool = true;
-                while { if !__for_first_360 { i += 1; } __for_first_360 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_361: bool = true;
+                while { if !__for_first_361 { i += 1; } __for_first_361 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
             }

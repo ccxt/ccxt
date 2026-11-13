@@ -1283,7 +1283,7 @@ impl Ndax {
         m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), (Value::Bool(sessionRunning && (isDisable != true))));
+        m.insert("active".to_string(), (Value::Bool((sessionRunning && (isDisable != true)))));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
@@ -1542,7 +1542,7 @@ impl Ndax {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::List = self.public_get_summary(&[params]).await.into_list();
         //
         //     [
@@ -1560,7 +1560,7 @@ impl Ndax {
         //     ]
         //
         let mut tickers: Value = self.parse_tickers(&response, &[]);
-        return self.filter_by_array_tickers(tickers, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(tickers, Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -1678,7 +1678,7 @@ impl Ndax {
         if (matches!(&response, Value::Arr(_))) {
             candles = response.clone();
         }
-        return self.parse_ohlc_vs(candles, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3441,7 +3441,7 @@ impl Ndax {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut bodySigned: Value = Value::Null;
-        let mut headersSigned: Value = Value::Null;
+        let mut headersSigned: Option<crate::value::Dict> = None;
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
@@ -3452,19 +3452,19 @@ impl Ndax {
             if (path.as_str() == Some("Authenticate")) {
                 let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", self.login.clone(), Value::Str(":".into())).into()), self.password.clone());
                 let mut auth64: String = self.string_to_base64(Value::from(auth), &[]);
-                headersSigned = Value::Map({
+                headersSigned = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str("Basic ".into()), auth64).into()));
                     m
-                });
+                }));
             }  else if (path.as_str() == Some("Authenticate2FA")) {
                 let mut pending2faToken: Option<String> = self.safe_string_k(self.options.clone(), "pending2faToken", &[]).as_str().map(str::to_owned);
                 if (pending2faToken.is_some()) {
-                    headersSigned = Value::Map({
+                    headersSigned = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("Pending2FaToken".to_string(), pending2faToken.map(Value::from).unwrap_or(Value::Null));
                         m
-                    });
+                    }));
                     query = self.omit(query.clone(), Value::Str("pending2faToken".into()), &[]);
                 }
             }
@@ -3480,7 +3480,7 @@ impl Ndax {
                 let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, self.uid.clone()).into()), self.apiKey.clone());
                 let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                 if isPost {
-                    headersSigned = Value::Map({
+                    headersSigned = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("Nonce".to_string(), nonce.clone());
                             m.insert("APIKey".to_string(), self.apiKey.clone());
@@ -3488,30 +3488,30 @@ impl Ndax {
                             m.insert("UserId".to_string(), self.uid.clone());
                             m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                         m
-                    });
+                    }));
                 }  else {
-                    headersSigned = Value::Map({
+                    headersSigned = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("Nonce".to_string(), nonce);
                             m.insert("APIKey".to_string(), self.apiKey.clone());
                             m.insert("Signature".to_string(), Value::from(signature));
                             m.insert("UserId".to_string(), self.uid.clone());
                         m
-                    });
+                    }));
                 }
             }  else if isPost {
-                headersSigned = Value::Map({
+                headersSigned = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("APToken".to_string(), sessionToken.clone().map(Value::from).unwrap_or(Value::Null));
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m
-                });
+                }));
             }  else {
-                headersSigned = Value::Map({
+                headersSigned = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("APToken".to_string(), sessionToken.map(Value::from).unwrap_or(Value::Null));
                     m
-                });
+                }));
             }
             if isPost {
                 bodySigned = json_stringify(&query);
@@ -3521,7 +3521,7 @@ impl Ndax {
                 }
             }
         }
-        let mut headersResolved: Value = headersSigned;
+        let mut headersResolved: Value = headersSigned.map_or(Value::Null, Value::Dict);
         let mut bodyResolved: Value = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

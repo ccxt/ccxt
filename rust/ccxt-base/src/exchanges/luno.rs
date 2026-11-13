@@ -1538,7 +1538,7 @@ impl Luno {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.public_get_tickers(&[params]).await.into_dict();
         let mut rawTickers: Value = self.safe_list_k(&response, "tickers", &[Value::from(vec![])]);
         let mut tickers: Value = self.index_by(rawTickers, Value::Str("pair".into()));
@@ -1558,7 +1558,7 @@ impl Luno {
             result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, Some(&market)));
         }
         }
-        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -1814,7 +1814,7 @@ impl Luno {
         //     }
         //
         let mut ohlcvs: crate::value::List = self.safe_list_k(&response, "candles", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&ohlcvs, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&ohlcvs, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2434,20 +2434,20 @@ impl Luno {
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
             url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])));
         }
         if (apiName.as_deref() == Some("private")) || (apiName.as_deref() == Some("exchangePrivate")) {
             self.check_required_credentials(&[]);
             let mut auth: String = self.string_to_base64(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(":".into())).into()), self.secret.clone()).into()), &[]);
-            requestHeaders = Value::Map({
+            requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str("Basic ".into()), auth).into()));
                 m
-            });
+            }));
         }
-        let mut headersResolved: Value = requestHeaders;
+        let mut headersResolved: Value = requestHeaders.map_or(Value::Null, Value::Dict);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));

@@ -315,8 +315,8 @@ impl Upbit {
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_678: bool = true;
-            while { if !__for_first_678 { i += 1; } __for_first_678 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_679: bool = true;
+            while { if !__for_first_679 { i += 1; } __for_first_679 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut marketId: String = self.safe_string(&marketIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut symbol: String = self.safe_string(&symbolsNormalized, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbol).into());
@@ -339,8 +339,8 @@ impl Upbit {
         let mut channelKeys: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_679: bool = true;
-            while { if !__for_first_679 { i += 1; } __for_first_679 = false; i < (channelKeys.len() as i64) } {
+            let mut __for_first_680: bool = true;
+            while { if !__for_first_680 { i += 1; } __for_first_680 = false; i < (channelKeys.len() as i64) } {
             let mut key: Option<String> = channelKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             finalMessage.push((if let (Some(__m), Some(__k)) = (subscriptions.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
         }
@@ -634,8 +634,8 @@ impl Upbit {
         let mut asksSnapshot: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_680: bool = true;
-            while { if !__for_first_680 { i += 1; } __for_first_680 = false; i < (data.len() as i64) } {
+            let mut __for_first_681: bool = true;
+            while { if !__for_first_681 { i += 1; } __for_first_681 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut bidPrice: Option<f64> = self.safe_number_k(&entry, "bid_price", &[]).as_f64();
             let mut bidSize: Option<f64> = self.safe_number_k(&entry, "bid_size", &[]).as_f64();
@@ -802,8 +802,8 @@ impl Upbit {
         let mut channelKeys: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_681: bool = true;
-            while { if !__for_first_681 { i += 1; } __for_first_681 = false; i < (channelKeys.len() as i64) } {
+            let mut __for_first_682: bool = true;
+            while { if !__for_first_682 { i += 1; } __for_first_682 = false; i < (channelKeys.len() as i64) } {
             message.push(get_value(&subscriptions, &channelKeys.get(i as usize).cloned().unwrap_or(Value::Null)));
         }
         }
@@ -1082,9 +1082,9 @@ impl Upbit {
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut parsed: Value = self.parse_ws_order(message, None);
-        let mut symbol: Option<String> = self.safe_string_k(parsed.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut orderId: Option<String> = self.safe_string_k(parsed.clone(), "id", &[]).as_str().map(str::to_owned);
+        let mut parsed: crate::value::Dict = self.parse_ws_order(message, None).into_dict();
+        let mut symbol: Option<String> = self.safe_string_k(&parsed, "symbol", &[]).as_str().map(str::to_owned);
+        let mut orderId: Option<String> = self.safe_string_k(&parsed, "id", &[]).as_str().map(str::to_owned);
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(limit));
@@ -1100,44 +1100,44 @@ impl Upbit {
         let mut order: Value = (if (orderId.is_none()) { Value::Null } else { self.safe_dict(orders.clone(), orderId.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
         if (order != Value::Null) {
             // paid_fee is cumulative, so the cached fee is only a fallback
-            let mut parsedFee: Option<crate::value::Dict> = self.safe_dict_k(parsed.clone(), "fee", &[]).into_opt_dict();
+            let mut parsedFee: Option<crate::value::Dict> = self.safe_dict_k(&parsed, "fee", &[]).into_opt_dict();
             if (parsedFee.is_none()) {
                 let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
                 if (fee != Value::Null) {
-                    if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("fee".to_string(), fee); }
+                    std::sync::Arc::make_mut(&mut parsed).insert("fee".into(), fee);
                 }
                 let mut fees: Value = self.safe_list_k(order.clone(), "fees", &[]);
                 if (fees != Value::Null) {
-                    if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("fees".to_string(), fees); }
+                    std::sync::Arc::make_mut(&mut parsed).insert("fees".into(), fees);
                 }
             }
-            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("trades".to_string(), self.safe_value_k(order.clone(), "trades", &[])); }
-            let mut lastTradeTimestamp: Option<i64> = self.safe_integer_k(parsed.clone(), "lastTradeTimestamp", &[]).as_i64();
+            std::sync::Arc::make_mut(&mut parsed).insert("trades".into(), self.safe_value_k(order.clone(), "trades", &[]));
+            let mut lastTradeTimestamp: Option<i64> = self.safe_integer_k(&parsed, "lastTradeTimestamp", &[]).as_i64();
             if (lastTradeTimestamp.is_none()) {
-                if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("lastTradeTimestamp".to_string(), self.safe_integer_k(order.clone(), "lastTradeTimestamp", &[])); }
+                std::sync::Arc::make_mut(&mut parsed).insert("lastTradeTimestamp".into(), self.safe_integer_k(order.clone(), "lastTradeTimestamp", &[]));
             }
-            let mut timestamp: Option<i64> = self.safe_integer_k(parsed.clone(), "timestamp", &[]).as_i64();
+            let mut timestamp: Option<i64> = self.safe_integer_k(&parsed, "timestamp", &[]).as_i64();
             if (timestamp.is_none()) {
-                if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), self.safe_integer_k(order.clone(), "timestamp", &[])); }
-                if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.safe_string_k(order.clone(), "datetime", &[])); }
+                std::sync::Arc::make_mut(&mut parsed).insert("timestamp".into(), self.safe_integer_k(order.clone(), "timestamp", &[]));
+                std::sync::Arc::make_mut(&mut parsed).insert("datetime".into(), self.safe_string_k(order.clone(), "datetime", &[]));
             }
             // fill updates carry the fill price and volume instead of the order's
             let mut rawStatus: Option<String> = (match __pro_message.get("state").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             if (rawStatus.as_deref() == Some("trade")) {
                 let mut cachedPrice: Option<f64> = self.safe_number_k(order.clone(), "price", &[]).as_f64();
                 if (cachedPrice.is_some()) {
-                    if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("price".to_string(), Value::from(cachedPrice)); }
+                    std::sync::Arc::make_mut(&mut parsed).insert("price".into(), Value::from(cachedPrice));
                 }
                 let mut cachedAmount: Option<f64> = self.safe_number_k(order, "amount", &[]).as_f64();
                 if (cachedAmount.is_some()) {
-                    if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("amount".to_string(), Value::from(cachedAmount)); }
+                    std::sync::Arc::make_mut(&mut parsed).insert("amount".into(), Value::from(cachedAmount));
                 }
             }
         }
-        cachedOrders.append(parsed.clone());
+        cachedOrders.append(Value::from(&parsed));
         let mut messageHash: String = "myOrder".to_string();
         client.resolve(Value::from(&self.orders), messageHash.as_str());
-        client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(parsed, "symbol", &[Value::Str("".into())])).into())));
+        client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())])).into())));
 }
 
 /*
@@ -1193,8 +1193,8 @@ impl Upbit {
         { let __be_tmp = self.iso8601(Value::from(timestamp)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_682: bool = true;
-            while { if !__for_first_682 { i += 1; } __for_first_682 = false; i < (data.len() as i64) } {
+            let mut __for_first_683: bool = true;
+            while { if !__for_first_683 { i += 1; } __for_first_683 = false; i < (data.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);

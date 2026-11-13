@@ -486,7 +486,7 @@ pub trait ExchangeBase:
         self.orders = None;
         self.trades = crate::pro::cache::CacheMap::new();
         { let __t = self.create_safe_dictionary(&[]); self.transactions = __t; }
-        { let __t = self.create_safe_dictionary(&[Value::Bool(true)]); self.ohlcvs = __t; }
+        self.ohlcvs = crate::pro::cache::CacheShelf::new();
         self.myTrades = None;
         self.positions = Value::Null;
 }
@@ -4911,13 +4911,12 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn parse_ohlc_vs(&self, ohlcvs: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    fn parse_ohlc_vs(&self, ohlcvs: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
         let mut ohlcvs: Value = ohlcvs.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut timeframe = get_arg(optional_args, 1, Value::Str("1m".into()));
-        let mut since = get_arg(optional_args, 2, Value::Null);
-        let mut limit = get_arg(optional_args, 3, Value::Null);
-        let mut tail = get_arg(optional_args, 4, Value::Bool(false));
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut tail = get_arg(optional_args, 3, Value::Bool(false));
         if (ohlcvs == Value::Null) {
             return Value::from(vec![]);
         }
@@ -4926,11 +4925,11 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_118: bool = true;
             while { if !__for_first_118 { i += 1; } __for_first_118 = false; i < (ohlcvs.len() as i64) } {
-            results.push(<Self as crate::exchange_generated::ExchangeBase>::parse_ohlcv(self, ohlcvs.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()));
+            results.push(<Self as crate::exchange_generated::ExchangeBase>::parse_ohlcv(self, ohlcvs.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), market.clone()));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(results), Value::Int(0), &[]);
-        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[Value::Int(0), tail]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(results), Value::Int(0), &[]).into_list();
+        return self.filter_by_since_limit(Value::Arr(sorted), since.as_i64(), limit.as_i64(), &[Value::Int(0), tail]);
 
     Value::Null
 }
@@ -5355,7 +5354,7 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut positionsArray: crate::value::List = self.to_array(positions).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
@@ -5366,7 +5365,7 @@ pub trait ExchangeBase:
             result.push(position);
         }
         }
-        return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
 
     Value::Null
 }
@@ -5390,7 +5389,7 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut ranksArray: crate::value::List = self.to_array(ranks).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
@@ -5401,7 +5400,7 @@ pub trait ExchangeBase:
             result.push(rank);
         }
         }
-        return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
 
     Value::Null
 }
@@ -6047,13 +6046,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn parse_trading_view_ohlcv(&self, mut ohlcvs: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut timeframe = get_arg(optional_args, 1, Value::Str("1m".into()));
-        let mut since = get_arg(optional_args, 2, Value::Null);
-        let mut limit = get_arg(optional_args, 3, Value::Null);
+    fn parse_trading_view_ohlcv(&self, mut ohlcvs: Value, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut result: Value = self.convert_trading_view_to_ohlcv(ohlcvs, &[]);
-        return self.parse_ohlc_vs(result, &[market, timeframe, since, limit]);
+        return self.parse_ohlc_vs(result, market, &[timeframe, since, limit]);
 
     Value::Null
 }
@@ -8240,7 +8238,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_149: bool = true;
             while { if !__for_first_149 { i += 1; } __for_first_149 = false; i < (response.len() as i64) } {
-            let mut row: Value = self.safe_value(response.clone(), Value::Int(i), &[]);
+            let mut row: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             interests.push(<Self as crate::exchange_generated::ExchangeBase>::parse_borrow_interest(self, row, market.clone()));
         }
         }
@@ -8265,13 +8266,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_150: bool = true;
             while { if !__for_first_150 { i += 1; } __for_first_150 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-            let mut item: Value = self.safe_value(response.clone(), Value::Int(i), &[]);
+            let mut item: Value = self.safe_dict(response.clone(), Value::Int(i), &[]);
             let mut borrowRate: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_borrow_rate(self, item, None);
             result.push(borrowRate);
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_currency_since_limit(sorted, &[code, since, limit]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_currency_since_limit(Value::Arr(sorted), &[code, since, limit]);
 
     Value::Null
 }
@@ -8286,9 +8287,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_151: bool = true;
             while { if !__for_first_151 { i += 1; } __for_first_151 = false; i < (info.len() as i64) } {
-            let mut item: Value = self.safe_value(info.clone(), Value::Int(i), &[]);
+            let mut item: Value = self.safe_dict(info.clone(), Value::Int(i), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut borrowRate: Value = self.parse_isolated_borrow_rate(item, None);
-            let mut symbol: Option<String> = self.safe_string_k_opt(borrowRate.clone(), "symbol", &[]);
+            let mut symbol: Option<String> = self.safe_string_k(borrowRate.clone(), "symbol", &[]).as_str().map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), borrowRate);
         }
         }
@@ -8313,9 +8317,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             rates.push(<Self as crate::exchange_generated::ExchangeBase>::parse_funding_rate_history(self, entry, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
         let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
-        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -8384,9 +8388,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             rates.push(self.parse_long_short_ratio(entry, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
         let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
-        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -8645,24 +8649,23 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn parse_open_interests_history(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    fn parse_open_interests_history(&self, response: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
         let mut response: Value = response.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since = get_arg(optional_args, 0, Value::Null);
+        let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut interests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_156: bool = true;
             while { if !__for_first_156 { i += 1; } __for_first_156 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = get_value(&response, &Value::Int(i));
-            let mut interest: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_open_interest(self, entry, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref());
+            let mut interest: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_open_interest(self, entry, market.clone());
             interests.push(interest);
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(interests), Value::Str("timestamp".into()), &[]);
-        let mut symbol: Option<String> = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(sorted, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(interests), Value::Str("timestamp".into()), &[]).into_list();
+        let mut symbol: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -8981,8 +8984,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 currencyId = (if (currencyIdKey == Value::Null) { Value::Null } else { self.safe_string(dictionary.clone(), currencyIdKey.clone(), &[]) });
             }
             let mut currency: crate::types::Currency = self.safe_currency(currencyId, None);
-            let mut code: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
-            if (codes == Value::Null) || self.in_array(code.clone().map(Value::from).unwrap_or(Value::Null), codes.clone()).as_bool() == Some(true) {
+            let mut code: Option<String> = self.safe_string_k(&currency, "code", &[]).as_str().map(str::to_owned);
+            if (codes == Value::Null) || self.in_array(Value::from(code.as_deref()), codes.clone()).as_bool() == Some(true) {
                 depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange_generated::ExchangeBase>::parse_deposit_withdraw_fee(self, dictionary, Some(&currency)));
             }
         }
@@ -9097,9 +9100,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             result.push(parsed);
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]).into_list();
         let mut symbol: Option<String> = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(sorted, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -9801,11 +9804,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn parse_liquidations(&self, liquidations: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    fn parse_liquidations(&self, liquidations: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
         let mut liquidations: Value = liquidations.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since = get_arg(optional_args, 0, Value::Null);
+        let mut limit = get_arg(optional_args, 1, Value::Null);
         let __liquidations_empty = Vec::new();
         let liquidations = liquidations.as_array().unwrap_or(&__liquidations_empty);
         /*
@@ -9823,14 +9825,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_170: bool = true;
             while { if !__for_first_170 { i += 1; } __for_first_170 = false; i < (liquidations.len() as i64) } {
-            let mut entry: Value = liquidations.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_liquidation(self, entry, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref());
+            let mut entry: crate::value::Dict = liquidations.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_liquidation(self, Value::Dict(entry), market.clone());
             result.push(parsed);
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        let mut symbol: Option<String> = self.safe_string_k(market, "symbol", &[]).as_str().map(str::to_owned);
-        return self.filter_by_symbol_since_limit(sorted, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]).into_list();
+        let mut symbol: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -10021,17 +10023,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             result.push(conversion);
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]).into_list();
         if (code == Value::Null) {
-            return self.filter_by_since_limit(sorted.clone(), since.as_i64(), limit.as_i64(), &[]);
+            return self.filter_by_since_limit(Value::from(&sorted), since.as_i64(), limit.as_i64(), &[]);
         }
         let mut currency: crate::types::Currency = self.safe_currency(code, None);
         if (false) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseConversions() could not resolve currency".into()))));
         }
         let mut currencyCode: Value = crate::value::KeyRead::key_read(&&currency, "code");
-        let mut fromConversion: Value = self.filter_by(sorted.clone(), Value::Str("fromCurrency".into()), currencyCode.clone(), &[]);
-        let mut toConversion: Value = self.filter_by(sorted, Value::Str("toCurrency".into()), currencyCode, &[]);
+        let mut fromConversion: Value = self.filter_by(Value::from(&sorted), Value::Str("fromCurrency".into()), currencyCode.clone(), &[]);
+        let mut toConversion: Value = self.filter_by(Value::Arr(sorted), Value::Str("toCurrency".into()), currencyCode, &[]);
         let mut both: Value = self.array_concat(fromConversion, toConversion);
         return self.filter_by_since_limit(both, since.as_i64(), limit.as_i64(), &[]);
 
@@ -10369,17 +10371,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut __for_first_180: bool = true;
                 while { if !__for_first_180 { i += 1; } __for_first_180 = false; i < (symbolsAndTimeframes.len() as i64) } {
                 let mut symbolAndTimeFrame: Value = symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut symbol: Option<String> = self.safe_string_opt(symbolAndTimeFrame.clone(), Value::Int(0), &[]);
-                let mut timeframe: Value = self.safe_string(symbolAndTimeFrame, Value::Int(1), &[]);
+                let mut symbol: Option<String> = self.safe_string(symbolAndTimeFrame.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+                let mut timeframe: Option<String> = self.safe_string(symbolAndTimeFrame, Value::Int(1), &[]).as_str().map(str::to_owned);
                 if (symbol.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cleanCache() requires a symbol argument".into()))));
                 }
-                if (timeframe == Value::Null) {
+                if (timeframe.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cleanCache() requires a timeframe argument".into()))));
                 }
-                if (matches!((&self.ohlcvs, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if ((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
-                        remove(&mut get_value(&self.ohlcvs, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), &timeframe);
+                if (CacheShelves::has(&self.ohlcvs, &symbol)) {
+                    if (self.ohlcvs.shelf(&symbol).has(&timeframe)) {
+                        CacheShelves::forget2(&mut self.ohlcvs.clone(), &symbol, &timeframe);
                     }
                 }
             }
@@ -13658,7 +13660,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "parse_leverage_tiers" => self.parse_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_leverages" => self.parse_leverages(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_liquidation" => <Self as crate::exchange_generated::ExchangeBase>::parse_liquidation(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_liquidations" => self.parse_liquidations(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "parse_liquidations" => self.parse_liquidations(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
             "parse_long_short_ratio" => self.parse_long_short_ratio(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_long_short_ratio_history" => self.parse_long_short_ratio_history(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_margin_mode" => <Self as crate::exchange_generated::ExchangeBase>::parse_margin_mode(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -13668,11 +13670,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "parse_market" => <Self as crate::exchange_generated::ExchangeBase>::parse_market(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_market_leverage_tiers" => <Self as crate::exchange_generated::ExchangeBase>::parse_market_leverage_tiers(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_markets" => self.parse_markets(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "parse_ohlc_vs" => self.parse_ohlc_vs(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "parse_ohlc_vs" => self.parse_ohlc_vs(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
             "parse_ohlcv" => <Self as crate::exchange_generated::ExchangeBase>::parse_ohlcv(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_open_interest" => <Self as crate::exchange_generated::ExchangeBase>::parse_open_interest(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_open_interests" => self.parse_open_interests(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "parse_open_interests_history" => self.parse_open_interests_history(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "parse_open_interests_history" => self.parse_open_interests_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
             "parse_option" => self.parse_option(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
             "parse_option_chain" => self.parse_option_chain(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_order" => <Self as crate::exchange_generated::ExchangeBase>::parse_order(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -13693,7 +13695,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "parse_trade" => <Self as crate::exchange_generated::ExchangeBase>::parse_trade(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_trades" => self.parse_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
             "parse_trades_helper" => self.parse_trades_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(2).cloned().unwrap_or_default()).as_ref(), &args[3.min(args.len())..]),
-            "parse_trading_view_ohlcv" => self.parse_trading_view_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "parse_trading_view_ohlcv" => self.parse_trading_view_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
             "parse_transaction" => <Self as crate::exchange_generated::ExchangeBase>::parse_transaction(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_transactions" => self.parse_transactions(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
             "parse_transfer" => <Self as crate::exchange_generated::ExchangeBase>::parse_transfer(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),

@@ -604,8 +604,8 @@ impl Coincheck {
                         let mut i: i64 = 0;
             let mut __for_first_563: bool = true;
             while { if !__for_first_563 { i += 1; } __for_first_563 = false; i < (codes.len() as i64) } {
-            let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut currency: crate::types::Currency = self.currency(code.clone());
+            let mut code: Option<String> = codes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
             let mut currencyId: Value = crate::value::KeyRead::key_read(&&currency, "id");
             let mut free: Option<String> = self.safe_string(response.clone(), currencyId.clone(), &[]).as_str().map(str::to_owned);
             if (free.is_some()) {
@@ -613,7 +613,7 @@ impl Coincheck {
                 let mut reserved: String = format!("{}{}", currencyId, Value::Str("_reserved".into()));
                 account.insert("free".into(), free.map(Value::from).unwrap_or(Value::Null));
                 account.insert("used".into(), self.safe_string(response.clone(), Value::from(reserved), &[]));
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
@@ -748,13 +748,13 @@ impl Coincheck {
         }
         let mut response: crate::value::Dict = self.private_get_exchange_orders_opens(&[params]).await.into_dict();
         let mut rawOrders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
-        let mut parsedOrders: Value = self.parse_orders(&rawOrders, market.as_ref(), &[since, limit]);
+        let mut parsedOrders: Vec<Value> = self.parse_orders(&rawOrders, market.as_ref(), &[since, limit]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_565: bool = true;
             while { if !__for_first_565 { i += 1; } __for_first_565 = false; i < (parsedOrders.len() as i64) } {
-            result.push(self.extend(parsedOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
+            result.push(self.extend(parsedOrders.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("open".into()));
                 m
@@ -1583,7 +1583,7 @@ impl Coincheck {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut bodySigned: Value = Value::Null;
-        let mut headersSigned: Value = Value::Null;
+        let mut headersSigned: Option<crate::value::Dict> = None;
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
@@ -1610,16 +1610,16 @@ impl Coincheck {
                 }
             }
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString);
-            headersSigned = Value::Map({
+            headersSigned = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("ACCESS-NONCE".to_string(), nonce);
                     m.insert("ACCESS-SIGNATURE".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
                 m
-            });
+            }));
         }
-        let mut headersResolved: Value = headersSigned;
+        let mut headersResolved: Value = headersSigned.map_or(Value::Null, Value::Dict);
         let mut bodyResolved: Value = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

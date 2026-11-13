@@ -1306,11 +1306,11 @@ impl Apex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
-                m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id2", &[]));
+                m.insert("symbol".to_string(), self.safe_string_k(&market, "id2", &[]));
             m
         });
         // default is 200 when requested with `since`, max 200
@@ -1328,8 +1328,8 @@ impl Apex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut OHLCVs: crate::value::List = self.safe_list(&data, self.safe_string_k(market.clone(), "id2", &[]), &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&OHLCVs, &[market, timeframe, since, Value::from(limitResolved)]);
+        let mut OHLCVs: crate::value::List = self.safe_list(&data, self.safe_string_k(&market, "id2", &[]), &[Value::from(vec![])]).into_list();
+        return self.parse_ohlc_vs(&OHLCVs, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -1692,8 +1692,8 @@ impl Apex {
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2165,16 +2165,14 @@ impl Apex {
         let mut amountNum: Value = self.parse_number(amount.clone(), &[]);
         let mut amountValue: Value = (if (amountNum == Value::Null) { Value::Int(0) } else { amountNum });
         let mut amountNumber: Value = Value::from(self.parse_to_int((match (&(amountValue), &(mathPowResult)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
-        let mut timestampSeconds: Value = Value::from(self.parse_to_int((match ((Value::Int(self.milliseconds())).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+        let mut timestampSeconds: Option<i64> = self.parse_to_int((match ((Value::Int(self.milliseconds())).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut clientOrderId: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
         let mut finalClientOrderId: Value = (if (clientOrderId.is_some()) { clientOrderId.clone().map(Value::from).unwrap_or(Value::Null) } else { self.generate_random_client_id_omni(self.safe_string_k(self.options.clone(), "accountId", &[])).map(Value::from).unwrap_or(Value::Null) });
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
         if isContract {
             let mut formattedUint32: String = "4294967295".to_string();
             let mut zkSignAccountId: Option<String> = crate::precise::Precise::stringMod(&Value::from(accountId), &Value::from(formattedUint32)).as_str().map(str::to_owned);
-            let mut expireTime: Value = (match (&(timestampSeconds), &((match (&((match (&(Value::Int(3600)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(28))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            let mut expireTime: Option<i64> = (if let Some(__l) = timestampSeconds { Some(__l + ((((3600 * 24)) * 28))) } else { None });
             let mut orderToSign: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("zkAccountId".to_string(), zkSignAccountId.map(Value::from).unwrap_or(Value::Null));
@@ -2185,7 +2183,7 @@ impl Apex {
                     m.insert("amount".to_string(), Value::Str(format!("{}", amountNumber).into()));
                     m.insert("fee".to_string(), Value::Str("0".into()));
                     m.insert("nonce".to_string(), finalClientOrderId.clone());
-                    m.insert("timestampSeconds".to_string(), expireTime.clone());
+                    m.insert("timestampSeconds".to_string(), Value::from(expireTime));
                     m.insert("isContract".to_string(), Value::Bool(true));
                 m
             });
@@ -2193,7 +2191,7 @@ impl Apex {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("amount".to_string(), amount.clone());
-                    m.insert("expireTime".to_string(), expireTime);
+                    m.insert("expireTime".to_string(), Value::from(expireTime));
                     m.insert("clientWithdrawId".to_string(), finalClientOrderId.clone());
                     m.insert("signature".to_string(), signature.clone());
                     m.insert("token".to_string(), code.clone());
@@ -2230,15 +2228,15 @@ impl Apex {
                     m.insert("amount".to_string(), Value::Str(format!("{}", amountNumber).into()));
                     m.insert("fee".to_string(), Value::Str("0".into()));
                     m.insert("nonce".to_string(), Value::from(finalNonce.clone()));
-                    m.insert("timestampSeconds".to_string(), timestampSeconds.clone());
+                    m.insert("timestampSeconds".to_string(), Value::from(timestampSeconds));
                 m
             });
             let mut signature: Value = self.get_zk_transfer_signature_obj(self.remove0x_prefix(self.get_seeds()), &[orderToSign]).await;
-            let mut ts: Value = timestampSeconds; // java req
+            let mut ts: Option<i64> = timestampSeconds; // java req
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("amount".to_string(), Value::from(self.number_to_string(amount.clone())));
-                    m.insert("timestamp".to_string(), ts);
+                    m.insert("timestamp".to_string(), Value::from(ts));
                     m.insert("clientTransferId".to_string(), finalClientOrderId);
                     m.insert("signature".to_string(), signature);
                     m.insert("zkAccountId".to_string(), Value::from(zkAccountId));

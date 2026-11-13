@@ -588,9 +588,9 @@ impl Opinion {
         let mut marketSymbol: Value = self.slug_to_market_symbol(effectiveEventSlug.clone(), slug.clone().map(Value::from).unwrap_or(Value::Null));
         let mut statusEnum: Option<String> = self.safe_string_k(raw.clone(), "statusEnum", &[]).as_str().map(str::to_owned);
         let mut active: bool = statusEnum.as_deref() == Some("Activated");
-        let mut resolved: Value = (Value::Bool(statusEnum.as_deref() == Some("Resolved")));
+        let mut resolved: bool = statusEnum.as_deref() == Some("Resolved");
         let mut resultTokenId: Option<String> = self.safe_string_k(raw.clone(), "resultTokenId", &[]).as_str().map(str::to_owned);
-        let mut hasResult: bool = matches!(&resolved, Value::Bool(true)) && (resultTokenId.is_some()) && (resultTokenId.as_deref() != Some(""));
+        let mut hasResult: bool = ((resolved && (resultTokenId.is_some())) && (resultTokenId.as_deref() != Some("")));
         let mut outcomeLabels: crate::value::List = std::sync::Arc::new(vec![self.safe_string_k(raw.clone(), "yesLabel", &[Value::Str("YES".into())]), self.safe_string_k(raw.clone(), "noLabel", &[Value::Str("NO".into())])]);
         let mut outcomeTokenIds: crate::value::List = std::sync::Arc::new(vec![self.safe_string_k(raw.clone(), "yesTokenId", &[]), self.safe_string_k(raw.clone(), "noTokenId", &[])]);
         let mut outcomes: Vec<Value> = Vec::new();
@@ -654,7 +654,7 @@ impl Opinion {
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("prediction".to_string(), Value::Bool(true));
         m.insert("active".to_string(), Value::Bool(active));
-        m.insert("resolved".to_string(), resolved);
+        m.insert("resolved".to_string(), Value::Bool(resolved));
         m.insert("resolvedOutcome".to_string(), marketResolvedOutcome);
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
@@ -771,15 +771,15 @@ impl Opinion {
         // bound how many events are actually FETCHED: the user limit when given, otherwise
         // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
         // label can still hold more than one page
-        let mut fetchCap: Value = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("maxFetchEventsResults".into()), &[Value::Int(100)])]);
+        let mut fetchCap: Option<i64> = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("maxFetchEventsResults".into()), &[Value::Int(100)])]).as_i64();
         let mut maxPages: Value = self.safe_integer_k(self.options.clone(), "maxEventsPages", &[Value::Int(50)]);
         let mut rawEvents: Vec<Value> = Vec::new();
         {
                         let mut page: Value = Value::Int(1);
             let mut __for_first_1389: bool = true;
             while { if !__for_first_1389 { if let Value::Int(n) = &mut page { *n += 1; } } __for_first_1389 = false; page.as_f64().unwrap_or(f64::NAN) <= maxPages.as_f64().unwrap_or(f64::NAN) } {
-            let mut fetchedSoFar: Value = Value::Int(rawEvents.len() as i64);
-            let mut remaining: Option<i64> = self.parse_to_int((match (&(fetchCap), &(fetchedSoFar)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            let mut fetchedSoFar: i64 = rawEvents.len() as i64;
+            let mut remaining: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = fetchCap { Some(__l - fetchedSoFar) } else { None })));
             let mut reqLimit: Value = (if ((remaining.is_some() && pageLimit.is_some() && remaining < pageLimit)) { Value::from(remaining) } else { Value::from(pageLimit) });
             if reqLimit.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64) {
                 break;
@@ -807,9 +807,9 @@ impl Opinion {
             }
             }
             // rawEvents holds every row fetched so far, so its length is the raw fetched count
-            let mut fetchedRawCount: f64 = ((rawEvents.len() as i64) as f64);
-            let mut total: Value = self.safe_integer_k(&result, "total", &[]);
-            if (pageEventsLength < reqLimit.as_f64().unwrap_or(f64::NAN)) || (page.as_f64().unwrap_or(f64::NAN) >= maxPages.as_f64().unwrap_or(f64::NAN)) || ((total != Value::Null) && (fetchedRawCount >= total.as_f64().unwrap_or(f64::NAN))) || (fetchedRawCount >= fetchCap.as_f64().unwrap_or(f64::NAN)) {
+            let mut fetchedRawCount: i64 = rawEvents.len() as i64;
+            let mut total: Option<i64> = self.safe_integer_k(&result, "total", &[]).as_i64();
+            if (pageEventsLength < reqLimit.as_f64().unwrap_or(f64::NAN)) || (page.as_f64().unwrap_or(f64::NAN) >= maxPages.as_f64().unwrap_or(f64::NAN)) || ((total.is_some()) && ((total.is_some() && Some(fetchedRawCount) >= total))) || ((fetchCap.is_some() && Some(fetchedRawCount) >= fetchCap)) {
                 break;
             }
         }
@@ -1389,8 +1389,8 @@ impl Opinion {
             }
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(candles), Value::Int(0), &[]);
-        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[Value::Int(0)]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(candles), Value::Int(0), &[]).into_list();
+        return self.filter_by_since_limit(Value::Arr(sorted), since.as_i64(), limit.as_i64(), &[Value::Int(0)]);
         Value::Null
         }).await?))
     }
@@ -2915,14 +2915,14 @@ if _try_result.is_err() {
         //
         let mut tokenId: Option<String> = (match __pro_message.get("tokenId").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut outcomeObj: Value = self.safe_dict(self.exchange.outcomes_by_id.clone(), tokenId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut sym: Option<String> = self.safe_string_k_opt(outcomeObj.clone(), "outcome", &[]);
+        let mut sym: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcome", &[]).as_str().map(str::to_owned);
         if (sym.is_none()) {
             return;
         }
         let mut last: Option<f64> = (match __pro_message.get("price").cloned() { Some(Value::Float(__f)) => Value::Float(__f), Some(Value::Int(__n)) => Value::Float(__n as f64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<f64>() { Ok(__f) => Value::Float(__f), Err(_) => Value::Null }, _ => Value::Null }).as_f64();
         let mut ticker: Value = self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("outcome".to_string(), sym.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("outcome".to_string(), Value::from(sym.as_deref()));
         m.insert("outcomeId".to_string(), tokenId.map(Value::from).unwrap_or(Value::Null));
         m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(outcomeObj.clone(), "market", &[]));

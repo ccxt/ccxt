@@ -1542,9 +1542,9 @@ if _try_result.is_err() {
             type_var = Some("swap".to_string());
         }
         let mut isSpot: bool = type_var.as_deref() == Some("spot");
-        let mut isSwap: Value = (Value::Bool(type_var.as_deref() == Some("swap")));
-        let mut isFuture: Value = (Value::Bool(type_var.as_deref() == Some("future")));
-        let mut isContract: Value = Value::Bool(matches!(&isSwap, Value::Bool(true)) || matches!(&isFuture, Value::Bool(true)));
+        let mut isSwap: bool = type_var.as_deref() == Some("swap");
+        let mut isFuture: bool = type_var.as_deref() == Some("future");
+        let mut isContract: Value = Value::Bool((isSwap || isFuture));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
@@ -1558,13 +1558,13 @@ if _try_result.is_err() {
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("spot".to_string(), Value::Bool(isSpot));
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), isSwap.clone());
-        m.insert("future".to_string(), isFuture);
+        m.insert("swap".to_string(), Value::Bool(isSwap));
+        m.insert("future".to_string(), Value::Bool(isFuture));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Null);
         m.insert("contract".to_string(), isContract);
-        m.insert("linear".to_string(), (if matches!(&isSwap, Value::Bool(true)) { Value::Bool(true) } else { Value::Null }));
-        m.insert("inverse".to_string(), (if matches!(&isSwap, Value::Bool(true)) { Value::Bool(false) } else { Value::Null }));
+        m.insert("linear".to_string(), (if isSwap { Value::Bool(true) } else { Value::Null }));
+        m.insert("inverse".to_string(), (if isSwap { Value::Bool(false) } else { Value::Null }));
         m.insert("contractSize".to_string(), self.parse_number(Value::Str("1".into()), &[]));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
@@ -2159,7 +2159,7 @@ if _try_result.is_err() {
         //    }
         //
         let mut candles: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&candles, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2602,8 +2602,8 @@ if _try_result.is_err() {
         //    }
         //
         let mut rows: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        let mut transfers: Value = self.parse_transfers(&rows, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
-        return transfers;
+        let mut transfers: crate::value::List = self.parse_transfers(&rows, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]).into_list();
+        return Value::Arr(transfers);
 
     Value::Null
 }
@@ -2807,8 +2807,8 @@ if _try_result.is_err() {
         //    }
         //
         let mut rows: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        let mut transfers: Value = self.parse_transfers(&rows, Some(&currency), &[since, limit]);
-        return self.to_array(self.safe_list(self.filter_transfers_by_type(transfers, "internal", &[Value::Bool(false)]), Value::Int(1), &[Value::from(vec![])]));
+        let mut transfers: crate::value::List = self.parse_transfers(&rows, Some(&currency), &[since, limit]).into_list();
+        return self.to_array(self.safe_list(self.filter_transfers_by_type(Value::Arr(transfers), "internal", &[Value::Bool(false)]), Value::Int(1), &[Value::from(vec![])]));
         Value::Null
         }).await?))
     }
@@ -4695,7 +4695,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut usesPrivKey: bool = self.uses_private_key().as_bool().unwrap_or_default(); // py transpiler needs this line separated
         let mut secretOrPrivkey: Value = (if usesPrivKey { self.privateKey.clone() } else { self.secret.clone() });
         let mut privateKeyWithoutZero: Value = self.remove0x_prefix(secretOrPrivkey);
-        let mut signature: crate::value::Dict = ecdsa(self.hash(ethEncodedMessage, Value::Str("keccak".into()), &[Value::Str("hex".into())]), privateKeyWithoutZero.clone(), Value::Str("secp256k1".into()), Value::Null);
+        let mut signature: crate::value::Dict = ecdsa(Value::from(self.hash(ethEncodedMessage, Value::Str("keccak".into()), &[Value::Str("hex".into())])), privateKeyWithoutZero.clone(), Value::Str("secp256k1".into()), Value::Null);
         request.insert("signature".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("signer".to_string(), (if (signerAddress == Value::Null) { self.eth_get_address_from_private_key(Value::Str(format!("{}{}", Value::Str("0x".into()), privateKeyWithoutZero).into()), &[]) } else { signerAddress }));

@@ -449,8 +449,8 @@ impl Bitvavo {
         let mut args: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_144: bool = true;
-            while { if !__for_first_144 { i += 1; } __for_first_144 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_145: bool = true;
+            while { if !__for_first_145 { i += 1; } __for_first_145 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             args.push(Value::from((market).id.as_deref()));
         }
@@ -559,8 +559,8 @@ impl Bitvavo {
         let mut result: Vec<Value> = vec![];
         {
                         let mut i: i64 = 0;
-            let mut __for_first_145: bool = true;
-            while { if !__for_first_145 { i += 1; } __for_first_145 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_146: bool = true;
+            while { if !__for_first_146 { i += 1; } __for_first_146 = false; i < (tickers.len() as i64) } {
             let mut data: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&data, "market", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]);
@@ -616,10 +616,10 @@ impl Bitvavo {
         let mut result: Vec<Value> = vec![];
         {
                         let mut i: i64 = 0;
-            let mut __for_first_146: bool = true;
-            while { if !__for_first_146 { i += 1; } __for_first_146 = false; i < (tickers.len() as i64) } {
-            let mut data: Value = tickers.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut ticker: Value = self.parse_ws_bid_ask(data, None);
+            let mut __for_first_147: bool = true;
+            while { if !__for_first_147 { i += 1; } __for_first_147 = false; i < (tickers.len() as i64) } {
+            let mut data: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut ticker: Value = self.parse_ws_bid_ask(Value::Dict(data), None);
             let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]);
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             result.push(ticker.clone());
@@ -751,8 +751,8 @@ impl Bitvavo {
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_147: bool = true;
-            while { if !__for_first_147 { i += 1; } __for_first_147 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_148: bool = true;
+            while { if !__for_first_148 { i += 1; } __for_first_148 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             marketIds.push(Value::from((market).id.as_deref()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
@@ -837,8 +837,8 @@ impl Bitvavo {
         let mut subMessageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_148: bool = true;
-            while { if !__for_first_148 { i += 1; } __for_first_148 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_149: bool = true;
+            while { if !__for_first_149 { i += 1; } __for_first_149 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             marketIds.push(Value::from((market).id.as_deref()));
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
@@ -931,9 +931,9 @@ impl Bitvavo {
         //    }
         //
         let mut response: Option<crate::value::List> = message.get("response").cloned().unwrap_or_default().into_opt_list();
-        let mut ohlcv: Value = self.parse_ohlc_vs(&response, &[Value::Null, Value::Null, Value::Null]);
+        let mut ohlcv: crate::value::List = self.parse_ohlc_vs(&response, None, &[Value::Null, Value::Null]).into_list();
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        client.resolve(ohlcv, messageHash.as_deref());
+        client.resolve(Value::Arr(ohlcv), messageHash.as_deref());
 }
 
     pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
@@ -962,32 +962,29 @@ impl Bitvavo {
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut interval: String = (match message.get("interval") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         // use a reverse lookup in a static map instead
-        let mut timeframe: Value = Value::from(self.find_timeframe(Value::from(interval.clone()), &[]));
+        let mut timeframe: Option<String> = self.find_timeframe(Value::from(interval.clone()), &[]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), (match message.get("market") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),
             Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) })).into()), Value::Str("_".into())).into()), interval);
         let mut candles: crate::value::List = message.get("candle").cloned().unwrap_or_default().into_list();
-        { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-        let mut stored: Value = self.safe_value((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), timeframe.clone(), &[]);
-        if (stored == Value::Null) {
+        CacheShelves::ensure(&mut self.ohlcvs, &symbol);
+        let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&timeframe);
+        if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Value::from(ArrayCacheByTimestamp::new(limit));
-            if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); } }
+            stored = Some(ArrayCacheByTimestamp::new(limit));
+            CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_149: bool = true;
-            while { if !__for_first_149 { i += 1; } __for_first_149 = false; i < (candles.len() as i64) } {
-            let mut candle: Value = candles.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parsed: crate::value::List = self.parse_ohlcv(candle, Some(&market)).into_list();
+            let mut __for_first_150: bool = true;
+            while { if !__for_first_150 { i += 1; } __for_first_150 = false; i < (candles.len() as i64) } {
+            let mut candle: crate::value::Dict = candles.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut parsed: crate::value::List = self.parse_ohlcv(Value::Dict(candle), Some(&market)).into_list();
             stored.append(Value::Arr(parsed));
         }
         }
-        client.resolve(stored.clone(), messageHash.as_str());
+        client.resolve(Value::from(&stored), messageHash.as_str());
         // watchOHLCVForSymbols needs the symbol and timeframe to assemble its result
-        client.resolve(Value::from(vec![symbol, timeframe, stored]), &(Value::Str(format!("{}{}", Value::Str("multi:".into()), messageHash).into())));
+        client.resolve(Value::from(vec![symbol, timeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]), &(Value::Str(format!("{}{}", Value::Str("multi:".into()), messageHash).into())));
 }
 
 /*
@@ -1027,8 +1024,8 @@ impl Bitvavo {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_150: bool = true;
-            while { if !__for_first_150 { i += 1; } __for_first_150 = false; i < (symbolsAndTimeframes.len() as i64) } {
+            let mut __for_first_151: bool = true;
+            while { if !__for_first_151 { i += 1; } __for_first_151 = false; i < (symbolsAndTimeframes.len() as i64) } {
             let mut symbolAndTimeframe: Value = symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::types::Market = (match self.market((self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[Value::Str("".into())])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut timeframeString: String = self.safe_string(symbolAndTimeframe, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1046,8 +1043,8 @@ impl Bitvavo {
         let mut intervals: Vec<Value> = object_keys(&marketIdsByInterval).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_151: bool = true;
-            while { if !__for_first_151 { i += 1; } __for_first_151 = false; i < (intervals.len() as i64) } {
+            let mut __for_first_152: bool = true;
+            while { if !__for_first_152 { i += 1; } __for_first_152 = false; i < (intervals.len() as i64) } {
             let mut interval: Value = intervals.get(i as usize).cloned().unwrap_or(Value::Null);
             channels.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1138,8 +1135,8 @@ impl Bitvavo {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_152: bool = true;
-            while { if !__for_first_152 { i += 1; } __for_first_152 = false; i < (symbolsAndTimeframes.len() as i64) } {
+            let mut __for_first_153: bool = true;
+            while { if !__for_first_153 { i += 1; } __for_first_153 = false; i < (symbolsAndTimeframes.len() as i64) } {
             let mut symbolAndTimeframe: Value = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::types::Market = (match self.market((self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[Value::Str("".into())])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut timeframeString: String = self.safe_string(symbolAndTimeframe, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1159,8 +1156,8 @@ impl Bitvavo {
         let mut intervals: Vec<Value> = object_keys(&marketIdsByInterval).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_153: bool = true;
-            while { if !__for_first_153 { i += 1; } __for_first_153 = false; i < (intervals.len() as i64) } {
+            let mut __for_first_154: bool = true;
+            while { if !__for_first_154 { i += 1; } __for_first_154 = false; i < (intervals.len() as i64) } {
             let mut interval: Value = intervals.get(i as usize).cloned().unwrap_or(Value::Null);
             channels.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1270,8 +1267,8 @@ impl Bitvavo {
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_154: bool = true;
-            while { if !__for_first_154 { i += 1; } __for_first_154 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_155: bool = true;
+            while { if !__for_first_155 { i += 1; } __for_first_155 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             marketIds.push(Value::from((market).id.as_deref()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
@@ -1360,8 +1357,8 @@ impl Bitvavo {
         let mut subMessageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_155: bool = true;
-            while { if !__for_first_155 { i += 1; } __for_first_155 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_156: bool = true;
+            while { if !__for_first_156 { i += 1; } __for_first_156 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             marketIds.push(Value::from((market).id.as_deref()));
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
@@ -1394,8 +1391,8 @@ impl Bitvavo {
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_156: bool = true;
-            while { if !__for_first_156 { i += 1; } __for_first_156 = false; i < (deltas.len() as i64) } {
+            let mut __for_first_157: bool = true;
+            while { if !__for_first_157 { i += 1; } __for_first_157 = false; i < (deltas.len() as i64) } {
             self.handle_delta(bookside.clone(), deltas.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -1545,15 +1542,15 @@ impl Bitvavo {
         if (orderbook == Value::Null) {
             return;
         }
-        let mut snapshot: Value = self.parse_order_book(&response, symbol.clone(), &[]);
-        snapshot.set_book_meta("nonce", self.safe_integer_k(&response, "nonce", &[]));
-        orderbook.reset(snapshot);
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&response, symbol.clone(), &[]).into_dict();
+        std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), self.safe_integer_k(&response, "nonce", &[]));
+        orderbook.reset(Value::Dict(snapshot));
         // unroll the accumulated deltas
         let mut messages: Value = orderbook.book_field("cache");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_157: bool = true;
-            while { if !__for_first_157 { i += 1; } __for_first_157 = false; (i as f64) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_158: bool = true;
+            while { if !__for_first_158 { i += 1; } __for_first_158 = false; (i as f64) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
             let mut messageItem: Value = get_value(&messages, &Value::Int(i));
             self.handle_order_book_message(client.clone(), messageItem, orderbook.clone());
         }
@@ -1595,8 +1592,8 @@ impl Bitvavo {
         let mut name: String = "book".to_string();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_158: bool = true;
-            while { if !__for_first_158 { i += 1; } __for_first_158 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_159: bool = true;
+            while { if !__for_first_159 { i += 1; } __for_first_159 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<String> = self.safe_string(marketIds.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
             let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), self.safe_string(marketIds.clone(), Value::Int(i), &[Value::Str("".into())]));
@@ -1635,8 +1632,8 @@ impl Bitvavo {
         let mut unsubHashes: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_159: bool = true;
-            while { if !__for_first_159 { i += 1; } __for_first_159 = false; i < (subMessageHashes.len() as i64) } {
+            let mut __for_first_160: bool = true;
+            while { if !__for_first_160 { i += 1; } __for_first_160 = false; i < (subMessageHashes.len() as i64) } {
             if let Value::Arr(__a) = &mut unsubHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.safe_string(subMessageHashes.clone(), Value::Int(i), &[Value::Str("".into())])).into())); };
         }
         }
@@ -1666,8 +1663,8 @@ impl Bitvavo {
         let mut keys: Vec<Value> = __ch.subscription_keys();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_160: bool = true;
-            while { if !__for_first_160 { i += 1; } __for_first_160 = false; i < (keys.len() as i64) } {
+            let mut __for_first_161: bool = true;
+            while { if !__for_first_161 { i += 1; } __for_first_161 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             if !(__ch.has_subscription(&key)) {
                 continue;
@@ -1990,12 +1987,12 @@ impl Bitvavo {
         let mut response: Option<crate::value::List> = message.get("response").cloned().unwrap_or_default().into_opt_list();
         // const firstRawOrder = this.safeValue (response, 0, {});
         // const marketId = this.safeString (firstRawOrder, 'market');
-        let mut orders: Value = self.parse_orders(&response, None, &[]);
+        let mut orders: crate::value::List = self.parse_orders(&response, None, &[]).into_list();
         // let messageHash = this.buildMessageHash (action, { 'market': marketId });
         // client.resolve (orders, messageHash);
         // messageHash = this.buildMessageHash (action, message);
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        client.resolve(orders, messageHash.as_deref());
+        client.resolve(Value::Arr(orders), messageHash.as_deref());
 }
 
 /*
@@ -2205,10 +2202,10 @@ impl Bitvavo {
         // const action = this.safeString (message, 'action');
         let mut response: Option<crate::value::List> = message.get("response").cloned().unwrap_or_default().into_opt_list();
         // const marketId = this.safeString (firstRawTrade, 'market');
-        let mut trades: Value = self.parse_trades(&response, None, &[Value::Null, Value::Null]);
+        let mut trades: crate::value::List = self.parse_trades(&response, None, &[Value::Null, Value::Null]).into_list();
         // const messageHash = this.buildMessageHash (action, { 'market': marketId });
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        client.resolve(trades, messageHash.as_deref());
+        client.resolve(Value::Arr(trades), messageHash.as_deref());
 }
 
 /*
@@ -2330,12 +2327,12 @@ impl Bitvavo {
         // const messageHash = this.buildMessageHash (action, message);
         let mut response: Option<crate::value::List> = message.get("response").cloned().unwrap_or_default().into_opt_list();
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut withdrawals: Value = self.parse_transactions(&response, None, &[Value::Null, Value::Null, Value::Map({
+        let mut withdrawals: crate::value::List = self.parse_transactions(&response, None, &[Value::Null, Value::Null, Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("withdrawal".into()));
             m
-        })]);
-        client.resolve(withdrawals, messageHash.as_deref());
+        })]).into_list();
+        client.resolve(Value::Arr(withdrawals), messageHash.as_deref());
 }
 
 /*
@@ -2429,13 +2426,13 @@ impl Bitvavo {
         //    }
         //
         let mut response: crate::value::List = message.get("response").cloned().unwrap_or_default().into_list();
-        let mut deposits: Value = self.parse_transactions(&response, None, &[Value::Null, Value::Null, Value::Map({
+        let mut deposits: crate::value::List = self.parse_transactions(&response, None, &[Value::Null, Value::Null, Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("deposit".into()));
             m
-        })]);
+        })]).into_list();
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        client.resolve(deposits, messageHash.as_deref());
+        client.resolve(Value::Arr(deposits), messageHash.as_deref());
 }
 
 /*
@@ -2818,8 +2815,8 @@ impl Bitvavo {
         let mut names: Vec<Value> = Value::Array(subscriptions.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_161: bool = true;
-            while { if !__for_first_161 { i += 1; } __for_first_161 = false; i < (names.len() as i64) } {
+            let mut __for_first_162: bool = true;
+            while { if !__for_first_162 { i += 1; } __for_first_162 = false; i < (names.len() as i64) } {
             let mut name: Option<String> = names.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut method: Value = self.safe_value(&methods, Value::from(name.as_deref()), &[]);
             if (method != Value::Null) {

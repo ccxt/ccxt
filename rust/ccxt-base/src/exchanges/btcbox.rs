@@ -659,8 +659,8 @@ impl Btcbox {
                         let mut i: i64 = 0;
             let mut __for_first_471: bool = true;
             while { if !__for_first_471 { i += 1; } __for_first_471 = false; i < (codes.len() as i64) } {
-            let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut currency: crate::types::Currency = self.currency(code.clone());
+            let mut code: Option<String> = codes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
             let mut currencyId: String = self.safe_string_k(&currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut free: Value = Value::Str(format!("{}{}", currencyId, Value::Str("_balance".into())).into());
             if (matches!((&response, &free), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -668,7 +668,7 @@ impl Btcbox {
                 let mut used: String = format!("{}{}", currencyId, Value::Str("_lock".into()));
                 account.insert("free".into(), self.safe_string(response.clone(), free.clone(), &[]));
                 account.insert("used".into(), self.safe_string(response.clone(), Value::from(used), &[]));
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
@@ -1282,8 +1282,8 @@ impl Btcbox {
                 m
             }), &[params]);
             let mut request: String = self.urlencode(query.clone(), &[]);
-            let mut secret: Option<String> = self.hash(self.encode(self.secret.clone()), Value::Str("md5".into()), &[]).as_str().map(str::to_owned);
-            if let Value::Dict(__d) = &mut query { std::sync::Arc::make_mut(__d).insert("signature".into(), Value::from(self.hmac(self.encode(Value::from(request)), self.encode(secret.map(Value::from).unwrap_or(Value::Null)), Value::Str("sha256".into()), &[]))); }
+            let mut secret: String = self.hash(self.encode(self.secret.clone()), Value::Str("md5".into()), &[]);
+            if let Value::Dict(__d) = &mut query { std::sync::Arc::make_mut(__d).insert("signature".into(), Value::from(self.hmac(self.encode(Value::from(request)), self.encode(Value::from(secret)), Value::Str("sha256".into()), &[]))); }
             let mut signedBody: String = self.urlencode(query, &[]);
             let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

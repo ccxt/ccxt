@@ -466,21 +466,21 @@ impl Binance {
     m
 }));
         let mut maxTopicsOption: i64 = self.safe_integer_k(self.options.clone(), "maxFetchMarketsLimit", &[Value::Int(200)]).as_i64().unwrap_or(200);
-        let mut maxTopicsResolved: Value = Value::from(self.parse_to_int(Value::from(maxTopicsOption)));
+        let mut maxTopicsResolved: Option<i64> = self.parse_to_int(Value::from(maxTopicsOption));
         if (maxTopics != Value::Null) {
-            maxTopicsResolved = Value::from(self.parse_to_int(maxTopics));
+            maxTopicsResolved = self.parse_to_int(maxTopics);
         }
         let mut pageLimitOption: i64 = self.safe_integer_k(self.options.clone(), "marketsPageLimit", &[Value::Int(100)]).as_i64().unwrap_or(100);
-        let mut pageLimit: Value = Value::from(self.parse_to_int(Value::Int(100)));
+        let mut pageLimit: Option<i64> = self.parse_to_int(Value::Int(100));
         if pageLimitOption < 100 {
-            pageLimit = Value::from(self.parse_to_int(Value::from(pageLimitOption)));
+            pageLimit = self.parse_to_int(Value::from(pageLimitOption));
         }
         let mut collected: Vec<Value> = Vec::new();
         let mut offset: Value = Value::Int(0);
         loop {
-            let mut collectedLength: Value = Value::Int(collected.len() as i64);
-            let mut remaining: Value = (match (&(maxTopicsResolved), &(collectedLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            let mut reqLimit: Value = (if (remaining.as_f64().unwrap_or(f64::NAN) < pageLimit.as_f64().unwrap_or(f64::NAN)) { remaining } else { pageLimit.clone() });
+            let mut collectedLength: i64 = collected.len() as i64;
+            let mut remaining: Option<i64> = (if let Some(__l) = maxTopicsResolved { Some(__l - collectedLength) } else { None });
+            let mut reqLimit: Value = (if ((remaining.is_some() && pageLimit.is_some() && remaining < pageLimit)) { Value::from(remaining) } else { Value::from(pageLimit) });
             if reqLimit.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64) {
                 break;
             }
@@ -998,8 +998,8 @@ impl Binance {
         let mut topicSlug: Option<String> = (match rawTopic.get("slug") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut vendor: Option<String> = (match rawTopic.get("vendor") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut collateral: String = (match rawTopic.get("collateral") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("USDT".into()) }).as_str().unwrap_or("USDT").to_string();
-        let mut title: Value = self.safe_string_k(rawMarket.clone(), "title", &[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut marketSymbol: Value = self.slug_to_market_symbol(topicSlug.clone().map(Value::from).unwrap_or(Value::Null), title.clone());
+        let mut title: Option<String> = self.safe_string_k(rawMarket.clone(), "title", &[marketId.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut marketSymbol: Value = self.slug_to_market_symbol(topicSlug.clone().map(Value::from).unwrap_or(Value::Null), Value::from(title.as_deref()));
         let mut tradingStatus: Option<String> = self.safe_string_k(rawMarket.clone(), "tradingStatus", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.safe_string_k(rawMarket.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: bool = tradingStatus.as_deref() == Some("OPEN");
@@ -1064,7 +1064,7 @@ impl Binance {
         m.insert("vendor".to_string(), vendor.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("chainId".to_string(), (match rawTopic.get("chainId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("slug".to_string(), topicSlug.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("marketTitle".to_string(), title.clone());
+        m.insert("marketTitle".to_string(), Value::from(title.as_deref()));
         m.insert("outcomeLabel".to_string(), label.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("index".to_string(), self.safe_string_k(&rawOutcome, "index", &[]));
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1313,15 +1313,15 @@ impl Binance {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut marketId: Option<String> = self.safe_string_k_opt(&info, "marketId", &[]);
+            let mut marketId: Option<String> = self.safe_string_k(&info, "marketId", &[]).as_str().map(str::to_owned);
             if (marketId.is_none()) {
                 continue;
             }
-            let mut response: Value = self.safe_dict(Value::Map(responsesByMarketId.clone()), marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut response: Value = self.safe_dict(Value::Map(responsesByMarketId.clone()), Value::from(marketId.as_deref()), &[]);
             if (response == Value::Null) {
                 let mut request: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("marketId".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
+                        m.insert("marketId".to_string(), Value::from(marketId.as_deref()));
                     m
                 });
                 let __ws_arg_6 = self.extend(Value::Map(request), &[params.clone()]);
@@ -2110,8 +2110,8 @@ impl Binance {
         // }
         //
         let mut trades: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
-        let mut parsedTrades: Value = self.parse_prediction_trades(trades, &[outcomeObj]);
-        return self.filter_by_outcome_since_limit(parsedTrades, &[outcome, since, limit]);
+        let mut parsedTrades: crate::value::List = self.parse_prediction_trades(trades, &[outcomeObj]).into_list();
+        return self.filter_by_outcome_since_limit(Value::Arr(parsedTrades), &[outcome, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2286,8 +2286,8 @@ impl Binance {
 }
 
     pub fn price_to_precision(&self, mut outcome: Value, mut price: Value) -> Value {
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(outcome.as_str().unwrap_or_default()));
-        let mut prec: Value = self.safe_number(self.safe_dict_k(market, "precision", &[Value::Map({
+        let mut market: crate::types::Market = (match self.market(outcome.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut prec: Value = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("price".into()), &[Value::Float(0.0001)]);
@@ -2301,8 +2301,8 @@ impl Binance {
 }
 
     pub fn amount_to_precision(&self, mut outcome: Value, mut amount: Value) -> Value {
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(outcome.as_str().unwrap_or_default()));
-        let mut prec: Value = self.safe_number(self.safe_dict_k(market, "precision", &[Value::Map({
+        let mut market: crate::types::Market = (match self.market(outcome.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut prec: Value = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("amount".into()), &[Value::Float(0.01)]);
@@ -2580,7 +2580,7 @@ impl Binance {
         // }
         //
         let mut canceledOrders: crate::value::List = self.safe_list_k(&response, "canceled", &[Value::from(vec![])]).into_list();
-        let mut outcomeSymbol: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome]);
+        let mut outcomeSymbol: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome]).as_str().map(str::to_owned);
         let mut failedOrders: crate::value::List = self.safe_list_k(&response, "failed", &[Value::from(vec![])]).into_list();
         let mut failedOrdersLength: f64 = ((failedOrders.len() as i64) as f64);
         if failedOrdersLength > ((0i64) as f64) {
@@ -2610,7 +2610,7 @@ impl Binance {
                     m.insert("clientOrderId".to_string(), Value::Null);
                     m.insert("info".to_string(), status);
                     m.insert("status".to_string(), Value::Str("canceled".into()));
-                    m.insert("outcome".to_string(), outcomeSymbol.clone());
+                    m.insert("outcome".to_string(), Value::from(outcomeSymbol.as_deref()));
                     m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj.clone(), "id", &[]));
                     m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
                     m.insert("market".to_string(), self.safe_string_k(outcomeObj.clone(), "market", &[]));

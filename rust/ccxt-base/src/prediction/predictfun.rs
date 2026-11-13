@@ -2004,13 +2004,13 @@ impl Predictfun {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut signerAddress: Value = self.safe_string_k(params.clone(), "signerAddress", &[self.walletAddress.clone()]);
-        if (signerAddress == Value::Null) {
+        let mut signerAddress: Option<String> = self.safe_string_k(params.clone(), "signerAddress", &[self.walletAddress.clone()]).as_str().map(str::to_owned);
+        if (signerAddress.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a walletAddress, or a \"signerAddress\" parameter for any other address".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("signerAddress".to_string(), signerAddress.clone());
+                m.insert("signerAddress".to_string(), Value::from(signerAddress.as_deref()));
             m
         });
         let mut outcomeObj: Value = Value::Null;
@@ -2030,7 +2030,7 @@ impl Predictfun {
         let mut response: crate::value::Dict = self.predictfun_get_v1_orders_matches(&[__ws_arg_5]).await.into_dict();
         // the venue answers with the shape documented in fetchTrades below
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut wallet: Value = (if let Some(__s) = signerAddress.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+        let mut wallet: Option<String> = signerAddress.as_deref().map(str::to_lowercase);
         // a settlement names one taker and several makers, and the wallet may sit on either side,
         // so the legs it signed are the ones to report - a self trade legitimately yields two rows
         let mut flattenTrades: Vec<Value> = Vec::new();
@@ -2044,8 +2044,8 @@ impl Predictfun {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut takerSigner: Option<String> = self.safe_string_lower_k_opt(&taker, "signer", &[]);
-            if (takerSigner.as_deref() == wallet.as_str()) {
+            let mut takerSigner: Option<String> = self.safe_string_lower_k(&taker, "signer", &[]).as_str().map(str::to_owned);
+            if (takerSigner == wallet) {
                 let mut takerParty: Value = self.extend(taker, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("role".to_string(), Value::Str("taker".into()));
@@ -2066,8 +2066,8 @@ impl Predictfun {
                 let mut __for_first_1470: bool = true;
                 while { if !__for_first_1470 { j += 1; } __for_first_1470 = false; (j as f64) < makersLength } {
                 let mut maker: crate::value::Dict = makers.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
-                let mut makerSigner: Option<String> = self.safe_string_lower_k_opt(&maker, "signer", &[]);
-                if (makerSigner.as_deref() == wallet.as_str()) {
+                let mut makerSigner: Option<String> = self.safe_string_lower_k(&maker, "signer", &[]).as_str().map(str::to_owned);
+                if (makerSigner == wallet) {
                     let mut makerParty: Value = self.extend(maker, &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("role".to_string(), Value::Str("maker".into()));
@@ -3706,7 +3706,7 @@ impl Predictfun {
             self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx.clone(), "maxFeePerGas", &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx.clone(), "gasLimit", &[]))), self.rlp_encode_bytes(self.remove0x_prefix(self.safe_string_k(tx.clone(), "to", &[]))),
             self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx.clone(), "value", &[Value::Str("0x0".into())]))), self.rlp_encode_bytes(self.remove0x_prefix(self.safe_string_k(tx, "data", &[Value::Str("0x".into())]))), accessList.map(Value::from).unwrap_or(Value::Null)]);
         let mut payload: String = format!("{}{}", Value::Str("02".into()), self.rlp_encode_list(fields.clone()));
-        let mut hashHex: Value = self.hash(self.base16_to_binary(Value::from(payload), &[]), Value::Str("keccak".into()), &[Value::Str("hex".into())]);
+        let mut hashHex: Value = Value::from(self.hash(self.base16_to_binary(Value::from(payload), &[]), Value::Str("keccak".into()), &[Value::Str("hex".into())]));
         let mut signature: crate::value::Dict = ecdsa(hashHex, self.remove0x_prefix(privateKey), Value::Str("secp256k1".into()), Value::Null);
         let mut rHex: Option<String> = self.safe_string_k(&signature, "r", &[]).as_str().map(str::to_owned);
         let mut sHex: Option<String> = self.safe_string_k(&signature, "s", &[]).as_str().map(str::to_owned);
@@ -3752,10 +3752,10 @@ impl Predictfun {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut rpcUrl: Value = self.safe_string_k(params.clone(), "rpcUrl", &[self.safe_string(&rpcUrls, chainKey.clone().map(Value::from).unwrap_or(Value::Null), &[])]);
-        let mut owner: Value = self.safe_string_k(params.clone(), "owner", &[self.walletAddress.clone()]);
-        if (owner == Value::Null) {
-            owner = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
+        let mut rpcUrl: Option<String> = self.safe_string_k(params.clone(), "rpcUrl", &[self.safe_string(&rpcUrls, chainKey.clone().map(Value::from).unwrap_or(Value::Null), &[])]).as_str().map(str::to_owned);
+        let mut owner: Option<String> = self.safe_string_k(params.clone(), "owner", &[self.walletAddress.clone()]).as_str().map(str::to_owned);
+        if (owner.is_none()) {
+            owner = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str().map(str::to_owned);
         }
         let mut gasLimit: String = self.safe_string_k(params.clone(), "gasLimit", &[Value::Str("0x186a0".into())]).as_str().unwrap_or("0x186a0").to_string();
         // which of the four exchanges settles a market is a property of the market, so an
@@ -3793,7 +3793,7 @@ impl Predictfun {
                     std::sync::Arc::make_mut(&mut operators).push(self.adapter_address(isYieldBearing).map(Value::from).unwrap_or(Value::Null));
                 }
             }
-            if (rpcUrl == Value::Null) || (ctfToken == Value::Null) {
+            if (rpcUrl.is_none()) || (ctfToken == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" approve() could not resolve the \"rpcUrl\" or the conditional tokens for chain ".into())).into()), chainKey.clone().map(Value::from).unwrap_or(Value::Null))));
             }
             let mut approved: bool = self.safe_bool_k(params.clone(), "approved", &[Value::Bool(true)]).as_bool().unwrap_or(true);
@@ -3815,8 +3815,8 @@ impl Predictfun {
                 let mut approvalData: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("0xa22cb465".into()), self.pad_hex_address(operatorAddress.map(Value::from).unwrap_or(Value::Null))).into()), approvedHex);
                 // each receipt is awaited before the next transaction goes out, so the nonce the
                 // second one looks up already counts the first
-                let mut approvalHash: Value = self.send_evm_transaction(rpcUrl.clone(), Value::from(chainId), owner.clone(), ctfToken.clone(), Value::Str("0x0".into()), Value::from(approvalData), Value::from(gasLimit.clone())).await;
-                let mut receipt: Value = self.wait_for_transaction_receipt(rpcUrl.clone(), approvalHash, &[]).await;
+                let mut approvalHash: Value = self.send_evm_transaction(Value::from(rpcUrl.as_deref()), Value::from(chainId), Value::from(owner.as_deref()), ctfToken.clone(), Value::Str("0x0".into()), Value::from(approvalData), Value::from(gasLimit.clone())).await;
+                let mut receipt: Value = self.wait_for_transaction_receipt(Value::from(rpcUrl.as_deref()), approvalHash, &[]).await;
                 receipts.push(receipt);
             }
             }
@@ -3834,7 +3834,7 @@ impl Predictfun {
             }
             spender = self.exchange_address(isNegRisk, isYieldBearing).map(Value::from).unwrap_or(Value::Null);
         }
-        if (rpcUrl == Value::Null) || (token.is_none()) || (spender == Value::Null) {
+        if (rpcUrl.is_none()) || (token.is_none()) || (spender == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" approve() could not resolve the \"rpcUrl\", the \"token\" or the \"spender\" for chain ".into())).into()), chainKey.map(Value::from).unwrap_or(Value::Null))));
         }
         let mut amountHex: Value = Value::Str("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".into());
@@ -3849,8 +3849,8 @@ impl Predictfun {
         }
         // approve(spender, amount) -> selector 0x095ea7b3
         let mut approveData: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x095ea7b3".into()), self.pad_hex_address(spender)).into()), amountHex);
-        let mut txHash: Value = self.send_evm_transaction(rpcUrl.clone(), Value::from(chainId), owner, token.map(Value::from).unwrap_or(Value::Null), Value::Str("0x0".into()), Value::from(approveData), Value::from(gasLimit)).await;
-        return self.wait_for_transaction_receipt(rpcUrl, txHash, &[]).await;
+        let mut txHash: Value = self.send_evm_transaction(Value::from(rpcUrl.as_deref()), Value::from(chainId), owner.map(Value::from).unwrap_or(Value::Null), token.map(Value::from).unwrap_or(Value::Null), Value::Str("0x0".into()), Value::from(approveData), Value::from(gasLimit)).await;
+        return self.wait_for_transaction_receipt(rpcUrl.map(Value::from).unwrap_or(Value::Null), txHash, &[]).await;
 
     Value::Null
 }
@@ -4442,10 +4442,10 @@ impl Predictfun {
     pub fn request_id(&self) -> i64 {
         self.lock_id(&[]);
         let mut previous: i64 = self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut next: Value = Value::Int((previous + 1));
-        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("requestId".into(), next.clone()); }
+        let mut next: i64 = (previous + 1);
+        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(next)); }
         self.unlock_id(&[]);
-        return next.as_i64().unwrap_or_default();
+        return next;
 }
 
 /*

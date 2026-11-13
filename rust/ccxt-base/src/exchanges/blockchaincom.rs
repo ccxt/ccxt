@@ -1840,11 +1840,11 @@ impl Blockchaincom {
             while { if !__for_first_458 { i += 1; } __for_first_458 = false; i < (balances.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "currency", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&entry, "available", &[]));
             account.insert("total".into(), self.safe_string_k(&entry, "balance", &[]));
-            result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
         }
         return self.safe_balance(Value::Map(result));
@@ -1918,7 +1918,7 @@ impl Blockchaincom {
         if isPrivate {
             requestHeaders = privateHeaders.clone();
         }
-        let mut isPrivatePost: bool = isPrivate && (method.as_str() != Some("GET"));
+        let mut isPrivatePost: bool = (isPrivate && (method.as_str() != Some("GET")));
         let mut requestBody: Option<String> = None;
         if isPrivatePost {
             requestBody = json_stringify(&query).as_str().map(str::to_owned);

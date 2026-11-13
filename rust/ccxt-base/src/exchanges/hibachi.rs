@@ -1539,10 +1539,10 @@ impl Hibachi {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut orderRequest: Value = self.create_order_request((match (&(nonce), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }),
-                symbol.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), orderParams]);
-            if let Value::Dict(__d) = &mut orderRequest { std::sync::Arc::make_mut(__d).insert("action".into(), Value::Str("place".into())); }
-            requestOrders.push(orderRequest);
+            let mut orderRequest: crate::value::Dict = self.create_order_request((match (&(nonce), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
+                _ => Value::Null }), symbol.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), orderParams]).into_dict();
+            std::sync::Arc::make_mut(&mut orderRequest).insert("action".into(), Value::Str("place".into()));
+            requestOrders.push(Value::Dict(orderRequest));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1705,10 +1705,10 @@ impl Hibachi {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut orderRequest: Value = self.edit_order_request((match (&(nonce), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }),
-                id.as_deref(), symbol.as_deref(), type_var.as_deref(), side.as_deref(), &[Value::from(amount), Value::from(price), orderParams]);
-            if let Value::Dict(__d) = &mut orderRequest { std::sync::Arc::make_mut(__d).insert("action".into(), Value::Str("modify".into())); }
-            requestOrders.push(orderRequest);
+            let mut orderRequest: crate::value::Dict = self.edit_order_request((match (&(nonce), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
+                _ => Value::Null }), id.as_deref(), symbol.as_deref(), type_var.as_deref(), side.as_deref(), &[Value::from(amount), Value::from(price), orderParams]).into_dict();
+            std::sync::Arc::make_mut(&mut orderRequest).insert("action".into(), Value::Str("modify".into()));
+            requestOrders.push(Value::Dict(orderRequest));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1824,9 +1824,9 @@ impl Hibachi {
                         let mut i: i64 = 0;
             let mut __for_first_739: bool = true;
             while { if !__for_first_739 { i += 1; } __for_first_739 = false; i < (ids.len() as i64) } {
-            let mut orderRequest: Value = self.cancel_order_request((self.safe_string(ids.clone(), Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default());
-            if let Value::Dict(__d) = &mut orderRequest { std::sync::Arc::make_mut(__d).insert("action".into(), Value::Str("cancel".into())); }
-            orders.push(orderRequest);
+            let mut orderRequest: crate::value::Dict = self.cancel_order_request((self.safe_string(ids.clone(), Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default()).into_dict();
+            std::sync::Arc::make_mut(&mut orderRequest).insert("action".into(), Value::Str("cancel".into()));
+            orders.push(Value::Dict(orderRequest));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2044,7 +2044,7 @@ impl Hibachi {
             return Value::from(self.hmac(message.clone(), self.encode(privateKey.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]));
         }  else {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
-            let mut hash: Value = self.hash(message, Value::Str("sha256".into()), &[Value::Str("hex".into())]);
+            let mut hash: Value = Value::from(self.hash(message, Value::Str("sha256".into()), &[Value::Str("hex".into())]));
             let mut signature: crate::value::Dict = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
                 privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
             let mut r: Value = self.safe_string_k(&signature, "r", &[Value::Str("".into())]);
@@ -2295,8 +2295,8 @@ impl Hibachi {
         //     }
         //
         let mut orders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
-        let mut parsedOrders: Value = self.parse_orders(&orders, market.as_ref(), &[]);
-        return self.filter_by_symbol_since_limit(parsedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut parsedOrders: crate::value::List = self.parse_orders(&orders, market.as_ref(), &[]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(parsedOrders), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -2398,11 +2398,11 @@ impl Hibachi {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut timeframeValue: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
+        let mut timeframeValue: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("interval".to_string(), timeframeValue.clone());
+                m.insert("interval".to_string(), Value::from(timeframeValue.as_deref()));
             m
         });
         if (since != Value::Null) {
@@ -2430,7 +2430,7 @@ impl Hibachi {
         //   ]
         //
         let mut klines: crate::value::List = self.safe_list_k(&response, "klines", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&klines, &[(market).raw.clone(), timeframeValue, since, limit]);
+        return self.parse_ohlc_vs(&klines, Some(&market), &[timeframeValue.map(Value::from).unwrap_or(Value::Null), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2458,7 +2458,7 @@ impl Hibachi {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
@@ -2509,7 +2509,7 @@ impl Hibachi {
         //   }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "positions", &[Value::from(vec![])]).into_list();
-        return self.parse_positions(&data, &[symbolsNormalized]);
+        return self.parse_positions(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -3398,8 +3398,8 @@ impl Hibachi {
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

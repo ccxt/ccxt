@@ -467,8 +467,8 @@ impl Bitrue {
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), balances.clone()); }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_134: bool = true;
-            while { if !__for_first_134 { i += 1; } __for_first_134 = false; i < (balances.len() as i64) } {
+            let mut __for_first_135: bool = true;
+            while { if !__for_first_135 { i += 1; } __for_first_135 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(balances.clone(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "a", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -794,8 +794,8 @@ impl Bitrue {
         let mut symbols: Vec<Value> = object_keys(&markets).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_135: bool = true;
-            while { if !__for_first_135 { i += 1; } __for_first_135 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_136: bool = true;
+            while { if !__for_first_136 { i += 1; } __for_first_136 = false; i < (symbols.len() as i64) } {
             let mut symbolId: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut candidate: Value = self.safe_value(markets.clone(), Value::from(symbolId.as_deref()), &[]);
             if !matches!(self.safe_bool_k(candidate.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -820,8 +820,8 @@ impl Bitrue {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_136: bool = true;
-            while { if !__for_first_136 { i += 1; } __for_first_136 = false; i < (bidsAsks.len() as i64) } {
+            let mut __for_first_137: bool = true;
+            while { if !__for_first_137 { i += 1; } __for_first_137 = false; i < (bidsAsks.len() as i64) } {
             let mut level: crate::value::List = self.safe_list(bidsAsks.clone(), Value::Int(i), &[]).into_list();
             let mut price: Option<f64> = self.safe_number(&level, Value::Int(0), &[]).as_f64();
             let mut rawAmount: Option<f64> = self.safe_number(&level, Value::Int(1), &[]).as_f64();
@@ -952,8 +952,8 @@ impl Bitrue {
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_137: bool = true;
-            while { if !__for_first_137 { i += 1; } __for_first_137 = false; i < (data.len() as i64) } {
+            let mut __for_first_138: bool = true;
+            while { if !__for_first_138 { i += 1; } __for_first_138 = false; i < (data.len() as i64) } {
             if (stored.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 stored = Some(ArrayCache::new(limit));
@@ -1097,7 +1097,7 @@ impl Bitrue {
         let mut parts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut wsBaseQuote: Option<String> = self.safe_string_lower(parts.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut market: Value = self.find_swap_market_by_ws_base_quote(wsBaseQuote.map(Value::from).unwrap_or(Value::Null));
-        let mut symbol: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
+        let mut symbol: Option<String> = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
         }
@@ -1106,8 +1106,8 @@ impl Bitrue {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timeframe: Value = Value::from(self.find_timeframe(wsInterval.map(Value::from).unwrap_or(Value::Null), &[futuresTimeframes]));
-        if (timeframe == Value::Null) {
+        let mut timeframe: Option<String> = self.find_timeframe(wsInterval.map(Value::from).unwrap_or(Value::Null), &[futuresTimeframes]);
+        if (timeframe.is_none()) {
             return;
         }
         let mut tick: Value = (match message.get("tick") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
@@ -1115,20 +1115,17 @@ impl Bitrue {
             return;
         }
         let mut parsed: crate::value::List = self.parse_ws_ohlcv(tick, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref()).into_list();
-        if !(matches!((&self.ohlcvs, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})); }
+        if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
+            CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }
-        if !((if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
+        if !(self.ohlcvs.shelf(&symbol).has(&timeframe)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-            if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(symbol.as_deref().unwrap_or("null").to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), Value::from(ArrayCacheByTimestamp::new(limit))); } }
+            CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, ArrayCacheByTimestamp::new(limit));
         }
-        let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&timeframe);
         stored.append(Value::Arr(parsed));
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), timeframe);
-        client.resolve(stored, messageHash.as_str());
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), timeframe.map(Value::from).unwrap_or(Value::Null));
+        client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
     pub fn parse_ws_ohlcv(&self, mut tick: Value, market: Option<&crate::types::Market>) -> Value {
@@ -1245,8 +1242,8 @@ impl Bitrue {
         let mut baseVolume: Value = self.convert_from_raw_quantity(Value::from(symbol.clone()), Value::from(rawVol));
         let mut quoteVolume: Value = self.convert_from_raw_quantity(Value::from(symbol.clone()), Value::from(rawAmount));
         let mut close: Option<f64> = self.safe_number_k(tick.clone(), "close", &[]).as_f64();
-        let mut rose: Value = self.safe_number_k(tick.clone(), "rose", &[]);
-        let mut percentage: Value = (if (rose == Value::Null) { Value::Null } else { (match (&(rose), &(Value::Int(100))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }) });
+        let mut rose: Option<f64> = self.safe_number_k(tick.clone(), "rose", &[]).as_f64();
+        let mut percentage: Option<f64> = (if (rose.is_none()) { None } else { (if let Some(__l) = rose { Some(__l * 100.0) } else { None }) });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), tick.clone());
@@ -1265,7 +1262,7 @@ impl Bitrue {
         m.insert("last".to_string(), Value::from(close));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
-        m.insert("percentage".to_string(), percentage);
+        m.insert("percentage".to_string(), Value::from(percentage));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), baseVolume);
         m.insert("quoteVolume".to_string(), quoteVolume);

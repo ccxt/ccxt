@@ -1633,7 +1633,7 @@ impl Bitvavo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -1642,7 +1642,7 @@ impl Bitvavo {
         }
         let mut request: crate::value::Dict = self.fetch_ohlcv_request(symbol.as_str(), &[timeframe.clone(), since.clone(), limit.clone(), Value::Dict(paramsPaginate)]).into_dict();
         let mut response: crate::value::List = self.public_get_market_candles(&[Value::Dict(request)]).await.into_list();
-        return self.parse_ohlc_vs(self.to_array(&response), &[market, timeframe, since, limit]);
+        return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3358,7 +3358,7 @@ impl Bitvavo {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut requestBody: Value = Value::Null;
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path, params));
@@ -3381,16 +3381,16 @@ impl Bitvavo {
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), url).into()), payload.map(Value::from).unwrap_or(Value::Null));
             let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut accessWindow: String = self.safe_string2(self.options.clone(), Value::Str("recvWindow".into()), Value::Str("BITVAVO-ACCESS-WINDOW".into()), &[Value::Str("10000".into())]).as_str().unwrap_or("10000").to_string();
-            requestHeaders = Value::Map({
+            requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("BITVAVO-ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("BITVAVO-ACCESS-SIGNATURE".to_string(), Value::from(signature));
                     m.insert("BITVAVO-ACCESS-TIMESTAMP".to_string(), Value::from(timestamp));
                     m.insert("BITVAVO-ACCESS-WINDOW".to_string(), Value::from(accessWindow));
                 m
-            });
+            }));
             if !getOrDelete {
-                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
+                if let Some(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".to_string(), Value::Str("application/json".into())); }
             }
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -3403,7 +3403,7 @@ impl Bitvavo {
         m.insert("url".to_string(), Value::from(fullUrl));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody);
-        m.insert("headers".to_string(), requestHeaders);
+        m.insert("headers".to_string(), requestHeaders.map_or(Value::Null, Value::Dict));
     m
 });
 

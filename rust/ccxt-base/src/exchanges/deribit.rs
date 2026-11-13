@@ -1741,7 +1741,7 @@ impl Deribit {
 }));
         let mut instrumentsResponses: Vec<Value> = Vec::new();
         let mut result: Vec<Value> = Vec::new();
-        let mut parsedMarkets: Value = Value::Map({
+        let mut parsedMarkets: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1890,11 +1890,11 @@ impl Deribit {
                 }
                 let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
                 let mut settlementPeriod: Option<String> = self.safe_string_k(&market, "settlement_period", &[]).as_str().map(str::to_owned);
-                let mut swap: Value = (Value::Bool(settlementPeriod.as_deref() == Some("perpetual")));
+                let mut swap: bool = settlementPeriod.as_deref() == Some("perpetual");
                 if (kind.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing kind".into()))));
                 }
-                let mut future: Value = Value::Bool(!(matches!(&swap, Value::Bool(true))) && (kind.as_deref().unwrap_or_default().contains("future")));
+                let mut future: Value = Value::Bool((!(swap) && (kind.as_deref().unwrap_or_default().contains("future"))));
                 if (kind.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing kind".into()))));
                 }
@@ -1933,12 +1933,12 @@ impl Deribit {
                     inverse = Some(quote != settle);
                     linear = Some(settle == quote);
                 }
-                let mut parsedMarketValue: Option<bool> = self.safe_bool(parsedMarkets.clone(), symbol.clone(), &[]).as_bool();
+                let mut parsedMarketValue: Option<bool> = self.safe_bool(Value::Map(parsedMarkets.clone()), symbol.clone(), &[]).as_bool();
                 if (parsedMarketValue.is_some()) {
                     continue;
                 }
                 if (symbol != Value::Null) {
-                    if let Value::Dict(__d) = &mut parsedMarkets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
+                    parsedMarkets.insert(crate::runtime::stringify_param(&symbol), Value::Bool(true));
                 }
                 let mut minTradeAmount: Option<f64> = self.safe_number_k(&market, "min_trade_amount", &[]).as_f64();
                 let mut tickSize: Option<f64> = self.safe_number_k(&market, "tick_size", &[]).as_f64();
@@ -1955,7 +1955,7 @@ impl Deribit {
                         m.insert("type".to_string(), Value::from(type_var));
                         m.insert("spot".to_string(), isSpot.clone());
                         m.insert("margin".to_string(), Value::Bool(false));
-                        m.insert("swap".to_string(), swap);
+                        m.insert("swap".to_string(), Value::Bool(swap));
                         m.insert("future".to_string(), future);
                         m.insert("option".to_string(), Value::Bool(option));
                         m.insert("active".to_string(), self.safe_bool_k(&market, "is_active", &[]));
@@ -2633,7 +2633,7 @@ impl Deribit {
             m
         })]).into_dict();
         let mut ohlcvs: Value = self.convert_trading_view_to_ohlcv(&result, &[Value::Str("ticks".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("volume".into()), Value::Bool(true)]);
-        return self.parse_ohlc_vs(ohlcvs, &[(market).raw.clone(), timeframe, sinceResolved, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(ohlcvs, Some(&market), &[timeframe, sinceResolved, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -2964,12 +2964,12 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_626: bool = true;
             while { if !__for_first_626 { i += 1; } __for_first_626 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut fee: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), (market).raw.clone());
-                    m.insert("symbol".to_string(), symbol.clone());
+                    m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
                     m.insert("percentage".to_string(), Value::Bool(true));
                     m.insert("tierBased".to_string(), Value::Bool(true));
                     m.insert("maker".to_string(), crate::value::KeyRead::key_read(&&market, "maker"));
@@ -2983,7 +2983,7 @@ impl Deribit {
             }  else if (market).option {
                 fee = self.extend(fee.clone(), &[Value::Map(optionFee.clone())]);
             }
-            parsedFees.insert(crate::runtime::stringify_param(&symbol), fee);
+            parsedFees.insert(symbol.as_deref().unwrap_or("null").to_string(), fee);
         }
         }
         return Value::Map(parsedFees);
@@ -3190,7 +3190,7 @@ impl Deribit {
         let mut rawType: Option<String> = self.safe_string_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.parse_order_type(rawType.as_deref());
         // injected in createOrder
-        let mut trades: Value = self.safe_list_k(order.clone(), "trades", &[]);
+        let mut trades: Option<crate::value::List> = self.safe_list_k(order.clone(), "trades", &[]).into_opt_list();
         let mut timeInForce: Value = self.parse_time_in_force((self.safe_string_k(order.clone(), "time_in_force", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
         let mut postOnly: Option<bool> = self.safe_bool_k(order.clone(), "post_only", &[]).as_bool();
         return self.safe_order(Value::Map({
@@ -3215,7 +3215,7 @@ impl Deribit {
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
-        m.insert("trades".to_string(), trades);
+        m.insert("trades".to_string(), trades.map_or(Value::Null, Value::Arr));
     m
 }), Some(&marketResolved));
 
@@ -3346,18 +3346,18 @@ impl Deribit {
         let mut takeProfitPrice: Option<String> = self.safe_string_k(params.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
         let mut trailingAmount: Option<String> = self.safe_string2(params.clone(), Value::Str("trailingAmount".into()), Value::Str("trigger_offset".into()), &[]).as_str().map(str::to_owned);
         let mut isTrailingAmountOrder: bool = trailingAmount.is_some();
-        let mut isStopLimit: bool = type_var.as_str() == Some("stop_limit");
-        let mut isStopMarket: bool = type_var.as_str() == Some("stop_market");
-        let mut isTakeLimit: bool = type_var.as_str() == Some("take_limit");
-        let mut isTakeMarket: bool = type_var.as_str() == Some("take_market");
-        let mut isStopLossOrder: bool = isStopLimit || isStopMarket || (stopLossPrice.is_some());
-        let mut isTakeProfitOrder: bool = isTakeLimit || isTakeMarket || (takeProfitPrice.is_some());
+        let mut isStopLimit: bool = type_var.as_str().unwrap_or_default().to_string() == "stop_limit";
+        let mut isStopMarket: bool = type_var.as_str().unwrap_or_default().to_string() == "stop_market";
+        let mut isTakeLimit: bool = type_var.as_str().unwrap_or_default().to_string() == "take_limit";
+        let mut isTakeMarket: bool = type_var.as_str().unwrap_or_default().to_string() == "take_market";
+        let mut isStopLossOrder: bool = ((isStopLimit || isStopMarket) || (stopLossPrice.is_some()));
+        let mut isTakeProfitOrder: bool = ((isTakeLimit || isTakeMarket) || (takeProfitPrice.is_some()));
         if isStopLossOrder && isTakeProfitOrder {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder () only allows one of stopLossPrice or takeProfitPrice to be specified".into()))));
         }
         let mut isStopOrder: bool = isStopLossOrder || isTakeProfitOrder;
-        let mut isLimitOrder: bool = (type_var.as_str() == Some("limit")) || isStopLimit || isTakeLimit;
-        let mut isMarketOrder: bool = (type_var.as_str() == Some("market")) || isStopMarket || isTakeMarket;
+        let mut isLimitOrder: bool = (((type_var.as_str() == Some("limit")) || isStopLimit) || isTakeLimit);
+        let mut isMarketOrder: bool = (((type_var.as_str() == Some("market")) || isStopMarket) || isTakeMarket);
         let mut exchangeSpecificPostOnly: Option<bool> = self.safe_bool_k(params.clone(), "post_only", &[]).as_bool();
         let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder.clone()), exchangeSpecificPostOnly.map_or(Value::Null, Value::Bool), &[params.clone()]).as_bool() == Some(true);
         if isLimitOrder {
@@ -5087,7 +5087,7 @@ impl Deribit {
         let mut cursor: Option<String> = self.safe_string_k(&result, "continuation", &[]).as_str().map(str::to_owned);
         let mut settlements: Value = self.safe_list_k(&result, "settlements", &[Value::from(vec![])]);
         let mut settlementsWithCursor: Value = self.add_pagination_cursor_to_result(cursor.as_deref(), settlements);
-        return self.parse_liquidations(settlementsWithCursor, &[(market).raw.clone(), since, limit]);
+        return self.parse_liquidations(settlementsWithCursor, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -5193,7 +5193,7 @@ impl Deribit {
             m
         })]).into_dict();
         let mut settlements: crate::value::List = self.safe_list_k(&result, "settlements", &[Value::from(vec![])]).into_list();
-        return self.parse_liquidations(&settlements, &[(market).raw.clone(), since, limit]);
+        return self.parse_liquidations(&settlements, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }

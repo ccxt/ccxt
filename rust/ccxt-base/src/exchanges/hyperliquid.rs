@@ -1986,9 +1986,9 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut ticker: Value = self.parse_ticker(&info, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
-            let mut symbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
-            result.insert(symbol.as_deref().unwrap_or("null").to_string(), ticker);
+            let mut ticker: crate::value::Dict = self.parse_ticker(&info, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref()).into_dict();
+            let mut symbol: Option<String> = self.safe_string_k(&ticker, "symbol", &[]).as_str().map(str::to_owned);
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
         }
         }
         return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -2052,13 +2052,13 @@ impl Hyperliquid {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("metaAndAssetCtxs".into()));
             m
         });
-        let mut dexName: Value = self.get_dex_from_symbols("fetchFundingRates", &[symbolsNormalized.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut dexName: Value = self.get_dex_from_symbols("fetchFundingRates", &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).map(Value::from).unwrap_or(Value::Null);
         if (dexName != Value::Null) {
             request.insert("dex".into(), dexName);
         }
@@ -2118,7 +2118,7 @@ impl Hyperliquid {
             result.push(data);
         }
         }
-        return self.parse_funding_rates(Value::from(result), &[symbolsNormalized]);
+        return self.parse_funding_rates(Value::from(result), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2151,12 +2151,9 @@ impl Hyperliquid {
         let mut funding: Option<f64> = self.safe_number_k(info.clone(), "funding", &[]).as_f64();
         let mut markPx: Option<f64> = self.safe_number_k(info.clone(), "markPx", &[]).as_f64();
         let mut oraclePx: Option<f64> = self.safe_number_k(info.clone(), "oraclePx", &[]).as_f64();
-        let mut currentHour: Value = Value::from(self.parse_to_int((match (((match (((match ((Value::Int(self.milliseconds())).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y),
-            _ => Value::Null })).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
-        let mut fundingTimestamp: Value = (match (&((match (&((match (&(((match (&(currentHour), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
-            _ => Value::Null }))), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x),
-            Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x),
-            Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut currentHour: Option<i64> = self.parse_to_int((match (((match (((match ((Value::Int(self.milliseconds())).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64(),
+            (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        let mut fundingTimestamp: Option<i64> = (if let Some(__l) = ((if let Some(__l) = ((if let Some(__l) = ((if let Some(__l) = currentHour { Some(__l + 1) } else { None })) { Some(__l * 60) } else { None })) { Some(__l * 60) } else { None })) { Some(__l * 1000) } else { None });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info);
@@ -2168,8 +2165,8 @@ impl Hyperliquid {
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("fundingRate".to_string(), Value::from(funding));
-        m.insert("fundingTimestamp".to_string(), fundingTimestamp.clone());
-        m.insert("fundingDatetime".to_string(), self.iso8601(fundingTimestamp));
+        m.insert("fundingTimestamp".to_string(), Value::from(fundingTimestamp));
+        m.insert("fundingDatetime".to_string(), self.iso8601(Value::from(fundingTimestamp)));
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
@@ -2308,7 +2305,7 @@ impl Hyperliquid {
         if (matches!(&response, Value::Arr(_))) {
             candles = response.clone();
         }
-        return self.parse_ohlc_vs(candles, &[(market).raw.clone(), timeframe, originalSince, limit, useTail]);
+        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, originalSince, limit, useTail]);
         Value::Null
         }).await?))
     }
@@ -2494,7 +2491,7 @@ impl Hyperliquid {
         if (expiresAfter != Value::Null) {
             data.push_str(&format!("{}{}", Value::Str("0000000".into()), self.int_to_base16(expiresAfter, &[])));
         }
-        return self.hash(self.base16_to_binary(Value::from(data), &[]), Value::Str("keccak".into()), &[Value::Str("binary".into())]);
+        return Value::from(self.hash_binary(self.base16_to_binary(Value::from(data), &[]), Value::Str("keccak".into())));
 
     Value::Null
 }
@@ -3491,8 +3488,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         self.check_required_credentials(&[]);
-        let mut defaultSlippage: Value = self.safe_string_k(self.options.clone(), "defaultSlippage", &[]);
-        defaultSlippage = self.safe_string_k(params.clone(), "slippage", &[defaultSlippage.clone()]);
+        let mut defaultSlippage: Option<String> = self.safe_string_k(self.options.clone(), "defaultSlippage", &[]).as_str().map(str::to_owned);
+        defaultSlippage = self.safe_string_k(params.clone(), "slippage", &[Value::from(defaultSlippage.as_deref())]).as_str().map(str::to_owned);
         let mut hasClientOrderId: bool = false;
         let mut ordersLength: f64 = ((orders.len() as i64) as f64);
         {
@@ -3547,7 +3544,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut slippage: Value = self.safe_string_k(orderParams.clone(), "slippage", &[defaultSlippage.clone()]);
+            let mut slippage: Value = self.safe_string_k(orderParams.clone(), "slippage", &[Value::from(defaultSlippage.as_deref())]);
             if let Value::Dict(__d) = &mut orderParams { std::sync::Arc::make_mut(__d).insert("slippage".into(), slippage); }
             let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(orderParams.clone(), "stopLoss", &[]).into_opt_dict();
             let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(orderParams.clone(), "takeProfit", &[]).into_opt_dict();
@@ -3587,8 +3584,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("reduceOnly".to_string(), Value::Bool(true));
     m
 })]);
-                    let mut orderObj: Value = self.create_order_request(symbol.as_str(), Some(takeProfitOrderType.as_str()), Some(triggerOrderSide.as_str()), amount.clone().map(Value::from).unwrap_or(Value::Null), takeProfitOrderLimitPrice.as_deref(), &[__ws_arg_19]);
-                    orderReq.push(orderObj.clone());
+                    let mut orderObj: crate::value::Dict = self.create_order_request(symbol.as_str(), Some(takeProfitOrderType.as_str()), Some(triggerOrderSide.as_str()), amount.clone().map(Value::from).unwrap_or(Value::Null), takeProfitOrderLimitPrice.as_deref(), &[__ws_arg_19]).into_dict();
+                    orderReq.push(Value::Dict(orderObj));
                 }
                 if hasStopLoss {
                     let __ws_arg_20 = self.extend(orderParams, &[Value::Map({
@@ -3597,8 +3594,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("reduceOnly".to_string(), Value::Bool(true));
     m
 })]);
-                    let mut orderObj: Value = self.create_order_request(symbol.as_str(), Some(stopLossOrderType.as_str()), Some(triggerOrderSide.as_str()), amount.map(Value::from).unwrap_or(Value::Null), stopLossOrderLimitPrice.as_deref(), &[__ws_arg_20]);
-                    orderReq.push(orderObj);
+                    let mut orderObj: crate::value::Dict = self.create_order_request(symbol.as_str(), Some(stopLossOrderType.as_str()), Some(triggerOrderSide.as_str()), amount.map(Value::from).unwrap_or(Value::Null), stopLossOrderLimitPrice.as_deref(), &[__ws_arg_20]).into_dict();
+                    orderReq.push(Value::Dict(orderObj));
                 }
             }  else {
                 orderReq.push(Value::Dict(mainOrderObj));
@@ -4507,8 +4504,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -5393,7 +5390,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }
-        return self.parse_liquidations(Value::from(fills), &[crate::Value::from(market.as_ref()), since, limit]);
+        return self.parse_liquidations(Value::from(fills), market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -5522,14 +5519,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("clearinghouseState".into()));
                 m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut dexName: Value = self.get_dex_from_symbols("fetchPositions", &[symbolsNormalized.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut dexName: Value = self.get_dex_from_symbols("fetchPositions", &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).map(Value::from).unwrap_or(Value::Null);
         if (dexName != Value::Null) {
             request.insert("dex".into(), dexName);
         }
@@ -5589,7 +5586,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             result.push(self.parse_position(data.get(i as usize).cloned().unwrap_or(Value::Null), None));
         }
         }
-        return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -6080,14 +6077,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // '' addresses the default USDC perp dex and 'spot' the spot balance, a unified account
             // keeps every balance in the spot clearinghouse so spot is the default on both sides
             let mut defaultDex: String = (if ((transferType.as_deref() == Some("swap")) || (transferType.as_deref() == Some("perp"))) { "".to_string() } else { "spot".to_string() });
-            let mut sourceDex: Value = self.safe_string_k(paramsSendAsset.clone(), "sourceDex", &[Value::from(defaultDex.clone())]);
-            let mut destinationDex: Value = self.safe_string_k(paramsSendAsset, "destinationDex", &[Value::from(defaultDex)]);
+            let mut sourceDex: Option<String> = self.safe_string_k(paramsSendAsset.clone(), "sourceDex", &[Value::from(defaultDex.clone())]).as_str().map(str::to_owned);
+            let mut destinationDex: Option<String> = self.safe_string_k(paramsSendAsset, "destinationDex", &[Value::from(defaultDex)]).as_str().map(str::to_owned);
             let mut sendAssetPayload: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("hyperliquidChain".to_string(), (if isSandboxMode { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
                     m.insert("destination".to_string(), (if isDeposit { subAccountAddress.clone() } else { masterAddress.map(Value::from).unwrap_or(Value::Null) }));
-                    m.insert("sourceDex".to_string(), sourceDex.clone());
-                    m.insert("destinationDex".to_string(), destinationDex.clone());
+                    m.insert("sourceDex".to_string(), Value::from(sourceDex.as_deref()));
+                    m.insert("destinationDex".to_string(), Value::from(destinationDex.as_deref()));
                     m.insert("token".to_string(), Value::from(sendAssetToken.clone()));
                     m.insert("amount".to_string(), Value::from(self.number_to_string(amount.clone())));
                     m.insert("fromSubAccount".to_string(), (if isDeposit { Value::Str("".into()) } else { subAccountAddress.clone() }));
@@ -6103,8 +6100,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("signatureChainId".to_string(), Value::Str("0x66eee".into()));
         m.insert("type".to_string(), Value::Str("sendAsset".into()));
         m.insert("destination".to_string(), sendAssetPayload.get("destination").cloned().unwrap_or(Value::Null));
-        m.insert("sourceDex".to_string(), sourceDex);
-        m.insert("destinationDex".to_string(), destinationDex);
+        m.insert("sourceDex".to_string(), sourceDex.map(Value::from).unwrap_or(Value::Null));
+        m.insert("destinationDex".to_string(), destinationDex.map(Value::from).unwrap_or(Value::Null));
         m.insert("token".to_string(), Value::from(sendAssetToken));
         m.insert("amount".to_string(), sendAssetPayload.get("amount").cloned().unwrap_or(Value::Null));
         m.insert("fromSubAccount".to_string(), sendAssetPayload.get("fromSubAccount").cloned().unwrap_or(Value::Null));
@@ -6828,18 +6825,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut dexName: Value = self.get_dex_from_symbols("fetchOpenInterests", &[symbolsNormalized.clone()]).map(Value::from).unwrap_or(Value::Null);
+        let mut dexName: Value = self.get_dex_from_symbols("fetchOpenInterests", &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).map(Value::from).unwrap_or(Value::Null);
         if (dexName != Value::Null) {
             request.insert("dex".into(), dexName);
         }
         let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
         let mut swapMarkets: Value = self.fetch_swap_markets(&[__ws_arg_35]).await;
-        return self.parse_open_interests(swapMarkets, &[symbolsNormalized]);
+        return self.parse_open_interests(swapMarkets, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }

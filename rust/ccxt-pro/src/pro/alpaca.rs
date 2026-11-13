@@ -508,17 +508,18 @@ impl Alpaca {
         //    }
         //
         let mut marketId: Option<String> = (match __pro_message.get("S").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut stored: Value = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]);
-        if (stored == Value::Null) {
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
+        CacheShelves::ensure(&mut self.ohlcvs, &symbol);
+        let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&(Value::Str("1m".into())));
+        if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Value::from(ArrayCacheByTimestamp::new(limit));
-            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
+            stored = Some(ArrayCacheByTimestamp::new(limit));
+            CacheShelves::put2(&mut self.ohlcvs, &symbol, &(Value::Str("1m".into())), stored.clone());
         }
         let mut parsed: crate::value::List = self.parse_ohlcv(message, None).into_list();
         stored.append(Value::Arr(parsed));
-        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbol);
-        client.resolve(stored, messageHash.as_str());
+        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbol.map(Value::from).unwrap_or(Value::Null));
+        client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
 /*

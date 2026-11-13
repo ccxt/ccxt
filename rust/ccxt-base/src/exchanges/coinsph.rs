@@ -1747,7 +1747,7 @@ impl Coinsph {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[]).as_str().map(str::to_owned);
-        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
@@ -1758,18 +1758,17 @@ impl Coinsph {
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
             // since work properly only when it is "younger" than last "limit" candle
-            if (until != Value::Null) {
-                request.insert("endTime".into(), until.clone());
+            if (until.is_some()) {
+                request.insert("endTime".into(), Value::from(until));
             }  else {
                 let mut endTimeByLimit: Value = self.sum(&[since.clone(), Value::Int(((((self.parse_timeframe(timeframe.clone())) * 1000)) * ((limitResolved - 1))))]);
                 let mut now: Value = Value::Int(self.milliseconds());
                 request.insert("endTime".into(), crate::runtime::Math::min(&endTimeByLimit, &now));
             }
-        }  else if (until != Value::Null) {
-            request.insert("endTime".into(), until.clone());
+        }  else if (until.is_some()) {
+            request.insert("endTime".into(), Value::from(until));
             // since work properly only when it is "younger" than last "limit" candle
-            request.insert("startTime".into(), (match (&(until), &((Value::Int(((((self.parse_timeframe(timeframe.clone())) * 1000)) * ((limitResolved - 1))))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64),
-                (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            request.insert("startTime".into(), Value::from((if let Some(__l) = until { Some(__l - (((((self.parse_timeframe(timeframe.clone())) * 1000)) * ((limitResolved - 1))))) } else { None })));
         }
         request.insert("limit".into(), Value::from(limitResolved));
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
@@ -1793,7 +1792,7 @@ impl Coinsph {
         //     ]
         //
         let mut ohlcvs: Value = self.to_array(&response);
-        return self.parse_ohlc_vs(ohlcvs, &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(ohlcvs, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -2514,7 +2513,7 @@ impl Coinsph {
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("time".into()), Value::Str("transactTime".into()), &[]).as_i64();
-        let mut trades: Value = self.safe_list_k(order.clone(), "fills", &[]);
+        let mut trades: Option<crate::value::List> = self.safe_list_k(order.clone(), "fills", &[]).into_opt_list();
         let mut triggerPrice: Option<String> = self.safe_string_k(order.clone(), "stopPrice", &[]).as_str().map(str::to_owned);
         if crate::precise::Precise::stringEq(&triggerPrice.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             triggerPrice = None.clone();
@@ -2540,7 +2539,7 @@ impl Coinsph {
         m.insert("remaining".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
         m.insert("fees".to_string(), Value::Null);
-        m.insert("trades".to_string(), trades);
+        m.insert("trades".to_string(), trades.map_or(Value::Null, Value::Arr));
         m.insert("info".to_string(), order);
     m
 }), Some(&marketResolved));

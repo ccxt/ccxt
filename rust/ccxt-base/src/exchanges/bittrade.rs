@@ -1613,7 +1613,7 @@ impl Bittrade {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.market_get_tickers(&[params]).await.into_dict();
         let mut tickers: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "ts", &[]).as_i64();
@@ -1634,7 +1634,7 @@ impl Bittrade {
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map(ticker));
         }
         }
-        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -1963,7 +1963,7 @@ impl Bittrade {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2071,9 +2071,9 @@ impl Bittrade {
         let mut depositEnabled: Option<bool> = self.safe_bool_k(currency.clone(), "deposit-enabled", &[]).as_bool();
         let mut withdrawEnabled: Option<bool> = self.safe_bool_k(currency.clone(), "withdraw-enabled", &[]).as_bool();
         let mut countryDisabled: bool = self.safe_bool_k(currency.clone(), "country-disabled", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut visible: bool = self.safe_bool_k_opt(currency.clone(), "visible", &[Value::Bool(false)]).unwrap_or(false);
+        let mut visible: bool = self.safe_bool_k(currency.clone(), "visible", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut state: Option<String> = self.safe_string_k(currency.clone(), "state", &[]).as_str().map(str::to_owned);
-        let mut active: Value = Value::Bool(visible && (depositEnabled == Some(true)) && (withdrawEnabled == Some(true)) && (state.as_deref() == Some("online")) && (countryDisabled != true));
+        let mut active: Value = Value::Bool(((((visible && (depositEnabled == Some(true))) && (withdrawEnabled == Some(true))) && (state.as_deref() == Some("online"))) && (countryDisabled != true)));
         let mut name: Option<String> = self.safe_string_k(currency.clone(), "display-name", &[]).as_str().map(str::to_owned);
         let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "withdraw-precision", &[])]), &[]);
         return self.safe_currency_structure(Value::Map({
@@ -2135,16 +2135,16 @@ impl Bittrade {
             while { if !__for_first_448 { i += 1; } __for_first_448 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-            let mut account: indexmap::IndexMap<String, Value> = self.safe_dict(Value::Map(result.clone()), code.clone(), &[self.account()]).as_map().cloned().unwrap_or_default();
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
+            let mut account: indexmap::IndexMap<String, Value> = self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[self.account()]).as_map().cloned().unwrap_or_default();
             if (self.safe_string_k(&balance, "type", &[]).as_str() == Some("trade")) {
                 account.insert("free".into(), self.safe_string_k(&balance, "balance", &[]));
             }
             if (self.safe_string_k(&balance, "type", &[]).as_str() == Some("frozen")) {
                 account.insert("used".into(), self.safe_string_k(&balance, "balance", &[]));
             }
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
@@ -3242,7 +3242,7 @@ impl Bittrade {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut requestBody: Value = Value::Null;
         let mut url: String = "/".to_string();
         if (apiName.as_deref() == Some("market")) {
@@ -3282,17 +3282,17 @@ impl Bittrade {
             url.push_str(&format!("{}{}", Value::Str("?".into()), auth));
             if (method.as_str() == Some("POST")) {
                 requestBody = json_stringify(&query);
-                requestHeaders = Value::Map({
+                requestHeaders = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m
-                });
+                }));
             }  else {
-                requestHeaders = Value::Map({
+                requestHeaders = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m
-                });
+                }));
             }
         }  else {
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
@@ -3308,7 +3308,7 @@ impl Bittrade {
         m.insert("hostname".to_string(), self.hostname.clone());
     m
 })), url);
-        let mut headersResult: Value = requestHeaders;
+        let mut headersResult: Value = requestHeaders.map_or(Value::Null, Value::Dict);
         let mut bodyResult: Value = requestBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

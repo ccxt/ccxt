@@ -995,8 +995,8 @@ impl Dydx {
         }
         let mut parts: Value = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
         let mut baseName: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut baseId: Value = self.safe_string_k(market.clone(), "baseId", &[baseName.clone().map(Value::from).unwrap_or(Value::Null)]); // idk where 'baseId' comes from, but leaving as is
-        let mut base: Option<String> = self.safe_currency_code(baseId.clone(), None);
+        let mut baseId: Option<String> = self.safe_string_k(market.clone(), "baseId", &[baseName.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned); // idk where 'baseId' comes from, but leaving as is
+        let mut base: Option<String> = self.safe_currency_code(Value::from(baseId.as_deref()), None);
         let mut quote: Option<String> = self.safe_currency_code(Value::from(quoteId.clone()), None);
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
@@ -1023,7 +1023,7 @@ impl Dydx {
         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
-        m.insert("baseId".to_string(), baseId);
+        m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("baseName".to_string(), baseName.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), Value::from(quoteId));
         m.insert("settleId".to_string(), Value::from(settleId));
@@ -1327,7 +1327,7 @@ impl Dydx {
         // }
         //
         let mut rows: crate::value::List = self.safe_list_k(&response, "candles", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&rows, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&rows, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1411,8 +1411,8 @@ impl Dydx {
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -1864,7 +1864,7 @@ impl Dydx {
     }
 
     pub fn hash_message(&self, mut message: Value) -> Value {
-        return self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())]);
+        return Value::from(self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())]));
 
     Value::Null
 }
@@ -2135,8 +2135,8 @@ impl Dydx {
             }
             conditionalOrderTriggerSubticks = crate::precise::Precise::stringMul(&conditionalOrderTriggerSubticks.clone().map(Value::from).unwrap_or(Value::Null), &priceScale).as_str().map(str::to_owned);
         }
-        let mut latestBlockHeight: Value = self.safe_integer_k(&paramsSubAccountId, "latestBlockHeight", &[]);
-        let mut goodTillBlock: Value = self.safe_integer_k(&paramsSubAccountId, "goodTillBlock", &[]);
+        let mut latestBlockHeight: Option<i64> = self.safe_integer_k(&paramsSubAccountId, "latestBlockHeight", &[]).as_i64();
+        let mut goodTillBlock: Option<i64> = self.safe_integer_k(&paramsSubAccountId, "goodTillBlock", &[]).as_i64();
         let mut goodTillBlockTime: Value = Value::Null;
         let mut goodTillBlockTimeInSeconds: i64 = 2592000;
         // default is 30 days
@@ -2144,12 +2144,12 @@ impl Dydx {
         let mut goodTillBlockTimeInSecondsOption: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsGoodTillBlockTimeInSeconds: crate::value::Dict = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (orderFlag == Some(0)) {
-            if (goodTillBlock == Value::Null) {
+            if (goodTillBlock.is_none()) {
                 // short term order
-                if (latestBlockHeight == Value::Null) {
+                if (latestBlockHeight.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing latestBlockHeight".into()))));
                 }
-                goodTillBlock = (match (&(latestBlockHeight), &(Value::Int(20))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+                goodTillBlock = (if let Some(__l) = latestBlockHeight { Some(__l + 20) } else { None });
             }
         }  else {
             if (goodTillBlockTimeInSecondsOption == Value::Null) {
@@ -2180,7 +2180,7 @@ impl Dydx {
         m.insert("side".to_string(), Value::from(sideNumber));
         m.insert("quantums".to_string(), self.to_dydx_long(quantums.map(Value::from).unwrap_or(Value::Null)));
         m.insert("subticks".to_string(), self.to_dydx_long(subticks.map(Value::from).unwrap_or(Value::Null)));
-        m.insert("goodTilBlock".to_string(), goodTillBlock);
+        m.insert("goodTilBlock".to_string(), Value::from(goodTillBlock));
         m.insert("goodTilBlockTime".to_string(), goodTillBlockTime);
         m.insert("timeInForce".to_string(), Value::from(timeInForceNumber));
         m.insert("reduceOnly".to_string(), Value::Bool(reduceOnly));
@@ -3569,11 +3569,11 @@ impl Dydx {
 }
 
     pub fn nonce(&self) -> Value {
-        let mut timeDifference: Value = self.safe_integer_k(self.options.clone(), "timeDifference", &[]);
-        if (timeDifference == Value::Null) {
+        let mut timeDifference: Option<i64> = self.safe_integer_k(self.options.clone(), "timeDifference", &[]).as_i64();
+        if (timeDifference.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" nonce() requires a numeric options[\"timeDifference\"]".into()))));
         }
-        return (match (&(Value::Int(self.milliseconds())), &(timeDifference)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return Value::from((if let Some(__r) = timeDifference { Some((self.milliseconds()) - __r) } else { None }));
 
     Value::Null
 }
@@ -3604,7 +3604,7 @@ impl Dydx {
 }));
         let __section_empty = Vec::new();
         let section = section.as_array().unwrap_or(&__section_empty);
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut requestBody: Value = Value::Null;
         let mut pathWithParams: String = self.implode_params(path.clone(), params.clone());
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), section.get(0).cloned().unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -3620,13 +3620,13 @@ impl Dydx {
             }
         }  else {
             requestBody = json_stringify(&paramsSorted);
-            requestHeaders = Value::Map({
+            requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-type".to_string(), Value::Str("application/json".into()));
                 m
-            });
+            }));
         }
-        let mut headersResult: Value = requestHeaders;
+        let mut headersResult: Value = requestHeaders.map_or(Value::Null, Value::Dict);
         let mut bodyResult: Value = requestBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

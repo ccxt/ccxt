@@ -2277,7 +2277,7 @@ impl Aster {
                 response = self.sapi_public_get_v3_klines(&[__ws_arg_3]).await;
             }
         }
-        return self.parse_ohlc_vs(self.to_array(response), &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(self.to_array(response), Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2750,8 +2750,8 @@ impl Aster {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
-        let mut market: Option<crate::types::Market> = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]).into_opt_list();
+        let mut market: Option<crate::types::Market> = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2761,7 +2761,7 @@ impl Aster {
         }  else if (marketType.as_deref() == Some("spot")) {
             response = self.sapi_public_get_v3_ticker24hr(&[Value::Dict(paramsMarketType)]).await;
         }
-        return self.parse_tickers(response, &[symbolsNormalized]);
+        return self.parse_tickers(response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2791,8 +2791,8 @@ impl Aster {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
-        let mut market: Option<crate::types::Market> = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]).into_opt_list();
+        let mut market: Option<crate::types::Market> = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchLastPrices".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2830,7 +2830,7 @@ impl Aster {
             results.push(priceData);
         }
         }
-        let mut symbolsNormalized2: Option<crate::value::List> = self.market_symbols(&[symbolsNormalized]).into_opt_list();
+        let mut symbolsNormalized2: Option<crate::value::List> = self.market_symbols(&[symbolsNormalized.map_or(Value::Null, Value::Arr)]).into_opt_list();
         return self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), &symbolsNormalized2, &[Value::Bool(false)]), Value::Str("symbol".into()));
         Value::Null
         }).await?))
@@ -2887,8 +2887,8 @@ impl Aster {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
-        let mut market: Option<crate::types::Market> = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]).into_opt_list();
+        let mut market: Option<crate::types::Market> = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBidsAsks".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2898,7 +2898,7 @@ impl Aster {
         }  else if (marketType.as_deref() == Some("spot")) {
             response = self.sapi_public_get_v3_ticker_book_ticker(&[Value::Dict(paramsMarketType)]).await;
         }
-        return self.parse_tickers(response, &[symbolsNormalized]);
+        return self.parse_tickers(response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -3026,10 +3026,10 @@ impl Aster {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let __ws_arg_16 = self.extend(params, &[]);
         let mut response: Value = self.fapi_public_get_v3_premium_index(&[__ws_arg_16]).await;
-        return self.parse_funding_rates(self.to_array(response), &[symbolsNormalized]);
+        return self.parse_funding_rates(self.to_array(response), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -3057,9 +3057,9 @@ impl Aster {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::List = self.fapi_public_get_v3_funding_info(&[params]).await.into_list();
-        return self.parse_funding_rates(&response, &[symbolsNormalized]);
+        return self.parse_funding_rates(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -4012,7 +4012,7 @@ impl Aster {
         let tifOptionparamsTifOptionVariable: Vec<Value> = self.handle_option_string_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tifOption: Option<String> = tifOptionparamsTifOptionVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTifOption: crate::value::Dict = tifOptionparamsTifOptionVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut tifIsMissing: bool = timeInForceIsRequired && (self.safe_string_k(params.clone(), "timeInForce", &[]) == Value::Null) && (self.safe_string(Value::Map(request.clone()), Value::Str("timeInForce".into()), &[]) == Value::Null);
+        let mut tifIsMissing: bool = ((timeInForceIsRequired && (self.safe_string_k(params.clone(), "timeInForce", &[]) == Value::Null)) && (self.safe_string(Value::Map(request.clone()), Value::Str("timeInForce".into()), &[]) == Value::Null));
         let mut omitKeys: Value = Value::from(vec![Value::Str("newClientOrderId".into()), Value::Str("clientOrderId".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("trailingTriggerPrice".into()), Value::Str("trailingPercent".into()), Value::Str("trailingDelta".into()), Value::Str("stopPrice".into()),
             Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]);
         let mut requestParams: Value = Value::Null;
@@ -5033,8 +5033,8 @@ impl Aster {
             }
         }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -5356,8 +5356,8 @@ impl Aster {
         let mut response: Value = self.fapi_private_get_v4_account(&[params.clone()]).await;
         let mut filterClosed: Value = self.handle_option_bool_and_params(params, Value::Str("fetchAccountPositions".into()), Value::Str("filterClosed".into()), &[Value::Bool(false)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut result: crate::value::List = self.parse_account_positions(response, &[filterClosed]).into_list();
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.filter_by_array_positions(Value::Arr(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        return self.filter_by_array_positions(Value::Arr(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
 
     Value::Null
 }
@@ -5555,17 +5555,17 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut network: Value = self.safe_string_upper_k(&paramsWithdrawTag, "network", &[]);
-        if (network != Value::Null) {
-            network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]); // accepts aliases like ETH for ERC20
+        let mut network: Option<String> = self.safe_string_upper_k(&paramsWithdrawTag, "network", &[]).as_str().map(str::to_owned);
+        if (network.is_some()) {
+            network = self.safe_string(self.networkAliases.clone(), Value::from(network.as_deref()), &[Value::from(network.as_deref())]).as_str().map(str::to_owned); // accepts aliases like ETH for ERC20
         }
-        network = self.safe_string(&networks, network.clone(), &[network.clone()]);
-        if (chainId.is_none()) && (network != Value::Null) {
+        network = self.safe_string(&networks, Value::from(network.as_deref()), &[Value::from(network.as_deref())]).as_str().map(str::to_owned);
+        if (chainId.is_none()) && (network.is_some()) {
             let mut chainIds: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networksToChainId", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            chainId = self.safe_integer(&chainIds, network.clone(), &[]).as_i64();
+            chainId = self.safe_integer(&chainIds, Value::from(network.as_deref()), &[]).as_i64();
         }
         if (chainId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw require chainId or network parameter".into()))));
@@ -5577,8 +5577,8 @@ impl Aster {
         }
         request.insert("fee".into(), fee.map(Value::from).unwrap_or(Value::Null));
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("chainId".into()), Value::Str("network".into()), Value::Str("fee".into())]), &[]).into_dict();
-        request.insert("amount".into(), self.currency_to_precision(code, amount, &[network.clone()]));
-        { let __be_tmp = self.sign_withdraw_payload(Value::Map(request.clone()), network).map(Value::from).unwrap_or(Value::Null); request.insert("userSignature".into(), __be_tmp); }
+        request.insert("amount".into(), self.currency_to_precision(code, amount, &[Value::from(network.as_deref())]));
+        { let __be_tmp = self.sign_withdraw_payload(Value::Map(request.clone()), network.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null); request.insert("userSignature".into(), __be_tmp); }
         let __ws_arg_45 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.sapi_private_post_v3_aster_user_withdraw(&[__ws_arg_45]).await.into_dict();
         return self.parse_transaction(&response, Some(&currency));
@@ -5749,7 +5749,7 @@ impl Aster {
             let mut zeroAddress: String = self.safe_string_k(self.options.clone(), "zeroAddress", &[Value::Str("0x0000000000000000000000000000000000000000".into())]).as_str().unwrap_or("0x0000000000000000000000000000000000000000").to_string();
             let mut v3ChainId: i64 = self.safe_integer_k(self.options.clone(), "v3ChainId", &[Value::Int(1666)]).as_i64().unwrap_or(1666);
             let mut walletAddress: Value = self.safe_string_k(self.options.clone(), "cachedWalletAddress", &[]);
-            let mut privateKeyHash: Value = self.hash(self.encode(self.privateKey.clone()), Value::Str("keccak".into()), &[Value::Str("hex".into())]);
+            let mut privateKeyHash: Value = Value::from(self.hash(self.encode(self.privateKey.clone()), Value::Str("keccak".into()), &[Value::Str("hex".into())]));
             let mut cachedPrivateKeyHash: Option<String> = self.safe_string_k_opt(self.options.clone(), "privateKeyHashForCachedWalletAddress", &[]);
             if (walletAddress == Value::Null) || (cachedPrivateKeyHash.as_deref() != privateKeyHash.as_str()) {
                 walletAddress = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);

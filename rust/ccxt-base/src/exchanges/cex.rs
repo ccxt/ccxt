@@ -1346,7 +1346,7 @@ impl Cex {
         //            ...
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1418,10 +1418,10 @@ impl Cex {
             if useKeyAsId.as_bool() == Some(true) {
                 market = crate::types::IntoRaw::into_raw(self.safe_market(key.clone().map(Value::from).unwrap_or(Value::Null), None, &[]));
             }
-            let mut parsed: Value = self.parse_trading_fee((if let (Some(__m), Some(__k)) = (response.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref());
-            let mut parsedSymbol: Option<String> = self.safe_string_k(parsed.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut parsed: crate::value::Dict = self.parse_trading_fee((if let (Some(__m), Some(__k)) = (response.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()).into_dict();
+            let mut parsedSymbol: Option<String> = self.safe_string_k(&parsed, "symbol", &[]).as_str().map(str::to_owned);
             if (parsedSymbol.is_some()) {
-                result.insert(parsedSymbol.as_deref().unwrap_or("null").to_string(), parsed);
+                result.insert(parsedSymbol.as_deref().unwrap_or("null").to_string(), Value::Dict(parsed));
             }
         }
         }

@@ -622,8 +622,8 @@ impl Weex {
         let mut channels: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_683: bool = true;
-            while { if !__for_first_683 { i += 1; } __for_first_683 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_684: bool = true;
+            while { if !__for_first_684 { i += 1; } __for_first_684 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -709,8 +709,8 @@ impl Weex {
         let mut unSubHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_684: bool = true;
-            while { if !__for_first_684 { i += 1; } __for_first_684 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_685: bool = true;
+            while { if !__for_first_685 { i += 1; } __for_first_685 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -903,8 +903,8 @@ impl Weex {
         let mut channels: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_685: bool = true;
-            while { if !__for_first_685 { i += 1; } __for_first_685 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_686: bool = true;
+            while { if !__for_first_686 { i += 1; } __for_first_686 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -985,8 +985,8 @@ impl Weex {
         let mut unSubHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_686: bool = true;
-            while { if !__for_first_686 { i += 1; } __for_first_686 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_687: bool = true;
+            while { if !__for_first_687 { i += 1; } __for_first_687 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1047,8 +1047,8 @@ impl Weex {
         let mut newTrades: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_687: bool = true;
-            while { if !__for_first_687 { i += 1; } __for_first_687 = false; i < (data.len() as i64) } {
+            let mut __for_first_688: bool = true;
+            while { if !__for_first_688 { i += 1; } __for_first_688 = false; i < (data.len() as i64) } {
             let mut rawTrade: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1057,12 +1057,12 @@ impl Weex {
             newTrades.push(Value::Dict(trade));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(newTrades), Value::Str("timestamp".into()), &[]);
+        let mut sorted: Vec<Value> = self.sort_by(Value::from(newTrades), Value::Str("timestamp".into()), &[]).as_array().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_688: bool = true;
-            while { if !__for_first_688 { j += 1; } __for_first_688 = false; j < (sorted.len() as i64) } {
-            let mut sortedTrade: Value = sorted.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
+            let mut __for_first_689: bool = true;
+            while { if !__for_first_689 { j += 1; } __for_first_689 = false; j < (sorted.len() as i64) } {
+            let mut sortedTrade: Value = sorted.get(j as usize).cloned().unwrap_or(Value::Null);
             tradesArray.append(sortedTrade);
         }
         }
@@ -1198,8 +1198,8 @@ impl Weex {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_689: bool = true;
-            while { if !__for_first_689 { i += 1; } __for_first_689 = false; i < (symbolsAndTimeframes.len() as i64) } {
+            let mut __for_first_690: bool = true;
+            while { if !__for_first_690 { i += 1; } __for_first_690 = false; i < (symbolsAndTimeframes.len() as i64) } {
             let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
             let mut symbolString: String = self.safe_string(&data, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut market: crate::types::Market = (match self.market(symbolString.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1299,8 +1299,8 @@ impl Weex {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_690: bool = true;
-            while { if !__for_first_690 { i += 1; } __for_first_690 = false; i < (symbolsAndTimeframes.len() as i64) } {
+            let mut __for_first_691: bool = true;
+            while { if !__for_first_691 { i += 1; } __for_first_691 = false; i < (symbolsAndTimeframes.len() as i64) } {
             let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
             let mut symbolString: String = self.safe_string(&data, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut market: crate::types::Market = (match self.market(symbolString.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1365,12 +1365,9 @@ impl Weex {
         if (market == Value::Null) {
             return;
         }
-        let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
-        if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})); }
+        let mut symbol: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
+            CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }
         let mut data: crate::value::List = __pro_message.get("d").cloned().unwrap_or_default().into_list();
         let mut firstEntry: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
@@ -1379,18 +1376,18 @@ impl Weex {
         })]).into_dict();
         let mut interval: Option<String> = self.safe_string_k(&firstEntry, "i", &[]).as_str().map(str::to_owned);
         let mut timeframe: Value = Value::from(self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]));
-        let mut stored: Value = self.safe_value(self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
-        if (stored == Value::Null) {
+        let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
+        if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Value::from(ArrayCacheByTimestamp::new(limit));
-            if (symbol != Value::Null) && (timeframe != Value::Null) {
-                if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); } }
+            stored = Some(ArrayCacheByTimestamp::new(limit));
+            if (true) && (timeframe != Value::Null) {
+                CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
             }
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_691: bool = true;
-            while { if !__for_first_691 { i += 1; } __for_first_691 = false; i < (data.len() as i64) } {
+            let mut __for_first_692: bool = true;
+            while { if !__for_first_692 { i += 1; } __for_first_692 = false; i < (data.len() as i64) } {
             let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1400,7 +1397,7 @@ impl Weex {
         }
         }
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), symbol).into()), Value::Str("::".into())).into()), timeframe);
-        let mut resolveData: Value = Value::from(vec![symbol, timeframe, stored]);
+        let mut resolveData: Value = Value::from(vec![Value::from(symbol), timeframe, Value::from(&stored)]);
         client.resolve(resolveData, messageHash.as_str());
 }
 
@@ -1482,8 +1479,8 @@ impl Weex {
         let mut channels: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_692: bool = true;
-            while { if !__for_first_692 { i += 1; } __for_first_692 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_693: bool = true;
+            while { if !__for_first_693 { i += 1; } __for_first_693 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -1573,8 +1570,8 @@ impl Weex {
         let mut unSubHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_693: bool = true;
-            while { if !__for_first_693 { i += 1; } __for_first_693 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_694: bool = true;
+            while { if !__for_first_694 { i += 1; } __for_first_694 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -1651,9 +1648,9 @@ impl Weex {
         let mut event: Option<String> = (match __pro_message.get("e").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut nonce: Value = (match __pro_message.get("u").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         if (event.as_deref() == Some("depthSnapshot")) {
-            let mut parsed: Value = self.parse_order_book(message, Value::from(symbol), &[timestamp.clone(), Value::Str("b".into()), Value::Str("a".into())]);
-            parsed.set_book_meta("nonce", nonce.clone());
-            orderbook.reset(parsed);
+            let mut parsed: crate::value::Dict = self.parse_order_book(message, Value::from(symbol), &[timestamp.clone(), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
+            std::sync::Arc::make_mut(&mut parsed).insert("nonce".into(), nonce.clone());
+            orderbook.reset(Value::Dict(parsed));
         }  else {
             let mut asks: Value = (match __pro_message.get("a").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
             let mut bids: Value = (match __pro_message.get("b").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
@@ -1703,8 +1700,8 @@ impl Weex {
         let mut channels: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_694: bool = true;
-            while { if !__for_first_694 { i += 1; } __for_first_694 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_695: bool = true;
+            while { if !__for_first_695 { i += 1; } __for_first_695 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1764,8 +1761,8 @@ impl Weex {
         let mut unSubHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_695: bool = true;
-            while { if !__for_first_695 { i += 1; } __for_first_695 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_696: bool = true;
+            while { if !__for_first_696 { i += 1; } __for_first_696 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -2008,8 +2005,8 @@ impl Weex {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_696: bool = true;
-            while { if !__for_first_696 { i += 1; } __for_first_696 = false; i < (data.len() as i64) } {
+            let mut __for_first_697: bool = true;
+            while { if !__for_first_697 { i += 1; } __for_first_697 = false; i < (data.len() as i64) } {
             let mut trade: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2030,8 +2027,8 @@ impl Weex {
         }
         {
                         let mut j: i64 = 0;
-            let mut __for_first_697: bool = true;
-            while { if !__for_first_697 { j += 1; } __for_first_697 = false; j < (symbolKeys.len() as i64) } {
+            let mut __for_first_698: bool = true;
+            while { if !__for_first_698 { j += 1; } __for_first_698 = false; j < (symbolKeys.len() as i64) } {
             let mut symbol: Option<String> = symbolKeys.get(j as usize).and_then(Value::as_str).map(str::to_owned);
             let mut symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
             client.resolve(Value::from(&trades), symbolMessageHash.as_str());
@@ -2274,8 +2271,8 @@ impl Weex {
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_698: bool = true;
-            while { if !__for_first_698 { i += 1; } __for_first_698 = false; i < (data.len() as i64) } {
+            let mut __for_first_699: bool = true;
+            while { if !__for_first_699 { i += 1; } __for_first_699 = false; i < (data.len() as i64) } {
             let mut rawOrder: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2296,8 +2293,8 @@ impl Weex {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_699: bool = true;
-            while { if !__for_first_699 { i += 1; } __for_first_699 = false; i < (symbolKeys.len() as i64) } {
+            let mut __for_first_700: bool = true;
+            while { if !__for_first_700 { i += 1; } __for_first_700 = false; i < (symbolKeys.len() as i64) } {
             let mut symbol: Option<String> = symbolKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
             client.resolve(Value::from(&orders), symbolMessageHash.as_str());
@@ -2634,8 +2631,8 @@ impl Weex {
         let mut balanceUpdates: crate::value::List = __pro_message.get("d").cloned().unwrap_or_default().into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_700: bool = true;
-            while { if !__for_first_700 { i += 1; } __for_first_700 = false; i < (balanceUpdates.len() as i64) } {
+            let mut __for_first_701: bool = true;
+            while { if !__for_first_701 { i += 1; } __for_first_701 = false; i < (balanceUpdates.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&balanceUpdates, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
@@ -2741,8 +2738,8 @@ impl Weex {
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_701: bool = true;
-            while { if !__for_first_701 { i += 1; } __for_first_701 = false; i < (positions.len() as i64) } {
+            let mut __for_first_702: bool = true;
+            while { if !__for_first_702 { i += 1; } __for_first_702 = false; i < (positions.len() as i64) } {
             let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             cache.append(position);
         }
@@ -2844,8 +2841,8 @@ impl Weex {
         let mut data: crate::value::List = message.get("d").cloned().unwrap_or_default().into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_702: bool = true;
-            while { if !__for_first_702 { i += 1; } __for_first_702 = false; i < (data.len() as i64) } {
+            let mut __for_first_703: bool = true;
+            while { if !__for_first_703 { i += 1; } __for_first_703 = false; i < (data.len() as i64) } {
             let mut rawPosition: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2858,8 +2855,8 @@ impl Weex {
         let mut messageHashes: Vec<Value> = self.find_message_hashes(client.clone(), Value::Str("positions::".into())).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_703: bool = true;
-            while { if !__for_first_703 { i += 1; } __for_first_703 = false; i < (messageHashes.len() as i64) } {
+            let mut __for_first_704: bool = true;
+            while { if !__for_first_704 { i += 1; } __for_first_704 = false; i < (messageHashes.len() as i64) } {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
@@ -2935,8 +2932,8 @@ impl Weex {
             let mut subHashes: crate::value::List = self.safe_list_k(&subscription, "subMessageHashes", &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_704: bool = true;
-                while { if !__for_first_704 { i += 1; } __for_first_704 = false; i < (messageHashes.len() as i64) } {
+                let mut __for_first_705: bool = true;
+                while { if !__for_first_705 { i += 1; } __for_first_705 = false; i < (messageHashes.len() as i64) } {
                 let mut unSubHash: Option<String> = self.safe_string(&messageHashes, Value::Int(i), &[]).as_str().map(str::to_owned);
                 let mut subHash: Option<String> = self.safe_string(&subHashes, Value::Int(i), &[]).as_str().map(str::to_owned);
                 self.clean_unsubscription(client.clone(), subHash.map(Value::from).unwrap_or(Value::Null), unSubHash.map(Value::from).unwrap_or(Value::Null), &[Value::Bool(subHashIsPrefix)]);

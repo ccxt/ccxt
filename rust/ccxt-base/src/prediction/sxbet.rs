@@ -508,7 +508,7 @@ impl Sxbet {
 }));
         let mut userLimit = get_arg(optional_args, 1, Value::Null);
         let mut pageSize: Value = self.safe_integer_k(self.options.clone(), "marketsPageSize", &[Value::Int(100)]);
-        let mut maxPages: Value = self.safe_integer_k(self.options.clone(), "maxMarketsPages", &[Value::Int(50)]);
+        let mut maxPages: i64 = self.safe_integer_k(self.options.clone(), "maxMarketsPages", &[Value::Int(50)]).as_i64().unwrap_or(50);
         let mut rawMarkets: Vec<Value> = Vec::new();
         let mut collectCap: Option<i64> = self.safe_integer(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -516,7 +516,7 @@ impl Sxbet {
     m
 }), Value::Str("limit".into()), &[]).as_i64();
         let mut paginationKey: Option<String> = None;
-        let mut page: Value = Value::from(self.parse_to_int(Value::Int(0)));
+        let mut page: Option<i64> = self.parse_to_int(Value::Int(0));
         loop {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -542,9 +542,9 @@ impl Sxbet {
             }
             }
             paginationKey = self.safe_string_k(&result, "nextKey", &[]).as_str().map(str::to_owned);
-            page = Value::from(self.parse_to_int((match (&(page), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })));
+            page = self.parse_to_int(Value::from((if let Some(__l) = page { Some(__l + 1) } else { None })));
             let mut collectedLength: Option<i64> = self.parse_to_int(Value::Int(rawMarkets.len() as i64));
-            if (pageMarketsLength < pageSize.as_f64().unwrap_or(f64::NAN)) || (page.as_f64().unwrap_or(f64::NAN) >= maxPages.as_f64().unwrap_or(f64::NAN)) || (paginationKey.is_none()) || ((collectCap.is_some()) && ((collectedLength.is_some() && collectCap.is_some() && collectedLength >= collectCap))) {
+            if (pageMarketsLength < pageSize.as_f64().unwrap_or(f64::NAN)) || (page >= Some(maxPages)) || (paginationKey.is_none()) || ((collectCap.is_some()) && ((collectedLength.is_some() && collectCap.is_some() && collectedLength >= collectCap))) {
                 break;
             }
         }
@@ -1153,13 +1153,13 @@ impl Sxbet {
         let mut hex: Value = self.remove0x_prefix(result);
         // dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
         let mut lengthHex: Value = hex.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(64); let __j = __l.min(128); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        let mut length: Value = Value::from(self.parse_to_int(self.hex_to_int(lengthHex.as_str().unwrap_or_default())));
-        let mut dataEnd: Value = self.sum(&[Value::Int(128), (match (&(length), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
+        let mut length: Option<i64> = self.parse_to_int(self.hex_to_int(lengthHex.as_str().unwrap_or_default()));
+        let mut dataEnd: Value = self.sum(&[Value::Int(128), Value::from((if let Some(__l) = length { Some(__l * 2) } else { None }))]);
         let mut dataHex: Value = (match (&(hex), 128i64, (match &(dataEnd) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
             __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
             __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
             Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
-        return self.decode(Value::from(self.base16_to_binary(dataHex, &[])));
+        return self.decode(self.base16_to_binary(dataHex, &[]));
 
     Value::Null
 }
@@ -1177,18 +1177,18 @@ impl Sxbet {
         let mut digits: String = "0123456789abcdef".to_string();
         let mut lowerHex: Value = (if let Some(__s) = hex.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut hexLength: f64 = ((lowerHex.len() as i64) as f64);
-        let mut result: Value = Value::from(self.parse_to_int(Value::Int(0)));
+        let mut result: Option<i64> = self.parse_to_int(Value::Int(0));
         {
                         let mut i: i64 = 0;
             let mut __for_first_1502: bool = true;
             while { if !__for_first_1502 { i += 1; } __for_first_1502 = false; (i as f64) < hexLength } {
             let mut ch: Value = get_value(&lowerHex, &Value::Int(i));
             let mut digitValue: Option<i64> = self.parse_to_int(Value::Int((if let (Some(__h), Some(__n)) = (Some(digits.as_str()), (ch).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })));
-            let mut shifted: Value = (match (&(result), &(Value::Int(16))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            result = Value::from(self.parse_to_int(self.sum(&[shifted, Value::from(digitValue)])));
+            let mut shifted: Option<i64> = (if let Some(__l) = result { Some(__l * 16) } else { None });
+            result = self.parse_to_int(self.sum(&[Value::from(shifted), Value::from(digitValue)]));
         }
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
@@ -1260,8 +1260,8 @@ impl Sxbet {
         let mut usdcAddress: Option<String> = self.safe_string_k(&activeAsset, "baseToken", &[]).as_str().map(str::to_owned);
         // the permit spender is the venue's transfer-to-proxy executor, published in /metadata/obv3
         let mut executorAddress: Option<String> = self.safe_string_k(obv3, "transferToProxyExecutorAddress", &[]).as_str().map(str::to_owned);
-        let mut tokenAddress: Value = self.safe_string_k(params.clone(), "tokenAddress", &[usdcAddress.map(Value::from).unwrap_or(Value::Null)]);
-        if (tokenAddress == Value::Null) {
+        let mut tokenAddress: Option<String> = self.safe_string_k(params.clone(), "tokenAddress", &[usdcAddress.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        if (tokenAddress.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" approve() could not resolve the base token address from /metadata/obv3".into()))));
         }
         let spenderparamsSpenderVariable: Vec<Value> = self.handle_option_string_and_params2(params, Value::Str("approve".into()), Value::Str("spender".into()), Value::Str("transferToProxySpender".into()), &[executorAddress.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
@@ -1278,21 +1278,21 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut rpcUrl: Value = self.safe_string_k(&paramsSpender, "rpcUrl", &[self.safe_string_k(&chainConfig, "rpcUrl", &[])]);
-        if (rpcUrl == Value::Null) {
+        let mut rpcUrl: Option<String> = self.safe_string_k(&paramsSpender, "rpcUrl", &[self.safe_string_k(&chainConfig, "rpcUrl", &[])]).as_str().map(str::to_owned);
+        if (rpcUrl.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" approve() has no RPC endpoint configured for chainId ".into())).into()), Value::from(self.number_to_string(Value::from(chainId)))).into()), Value::Str(" - pass params.rpcUrl".into()))));
         }
         let mut owner: Value = self.walletAddress.clone();
         let mut nonceCallData: String = format!("{}{}", Value::Str("0x7ecebe00".into()), self.pad_hex_address(owner.clone())); // nonces(address)
-        let mut nonceResult: Value = self.eth_rpc(rpcUrl.clone(), Value::Str("eth_call".into()), Value::from(vec![Value::Map({
+        let mut nonceResult: Value = self.eth_rpc(Value::from(rpcUrl.as_deref()), Value::Str("eth_call".into()), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("to".to_string(), tokenAddress.clone());
+        m.insert("to".to_string(), Value::from(tokenAddress.as_deref()));
         m.insert("data".to_string(), Value::from(nonceCallData));
     m
 }), Value::Str("latest".into())])).await;
         let mut nonceHex: Option<String> = self.hex_to_rlp_bytes(nonceResult).as_str().map(str::to_owned);
         let mut nonce: Option<String> = (if (nonceHex.as_deref() == Some("")) { Some("0".to_string()) } else { self.number_to_string(self.hex_to_int(nonceHex.as_deref().unwrap_or_default())) });
-        let mut tokenName: Option<String> = self.fetch_erc20_name(rpcUrl.as_str(), tokenAddress.as_str().unwrap_or_default()).await.as_str().map(str::to_owned);
+        let mut tokenName: Option<String> = self.fetch_erc20_name(rpcUrl.as_deref(), tokenAddress.as_deref().unwrap_or_default()).await.as_str().map(str::to_owned);
         let mut defaultDeadlineSeconds: i64 = self.safe_integer_k(self.options.clone(), "approveDeadlineSeconds", &[Value::Int(7200)]).as_i64().unwrap_or(7200);
         let mut deadline: Option<i64> = self.safe_integer_k(&paramsSpender, "deadline", &[Value::Int(((self.seconds().as_i64().unwrap_or_default()) + defaultDeadlineSeconds))]).as_i64();
         let mut value: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(Value::from(amount))), &Value::Str("1000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
@@ -1301,7 +1301,7 @@ impl Sxbet {
                 m.insert("name".to_string(), tokenName.map(Value::from).unwrap_or(Value::Null));
                 m.insert("version".to_string(), Value::Str("1".into()));
                 m.insert("chainId".to_string(), Value::from(chainId));
-                m.insert("verifyingContract".to_string(), tokenAddress.clone());
+                m.insert("verifyingContract".to_string(), Value::from(tokenAddress.as_deref()));
             m
         });
         let mut messageTypes: indexmap::IndexMap<String, Value> = ({
@@ -1350,7 +1350,7 @@ impl Sxbet {
             let mut m = indexmap::IndexMap::new();
                 m.insert("owner".to_string(), owner);
                 m.insert("spender".to_string(), spender.map(Value::from).unwrap_or(Value::Null));
-                m.insert("tokenAddress".to_string(), tokenAddress);
+                m.insert("tokenAddress".to_string(), tokenAddress.map(Value::from).unwrap_or(Value::Null));
                 m.insert("value".to_string(), value.clone());
                 m.insert("deadline".to_string(), Value::from(self.number_to_string(Value::from(deadline))));
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
@@ -1451,11 +1451,11 @@ impl Sxbet {
         let mut percentageOdds: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&roundedProbability, &Value::Str("100000000000000000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
         let mut amountStr: Option<String> = self.number_to_string(amount.clone());
         let mut totalBetSize: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&amountStr.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
-        let mut saltNumber: Value = self.safe_string_k(params.clone(), "salt", &[Value::from(self.number_to_string(Value::Int(self.milliseconds())))]);
+        let mut saltNumber: Option<String> = self.safe_string_k(params.clone(), "salt", &[Value::from(self.number_to_string(Value::Int(self.milliseconds())))]).as_str().map(str::to_owned);
         // the request body carries the salt in 32-byte-hex form; the signed struct carries the
         // same value in uint256 form - both parse to one number server-side. assign to bare locals
         // before padStart - see the transpiler notes
-        let mut saltHexRaw: Value = Value::from(self.int_to_base16(Value::from(self.parse_to_int(saltNumber.clone())), &[]));
+        let mut saltHexRaw: Value = Value::from(self.int_to_base16(Value::from(self.parse_to_int(Value::from(saltNumber.as_deref()))), &[]));
         let mut saltHexPadded: Value = saltHexRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
         let mut saltHex: String = format!("{}{}", Value::Str("0x".into()), saltHexPadded);
         let mut defaultExpirySeconds: i64 = self.safe_integer_k(self.options.clone(), "defaultOrderExpirySeconds", &[Value::Int(86400)]).as_i64().unwrap_or(86400);
@@ -1525,7 +1525,7 @@ impl Sxbet {
                 m.insert("baseToken".to_string(), baseToken.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("totalBetSize".to_string(), totalBetSize.clone());
                 m.insert("percentageOdds".to_string(), percentageOdds.clone());
-                m.insert("salt".to_string(), saltNumber);
+                m.insert("salt".to_string(), saltNumber.map(Value::from).unwrap_or(Value::Null));
                 m.insert("expiry".to_string(), Value::from(expiry));
                 m.insert("maker".to_string(), maker.clone());
                 m.insert("isMakerBettingOutcomeOne".to_string(), isMakerBettingOutcomeOne.clone());
@@ -1780,31 +1780,31 @@ impl Sxbet {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut idsLength: Value = Value::Int(ids.len() as i64);
-        if (idsLength.as_f64() == Some(0.0)) {
+        let mut idsLength: i64 = ids.len() as i64;
+        if (idsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a non-empty ids argument".into()))));
         }
         // the venue caps one cancel request at maxCancelOrders ids (100, see /metadata/obv3) -
         // chunk larger batches instead of letting the whole request 400
         let mut chunkSize: Value = self.safe_integer_k(self.options.clone(), "cancelOrdersBatchSize", &[Value::Int(100)]);
-        let mut chunkCount: Value = Value::from(self.parse_to_int((match ((self.sum(&[idsLength.clone(), (match (&(chunkSize), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+        let mut chunkCount: Value = Value::from(self.parse_to_int((match ((self.sum(&[Value::from(idsLength), (match (&(chunkSize), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x - y), _ => Value::Null })])).as_f64(), (chunkSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         let mut result: Value = Value::from(vec![]);
         {
                         let mut c: i64 = 0;
             let mut __for_first_1508: bool = true;
             while { if !__for_first_1508 { c += 1; } __for_first_1508 = false; (c as f64) < chunkCount.as_f64().unwrap_or(f64::NAN) } {
-            let mut chunkIndex: Value = Value::from(self.parse_to_int(Value::Int(c)));
-            let mut chunkWidth: Value = Value::from(self.parse_to_int(chunkSize.clone()));
-            let mut start: Value = (match (&(chunkIndex), &(chunkWidth)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut nextChunkIndex: Value = (match (&(chunkIndex), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            let mut chunkEnd: Value = (match (&(nextChunkIndex), &(chunkWidth)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut end: Value = chunkEnd.clone();
-            if chunkEnd.as_f64().unwrap_or(f64::NAN) > idsLength.as_f64().unwrap_or(f64::NAN) {
-                end = Value::from(self.parse_to_int(idsLength.clone()));
+            let mut chunkIndex: Option<i64> = self.parse_to_int(Value::Int(c));
+            let mut chunkWidth: Option<i64> = self.parse_to_int(chunkSize.clone());
+            let mut start: Option<i64> = (if let (Some(__l), Some(__r)) = (chunkIndex, chunkWidth) { Some(__l * __r) } else { None });
+            let mut nextChunkIndex: Option<i64> = (if let Some(__l) = chunkIndex { Some(__l + 1) } else { None });
+            let mut chunkEnd: Option<i64> = (if let (Some(__l), Some(__r)) = (nextChunkIndex, chunkWidth) { Some(__l * __r) } else { None });
+            let mut end: Option<i64> = chunkEnd;
+            if chunkEnd > Some(idsLength) {
+                end = self.parse_to_int(Value::from(idsLength));
             }
             let mut orderItems: Vec<Value> = Vec::new();
-            let mut chunkIds: Value = self.array_slice(ids.clone(), start, &[end]);
+            let mut chunkIds: Value = self.array_slice(ids.clone(), Value::from(start), &[Value::from(end)]);
             let mut chunkIdsLength: Value = get_array_length(&chunkIds);
             {
                                 let mut i: i64 = 0;
@@ -2919,16 +2919,16 @@ impl Sxbet {
                         let mut c: i64 = 0;
             let mut __for_first_1519: bool = true;
             while { if !__for_first_1519 { c += 1; } __for_first_1519 = false; (c as f64) < chunkCount.as_f64().unwrap_or(f64::NAN) } {
-            let mut chunkIndex: Value = Value::from(self.parse_to_int(Value::Int(c)));
-            let mut chunkWidth: Value = Value::from(self.parse_to_int(chunkSize.clone()));
-            let mut start: Value = (match (&(chunkIndex), &(chunkWidth)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut nextChunkIndex: Value = (match (&(chunkIndex), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            let mut chunkEnd: Value = (match (&(nextChunkIndex), &(chunkWidth)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            let mut chunkIndex: Option<i64> = self.parse_to_int(Value::Int(c));
+            let mut chunkWidth: Option<i64> = self.parse_to_int(chunkSize.clone());
+            let mut start: Option<i64> = (if let (Some(__l), Some(__r)) = (chunkIndex, chunkWidth) { Some(__l * __r) } else { None });
+            let mut nextChunkIndex: Option<i64> = (if let Some(__l) = chunkIndex { Some(__l + 1) } else { None });
+            let mut chunkEnd: Value = Value::from((if let (Some(__l), Some(__r)) = (nextChunkIndex, chunkWidth) { Some(__l * __r) } else { None }));
             let mut end: Value = chunkEnd.clone();
             if chunkEnd.as_f64().unwrap_or(f64::NAN) > hashesLength.as_f64().unwrap_or(f64::NAN) {
                 end = Value::from(self.parse_to_int(hashesLength.clone()));
             }
-            let mut chunk: Value = self.array_slice(Value::Arr(hashesOrder.clone()), start, &[end]);
+            let mut chunk: Value = self.array_slice(Value::Arr(hashesOrder.clone()), Value::from(start), &[end]);
             let mut rows: Vec<Value> = self.fetch_sxbet_best_odds(chunk.to_str_vec(), &[params.clone()]).await.as_array().cloned().unwrap_or_default();
             let mut rowsLength: f64 = ((rows.len() as i64) as f64);
             {

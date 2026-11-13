@@ -793,22 +793,22 @@ impl Kalshi {
                 let mut raw: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut parsed: Vec<Value> = self.parse_binary_market_to_outcomes(Value::from(&raw)).as_array().cloned().unwrap_or_default();
                 let mut eventTicker: Option<String> = self.safe_string_k(&raw, "event_ticker", &[]).as_str().map(str::to_owned);
-                let mut eventTitle: Value = self.safe_string_k(&raw, "title", &[eventTicker.clone().map(Value::from).unwrap_or(Value::Null)]);
+                let mut eventTitle: Option<String> = self.safe_string_k(&raw, "title", &[eventTicker.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_1260: bool = true;
                     while { if !__for_first_1260 { j += 1; } __for_first_1260 = false; j < (parsed.len() as i64) } {
                     let mut m: Value = parsed.get(j as usize).cloned().unwrap_or(Value::Null);
                     flatMarkets.push(m.clone());
-                    if (eventTitle != Value::Null) && (eventTitle.as_str() != Some("")) {
-                        let mut eventKey: Value = self.shorten_slug(eventTitle.clone());
+                    if (eventTitle.is_some()) && (eventTitle.as_deref() != Some("")) {
+                        let mut eventKey: Value = self.shorten_slug(Value::from(eventTitle.as_deref()));
                         if !(matches!((&eventsDict, &eventKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                             if let Value::Dict(__d) = &mut eventsDict { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), eventTicker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("slug".to_string(), eventTicker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("event".to_string(), eventKey.clone());
-        m.insert("title".to_string(), eventTitle.clone());
+        m.insert("title".to_string(), Value::from(eventTitle.as_deref()));
         m.insert("markets".to_string(), Value::from(vec![]));
     m
 })); }
@@ -2006,7 +2006,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // kalshi candles carry only the period-END timestamp; thread the candle duration through so
         // parseOHLCV can stamp each candle at its OPEN (the CCXT convention)
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ohlcvCandleDurationSeconds".into(), tf); }
-        return self.parse_ohlc_vs(Value::from(usableCandles), &[outcomeObj, timeframe, since, limit]);
+        return self.parse_ohlc_vs(Value::from(usableCandles), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref(), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2055,16 +2055,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]).into_dict();
         // no-trade periods carry only previous_dollars (last trade price) → flat candle
-        let mut previous: Option<f64> = self.safe_number_k(&price, "previous_dollars", &[]).as_f64();
+        let mut previous: Value = self.safe_number_k(&price, "previous_dollars", &[]);
         // the raw candle exposes only the period END (`end_period_ts`); subtract the candle duration
         // threaded in from fetchOHLCV to stamp the candle at its OPEN (CCXT convention)
-        let mut endTimestamp: Value = self.safe_timestamp_k(ohlcv.clone(), "end_period_ts", &[]);
+        let mut endTimestamp: Option<i64> = self.safe_timestamp_k(ohlcv.clone(), "end_period_ts", &[]).as_i64();
         let mut durationSeconds: i64 = self.safe_integer_k(self.options.clone(), "ohlcvCandleDurationSeconds", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut timestamp: Value = endTimestamp.clone();
-        if (endTimestamp != Value::Null) {
-            timestamp = (match (&(endTimestamp), &(Value::Int((durationSeconds * 1000)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut timestamp: Value = Value::from(endTimestamp);
+        if (endTimestamp.is_some()) {
+            timestamp = Value::from((if let Some(__l) = endTimestamp { Some(__l - ((durationSeconds * 1000))) } else { None }));
         }
-        return Value::from(vec![timestamp, self.safe_number_k(&price, "open_dollars", &[Value::from(previous)]), self.safe_number_k(&price, "high_dollars", &[Value::from(previous)]), self.safe_number_k(&price, "low_dollars", &[Value::from(previous)]), self.safe_number_k(&price, "close_dollars", &[Value::from(previous)]), self.safe_number_k(ohlcv, "volume_fp", &[Value::Int(0)])]);
+        return Value::from(vec![timestamp, self.safe_number_k(&price, "open_dollars", &[previous.clone()]), self.safe_number_k(&price, "high_dollars", &[previous.clone()]), self.safe_number_k(&price, "low_dollars", &[previous.clone()]), self.safe_number_k(&price, "close_dollars", &[previous]), self.safe_number_k(ohlcv, "volume_fp", &[Value::Int(0)])]);
 
     Value::Null
 }
@@ -2137,14 +2137,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut trade: Value = trade.into();
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "trade_id", &[]).as_str().map(str::to_owned);
         let mut ts: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "created_time", &[]));
-        let mut priceCents: Value = self.safe_number2(trade.clone(), Value::Str("yes_price".into()), Value::Str("price".into()), &[]);
-        let mut centsPrice: Value = Value::Null;
-        if (priceCents != Value::Null) {
-            centsPrice = (match ((priceCents).as_f64(), (Value::Int(100)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
+        let mut priceCents: Option<f64> = self.safe_number2(trade.clone(), Value::Str("yes_price".into()), Value::Str("price".into()), &[]).as_f64();
+        let mut centsPrice: Option<f64> = None;
+        if (priceCents.is_some()) {
+            centsPrice = (if let Some(__l) = priceCents { Some(__l / 100.0) } else { None });
         }
-        let mut price: Value = self.safe_number2(trade.clone(), Value::Str("yes_price_dollars".into()), Value::Str("price_dollars".into()), &[centsPrice]);
+        let mut price: Option<f64> = self.safe_number2(trade.clone(), Value::Str("yes_price_dollars".into()), Value::Str("price_dollars".into()), &[Value::from(centsPrice)]).as_f64();
         let mut amountFp: Option<f64> = self.safe_number2(trade.clone(), Value::Str("count_fp".into()), Value::Str("size_fp".into()), &[]).as_f64();
-        let mut amount: Value = self.safe_number_k(trade.clone(), "count", &[Value::from(amountFp)]);
+        let mut amount: Option<f64> = self.safe_number_k(trade.clone(), "count", &[Value::from(amountFp)]).as_f64();
         let mut rawSide: Option<String> = self.safe_string_lower_k(trade.clone(), "taker_side", &[]).as_str().map(str::to_owned);
         let mut marketAny: Value = crate::Value::from(market);
         let mut outcomeObj: crate::value::Dict = self.safe_outcome(self.safe_string_k(marketAny.clone(), "outcome", &[]), &[marketAny]).into_dict();
@@ -2163,9 +2163,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 side = (if (rawSide.as_deref() == Some("yes")) { Some("buy".to_string()) } else { Some("sell".to_string()) });
             }
         }
-        let mut cost: Value = Value::Null;
-        if (price != Value::Null) && (amount != Value::Null) {
-            cost = (match (&(price), &(amount)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut cost: Option<f64> = None;
+        if (price.is_some()) && (amount.is_some()) {
+            cost = (if let (Some(__l), Some(__r)) = (price, amount) { Some(__l * __r) } else { None });
         }
         return self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2181,9 +2181,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Str("taker".into()));
-        m.insert("price".to_string(), price);
-        m.insert("amount".to_string(), amount);
-        m.insert("cost".to_string(), cost);
+        m.insert("price".to_string(), Value::from(price));
+        m.insert("amount".to_string(), Value::from(amount));
+        m.insert("cost".to_string(), Value::from(cost));
         m.insert("fee".to_string(), Value::Null);
     m
 }), &[crate::Value::from(market)]);
@@ -2302,16 +2302,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             centsKey = "no_price".to_string();
             dollarsKey = "no_price_dollars".to_string();
         }
-        let mut legCents: Value = self.safe_number(fill.clone(), Value::from(centsKey), &[]);
-        let mut centsPrice: Value = Value::Null;
-        if (legCents != Value::Null) {
-            centsPrice = (match ((legCents).as_f64(), (Value::Int(100)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
+        let mut legCents: Option<f64> = self.safe_number(fill.clone(), Value::from(centsKey), &[]).as_f64();
+        let mut centsPrice: Option<f64> = None;
+        if (legCents.is_some()) {
+            centsPrice = (if let Some(__l) = legCents { Some(__l / 100.0) } else { None });
         }
-        let mut price: Value = self.safe_number(fill.clone(), Value::from(dollarsKey), &[centsPrice]);
-        let mut amount: Value = self.safe_number2(fill.clone(), Value::Str("count_fp".into()), Value::Str("count".into()), &[]);
-        let mut cost: Value = Value::Null;
-        if (price != Value::Null) && (amount != Value::Null) {
-            cost = (match (&(price), &(amount)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut price: Option<f64> = self.safe_number(fill.clone(), Value::from(dollarsKey), &[Value::from(centsPrice)]).as_f64();
+        let mut amount: Option<f64> = self.safe_number2(fill.clone(), Value::Str("count_fp".into()), Value::Str("count".into()), &[]).as_f64();
+        let mut cost: Option<f64> = None;
+        if (price.is_some()) && (amount.is_some()) {
+            cost = (if let (Some(__l), Some(__r)) = (price, amount) { Some(__l * __r) } else { None });
         }
         let mut isTaker: bool = self.safe_bool_k(fill.clone(), "is_taker", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         let mut takerOrMaker: String = "maker".to_string();
@@ -2342,9 +2342,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), Value::from(side));
         m.insert("takerOrMaker".to_string(), Value::from(takerOrMaker));
-        m.insert("price".to_string(), price);
-        m.insert("amount".to_string(), amount);
-        m.insert("cost".to_string(), cost);
+        m.insert("price".to_string(), Value::from(price));
+        m.insert("amount".to_string(), Value::from(amount));
+        m.insert("cost".to_string(), Value::from(cost));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
 }), &[crate::Value::from(market)]);
@@ -2392,16 +2392,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balanceCents: Value = self.safe_number_k(response, "balance", &[]);
-        let mut total: Value = Value::Null;
-        if (balanceCents != Value::Null) {
-            total = (match ((balanceCents).as_f64(), (Value::Int(100)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
+        let mut balanceCents: Option<f64> = self.safe_number_k(response, "balance", &[]).as_f64();
+        let mut total: Option<f64> = None;
+        if (balanceCents.is_some()) {
+            total = (if let Some(__l) = balanceCents { Some(__l / 100.0) } else { None });
         }
         result.insert("USD".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("free".to_string(), total.clone());
+        m.insert("free".to_string(), Value::from(total));
         m.insert("used".to_string(), Value::Int(0));
-        m.insert("total".to_string(), total);
+        m.insert("total".to_string(), Value::from(total));
     m
 }));
         return self.safe_balance(Value::Map(result));
@@ -2588,12 +2588,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketResult: Option<String> = self.safe_string_upper_k(settlement.clone(), "market_result", &[]).as_str().map(str::to_owned);
         let mut won: bool = marketResult.as_deref() == Some(heldLabel.as_str());
         // kalshi reports money as dollar keys on V2, else cents
-        let mut revenueCents: Value = self.safe_number_k(settlement.clone(), "revenue", &[]);
-        let mut centsPayout: Value = Value::Null;
-        if (revenueCents != Value::Null) {
-            centsPayout = (match ((revenueCents).as_f64(), (Value::Int(100)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
+        let mut revenueCents: Option<f64> = self.safe_number_k(settlement.clone(), "revenue", &[]).as_f64();
+        let mut centsPayout: Option<f64> = None;
+        if (revenueCents.is_some()) {
+            centsPayout = (if let Some(__l) = revenueCents { Some(__l / 100.0) } else { None });
         }
-        let mut payout: Value = self.safe_number_k(settlement.clone(), "revenue_dollars", &[centsPayout]);
+        let mut payout: Option<f64> = self.safe_number_k(settlement.clone(), "revenue_dollars", &[Value::from(centsPayout)]).as_f64();
         let mut costKey: String = "no_total_cost".to_string();
         if matches!(&heldYes, Value::Bool(true)) {
             costKey = "yes_total_cost".to_string();
@@ -2602,15 +2602,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if matches!(&heldYes, Value::Bool(true)) {
             costDollarsKey = "yes_total_cost_dollars".to_string();
         }
-        let mut costCents: Value = self.safe_number(settlement.clone(), Value::from(costKey), &[]);
-        let mut centsCost: Value = Value::Null;
-        if (costCents != Value::Null) {
-            centsCost = (match ((costCents).as_f64(), (Value::Int(100)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
+        let mut costCents: Option<f64> = self.safe_number(settlement.clone(), Value::from(costKey), &[]).as_f64();
+        let mut centsCost: Option<f64> = None;
+        if (costCents.is_some()) {
+            centsCost = (if let Some(__l) = costCents { Some(__l / 100.0) } else { None });
         }
-        let mut cost: Value = self.safe_number(settlement.clone(), Value::from(costDollarsKey), &[centsCost]);
-        let mut pnl: Value = Value::Null;
-        if (payout != Value::Null) && (cost != Value::Null) {
-            pnl = (match (&(payout), &(cost)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut cost: Option<f64> = self.safe_number(settlement.clone(), Value::from(costDollarsKey), &[Value::from(centsCost)]).as_f64();
+        let mut pnl: Option<f64> = None;
+        if (payout.is_some()) && (cost.is_some()) {
+            pnl = (if let (Some(__l), Some(__r)) = (payout, cost) { Some(__l - __r) } else { None });
         }
         let mut ts: Option<i64> = self.parse8601(self.safe_string_k(settlement.clone(), "settled_time", &[]));
         return Value::Map({
@@ -2627,9 +2627,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("won".to_string(), Value::Bool(won));
         m.insert("amount".to_string(), (if (heldYes).as_bool() == Some(true) { yesCount } else { noCount }));
         m.insert("price".to_string(), (if won { Value::Int(1) } else { Value::Int(0) }));
-        m.insert("cost".to_string(), cost);
-        m.insert("payout".to_string(), payout);
-        m.insert("pnl".to_string(), pnl);
+        m.insert("cost".to_string(), Value::from(cost));
+        m.insert("payout".to_string(), Value::from(payout));
+        m.insert("pnl".to_string(), Value::from(pnl));
     m
 });
 
@@ -2912,11 +2912,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if labelIsNo {
             centsKey = "no_price".to_string();
         }
-        let mut price: Value = self.safe_number(order.clone(), Value::from(dollarsKey), &[]);
-        if (price == Value::Null) {
-            let mut priceCents: Value = self.safe_number(order.clone(), Value::from(centsKey), &[]);
-            if (priceCents != Value::Null) {
-                price = (match ((priceCents).as_f64(), (Value::Int(100)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
+        let mut price: Option<f64> = self.safe_number(order.clone(), Value::from(dollarsKey), &[]).as_f64();
+        if (price.is_none()) {
+            let mut priceCents: Option<f64> = self.safe_number(order.clone(), Value::from(centsKey), &[]).as_f64();
+            if (priceCents.is_some()) {
+                price = (if let Some(__l) = priceCents { Some(__l / 100.0) } else { None });
             }
         }
         // V2 counts are fixed-point (*_count_fp); legacy used count / filled_count
@@ -2944,7 +2944,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("timeInForce".to_string(), Value::Str("GTC".into()));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), price);
+        m.insert("price".to_string(), Value::from(price));
         m.insert("stopPrice".to_string(), Value::Null);
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
@@ -3607,13 +3607,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut maxPages: Value = self.safe_integer_k(self.options.clone(), "maxEventPagesPerSeries", &[Value::Int(20)]);
         let mut hasLimit: bool = limit != Value::Null;
         let mut limitOrZero: Value = (if hasLimit { limit } else { Value::Int(0) });
-        let mut limitValue: Value = Value::from(self.parse_to_int(limitOrZero));
+        let mut limitValue: Option<i64> = self.parse_to_int(limitOrZero);
         {
                         let mut si: i64 = 0;
             let mut __for_first_1297: bool = true;
             while { if !__for_first_1297 { si += 1; } __for_first_1297 = false; (si as f64) < seriesTickersLength } {
-            let mut collectedLength: f64 = ((rawEvents.len() as i64) as f64);
-            if hasLimit && (collectedLength >= limitValue.as_f64().unwrap_or(f64::NAN)) {
+            let mut collectedLength: i64 = rawEvents.len() as i64;
+            if hasLimit && ((limitValue.is_some() && Some(collectedLength) >= limitValue)) {
                 break;
             }
             let mut cursor: Option<String> = None;
@@ -3622,9 +3622,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut __for_first_1296: bool = true;
                 while { if !__for_first_1296 { if let Value::Int(n) = &mut page { *n += 1; } } __for_first_1296 = false; page.as_f64().unwrap_or(f64::NAN) < maxPages.as_f64().unwrap_or(f64::NAN) } {
                 let mut reqLimit: Value = Value::from(pageLimit);
-                if hasLimit && (limitValue != Value::Null) {
-                    let mut collectedSoFar: Value = Value::Int(rawEvents.len() as i64);
-                    let mut remaining: Value = Value::from(self.parse_to_int((match (&(limitValue), &(collectedSoFar)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })));
+                if hasLimit && (limitValue.is_some()) {
+                    let mut collectedSoFar: i64 = rawEvents.len() as i64;
+                    let mut remaining: Value = Value::from(self.parse_to_int(Value::from((if let Some(__l) = limitValue { Some(__l - collectedSoFar) } else { None }))));
                     if remaining.as_f64().unwrap_or(f64::NAN) < reqLimit.as_f64().unwrap_or(f64::NAN) {
                         reqLimit = remaining;
                     }
@@ -3655,8 +3655,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
                 }
                 cursor = self.safe_string_k(&response, "cursor", &[]).as_str().map(str::to_owned);
-                let mut collectedAfterPage: f64 = ((rawEvents.len() as i64) as f64);
-                if hasLimit && (collectedAfterPage >= limitValue.as_f64().unwrap_or(f64::NAN)) {
+                let mut collectedAfterPage: i64 = rawEvents.len() as i64;
+                if hasLimit && ((limitValue.is_some() && Some(collectedAfterPage) >= limitValue)) {
                     break;
                 }
                 if (cursor.is_none()) || (cursor.as_deref() == Some("")) || (pageEventsLength < reqLimit.as_f64().unwrap_or(f64::NAN)) {

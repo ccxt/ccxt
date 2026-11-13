@@ -1423,11 +1423,11 @@ impl Mercado {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
-                m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "base", &[Value::Str("".into())]), Value::Str("-".into())).into()), self.safe_string_k(market.clone(), "quote", &[Value::Str("".into())])).into()));
+                m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).base.as_str()), Value::Str("-".into())).into()), Value::from((market).quote.as_str())).into()));
             m
         });
         // set some default limit, as it's required if user doesn't provide it
@@ -1442,7 +1442,7 @@ impl Mercado {
         }
         let __ws_arg_12 = self.extend(request, &[params]);
         let mut response: Value = self.v4_public_net_get_candles(&[__ws_arg_12]).await;
-        return self.parse_trading_view_ohlcv(response, &[market, timeframe, since, Value::from(limitResolved)]);
+        return self.parse_trading_view_ohlcv(response, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -1585,8 +1585,8 @@ impl Mercado {
             m
         })]).into_dict();
         let mut ordersRaw: crate::value::List = self.safe_list_k(&responseData, "orders", &[Value::from(vec![])]).into_list();
-        let mut orders: Value = self.parse_orders(&ordersRaw, Some(&market), &[since.clone(), limit.clone()]);
-        let mut trades: crate::value::List = self.orders_to_trades(orders).into_list();
+        let mut orders: crate::value::List = self.parse_orders(&ordersRaw, Some(&market), &[since.clone(), limit.clone()]).into_list();
+        let mut trades: crate::value::List = self.orders_to_trades(Value::Arr(orders)).into_list();
         return self.filter_by_symbol_since_limit(Value::Arr(trades), (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
@@ -1637,7 +1637,7 @@ impl Mercado {
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut isPublic: bool = (apiName.as_deref() == Some("public")) || (apiName.as_deref() == Some("v4Public")) || (apiName.as_deref() == Some("v4PublicNet"));
         let mut privateBody: String = "".to_string();
-        let mut privateHeaders: Value = Value::Null;
+        let mut privateHeaders: Option<crate::value::Dict> = None;
         if isPublic {
             url.push_str(&(self.implode_params(path.clone(), params.clone())).to_string());
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
@@ -1656,19 +1656,19 @@ impl Mercado {
 }), &[params]);
             privateBody = self.urlencode(__ws_arg_16, &[]);
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/tapi/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), Value::Str("?".into())).into()), privateBody);
-            privateHeaders = Value::Map({
+            privateHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("TAPI-ID".to_string(), self.apiKey.clone());
                     m.insert("TAPI-MAC".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
                 m
-            });
+            }));
         }
         let mut requestBody: Option<String> = Some(privateBody);
         if isPublic {
             requestBody = None.clone();
         }
-        let mut requestHeaders: Value = privateHeaders;
+        let mut requestHeaders: Value = privateHeaders.map_or(Value::Null, Value::Dict);
         if isPublic {
             requestHeaders = Value::Null;
         }

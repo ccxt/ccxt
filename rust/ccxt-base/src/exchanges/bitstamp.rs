@@ -2339,13 +2339,13 @@ impl Bitstamp {
         //         ]
         //     }
         //
-        let mut microtimestamp: Value = self.safe_integer_k(&response, "microtimestamp", &[]);
-        if (microtimestamp == Value::Null) {
+        let mut microtimestamp: Option<i64> = self.safe_integer_k(&response, "microtimestamp", &[]).as_i64();
+        if (microtimestamp.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() missing microtimestamp".into()))));
         }
-        let mut timestamp: Option<i64> = self.parse_to_int((match ((microtimestamp).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        let mut timestamp: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = microtimestamp { Some((__l as f64) / 1000.0) } else { None })));
         let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
-        orderbook.insert("nonce".into(), microtimestamp);
+        orderbook.insert("nonce".into(), Value::from(microtimestamp));
         return Value::Map(orderbook);
         Value::Null
         }).await?))
@@ -2575,7 +2575,7 @@ impl Bitstamp {
         let mut id: Option<String> = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("tid".into()), &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = None;
         let mut side: Option<String> = None;
-        let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
+        let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
         let mut type_var: Value = Value::Null;
         let mut costString: Value = self.safe_string_k(trade.clone(), "cost", &[]);
@@ -2609,15 +2609,15 @@ impl Bitstamp {
         }  else {
             priceId = self.safe_string_k(marketResolved.clone(), "id", &[]).as_str().map(str::to_owned);
         }
-        priceString = self.safe_string(trade.clone(), priceId.map(Value::from).unwrap_or(Value::Null), &[priceString.clone()]);
+        priceString = self.safe_string(trade.clone(), priceId.map(Value::from).unwrap_or(Value::Null), &[Value::from(priceString.as_deref())]).as_str().map(str::to_owned);
         amountString = self.safe_string(trade.clone(), self.safe_string_k(marketResolved.clone(), "baseId", &[]), &[amountString.clone()]);
         costString = self.safe_string(trade.clone(), self.safe_string_k(marketResolved.clone(), "quoteId", &[]), &[costString.clone()]);
         // this endpoint is not aligned with "markets" endpoint
         let mut baseIdLower: String = self.safe_string_lower_k(marketResolved.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut quoteIdLower: String = self.safe_string_lower_k(marketResolved.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut dashedIdLower: String = format!("{}{}", Value::Str(format!("{}{}", baseIdLower, Value::Str("_".into())).into()), quoteIdLower);
-        if (priceString == Value::Null) {
-            priceString = self.safe_string(trade.clone(), Value::from(dashedIdLower), &[]);
+        if (priceString.is_none()) {
+            priceString = self.safe_string(trade.clone(), Value::from(dashedIdLower), &[]).as_str().map(str::to_owned);
         }
         if (amountString == Value::Null) {
             amountString = self.safe_string(trade.clone(), Value::from(baseIdLower), &[]);
@@ -2627,15 +2627,15 @@ impl Bitstamp {
         }
         symbol = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut datetimeString: Option<String> = self.safe_string2(trade.clone(), Value::Str("date".into()), Value::Str("datetime".into()), &[]).as_str().map(str::to_owned);
-        let mut timestamp: Value = Value::Null;
+        let mut timestamp: Option<i64> = None;
         if (datetimeString.is_some()) {
             if datetimeString.as_deref().unwrap_or_default().contains(" ") {
                 // iso8601
-                timestamp = Value::from(self.parse8601(datetimeString.clone().map(Value::from).unwrap_or(Value::Null)));
+                timestamp = self.parse8601(datetimeString.clone().map(Value::from).unwrap_or(Value::Null));
             }  else {
                 // string unix epoch in seconds
-                let mut seconds: Value = Value::from(self.parse_to_int(datetimeString.map(Value::from).unwrap_or(Value::Null)));
-                timestamp = (match (&(seconds), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+                let mut seconds: Option<i64> = self.parse_to_int(datetimeString.map(Value::from).unwrap_or(Value::Null));
+                timestamp = (if let Some(__l) = seconds { Some(__l * 1000) } else { None });
             }
         }
         // if it is a private trade
@@ -2675,14 +2675,14 @@ impl Bitstamp {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade.clone());
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade, "order_id", &[]));
         m.insert("type".to_string(), type_var);
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
-        m.insert("price".to_string(), priceString);
+        m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString);
         m.insert("cost".to_string(), costString);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
@@ -2777,27 +2777,27 @@ impl Bitstamp {
             m
         });
         let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
-        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        let mut untilIsDefined: bool = until != Value::Null;
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
+        let mut untilIsDefined: bool = until.is_some();
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(1000);
         if (limit != Value::Null) {
             if (since != Value::Null) {
-                let mut start: Value = Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
-                request.insert("start".into(), start.clone());
+                let mut start: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+                request.insert("start".into(), Value::from(start));
                 if untilIsDefined {
                     // Math.min (start + duration * limit - 1, untilSeconds) on integers
-                    let mut untilSeconds: Value = Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
-                    request.insert("end".into(), (if (((match (&(untilSeconds), &(start)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-                        _ => Value::Null })).as_f64().unwrap_or(f64::NAN) < (match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                        Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-                        _ => Value::Null }).as_f64().unwrap_or(f64::NAN)) { untilSeconds } else { self.sum(&[start.clone(), (match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
-                        (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })]) }));
+                    let mut untilSeconds: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })));
+                    request.insert("end".into(), (if ((Value::from((if let (Some(__l), Some(__r)) = (untilSeconds, start) { Some(__l - __r) } else { None }))).as_f64().unwrap_or(f64::NAN) < (match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
+                        (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
+                        Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN)) { Value::from(untilSeconds) } else { self.sum(&[Value::from(start), (match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x),
+                        Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y),
+                        (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })]) }));
                 }  else {
-                    request.insert("end".into(), self.sum(&[start, (match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                        _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })]));
+                    request.insert("end".into(), self.sum(&[Value::from(start), (match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                        Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })]));
                 }
             }  else if untilIsDefined {
-                let mut untilEnd: Value = Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+                let mut untilEnd: Value = Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None }))));
                 request.insert("end".into(), untilEnd.clone());
                 request.insert("start".into(), (match (&((match (&(untilEnd), &(((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                     _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x),
@@ -2808,7 +2808,7 @@ impl Bitstamp {
             if (since == Value::Null) {
                 request.insert("limit".into(), Value::Int(1000));
                 if untilIsDefined {
-                    let mut untilEndDefault: Value = Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+                    let mut untilEndDefault: Value = Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None }))));
                     request.insert("start".into(), (match (&((match (&(untilEndDefault), &(((match (&(duration), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                         Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
                         &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
@@ -2818,7 +2818,7 @@ impl Bitstamp {
                 let mut startDefault: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
                 request.insert("start".into(), Value::from(startDefault));
                 if untilIsDefined {
-                    request.insert("end".into(), Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
+                    request.insert("end".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })))));
                 }  else {
                     request.insert("end".into(), self.sum(&[Value::from(startDefault), (match (&((match (&(duration), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                         Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })]));
@@ -2846,7 +2846,7 @@ impl Bitstamp {
             m
         })]).into_dict();
         let mut ohlc: crate::value::List = self.safe_list_k(&data, "ohlc", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&ohlc, &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(&ohlc, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -3079,12 +3079,12 @@ impl Bitstamp {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut code: Value = self.safe_currency_code(Value::from(id.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
-            if (codes != Value::Null) && !(self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
+            let mut code: Option<String> = self.safe_currency_code(Value::from(id.as_deref()), None);
+            if (codes != Value::Null) && !(self.in_array(Value::from(code.as_deref()), codes.clone()).as_bool() == Some(true)) {
                 continue;
             }
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map({
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw_fee".to_string(), self.safe_number_k(&fees, "fee", &[]));
         m.insert("deposit".to_string(), Value::Map({

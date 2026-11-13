@@ -1452,9 +1452,9 @@ impl Upbit {
             let __ws_arg_3 = self.extend(Value::Map(request), &[params.clone()]);
             tickers = self.public_get_ticker_all(&[__ws_arg_3]).await;
         }  else {
-            let mut ids: Value = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
+            let mut ids: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
             let mut promises: Vec<Value> = Vec::new();
-            let mut queries: Vec<Value> = self.ids_query_strings(ids).as_array().cloned().unwrap_or_default(); // the url is limited to about 8000 characters once the commas are percent-encoded
+            let mut queries: Vec<Value> = self.ids_query_strings(ids.map_or(Value::Null, Value::Arr)).as_array().cloned().unwrap_or_default(); // the url is limited to about 8000 characters once the commas are percent-encoded
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1141: bool = true;
@@ -1826,12 +1826,12 @@ impl Upbit {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut timeframePeriod: i64 = self.parse_timeframe(timeframe.clone());
-        let mut timeframeValue: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
+        let mut timeframeValue: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(200);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
-                m.insert("timeframe".to_string(), timeframeValue.clone());
+                m.insert("timeframe".to_string(), Value::from(timeframeValue.as_deref()));
                 m.insert("count".to_string(), Value::from(limitResolved));
             m
         });
@@ -1840,7 +1840,7 @@ impl Upbit {
             // convert `since` to `to` value
             request.insert("to".into(), self.iso8601(self.sum(&[since.clone(), Value::Int((((timeframePeriod * limitResolved)) * 1000))])));
         }
-        if (timeframeValue.as_str() == Some("minutes")) {
+        if (timeframeValue.as_deref() == Some("minutes")) {
             let mut numMinutes: Value = (Value::Float(((timeframePeriod as f64) / 60.0))).as_f64().map(|__x| Value::Float(__x.round())).unwrap_or(Value::Null);
             request.insert("unit".into(), numMinutes);
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[params.clone()]);
@@ -1880,7 +1880,7 @@ impl Upbit {
         //     ]
         //
         let mut ohlcvs: Value = self.to_array(response);
-        return self.parse_ohlc_vs(ohlcvs, &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(ohlcvs, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -2621,16 +2621,16 @@ impl Upbit {
         let mut feeCost: Option<String> = self.safe_string_k(order.clone(), "paid_fee", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "market", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut trades: Value = self.parse_trades(self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]), Some(&marketResolved), &[Value::Null, Value::Null, Value::Map({
+        let mut trades: crate::value::List = self.parse_trades(self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]), Some(&marketResolved), &[Value::Null, Value::Null, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("order".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
     m
-})]);
+})]).into_list();
         let mut numTrades: Value = Value::Int(trades.len() as i64);
         if numTrades.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
             // the timestamp in fetchOrder trades is missing
-            let mut lastTrade: Value = self.safe_dict(trades.clone(), (match (&(numTrades), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[Value::Map({
+            let mut lastTrade: Value = self.safe_dict(&trades, (match (&(numTrades), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2645,7 +2645,7 @@ impl Upbit {
                                 let mut i: i64 = 0;
                 let mut __for_first_1144: bool = true;
                 while { if !__for_first_1144 { i += 1; } __for_first_1144 = false; (i as f64) < numTrades.as_f64().unwrap_or(f64::NAN) } {
-                let mut trade: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(i), &[]).into_dict();
+                let mut trade: crate::value::Dict = self.safe_dict(&trades, Value::Int(i), &[]).into_dict();
                 cost = crate::precise::Precise::stringAdd(&cost.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(&trade, "cost", &[])).as_str().map(str::to_owned);
                 if getFeesFromTrades {
                     let mut tradeFee: crate::value::Dict = self.safe_dict_k(&trade, "fee", &[Value::Map({
@@ -2691,7 +2691,7 @@ impl Upbit {
         m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
-        m.insert("trades".to_string(), trades);
+        m.insert("trades".to_string(), Value::Arr(trades));
     m
 }), None);
 
@@ -3177,8 +3177,8 @@ impl Upbit {
                 auth = Some(self.rawencode(query, &[]));
             }
             if (auth.is_some()) {
-                let mut hash: Option<String> = self.hash(self.encode(auth.map(Value::from).unwrap_or(Value::Null)), Value::Str("sha512".into()), &[]).as_str().map(str::to_owned);
-                request.insert("query_hash".into(), hash.map(Value::from).unwrap_or(Value::Null));
+                let mut hash: String = self.hash(self.encode(auth.map(Value::from).unwrap_or(Value::Null)), Value::Str("sha512".into()), &[]);
+                request.insert("query_hash".into(), Value::from(hash));
                 request.insert("query_hash_alg".into(), Value::Str("SHA512".into()));
             }
             let mut token: String = jwt(Value::Map(request), self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);

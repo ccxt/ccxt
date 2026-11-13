@@ -1932,8 +1932,8 @@ impl Weex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true)]);
-        let mut market: Option<crate::types::Market> = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true)]).into_opt_list();
+        let mut market: Option<crate::types::Market> = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBidsAsks".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -1958,7 +1958,7 @@ impl Weex {
             results.push(self.parse_ticker(rawTicker, Some(&tickerMarket)));
         }
         }
-        return self.filter_by_array_tickers(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2087,8 +2087,8 @@ impl Weex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true)]);
-        let mut market: Option<crate::types::Market> = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true)]).into_opt_list();
+        let mut market: Option<crate::types::Market> = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchLastPrices".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2096,7 +2096,7 @@ impl Weex {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets".into()))));
         }
         let mut response: crate::value::List = self.public_get_api_v3_market_ticker_price(&[Value::Dict(paramsMarketType)]).await.into_list();
-        return self.parse_last_prices(&response, &[symbolsNormalized]);
+        return self.parse_last_prices(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2209,9 +2209,9 @@ impl Weex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Str("swap".into())]); // reject non-contract symbols instead of silently filtering the result to an empty dict
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Str("swap".into())]).into_opt_list(); // reject non-contract symbols instead of silently filtering the result to an empty dict
         let mut response: crate::value::List = self.contract_get_capi_v3_market_premium_index(&[params]).await.into_list();
-        return self.parse_tickers(&response, &[symbolsNormalized]);
+        return self.parse_tickers(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2366,7 +2366,7 @@ impl Weex {
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.public_get_api_v3_market_klines(&[__ws_arg_5]).await.into_list();
-        return self.parse_ohlc_vs(self.to_array(&response), &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2458,16 +2458,16 @@ impl Weex {
                 endTime = until.clone();
             }
             if (since == Value::Null) || (until == Value::Null) {
-                let mut duration: Value = Value::from(self.parse_to_int((match (&(Value::Int(self.parse_timeframe(timeframe.clone()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
-                    (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+                let mut duration: Option<i64> = self.parse_to_int((match (&(Value::Int(self.parse_timeframe(timeframe.clone()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                    Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
                 // the history endpoint returns at most maxHistoricalLimit candles and serves the
                 // newest ones inside the window, so a wider window would silently drop the candles
                 // right after since, keep the window at what one call can return
-                let mut historyLimit: Value = Value::from(self.parse_to_int(maxHistoricalLimit.clone()));
+                let mut historyLimit: Option<i64> = self.parse_to_int(maxHistoricalLimit.clone());
                 if (limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0)) {
-                    historyLimit = Value::from(self.parse_to_int(crate::runtime::Math::min(&limit, &maxHistoricalLimit)));
+                    historyLimit = self.parse_to_int(crate::runtime::Math::min(&limit, &maxHistoricalLimit));
                 }
-                let mut timeDelta: Value = Value::from(self.parse_to_int((match (&(historyLimit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+                let mut timeDelta: Value = Value::from(self.parse_to_int(Value::from((if let (Some(__l), Some(__r)) = (historyLimit, duration) { Some(__l * __r) } else { None }))));
                 if (since == Value::Null) && (until == Value::Null) {
                     endTime = now.clone();
                     startTime = (match (&(now), &(timeDelta)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
@@ -2504,7 +2504,7 @@ impl Weex {
                 response = self.contract_get_capi_v3_market_klines(&[__ws_arg_9]).await;
             }
         }
-        return self.parse_ohlc_vs(self.to_array(response), &[(market).raw.clone(), timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(self.to_array(response), Some(&market), &[timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -4982,7 +4982,7 @@ impl Weex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut response: Value = Value::Null;
         if sandboxMode {
@@ -4990,7 +4990,7 @@ impl Weex {
         }  else {
             response = self.contract_private_get_capi_v3_account_position_all_position(&[params]).await;
         }
-        return self.parse_positions(response, &[symbolsNormalized]);
+        return self.parse_positions(response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -5405,9 +5405,9 @@ impl Weex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::List = self.contract_private_get_capi_v3_account_symbol_config(&[params]).await.into_list();
-        return self.parse_margin_modes(self.to_array(&response), &[symbolsNormalized, Value::Str("symbol".into()), Value::Str("swap".into())]);
+        return self.parse_margin_modes(self.to_array(&response), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("symbol".into()), Value::Str("swap".into())]);
         Value::Null
         }).await?))
     }
@@ -5559,9 +5559,9 @@ impl Weex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::List = self.contract_private_get_capi_v3_account_symbol_config(&[params]).await.into_list();
-        return self.parse_leverages(self.to_array(&response), &[symbolsNormalized, Value::Str("symbol".into()), Value::Str("swap".into())]);
+        return self.parse_leverages(self.to_array(&response), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("symbol".into()), Value::Str("swap".into())]);
         Value::Null
         }).await?))
     }

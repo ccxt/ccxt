@@ -1132,9 +1132,9 @@ impl Hollaex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.public_get_tickers(&[params]).await.into_dict();
-        return self.parse_tickers(&response, &[symbolsNormalized]);
+        return self.parse_tickers(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -1492,19 +1492,18 @@ impl Hollaex {
         }
         let mut now: i64 = self.milliseconds();
         // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
-        let mut until: Value = self.safe_integer_k(&paramsPaginate, "until", &[Value::from(now)]);
-        let mut timeDelta: Value = Value::Int(((((self.parse_timeframe(timeframe.clone())) * maxLimit)) * 1000));
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[Value::from(now)]).as_i64();
+        let mut timeDelta: i64 = ((((self.parse_timeframe(timeframe.clone())) * maxLimit)) * 1000);
         if (since == Value::Null) {
-            request.insert("from".into(), Value::from(self.parse_to_int((match ((((match (&(until), &(timeDelta)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-                _ => Value::Null }))).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))); // convert to seconds
+            request.insert("from".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = ((if let Some(__l) = until { Some(__l - timeDelta) } else { None })) { Some((__l as f64) / 1000.0) } else { None }))))); // convert to seconds
         }  else {
             request.insert("from".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))); // convert to seconds
         }
-        request.insert("to".into(), Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))); // convert to seconds
+        request.insert("to".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None }))))); // convert to seconds
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::Str("until".into()), &[]).into_dict();
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.public_get_chart(&[__ws_arg_4]).await.into_list();
-        return self.parse_ohlc_vs(self.to_array(&response), &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2799,32 +2798,32 @@ impl Hollaex {
         }
         let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), requestPath);
         let mut requestBody: Value = Value::Null;
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut timeoutMs: Value = Value::from(self.parse_to_int(self.timeout.clone()));
-            let mut defaultExpires: Option<i64> = self.safe_integer2(self.options.clone(), Value::Str("api-expires".into()), Value::Str("expires".into()), &[Value::from(self.parse_to_int((match ((timeoutMs).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))]).as_i64();
+            let mut timeoutMs: Option<i64> = self.parse_to_int(self.timeout.clone());
+            let mut defaultExpires: Option<i64> = self.safe_integer2(self.options.clone(), Value::Str("api-expires".into()), Value::Str("expires".into()), &[Value::from(self.parse_to_int(Value::from((if let Some(__l) = timeoutMs { Some((__l as f64) / 1000.0) } else { None }))))]).as_i64();
             let mut expires: Value = self.sum(&[self.seconds(), Value::from(defaultExpires)]);
             let mut expiresString: Option<String> = self.number_to_string(expires);
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, requestPath).into()), expiresString.clone().map(Value::from).unwrap_or(Value::Null)).into());
-            requestHeaders = Value::Map({
+            requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("api-key".to_string(), self.apiKey.clone());
                     m.insert("api-expires".to_string(), expiresString.map(Value::from).unwrap_or(Value::Null));
                 m
-            });
+            }));
             if (method.as_str() == Some("POST")) {
-                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-type".into(), Value::Str("application/json".into())); }
+                if let Some(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-type".to_string(), Value::Str("application/json".into())); }
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                     requestBody = json_stringify(&query);
                     auth = Value::Str(format!("{}{}", auth, requestBody).into());
                 }
             }
             let mut signature: String = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-            if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("api-signature".into(), Value::from(signature)); }
+            if let Some(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("api-signature".to_string(), Value::from(signature)); }
         }
         let mut bodyResult: Value = requestBody;
-        let mut headersResult: Value = requestHeaders;
+        let mut headersResult: Value = requestHeaders.map_or(Value::Null, Value::Dict);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));

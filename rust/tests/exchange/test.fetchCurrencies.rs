@@ -51,8 +51,8 @@ pub async fn testFetchCurrencies(mut exchange: Value, mut skippedProperties: Val
             let mut code: Value = exchange.safe_string(currency.clone(), Value::Str("code".into()), &[]);
             let mut withdraw: Option<bool> = exchange.safe_bool(currency.clone(), Value::Str("withdraw".into()), &[]).as_bool();
             let mut deposit: Option<bool> = exchange.safe_bool(currency.clone(), Value::Str("deposit".into()), &[]).as_bool();
-            let mut isMicaCompliant: Value = exchange.safe_bool(get_value(&exchange, &Value::Str("options".into())), Value::Str("mica".into()), &[Value::Bool(false)]);
-            let mut skipUsdtForMica: bool = is_true(&(isMicaCompliant)) && (code.as_str() == Some("USDT"));
+            let mut isMicaCompliant: bool = exchange.safe_bool(get_value(&exchange, &Value::Str("options".into())), Value::Str("mica".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut skipUsdtForMica: bool = (isMicaCompliant && (code.as_str() == Some("USDT")));
             if is_true(&exchange.in_array(code.clone(), requiredActiveCurrencies.clone())) && !skipMajorCurrencyCheck && (!skipUsdtForMica) {
                 assert!(ccxt::runtime::is_true(&(((withdraw == Some(true)) && (deposit == Some(true))))));
             }

@@ -1285,21 +1285,20 @@ impl Bitopro {
         });
         // we need to have a limit argument because "to" and "from" are required
         // supports slightly more than 75k candles atm, but limit here to avoid errors
-        let mut limitResolved: Value = Value::from(self.parse_to_int((if (limit == Value::Null) { Value::Int(500) } else { crate::runtime::Math::min(&limit, &Value::Int(75000)) })));
-        let mut timeframeInSeconds: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
+        let mut limitResolved: Option<i64> = self.parse_to_int((if (limit == Value::Null) { Value::Int(500) } else { crate::runtime::Math::min(&limit, &Value::Int(75000)) }));
+        let mut timeframeInSeconds: i64 = self.parse_timeframe(timeframe.clone());
         let mut alignedSince: Value = Value::Null;
         if (since == Value::Null) {
-            let mut toSeconds: Value = self.seconds();
-            request.insert("to".into(), toSeconds.clone());
-            request.insert("from".into(), (match (&(toSeconds), &(((match (&(limitResolved), &(timeframeInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            let mut toSeconds: i64 = self.seconds().as_i64().unwrap_or_default();
+            request.insert("to".into(), Value::from(toSeconds));
+            request.insert("from".into(), Value::from((if let Some(__r) = ((if let Some(__l) = limitResolved { Some(__l * timeframeInSeconds) } else { None })) { Some(toSeconds - __r) } else { None })));
         }  else {
-            let mut timeframeInMilliseconds: Value = (match (&(timeframeInSeconds), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            let mut timeframeInMilliseconds: Value = Value::Int((timeframeInSeconds * 1000));
             alignedSince = (match (&(Value::from(self.parse_to_int(((match ((since).as_f64(), (timeframeInMilliseconds).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null)))), &(timeframeInMilliseconds)) { (Value::Int(x),
                 Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             let mut fromSeconds: Value = ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null);
             request.insert("from".into(), fromSeconds.clone());
-            request.insert("to".into(), self.sum(&[fromSeconds, (match (&(limitResolved), &(timeframeInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+            request.insert("to".into(), self.sum(&[fromSeconds, Value::from((if let Some(__l) = limitResolved { Some(__l * timeframeInSeconds) } else { None }))]));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_trading_history_pair(&[__ws_arg_3]).await.into_dict();
@@ -1318,8 +1317,8 @@ impl Bitopro {
         //         ]
         //     }
         //
-        let mut sparse: Value = self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limitResolved.clone()]);
-        return self.insert_missing_candles(sparse, (match (&(timeframeInSeconds), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), alignedSince, limitResolved);
+        let mut sparse: crate::value::List = self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, Value::from(limitResolved)]).into_list();
+        return self.insert_missing_candles(Value::Arr(sparse), Value::Int((timeframeInSeconds * 1000)), alignedSince, Value::from(limitResolved));
         Value::Null
         }).await?))
     }
@@ -2443,10 +2442,10 @@ impl Bitopro {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
                 let mut payload: Value = Value::from(self.string_to_base64(signedBody, &[]));
-                let mut signature: Value = Value::from(self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]));
+                let mut signature: String = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
                 requestHeaders.insert("X-BITOPRO-APIKEY".into(), self.apiKey.clone());
                 requestHeaders.insert("X-BITOPRO-PAYLOAD".into(), payload.clone());
-                requestHeaders.insert("X-BITOPRO-SIGNATURE".into(), signature.clone());
+                requestHeaders.insert("X-BITOPRO-SIGNATURE".into(), Value::from(signature));
             }  else if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
                 if queryLength > ((0i64) as f64) {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
@@ -2459,10 +2458,10 @@ impl Bitopro {
                 });
                 let mut data: Option<String> = json_stringify(&Value::Map(rawData)).as_str().map(str::to_owned);
                 let mut payload: Value = Value::from(self.string_to_base64(data.map(Value::from).unwrap_or(Value::Null), &[]));
-                let mut signature: Value = Value::from(self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]));
+                let mut signature: String = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
                 requestHeaders.insert("X-BITOPRO-APIKEY".into(), self.apiKey.clone());
                 requestHeaders.insert("X-BITOPRO-PAYLOAD".into(), payload);
-                requestHeaders.insert("X-BITOPRO-SIGNATURE".into(), signature);
+                requestHeaders.insert("X-BITOPRO-SIGNATURE".into(), Value::from(signature));
             }
         }  else if (apiName.as_deref() == Some("public")) && (method.as_str() == Some("GET")) {
             if queryLength > ((0i64) as f64) {

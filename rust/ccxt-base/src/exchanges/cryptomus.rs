@@ -748,8 +748,8 @@ impl Cryptomus {
         //         ]
         //     }
         //
-        let mut coins: Value = self.safe_list_k(&response, "result", &[]);
-        let mut groupedById: Value = self.group_by(coins, Value::Str("currency_code".into()), &[]);
+        let mut coins: Option<crate::value::List> = self.safe_list_k(&response, "result", &[]).into_opt_list();
+        let mut groupedById: Value = self.group_by(coins.map_or(Value::Null, Value::Arr), Value::Str("currency_code".into()), &[]);
         let mut groupedArray: crate::value::List = Value::Array(groupedById.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).into_list();
         return self.parse_currencies(&groupedArray);
         Value::Null
@@ -844,7 +844,7 @@ impl Cryptomus {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.public_get_v1_exchange_market_tickers(&[params]).await.into_dict();
         //
         //     {
@@ -859,7 +859,7 @@ impl Cryptomus {
         //     }
         //
         let mut data: Option<crate::value::List> = self.safe_list_k(&response, "data", &[]).into_opt_list();
-        return self.parse_tickers(&data, &[symbolsNormalized]);
+        return self.parse_tickers(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -1761,8 +1761,8 @@ impl Cryptomus {
             }
             let mut jsonParamsBase64: String = self.string_to_base64(jsonParams.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut stringToSign: String = format!("{}{}", jsonParamsBase64, self.secret.clone());
-            let mut signature: Option<String> = self.hash(self.encode(Value::from(stringToSign)), Value::Str("md5".into()), &[]).as_str().map(str::to_owned);
-            privateHeaders.insert("sign".into(), signature.map(Value::from).unwrap_or(Value::Null));
+            let mut signature: String = self.hash(self.encode(Value::from(stringToSign)), Value::Str("md5".into()), &[]);
+            privateHeaders.insert("sign".into(), Value::from(signature));
             let mut privateBody: Option<String> = (if (method.as_str() != Some("GET")) { jsonParams } else { None });
             return Value::Map({
     let mut m = indexmap::IndexMap::new();

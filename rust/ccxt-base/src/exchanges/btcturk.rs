@@ -110,7 +110,7 @@ impl crate::exchange_generated::ExchangeBase for Btcturk {
                 "nonce" => self.nonce(),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_ohlc_vs" => self.parse_ohlc_vs(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ohlc_vs" => self.parse_ohlc_vs(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1107,9 +1107,9 @@ impl Btcturk {
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[Value::Int(self.milliseconds())]);
-        let mut untilSeconds: Value = Value::from(self.parse_to_int(((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
-        request.insert("to".into(), untilSeconds.clone());
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[Value::Int(self.milliseconds())]).as_i64();
+        let mut untilSeconds: Option<i64> = self.parse_to_int((Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None }))));
+        request.insert("to".into(), Value::from(untilSeconds));
         if (since != Value::Null) {
             request.insert("from".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
@@ -1128,16 +1128,16 @@ impl Btcturk {
             }
             let mut seconds: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
             let mut limitCount: Value = (if (limit == Value::Null) { Value::Int(100) } else { crate::runtime::Math::min(&limit, &Value::Int(11000)) });
-            let mut limitSeconds: Value = Value::from(self.parse_to_int((match (&(seconds), &(((match (&(limitCount), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x - y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+            let mut limitSeconds: Option<i64> = self.parse_to_int((match (&(seconds), &(((match (&(limitCount), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+                Value::Float(y)) => Value::Float(x - y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
             if (since != Value::Null) {
-                let mut sinceSeconds: Value = Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
-                let mut to: Value = (match (&(sinceSeconds), &(limitSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                if to.as_f64().unwrap_or(f64::NAN) < untilSeconds.as_f64().unwrap_or(f64::NAN) {
-                    request.insert("to".into(), to);
+                let mut sinceSeconds: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+                let mut to: Option<i64> = (if let (Some(__l), Some(__r)) = (sinceSeconds, limitSeconds) { Some(__l + __r) } else { None });
+                if (to.is_some() && untilSeconds.is_some() && to < untilSeconds) {
+                    request.insert("to".into(), Value::from(to));
                 }
             }  else {
-                request.insert("from".into(), (match (&(Value::Int(0)), &(limitSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+                request.insert("from".into(), Value::from((if let Some(__r) = limitSeconds { Some(0 - __r) } else { None })));
             }
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
@@ -1200,18 +1200,17 @@ impl Btcturk {
             }));
         }
         }
-        return self.parse_ohlc_vs(Value::from(rows), &[(market).raw.clone(), timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(Value::from(rows), Some(&market), &[timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_ohlc_vs(&self, ohlcvs: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ohlc_vs(&self, ohlcvs: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
         let mut ohlcvs: Value = ohlcvs.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut timeframe = get_arg(optional_args, 1, Value::Str("1m".into()));
-        let mut since = get_arg(optional_args, 2, Value::Null);
-        let mut limit = get_arg(optional_args, 3, Value::Null);
-        let mut tail = get_arg(optional_args, 4, Value::Bool(false));
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
+        let mut since = get_arg(optional_args, 1, Value::Null);
+        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut tail = get_arg(optional_args, 3, Value::Bool(false));
         let mut rows: crate::value::List = self.to_array(ohlcvs).into_list();
         let mut results: Vec<Value> = Vec::new();
         {
@@ -1221,11 +1220,11 @@ impl Btcturk {
             results.push(self.parse_ohlcv(self.safe_dict(&rows, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()));
+})]), market.clone()));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(results), Value::Int(0), &[]);
-        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[Value::Int(0), tail]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(results), Value::Int(0), &[]).into_list();
+        return self.filter_by_since_limit(Value::Arr(sorted), since.as_i64(), limit.as_i64(), &[Value::Int(0), tail]);
 
     Value::Null
 }

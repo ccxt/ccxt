@@ -503,8 +503,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_267: bool = true;
-            while { if !__for_first_267 { i += 1; } __for_first_267 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_268: bool = true;
+            while { if !__for_first_268 { i += 1; } __for_first_268 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut limitString: Option<String> = self.number_to_string(Value::from(limitResolved));
@@ -574,8 +574,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_268: bool = true;
-            while { if !__for_first_268 { i += 1; } __for_first_268 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_269: bool = true;
+            while { if !__for_first_269 { i += 1; } __for_first_269 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), Value::from((market).symbol.clone())).into()));
@@ -598,8 +598,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: i64 = 0;
-            let mut __for_first_269: bool = true;
-            while { if !__for_first_269 { i += 1; } __for_first_269 = false; i < (deltas.len() as i64) } {
+            let mut __for_first_270: bool = true;
+            while { if !__for_first_270 { i += 1; } __for_first_270 = false; i < (deltas.len() as i64) } {
             self.handle_delta(bookside.clone(), self.safe_list(deltas.clone(), Value::Int(i), &[]));
         }
         }
@@ -795,8 +795,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut topics: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_270: bool = true;
-            while { if !__for_first_270 { i += 1; } __for_first_270 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_271: bool = true;
+            while { if !__for_first_271 { i += 1; } __for_first_271 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             std::sync::Arc::make_mut(&mut topics).push(Value::Str(format!("{}{}", Value::Str("trade.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
@@ -842,8 +842,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_271: bool = true;
-            while { if !__for_first_271 { i += 1; } __for_first_271 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_272: bool = true;
+            while { if !__for_first_272 { i += 1; } __for_first_272 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut currentTopic: String = format!("{}{}", Value::Str("trade.".into()), Value::from((market).id.as_deref().unwrap_or("")));
@@ -900,12 +900,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (dataLength == 0) {
             return;
         }
-        let mut parsedTrades: Value = self.parse_trades(Value::Arr(data), Some(&market), &[]);
+        let mut parsedTrades: crate::value::List = self.parse_trades(Value::Arr(data), Some(&market), &[]).into_list();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_272: bool = true;
-            while { if !__for_first_272 { j += 1; } __for_first_272 = false; j < (parsedTrades.len() as i64) } {
-            stored.append(self.safe_dict(parsedTrades.clone(), Value::Int(j), &[]));
+            let mut __for_first_273: bool = true;
+            while { if !__for_first_273 { j += 1; } __for_first_273 = false; j < (parsedTrades.len() as i64) } {
+            stored.append(self.safe_dict(&parsedTrades, Value::Int(j), &[]));
         }
         }
         let mut channelReplaced: Value = channel.as_str().zip((Value::Str(format!("{}{}", Value::Str(".".into()), marketId.map(Value::from).unwrap_or(Value::Null)).into())).as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| channel.clone());
@@ -1047,8 +1047,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_273: bool = true;
-            while { if !__for_first_273 { i += 1; } __for_first_273 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_274: bool = true;
+            while { if !__for_first_274 { i += 1; } __for_first_274 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default())), Value::Str("id".into()), &[Value::Str("".into())])).into())); };
         }
@@ -1112,8 +1112,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_274: bool = true;
-            while { if !__for_first_274 { i += 1; } __for_first_274 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_275: bool = true;
+            while { if !__for_first_275 { i += 1; } __for_first_275 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             std::sync::Arc::make_mut(&mut subMessageHashes).push(Value::Str(format!("{}{}", Value::Str("ticker.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default())), Value::Str("id".into()), &[Value::Str("".into())])).into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
@@ -1158,10 +1158,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_275: bool = true;
-            while { if !__for_first_275 { i += 1; } __for_first_275 = false; i < (data.len() as i64) } {
-            let mut ticker: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parsed: Value = self.parse_ws_ticker(ticker, Some(&market));
+            let mut __for_first_276: bool = true;
+            while { if !__for_first_276 { i += 1; } __for_first_276 = false; i < (data.len() as i64) } {
+            let mut ticker: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut parsed: Value = self.parse_ws_ticker(Value::Dict(ticker), Some(&market));
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
                 if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed.clone()); }
@@ -1250,8 +1250,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut topics: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_276: bool = true;
-            while { if !__for_first_276 { i += 1; } __for_first_276 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_277: bool = true;
+            while { if !__for_first_277 { i += 1; } __for_first_277 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("bidask.".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into()));
             topics.push(Value::Str(format!("{}{}", Value::Str("ticker.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default())), Value::Str("id".into()), &[Value::Str("".into())])).into()));
@@ -1424,30 +1424,27 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut interval: Option<String> = (match message.get("interval") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut timeframe: Value = Value::from(self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]));
-        { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-        let mut stored: Value = self.safe_value(self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
-        if (stored == Value::Null) {
+        let mut timeframe: Option<String> = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
+        CacheShelves::ensure(&mut self.ohlcvs, &symbol);
+        let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
+        if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Value::from(ArrayCacheByTimestamp::new(limit));
-            if (symbol != Value::Null) && (timeframe != Value::Null) {
-                if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); } }
+            stored = Some(ArrayCacheByTimestamp::new(limit));
+            if (symbol != Value::Null) && (timeframe.is_some()) {
+                CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
             }
         }
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_277: bool = true;
-            while { if !__for_first_277 { i += 1; } __for_first_277 = false; i < (data.len() as i64) } {
+            let mut __for_first_278: bool = true;
+            while { if !__for_first_278 { i += 1; } __for_first_278 = false; i < (data.len() as i64) } {
             let mut tick: Value = self.safe_dict(&data, Value::Int(i), &[]);
             let mut parsed: crate::value::List = self.parse_ohlcv(tick, Some(&market)).into_list();
             stored.append(Value::Arr(parsed));
         }
         }
-        client.resolve(stored, messageHash.as_deref());
+        client.resolve(Value::from(&stored), messageHash.as_deref());
 }
 
 /*
@@ -1541,12 +1538,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 self.orders = Some(ArrayCacheBySymbolById::new(limit));
             }
             let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
-            let mut parsed: Value = self.parse_orders(Value::Arr(orders), None, &[]);
+            let mut parsed: Vec<Value> = self.parse_orders(Value::Arr(orders), None, &[]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_278: bool = true;
-                while { if !__for_first_278 { i += 1; } __for_first_278 = false; i < (parsed.len() as i64) } {
-                stored.append(parsed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+                let mut __for_first_279: bool = true;
+                while { if !__for_first_279 { i += 1; } __for_first_279 = false; i < (parsed.len() as i64) } {
+                stored.append(parsed.get(i as usize).cloned().unwrap_or(Value::Null));
             }
             }
             client.resolve(Value::from(&stored), symbolSpecificMessageHash.as_deref());
@@ -1642,14 +1639,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub async fn load_positions_snapshot(&mut self, mut client: Value, mut messageHash: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut positions: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None, Value::Null).await);
+        let mut positions: Vec<Value> = crate::types::IntoRaw::into_raw(self.fetch_positions(None, Value::Null).await).as_array().cloned().unwrap_or_default();
         self.positions = Value::from(ArrayCacheBySymbolBySide::new(Value::Null));
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_279: bool = true;
-            while { if !__for_first_279 { i += 1; } __for_first_279 = false; i < (positions.len() as i64) } {
-            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut __for_first_280: bool = true;
+            while { if !__for_first_280 { i += 1; } __for_first_280 = false; i < (positions.len() as i64) } {
+            let mut position: Value = positions.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
             if (contracts != Value::Null) && (contracts.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
                 cache.append(position);
@@ -1708,10 +1705,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut newPositions: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_280: bool = true;
-            while { if !__for_first_280 { i += 1; } __for_first_280 = false; i < (rawPositions.len() as i64) } {
-            let mut rawPosition: Value = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut position: crate::value::Dict = self.parse_position(rawPosition, None).into_dict();
+            let mut __for_first_281: bool = true;
+            while { if !__for_first_281 { i += 1; } __for_first_281 = false; i < (rawPositions.len() as i64) } {
+            let mut rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None).into_dict();
             if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(Value::from(&position)); }
             cache.append(Value::Dict(position));
         }
@@ -1719,8 +1716,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHashes: Vec<Value> = self.find_message_hashes(client.clone(), Value::Str("positions::".into())).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_281: bool = true;
-            while { if !__for_first_281 { i += 1; } __for_first_281 = false; i < (messageHashes.len() as i64) } {
+            let mut __for_first_282: bool = true;
+            while { if !__for_first_282 { i += 1; } __for_first_282 = false; i < (messageHashes.len() as i64) } {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
@@ -1812,8 +1809,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data); }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_282: bool = true;
-            while { if !__for_first_282 { i += 1; } __for_first_282 = false; i < (positionBalances.len() as i64) } {
+            let mut __for_first_283: bool = true;
+            while { if !__for_first_283 { i += 1; } __for_first_283 = false; i < (positionBalances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&positionBalances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "instrument_name", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -2367,8 +2364,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut keys: Vec<Value> = __ch.subscription_keys();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_284: bool = true;
-            while { if !__for_first_284 { i += 1; } __for_first_284 = false; i < (keys.len() as i64) } {
+            let mut __for_first_285: bool = true;
+            while { if !__for_first_285 { i += 1; } __for_first_285 = false; i < (keys.len() as i64) } {
             let mut messageHash: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if !(__ch.has_subscription(messageHash.as_deref())) {
                 continue;
@@ -2383,8 +2380,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut subMessageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_283: bool = true;
-                    while { if !__for_first_283 { j += 1; } __for_first_283 = false; j < (messageHashes.len() as i64) } {
+                    let mut __for_first_284: bool = true;
+                    while { if !__for_first_284 { j += 1; } __for_first_284 = false; j < (messageHashes.len() as i64) } {
                     let mut unsubHash: Option<String> = messageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
                     let mut subHash: Option<String> = subMessageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
                     self.clean_unsubscription(client.clone(), subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[]);

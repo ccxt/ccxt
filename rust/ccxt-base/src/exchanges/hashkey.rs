@@ -2272,7 +2272,7 @@ impl Hashkey {
         //     ]
         //
         let mut ohlcvs: Value = self.to_array(&response);
-        return self.parse_ohlc_vs(ohlcvs, &[(market).raw.clone(), timeframeValue, since, limit]);
+        return self.parse_ohlc_vs(ohlcvs, Some(&market), &[timeframeValue, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2362,9 +2362,9 @@ impl Hashkey {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::List = self.public_get_quote_v1_ticker24hr(&[params]).await.into_list();
-        return self.parse_tickers(&response, &[symbolsNormalized]);
+        return self.parse_tickers(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2448,14 +2448,14 @@ impl Hashkey {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.public_get_quote_v1_ticker_price(&[__ws_arg_8]).await.into_list();
-        return self.parse_last_prices(&response, &[symbolsNormalized]);
+        return self.parse_last_prices(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -3724,12 +3724,12 @@ impl Hashkey {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut orderRequest: Value = self.create_order_request(symbol.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), orderParams]);
-            let mut clientOrderId: Option<String> = self.safe_string_k(orderRequest.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+            let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), orderParams]).into_dict();
+            let mut clientOrderId: Option<String> = self.safe_string_k(&orderRequest, "clientOrderId", &[]).as_str().map(str::to_owned);
             if (clientOrderId.is_none()) {
-                add_element_to_object(&mut orderRequest, &Value::Str("clientOrderId".into()), Value::from(self.uuid(&[]))); // both spot and swap endpoints require clientOrderId
+                std::sync::Arc::make_mut(&mut orderRequest).insert("clientOrderId".into(), Value::from(self.uuid(&[]))); // both spot and swap endpoints require clientOrderId
             }
-            ordersRequests.push(orderRequest);
+            ordersRequests.push(Value::Dict(orderRequest));
         }
         }
         let mut firstOrder: crate::value::Dict = self.safe_dict(Value::from(ordersRequests.clone()), Value::Int(0), &[]).into_dict();
@@ -4671,7 +4671,7 @@ impl Hashkey {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
@@ -4679,7 +4679,7 @@ impl Hashkey {
         });
         let __ws_arg_34 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.public_get_api_v1_futures_funding_rate(&[__ws_arg_34]).await.into_list();
-        return self.parse_funding_rates(&response, &[symbolsNormalized]);
+        return self.parse_funding_rates(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -4796,8 +4796,8 @@ impl Hashkey {
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_since_limit(Value::Arr(sorted), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -5242,8 +5242,8 @@ impl Hashkey {
         let mut response: crate::value::Dict = self.public_get_api_v1_exchange_info(&[params]).await.into_dict();
         // response is the same as in fetchMarkets()
         let mut data: crate::value::List = self.safe_list_k(&response, "contracts", &[Value::from(vec![])]).into_list();
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.parse_leverage_tiers(&data, &[symbolsNormalized, Value::Str("symbol".into())]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        return self.parse_leverage_tiers(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("symbol".into())]);
         Value::Null
         }).await?))
     }

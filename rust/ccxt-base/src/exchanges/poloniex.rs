@@ -1456,7 +1456,7 @@ impl Poloniex {
             //           ],
             //
             let mut data: Option<crate::value::List> = self.safe_list_k(&responseRaw, "data", &[]).into_opt_list();
-            return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe.clone(), since.clone(), limit.clone()]);
+            return self.parse_ohlc_vs(&data, Some(&market), &[timeframe.clone(), since.clone(), limit.clone()]);
         }
         let __ws_arg_1 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.public_get_markets_symbol_candles(&[__ws_arg_1]).await;
@@ -1484,7 +1484,7 @@ impl Poloniex {
         if (matches!(&response, Value::Arr(_))) {
             candles = response.clone();
         }
-        return self.parse_ohlc_vs(candles, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -3694,11 +3694,11 @@ impl Poloniex {
                 let mut balance: Value = self.safe_dict(&details, Value::Int(i), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "ccy", &[]).as_str().map(str::to_owned);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
-                let mut account: Value = self.account();
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance.clone(), "avail", &[])); }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance.clone(), "im", &[])); }
+                let mut account: crate::value::Dict = self.account().into_dict();
+                std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string_k(balance.clone(), "avail", &[]));
+                std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string_k(balance.clone(), "im", &[]));
                 if (code.is_some()) {
-                    result.insert(code.as_deref().unwrap_or("null").to_string(), account.clone());
+                    result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
                 }
             }
             }
@@ -4446,9 +4446,9 @@ impl Poloniex {
         }
         let mut withdrawals: crate::value::List = self.safe_list_k(response.clone(), "withdrawals", &[Value::from(vec![])]).into_list();
         let mut deposits: crate::value::List = self.safe_list_k(response, "deposits", &[Value::from(vec![])]).into_list();
-        let mut withdrawalTransactions: Value = self.parse_transactions(&withdrawals, currency.as_ref(), &[since.clone(), limit.clone()]);
-        let mut depositTransactions: Value = self.parse_transactions(&deposits, currency.as_ref(), &[since.clone(), limit.clone()]);
-        let mut transactions: Value = self.array_concat(depositTransactions, withdrawalTransactions);
+        let mut withdrawalTransactions: crate::value::List = self.parse_transactions(&withdrawals, currency.as_ref(), &[since.clone(), limit.clone()]).into_list();
+        let mut depositTransactions: crate::value::List = self.parse_transactions(&deposits, currency.as_ref(), &[since.clone(), limit.clone()]).into_list();
+        let mut transactions: Value = self.array_concat(&depositTransactions, &withdrawalTransactions);
         return self.filter_by_currency_since_limit(self.sort_by(transactions, Value::Str("timestamp".into()), &[]), &[code, since, limit]);
         Value::Null
         }).await?))
@@ -4484,8 +4484,8 @@ impl Poloniex {
             currency = Some(self.currency(code.clone()));
         }
         let mut withdrawals: crate::value::List = self.safe_list_k(response, "withdrawals", &[Value::from(vec![])]).into_list();
-        let mut transactions: Value = self.parse_transactions(&withdrawals, currency.as_ref(), &[since.clone(), limit.clone()]);
-        return self.filter_by_currency_since_limit(transactions, &[code, since, limit]);
+        let mut transactions: crate::value::List = self.parse_transactions(&withdrawals, currency.as_ref(), &[since.clone(), limit.clone()]).into_list();
+        return self.filter_by_currency_since_limit(Value::Arr(transactions), &[code, since, limit]);
         Value::Null
         }).await?))
     }
@@ -4664,7 +4664,7 @@ impl Poloniex {
 
     pub fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut fee: Value = fee.into();
-        let mut currencyCode: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
+        let mut currencyCode: Option<String> = self.safe_string_k(&currency, "code", &[]).as_str().map(str::to_owned);
         let mut info: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4736,8 +4736,8 @@ impl Poloniex {
             currency = Some(self.currency(code.clone()));
         }
         let mut deposits: crate::value::List = self.safe_list_k(response, "deposits", &[Value::from(vec![])]).into_list();
-        let mut transactions: Value = self.parse_transactions(&deposits, currency.as_ref(), &[since.clone(), limit.clone()]);
-        return self.filter_by_currency_since_limit(transactions, &[code, since, limit]);
+        let mut transactions: crate::value::List = self.parse_transactions(&deposits, currency.as_ref(), &[since.clone(), limit.clone()]).into_list();
+        return self.filter_by_currency_since_limit(Value::Arr(transactions), &[code, since, limit]);
         Value::Null
         }).await?))
     }
@@ -5094,7 +5094,7 @@ impl Poloniex {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.swap_private_get_v3_trade_position_opens(&[params]).await.into_dict();
         //
         //    {
@@ -5132,7 +5132,7 @@ impl Poloniex {
         //    }
         //
         let mut positions: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_positions(&positions, &[symbolsNormalized]);
+        return self.parse_positions(&positions, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -5369,7 +5369,7 @@ impl Poloniex {
         // shape into count(x) (a hoisted key list becomes strlen() on an array) and the C#/Java key-list
         // cast throws on a bare-list params (the batch endpoints pass one), so `isArray ||` guards it.
         let mut bodyJson: Option<String> = None;
-        let mut signedHeaders: Value = Value::Null;
+        let mut signedHeaders: Option<crate::value::Dict> = None;
         if (apiName.as_deref() == Some("public")) || (apiName.as_deref() == Some("swapPublic")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url = format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), self.urlencode(query.clone(), &[]));
@@ -5398,17 +5398,17 @@ impl Poloniex {
                     url = format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), self.urlencode(query, &[]));
                 }
             }
-            signedHeaders = Value::Map({
+            signedHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("key".to_string(), self.apiKey.clone());
                     m.insert("signTimestamp".to_string(), timestamp.map(Value::from).unwrap_or(Value::Null));
                     m.insert("signature".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())])));
                 m
-            });
+            }));
         }
         let mut bodyResolved: Option<String> = bodyJson;
-        let mut headersResolved: Value = signedHeaders;
+        let mut headersResolved: Value = signedHeaders.map_or(Value::Null, Value::Dict);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));

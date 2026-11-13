@@ -820,12 +820,12 @@ impl Revolutx {
                     m.insert("id".to_string(), key.map(Value::from).unwrap_or(Value::Null));
                 m
             })]).into_dict();
-            let mut parsed: Value = self.parse_currency(&currencyData);
-            let mut code: String = self.safe_string_k(parsed.clone(), "code", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut parsed: crate::value::Dict = self.parse_currency(&currencyData).into_dict();
+            let mut code: String = self.safe_string_k(&parsed, "code", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (code == "") {
                 continue;
             }
-            result.insert(code, parsed);
+            result.insert(code, Value::Dict(parsed));
         }
         }
         return Value::Map(result);
@@ -967,12 +967,12 @@ impl Revolutx {
     m
 })]);
             if let Value::Dict(__d) = &mut tickerData { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
-            let mut ticker: Value = self.parse_ticker(tickerData, None);
-            let mut symbol: String = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut ticker: crate::value::Dict = self.parse_ticker(tickerData, None).into_dict();
+            let mut symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (symbol == "") {
                 continue;
             }
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(symbol, ticker); }
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(symbol, Value::Dict(ticker)); }
         }
         }
         if (symbols != Value::Null) {
@@ -1160,14 +1160,14 @@ impl Revolutx {
         let mut defaultLimit: i64 = 1000; // default max limit if not specified
         let mut limitValue: i64 = limit.as_i64().unwrap_or(defaultLimit);
         let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
-        let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("until".into()), &[]);
-        if (until != Value::Null) {
-            request.insert("until".into(), until.clone());
+        let mut until: Option<i64> = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("until".into()), &[]).as_i64();
+        if (until.is_some()) {
+            request.insert("until".into(), Value::from(until));
         }
-        if (since != Value::Null) && (until == Value::Null) {
+        if (since != Value::Null) && (until.is_none()) {
             request.insert("until".into(), self.sum(&[since.clone(), Value::Int((limitValue * duration))]));
-        }  else if (since == Value::Null) && (until != Value::Null) {
-            request.insert("since".into(), (match (&(until), &(Value::Int((limitValue * duration)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+        }  else if (since == Value::Null) && (until.is_some()) {
+            request.insert("since".into(), Value::from((if let Some(__l) = until { Some(__l - ((limitValue * duration))) } else { None })));
         }
         let mut region: Value = self.safe_string2(params.clone(), Value::Str("region".into()), Value::Str("region".into()), &[self.options.as_map().and_then(|__m| __m.get("region")).cloned().unwrap_or(Value::Null)]);
         if (region != Value::Null) {
@@ -1185,7 +1185,7 @@ impl Revolutx {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }

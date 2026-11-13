@@ -634,9 +634,9 @@ impl Bitflyer {
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "product_code", &[]);
             let mut currencies: Value = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut marketType: Option<String> = self.safe_string_k(market.clone(), "market_type", &[]).as_str().map(str::to_owned);
-            let mut swap: Value = (Value::Bool(marketType.as_deref() == Some("FX")));
-            let mut future: Value = (Value::Bool(marketType.as_deref() == Some("Futures")));
-            let mut spot: bool = !(matches!(&swap, Value::Bool(true))) && !(matches!(&future, Value::Bool(true)));
+            let mut swap: bool = marketType.as_deref() == Some("FX");
+            let mut future: bool = marketType.as_deref() == Some("Futures");
+            let mut spot: bool = (!(swap) && !(future));
             let mut type_var: String = "spot".to_string();
             let mut settle: Option<String> = None;
             let mut baseId: Value = Value::Null;
@@ -645,11 +645,11 @@ impl Bitflyer {
             if spot {
                 baseId = self.safe_string(currencies.clone(), Value::Int(0), &[]);
                 quoteId = self.safe_string(currencies.clone(), Value::Int(1), &[]);
-            }  else if matches!(&swap, Value::Bool(true)) {
+            }  else if swap {
                 type_var = "swap".to_string();
                 baseId = self.safe_string(currencies.clone(), Value::Int(1), &[]);
                 quoteId = self.safe_string(currencies, Value::Int(2), &[]);
-            }  else if matches!(&future, Value::Bool(true)) {
+            }  else if future {
                 let mut alias: Option<String> = self.safe_string_k(market.clone(), "alias", &[]).as_str().map(str::to_owned);
                 if (alias.is_none()) {
                     // no alias:
@@ -685,13 +685,13 @@ impl Bitflyer {
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
             let mut taker: Value = self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("taker".into()), &[]);
             let mut maker: Value = self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("maker".into()), &[]);
-            let mut contract: Value = Value::Bool(matches!(&swap, Value::Bool(true)) || matches!(&future, Value::Bool(true)));
+            let mut contract: Value = Value::Bool((swap || future));
             if matches!(&contract, Value::Bool(true)) {
                 maker = Value::Int(0);
                 taker = Value::Int(0);
                 settle = Some("JPY".to_string());
                 symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
-                if matches!(&future, Value::Bool(true)) {
+                if future {
                     symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.yymmdd(expiry.clone(), &[]));
                 }
             }
@@ -708,8 +708,8 @@ impl Bitflyer {
                     m.insert("type".to_string(), Value::from(type_var));
                     m.insert("spot".to_string(), Value::Bool(spot.clone()));
                     m.insert("margin".to_string(), Value::Bool(false));
-                    m.insert("swap".to_string(), swap);
-                    m.insert("future".to_string(), future);
+                    m.insert("swap".to_string(), Value::Bool(swap));
+                    m.insert("future".to_string(), Value::Bool(future));
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), Value::Bool(true));
                     m.insert("contract".to_string(), contract);
@@ -1823,7 +1823,7 @@ impl Bitflyer {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut bodySigned: Value = Value::Null;
-        let mut headersSigned: Value = Value::Null;
+        let mut headersSigned: Option<crate::value::Dict> = None;
         let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into()));
         if (apiName.as_deref() == Some("private")) {
             request.push_str("me/");
@@ -1851,16 +1851,16 @@ impl Bitflyer {
                     auth.push_str(&body.to_string());
                 }
             }
-            headersSigned = Value::Map({
+            headersSigned = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("ACCESS-TIMESTAMP".to_string(), nonce);
                     m.insert("ACCESS-SIGN".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                 m
-            });
+            }));
         }
-        let mut headersResolved: Value = headersSigned;
+        let mut headersResolved: Value = headersSigned.map_or(Value::Null, Value::Dict);
         let mut bodyResolved: Value = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

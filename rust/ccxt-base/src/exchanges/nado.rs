@@ -2273,7 +2273,7 @@ impl Nado {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() requires walletAddress".into()))));
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let subaccountparamsSubaccountVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchPositions".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
         let mut subaccount: Option<String> = subaccountparamsSubaccountVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubaccount: crate::value::Dict = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2357,7 +2357,7 @@ impl Nado {
             result.push(self.parse_position(__ws_arg_13, None));
         }
         }
-        return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2507,20 +2507,20 @@ impl Nado {
             while { if !__for_first_989 { i += 1; } __for_first_989 = false; i < (assets.len() as i64) } {
             let mut rawAsset: Value = assets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut assetSymbol: Option<String> = self.safe_string_k(rawAsset.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            let mut assetCode: Value = self.safe_currency_code(self.remove_market_suffix(assetSymbol.as_deref()).map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-            if (assetCode == Value::Null) {
+            let mut assetCode: Option<String> = self.safe_currency_code(self.remove_market_suffix(assetSymbol.as_deref()).map(Value::from).unwrap_or(Value::Null), None);
+            if (assetCode.is_none()) {
                 continue;
             }
-            let mut previous: Option<crate::value::Dict> = self.safe_dict(Value::Map(assetsByCode.clone()), assetCode.clone(), &[]).into_opt_dict();
+            let mut previous: Option<crate::value::Dict> = self.safe_dict(Value::Map(assetsByCode.clone()), Value::from(assetCode.as_deref()), &[]).into_opt_dict();
             if (previous.is_none()) {
-                assetsByCode.insert(crate::runtime::stringify_param(&assetCode), rawAsset.clone());
+                assetsByCode.insert(assetCode.as_deref().unwrap_or("null").to_string(), rawAsset.clone());
             }  else {
                 let mut previousDeposit: bool = self.safe_bool_k(&previous, "can_deposit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
                 let mut previousWithdraw: bool = self.safe_bool_k(&previous, "can_withdraw", &[Value::Bool(false)]).as_bool().unwrap_or(false);
                 let mut currentDeposit: bool = self.safe_bool_k(rawAsset.clone(), "can_deposit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
                 let mut currentWithdraw: bool = self.safe_bool_k(rawAsset.clone(), "can_withdraw", &[Value::Bool(false)]).as_bool().unwrap_or(false);
                 if (!previousDeposit) && (!previousWithdraw) && (currentDeposit || currentWithdraw) {
-                    assetsByCode.insert(crate::runtime::stringify_param(&assetCode), rawAsset);
+                    assetsByCode.insert(assetCode.as_deref().unwrap_or("null").to_string(), rawAsset);
                 }
             }
         }
@@ -2682,21 +2682,21 @@ impl Nado {
             let mut __for_first_991: bool = true;
             while { if !__for_first_991 { i += 1; } __for_first_991 = false; i < (assets.len() as i64) } {
             let mut currency: Value = self.safe_value(&assets, Value::Int(i), &[]);
-            let mut parsed: Value = self.parse_currency(currency.clone());
-            let mut code: Option<String> = self.safe_string_k_opt(parsed.clone(), "code", &[]);
+            let mut parsed: crate::value::Dict = self.parse_currency(currency.clone()).into_dict();
+            let mut code: Option<String> = self.safe_string_k(&parsed, "code", &[]).as_str().map(str::to_owned);
             if (code.is_none()) {
                 continue;
             }
-            let mut previous: Option<crate::value::Dict> = self.safe_dict(Value::Map(result.clone()), code.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+            let mut previous: Option<crate::value::Dict> = self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[]).into_opt_dict();
             let mut canDeposit: bool = self.safe_bool_k(currency.clone(), "can_deposit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut canWithdraw: bool = self.safe_bool_k(currency, "can_withdraw", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if (previous.is_none()) {
-                result.insert(code.as_deref().unwrap_or("null").to_string(), parsed.clone());
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::from(&parsed));
             }  else {
                 let mut previousDeposit: bool = self.safe_bool_k(&previous, "deposit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
                 let mut previousWithdraw: bool = self.safe_bool_k(&previous, "withdraw", &[Value::Bool(false)]).as_bool().unwrap_or(false);
                 if (!previousDeposit) && (!previousWithdraw) && (canDeposit || canWithdraw) {
-                    result.insert(code.as_deref().unwrap_or("null").to_string(), parsed);
+                    result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(parsed));
                 }
             }
         }
@@ -2727,7 +2727,7 @@ impl Nado {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.archive_v2_public_get_tickers(&[params]).await.into_dict();
         //
         //     {
@@ -2744,7 +2744,7 @@ impl Nado {
         //     }
         //
         let mut tickers: Value = self.to_array(&response);
-        return self.parse_tickers(tickers, &[symbolsNormalized]);
+        return self.parse_tickers(tickers, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2923,8 +2923,8 @@ impl Nado {
             result.push(self.parse_funding_history(fundingPayments.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market)));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2951,7 +2951,7 @@ impl Nado {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Str("swap".into()), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Str("swap".into()), Value::Bool(true)]).into_opt_list();
         let mut response: crate::value::Dict = self.archive_v2_public_get_contracts(&[params]).await.into_dict();
         //
         //     {
@@ -2989,7 +2989,7 @@ impl Nado {
 })]));
         }
         }
-        return self.parse_funding_rates(Value::from(rates), &[symbolsNormalized]);
+        return self.parse_funding_rates(Value::from(rates), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -3076,7 +3076,7 @@ impl Nado {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Str("swap".into()), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Str("swap".into()), Value::Bool(true)]).into_opt_list();
         let mut response: crate::value::Dict = self.archive_v2_public_get_contracts(&[params]).await.into_dict();
         //
         //     {
@@ -3114,7 +3114,7 @@ impl Nado {
 })]));
         }
         }
-        return self.parse_open_interests(Value::from(interests), &[symbolsNormalized]);
+        return self.parse_open_interests(Value::from(interests), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -3245,7 +3245,7 @@ impl Nado {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
         let mut candlesticks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3256,8 +3256,8 @@ impl Nado {
         if (limit != Value::Null) {
             candlesticks.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
-        if (until != Value::Null) {
-            candlesticks.insert("max_time".into(), Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
+        if (until.is_some()) {
+            candlesticks.insert("max_time".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3283,7 +3283,7 @@ impl Nado {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "candlesticks", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -4207,7 +4207,7 @@ impl Nado {
 
     pub fn order_verifying_contract(&self, productId: Option<i64>) -> Option<String> {
         let mut productId: Value = productId.into();
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.pad_hex((Value::from(self.int_to_base16(productId, &[]))).as_str().unwrap_or_default(), Value::Int(40), &[]).map(Value::from).unwrap_or(Value::Null)).into()).as_str().map(str::to_owned);
+        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.pad_hex(self.int_to_base16(productId, &[]).as_str(), Value::Int(40), &[]).map(Value::from).unwrap_or(Value::Null)).into()).as_str().map(str::to_owned);
 }
 
     pub fn pad_hex(&self, value: &str, mut length: Value, optional_args: &[Value]) -> Option<String> {
@@ -4276,7 +4276,7 @@ impl Nado {
             m
         });
         let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), order);
-        return self.sign_hash((self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())])).as_str().unwrap_or_default(), (self.privateKey.clone()).as_str());
+        return self.sign_hash(self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str(), (self.privateKey.clone()).as_str());
 }
 
     pub fn sign_cancellation(&self, mut cancellation: Value, chainId: Option<&str>, endpointAddress: Option<&str>) -> Option<String> {
@@ -4316,7 +4316,7 @@ impl Nado {
             m
         });
         let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), cancellation);
-        return self.sign_hash((self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())])).as_str().unwrap_or_default(), (self.privateKey.clone()).as_str());
+        return self.sign_hash(self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str(), (self.privateKey.clone()).as_str());
 }
 
     pub fn sign_cancellation_products(&self, mut cancellation: Value, chainId: Option<&str>, endpointAddress: Option<&str>) -> Option<String> {
@@ -4351,7 +4351,7 @@ impl Nado {
             m
         });
         let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), cancellation);
-        return self.sign_hash((self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())])).as_str().unwrap_or_default(), (self.privateKey.clone()).as_str());
+        return self.sign_hash(self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str(), (self.privateKey.clone()).as_str());
 }
 
     pub fn sign_fetch_trigger_orders(&self, mut tx: Value, chainId: Option<&str>, endpointAddress: Option<&str>) -> Option<String> {
@@ -4381,7 +4381,7 @@ impl Nado {
             m
         });
         let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), tx);
-        return self.sign_hash((self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())])).as_str().unwrap_or_default(), (self.privateKey.clone()).as_str());
+        return self.sign_hash(self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str(), (self.privateKey.clone()).as_str());
 }
 
     pub fn sign_hash(&self, hash: &str, privateKey: Option<&str>) -> Option<String> {

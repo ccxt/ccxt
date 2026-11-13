@@ -1406,7 +1406,7 @@ impl Digifinex {
                     isTradingSwap = true;
                 }
             }
-            let mut isActive: Value = Value::Bool(isTradingSwap || (isAllowedRaw != 0));
+            let mut isActive: Value = Value::Bool((isTradingSwap || (isAllowedRaw != 0)));
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -2521,21 +2521,21 @@ impl Digifinex {
             let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.public_swap_get_public_candles(&[__ws_arg_9]).await.into_opt_dict();
         }  else {
-            let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
+            let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             request.insert("period".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
-            if (since != Value::Null) || (limit != Value::Null) || (until != Value::Null) {
-                let mut endTime: Value = (if (until != Value::Null) { until.clone() } else { Value::Int(self.milliseconds()) });
+            if (since != Value::Null) || (limit != Value::Null) || (until.is_some()) {
+                let mut endTime: Value = (if (until.is_some()) { Value::from(until) } else { Value::Int(self.milliseconds()) });
                 let mut startLimit: Value = (if (limit != Value::Null) { limit.clone() } else { Value::Int(200) });
                 let mut startTime: Option<i64> = (if (since != Value::Null) { self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { self.parse_to_int((match ((((match (&(endTime), &(((match (&((match (&(startLimit), &(duration)) { (Value::Int(x),
                     Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y),
                     (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y),
                     (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) });
                 request.insert("start_time".into(), Value::from(startTime));
-                if (limit != Value::Null) || (until != Value::Null) {
-                    if (until != Value::Null) {
-                        let mut endByUntil: Option<i64> = self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+                if (limit != Value::Null) || (until.is_some()) {
+                    if (until.is_some()) {
+                        let mut endByUntil: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })));
                         if (limit != Value::Null) {
                             let mut endByLimit: Option<i64> = self.parse_to_int(self.sum(&[Value::from(startTime), (match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                                 Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
@@ -2592,7 +2592,7 @@ impl Digifinex {
         }  else {
             candles = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_opt_list();
         }
-        return self.parse_ohlc_vs(&candles, &[(market).raw.clone(), timeframe, since, limit]);
+        return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2843,14 +2843,14 @@ impl Digifinex {
             m
         });
         let mut swap: bool = (marginMode.is_none()) && (marketTypeRaw.as_deref() == Some("swap"));
-        let mut isMarketOrder: Value = (Value::Bool(type_var.as_str() == Some("market")));
+        let mut isMarketOrder: bool = type_var.as_str().map(str::to_owned).as_deref() == Some("market");
         let mut isLimitOrder: bool = type_var.as_str() == Some("limit");
         let mut marketIdRequest: String = "symbol".to_string();
         if swap {
             marketIdRequest = "instrument_id".to_string();
         }
         request.insert(marketIdRequest, Value::from((market).id.as_deref()));
-        let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Bool(false), &[Value::from(&paramsMarginMode)]);
+        let mut postOnly: Value = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[Value::from(&paramsMarginMode)]);
         let mut postOnlyParsed: i64 = 0;
         let mut paramsRequest: Value = Value::Null;
         if swap {
@@ -2868,10 +2868,10 @@ impl Digifinex {
                 orderType = Some(0);
             }
             if (timeInForce.as_deref() == Some("FOK")) {
-                orderType = (if matches!(&isMarketOrder, Value::Bool(true)) { Some(15) } else { Some(9) });
+                orderType = (if isMarketOrder { Some(15) } else { Some(9) });
             }  else if (timeInForce.as_deref() == Some("IOC")) {
-                orderType = (if matches!(&isMarketOrder, Value::Bool(true)) { Some(13) } else { Some(4) });
-            }  else if (timeInForce.as_deref() == Some("GTC")) || (isMarketOrder).as_bool() == Some(true) {
+                orderType = (if isMarketOrder { Some(13) } else { Some(4) });
+            }  else if (timeInForce.as_deref() == Some("GTC")) || isMarketOrder {
                 orderType = Some(14);
             }  else if (timeInForce.as_deref() == Some("PO")) {
                 postOnly = Value::Bool(true);
@@ -2897,7 +2897,7 @@ impl Digifinex {
             let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsMarginMode, Value::Str("createOrderRequest".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
             let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-            let mut isMarketBuy: bool = matches!(&isMarketOrder, Value::Bool(true)) && (side.as_str() == Some("buy"));
+            let mut isMarketBuy: bool = (isMarketOrder && (side.as_str() == Some("buy")));
             let mut keysToOmit: Value = Value::Null;
             if isMarketBuy {
                 keysToOmit = Value::from(vec![Value::Str("cost".into()), Value::Str("postOnly".into())]);
@@ -5174,8 +5174,8 @@ impl Digifinex {
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -5819,8 +5819,8 @@ impl Digifinex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        return self.parse_leverage_tiers(&data, &[symbolsNormalized, Value::Str("instrument_id".into())]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        return self.parse_leverage_tiers(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("instrument_id".into())]);
         Value::Null
         }).await?))
     }

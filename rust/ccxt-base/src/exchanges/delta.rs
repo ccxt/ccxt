@@ -1488,7 +1488,7 @@ impl Delta {
             let mut spot: Value = (Value::Bool(type_var.as_deref() == Some("spot")));
             let mut swap: bool = type_var.as_deref() == Some("perpetual_futures");
             let mut future: bool = type_var.as_deref() == Some("futures");
-            let mut option: Value = Value::Bool(callOptions || putOptions || moveOptions);
+            let mut option: Value = (Value::Bool(((callOptions || putOptions) || moveOptions)));
             let mut strike: Option<String> = self.safe_string_k(&market, "strike_price", &[]).as_str().map(str::to_owned);
             let mut expiryDatetime: Option<String> = self.safe_string_k(&market, "settlement_time", &[]).as_str().map(str::to_owned);
             let mut expiry: Option<i64> = self.parse8601(expiryDatetime.map(Value::from).unwrap_or(Value::Null));
@@ -1945,7 +1945,7 @@ impl Delta {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.public_get_tickers(&[params]).await.into_dict();
         //
         // spot
@@ -2098,7 +2098,7 @@ impl Delta {
             }
         }
         }
-        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2368,7 +2368,7 @@ impl Delta {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
@@ -2395,11 +2395,11 @@ impl Delta {
             request.insert("end".into(), (if (until.is_some()) { Value::from(until) } else { self.sum(&[Value::from(start), windowSeconds]) }));
         }
         let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
-        let mut marketId: String = self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if (price.as_deref() == Some("mark")) {
             request.insert("symbol".into(), Value::Str(format!("{}{}", Value::Str("MARK:".into()), marketId).into()));
         }  else if (price.as_deref() == Some("index")) {
-            let mut marketInfo: crate::value::Dict = self.safe_dict_k(market.clone(), "info", &[]).into_dict();
+            let mut marketInfo: crate::value::Dict = self.safe_dict_k(&market, "info", &[]).into_dict();
             let mut spotIndex: crate::value::Dict = self.safe_dict_k(&marketInfo, "spot_index", &[]).into_dict();
             request.insert("symbol".into(), self.safe_string_k(&spotIndex, "symbol", &[]));
         }  else {
@@ -2419,7 +2419,7 @@ impl Delta {
         //     }
         //
         let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&result, &[market, timeframe, since, Value::from(limitValue)]);
+        return self.parse_ohlc_vs(&result, Some(&market), &[timeframe, since, Value::from(limitValue)]);
         Value::Null
         }).await?))
     }
@@ -3740,7 +3740,7 @@ impl Delta {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("contract_types".to_string(), Value::Str("perpetual_futures".into()));
@@ -3796,7 +3796,7 @@ impl Delta {
         //     }
         //
         let mut rates: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        return self.parse_funding_rates(&rates, &[symbolsNormalized]);
+        return self.parse_funding_rates(&rates, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -5043,7 +5043,7 @@ impl Delta {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]).into_opt_list();
         let mut response: crate::value::Dict = self.private_get_positions_margined(&[params]).await.into_dict();
         //
         //     {
@@ -5216,7 +5216,7 @@ impl Delta {
         //     }
         //
         let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        return self.parse_adl_ranks(&result, &[symbolsNormalized]);
+        return self.parse_adl_ranks(&result, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
