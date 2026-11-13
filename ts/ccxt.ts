@@ -119,6 +119,7 @@ import kucoin from  './src/kucoin.js'
 import kucoinfutures from  './src/kucoinfutures.js'
 import latoken from  './src/latoken.js'
 import lbank from  './src/lbank.js'
+import lcx from  './src/lcx.js'
 import lighter from  './src/lighter.js'
 import luno from  './src/luno.js'
 import mercado from  './src/mercado.js'
@@ -312,6 +313,7 @@ const exchanges = {
     'kucoinfutures':          kucoinfutures,
     'latoken':                latoken,
     'lbank':                  lbank,
+    'lcx':                    lcx,
     'lighter':                lighter,
     'luno':                   luno,
     'mercado':                mercado,
@@ -685,6 +687,7 @@ export {
     kucoinfutures,
     latoken,
     lbank,
+    lcx,
     lighter,
     luno,
     mercado,
