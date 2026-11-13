@@ -45,6 +45,7 @@ export class FakeExchange {
         'fetchMyTrades': true,
         'fetchPositions': false,
         'fetchFundingRate': true,
+        'fetchFundingRates': true, // returns a large symbol-keyed map — exercises result paging
         'watchTicker': true,
         'watchOHLCV': true,
         'watchTrades': true,
@@ -166,6 +167,34 @@ export class FakeExchange {
 
     async fetchFundingRate (symbol: string): Promise<any> {
         return { symbol, 'fundingRate': 0.0001, 'info': { 'raw': true } };
+    }
+
+    fundingRatesFetches = 0;
+
+    // ~700 swaps keyed by symbol, like okx — far larger than one tool result
+    async fetchFundingRates (_symbols?: string[], _params: any = {}): Promise<any> {
+        this.fundingRatesFetches += 1;
+        const result: Record<string, any> = {};
+        for (let i = 0; i < 700; i++) {
+            const symbol = 'COIN' + i + '/USDT:USDT';
+            const timestamp = 1731052800000 + i * 1000;
+            result[symbol] = {
+                symbol,
+                'markPrice': 1234.5678 + i * 0.0137,
+                'indexPrice': 1234.4321 + i * 0.0129,
+                'fundingRate': 0.000123456789 + i * 1e-9,
+                'timestamp': timestamp,
+                'datetime': new Date (timestamp).toISOString (),
+                'fundingTimestamp': timestamp,
+                'fundingDatetime': new Date (timestamp).toISOString (),
+                'nextFundingRate': -0.000098765432 + i * 1e-9,
+                'nextFundingTimestamp': timestamp + 28800000,
+                'nextFundingDatetime': new Date (timestamp + 28800000).toISOString (),
+                'interval': '8h',
+                'info': { 'instId': 'COIN' + i + '-USDT-SWAP', 'fundingRate': String (0.000123456789 + i * 1e-9) },
+            };
+        }
+        return result;
     }
 
     openOrdersFetches = 0;

@@ -136,7 +136,7 @@ Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKE
 
 ## Tools
 
-**market** — `list_exchanges`, `describe_exchange`, `describe_method` (search/signatures/per-exchange params + docs links), `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`, `search_events` (prediction markets), `call_read_method` (any unified `fetch*`/`load*` — structurally read-only), `call_implicit_get` (raw GET endpoints), `get_safety_status`, `fetch_route` (best execution route for converting an asset at a given size across ~50 exchanges, via the [CCXT order router](https://docs.ccxt.com/router/) — a quote, no keys needed).
+**market** — `list_exchanges`, `describe_exchange`, `describe_method` (search/signatures/per-exchange params + docs links), `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`, `search_events` (prediction markets), `call_read_method` (any unified `fetch*`/`load*` — structurally read-only; `sortBy`/`limit`/`fields` shape bulk reads like `fetchFundingRates` server-side), `call_implicit_get` (raw GET endpoints), `next_page` (read the rest of a result too large for one response), `get_safety_status`, `fetch_route` (best execution route for converting an asset at a given size across ~50 exchanges, via the [CCXT order router](https://docs.ccxt.com/router/) — a quote, no keys needed).
 
 **live (WebSocket)** — `watch_subscribe` opens a background ccxt.pro stream; `watch_read` returns fresh data. **State** streams are snapshots of "what is X right now" — `watchTicker(s)`, `watchOrderBook(ForSymbols)`, `watchOHLCV`, `watchBalance`, `watchPositions`, `watchBidsAsks`, `watchMarkPrice(s)`: the server merges live updates into the **full current set**, so `watch_read` always returns every subscribed symbol in `latest` (a multi-symbol stream never shows just the one that last ticked). **Event** streams are logs — `watchTrades` and the private `watchOrders`/`watchMyTrades`/`watch(My)Liquidations` (private need an account): `watch_read` returns new items oldest-first in `events` with a cursor. Pass `waitForChange: true` to `watch_read` to **block until the next update** (or timeout) instead of polling — the efficient way to wait for a fill or position change. `watch_unsubscribe` stops it; `watch_list` shows active streams. The long-lived server holds the socket so the agent always has fresh data; idle streams auto-stop after 10 minutes.
 
@@ -148,7 +148,7 @@ Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKE
 
 **funds** — `withdraw`, `transfer`, `get_deposit_address`. **implicitWrites** — `call_implicit_write`.
 
-Every list result is capped and paginated to fit host context limits (with in-band truncation notices); the raw `info` payload is stripped by default. Prediction exchanges use the same tools with outcome handles (from `search_events`) in the symbol position.
+Every list result is capped to fit host context limits. A result that is still too large for one response (e.g. `fetchFundingRates` over every swap) is not cut off: it comes back as its first page with `meta.nextCursor`, and `next_page` returns the rest from the same server-side snapshot; the raw `info` payload is stripped by default. Prediction exchanges use the same tools with outcome handles (from `search_events`) in the symbol position.
 
 ## Troubleshooting
 
