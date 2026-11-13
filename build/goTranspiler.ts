@@ -1,4 +1,5 @@
-import Transpiler, { alignGoTrailingComments, installCcxtGoLocalTypes, installCcxtGoIndexableTypes, installCcxtGoParamTypes, installCcxtGoDictParams, installCcxtGoGb05ParamTypes, installCcxtGoGb11HandleErrorsCode, installCcxtGoSignTyping, installRfGo5OwnedTables, installFmGo5G01, installFmGo5G04, installCcxtGoTupleSlotReads, installFmGo5GP08, installFmGo5OG02, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES, CCXT_GO_STRING_PTR_METHOD_NAMES, goNilJoinTypeSelfTest, goDynamicCallParamsCheck, goDictParamTypesSelfTest, goParseFrameParamTypesSelfTest, goHandleErrorsCodeSelfTest } from "ast-transpiler"; // go printer hooks live in ast-transpiler src/go
+import { installCcxtGoLocalTypes } from './go-cache-local-types.js';
+import Transpiler, { alignGoTrailingComments, installCcxtGoIndexableTypes, installCcxtGoParamTypes, installCcxtGoDictParams, installCcxtGoGb05ParamTypes, installCcxtGoGb11HandleErrorsCode, installCcxtGoSignTyping, installRfGo5OwnedTables, installFmGo5G01, installFmGo5G04, installCcxtGoTupleSlotReads, installFmGo5GP08, installFmGo5OG02, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES, CCXT_GO_STRING_PTR_METHOD_NAMES, goNilJoinTypeSelfTest, goDynamicCallParamsCheck, goDictParamTypesSelfTest, goParseFrameParamTypesSelfTest, goHandleErrorsCodeSelfTest } from "ast-transpiler"; // go printer hooks live in ast-transpiler src/go
 import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename, resolve } from 'path';
@@ -8275,7 +8276,7 @@ ${caseStatements.join('\n')}
                 content = content.replace(/\bthis\.Exchange\./g, 'this.BaseExchange.');
                 // prediction exchanges merge REST + WS in one class, so apply the WS transforms
                 // (orderbook/side casts, client/future resolve, append, limit, ...) here too
-                content = this.regexAll (content, this.getWsRegexes());
+                content = nativeGoCacheAppends (this.regexAll (content, this.getWsRegexes()));
                 // the prediction exchanges live outside of package ccxt, so all the
                 // package-level types/functions of go/v4 need the ccxt. qualifier
                 // (this also rewrites the embedded struct member into ccxt.PredictionExchange)
@@ -8300,6 +8301,7 @@ ${caseStatements.join('\n')}
                 [ /(p \:\= &.*$)/gm, `$1\n\tbase := ${inheritedInstatiation}\n\tp.base = base\n\tp.${baseClass} = base` ],  // could go in ast-transpiler if there is always a parameter named base
                 ...wsRegexes,
             ]);
+            content = nativeGoCacheAppends (content);
             content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
         }
 
@@ -9472,6 +9474,78 @@ async function runLocalTypeAudit () {
     process.exit (pass ? 0 : 1);
 }
 
+// The WS fallback boxes Append receivers. Concrete cache locals instead call
+// the method directly; a Go type assertion is invalid on a concrete pointer.
+function nativeGoCacheAppends (content: string): string {
+    for (const range of goFuncBlockRanges (content).reverse ()) {
+        const body = content.slice (range.start, range.end);
+        const masked = goTextMaskLiteralsAndComments (body);
+        const signature = masked.trimStart ().split ('\n')[0];
+        const replacements: { start: number; end: number; name: string }[] = [];
+        for (const match of masked.matchAll (/(?<![\w.])(\w+)\.\(Appender\)\.Append\(/g)) {
+            const declaration = goAccessSingleDeclaration (masked, signature, match[1]);
+            if (/^\*ArrayCache(?:ByTimestamp|BySymbolById|ByOutcomeById|BySymbolBySide)?$/.test (declaration?.type ?? '')) {
+                replacements.push ({ start: match.index, end: match.index + match[0].length, name: match[1] });
+            }
+        }
+        let fixed = body;
+        for (const replacement of replacements.reverse ()) {
+            fixed = fixed.slice (0, replacement.start) + replacement.name + '.Append(' + fixed.slice (replacement.end);
+        }
+        content = content.slice (0, range.start) + fixed + content.slice (range.end);
+    }
+    return content;
+}
+
+function goCacheLocalTypesSelfTest (): string[] {
+    const problems: string[] = [];
+    const tmp = fs.mkdtempSync (path.join (os.tmpdir (), 'go-cache-locals-'));
+    try {
+        const src = path.join (tmp, 'ts', 'src');
+        fs.mkdirSync (path.join (src, 'base', 'ws'), { recursive: true });
+        fs.mkdirSync (path.join (src, 'pro'), { recursive: true });
+        fs.writeFileSync (path.join (src, 'base', 'ws', 'Cache.ts'),
+            'export class ArrayCacheBySymbolById { clear () {} append (v: any) {} }\n'
+            + 'export class ArrayCacheByTimestamp { clear () {} append (v: any) {} }\n');
+        const file = path.join (src, 'pro', 'test.ts');
+        fs.writeFileSync (file,
+            "import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCacheBySymbolById as OrderCache } from '../base/ws/Cache.js';\n"
+            + 'class Test { orders: any;\n'
+            + 'f1 () { const cachedOrders = this.orders as ArrayCacheBySymbolById; cachedOrders.clear (); cachedOrders.append ({}); }\n'
+            + 'f2 () { const pending = this.orders as ArrayCacheBySymbolById; pending.clear (); pending.append ({}); }\n'
+            + 'f3 () { const candles = this.orders as ArrayCacheByTimestamp; candles.clear (); candles.append ([]); }\n'
+            + 'f4 (other: any) { let rebound = this.orders as ArrayCacheBySymbolById; rebound = other; rebound.clear (); }\n'
+            + 'f5 () { const outer = this.orders as ArrayCacheBySymbolById; if (true) { const outer = this.orders; outer.clear (); } outer.clear (); }\n'
+            + 'f6 () { const buffer = this.orders; buffer.clear (); buffer.append ({}); }\n'
+            + 'f7 () { const renamed = this.orders as OrderCache; renamed.clear (); renamed.append ({}); }\n'
+            + 'f8 (ArrayCacheBySymbolById: any) { const shadowedType = this.orders as OrderCache; shadowedType.clear (); }\n'
+            + '}');
+        const t = new Transpiler ({ verbose: false, go: {} });
+        installCcxtGoLocalTypes (t.goTranspiler);
+        const raw = t.transpileGoByPath (file).content;
+        const driver = new NewTranspiler ();
+        const go = nativeGoCacheAppends (driver.regexAll (raw, driver.getWsRegexes ()));
+        const ok = (value: boolean, message: string) => { if (!value) { problems.push ('cache locals: ' + message); } };
+        for (const [ name, type ] of [ [ 'cachedOrders', 'ArrayCacheBySymbolById' ], [ 'pending', 'ArrayCacheBySymbolById' ], [ 'candles', 'ArrayCacheByTimestamp' ], [ 'renamed', 'ArrayCacheBySymbolById' ] ]) {
+            const value = (type === 'ArrayCacheBySymbolById') ? 'AsArrayCacheBySymbolById(this.Orders)' : 'this.Orders.(*' + type + ')';
+            ok (go.includes ('var ' + name + ' *' + type + ' = ' + value), name + ' keeps its concrete type');
+            ok (go.includes (name + '.Clear()') && go.includes (name + '.Append('), name + ' calls cache methods directly');
+        }
+        ok (go.includes ('var rebound any = this.Orders'), 'rebound local keeps its box');
+        ok (go.includes ('var outer any = this.Orders'), 'shadowed local keeps its box');
+        ok (go.includes ('var shadowedType any = this.Orders'), 'shadowed Go type name keeps the box');
+        ok (go.includes ('buffer.Clear()') && go.includes ('buffer.(Appender).Append('), 'untyped receiver stays unchanged');
+        ok (!go.includes ('interface{ Clear() }'), 'no name-based Clear assertion');
+        const quoted = '\nfunc f() {\nvar c *ArrayCacheBySymbolById = nil\nprintln("c.(Appender).Append(1)")\n// c.(Appender).Append(1)\n}';
+        ok (nativeGoCacheAppends (quoted) === quoted, 'strings and comments stay unchanged');
+    } catch (e: any) {
+        problems.push ('cache locals threw: ' + e.message);
+    } finally {
+        fs.rmSync (tmp, { recursive: true, force: true });
+    }
+    return problems;
+}
+
 async function runMain () {
     if (process.argv.includes ('--audit-local-types')) {
         await runLocalTypeAudit ();
@@ -9483,6 +9557,7 @@ async function runMain () {
     }
     if (process.argv.includes ('--self-test')) {
         const problems = goTypedArithSelfTest ().concat (goIntegralArithmeticSelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (goNativeEqualitySelfTest ()).concat (goTypedShapeHelpersSelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (goTypedDerefSelfTest ()).concat (goTypedMaplistSelfTest ()).concat (goTypedIsEqualSelfTest ()).concat (goTypedStrSelfTest ()).concat (goTypedLenSelfTest ()).concat (goTypedInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (gvListSelfTest ()).concat (goTypedMiscSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goDropRedundantTypedSelfTest ()).concat (goTupleProducerReadsSelfTest ()).concat (goSelfMapRebindSelfTest ()).concat (goAnnotatedReturnSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (goMapWriteNilGuardSelfTest ()).concat (goTupleSlotReadsCheck ()).concat (goStrReturnSelfTest ()).concat (goAnyNilCompareSelfTest ()).concat (goNativeCompareSelfTest ()).concat (goStringAddLeafSelfTest ()).concat (goBaseNativePassesSelfTest ()).concat (goUnboxDefaultedSafeIntegerSelfTest ()).concat (goDefaultedLimitInt64SelfTest ()).concat (goTupleTruthySelfTest ()).concat (goRowStringLeafSelfTest ()).concat (goBlockScopedDeclCheck ()).concat (goPointerNonNilArithSelfTest ()).concat (goFloatComparisonsSelfTest ()).concat (goFloatComparisonsWiredCheck ()).concat (goIsEqualSafeLiteralSelfTest ()).concat (goInt64RetypeArithSelfTest ()).concat (goNativeDivideCheck ()).concat (goBoxedIntComparisonsSelfTest ()).concat (goProvenLocalIsEqualCheck ()).concat (goTupleSlotNeverNilCheck ()).concat (goArithHelpersWiredCheck ()).concat (goPlainBoxIsEqualCheck ()).concat (goTupleSlotDerefsCheck ()).concat (goInlineIsEqualWiredCheck ()).concat (goInOpHelperCheck ()).concat (goCaseAffixWiredCheck ()).concat (goStdlibStringHelpersCheck ()).concat (goParseNativeWiredCheck ()).concat (goNullableStrParamSelfTest ()).concat (goTypedIsEqualWiredCheck ()).concat (goNilJoinTypeSelfTest ()).concat (goDynamicCallParamsCheck ()).concat (goDictParamTypesSelfTest ()).concat (goParseFrameParamTypesSelfTest ()).concat (goHandleErrorsCodeSelfTest ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (goIsEqualBoolMethodCheck ()).concat (goPromiseAllSlotSelfTest ()).concat (goPromiseAllLoopSelfTest ()).concat (goOrderBookSetterCheck ()).concat (goJoinStringLocalsCheck ()).concat (goJoinNativeCheck ()).concat (goAsyncInt64ValueCheck ()).concat (goStringAnyLocalsCheck ());
+        problems.push (...goCacheLocalTypesSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
