@@ -1962,8 +1962,7 @@ class sxbet extends sxbet$1["default"] {
         //         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
         //     }
         //
-        const marketAny = market;
-        const outcomeObj = this.safeOutcome(this.safeString(marketAny, 'outcome'), marketAny);
+        const outcomeObj = this.safeOutcome(this.safeString(market, 'outcome'), market);
         const outcomeId = this.safeString(outcomeObj, 'outcomeId');
         const marketHash = this.safeString(raw, 'marketHash');
         const isOutcomeOne = (outcomeId === marketHash);

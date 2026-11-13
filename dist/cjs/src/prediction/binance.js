@@ -781,8 +781,7 @@ class binance extends binance$1["default"] {
         //
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
-        const marketAny = market;
-        const outcomeObj = this.safeOutcome(this.safeString(marketAny, 'outcome'), marketAny);
+        const outcomeObj = this.safeOutcome(this.safeString(market, 'outcome'), market);
         // the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
         // any other outcome of a binary market mirrors as 1 - price
         const outcomeInfo = this.safeDict(outcomeObj, 'info', {});

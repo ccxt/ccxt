@@ -608,7 +608,7 @@ export default class predictfun extends Exchange {
      * @param {object} [market] the outcome the caller asked about
      * @returns {object} the outcome object, or a stub keyed by the token id when it is not cached
      */
-    outcomeForToken(tokenId: Str, market?: any): any;
+    outcomeForToken(tokenId: Str, market?: Market): any;
     /**
      * @ignore
      * @method

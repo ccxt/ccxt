@@ -190655,7 +190655,7 @@ class PredictionExchange extends _Exchange_js__rspack_import_0/* .BaseExchange *
         }
         return false;
     }
-    safeOutcome(outcomeIdOrSymbol, outcomeObj = undefined) {
+    safeOutcome(outcomeIdOrSymbol, market = undefined) {
         if (outcomeIdOrSymbol !== undefined) {
             if (this.outcomes !== undefined && outcomeIdOrSymbol in this.outcomes) {
                 return this.safeValue(this.outcomes, outcomeIdOrSymbol);
@@ -190664,8 +190664,8 @@ class PredictionExchange extends _Exchange_js__rspack_import_0/* .BaseExchange *
                 return this.safeValue(this.outcomes_by_id, outcomeIdOrSymbol);
             }
         }
-        if (outcomeObj !== undefined) {
-            return outcomeObj;
+        if (market !== undefined) {
+            return market;
         }
         // stub for an unknown handle; it only carries the identity keys, not the market fields
         const outcomeObjValue = {
@@ -190679,7 +190679,12 @@ class PredictionExchange extends _Exchange_js__rspack_import_0/* .BaseExchange *
         return outcomeObjValue;
     }
     safeOutcomeSymbol(outcomeIdOrSymbol, outcomeObj = undefined) {
-        const outcomeObjValue = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
+        // outcomeObj may be any outcome-shaped dict, not only a market: read it here instead of
+        // handing it to safeOutcome (whose fallback slot is a Market)
+        if (!this.hasOutcome(outcomeIdOrSymbol) && outcomeObj !== undefined) {
+            return this.safeString(outcomeObj, 'outcome');
+        }
+        const outcomeObjValue = this.safeOutcome(outcomeIdOrSymbol);
         return outcomeObjValue['outcome'];
     }
     shortenSlug(slug) {
@@ -494691,8 +494696,7 @@ class binance extends _abstract_prediction_binance_js__rspack_import_0/* ["defau
         //
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
-        const marketAny = market;
-        const outcomeObj = this.safeOutcome(this.safeString(marketAny, 'outcome'), marketAny);
+        const outcomeObj = this.safeOutcome(this.safeString(market, 'outcome'), market);
         // the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
         // any other outcome of a binary market mirrors as 1 - price
         const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
@@ -499297,8 +499301,7 @@ class kalshi extends _abstract_prediction_kalshi_js__rspack_import_0/* ["default
         //         }
         //     }
         //
-        const marketAny = market;
-        const outcomeObj = this.safeOutcome(this.safeString(marketAny, 'outcome'), marketAny);
+        const outcomeObj = this.safeOutcome(this.safeString(market, 'outcome'), market);
         const outcomeLabel = market !== undefined && market !== null ? this.safeStringUpper(market, 'label', this.safeStringUpper(market['info'], 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel === 'NO';
         const timestamp = this.parse8601(this.safeString(raw, 'updated_time'));
@@ -499754,8 +499757,7 @@ class kalshi extends _abstract_prediction_kalshi_js__rspack_import_0/* ["default
         const amountFp = this.safeNumber2(trade, 'count_fp', 'size_fp');
         const amount = this.safeNumber(trade, 'count', amountFp);
         const rawSide = this.safeStringLower(trade, 'taker_side');
-        const marketAny = market;
-        const outcomeObj = this.safeOutcome(this.safeString(marketAny, 'outcome'), marketAny);
+        const outcomeObj = this.safeOutcome(this.safeString(market, 'outcome'), market);
         const marketInfo = this.safeDict(outcomeObj, 'info', {});
         const requestedOutcomeLabel = this.safeStringLower(outcomeObj, 'label', this.safeStringLower(marketInfo, 'outcomeLabel'));
         const outcomeSymbol = this.safeString(outcomeObj, 'outcome');
@@ -513252,7 +513254,7 @@ class polymarket extends _abstract_prediction_polymarket_js__rspack_import_0/* [
             'datetime': this.iso8601(ts),
             'lastTradeTimestamp': undefined,
             'status': status,
-            'outcome': mkt['outcome'],
+            'outcome': this.safeString(mkt, 'outcome'),
             'outcomeId': this.safeString(mkt, 'outcomeId'),
             'label': this.safeString(mkt, 'label'),
             'market': this.safeString(mkt, 'market'),
@@ -521112,8 +521114,7 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
         //         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
         //     }
         //
-        const marketAny = market;
-        const outcomeObj = this.safeOutcome(this.safeString(marketAny, 'outcome'), marketAny);
+        const outcomeObj = this.safeOutcome(this.safeString(market, 'outcome'), market);
         const outcomeId = this.safeString(outcomeObj, 'outcomeId');
         const marketHash = this.safeString(raw, 'marketHash');
         const isOutcomeOne = outcomeId === marketHash;

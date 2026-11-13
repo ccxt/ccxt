@@ -239,7 +239,11 @@ export interface PredictionOutcome {
     id?: Str;
     negRisk?: Bool;
 }
-export interface PredictionOutcomeMarket extends MarketInterface {
+export interface PredictionOutcomeHandle extends MarketInterface {
+    outcome?: Str;
+    outcomeId?: Str;
+}
+export interface PredictionOutcomeMarket extends PredictionOutcomeHandle {
     outcome: string;
     outcomeId: string;
     label?: Str;

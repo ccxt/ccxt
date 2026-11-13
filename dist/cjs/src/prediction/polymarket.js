@@ -1878,7 +1878,7 @@ class polymarket extends polymarket$1["default"] {
             'datetime': this.iso8601(ts),
             'lastTradeTimestamp': undefined,
             'status': status,
-            'outcome': mkt['outcome'],
+            'outcome': this.safeString(mkt, 'outcome'),
             'outcomeId': this.safeString(mkt, 'outcomeId'),
             'label': this.safeString(mkt, 'label'),
             'market': this.safeString(mkt, 'market'),

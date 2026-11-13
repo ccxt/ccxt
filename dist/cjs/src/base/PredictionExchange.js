@@ -431,7 +431,7 @@ class PredictionExchange extends Exchange.BaseExchange {
         }
         return false;
     }
-    safeOutcome(outcomeIdOrSymbol, outcomeObj = undefined) {
+    safeOutcome(outcomeIdOrSymbol, market = undefined) {
         if (outcomeIdOrSymbol !== undefined) {
             if ((this.outcomes !== undefined) && (outcomeIdOrSymbol in this.outcomes)) {
                 return this.safeValue(this.outcomes, outcomeIdOrSymbol);
@@ -440,15 +440,20 @@ class PredictionExchange extends Exchange.BaseExchange {
                 return this.safeValue(this.outcomes_by_id, outcomeIdOrSymbol);
             }
         }
-        if (outcomeObj !== undefined) {
-            return outcomeObj;
+        if (market !== undefined) {
+            return market;
         }
         // stub for an unknown handle; it only carries the identity keys, not the market fields
         const outcomeObjValue = { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {} };
         return outcomeObjValue;
     }
     safeOutcomeSymbol(outcomeIdOrSymbol, outcomeObj = undefined) {
-        const outcomeObjValue = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
+        // outcomeObj may be any outcome-shaped dict, not only a market: read it here instead of
+        // handing it to safeOutcome (whose fallback slot is a Market)
+        if (!this.hasOutcome(outcomeIdOrSymbol) && (outcomeObj !== undefined)) {
+            return this.safeString(outcomeObj, 'outcome');
+        }
+        const outcomeObjValue = this.safeOutcome(outcomeIdOrSymbol);
         return outcomeObjValue['outcome'];
     }
     shortenSlug(slug) {

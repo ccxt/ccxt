@@ -1,5 +1,5 @@
 import { BaseExchange } from './Exchange.js';
-import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, PredictionOutcomeMarket, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, PredictionOutcomeMarket, PredictionOutcomeHandle, fetchEventsParams } from './types.js';
 /**
  * @class PredictionExchange
  * @augments BaseExchange
@@ -30,7 +30,7 @@ export default class PredictionExchange extends BaseExchange {
     getEvent(eventIdOrSlug: string): any;
     outcome(outcomeSymbol: Str): PredictionOutcomeMarket;
     hasOutcome(outcomeIdOrSymbol: Str): boolean;
-    safeOutcome(outcomeIdOrSymbol: Str, outcomeObj?: any): PredictionOutcomeMarket;
+    safeOutcome(outcomeIdOrSymbol: Str, market?: Market): PredictionOutcomeHandle;
     safeOutcomeSymbol(outcomeIdOrSymbol: Str, outcomeObj?: any): Str;
     shortenSlug(slug: Str): string;
     slugToMarketSymbol(eventSlug: Str, marketSlug: Str): string;
@@ -49,9 +49,9 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object} the outcome cache
      */
     fetchOutcomes(outcomeSymbols: string[]): Promise<any>;
-    loadOutcome(outcomeSymbol: Str, reload?: boolean): Promise<PredictionOutcomeMarket>;
+    loadOutcome(outcomeSymbol: Str, reload?: boolean): Promise<PredictionOutcomeHandle>;
     outcomeSearchQuery(outcomeSymbol: string): Str;
-    fetchOutcome(outcomeSymbol: string): Promise<PredictionOutcomeMarket>;
+    fetchOutcome(outcomeSymbol: string): Promise<PredictionOutcomeHandle>;
     /**
      * @method
      * @name fetchTicker
