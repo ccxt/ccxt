@@ -426,6 +426,7 @@ export default class interactivebrokers extends Exchange {
                     // the coinbase derivatives (COINDERIV) futures symbols are discovered with the market scanner (iserver/scanner/run, location FUT.COINDERIV),
                     // https://investors.interactivebrokers.com/en/index.php?f=26662&hm=us&ex=us&rgt=0&rsk=1&pm=0&rst=101004100808080101
                     // https://www.interactivebrokers.com/en/pricing/commissions-futures.php?region=americas
+                    'cryptoSpotSymbols': [ 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK' ], // resolved via iserver/secdef/search
                     'cryptoCoinbasePerpSymbols': {
                         // the -NANO / -MICRO suffix follows the IBKR contract name ("nano Bitcoin ...", "Micro ..."), the multiplier is the contract size
                         // perp style futures (nominal 2030-12-20 expiry)
@@ -488,11 +489,12 @@ export default class interactivebrokers extends Exchange {
                         // 'QTM' - Bitcoin Marker Spot Quoted Futures, 0.01 BTC
                         // 'QEF' - Spot-Quoted Ether (Cleared Future), 0.2 ETH
                         // 'QEM' - Ether Marker Spot Quoted Futures, 0.2 ETH
+                    },
+                    'cryptoCboeFuturesSymbols': {
                         // CFE (cboe) futures, a single contract with a far (2035) expiry
                         'PBT': 'BTC', // Cboe Kaiko Bitcoin Index, 0.01 BTC
                         'PET': 'ETH', // Cboe Kaiko Ether Index, 0.1 ETH
                     },
-                    'cryptoSpotSymbols': [ 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK' ], // resolved via iserver/secdef/search
                     'cfdExchanges': [ 'IBUSCFD', 'IBCFD' ], // us and non-us cfds, on duplicate symbols the last exchange wins
                     'forexCurrencies': [ 'USD' ], // fx pairs involving these currencies, via iserver/currency/pairs
                     'defaultMinCost': 1,
@@ -1511,19 +1513,15 @@ export default class interactivebrokers extends Exchange {
     /**
      * @method
      * @name interactivebrokers#fetchCoinbaseDerivativesSymbols
-     * @description discovers the coinbase derivatives (COINDERIV) futures symbols with the market scanner, the MOST_ACTIVE scan misses the contracts that have not traded yet, so it is merged with the NOT_YET_TRADED_TODAY scan,
-     * each scan is spaced options.fetchMarkets.scannerDelay ms from the previous one and retried options.fetchMarkets.endpointRetries times, a scan without matches returns no contracts, a scan that keeps failing (e.g. no brokerage session on free-trial accounts) throws
+     * @description discovers the coinbase derivatives (COINDERIV) futures symbols with the market scanner, the MOST_ACTIVE scan misses the contracts that have not traded yet, so it is merged with the NOT_YET_TRADED_TODAY scan
      * @ignore
      * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#scanner-run
      * @returns {string[]} the unique IBKR symbols, e.g. [ 'BIP', 'ETP', 'BIT', ... ]
      */
     async fetchCoinbaseDerivativesSymbols (): Promise<string[]> {
-        const options = this.safeDict (this.options, 'fetchMarkets', {});
-        const retries = this.safeInteger (options, 'endpointRetries', 3);
-        // the scanner is rate limited (about one request per second), concurrent or fast repeated scans fail, so the scans are run one by one
-        const scannerDelay = this.safeInteger (options, 'scannerDelay', 1000);
         const scanTypes = [ 'MOST_ACTIVE', 'NOT_YET_TRADED_TODAY' ]; // these two ones cover all coinbase symbols
         const result: string[] = [];
+        // the scans are run one by one, the scanner rejects concurrent requests
         for (let i = 0; i < scanTypes.length; i++) {
             const request: Dict = {
                 'instrument': 'FUT.US',
@@ -1531,49 +1529,7 @@ export default class interactivebrokers extends Exchange {
                 'type': scanTypes[i],
                 'filter': [],
             };
-            const lastScan = this.safeInteger (this.options, 'scannerLastRequest', 0);
-            const wait = this.sum (lastScan, scannerDelay) - this.milliseconds ();
-            if (wait > 0) {
-                await this.sleep (wait);
-            }
-            let contracts: List = [];
-            for (let j = 0; j < retries; j++) {
-                if (j > 0) {
-                    await this.sleep (scannerDelay);
-                }
-                this.options['scannerLastRequest'] = this.milliseconds ();
-                try {
-                    const response = await this.webapiPostV1ApiIserverScannerRun (request);
-                    //
-                    //     {
-                    //         "contracts": [
-                    //             {
-                    //                 "server_id": "0",
-                    //                 "column_name": "Volume",
-                    //                 "symbol": "BIP",
-                    //                 "conidex": "805366677@COINDERIV",
-                    //                 "con_id": 805366677,
-                    //                 "company_name": "nano Bitcoin BTC Perpetual Futures",
-                    //                 "contract_description_1": "Dec'30",
-                    //                 "listing_exchange": "COINDERIV",
-                    //                 "sec_type": "FUT"
-                    //             }
-                    //         ],
-                    //         "scan_data_column_name": "Volume"
-                    //     }
-                    //
-                    contracts = this.safeList (response, 'contracts', []);
-                    break;
-                } catch (e) {
-                    const message = this.exceptionMessage (e, false);
-                    if (message.indexOf ('EMPTY response') >= 0) {
-                        break; // {"error":"Finished: EMPTY response is received."} when no contract matches
-                    }
-                    if (j >= retries - 1) {
-                        throw new ExchangeError (this.id + ' fetchCoinbaseDerivativesSymbols() ' + this.json (request) + ' failed: ' + message);
-                    }
-                }
-            }
+            const contracts = await this.fetchScannerContracts (request);
             for (let j = 0; j < contracts.length; j++) {
                 const contract = contracts[j];
                 const listingExchange = this.safeString (contract, 'listing_exchange');
@@ -1584,6 +1540,70 @@ export default class interactivebrokers extends Exchange {
             }
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchScannerContracts
+     * @description runs one market scan, spaced options.fetchMarkets.scannerDelay ms from the previous scan and retried options.fetchMarkets.endpointRetries times, a scan without matches returns no contracts, a scan that keeps failing (e.g. no brokerage session on free-trial accounts) throws
+     * @ignore
+     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#scanner-run
+     * @param {object} request the iserver/scanner/run request
+     * @returns {object[]} the scanned contracts
+     */
+    async fetchScannerContracts (request: Dict): Promise<Dict[]> {
+        const options = this.safeDict (this.options, 'fetchMarkets', {});
+        const retries = this.safeInteger (options, 'endpointRetries', 3);
+        // the scanner is rate limited (about one request per second), concurrent or fast repeated scans fail
+        const scannerDelay = this.safeInteger (options, 'scannerDelay', 1000);
+        const lastScan = this.safeInteger (this.options, 'scannerLastRequest', 0);
+        const wait = this.sum (lastScan, scannerDelay) - this.milliseconds ();
+        if (wait > 0) {
+            await this.sleep (wait);
+        }
+        // no break / return inside try-catch, the go transpiler emits the try-catch as a closure (break is not in a loop there)
+        let contracts: List = [];
+        let scanDone = false;
+        for (let i = 0; i < retries; i++) {
+            if (scanDone) {
+                continue;
+            }
+            if (i > 0) {
+                await this.sleep (scannerDelay);
+            }
+            this.options['scannerLastRequest'] = this.milliseconds ();
+            try {
+                const response = await this.webapiPostV1ApiIserverScannerRun (request);
+                //
+                //     {
+                //         "contracts": [
+                //             {
+                //                 "server_id": "0",
+                //                 "column_name": "Volume",
+                //                 "symbol": "BIP",
+                //                 "conidex": "805366677@COINDERIV",
+                //                 "con_id": 805366677,
+                //                 "company_name": "nano Bitcoin BTC Perpetual Futures",
+                //                 "contract_description_1": "Dec'30",
+                //                 "listing_exchange": "COINDERIV",
+                //                 "sec_type": "FUT"
+                //             }
+                //         ],
+                //         "scan_data_column_name": "Volume"
+                //     }
+                //
+                contracts = this.safeList (response, 'contracts', []);
+                scanDone = true;
+            } catch (e) {
+                const message = this.exceptionMessage (e, false);
+                if (message.indexOf ('EMPTY response') >= 0) {
+                    scanDone = true; // {"error":"Finished: EMPTY response is received."} when no contract matches
+                } else if (i >= retries - 1) {
+                    throw new ExchangeError (this.id + ' fetchScannerContracts() ' + this.json (request) + ' failed: ' + message);
+                }
+            }
+        }
+        return contracts as Dict[];
     }
 
     /**
@@ -1960,6 +1980,7 @@ export default class interactivebrokers extends Exchange {
         const expirationDate = this.safeString2 (market, 'expirationDate', 'expiry'); // 20261127
         const isCoinbaseDerivatives = (listingExchange === 'COINDERIV');
         const isCme = (listingExchange === 'CME');
+        const isCfe = (listingExchange === 'CFE');
         // checking for 'Perpetual' or 'Perp Style' in the name is weaker
         const isCoinbasePerp = isCoinbaseDerivatives && (expirationDate === '20301220'); // five year PERP cycle end
         const isPerpetual = isCoinbasePerp; // no other perp providers
@@ -1987,16 +2008,19 @@ export default class interactivebrokers extends Exchange {
         }
         const cryptoCoinbasePerpSymbols = this.safeDict (options, 'cryptoCoinbasePerpSymbols', {});
         const cryptoCmeFutureSymbols = this.safeDict (options, 'cryptoCmeFutureSymbols', {});
+        const cryptoCboeFutureSymbols = this.safeDict (options, 'cryptoCboeFutureSymbols', {});
         let microNanoPrefix: string = '';
-        let base: Str = undefined;
+        let base: Str = this.safeCurrencyCode (baseTickerId);
         let contractSize: Str = undefined;
         let expiry: Int = undefined;
-        if (isCoinbaseDerivatives) {
-            base = this.safeString (cryptoCoinbasePerpSymbols, baseTickerId, baseTickerId);
-        } else if (isCme && isFuture) {
-            base = this.safeString (cryptoCmeFutureSymbols, baseTickerId, baseTickerId);
-        } else {
-            base = this.safeCurrencyCode (baseTickerId);
+        if (isFut) {
+            if (isCoinbaseDerivatives) {
+                base = this.safeString (cryptoCoinbasePerpSymbols, baseTickerId, baseTickerId);
+            } else if (isCme) {
+                base = this.safeString (cryptoCmeFutureSymbols, baseTickerId, baseTickerId);
+            } else if (isCfe) {
+                base = this.safeString (cryptoCboeFutureSymbols, baseTickerId, baseTickerId);
+            } 
         }
         if (isPerp && !isCfd) {
             if (nameLower.startsWith ('nano')) {
