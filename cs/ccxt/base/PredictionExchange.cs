@@ -527,7 +527,7 @@ public partial class PredictionExchange : BaseExchange
         return false;
     }
 
-    public virtual IDictionary<string, object> safeOutcome(object outcomeIdOrSymbol, object outcomeObj = null)
+    public virtual IDictionary<string, object> safeOutcome(object outcomeIdOrSymbol, object market = null)
     {
         if ((outcomeIdOrSymbol != null))
         {
@@ -540,9 +540,9 @@ public partial class PredictionExchange : BaseExchange
                 return ((IDictionary<string, object>)((object)(this.safeValue(this.outcomes_by_id, outcomeIdOrSymbol))));
             }
         }
-        if ((outcomeObj != null))
+        if ((market != null))
         {
-            return ((IDictionary<string, object>)((object)(outcomeObj)));
+            return ((IDictionary<string, object>)((object)(market)));
         }
         // stub for an unknown handle; it only carries the identity keys, not the market fields
         Dictionary<string, object> outcomeObjValue = new Dictionary<string, object>() {
@@ -558,7 +558,13 @@ public partial class PredictionExchange : BaseExchange
 
     public virtual string? safeOutcomeSymbol(object outcomeIdOrSymbol, object outcomeObj = null)
     {
-        IDictionary<string, object> outcomeObjValue = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
+        // outcomeObj may be any outcome-shaped dict, not only a market: read it here instead of
+        // handing it to safeOutcome (whose fallback slot is a Market)
+        if (!this.hasOutcome(outcomeIdOrSymbol) && ((outcomeObj != null)))
+        {
+            return ((string?)((object)(this.safeString(outcomeObj, "outcome"))));
+        }
+        IDictionary<string, object> outcomeObjValue = this.safeOutcome(outcomeIdOrSymbol);
         return ((string?)((object)((outcomeObjValue != null && outcomeObjValue.ContainsKey("outcome") ? outcomeObjValue["outcome"] : null))));
     }
 

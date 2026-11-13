@@ -1424,7 +1424,7 @@ public partial class sxbet : PredictionExchange
         {
             outcomeId = ((marketHash + "-2"));
         }
-        IDictionary<string, object> outcomeObj = this.safeOutcome(outcomeId, ((object)market));
+        IDictionary<string, object> outcomeObj = this.safeOutcome(outcomeId, market);
         string oneDenom = "100000000000000000000";
         string usdcDecimals = "1000000";
         string? percentageOdds = this.safeString(order, "percentageOdds");
@@ -1709,7 +1709,7 @@ public partial class sxbet : PredictionExchange
         {
             outcomeId = ((marketHash + "-2"));
         }
-        IDictionary<string, object> outcomeObj = this.safeOutcome(outcomeId, ((object)market));
+        IDictionary<string, object> outcomeObj = this.safeOutcome(outcomeId, market);
         string oneDenom = "100000000000000000000";
         string usdcDecimals = "1000000";
         string? fillOdds = this.safeString(fill, "fillOdds");
@@ -1998,7 +1998,7 @@ public partial class sxbet : PredictionExchange
         {
             outcomeId = ((marketHash + "-2"));
         }
-        IDictionary<string, object> outcomeObj = this.safeOutcome(outcomeId, ((object)market));
+        IDictionary<string, object> outcomeObj = this.safeOutcome(outcomeId, market);
         IDictionary<string, object> settlement = this.safeDict(trade, "settlement", new Dictionary<string, object>() {});
         Int64? winner = this.safeInteger(settlement, "outcome");
         bool isVoid = ((winner == 0));
@@ -2263,8 +2263,7 @@ public partial class sxbet : PredictionExchange
         //         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
         //     }
         //
-        object marketAny = market;
-        IDictionary<string, object> outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
+        IDictionary<string, object> outcomeObj = this.safeOutcome(this.safeString(market, "outcome"), market);
         string? outcomeId = this.safeString(outcomeObj, "outcomeId");
         string? marketHash = this.safeString(raw, "marketHash");
         bool isOutcomeOne = ((outcomeId == marketHash));

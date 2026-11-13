@@ -3123,7 +3123,7 @@ public partial class paradex : Exchange
         List<object> openPositions = new List<object>() {};
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object position = data[i];
+            IDictionary<string, object> position = ((IDictionary<string, object>)data[i]);
             string? status = this.safeString(position, "status");
             string? size = this.safeString(position, "size");
             if ((status != "CLOSED") && !Precise.stringEq(size, "0"))

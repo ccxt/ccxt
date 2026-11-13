@@ -1564,7 +1564,7 @@ public partial class opinion : PredictionExchange
     public override Dictionary<string, object> parsePredictionTrade(object trade, object market = null)
     {
         string? tokenId = this.safeString(trade, "tokenId");
-        IDictionary<string, object> outcomeObj = this.safeOutcome(tokenId, ((object)market));
+        IDictionary<string, object> outcomeObj = this.safeOutcome(tokenId, market);
         Int64? timestamp = this.safeTimestamp(trade, "createdAt");
         string? side = this.safeStringLower(trade, "side");
         return this.safePredictionTrade(new Dictionary<string, object>() {
@@ -1715,7 +1715,7 @@ public partial class opinion : PredictionExchange
     public override Dictionary<string, object> parsePredictionPosition(object position, object market = null)
     {
         string? tokenId = this.safeString(position, "tokenId");
-        IDictionary<string, object> outcomeObj = this.safeOutcome(tokenId, ((object)market));
+        IDictionary<string, object> outcomeObj = this.safeOutcome(tokenId, market);
         string? outcomeSideEnum = this.safeStringLower(position, "outcomeSideEnum");
         return this.safePredictionPosition(new Dictionary<string, object>() {
             { "contracts", this.safeNumber(position, "sharesOwned") },

@@ -1036,7 +1036,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         Dictionary<string, object> snapshotIds = new Dictionary<string, object>() {};
         for (int i = 0; i < orders.Count; i++)
         {
-            object order = orders[i];
+            IDictionary<string, object> order = ((IDictionary<string, object>)orders[i]);
             ccxt.Order parsed = this.parseWsOrder(order);
             string? symbol = parsed.symbol;
             if ((symbol != null))

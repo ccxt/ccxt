@@ -890,8 +890,7 @@ public partial class binance : PredictionExchange
         //
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
-        object marketAny = market;
-        IDictionary<string, object> outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
+        IDictionary<string, object> outcomeObj = this.safeOutcome(this.safeString(market, "outcome"), market);
         // the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
         // any other outcome of a binary market mirrors as 1 - price
         IDictionary<string, object> outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});

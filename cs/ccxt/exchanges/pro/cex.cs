@@ -274,7 +274,7 @@ public partial class cex : ccxt.cex
         for (Int64 i = 0; i < dataLength; i++)
         {
             Int64 index = ((dataLength - 1) - i);
-            object rawTrade = (data != null && index < data.Count ? data[(int)index] : null);
+            IDictionary<string, object> rawTrade = ((IDictionary<string, object>)(data != null && index < data.Count ? data[(int)index] : null));
             Dictionary<string, object> parsed = this.parseWsOldTrade(rawTrade, market);
             stored.append(parsed);
         }

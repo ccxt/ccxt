@@ -1112,8 +1112,7 @@ public partial class kalshi : PredictionExchange
         //         }
         //     }
         //
-        object marketAny = market;
-        IDictionary<string, object> outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
+        IDictionary<string, object> outcomeObj = this.safeOutcome(this.safeString(market, "outcome"), market);
         string? outcomeLabel = ((market != null) && (market != null)) ? this.safeStringUpper(market, "label", this.safeStringUpper(getValue(market, "info"), "outcomeLabel", "YES")) : "YES";
         bool isNo = outcomeLabel == "NO";
         Int64? timestamp = this.parse8601(this.safeString(raw, "updated_time"));
@@ -1611,8 +1610,7 @@ public partial class kalshi : PredictionExchange
         double? amountFp = this.safeNumber2(trade, "count_fp", "size_fp");
         double? amount = this.safeNumber(trade, "count", amountFp);
         string? rawSide = this.safeStringLower(trade, "taker_side");
-        object marketAny = market;
-        IDictionary<string, object> outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
+        IDictionary<string, object> outcomeObj = this.safeOutcome(this.safeString(market, "outcome"), market);
         IDictionary<string, object> marketInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         string? requestedOutcomeLabel = this.safeStringLower(outcomeObj, "label", this.safeStringLower(marketInfo, "outcomeLabel"));
         string? outcomeSymbol = this.safeString(outcomeObj, "outcome");

@@ -2344,7 +2344,7 @@ public partial class polymarket : PredictionExchange
             { "datetime", this.iso8601(ts) },
             { "lastTradeTimestamp", null },
             { "status", status },
-            { "outcome", (mkt != null && mkt.ContainsKey("outcome") ? mkt["outcome"] : null) },
+            { "outcome", this.safeString(mkt, "outcome") },
             { "outcomeId", this.safeString(mkt, "outcomeId") },
             { "label", this.safeString(mkt, "label") },
             { "market", this.safeString(mkt, "market") },
