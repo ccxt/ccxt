@@ -2034,7 +2034,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
-        accounts = self.safe_value(self.options, 'coinbaseAccounts')
+        accounts = self.safe_list(self.options, 'coinbaseAccounts')
         if accounts is None:
             accounts = self.privateGetCoinbaseAccounts()
             self.options['coinbaseAccounts'] = accounts  # cache it

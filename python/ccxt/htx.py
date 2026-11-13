@@ -4735,7 +4735,7 @@ class htx(Exchange, ImplicitAPI):
                 'currency': feeCurrency,
             }
         average = self.safe_string(order, 'trade_avg_price')
-        trades = self.safe_value(order, 'trades')
+        trades = self.safe_list(order, 'trades')
         reduceOnly = None
         if isLinearOrder:
             reduceOnly = self.safe_bool(order, 'reduce_only')

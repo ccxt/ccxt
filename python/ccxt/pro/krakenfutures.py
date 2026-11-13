@@ -717,11 +717,10 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #         "reason": 'edited_by_user'
         #     }
         #
-        orders = self.orders
-        if orders is None:
+        if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit')
-            orders = ArrayCacheBySymbolById(limit)
-            self.orders = orders
+            self.orders = ArrayCacheBySymbolById(limit)
+        orders = self.orders
         order = self.safe_dict(message, 'order')
         if order is not None:
             marketId = self.safe_string(order, 'instrument')

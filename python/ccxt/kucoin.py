@@ -11142,7 +11142,7 @@ class kucoin(Exchange, ImplicitAPI):
             partner = self.safe_dict(self.options, 'partner', {})
             isUtaFuturePrivate = isUtaPrivate and (tradeType == 'FUTURES')
             isFuturePartner = isFuturePrivate or isUtaFuturePrivate
-            partner = self.safe_value(partner, 'future', partner) if isFuturePartner else self.safe_value(partner, 'spot', partner)
+            partner = self.safe_dict(partner, 'future', partner) if isFuturePartner else self.safe_dict(partner, 'spot', partner)
             partnerId = self.safe_string(partner, 'id')
             partnerSecret = self.safe_string_2(partner, 'secret', 'key')
             if (partnerId is not None) and (partnerSecret is not None):

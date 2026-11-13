@@ -464,7 +464,7 @@ class latoken(Exchange, ImplicitAPI):
         result = []
         rawMarkets = self.to_array(response)
         for i in range(0, len(rawMarkets)):
-            market = self.safe_value(rawMarkets, i)
+            market = self.safe_dict(rawMarkets, i)
             id = self.safe_string(market, 'id')
             # the exchange shows them inverted
             baseId = self.safe_string(market, 'baseCurrency')

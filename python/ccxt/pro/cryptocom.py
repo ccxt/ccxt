@@ -125,7 +125,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         limitResolved = 50
         if (limit is not None) and (limit != 0):
             limitResolved = limit
-        topicParams = self.safe_value(params, 'params')
+        topicParams = self.safe_dict(params, 'params')
         if topicParams is None:
             params['params'] = {}
         bookSubscriptionType, paramsBookSubscriptionType = self.handle_option_string_and_params(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
@@ -164,7 +164,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         subMessageHashes = []
         messageHashes = []
         limit = self.safe_integer(params, 'limit', 50)
-        topicParams = self.safe_value(params, 'params')
+        topicParams = self.safe_dict(params, 'params')
         if topicParams is None:
             params['params'] = {}
         bookSubscriptionType, paramsBookSubscriptionType = self.handle_option_string_and_params(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')

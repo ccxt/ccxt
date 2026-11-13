@@ -292,7 +292,7 @@ class PredictionExchange(BaseExchange):
         if self.events_by_slug is None:
             self.events_by_slug = {}
         for i in range(0, len(events)):
-            event = self.safe_value(events, i)
+            event = self.safe_dict(events, i)
             id = self.safe_string(event, 'id')
             slug = self.safe_string(event, 'slug')
             handle = self.safe_string(event, 'event')
@@ -339,9 +339,9 @@ class PredictionExchange(BaseExchange):
         # cache-only event resolver (the event analogue of this.outcome) - the cache fills
         # through fetchEvents; this never fetches
         if (self.events is not None) and (eventIdOrSlug in self.events):
-            return self.safe_value(self.events, eventIdOrSlug)
+            return self.safe_dict(self.events, eventIdOrSlug)
         if (self.events_by_slug is not None) and (eventIdOrSlug in self.events_by_slug):
-            return self.safe_value(self.events_by_slug, eventIdOrSlug)
+            return self.safe_dict(self.events_by_slug, eventIdOrSlug)
         raise BadSymbol(self.id + ' has no cached event ' + eventIdOrSlug + " - call fetchEvents ({'query': ...}) first")
 
     def outcome(self, outcomeSymbol: Str):
@@ -534,7 +534,7 @@ class PredictionExchange(BaseExchange):
                 # on a real collision of same handle but different outcomeId, disambiguate the
                 # second one deterministically instead of silently overwriting the first —
                 # trading the wrong market would otherwise be indistinguishable
-                existing = self.safe_value(self.outcomes, ocSymbol)
+                existing = self.safe_dict(self.outcomes, ocSymbol)
                 if existing is not None:
                     existingId = self.safe_string(existing, 'outcomeId')
                     if (existingId is not None) and (ocId is not None) and (existingId != ocId):

@@ -1700,7 +1700,7 @@ class modetrade(Exchange, ImplicitAPI):
         hasStopLoss = stopLoss is not None
         hasTakeProfit = takeProfit is not None
         algoType = self.safe_string(params, 'algoType')
-        paramsChildOrders = self.safe_value(params, 'childOrders')
+        paramsChildOrders = self.safe_list(params, 'childOrders')
         isConditional = triggerPrice is not None or hasStopLoss or hasTakeProfit or (paramsChildOrders is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
@@ -1806,7 +1806,7 @@ class modetrade(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
-        childOrders = self.safe_value(params, 'childOrders')
+        childOrders = self.safe_list(params, 'childOrders')
         isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (childOrders is not None)
         response: dict
         if isConditional:
@@ -1872,7 +1872,7 @@ class modetrade(Exchange, ImplicitAPI):
             triggerPrice = self.safe_string_2(orderParams, 'triggerPrice', 'stopPrice')
             stopLoss = self.safe_dict(orderParams, 'stopLoss')
             takeProfit = self.safe_dict(orderParams, 'takeProfit')
-            childOrders = self.safe_value(orderParams, 'childOrders')
+            childOrders = self.safe_list(orderParams, 'childOrders')
             isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (childOrders is not None)
             if isConditional:
                 raise NotSupported(self.id + ' createOrders() only support non-stop order')
@@ -1931,7 +1931,7 @@ class modetrade(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
         if triggerPrice is not None:
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-        childOrders = self.safe_value(params, 'childOrders')
+        childOrders = self.safe_list(params, 'childOrders')
         isConditional = (triggerPrice is not None) or (childOrders is not None)
         orderQtyKey = 'order_quantity'
         if isConditional:

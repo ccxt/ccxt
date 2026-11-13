@@ -2302,7 +2302,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 elif rawEventSlug is not None:
                     detailedEvent = await self.gammaPublicGetEventsSlugSlug({'slug': rawEventSlug})
                 if detailedEvent is not None:
-                    eventForParsing = self.safe_value(detailedEvent, 'event', detailedEvent)
+                    eventForParsing = self.safe_dict(detailedEvent, 'event', detailedEvent)
                     ccxtMarkets = self.parse_event_to_markets(eventForParsing)
             for mi in range(0, len(ccxtMarkets)):
                 m = ccxtMarkets[mi]

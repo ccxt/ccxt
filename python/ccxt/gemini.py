@@ -992,7 +992,7 @@ class gemini(Exchange, ImplicitAPI):
             'change': self.safe_string(tickerB, 'change'),
             'percentage': self.safe_string(tickerB, 'percentage'),
             'average': self.safe_string(tickerB, 'average'),
-            'info': self.safe_value(tickerB, 'info'),
+            'info': self.safe_dict(tickerB, 'info'),
         })
 
     def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:

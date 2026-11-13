@@ -3188,7 +3188,7 @@ class binance(Exchange, ImplicitAPI):
         responseCurrencies = self.safe_value(results, 0)
         marginablesById = None
         if fetchMargins:
-            responseMarginables = self.safe_value(results, 1)
+            responseMarginables = self.safe_list(results, 1)
             marginablesById = self.index_by(responseMarginables, 'assetName')
         return self.parse_currencies_custom(responseCurrencies, marginablesById)
 

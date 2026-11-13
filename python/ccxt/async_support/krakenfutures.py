@@ -3385,7 +3385,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'symbol': self.safe_symbol(marketId, marketResolved),
                 'currency': marketResolved['quote'],
                 'minNotional': minNotional,
-                'maxNotional': self.safe_number_2(self.safe_value(marginLevels, self.sum(i, 1)), 'numNonContractUnits', 'contracts'),
+                'maxNotional': self.safe_number_2(self.safe_dict(marginLevels, self.sum(i, 1)), 'numNonContractUnits', 'contracts'),
                 'maintenanceMarginRate': self.safe_number(tier, 'maintenanceMargin'),
                 'maxLeverage': self.parse_number(Precise.string_div('1', initialMargin)),
                 'info': tier,

@@ -268,7 +268,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                     if pageMarketsLength == 0:
                         break
                     for i in range(0, pageMarketsLength):
-                        raw = self.safe_value(page_markets, i)
+                        raw = self.safe_dict(page_markets, i)
                         allRaw.append(raw)
                     allRawCount = len(allRaw)
                     if pageMarketsLength < pageSize or allRawCount >= maxMarkets:

@@ -2576,4 +2576,4 @@ class bitvavo(Exchange, ImplicitAPI):
     def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
         if ('noMarket' in config) and not ('market' in params):
             return config['noMarket']
-        return self.safe_value(config, 'cost', 1)
+        return self.safe_integer(config, 'cost', 1)

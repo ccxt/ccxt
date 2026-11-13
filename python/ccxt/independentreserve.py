@@ -332,7 +332,7 @@ class independentreserve(Exchange, ImplicitAPI):
         #     ['Aud', 'Usd', 'Nzd', 'Sgd']
         limitsPromise = self.publicGetGetOrderMinimumVolumes(params)
         responses = [baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise]
-        limits = self.safe_value(responses, 2)
+        limits = self.safe_dict(responses, 2)
         #
         #     {
         #         "Xbt": 0.0001,

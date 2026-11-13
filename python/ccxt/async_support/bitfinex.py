@@ -1964,7 +1964,7 @@ class bitfinex(Exchange, ImplicitAPI):
             }
         paramsOmitted = self.omit(params, ['cid', 'clientOrderId']) if (cid is not None) else params
         response = await self.privatePostAuthWOrderCancel(self.extend(request, paramsOmitted))
-        order = self.safe_value(response, 4)
+        order = self.safe_list(response, 4)
         newOrder = {'result': order}
         return self.parse_order(newOrder, market)
 

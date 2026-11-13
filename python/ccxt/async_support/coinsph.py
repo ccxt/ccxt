@@ -1393,7 +1393,7 @@ class coinsph(Exchange, ImplicitAPI):
             'side': orderSide,
         }
         options = self.safe_dict(self.options, 'createOrder', {})
-        newOrderRespTypes = self.safe_value(options, 'newOrderRespType', {})
+        newOrderRespTypes = self.safe_dict(options, 'newOrderRespType', {})
         newOrderRespType = 'FULL'
         # if limit order
         if orderType == 'LIMIT' or orderType == 'STOP_LOSS_LIMIT' or orderType == 'TAKE_PROFIT_LIMIT' or orderType == 'LIMIT_MAKER':

@@ -690,7 +690,7 @@ class ndax(Exchange, ImplicitAPI):
         bids = []
         asks = []
         for i in range(0, len(orderbook)):
-            level = self.safe_value(orderbook, i)
+            level = self.safe_list(orderbook, i)
             newTimestamp = self.safe_integer(level, 2)
             if (newTimestamp is not None) and ((latestTimestamp is None) or (newTimestamp > latestTimestamp)):
                 latestTimestamp = newTimestamp
