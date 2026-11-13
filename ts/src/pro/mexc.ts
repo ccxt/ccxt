@@ -860,11 +860,11 @@ export default class mexc extends mexcRest {
         }
         for (let i = 0; i < cache.length; i++) {
             const delta = this.safeDict (cache, i);
-            const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ]);
-            if (deltaNonce === undefined) {
+            const deltaEnd = this.safeIntegerN (delta, [ 'toVersion', 'version', 'r' ]);
+            if (deltaEnd === undefined) {
                 continue;
             }
-            if (deltaNonce >= nonce) {
+            if (deltaEnd > nonce) {
                 return i;
             }
         }
@@ -952,7 +952,11 @@ export default class mexc extends mexcRest {
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         let shouldReturn = false;
         if (nonce === undefined) {
-            const cacheLength = this.parseToInt (storedOrderBook.cache.length);
+            let cacheLength = this.parseToInt (0);
+            if (storedOrderBook !== undefined) {
+                const storedCacheLength = storedOrderBook.cache.length;
+                cacheLength = this.parseToInt (storedCacheLength);
+            }
             const snapshotDelay = this.parseToInt (this.handleOption ('watchOrderBook', 'snapshotDelay', 25));
             if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
@@ -998,19 +1002,25 @@ export default class mexc extends mexcRest {
 
     override handleBookDelta (orderbook: WsOrderBook, delta: any) {
         const existingNonce = this.safeInteger (orderbook, 'nonce');
-        const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ]);
-        if ((deltaNonce !== undefined) && (existingNonce !== undefined) && (deltaNonce < existingNonce)) {
+        const deltaEnd = this.safeIntegerN (delta, [ 'toVersion', 'version', 'r' ]);
+        if ((deltaEnd !== undefined) && (existingNonce !== undefined) && (deltaEnd <= existingNonce)) {
             // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             // so, we just skip old updates
             return;
         }
-        orderbook['nonce'] = deltaNonce;
+        orderbook['nonce'] = deltaEnd;
         const asks = this.safeList (delta, 'asks', []);
         const bids = this.safeList (delta, 'bids', []);
         const asksOrderSide = orderbook['asks'];
         const bidsOrderSide = orderbook['bids'];
         this.handleBooksideDelta (asksOrderSide, asks);
         this.handleBooksideDelta (bidsOrderSide, bids);
+    }
+
+    override handleBookDeltas (orderbook: WsOrderBook, deltas: any[]) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleBookDelta (orderbook, this.safeValue (deltas, i));
+        }
     }
 
     /**
