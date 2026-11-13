@@ -46,6 +46,84 @@
                     "BTC/USD:USDC"
                 ],
                 "output": null
+            },
+            {
+                "description": "since bounds the range to one page from since, rows run newest first",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.prod.paradex.trade/v1/funding/data?market=BTC-USD-PERP&page_size=1000&start_at=1790600000000&end_at=1790605000000",
+                "input": [
+                    "BTC/USD:USDC",
+                    1790600000000
+                ],
+                "forceCheckKeys": [
+                    "start_at",
+                    "end_at"
+                ]
+            },
+            {
+                "description": "the range of a smaller page is shorter",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.prod.paradex.trade/v1/funding/data?market=BTC-USD-PERP&page_size=10&start_at=1790600000000&end_at=1790600050000",
+                "input": [
+                    "BTC/USD:USDC",
+                    1790600000000,
+                    10
+                ],
+                "forceCheckKeys": [
+                    "start_at",
+                    "end_at"
+                ]
+            },
+            {
+                "description": "an until past one page from since is clamped to that page",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.prod.paradex.trade/v1/funding/data?market=BTC-USD-PERP&page_size=10&end_at=1790600050000&start_at=1790600000000",
+                "input": [
+                    "BTC/USD:USDC",
+                    1790600000000,
+                    10,
+                    {
+                        "until": 1790600600000
+                    }
+                ],
+                "forceCheckKeys": [
+                    "start_at",
+                    "end_at"
+                ]
+            },
+            {
+                "description": "an until inside one page from since is kept",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.prod.paradex.trade/v1/funding/data?market=BTC-USD-PERP&page_size=10&end_at=1790600030000&start_at=1790600000000",
+                "input": [
+                    "BTC/USD:USDC",
+                    1790600000000,
+                    10,
+                    {
+                        "until": 1790600030000
+                    }
+                ],
+                "forceCheckKeys": [
+                    "start_at",
+                    "end_at"
+                ]
+            },
+            {
+                "description": "paginate asks for full pages back from as many pages after since as the calls allow",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.prod.paradex.trade/v1/funding/data?market=BTC-USD-PERP&page_size=5000&start_at=1790600000000&end_at=1790850000000",
+                "input": [
+                    "BTC/USD:USDC",
+                    1790600000000,
+                    null,
+                    {
+                        "paginate": true
+                    }
+                ],
+                "forceCheckKeys": [
+                    "start_at",
+                    "end_at"
+                ]
             }
         ],
         "fetchFundingHistory": [
@@ -86,6 +164,19 @@
                 "method": "fetchMarkets",
                 "url": "https://api.testnet.paradex.trade/v1/markets",
                 "input": []
+            },
+            {
+                "description": "types filter the parsed markets and are not sent",
+                "method": "fetchMarkets",
+                "url": "https://api.prod.paradex.trade/v1/markets",
+                "input": [
+                    {
+                        "types": [
+                            "swap",
+                            "spot"
+                        ]
+                    }
+                ]
             }
         ],
         "fetchTradingFee": [
@@ -141,7 +232,6 @@
                 ],
                 "output": null
             },
-            
             {
                 "description": "mark ohlcv",
                 "method": "fetchOHLCV",
@@ -167,18 +257,71 @@
                     null,
                     5
                 ]
+            },
+            {
+                "description": "an until past the bar cap is clamped to the window from since",
+                "method": "fetchOHLCV",
+                "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=1&symbol=BTC-USD-PERP&end_at=1790606059999&start_at=1790600000000",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1m",
+                    1790600000000,
+                    100,
+                    {
+                        "until": 1790700000000
+                    }
+                ],
+                "forceCheckKeys": [
+                    "start_at",
+                    "end_at"
+                ]
+            },
+            {
+                "description": "an until inside the window from since is kept as the end",
+                "method": "fetchOHLCV",
+                "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=1&symbol=BTC-USD-PERP&end_at=1790600300000&start_at=1790600000000",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1m",
+                    1790600000000,
+                    100,
+                    {
+                        "until": 1790600300000
+                    }
+                ],
+                "forceCheckKeys": [
+                    "start_at",
+                    "end_at"
+                ]
             }
         ],
         "fetchTickers": [
             {
-                "description": "fetchTickers",
+                "description": "a single symbol is asked for by name, not the whole venue",
                 "method": "fetchTickers",
-                "url": "https://api.testnet.paradex.trade/v1/markets/summary?market=ALL",
+                "url": "https://api.testnet.paradex.trade/v1/markets/summary?market=BTC-USD-PERP",
                 "input": [
                     [
                         "BTC/USD:USDC"
                     ]
                 ]
+            },
+            {
+                "description": "two symbols need the whole venue",
+                "method": "fetchTickers",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=ALL",
+                "input": [
+                    [
+                        "BTC/USD:USDC",
+                        "ETH/USD:USDC"
+                    ]
+                ]
+            },
+            {
+                "description": "no symbols need the whole venue",
+                "method": "fetchTickers",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=ALL",
+                "input": []
             }
         ],
         "fetchTicker": [
@@ -199,6 +342,24 @@
                 "input": [
                     "BTC/USD:USDC"
                 ]
+            },
+            {
+                "description": "limit is sent as depth",
+                "method": "fetchOrderBook",
+                "url": "https://api.prod.paradex.trade/v1/orderbook/BTC-USD-PERP?depth=50",
+                "input": [
+                    "BTC/USD:USDC",
+                    50
+                ]
+            },
+            {
+                "description": "depth is capped at the venue maximum of 100",
+                "method": "fetchOrderBook",
+                "url": "https://api.prod.paradex.trade/v1/orderbook/BTC-USD-PERP?depth=100",
+                "input": [
+                    "BTC/USD:USDC",
+                    500
+                ]
             }
         ],
         "fetchTrades": [
@@ -210,6 +371,30 @@
                     "BTC/USD:USDC",
                     null,
                     1
+                ]
+            },
+            {
+                "description": "an expired option symbol is sent as its market id",
+                "method": "fetchTrades",
+                "url": "https://api.prod.paradex.trade/v1/trades?market=BTC-USD-29MAY26-80000-C",
+                "input": [
+                    "BTC/USD:USDC-260529-80000-C"
+                ]
+            },
+            {
+                "description": "an option that is not listed keeps the underscore of a decimal strike in its id",
+                "method": "fetchTrades",
+                "url": "https://api.prod.paradex.trade/v1/trades?market=NEAR-USD-30OCT26-5_6-C",
+                "input": [
+                    "NEAR/USD:USDC-261030-5.6-C"
+                ]
+            },
+            {
+                "description": "an expired option id drops the leading zero of the day",
+                "method": "fetchTrades",
+                "url": "https://api.prod.paradex.trade/v1/trades?market=ETH-USD-5JUN26-2500-P",
+                "input": [
+                    "ETH/USD:USDC-260605-2500-P"
                 ]
             }
         ],
@@ -928,11 +1113,11 @@
         ],
         "fetchGreeks": [
             {
-                "description": "Fetch greeks for an option symbol",
+                "description": "greeks of a dated option with a decimal strike",
                 "method": "fetchGreeks",
-                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=BTC-USD-117000-P",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=NEAR-USD-26MAR27-8_8-C",
                 "input": [
-                    "BTC/USD:USDC-117000-P"
+                    "NEAR/USD:USDC-270326-8.8-C"
                 ]
             }
         ],
@@ -942,6 +1127,16 @@
                 "method": "fetchAllGreeks",
                 "url": "https://api.prod.paradex.trade/v1/markets/summary?market=ALL",
                 "input": []
+            },
+            {
+                "description": "a single option is asked for by name",
+                "method": "fetchAllGreeks",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=BTC-USD-25JUN27-86000-C",
+                "input": [
+                    [
+                        "BTC/USD:USDC-270625-86000-C"
+                    ]
+                ]
             }
         ],
         "fetchIndexOHLCV": [
@@ -970,6 +1165,54 @@
                     100
                 ],
                 "output": null
+            }
+        ],
+        "fetchOption": [
+            {
+                "description": "fetchOption",
+                "method": "fetchOption",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=NEAR-USD-26MAR27-8_8-C",
+                "input": [
+                    "NEAR/USD:USDC-270326-8.8-C"
+                ]
+            }
+        ],
+        "fetchOptionChain": [
+            {
+                "description": "the chain is cut from the whole venue",
+                "method": "fetchOptionChain",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=ALL",
+                "input": [
+                    "BTC"
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "a single symbol is asked for by name",
+                "method": "fetchFundingRates",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=BTC-USD-PERP",
+                "input": [
+                    [
+                        "BTC/USD:USDC"
+                    ]
+                ]
+            },
+            {
+                "description": "no symbols need the whole venue",
+                "method": "fetchFundingRates",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=ALL",
+                "input": []
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate asks for its market by name",
+                "method": "fetchFundingRate",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=BTC-USD-PERP",
+                "input": [
+                    "BTC/USD:USDC"
+                ]
             }
         ]
     }
