@@ -2197,7 +2197,7 @@ export default class bitget extends Exchange {
             const instruments = this.safeList (instrumentsResponse, 'data', []);
             spotInstruments = this.indexBy (instruments, 'symbol');
         }
-        let markets: List = [];
+        let markets: Dict[] = [];
         this.options['crossMarginPairsData'] = [];
         this.options['isolatedMarginPairsData'] = [];
         for (let i = 0; i < results.length; i++) {
@@ -2501,7 +2501,7 @@ export default class bitget extends Exchange {
             promises.push (this.publicUtaGetV3MarketInstruments (req));
         }
         const results = await Promise.all (promises);
-        let markets: List = [];
+        let markets: Dict[] = [];
         for (let i = 0; i < results.length; i++) {
             const res = this.safeDict (results, i);
             const data = this.safeList (res, 'data', []);

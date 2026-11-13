@@ -5145,7 +5145,7 @@ export default class phemex extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data', {});
-        const rates = this.safeList (data, 'rows', []);
+        const rates: Dict[] = this.safeList (data, 'rows', []);
         const result: FundingRateHistory[] = [];
         for (let i = 0; i < rates.length; i++) {
             const item = rates[i];

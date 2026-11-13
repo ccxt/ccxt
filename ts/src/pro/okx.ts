@@ -964,7 +964,7 @@ export default class okx extends okxRest {
         //        }]
         //    }
         //
-        const rawLiquidations = this.safeList (message, 'data', []) as List;
+        const rawLiquidations: Dict[] = this.safeList (message, 'data', []) as List;
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const eventType = this.safeString (rawLiquidation, 'eventType');

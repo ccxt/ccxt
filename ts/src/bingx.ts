@@ -928,7 +928,7 @@ export default class bingx extends Exchange {
         const currencyId = this.safeString (rawCurrency, 'coin');
         const code = this.safeCurrencyCode (currencyId);
         const name = this.safeString (rawCurrency, 'name');
-        const networkList = this.safeList (rawCurrency, 'networkList') as List;
+        const networkList: Dict[] = this.safeList (rawCurrency, 'networkList') as List;
         const networks: Dict = {};
         for (let j = 0; j < networkList.length; j++) {
             const rawNetwork = networkList[j];

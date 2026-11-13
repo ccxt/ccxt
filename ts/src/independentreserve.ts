@@ -890,7 +890,7 @@ export default class independentreserve extends Exchange {
         //     ]
         //
         const fees: Dict = {};
-        const rows: List = this.toArray (response);
+        const rows: Dict[] = this.toArray (response);
         for (let i = 0; i < rows.length; i++) {
             const fee = rows[i];
             const currencyId = this.safeString (fee, 'CurrencyCode');

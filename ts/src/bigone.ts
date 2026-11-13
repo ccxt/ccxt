@@ -736,7 +736,7 @@ export default class bigone extends Exchange {
                 'info': market,
             }));
         }
-        const contractMarkets = this.toArray (contractResponse);
+        const contractMarkets: Dict[] = this.toArray (contractResponse);
         for (let i = 0; i < contractMarkets.length; i++) {
             const market = contractMarkets[i];
             const baseId = this.safeString (market, 'baseCurrency');

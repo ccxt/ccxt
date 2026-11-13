@@ -1598,7 +1598,7 @@ export default class coinbase extends Exchange {
         const expiringFeeTier = this.safeDict (expiringFees, 'fee_tier', {}); // fee tier null?
         const perpetualFeeTier = this.safeDict (perpetualFees, 'fee_tier', {}); // fee tier null?
         const data: Dict[] = this.safeList (spot, 'products', []);
-        const result: List = [];
+        const result: Dict[] = [];
         for (let i = 0; i < data.length; i++) {
             const spotMarket = this.parseSpotMarket (data[i], feeTier);
             if (spotMarket !== undefined) {
@@ -2038,7 +2038,7 @@ export default class coinbase extends Exchange {
         const ratesData = this.safeDict (ratesResponse, 'data', {});
         const rates = this.safeDict (ratesData, 'rates', {});
         const ratesIds = Object.keys (rates);
-        const currencies = this.arrayConcat (fiatData, cryptoData);
+        const currencies: Dict[] = this.arrayConcat (fiatData, cryptoData);
         const result: Dict = {};
         const networks: Dict = {};
         const networksById: Dict = {};
@@ -5192,7 +5192,7 @@ export default class coinbase extends Exchange {
         const portfolioInfo = this.safeDict (breakdown, 'portfolio', {});
         const portfolioName = this.safeString (portfolioInfo, 'name', 'Unknown');
         const portfolioUuid = this.safeString (portfolioInfo, 'uuid', '');
-        const spotPositions = this.safeList (breakdown, 'spot_positions', []);
+        const spotPositions: Dict[] = this.safeList (breakdown, 'spot_positions', []);
         const parsedPositions: Dict[] = [];
         for (let i = 0; i < spotPositions.length; i++) {
             const position: Dict = spotPositions[i];

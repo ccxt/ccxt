@@ -248,7 +248,7 @@ export default class hollaex extends hollaexRest {
         // }
         //
         const channel = this.safeString (message, 'topic');
-        const rawTrades = this.safeList (message, 'data', []);
+        const rawTrades: Dict[] = this.safeList (message, 'data', []);
         // usually the first message is an empty array
         // when the user does not have any trades yet
         const dataLength: number = rawTrades.length;

@@ -2332,7 +2332,7 @@ export default class bybit extends Exchange {
             response = await this.publicGetV5MarketInstrumentsInfo (this.extend (request, params));
         }
         const data = this.safeDict (response, 'result', {});
-        let markets = this.safeList (data, 'list', []);
+        let markets: Dict[] = this.safeList (data, 'list', []);
         const loadAllOptions = this.handleOption ('fetchMarkets', 'loadAllOptions');
         if (loadAllOptions === true) {
             request['limit'] = 1000;

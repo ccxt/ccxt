@@ -1199,7 +1199,7 @@ export default class hashkey extends Exchange {
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, 'coinId');
         const code = this.safeCurrencyCode (currencyId);
-        const networks = this.safeList (rawCurrency, 'chainTypes') as List;
+        const networks: Dict[] = this.safeList (rawCurrency, 'chainTypes') as List;
         const parsedNetworks: Dict = {};
         for (let j = 0; j < networks.length; j++) {
             const network = networks[j];
@@ -3977,7 +3977,7 @@ export default class hashkey extends Exchange {
         //     ]
         //
         const rates: List = [];
-        const rows: List = this.toArray (response);
+        const rows: Dict[] = this.toArray (response);
         for (let i = 0; i < rows.length; i++) {
             const entry = rows[i];
             const timestamp = this.safeInteger (entry, 'settleTime');
@@ -4404,7 +4404,7 @@ export default class hashkey extends Exchange {
         //         ]
         //     }
         //
-        const riskLimits = this.safeList (info, 'riskLimits', []) as List;
+        const riskLimits: Dict[] = this.safeList (info, 'riskLimits', []) as List;
         const marketId = this.safeString (info, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
         const tiers: List = [];

@@ -3779,7 +3779,7 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
-        const rawPositions = this.toArray (response);
+        const rawPositions: Dict[] = this.toArray (response);
         const result: List = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];

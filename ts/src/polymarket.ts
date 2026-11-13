@@ -411,7 +411,7 @@ export default class polymarket extends Exchange {
         ];
         const responses = await Promise.all (promises);
         const instruments = this.safeList (responses, 0, []);
-        const assets = this.safeList (responses, 1, []);
+        const assets: Dict[] = this.safeList (responses, 1, []);
         const result: Dict = {};
         for (let i = 0; i < instruments.length; i++) {
             const instrument = instruments[i];
@@ -675,14 +675,14 @@ export default class polymarket extends Exchange {
         //     ]
         //
         const merged: Dict = {};
-        const statistics = this.safeList (responses, 1, []);
+        const statistics: Dict[] = this.safeList (responses, 1, []);
         for (let i = 0; i < statistics.length; i++) {
             const entry = statistics[i];
             const instrumentId = this.safeString (entry, 'instrument_id');
             // the 24 hourly kline rows are dropped from the merged payload to keep tickers light, candles are served by fetchOHLCV
             merged[instrumentId as string] = this.omit (entry, 'klines');
         }
-        const bbos = this.safeList (responses, 2, []);
+        const bbos: Dict[] = this.safeList (responses, 2, []);
         for (let i = 0; i < bbos.length; i++) {
             const entry = bbos[i];
             const instrumentId = this.safeString (entry, 'instrument_id');
@@ -690,7 +690,7 @@ export default class polymarket extends Exchange {
             // the tickers endpoint timestamp wins the merge below because most unified fields come from it - bbo rows carry a slightly newer sampling time
             merged[instrumentId as string] = this.extend (previous, entry);
         }
-        const tickers = this.safeList (responses, 0, []);
+        const tickers: Dict[] = this.safeList (responses, 0, []);
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = tickers[i];
@@ -1117,7 +1117,7 @@ export default class polymarket extends Exchange {
         //         "more": false
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -2134,7 +2134,7 @@ export default class polymarket extends Exchange {
         //         "more": false
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

@@ -1846,7 +1846,7 @@ export default class backpack extends Exchange {
         //     ]
         //
         const rates: List = [];
-        const rawRates = this.toArray (response);
+        const rawRates: Dict[] = this.toArray (response);
         for (let i = 0; i < rawRates.length; i++) {
             const rate = rawRates[i];
             const datetime = this.safeString (rate, 'intervalEndTimestamp');

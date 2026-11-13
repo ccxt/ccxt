@@ -12538,7 +12538,7 @@ export default class binance extends Exchange {
         if (response === undefined) {
             throw new NullResponse (this.id + ' method() returned empty response');
         }
-        const positions = this.toArray (response);
+        const positions: Dict[] = this.toArray (response);
         for (let i = 0; i < positions.length; i++) {
             const rawPosition = positions[i];
             const entryPriceString = this.safeString (rawPosition, 'entryPrice');
@@ -15316,7 +15316,7 @@ export default class binance extends Exchange {
         //     ]
         //
         const result: Dict = {};
-        const assets = this.toArray (response);
+        const assets: Dict[] = this.toArray (response);
         for (let i = 0; i < assets.length; i++) {
             const entry = assets[i];
             const id = this.safeString (entry, 'asset');

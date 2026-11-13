@@ -331,7 +331,7 @@ export default class luno extends lunoRest {
         const bidsOrderSide = orderbook['bids'];
         // trade updates are applied first, matching the ordering of the
         // reference luno streaming client
-        const tradeUpdates = this.safeList (message, 'trade_updates', []);
+        const tradeUpdates: Dict[] = this.safeList (message, 'trade_updates', []);
         for (let i = 0; i < tradeUpdates.length; i++) {
             const tradeUpdate = tradeUpdates[i];
             const makerOrderId = this.safeString (tradeUpdate, 'maker_order_id');

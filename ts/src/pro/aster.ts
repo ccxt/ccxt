@@ -1854,7 +1854,7 @@ export default class aster extends asterRest {
                     const order = this.safeDict (orders, orderId);
                     if (order !== undefined) {
                         // accumulate order fees
-                        const fees = this.safeList (order, 'fees', []);
+                        const fees: Dict[] = this.safeList (order, 'fees', []);
                         const fee = this.safeDict (order, 'fee');
                         if (!this.isEmpty (fees)) {
                             let insertNewFeeCurrency = true;

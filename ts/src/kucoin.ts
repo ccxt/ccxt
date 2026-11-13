@@ -1756,7 +1756,7 @@ export default class kucoin extends Exchange {
             promises.push (this.loadMigrationStatus ());
         }
         const responses = await Promise.all (promises);
-        let symbolsData: List = [];
+        let symbolsData: Dict[] = [];
         if (fetchSpotMarkets) {
             symbolsData = this.safeList (responses[0], 'data', []);
         }
@@ -2117,7 +2117,7 @@ export default class kucoin extends Exchange {
         const contractData = this.safeDict (responses[1], 'data', {});
         const spotData = this.safeList (data, 'list', []);
         const contractSymbolsData = this.safeList (contractData, 'list', []);
-        const symbolsData = this.arrayConcat (spotData, contractSymbolsData);
+        const symbolsData: Dict[] = this.arrayConcat (spotData, contractSymbolsData);
         const result: List = [];
         for (let i = 0; i < symbolsData.length; i++) {
             const market = symbolsData[i];

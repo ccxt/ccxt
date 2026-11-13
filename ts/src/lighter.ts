@@ -1249,7 +1249,7 @@ export default class lighter extends Exchange {
         //
         const spotMarkets = this.safeList (response, 'spot_order_book_details', []);
         const swapMarkets = this.safeList (response, 'order_book_details', []);
-        const markets = this.arrayConcat (spotMarkets, swapMarkets);
+        const markets: Dict[] = this.arrayConcat (spotMarkets, swapMarkets);
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];

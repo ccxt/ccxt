@@ -3484,7 +3484,7 @@ export default class myriad extends Exchange {
             if (takerTrader === myWallet) {
                 myLegs.push (trade);
             }
-            const makers = this.safeList (data, 'makers', []);
+            const makers: Dict[] = this.safeList (data, 'makers', []);
             const makersLength = makers.length;
             for (let i = 0; i < makersLength; i++) {
                 const maker = makers[i];

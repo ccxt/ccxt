@@ -1040,7 +1040,7 @@ export default class mudrex extends Exchange {
         if (data === undefined) {
             return [];
         }
-        const rows = this.toArray (data);
+        const rows: Dict[] = this.toArray (data);
         const outPos: Position[] = [];
         for (let i = 0; i < rows.length; i++) {
             const p = rows[i];

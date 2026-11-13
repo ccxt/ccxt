@@ -649,7 +649,7 @@ export default class digifinex extends Exchange {
         //
         const spotData = this.safeList (spotMarkets, 'symbol_list', []);
         const swapData = this.safeList (swapMarkets, 'data', []);
-        const response = this.arrayConcat (spotData, swapData);
+        const response: Dict[] = this.arrayConcat (spotData, swapData);
         const result: List = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];

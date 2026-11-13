@@ -1721,7 +1721,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data: Dict[] = this.safeList (response, 'data', []) as List;
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
@@ -2861,7 +2861,7 @@ export default class okx extends Exchange {
         //     }
         //
         const rates: List = [];
-        const data = this.safeList (response, 'data', []) as List;
+        const data: Dict[] = this.safeList (response, 'data', []) as List;
         for (let i = 0; i < data.length; i++) {
             const rate = data[i];
             const timestamp = this.safeInteger (rate, 'fundingTime');
@@ -4453,7 +4453,7 @@ export default class okx extends Exchange {
         let stopLossPrice: Num = this.safeNumber2 (order, 'slTriggerPx', 'slOrdPx');
         let takeProfitPrice: Num = this.safeNumber2 (order, 'tpTriggerPx', 'tpOrdPx');
         // regular orders carry attached sl/tp inside attachAlgoOrds
-        const attachAlgoOrds = this.safeList (order, 'attachAlgoOrds', []);
+        const attachAlgoOrds: Dict[] = this.safeList (order, 'attachAlgoOrds', []);
         for (let i = 0; i < attachAlgoOrds.length; i++) {
             const attached = attachAlgoOrds[i];
             if (stopLossPrice === undefined) {
