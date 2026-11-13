@@ -2223,7 +2223,7 @@ class bingx extends Exchange {
             'symbol' => $market['id'],
         );
         if ($this->safe_bool($market, 'spot', false)) {
-            $response = Async\await($this->spotV1PublicGetTicker24hr($this->extend($request, $params)));
+            $response = Async\await($this->spotV2PublicGetQuoteTicker($this->extend($request, $params)));
         } else {
             if ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->cswapV1PublicGetMarketTicker($this->extend($request, $params)));
@@ -2346,7 +2346,7 @@ class bingx extends Exchange {
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchTickers', $market, $paramsMarketType);
         if ($type === 'spot') {
-            $response = Async\await($this->spotV1PublicGetTicker24hr($paramsSubType));
+            $response = Async\await($this->spotV2PublicGetQuoteTicker($paramsSubType));
         } else {
             if ($subType === 'inverse') {
                 $response = Async\await($this->cswapV1PublicGetMarketTicker($paramsSubType));
