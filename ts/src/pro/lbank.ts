@@ -275,7 +275,28 @@ export default class lbank extends lbankRest {
         const watchOHLCVOptions = this.safeDict (this.options, 'watchOHLCV', {});
         const timeframes = this.safeDict (watchOHLCVOptions, 'timeframes', {});
         const records = this.safeList (message, 'records');
-        if (records !== undefined) {  // from request
+        let timeframeId = '';
+        let messageHash = '';
+        if (records !== undefined) {
+            timeframeId = this.safeString (message, 'kbar', '');
+            messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId;
+        } else {  // from subscription
+            timeframeId = this.safeString (this.safeDict (message, 'kbar', {}), 'slot', '');
+            messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
+            if (!(messageHash in client.subscriptions)) {
+                // a candle lbank pushed before it processed an unWatchOHLCV, which it does not acknowledge
+                return;
+            }
+        }
+        const timeframe = this.findTimeframe (timeframeId, timeframes);
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe as string] = stored;
+        }
+        if (records !== undefined) {
             const rawOHLCV = this.safeList (records, 0, []);
             const parsed = [
                 this.safeInteger (rawOHLCV, 0),
@@ -285,22 +306,9 @@ export default class lbank extends lbankRest {
                 this.safeNumber (rawOHLCV, 4),
                 this.safeNumber (rawOHLCV, 5),
             ];
-            const timeframeId = this.safeString (message, 'kbar', '');
-            const timeframe = this.findTimeframe (timeframeId, timeframes);
-            const ohlcvsForSymbol: Dict = this.safeDict (this.ohlcvs, symbol, {});
-            this.ohlcvs[symbol] = ohlcvsForSymbol;
-            let stored = this.safeValue (ohlcvsForSymbol, timeframe);
-            if (stored === undefined) {
-                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
-                ohlcvsForSymbol[timeframe as string] = stored;
-            }
             stored.append (parsed);
-            const messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId;
-            client.resolve (stored, messageHash);
-        } else {  // from subscription
+        } else {
             const rawOHLCV = this.safeDict (message, 'kbar', {});
-            const timeframeId = this.safeString (rawOHLCV, 'slot', '');
             const datetime = this.safeString (rawOHLCV, 't');
             const parsed = [
                 this.parse8601 (datetime),
@@ -310,23 +318,9 @@ export default class lbank extends lbankRest {
                 this.safeNumber (rawOHLCV, 'c'),
                 this.safeNumber (rawOHLCV, 'v'),
             ];
-            const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
-            if (!(messageHash in client.subscriptions)) {
-                // a candle lbank pushed before it processed an unWatchOHLCV, which it does not acknowledge
-                return;
-            }
-            const timeframe = this.findTimeframe (timeframeId, timeframes);
-            const ohlcvsForSymbol: Dict = this.safeDict (this.ohlcvs, symbol, {});
-            this.ohlcvs[symbol] = ohlcvsForSymbol;
-            let stored = this.safeValue (ohlcvsForSymbol, timeframe);
-            if (stored === undefined) {
-                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
-                ohlcvsForSymbol[timeframe as string] = stored;
-            }
             stored.append (parsed);
-            client.resolve (stored, messageHash);
         }
+        client.resolve (stored, messageHash);
     }
 
     /**

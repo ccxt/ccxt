@@ -1247,8 +1247,8 @@ export default class gate extends gateRest {
             const timeframe = marketIds[symbol];
             const interval = this.findTimeframe (timeframe);
             const hash = 'candles' + ':' + interval + ':' + symbol;
-            const stored = this.safeValue (this.ohlcvs[symbol], interval);
-            client.resolve (stored, hash);
+            const symbolOhlcv = this.safeValue (this.safeDict (this.ohlcvs, symbol), interval);
+            client.resolve (symbolOhlcv, hash);
         }
     }
 

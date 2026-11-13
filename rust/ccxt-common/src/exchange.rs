@@ -416,7 +416,7 @@ pub struct Exchange {
     pub newUpdates:        Value,
     pub tickers:           Value,
     pub bidsasks:          Value,
-    pub ohlcvs:            Value,
+    pub ohlcvs:            crate::pro::cache::CacheShelf,
     pub clients:           Value,
     /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
     pub balance:           Value,
@@ -777,7 +777,7 @@ impl Exchange {
             newUpdates:    Value::Bool(true),
             tickers:       Value::Map(HashMap::new()),
             bidsasks:      Value::Map(HashMap::new()),
-            ohlcvs:        Value::Map(HashMap::new()),
+            ohlcvs:        crate::pro::cache::CacheShelf::new(),
             clients:       Value::Map(HashMap::new()),
             balance:       Value::Map(HashMap::new()),
             liquidations:  None,

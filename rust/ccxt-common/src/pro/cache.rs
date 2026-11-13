@@ -69,6 +69,8 @@ impl Cache {
     pub fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64> { self.0.get_limit(symbol, limit) }
     pub fn clear(&mut self) { self.0.clear() }
     pub fn hashmap(&self) -> Value { self.0.hashmap() }
+    /// `cache.length`: the rolling buffer's size (`Value::len` unwraps the marker).
+    pub fn size(&self) -> i64 { self.0.len() as i64 }
 }
 
 impl From<Cache> for Value { fn from(c: Cache) -> Value { c.0 } }
@@ -83,6 +85,7 @@ pub trait CacheSlot {
     fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64>;
     fn clear(&mut self);
     fn hashmap(&self) -> Value;
+    fn size(&self) -> i64;
 }
 
 impl CacheSlot for Option<Cache> {
@@ -92,6 +95,8 @@ impl CacheSlot for Option<Cache> {
     }
     fn clear(&mut self) { if let Some(c) = self { c.clear() } }
     fn hashmap(&self) -> Value { self.as_ref().map_or(Value::Null, Cache::hashmap) }
+    /// An absent cache has length 0, as `get_array_length(&Value::Null)` did.
+    fn size(&self) -> i64 { self.as_ref().map_or(0, Cache::size) }
 }
 
 /// A dictionary of caches keyed by symbol (`Exchange::trades`). Entries are only ever
@@ -144,6 +149,50 @@ impl CacheStore for CacheMap {
 /// The map as a plain dict of cache markers (the `to_value` snapshot): each key is copied, each marker an Arc bump.
 impl From<&CacheMap> for Value {
     fn from(m: &CacheMap) -> Value { Value::Map(m.iter().map(|(k, c)| (String::from(k.as_str()), Value::from(c))).collect()) }
+}
+
+/// Cache maps keyed by symbol, each keyed by timeframe (`Exchange::ohlcvs`).
+pub type CacheShelf = IndexMap<String, CacheMap>;
+
+static NO_CACHES: std::sync::OnceLock<CacheMap> = std::sync::OnceLock::new();
+
+/// Keyed access to a `CacheShelf`, with the untyped dict's key rules: `has` / `shelf` /
+/// `forget` match string keys only, `shelf_text` / `ensure` / `reset` / `put2` stringify.
+/// A missing inner map reads as an empty one, as a `Value::Null` entry did.
+pub trait CacheShelves {
+    fn has<K: CacheKey + ?Sized>(&self, key: &K) -> bool;
+    fn shelf<K: CacheKey + ?Sized>(&self, key: &K) -> &CacheMap;
+    fn shelf_text<K: CacheKey + ?Sized>(&self, key: &K) -> &CacheMap;
+    fn ensure<K: CacheKey + ?Sized>(&mut self, key: &K);
+    fn reset<K: CacheKey + ?Sized>(&mut self, key: &K);
+    fn put2<K: CacheKey + ?Sized, J: CacheKey + ?Sized>(&mut self, key: &K, inner: &J, cache: impl Into<Option<Cache>>);
+    fn forget<K: CacheKey + ?Sized>(&mut self, key: &K);
+    fn forget2<K: CacheKey + ?Sized, J: CacheKey + ?Sized>(&mut self, key: &K, inner: &J);
+}
+
+impl CacheShelves for CacheShelf {
+    fn has<K: CacheKey + ?Sized>(&self, key: &K) -> bool { key.strict().is_some_and(|k| self.contains_key(k)) }
+    fn shelf<K: CacheKey + ?Sized>(&self, key: &K) -> &CacheMap {
+        key.strict().and_then(|k| self.get(k)).unwrap_or_else(|| NO_CACHES.get_or_init(CacheMap::new))
+    }
+    fn shelf_text<K: CacheKey + ?Sized>(&self, key: &K) -> &CacheMap {
+        self.get(key.text().as_ref()).unwrap_or_else(|| NO_CACHES.get_or_init(CacheMap::new))
+    }
+    fn ensure<K: CacheKey + ?Sized>(&mut self, key: &K) { self.entry(key.text().into_owned()).or_default(); }
+    fn reset<K: CacheKey + ?Sized>(&mut self, key: &K) { self.insert(key.text().into_owned(), CacheMap::new()); }
+    /// Writing into a missing inner map is a no-op (the untyped write reached a `Null` entry).
+    fn put2<K: CacheKey + ?Sized, J: CacheKey + ?Sized>(&mut self, key: &K, inner: &J, cache: impl Into<Option<Cache>>) {
+        if let Some(m) = self.get_mut(key.text().as_ref()) { m.put(inner, cache) }
+    }
+    fn forget<K: CacheKey + ?Sized>(&mut self, key: &K) { if let Some(k) = key.strict() { self.shift_remove(k); } }
+    fn forget2<K: CacheKey + ?Sized, J: CacheKey + ?Sized>(&mut self, key: &K, inner: &J) {
+        if let Some(m) = key.strict().and_then(|k| self.get_mut(k)) { m.forget(inner) }
+    }
+}
+
+/// The nested maps as plain dicts of cache markers (the `to_value` snapshot).
+impl From<&CacheShelf> for Value {
+    fn from(m: &CacheShelf) -> Value { Value::Map(m.iter().map(|(k, c)| (String::from(k.as_str()), Value::from(c))).collect()) }
 }
 
 // ─── public factories ─────────────────────────────────────────────────────

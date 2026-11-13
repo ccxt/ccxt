@@ -2429,7 +2429,7 @@ impl Exchange {
         put("positions", &self.positions);
         put("tickers", &self.tickers);
         put("bidsasks", &self.bidsasks);
-        put("ohlcvs", &self.ohlcvs);
+        put("ohlcvs", &Value::from(&self.ohlcvs));
         put("clients", &self.clients);
         put("balance", &self.balance);
         put("liquidations", &Value::from(&self.liquidations));
