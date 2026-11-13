@@ -99048,6 +99048,13 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
             'cost': 1
         });
     }
+    publicGetPublicCorporateActions(params = {}) {
+        return this.request('public/corporate-actions', [
+            'public'
+        ], 'GET', params, {
+            'cost': 1
+        });
+    }
     publicGetRubikStatTradingDataSupportCoin(params = {}) {
         return this.request('rubik/stat/trading-data/support-coin', [
             'public'
@@ -103250,6 +103257,13 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'cost': 1
         });
     }
+    publicGetPublicCorporateActions(params = {}) {
+        return this.request('public/corporate-actions', [
+            'public'
+        ], 'GET', params, {
+            'cost': 1
+        });
+    }
     publicGetRubikStatTradingDataSupportCoin(params = {}) {
         return this.request('rubik/stat/trading-data/support-coin', [
             'public'
@@ -106554,6 +106568,13 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
     }
     publicGetPublicDeltaHedgeCurrencies(params = {}) {
         return this.request('public/delta-hedge-currencies', [
+            'public'
+        ], 'GET', params, {
+            'cost': 1
+        });
+    }
+    publicGetPublicCorporateActions(params = {}) {
+        return this.request('public/corporate-actions', [
             'public'
         ], 'GET', params, {
             'cost': 1
@@ -148644,6 +148665,13 @@ class okx extends _pro_okx_js__rspack_import_0/* ["default"] */.A {
             'cost': 1
         });
     }
+    publicGetPublicCorporateActions(params = {}) {
+        return this.request('public/corporate-actions', [
+            'public'
+        ], 'GET', params, {
+            'cost': 1
+        });
+    }
     publicGetRubikStatTradingDataSupportCoin(params = {}) {
         return this.request('rubik/stat/trading-data/support-coin', [
             'public'
@@ -151948,6 +151976,13 @@ class okx extends _pro_okx_js__rspack_import_0/* ["default"] */.A {
     }
     publicGetPublicDeltaHedgeCurrencies(params = {}) {
         return this.request('public/delta-hedge-currencies', [
+            'public'
+        ], 'GET', params, {
+            'cost': 1
+        });
+    }
+    publicGetPublicCorporateActions(params = {}) {
+        return this.request('public/corporate-actions', [
             'public'
         ], 'GET', params, {
             'cost': 1
@@ -457843,6 +457878,9 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                             'cost': 4
                         },
                         'public/delta-hedge-currencies': {
+                            'cost': 1
+                        },
+                        'public/corporate-actions': {
                             'cost': 1
                         },
                         // rubik
