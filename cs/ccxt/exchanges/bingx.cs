@@ -2684,7 +2684,7 @@ public partial class bingx : Exchange
         Dictionary<string, object> response = null;
         if ((this.safeBool(market, "spot", false) == true))
         {
-            response = await this.spotV1PublicGetTicker24hr(this.extend(request, parameters));
+            response = await this.spotV2PublicGetQuoteTicker(this.extend(request, parameters));
         } else
         {
             if ((this.safeBool(market, "inverse", false) == true))
@@ -2824,7 +2824,7 @@ public partial class bingx : Exchange
         Dictionary<string, object> response = null;
         if ((type == "spot"))
         {
-            response = await this.spotV1PublicGetTicker24hr(paramsSubType);
+            response = await this.spotV2PublicGetQuoteTicker(paramsSubType);
         } else
         {
             if ((subType == "inverse"))
