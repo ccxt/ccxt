@@ -2016,6 +2016,8 @@ macro_rules! raw_struct {
     ($($t:ident),*) => { $(
         impl FromRaw for $t { fn from_raw(v: Value) -> Self { $t::from_value(v) } }
         impl IntoRaw for $t { fn into_raw(self) -> Value { self.raw } }
+        /// A record read out of a typed result, handed to a `Value` slot: its decoded row (a shared handle, no re-encode).
+        impl From<&$t> for Value { fn from(x: &$t) -> Value { Value::clone(&x.raw) } }
     )* };
 }
 raw_struct!(Ticker, Trade, OrderBook, Order, Balances, Market, Currency, Position,
@@ -2025,6 +2027,12 @@ raw_struct!(FundingRate, FundingRateHistory, FundingHistory, Leverage, MarginMod
 raw_struct!(PredictionEvent, PredictionSettlement);
 raw_struct!(Account, BorrowRate, IsolatedBorrowRate, MarginLoan, Conversion, ADL, LongShortRatio, BorrowInterest,
     PositionModeInfo, OrderBookL3);
+
+/// A keyed read on a typed `Tickers` result: the ticker's decoded row, as the boxed map read answered it.
+impl crate::value::KeyRead for &Tickers {
+    fn key_read(&self, key: &str) -> Value { self.get(key).map(Value::from).unwrap_or_default() }
+    fn read(&self, key: &Value) -> Value { match key { Value::Str(k) => self.key_read(k), _ => Value::Null } }
+}
 
 /// An untyped unified return (`setLeverage`, `setMarginMode`, unsubscribe acks) passes the payload through.
 impl FromRaw for Value { fn from_raw(v: Value) -> Self { v } }
