@@ -8,6 +8,24 @@
     ],
     "options": {},
     "methods": {
+        "fetchPositionMode": [
+            {
+                "description": "fetch position mode ignores the symbol argument",
+                "method": "fetchPositionMode",
+                "url": "https://api-contract.weex.com/capi/v3/account/accountConfig",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch position mode",
+                "method": "fetchPositionMode",
+                "url": "https://api-contract.weex.com/capi/v3/account/accountConfig",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchFundingHistory": [
             {
                 "description": "fetch funding history",
@@ -136,32 +154,6 @@
                     }
                 ],
                 "output": "{\"isolatedPositionId\":\"737255283637617000\",\"amount\":\"5\",\"type\":1}"
-            }
-        ],
-        "setPositionMode": [
-            {
-                "description": "set position mode",
-                "method": "setPositionMode",
-                "url": "https://api-contract.weex.com/capi/v3/account/marginType",
-                "input": [
-                    true,
-                    "ETH/USDT:USDT",
-                    {
-                        "marginMode": "isolated"
-                    }
-                ],
-                "output": "{\"symbol\":\"ETHUSDT\",\"marginType\":\"ISOLATED\",\"separatedType\":\"SEPARATED\"}"
-            }
-        ],
-        "fetchPositionMode": [
-            {
-                "description": "fetch position mode",
-                "method": "fetchPositionMode",
-                "url": "https://api-contract.weex.com/capi/v3/account/symbolConfig?symbol=ETHUSDT",
-                "input": [
-                    "ETH/USDT:USDT"
-                ],
-                "output": null
             }
         ],
         "setLeverage": [
