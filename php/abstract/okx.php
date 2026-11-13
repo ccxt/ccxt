@@ -358,6 +358,12 @@ abstract class okx extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function public_get_public_corporate_actions($params = array()) {
+        return $this->request('public/corporate-actions', array('public'), 'GET', $params, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function public_get_rubik_stat_trading_data_support_coin($params = array()) {
         return $this->request('rubik/stat/trading-data/support-coin', array('public'), 'GET', $params, array("cost" => 4));
     }
@@ -3174,6 +3180,12 @@ abstract class okx extends \ccxt\Exchange {
      */
     public function publicGetPublicDeltaHedgeCurrencies($params = array()) {
         return $this->request('public/delta-hedge-currencies', array('public'), 'GET', $params, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetPublicCorporateActions($params = array()) {
+        return $this->request('public/corporate-actions', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

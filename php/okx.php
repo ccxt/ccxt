@@ -251,6 +251,7 @@ class okx extends Exchange {
                         'public/vip-interest-rate-loan-quota' => array( 'cost' => 10 ), // not documented
                         'public/mm-instrument-types' => array( 'cost' => 4 ),
                         'public/delta-hedge-currencies' => array( 'cost' => 1 ),
+                        'public/corporate-actions' => array( 'cost' => 1 ),
                         // rubik
                         'rubik/stat/trading-data/support-coin' => array( 'cost' => 4 ),
                         'rubik/stat/contracts/open-interest-history' => array( 'cost' => 2 ),
