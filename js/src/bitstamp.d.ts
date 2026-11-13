@@ -295,7 +295,7 @@ export default class bitstamp extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
-    parseFundingRate(fundingRate: any, market?: Market): FundingRate;
+    parseFundingRate(fundingRate: NullableDict, market?: Market): FundingRate;
     /**
      * @method
      * @name bitstamp#fetchOpenOrders

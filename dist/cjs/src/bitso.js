@@ -427,7 +427,7 @@ class bitso extends bitso$1["default"] {
             const cost = Precise["default"].stringAbs(amount);
             fee = {
                 'cost': cost,
-                'currency': currencyResolved,
+                'currency': code,
             };
         }
         const timestamp = this.parse8601(this.safeString(item, 'created_at'));

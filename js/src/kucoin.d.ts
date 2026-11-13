@@ -1383,7 +1383,7 @@ export default class kucoin extends Exchange {
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
      */
     fetchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
-    parseFundingRate(data: any, market?: Market): FundingRate;
+    parseFundingRate(data: NullableDict, market?: Market): FundingRate;
     parseFundingInterval(interval: Str): Str;
     /**
      * @method

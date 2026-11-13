@@ -259727,7 +259727,7 @@ class bitso extends _abstract_bitso_js__rspack_import_0/* ["default"] */.A {
             const cost = _base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(amount);
             fee = {
                 'cost': cost,
-                'currency': currencyResolved
+                'currency': code
             };
         }
         const timestamp = this.parse8601(this.safeString(item, 'created_at'));
@@ -379491,7 +379491,7 @@ class hibachi extends _abstract_hibachi_js__rspack_import_0/* ["default"] */.A {
         }
         return this.safeLedgerEntry({
             'id': this.safeString(item, 'id'),
-            'currency': this.currency('USDT'),
+            'currency': 'USDT',
             'account': this.numberToString(this.accountId),
             'referenceAccount': referenceAccount,
             'referenceId': referenceId,
@@ -448757,10 +448757,8 @@ class modetrade extends _abstract_modetrade_js__rspack_import_0/* ["default"] */
         // }
         //
         const data = this.safeDict(response, 'data', {});
-        return [
-            currency,
-            this.safeList(data, 'rows', [])
-        ];
+        const rows = this.safeList(data, 'rows', []);
+        return rows;
     }
     parseLedgerEntry(item, currency = undefined) {
         //
@@ -448833,9 +448831,11 @@ class modetrade extends _abstract_modetrade_js__rspack_import_0/* ["default"] */
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */ async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        const currencyRows = await this.getAssetHistoryRows(code, since, limit, params);
-        const currency = this.safeValue(currencyRows, 0);
-        const rows = this.safeList(currencyRows, 1);
+        const rows = await this.getAssetHistoryRows(code, since, limit, params);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
         return this.parseLedger(rows, currency, since, limit, params);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -448951,9 +448951,11 @@ class modetrade extends _abstract_modetrade_js__rspack_import_0/* ["default"] */
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */ async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {};
-        const currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
-        const currency = this.safeValue(currencyRows, 0);
-        const rows = this.safeList(currencyRows, 1, []);
+        const rows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
         //
         //     {
         //         "rows":[],
@@ -568252,9 +568254,9 @@ class gemini extends _gemini_js__rspack_import_0/* ["default"] */.A {
         const symbols = Object.keys(storesForSymbols);
         for(let i = 0; i < symbols.length; i++){
             const symbol = symbols[i];
-            const stored = storesForSymbols[symbol];
+            const symbolStore = storesForSymbols[symbol];
             const messageHash = 'trades:' + symbol;
-            client.resolve(stored, messageHash);
+            client.resolve(symbolStore, messageHash);
         }
     }
     /**
@@ -595289,8 +595291,8 @@ class ndax extends _ndax_js__rspack_import_0/* ["default"] */.A {
             const market = this.market(symbol);
             const marketId = this.safeString(market, 'id', '');
             const messageHash = name + ':' + marketId;
-            const tradesArray = this.safeValue(this.trades, symbol);
-            client.resolve(tradesArray, messageHash);
+            const symbolTrades = this.safeValue(this.trades, symbol);
+            client.resolve(symbolTrades, messageHash);
         }
     }
     /**
@@ -646789,10 +646791,8 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        return [
-            currency,
-            this.safeList(data, 'rows', [])
-        ];
+        const rows = this.safeList(data, 'rows', []);
+        return rows;
     }
     /**
      * @method
@@ -646805,9 +646805,11 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */ async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        const currencyRows = await this.getAssetHistoryRows(code, since, limit, params);
-        const currency = this.safeValue(currencyRows, 0);
-        const rows = this.safeList(currencyRows, 1);
+        const rows = await this.getAssetHistoryRows(code, since, limit, params);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
         return this.parseLedger(rows, currency, since, limit, params);
     }
     parseLedgerEntry(item, currency = undefined) {
@@ -646933,9 +646935,11 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'type': 'BALANCE'
         };
-        const currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
-        const currency = this.safeValue(currencyRows, 0);
-        const rows = this.safeList(currencyRows, 1, []);
+        const rows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
         return this.parseTransactions(rows, currency, since, limit, this.omit(params, 'tokenSide'));
     }
     parseTransaction(transaction, currency = undefined) {
@@ -651683,10 +651687,8 @@ class woofipro extends _abstract_woofipro_js__rspack_import_0/* ["default"] */.A
         // }
         //
         const data = this.safeDict(response, 'data', {});
-        return [
-            currency,
-            this.safeList(data, 'rows', [])
-        ];
+        const rows = this.safeList(data, 'rows', []);
+        return rows;
     }
     parseLedgerEntry(item, currency = undefined) {
         const currencyId = this.safeString(item, 'token');
@@ -651733,9 +651735,11 @@ class woofipro extends _abstract_woofipro_js__rspack_import_0/* ["default"] */.A
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */ async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        const currencyRows = await this.getAssetHistoryRows(code, since, limit, params);
-        const currency = this.safeValue(currencyRows, 0);
-        const rows = this.safeList(currencyRows, 1);
+        const rows = await this.getAssetHistoryRows(code, since, limit, params);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
         return this.parseLedger(rows, currency, since, limit, params);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -651826,9 +651830,11 @@ class woofipro extends _abstract_woofipro_js__rspack_import_0/* ["default"] */.A
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */ async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {};
-        const currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
-        const currency = this.safeValue(currencyRows, 0);
-        const rows = this.safeList(currencyRows, 1);
+        const rows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
         //
         //     {
         //         "rows":[],
@@ -651840,11 +651846,7 @@ class woofipro extends _abstract_woofipro_js__rspack_import_0/* ["default"] */.A
         //         "success":true
         //     }
         //
-        let rowsList = [];
-        if (rows !== undefined) {
-            rowsList = rows;
-        }
-        return this.parseTransactions(rowsList, currency, since, limit, params);
+        return this.parseTransactions(rows, currency, since, limit, params);
     }
     async getWithdrawNonce(params = {}) {
         const response = await this.v1PrivateGetWithdrawNonce(params);

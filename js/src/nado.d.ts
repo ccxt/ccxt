@@ -449,7 +449,7 @@ export default class nado extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     parseTrade(trade: Dict, market?: Market): Trade;
-    parseFundingRate(contract: any, market?: Market): FundingRate;
+    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
     parseFundingHistory(funding: Dict, market?: Market): {
         info: Dict;
         symbol: string;

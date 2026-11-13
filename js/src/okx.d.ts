@@ -647,7 +647,7 @@ export default class okx extends Exchange {
      */
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<TransferEntry[]>;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    parseFundingRate(contract: any, market?: Market): FundingRate;
+    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
     parseFundingInterval(interval: Str): Str;
     /**
      * @method

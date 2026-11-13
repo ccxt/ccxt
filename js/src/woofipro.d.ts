@@ -60,7 +60,7 @@ export default class woofipro extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    parseFundingRate(fundingRate: any, market?: Market): FundingRate;
+    parseFundingRate(fundingRate: NullableDict, market?: Market): FundingRate;
     parseFundingInterval(interval: Str): Str;
     /**
      * @method
@@ -401,7 +401,7 @@ export default class woofipro extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<[Currency, Dict[]]>;
+    getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     parseLedgerEntryType(type: Str): Str;
     /**

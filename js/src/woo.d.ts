@@ -403,7 +403,7 @@ export default class woo extends Exchange {
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     getDedicatedNetworkId(currency: Currency, params: Dict): [Str, Dict];
     parseDepositAddress(depositEntry: Dict, currency?: Currency): DepositAddress;
-    getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<[Currency, Dict[]]>;
+    getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
     /**
      * @method
      * @name woo#fetchLedger
@@ -527,7 +527,7 @@ export default class woo extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseFundingRate(fundingRate: any, market?: Market): FundingRate;
+    parseFundingRate(fundingRate: NullableDict, market?: Market): FundingRate;
     /**
      * @method
      * @name woo#fetchFundingInterval

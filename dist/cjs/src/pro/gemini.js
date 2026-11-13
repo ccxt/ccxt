@@ -265,9 +265,9 @@ class gemini extends gemini$1["default"] {
         const symbols = Object.keys(storesForSymbols);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const stored = storesForSymbols[symbol];
+            const symbolStore = storesForSymbols[symbol];
             const messageHash = 'trades:' + symbol;
-            client.resolve(stored, messageHash);
+            client.resolve(symbolStore, messageHash);
         }
     }
     /**

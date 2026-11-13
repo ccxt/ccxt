@@ -681,8 +681,8 @@ export declare class BaseExchange {
     parseToNumeric(number: any): number;
     isRoundNumber(value: number): boolean;
     isEmptyString(value: any): boolean;
-    safeNumberOmitZero(obj: object, key: NullableIndexType, defaultValue?: Num): Num;
-    safeIntegerOmitZero(obj: object, key: NullableIndexType, defaultValue?: Int): Int;
+    safeNumberOmitZero(obj: any, key: NullableIndexType, defaultValue?: Num): Num;
+    safeIntegerOmitZero(obj: any, key: NullableIndexType, defaultValue?: Int): Int;
     afterConstruct(userConfig?: Dict): void;
     hasAutocorrect(): void;
     initRestRateLimiter(): void;
@@ -968,7 +968,7 @@ export declare class BaseExchange {
     parseIsolatedBorrowRates(info: List): IsolatedBorrowRates;
     parseFundingRateHistories(response: List, market?: Market, since?: Int, limit?: Int): FundingRateHistory[];
     safeSymbol(marketId: Str, market?: Market, delimiter?: Str, marketType?: Str): string;
-    parseFundingRate(contract: string, market?: Market): FundingRate;
+    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
     parseFundingRates(response: List, symbols?: Strings): FundingRates;
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
     parseLongShortRatioHistory(response: List, market?: Market, since?: Int, limit?: Int): LongShortRatio[];
