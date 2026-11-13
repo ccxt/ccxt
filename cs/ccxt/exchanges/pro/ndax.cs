@@ -212,8 +212,8 @@ public partial class ndax : ccxt.ndax
             Dictionary<string, object> market = this.market(symbol);
             string? marketId = this.safeString(market, "id", "");
             string messageHash = ((name + ":") + marketId);
-            ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
-            client.resolve(tradesArray, messageHash);
+            ccxt.pro.ArrayCache symbolTrades = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
+            client.resolve(symbolTrades, messageHash);
         }
     }
 

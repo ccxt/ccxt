@@ -3306,7 +3306,8 @@ public partial class woo : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return new List<object>() {currency, this.safeList(data, "rows", new List<object>() {})};
+        List<object> rows = this.safeList(data, "rows", new List<object>() {});
+        return rows;
     }
 
     /**
@@ -3323,9 +3324,12 @@ public partial class woo : Exchange
     public async override Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> currencyRows = await this.getAssetHistoryRows(code, since, limit, parameters);
-        object currency = this.safeValue(currencyRows, 0);
-        List<object> rows = this.safeList(currencyRows, 1);
+        List<object> rows = await this.getAssetHistoryRows(code, since, limit, parameters);
+        IDictionary<string, object> currency = null;
+        if ((code != null))
+        {
+            currency = this.currency(code);
+        }
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(rows, currency, since, limit, parameters));
     }
 
@@ -3469,9 +3473,12 @@ public partial class woo : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "BALANCE" },
         };
-        List<object> currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters));
-        object currency = this.safeValue(currencyRows, 0);
-        List<object> rows = this.safeList(currencyRows, 1, new List<object>() {});
+        List<object> rows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters));
+        IDictionary<string, object> currency = null;
+        if ((code != null))
+        {
+            currency = this.currency(code);
+        }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(rows, currency, since, limit, this.omit(parameters, "tokenSide")));
     }
 

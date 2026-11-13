@@ -511,7 +511,7 @@ public partial class bitso : Exchange
             string? cost = Precise.stringAbs(amount);
             fee = new Dictionary<string, object>() {
                 { "cost", cost },
-                { "currency", currencyResolved },
+                { "currency", code },
             };
         }
         Int64? timestamp = this.parse8601(this.safeString(item, "created_at"));

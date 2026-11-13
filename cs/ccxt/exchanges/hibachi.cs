@@ -2091,7 +2091,7 @@ public partial class hibachi : Exchange
         }
         return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "id", this.safeString(item, "id") },
-            { "currency", this.currency("USDT") },
+            { "currency", "USDT" },
             { "account", this.numberToString(this.accountId) },
             { "referenceAccount", referenceAccount },
             { "referenceId", referenceId },

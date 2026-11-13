@@ -3236,7 +3236,8 @@ public partial class woofipro : Exchange
         // }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return new List<object>() {currency, this.safeList(data, "rows", new List<object>() {})};
+        List<object> rows = this.safeList(data, "rows", new List<object>() {});
+        return rows;
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
@@ -3291,9 +3292,12 @@ public partial class woofipro : Exchange
     public async override Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> currencyRows = await this.getAssetHistoryRows(code, since, limit, parameters);
-        object currency = this.safeValue(currencyRows, 0);
-        List<object> rows = this.safeList(currencyRows, 1);
+        List<object> rows = await this.getAssetHistoryRows(code, since, limit, parameters);
+        IDictionary<string, object> currency = null;
+        if ((code != null))
+        {
+            currency = this.currency(code);
+        }
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(rows, currency, since, limit, parameters));
     }
 
@@ -3401,9 +3405,12 @@ public partial class woofipro : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        List<object> currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters));
-        object currency = this.safeValue(currencyRows, 0);
-        List<object> rows = this.safeList(currencyRows, 1);
+        List<object> rows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters));
+        IDictionary<string, object> currency = null;
+        if ((code != null))
+        {
+            currency = this.currency(code);
+        }
         //
         //     {
         //         "rows":[],
@@ -3415,12 +3422,7 @@ public partial class woofipro : Exchange
         //         "success":true
         //     }
         //
-        List<object> rowsList = new List<object>() {};
-        if ((rows != null))
-        {
-            rowsList = rows;
-        }
-        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(rowsList, currency, since, limit, parameters));
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(rows, currency, since, limit, parameters));
     }
 
     public async virtual Task<double?> getWithdrawNonce(object parameters = null)

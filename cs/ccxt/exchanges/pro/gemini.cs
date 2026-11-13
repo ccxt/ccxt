@@ -287,9 +287,9 @@ public partial class gemini : ccxt.gemini
         for (int i = 0; i < symbols.Count; i++)
         {
             string? symbol = ((string)symbols[i]);
-            object stored = (symbol != null && storesForSymbols.ContainsKey(symbol) ? storesForSymbols[symbol] : null);
+            object symbolStore = (symbol != null && storesForSymbols.ContainsKey(symbol) ? storesForSymbols[symbol] : null);
             string messageHash = ("trades:" + symbol);
-            client.resolve(stored, messageHash);
+            client.resolve(symbolStore, messageHash);
         }
     }
 
