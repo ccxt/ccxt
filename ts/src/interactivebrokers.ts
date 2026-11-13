@@ -423,10 +423,9 @@ export default class interactivebrokers extends Exchange {
                     // narrows the bonds of each issuer, a dict of iserver/secdef/bond-filters columnId -> value, e.g. { '29': 'Notes', '27': '202701' }
                     // 29 = type (Bills, Notes, Bonds, ...), 27 = maturity month (YYYYMM), 28 = issue date (YYYYMMDD), 25 = coupon (4.125, No Coupon)
                     'bondFilters': {},
-                    // coinbase derivatives perp-style futures (COINDERIV), IBKR symbol -> unified base, resolved via trsrv/futures
+                    // the coinbase derivatives (COINDERIV) futures symbols are discovered with the market scanner (iserver/scanner/run, location FUT.COINDERIV),
                     // https://investors.interactivebrokers.com/en/index.php?f=26662&hm=us&ex=us&rgt=0&rsk=1&pm=0&rst=101004100808080101
                     // https://www.interactivebrokers.com/en/pricing/commissions-futures.php?region=americas
-                    'cryptoSwapExchanges': [ 'COINDERIV' ],
                     'cryptoCoinbasePerpSymbols': {
                         // the -NANO / -MICRO suffix follows the IBKR contract name ("nano Bitcoin ...", "Micro ..."), the multiplier is the contract size
                         // perp style futures (nominal 2030-12-20 expiry)
@@ -451,14 +450,6 @@ export default class interactivebrokers extends Exchange {
                         'SUP': 'SUI', // SUI Perp Style Futures, 500 SUI
                         'XLP': 'XLM', // Stellar Perp Style Futures, 5000 XLM
                         'ZEC': 'ZEC', // Zcash Perp Style Futures, 1 ZEC
-                        // the coinbase derivatives dated (monthly) futures (BIT, ET, BTI, ...) are in cryptoCmeFutureSymbols
-                    },
-                    // dated crypto futures (CME and coinbase derivatives), IBKR symbol -> unified base, resolved via trsrv/futures
-                    // https://www.interactivebrokers.com/en/pricing/commissions-futures.php?region=americas
-                    'cryptoFutureExchanges': [ 'CME', 'COINDERIV', 'CFE' ],
-                    'cryptoCmeFutureSymbols': {
-                        // the order matters, on symbol collisions (same base and expiry) the earlier contract keeps the plain symbol
-                        // the -NANO / -MICRO suffix follows the IBKR contract name ("nano Bitcoin ...", "Micro Bitcoin"), the multiplier is the contract size
                         // coinbase derivatives dated (monthly) futures
                         'BIT': 'BTC',
                         'ET': 'ETH',
@@ -471,6 +462,10 @@ export default class interactivebrokers extends Exchange {
                         'SUI': 'SUI',
                         'XRL': 'XRP',
                         'BCH': 'BCH',
+                    },
+                    // dated crypto futures (CME and coinbase derivatives), IBKR symbol -> unified base, resolved via trsrv/futures
+                    // https://www.interactivebrokers.com/en/pricing/commissions-futures.php?region=americas
+                    'cryptoCmeFutureSymbols': {
                         // CME standard futures
                         'BRR': 'BTC', // CME CF Bitcoin Reference Rate, 5 BTC
                         'ETHUSDRR': 'ETH', // CME CF Ether-Dollar Reference Rate, 50 ETH
@@ -1284,11 +1279,12 @@ export default class interactivebrokers extends Exchange {
     /**
      * @method
      * @name interactivebrokers#fetchMarkets
-     * @description retrieves data on the market types of options.fetchMarkets.types: stocks of options.fetchMarkets.exchanges.STK, crypto of options.fetchMarkets.cryptoSpotSymbols, fx pairs of options.fetchMarkets.forexCurrencies, coinbase derivatives perp-style futures of options.fetchMarkets.cryptoCoinbasePerpSymbols (as swap, e.g. BTC/USD:USD), dated CME and coinbase derivatives crypto futures of options.fetchMarkets.cryptoCmeFutureSymbols (as future, e.g. BTC/USD:USD-261127) and cfds of options.fetchMarkets.cfdExchanges (as swap, e.g. AAPL/USD:USD), bonds of options.fetchMarkets.bondSymbols are loaded only with 'bond' in options.fetchMarkets.types (as spot, e.g. US-T-4.125-270131.SMART/USD), the market id is the IBKR conid
+     * @description retrieves data on the market types of options.fetchMarkets.types: stocks of options.fetchMarkets.exchanges.STK, crypto of options.fetchMarkets.cryptoSpotSymbols, fx pairs of options.fetchMarkets.forexCurrencies, coinbase derivatives perp-style futures discovered with the market scanner (as swap, e.g. BTC/USD:USD), dated coinbase derivatives futures (scanned) and CME and CFE crypto futures of options.fetchMarkets.cryptoCmeFutureSymbols (as future, e.g. BTC/USD:USD-261127) and cfds of options.fetchMarkets.cfdExchanges (as swap, e.g. AAPL/USD:USD), bonds of options.fetchMarkets.bondSymbols are loaded only with 'bond' in options.fetchMarkets.types (as spot, e.g. US-T-4.125-270131.SMART/USD), the market id is the IBKR conid
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-conids-by-exchange
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-bond-filters
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-info-and-rules
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-future-by-symbol
+     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#scanner-run
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-contract-symbols-from-body
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-currency-pairs
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-instrument-definition
@@ -1309,11 +1305,9 @@ export default class interactivebrokers extends Exchange {
         if (this.inArray ('forex', types)) {
             promises.push (this.fetchForexMarkets (params));
         }
-        if (this.inArray ('swap', types)) {
-            promises.push (this.fetchSwapMarkets (params));
-        }
-        if (this.inArray ('future', types)) {
-            promises.push (this.fetchFutureMarkets (params));
+        if (this.inArray ('swap', types) || this.inArray ('future', types)) {
+            // the swaps and the futures come from the same scans and requests
+            promises.push (this.fetchFuturesAndSwapMarkets (params));
         }
         if (this.inArray ('cfd', types)) {
             promises.push (this.fetchCfdMarkets (params));
@@ -1516,78 +1510,103 @@ export default class interactivebrokers extends Exchange {
 
     /**
      * @method
-     * @name interactivebrokers#fetchSwapMarkets
-     * @description retrieves the coinbase derivatives perp-style futures (COINDERIV) of options.fetchMarkets.cryptoCoinbasePerpSymbols
+     * @name interactivebrokers#fetchCoinbaseDerivativesSymbols
+     * @description discovers the coinbase derivatives (COINDERIV) futures symbols with the market scanner, the MOST_ACTIVE scan misses the contracts that have not traded yet, so it is merged with the NOT_YET_TRADED_TODAY scan,
+     * each scan is spaced options.fetchMarkets.scannerDelay ms from the previous one and retried options.fetchMarkets.endpointRetries times, a scan without matches returns no contracts, a scan that keeps failing (e.g. no brokerage session on free-trial accounts) throws
      * @ignore
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-future-by-symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
+     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#scanner-run
+     * @returns {string[]} the unique IBKR symbols, e.g. [ 'BIP', 'ETP', 'BIT', ... ]
      */
-    async fetchSwapMarkets (params: Dict = {}): Promise<Market[]> {
-        const entries: Dict = {};
+    async fetchCoinbaseDerivativesSymbols (): Promise<string[]> {
         const options = this.safeDict (this.options, 'fetchMarkets', {});
-        const cryptoCoinbasePerpSymbols = this.safeDict (options, 'cryptoCoinbasePerpSymbols', {});
-        const symbols = Object.keys (cryptoCoinbasePerpSymbols);
-        if (symbols.length === 0) {
-            return [];
-        }
-        const request: Dict = {
-            'symbols': symbols.join (','),
-        };
-        const response = await this.webapiGetV1ApiTrsrvFutures (this.extend (request, params));
-        //
-        //     {
-        //         "BIP": [
-        //             {
-        //                 "symbol": "BIP",
-        //                 "conid": 805366677,
-        //                 "underlyingConid": 805366629,
-        //                 "expirationDate": 20301220,
-        //                 "ltd": 20301220,
-        //                 "shortFuturesCutOff": 20301220,
-        //                 "longFuturesCutOff": 20301220
-        //             }
-        //         ]
-        //     }
-        //
-        for (let i = 0; i < symbols.length; i++) {
-            const contracts = this.safeList (response, symbols[i], []);
+        const retries = this.safeInteger (options, 'endpointRetries', 3);
+        // the scanner is rate limited (about one request per second), concurrent or fast repeated scans fail, so the scans are run one by one
+        const scannerDelay = this.safeInteger (options, 'scannerDelay', 1000);
+        const scanTypes = [ 'MOST_ACTIVE', 'NOT_YET_TRADED_TODAY' ]; // these two ones cover all coinbase symbols
+        const result: string[] = [];
+        for (let i = 0; i < scanTypes.length; i++) {
+            const request: Dict = {
+                'instrument': 'FUT.US',
+                'location': 'FUT.COINDERIV',
+                'type': scanTypes[i],
+                'filter': [],
+            };
+            const lastScan = this.safeInteger (this.options, 'scannerLastRequest', 0);
+            const wait = this.sum (lastScan, scannerDelay) - this.milliseconds ();
+            if (wait > 0) {
+                await this.sleep (wait);
+            }
+            let contracts: List = [];
+            for (let j = 0; j < retries; j++) {
+                if (j > 0) {
+                    await this.sleep (scannerDelay);
+                }
+                this.options['scannerLastRequest'] = this.milliseconds ();
+                try {
+                    const response = await this.webapiPostV1ApiIserverScannerRun (request);
+                    //
+                    //     {
+                    //         "contracts": [
+                    //             {
+                    //                 "server_id": "0",
+                    //                 "column_name": "Volume",
+                    //                 "symbol": "BIP",
+                    //                 "conidex": "805366677@COINDERIV",
+                    //                 "con_id": 805366677,
+                    //                 "company_name": "nano Bitcoin BTC Perpetual Futures",
+                    //                 "contract_description_1": "Dec'30",
+                    //                 "listing_exchange": "COINDERIV",
+                    //                 "sec_type": "FUT"
+                    //             }
+                    //         ],
+                    //         "scan_data_column_name": "Volume"
+                    //     }
+                    //
+                    contracts = this.safeList (response, 'contracts', []);
+                    break;
+                } catch (e) {
+                    const message = this.exceptionMessage (e, false);
+                    if (message.indexOf ('EMPTY response') >= 0) {
+                        break; // {"error":"Finished: EMPTY response is received."} when no contract matches
+                    }
+                    if (j >= retries - 1) {
+                        throw new ExchangeError (this.id + ' fetchCoinbaseDerivativesSymbols() ' + this.json (request) + ' failed: ' + message);
+                    }
+                }
+            }
             for (let j = 0; j < contracts.length; j++) {
                 const contract = contracts[j];
-                const conid = this.safeString (contract, 'conid');
-                if (conid !== undefined) {
-                    entries[conid] = contract;
+                const listingExchange = this.safeString (contract, 'listing_exchange');
+                const symbol = this.safeString (contract, 'symbol');
+                if ((symbol !== undefined) && (listingExchange === 'COINDERIV') && !this.inArray (symbol, result)) {
+                    result.push (symbol);
                 }
             }
         }
-        const cryptoSwapExchanges = this.safeList (options, 'cryptoSwapExchanges', []);
-        const detailMarkets = await this.fetchSecWithDetails (entries);
-        const result = [];
-        for (let i = 0; i < detailMarkets.length; i++) {
-            const detail = detailMarkets[i];
-            // the symbols can also match unrelated futures on other exchanges
-            const listingExchange = this.safeString (detail, 'listingExchange');
-            if (this.inArray (listingExchange, cryptoSwapExchanges)) {
-                result.push (detail);
-            }
-        }
-        return this.parseMarkets (result);
+        return result;
     }
 
     /**
      * @method
-     * @name interactivebrokers#fetchFutureMarkets
-     * @description retrieves the dated crypto futures (CME and coinbase derivatives) of options.fetchMarkets.cryptoCmeFutureSymbols listed on options.fetchMarkets.cryptoFutureExchanges
+     * @name interactivebrokers#fetchFuturesAndSwapMarkets
+     * @description retrieves the coinbase derivatives (COINDERIV) perp-style futures (as swaps) and dated futures, whose symbols are discovered with the market scanner, together with the CME and CFE dated crypto futures of options.fetchMarkets.cryptoCmeFutureSymbols, the swaps are kept with 'swap' in options.fetchMarkets.types and the futures with 'future'
      * @ignore
+     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#scanner-run
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-future-by-symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchFutureMarkets (params: Dict = {}): Promise<Market[]> {
-        const entries: Dict = {};
+    async fetchFuturesAndSwapMarkets (params: Dict = {}): Promise<Market[]> {
         const options = this.safeDict (this.options, 'fetchMarkets', {});
+        const types = this.safeList (options, 'types', []);
         const cryptoCmeFutureSymbols = this.safeDict (options, 'cryptoCmeFutureSymbols', {});
-        const symbols = Object.keys (cryptoCmeFutureSymbols);
+        const symbols = await this.fetchCoinbaseDerivativesSymbols ();
+        const cmeSymbols = Object.keys (cryptoCmeFutureSymbols);
+        for (let i = 0; i < cmeSymbols.length; i++) {
+            if (!this.inArray (cmeSymbols[i], symbols)) {
+                symbols.push (cmeSymbols[i]);
+            }
+        }
         if (symbols.length === 0) {
             return [];
         }
@@ -1610,26 +1629,34 @@ export default class interactivebrokers extends Exchange {
         //         ]
         //     }
         //
+        // (for swaps, the date is "20301220")
+        //
+        const entries: Dict = {};
         for (let i = 0; i < symbols.length; i++) {
             const contracts = this.safeList (response, symbols[i], []);
             for (let j = 0; j < contracts.length; j++) {
                 const contract = contracts[j];
-                const conid = this.safeString (contract, 'conid') as string;
-                entries[conid] = contract;
+                const conid = this.safeString (contract, 'conid');
+                if (conid !== undefined) {
+                    entries[conid] = contract;
+                }
             }
         }
-        const cryptoFutureExchanges = this.safeList (options, 'cryptoFutureExchanges', []);
         const detailMarkets = await this.fetchSecWithDetails (entries);
-        const result = [];
-        for (let j = 0; j < detailMarkets.length; j++) {
-            const detail = detailMarkets[j];
-            // the symbols can also match unrelated futures on other exchanges
-            const listingExchange = this.safeString (detail, 'listingExchange');
-            if (this.inArray (listingExchange, cryptoFutureExchanges)) {
-                result.push (detail);
+        const markets = this.parseMarkets (detailMarkets);
+        const withSwaps = this.inArray ('swap', types);
+        const withFutures = this.inArray ('future', types);
+        const result: Market[] = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const parsedType = this.safeString (market, 'type');
+            if (withSwaps && (parsedType === 'swap')) {
+                result.push (market);
+            } else if (withFutures && (parsedType === 'future')) {
+                result.push (market);
             }
         }
-        return this.parseMarkets (result);
+        return result;
     }
 
     /**
