@@ -49,7 +49,7 @@ public class Btse extends BtseApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "btse" );
@@ -904,8 +904,8 @@ public class Btse extends BtseApi
         mapLiteral1.put("contract", Boolean.TRUE.equals(isSwap) || Boolean.TRUE.equals(isFuture));
         mapLiteral1.put("linear", ((Boolean.TRUE.equals(isSpot))) ? null : true);
         mapLiteral1.put("inverse", ((Boolean.TRUE.equals(isSpot))) ? null : false);
-        mapLiteral1.put("taker", fees.get("taker"));
-        mapLiteral1.put("maker", fees.get("maker"));
+        mapLiteral1.put("taker", this.safeNumber(fees, "taker", (Object) null));
+        mapLiteral1.put("maker", this.safeNumber(fees, "maker", (Object) null));
         mapLiteral1.put("contractSize", this.parseNumber(contractSize));
         mapLiteral1.put("expiry", expiry);
         mapLiteral1.put("expiryDatetime", this.iso8601(expiry));
@@ -1118,7 +1118,7 @@ public class Btse extends BtseApi
             }
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("contract"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 throw new BadRequest((this.id + " fetchFundingRateHistory() supports contract markets only")) ;
             }
@@ -1257,12 +1257,12 @@ public class Btse extends BtseApi
                 }};
                 response = (this.privateGetFuturesApiV23UserWallet(this.extend(request, paramsWallet))).join();
             }
-            return this.parseBalance(response);
+            return this.parseBalanceList(response);
         }).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -1270,7 +1270,7 @@ public class Btse extends BtseApi
         Map<String, Object> totals = new HashMap<String, Object>() {{}};
         Map<String, Object> frees = new HashMap<String, Object>() {{}};
         Map<String, Object> useds = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)response).size(); i++)
         {
             Map<String, Object> row = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             List<Object> assets = (List<Object>) this.safeList(row, "assets", (Object) null);
@@ -1394,16 +1394,16 @@ public class Btse extends BtseApi
                         Double maxNotional = this.safeNumber(level, "value", (Object) null);
                         // the endpoint only reports the notional ladder, the
                         // per-tier leverage and margin rates are not available
-                        ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                            j39v4.put("tier", this.safeInteger(level, "level"));
-                            j39v4.put("symbol", symbol);
-                            j39v4.put("currency", market.get("settle"));
-                            j39v4.put("minNotional", ((((j == 0)))) ? 0 : minNotional);
-                            j39v4.put("maxNotional", maxNotional);
-                            j39v4.put("maintenanceMarginRate", null);
-                            j39v4.put("maxLeverage", null);
-                            j39v4.put("info", level);
-                            yield j39v4; } }));
+                        ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                            j39v1.put("tier", this.safeInteger(level, "level"));
+                            j39v1.put("symbol", symbol);
+                            j39v1.put("currency", market.get("settle"));
+                            j39v1.put("minNotional", ((((j == 0)))) ? 0 : minNotional);
+                            j39v1.put("maxNotional", maxNotional);
+                            j39v1.put("maintenanceMarginRate", null);
+                            j39v1.put("maxLeverage", null);
+                            j39v1.put("info", level);
+                            yield j39v1; } }));
                         minNotional = maxNotional;
                     }
                     result.put(symbol, tiers); // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
@@ -1430,7 +1430,7 @@ public class Btse extends BtseApi
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("contract"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 throw new BadRequest((this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
             }
@@ -1536,7 +1536,7 @@ public class Btse extends BtseApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String last = this.safeString(ticker, "lastPrice");
         String baseVolume = this.safeString(ticker, "amount");
-        if ((!java.util.Objects.equals(baseVolume, null)) && (!java.util.Objects.equals(marketResolved, null)) && (java.util.Objects.equals(marketResolved.get("contract"), true)))
+        if ((!java.util.Objects.equals(baseVolume, null)) && (!java.util.Objects.equals(marketResolved, null)) && Boolean.TRUE.equals((this.safeBool(marketResolved, "contract", false))))
         {
             // for contract markets the amount field is denominated in contracts, verified live -
             // scaling by contractSize converts it into base currency units
@@ -1589,7 +1589,7 @@ public class Btse extends BtseApi
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new BadRequest(((this.id + " fetchOpenInterest() symbol does not support market ") + symbol)) ;
             }
@@ -1671,7 +1671,7 @@ public class Btse extends BtseApi
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new BadRequest((this.id + " fetchFundingRate() symbol does not support spot markets")) ;
             }
@@ -1886,7 +1886,7 @@ public class Btse extends BtseApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "symbol", market.get("id"));
+                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -1944,9 +1944,9 @@ public class Btse extends BtseApi
             {
                 // the futures endpoint does not support a count parameter, the limit is applied client-side
                 request = this.omit(request, "count");
-                if (!java.util.Objects.equals(market, null))
+                if (!java.util.Objects.equals(symbol, null))
                 {
-                    ((Map<String, Object>)request).put("symbol", this.futuresRequestId(market));
+                    Helpers.addElementToObject(request, "symbol", this.futuresRequestId((Map<String, Object>) (this.market(symbol))));
                 }
                 //
                 //     {
@@ -2183,12 +2183,12 @@ public class Btse extends BtseApi
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
-                return (this.createSpotOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+                return (this.createSpotOrder((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             } else
             {
-                return (this.createContractOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+                return (this.createContractOrder((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             }
         }).thenApply(Order::new);
 
@@ -2221,7 +2221,7 @@ public class Btse extends BtseApi
      * @param {float} [params.stopPrice] *NB - It is NOT stopLossPrice or triggerPrice!!! OCO orders only* the limit price of the stop loss leg
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSpotOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Object> createSpotOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2238,19 +2238,19 @@ public class Btse extends BtseApi
             {
                 request.put("clOrderId", clientOrderId);
             }
-            Object query = this.omit(parameters, "clientOrderId");
+            Map<String, Object> query = this.omit(parameters, "clientOrderId");
             Boolean isMarketOrder = (java.util.Objects.equals(typeValue, "MARKET"));
             Boolean isLimitOrder = (java.util.Objects.equals(typeValue, "LIMIT"));
             Boolean postOnly = false;
             // exchange-specific postOnly is the same as the unified one
-            List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, postOnly, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
+            List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, postOnly, query);
             postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
-            query = ((List<Object>) postOnlyqueryVariable).get(1); // this will remove PO from params.timeInForce if present
+            query = (Map<String, Object>) ((List<Object>) postOnlyqueryVariable).get(1); // this will remove PO from params.timeInForce if present
             if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("postOnly", true);
             }
-            String timeInForce = this.handleTimeInForce(((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })));
+            String timeInForce = this.handleTimeInForce(query);
             if (!java.util.Objects.equals(timeInForce, null))
             {
                 request.put("timeInForce", timeInForce);
@@ -2277,7 +2277,7 @@ public class Btse extends BtseApi
             {
                 String quoteAmount = null;
                 Boolean createMarketBuyOrderRequiresPrice = true;
-                Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPricequeryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (query), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPricequeryVariable = this.handleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPricequeryVariable.first();
                 query = createMarketBuyOrderRequiresPricequeryVariable.second();
                 String cost = this.safeString(query, "cost");
@@ -2348,15 +2348,23 @@ public class Btse extends BtseApi
                 if (Boolean.TRUE.equals(isConditionalOrder))
                 {
                     request.put("orderType", "CONDITIONAL");
-                    Object triggerOrderType = null;
+                    String triggerOrderType = null;
                     String triggerPriceToSend = null;
                     if (Boolean.TRUE.equals(isStopLossOrder))
                     {
                         triggerOrderType = "STOP_LOSS";
+                        if (Boolean.TRUE.equals(isLimitOrder))
+                        {
+                            triggerOrderType = "STOP_LOSS_LIMIT";
+                        }
                         triggerPriceToSend = stopLossPrice;
                     } else
                     {
                         triggerOrderType = "TAKE_PROFIT";
+                        if (Boolean.TRUE.equals(isLimitOrder))
+                        {
+                            triggerOrderType = "TAKE_PROFIT_LIMIT";
+                        }
                         triggerPriceToSend = triggerPrice;
                         if (java.util.Objects.equals(triggerPriceToSend, null))
                         {
@@ -2365,7 +2373,6 @@ public class Btse extends BtseApi
                     }
                     if (Boolean.TRUE.equals(isLimitOrder))
                     {
-                        triggerOrderType = (triggerOrderType + "_LIMIT");
                         request.put("orderPrice", this.priceToPrecision(symbol, price));
                     }
                     request.put("triggerOrderType", triggerOrderType);
@@ -2460,7 +2467,7 @@ public class Btse extends BtseApi
      * @param {float} [params.stopPrice] *NB - It is NOT the stopLossPrice!!! OCO orders only* the limit price of the stop loss leg
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createContractOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Object> createContractOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2478,18 +2485,18 @@ public class Btse extends BtseApi
             {
                 request.put("clOrderId", clientOrderId);
             }
-            Object query = this.omit(parameters, "clientOrderId");
+            Map<String, Object> query = this.omit(parameters, "clientOrderId");
             // handle positionMode
             String positionMode = this.safeString(query, "positionMode");
             // if positionMode is provided, we will get it from params and send it as is
             if (java.util.Objects.equals(positionMode, null))
             {
                 Boolean hedged = false;
-                Pair<Boolean, Map<String, Object>> hedgedqueryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (query), "createOrder", "hedged", hedged);
+                Pair<Boolean, Map<String, Object>> hedgedqueryVariable = this.handleOptionBoolAndParams(query, "createOrder", "hedged", hedged);
                 hedged = hedgedqueryVariable.first();
                 query = hedgedqueryVariable.second();
                 String marginMode = "cross";
-                Pair<String, Map<String, Object>> marginModequeryVariable = this.handleOptionStringAndParams((Map<String, Object>) (query), "createOrder", "marginMode", marginMode);
+                Pair<String, Map<String, Object>> marginModequeryVariable = this.handleOptionStringAndParams(query, "createOrder", "marginMode", marginMode);
                 marginMode = marginModequeryVariable.first();
                 query = marginModequeryVariable.second();
                 if (java.util.Objects.equals(marginMode, "isolated"))
@@ -2508,14 +2515,14 @@ public class Btse extends BtseApi
             Boolean isLimitOrder = (java.util.Objects.equals(typeValue, "LIMIT"));
             Boolean postOnly = false;
             // exchange-specific postOnly is the same as the unified one
-            List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, postOnly, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
+            List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, postOnly, query);
             postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
-            query = ((List<Object>) postOnlyqueryVariable).get(1); // this will remove PO from params.timeInForce if present
+            query = (Map<String, Object>) ((List<Object>) postOnlyqueryVariable).get(1); // this will remove PO from params.timeInForce if present
             if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("postOnly", true);
             }
-            String timeInForce = this.handleTimeInForce(((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
+            String timeInForce = this.handleTimeInForce(query);
             if (!java.util.Objects.equals(timeInForce, null))
             {
                 request.put("timeInForce", timeInForce);
@@ -2813,7 +2820,7 @@ public class Btse extends BtseApi
                 throw new ArgumentsRequired((this.id + " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")) ;
             }
             List<Object> response = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 request.put("symbol", market.get("id"));
                 response = (this.privatePutSpotApiV4TradeOrders(this.extend(request, query))).join();
@@ -2884,7 +2891,7 @@ public class Btse extends BtseApi
             }
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
             List<Object> response = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 request.put("symbol", market.get("id"));
                 response = (this.privateDeleteSpotApiV4TradeOrders(this.extend(request, paramsOmitted))).join();
@@ -2946,18 +2953,22 @@ public class Btse extends BtseApi
             if (java.util.Objects.equals(marketTypeOption, "spot"))
             {
                 // the literal ALL value cancels every open order across all pairs
-                request.put("symbol", (((!java.util.Objects.equals(market, null)))) ? market.get("id") : "ALL");
+                request.put("symbol", "ALL");
+                if (!java.util.Objects.equals(symbol, null))
+                {
+                    request.put("symbol", this.safeString(market, "id"));
+                }
                 response = (this.privateDeleteSpotApiV4TradeOrdersAll(this.extend(request, paramsMarketType))).join();
             } else
             {
-                if (java.util.Objects.equals(market, null))
+                if (java.util.Objects.equals(symbol, null))
                 {
                     throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument for contract markets")) ;
                 }
                 // the unified futures api has no cancel all endpoint, the legacy
                 // endpoint cancels every order for the symbol when no order id is
                 // sent, and it identifies contracts by the short symbol form
-                request.put("symbol", this.futuresRequestId(market));
+                request.put("symbol", this.futuresRequestId((Map<String, Object>) (this.market(symbol))));
                 response = (this.privateDeleteFuturesApiV23Order(this.extend(request, paramsMarketType))).join();
             }
             return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
@@ -3035,16 +3046,16 @@ public class Btse extends BtseApi
             List<Object> response = null;
             if (java.util.Objects.equals(marketTypeOption, "spot"))
             {
-                if (!java.util.Objects.equals(market, null))
+                if (!java.util.Objects.equals(symbol, null))
                 {
-                    request.put("symbol", market.get("id"));
+                    request.put("symbol", this.safeString(market, "id"));
                 }
                 response = (this.privateGetSpotApiV4TradeOrders(this.extend(request, paramsMarketType))).join();
             } else
             {
-                if (!java.util.Objects.equals(market, null))
+                if (!java.util.Objects.equals(symbol, null))
                 {
-                    request.put("symbol", this.futuresRequestId(market));
+                    request.put("symbol", this.futuresRequestId((Map<String, Object>) (this.market(symbol))));
                 }
                 response = (this.privateGetFuturesApiV3TradeOrders(this.extend(request, paramsMarketType))).join();
             }
@@ -3264,7 +3275,7 @@ public class Btse extends BtseApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)responseList).size(); i++)
             {
-                Object feeInfo = (responseList == null || i < 0 || i >= responseList.size() ? null : responseList.get(i));
+                Map<String, Object> feeInfo = (Map<String, Object>) this.safeDict(responseList, i, new HashMap<String, Object>() {{}});
                 String marketId = this.safeString(feeInfo, "symbol");
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 String symbol = (String) market.get("symbol");
@@ -3307,7 +3318,7 @@ public class Btse extends BtseApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency((String) (code));
-                request.put("asset", currency.get("id"));
+                request.put("asset", this.safeString(currency, "id"));
             } else if (java.util.Objects.equals(walletType, "SPOT"))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a code argument for the spot wallet history")) ;
@@ -3361,21 +3372,21 @@ public class Btse extends BtseApi
             Map<String, Object> allowed = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)typesList).size(); i++)
             {
-                Object historyType = (typesList == null || i < 0 || i >= typesList.size() ? null : typesList.get(i));
-                ((Map<Object, Object>) (Map<?, ?>) allowed).put(historyType, true);
-                allowed.put((String)this.capitalize(((String)historyType).toLowerCase()), true);
+                String historyType = this.safeString(typesList, i, "");
+                allowed.put(historyType, true);
+                allowed.put((String)this.capitalize(historyType.toLowerCase()), true);
             }
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rawRows).size(); i++)
             {
-                Object entry = (rawRows == null || i < 0 || i >= ((List<?>)rawRows).size() ? null : ((List<?>)rawRows).get(i));
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(rawRows, i, new HashMap<String, Object>() {{}});
                 String type = this.safeString(entry, "type", "");
                 if (allowed.containsKey(type))
                 {
                     ((List<Object>)rows).add(entry);
                 }
             }
-            return new ArrayList<Object>(Arrays.asList(rows, currency));
+            return this.parseTransactions(rows, currency, since, limit, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -3398,10 +3409,7 @@ public class Btse extends BtseApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            var rowscurrencyVariable = (this.requestWalletHistoryRows("fetchDepositsWithdrawals", new ArrayList<Object>(Arrays.asList("DEPOSIT", "WITHDRAW")), code, since, limit, parameters)).join();
-            var rows = ((List<Object>) rowscurrencyVariable).get(0);
-            Map<String, Object> currency = (Map<String, Object>) ((List<Object>) rowscurrencyVariable).get(1);
-            return this.parseTransactions(rows, currency, since, limit, new HashMap<String, Object>() {{}});
+            return (this.requestWalletHistoryRows("fetchDepositsWithdrawals", new ArrayList<Object>(Arrays.asList("DEPOSIT", "WITHDRAW")), code, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3424,10 +3432,7 @@ public class Btse extends BtseApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            var rowscurrencyVariable = (this.requestWalletHistoryRows("fetchDeposits", new ArrayList<Object>(Arrays.asList("DEPOSIT")), code, since, limit, parameters)).join();
-            var rows = ((List<Object>) rowscurrencyVariable).get(0);
-            Map<String, Object> currency = (Map<String, Object>) ((List<Object>) rowscurrencyVariable).get(1);
-            return this.parseTransactions(rows, currency, since, limit, new HashMap<String, Object>() {{}});
+            return (this.requestWalletHistoryRows("fetchDeposits", new ArrayList<Object>(Arrays.asList("DEPOSIT")), code, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3450,10 +3455,7 @@ public class Btse extends BtseApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            var rowscurrencyVariable = (this.requestWalletHistoryRows("fetchWithdrawals", new ArrayList<Object>(Arrays.asList("WITHDRAW")), code, since, limit, parameters)).join();
-            var rows = ((List<Object>) rowscurrencyVariable).get(0);
-            Map<String, Object> currency = (Map<String, Object>) ((List<Object>) rowscurrencyVariable).get(1);
-            return this.parseTransactions(rows, currency, since, limit, new HashMap<String, Object>() {{}});
+            return (this.requestWalletHistoryRows("fetchWithdrawals", new ArrayList<Object>(Arrays.asList("WITHDRAW")), code, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3565,7 +3567,7 @@ public class Btse extends BtseApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency((String) (code));
-                request.put("asset", currency.get("id"));
+                request.put("asset", this.safeString(currency, "id"));
             } else if (java.util.Objects.equals(walletType, "SPOT"))
             {
                 throw new ArgumentsRequired((this.id + " fetchLedger() requires a code argument for the spot wallet history")) ;
@@ -3728,7 +3730,7 @@ public class Btse extends BtseApi
                 put( "symbol", market.get("id") );
             }};
             List<Object> response = null;
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 response = (this.privateGetSpotApiV4TradeFees(this.extend(request, parameters))).join();
             } else
@@ -3799,7 +3801,7 @@ public class Btse extends BtseApi
             Map<String, Object> paramsExtended = this.extend(new HashMap<String, Object>() {{
                 put( "symbol", Btse.this.futuresRequestId(market) );
             }}, parameters);
-            return (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), paramsExtended)).join();
+            return (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), paramsExtended)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -4020,7 +4022,7 @@ public class Btse extends BtseApi
             }};
             List<Object> response = (this.privateGetFuturesApiV3TradeLeverage(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseMarginMode((Map<String, Object>) (data), market);
+            return this.parseMarginMode(data, market);
         }).thenApply(MarginMode::new);
 
     }
@@ -4086,17 +4088,17 @@ public class Btse extends BtseApi
             {
                 throw new BadRequest((this.id + " setMarginMode() marginMode argument should be either cross or isolated")) ;
             }
-            Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", (Object) null);
+            Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
             if (java.util.Objects.equals(marginModeValue, "cross"))
             {
                 if (!(parameters.containsKey("hedged")))
                 {
                     throw new ArgumentsRequired((this.id + " setMarginMode() requires a hedged parameter for cross margin mode")) ;
-                } else if (java.util.Objects.equals(hedged, true))
+                } else if (Boolean.TRUE.equals(hedged))
                 {
                     positionMode = "HEDGE";
                 }
-            } else if ((parameters.containsKey("hedged")) && (!java.util.Objects.equals(hedged, true)))
+            } else if ((parameters.containsKey("hedged")) && !Boolean.TRUE.equals(hedged))
             {
                 throw new BadRequest((this.id + " setMarginMode() hedged parameter cannot be false for isolated margin mode")) ;
             } else
@@ -4281,7 +4283,7 @@ public class Btse extends BtseApi
 
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if ((java.util.Objects.equals(response, null)) || (java.util.Objects.equals(response, null)))
         {
@@ -4304,8 +4306,8 @@ public class Btse extends BtseApi
             String spotErrorCode = this.safeString(response, "code");
             String spotMessage = this.safeString(response, "msg");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), spotErrorCode, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), spotMessage, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), spotErrorCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), spotMessage, feedback);
             throw new ExchangeError(feedback) ;
         }
         String errorCode = this.safeString(response, "errorCode");
@@ -4313,8 +4315,8 @@ public class Btse extends BtseApi
         {
             String message = this.safeString(response, "message");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         //
@@ -4335,8 +4337,8 @@ public class Btse extends BtseApi
         {
             String legacyMessage = this.safeString(response, "message");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), legacyEnumCode, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), legacyMessage, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), legacyEnumCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), legacyMessage, feedback);
             throw new ExchangeError(feedback) ;
         }
         Object rows = new ArrayList<Object>(Arrays.asList());
@@ -4360,8 +4362,8 @@ public class Btse extends BtseApi
                     message = this.safeString(embedded, "default_msg", message);
                 }
                 String feedback = ((this.id + " ") + body);
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), status, feedback);
-                this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), status, feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             }
         }
         return null;
@@ -4369,7 +4371,7 @@ public class Btse extends BtseApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -4377,8 +4379,7 @@ public class Btse extends BtseApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String baseUrl = apiUrl;
-        String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
+        String url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         // the futures v3 trading api reads DELETE params from a signed json
         // body like its POST and PUT counterparts, while the spot v4 and the
@@ -4388,7 +4389,7 @@ public class Btse extends BtseApi
         String queryString = "";
         if (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))) && !Boolean.TRUE.equals(isBodyDelete))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 queryString = this.urlencode(query);
                 url = (url + ("?" + queryString));
@@ -4416,39 +4417,38 @@ public class Btse extends BtseApi
                 signPath = ("/" + path);
             } else
             {
-                signPath = this.cleanPath(path);
+                signPath = this.cleanPath((String) (path));
             }
-            String payload = (((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(signPath, String.valueOf(nonce)) + bodyString);
+            String payload = ((signPath + String.valueOf(nonce)) + bodyString);
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
             requestHeaders = new HashMap<String, Object>() {{
                 put( "request-api", Btse.this.apiKey );
-                put( "request-nonce", String.valueOf(nonce) );
+                put( "request-nonce", Btse.this.numberToString(nonce) );
                 put( "request-sign", signature );
                 put( "Content-Type", "application/json" );
                 put( "BROKER-ID", "ccxt" );
             }};
         }
-        String bodyResolved = requestBody;
-        Map<String, Object> headersResolved = requestHeaders;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);
             h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap2.put("body", bodyResolved);
-            h2kMap2.put("headers", headersResolved);
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", requestHeaders);
             return h2kMap2;
         }
     }
 
-    public String futuresRequestId(Object market)
+    public String futuresRequestId(Map<String, Object> market)
     {
         // the futures v3 trading api identifies contracts by the short trade-currency
         // form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read
         // from the raw market info so that cached markets resolve it as well
-        return this.safeString(Helpers.GetValue(market, "info"), "tradeCurrency", Helpers.GetValue(market, "id"));
+        Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+        return this.safeString(marketInfo, "tradeCurrency", this.safeString(market, "id"));
     }
 
-    public String cleanPath(Object path)
+    public String cleanPath(String path)
     {
         String result = (path == null ? null : ((String)path).replaceFirst("spot", ""));
         result = (result == null ? null : ((String)result).replaceFirst("futures", ""));

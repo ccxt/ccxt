@@ -21,6 +21,20 @@
                     1
                 ],
                 "output": null
+            },
+            {
+                "description": "fetch funding rate history with since and until",
+                "method": "fetchFundingRateHistory",
+                "url": "https://whitebit.com/api/v4/public/funding-history/ETH_PERP?startDate=1792368000&endDate=1792454399&limit=3",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1792368000000,
+                    3,
+                    {
+                        "until": 1792454399000
+                    }
+                ],
+                "output": null
             }
         ],
         "fetchCurrencies": [
@@ -536,6 +550,42 @@
                 "url": "https://whitebit.com/api/v1/public/kline?market=BTC_PERP&interval=1m",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "ohlcv with since and limit",
+                "method": "fetchOHLCV",
+                "url": "https://whitebit.com/api/v1/public/kline?market=BTC_USDT&interval=1m&start=1704895860&end=1704896040&limit=3",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    1704895860000,
+                    3
+                ]
+            },
+            {
+                "description": "ohlcv with until",
+                "method": "fetchOHLCV",
+                "url": "https://whitebit.com/api/v1/public/kline?market=BTC_USDT&interval=1m&end=1704895920&limit=3",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    null,
+                    3,
+                    {
+                        "until": 1704895860000
+                    }
+                ]
+            },
+            {
+                "description": "ohlcv with a since whose range reaches the present: no end, which the exchange refuses past its clock",
+                "method": "fetchOHLCV",
+                "url": "https://whitebit.com/api/v1/public/kline?market=BTC_USDT&interval=1m&start=4102444800&limit=3",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    4102444800000,
+                    3
                 ]
             }
         ],

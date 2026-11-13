@@ -15,7 +15,7 @@ func (this *Kalshi) KalshiPublicGetEvents(args ...any) <-chan ccxt.EndpointResul
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "events", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "events", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetEventsMultivariate returns a channel that yields a JSON object.
@@ -24,7 +24,7 @@ func (this *Kalshi) KalshiPublicGetEventsMultivariate(args ...any) <-chan ccxt.E
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "events/multivariate", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "events/multivariate", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetEventsFeeChanges returns a channel that yields a JSON object.
@@ -33,7 +33,7 @@ func (this *Kalshi) KalshiPublicGetEventsFeeChanges(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "events/fee_changes", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "events/fee_changes", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetEventsEventTicker returns a channel that yields a JSON object.
@@ -42,7 +42,7 @@ func (this *Kalshi) KalshiPublicGetEventsEventTicker(args ...any) <-chan ccxt.En
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "events/{event_ticker}", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "events/{event_ticker}", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetEventsEventTickerMetadata returns a channel that yields a JSON object.
@@ -51,7 +51,7 @@ func (this *Kalshi) KalshiPublicGetEventsEventTickerMetadata(args ...any) <-chan
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "events/{event_ticker}/metadata", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "events/{event_ticker}/metadata", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetSeries returns a channel that yields a JSON object.
@@ -60,7 +60,7 @@ func (this *Kalshi) KalshiPublicGetSeries(args ...any) <-chan ccxt.EndpointResul
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "series", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "series", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetSeriesFeeChanges returns a channel that yields a JSON object.
@@ -69,7 +69,7 @@ func (this *Kalshi) KalshiPublicGetSeriesFeeChanges(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "series/fee_changes", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "series/fee_changes", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetSeriesSeriesTicker returns a channel that yields a JSON object.
@@ -78,7 +78,7 @@ func (this *Kalshi) KalshiPublicGetSeriesSeriesTicker(args ...any) <-chan ccxt.E
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "series/{series_ticker}", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "series/{series_ticker}", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks returns a channel that yields a JSON object.
@@ -87,7 +87,7 @@ func (this *Kalshi) KalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks(a
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "series/{series_ticker}/markets/{ticker}/candlesticks", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "series/{series_ticker}/markets/{ticker}/candlesticks", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks returns a channel that yields a JSON object.
@@ -96,7 +96,7 @@ func (this *Kalshi) KalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks(ar
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "series/{series_ticker}/events/{ticker}/candlesticks", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "series/{series_ticker}/events/{ticker}/candlesticks", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory returns a channel that yields a JSON object.
@@ -105,7 +105,7 @@ func (this *Kalshi) KalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercent
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "series/{series_ticker}/events/{ticker}/forecast_percentile_history", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "series/{series_ticker}/events/{ticker}/forecast_percentile_history", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetMarkets returns a channel that yields a JSON object.
@@ -114,7 +114,7 @@ func (this *Kalshi) KalshiPublicGetMarkets(args ...any) <-chan ccxt.EndpointResu
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetMarketsTrades returns a channel that yields a JSON object.
@@ -123,7 +123,7 @@ func (this *Kalshi) KalshiPublicGetMarketsTrades(args ...any) <-chan ccxt.Endpoi
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/trades", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/trades", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetMarketsOrderbooks returns a channel that yields a JSON object.
@@ -132,7 +132,7 @@ func (this *Kalshi) KalshiPublicGetMarketsOrderbooks(args ...any) <-chan ccxt.En
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/orderbooks", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/orderbooks", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetMarketsCandlesticks returns a channel that yields a JSON object.
@@ -141,7 +141,7 @@ func (this *Kalshi) KalshiPublicGetMarketsCandlesticks(args ...any) <-chan ccxt.
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/candlesticks", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/candlesticks", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetMarketsTicker returns a channel that yields a JSON object.
@@ -150,7 +150,7 @@ func (this *Kalshi) KalshiPublicGetMarketsTicker(args ...any) <-chan ccxt.Endpoi
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/{ticker}", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/{ticker}", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetMarketsTickerOrderbook returns a channel that yields a JSON object.
@@ -159,7 +159,7 @@ func (this *Kalshi) KalshiPublicGetMarketsTickerOrderbook(args ...any) <-chan cc
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/{ticker}/orderbook", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/{ticker}/orderbook", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetExchangeStatus returns a channel that yields a JSON object.
@@ -168,7 +168,7 @@ func (this *Kalshi) KalshiPublicGetExchangeStatus(args ...any) <-chan ccxt.Endpo
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "exchange/status", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "exchange/status", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetExchangeSchedule returns a channel that yields a JSON object.
@@ -177,7 +177,7 @@ func (this *Kalshi) KalshiPublicGetExchangeSchedule(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "exchange/schedule", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "exchange/schedule", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetExchangeAnnouncements returns a channel that yields a JSON object.
@@ -186,7 +186,7 @@ func (this *Kalshi) KalshiPublicGetExchangeAnnouncements(args ...any) <-chan ccx
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "exchange/announcements", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "exchange/announcements", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetExchangeUserDataTimestamp returns a channel that yields a JSON object.
@@ -195,7 +195,7 @@ func (this *Kalshi) KalshiPublicGetExchangeUserDataTimestamp(args ...any) <-chan
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "exchange/user_data_timestamp", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "exchange/user_data_timestamp", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetMilestones returns a channel that yields a JSON object.
@@ -204,7 +204,7 @@ func (this *Kalshi) KalshiPublicGetMilestones(args ...any) <-chan ccxt.EndpointR
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "milestones", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "milestones", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetMilestonesMilestoneId returns a channel that yields a JSON object.
@@ -213,7 +213,7 @@ func (this *Kalshi) KalshiPublicGetMilestonesMilestoneId(args ...any) <-chan ccx
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "milestones/{milestone_id}", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "milestones/{milestone_id}", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetStructuredTargets returns a channel that yields a JSON object.
@@ -222,7 +222,7 @@ func (this *Kalshi) KalshiPublicGetStructuredTargets(args ...any) <-chan ccxt.En
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "structured_targets", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "structured_targets", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetStructuredTargetsStructuredTargetId returns a channel that yields a JSON object.
@@ -231,7 +231,7 @@ func (this *Kalshi) KalshiPublicGetStructuredTargetsStructuredTargetId(args ...a
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "structured_targets/{structured_target_id}", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "structured_targets/{structured_target_id}", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetSearchFiltersBySport returns a channel that yields a JSON object.
@@ -240,7 +240,7 @@ func (this *Kalshi) KalshiPublicGetSearchFiltersBySport(args ...any) <-chan ccxt
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "search/filters_by_sport", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "search/filters_by_sport", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetSearchTagsByCategories returns a channel that yields a JSON object.
@@ -249,7 +249,7 @@ func (this *Kalshi) KalshiPublicGetSearchTagsByCategories(args ...any) <-chan cc
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "search/tags_by_categories", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "search/tags_by_categories", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetLiveDataBatch returns a channel that yields a JSON object.
@@ -258,7 +258,7 @@ func (this *Kalshi) KalshiPublicGetLiveDataBatch(args ...any) <-chan ccxt.Endpoi
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "live_data/batch", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "live_data/batch", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetLiveDataMilestoneMilestoneId returns a channel that yields a JSON object.
@@ -267,7 +267,7 @@ func (this *Kalshi) KalshiPublicGetLiveDataMilestoneMilestoneId(args ...any) <-c
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "live_data/milestone/{milestone_id}", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "live_data/milestone/{milestone_id}", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetHistoricalMarkets returns a channel that yields a JSON object.
@@ -276,7 +276,7 @@ func (this *Kalshi) KalshiPublicGetHistoricalMarkets(args ...any) <-chan ccxt.En
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "historical/markets", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "historical/markets", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetHistoricalMarketsTickerCandlesticks returns a channel that yields a JSON object.
@@ -285,7 +285,7 @@ func (this *Kalshi) KalshiPublicGetHistoricalMarketsTickerCandlesticks(args ...a
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "historical/markets/{ticker}/candlesticks", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "historical/markets/{ticker}/candlesticks", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetHistoricalTrades returns a channel that yields a JSON object.
@@ -294,7 +294,7 @@ func (this *Kalshi) KalshiPublicGetHistoricalTrades(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "historical/trades", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "historical/trades", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetHistoricalCutoffTimestamps returns a channel that yields a JSON object.
@@ -303,7 +303,7 @@ func (this *Kalshi) KalshiPublicGetHistoricalCutoffTimestamps(args ...any) <-cha
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "historical/cutoff_timestamps", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "historical/cutoff_timestamps", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetMultivariateEventCollections returns a channel that yields a JSON object.
@@ -312,7 +312,7 @@ func (this *Kalshi) KalshiPublicGetMultivariateEventCollections(args ...any) <-c
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "multivariate_event_collections", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "multivariate_event_collections", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetMultivariateEventCollectionsCollectionTicker returns a channel that yields a JSON object.
@@ -321,7 +321,7 @@ func (this *Kalshi) KalshiPublicGetMultivariateEventCollectionsCollectionTicker(
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "multivariate_event_collections/{collection_ticker}", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "multivariate_event_collections/{collection_ticker}", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup returns a channel that yields a JSON object.
@@ -330,7 +330,7 @@ func (this *Kalshi) KalshiPublicGetMultivariateEventCollectionsCollectionTickerL
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "multivariate_event_collections/{collection_ticker}/lookup", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "multivariate_event_collections/{collection_ticker}/lookup", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPublicGetIncentivePrograms returns a channel that yields a JSON object.
@@ -339,7 +339,7 @@ func (this *Kalshi) KalshiPublicGetIncentivePrograms(args ...any) <-chan ccxt.En
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "incentive_programs", []string{"kalshi", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "incentive_programs", []string{"kalshi", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateGetPortfolioBalance returns a channel that yields a JSON object.
@@ -348,7 +348,7 @@ func (this *Kalshi) KalshiPrivateGetPortfolioBalance(args ...any) <-chan ccxt.En
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/balance", []string{"kalshi", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/balance", []string{"kalshi", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateGetPortfolioOrders returns a channel that yields a JSON object.
@@ -357,7 +357,7 @@ func (this *Kalshi) KalshiPrivateGetPortfolioOrders(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders", []string{"kalshi", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders", []string{"kalshi", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateGetPortfolioOrdersOrderId returns a channel that yields a JSON object.
@@ -366,7 +366,7 @@ func (this *Kalshi) KalshiPrivateGetPortfolioOrdersOrderId(args ...any) <-chan c
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders/{order_id}", []string{"kalshi", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders/{order_id}", []string{"kalshi", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateGetPortfolioOrdersOrderIdQueuePosition returns a channel that yields a JSON object.
@@ -375,7 +375,7 @@ func (this *Kalshi) KalshiPrivateGetPortfolioOrdersOrderIdQueuePosition(args ...
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders/{order_id}/queue_position", []string{"kalshi", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders/{order_id}/queue_position", []string{"kalshi", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateGetPortfolioOrdersQueuePositions returns a channel that yields a JSON object.
@@ -384,7 +384,7 @@ func (this *Kalshi) KalshiPrivateGetPortfolioOrdersQueuePositions(args ...any) <
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders/queue_positions", []string{"kalshi", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders/queue_positions", []string{"kalshi", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateGetPortfolioPositions returns a channel that yields a JSON object.
@@ -393,7 +393,7 @@ func (this *Kalshi) KalshiPrivateGetPortfolioPositions(args ...any) <-chan ccxt.
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/positions", []string{"kalshi", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/positions", []string{"kalshi", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateGetPortfolioFills returns a channel that yields a JSON object.
@@ -402,7 +402,7 @@ func (this *Kalshi) KalshiPrivateGetPortfolioFills(args ...any) <-chan ccxt.Endp
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/fills", []string{"kalshi", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/fills", []string{"kalshi", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateGetPortfolioSettlements returns a channel that yields a JSON object.
@@ -411,7 +411,7 @@ func (this *Kalshi) KalshiPrivateGetPortfolioSettlements(args ...any) <-chan ccx
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/settlements", []string{"kalshi", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/settlements", []string{"kalshi", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateGetPortfolioDeposits returns a channel that yields a JSON object.
@@ -420,7 +420,7 @@ func (this *Kalshi) KalshiPrivateGetPortfolioDeposits(args ...any) <-chan ccxt.E
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/deposits", []string{"kalshi", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/deposits", []string{"kalshi", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateGetPortfolioWithdrawals returns a channel that yields a JSON object.
@@ -429,7 +429,7 @@ func (this *Kalshi) KalshiPrivateGetPortfolioWithdrawals(args ...any) <-chan ccx
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/withdrawals", []string{"kalshi", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/withdrawals", []string{"kalshi", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateGetPortfolioOrderGroups returns a channel that yields a JSON object.
@@ -438,7 +438,7 @@ func (this *Kalshi) KalshiPrivateGetPortfolioOrderGroups(args ...any) <-chan ccx
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/order_groups", []string{"kalshi", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/order_groups", []string{"kalshi", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateGetPortfolioOrderGroupsOrderGroupId returns a channel that yields a JSON object.
@@ -447,7 +447,7 @@ func (this *Kalshi) KalshiPrivateGetPortfolioOrderGroupsOrderGroupId(args ...any
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/order_groups/{order_group_id}", []string{"kalshi", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/order_groups/{order_group_id}", []string{"kalshi", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateGetPortfolioSummaryTotalRestingOrderValue returns a channel that yields a JSON object.
@@ -456,7 +456,7 @@ func (this *Kalshi) KalshiPrivateGetPortfolioSummaryTotalRestingOrderValue(args 
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/summary/total_resting_order_value", []string{"kalshi", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/summary/total_resting_order_value", []string{"kalshi", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateGetPortfolioSubaccountsBalances returns a channel that yields a JSON object.
@@ -465,7 +465,7 @@ func (this *Kalshi) KalshiPrivateGetPortfolioSubaccountsBalances(args ...any) <-
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/subaccounts/balances", []string{"kalshi", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/subaccounts/balances", []string{"kalshi", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateGetPortfolioSubaccountsNetting returns a channel that yields a JSON object.
@@ -474,7 +474,7 @@ func (this *Kalshi) KalshiPrivateGetPortfolioSubaccountsNetting(args ...any) <-c
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/subaccounts/netting", []string{"kalshi", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/subaccounts/netting", []string{"kalshi", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateGetPortfolioSubaccountsTransfers returns a channel that yields a JSON object.
@@ -483,7 +483,7 @@ func (this *Kalshi) KalshiPrivateGetPortfolioSubaccountsTransfers(args ...any) <
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/subaccounts/transfers", []string{"kalshi", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/subaccounts/transfers", []string{"kalshi", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateGetHistoricalFills returns a channel that yields a JSON object.
@@ -492,7 +492,7 @@ func (this *Kalshi) KalshiPrivateGetHistoricalFills(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "historical/fills", []string{"kalshi", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "historical/fills", []string{"kalshi", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateGetHistoricalOrders returns a channel that yields a JSON object.
@@ -501,7 +501,7 @@ func (this *Kalshi) KalshiPrivateGetHistoricalOrders(args ...any) <-chan ccxt.En
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "historical/orders", []string{"kalshi", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "historical/orders", []string{"kalshi", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivatePostPortfolioOrders returns a channel that yields a JSON object.
@@ -510,7 +510,7 @@ func (this *Kalshi) KalshiPrivatePostPortfolioOrders(args ...any) <-chan ccxt.En
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders", []string{"kalshi", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders", []string{"kalshi", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivatePostPortfolioEventsOrders returns a channel that yields a JSON object.
@@ -519,7 +519,7 @@ func (this *Kalshi) KalshiPrivatePostPortfolioEventsOrders(args ...any) <-chan c
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/events/orders", []string{"kalshi", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/events/orders", []string{"kalshi", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivatePostPortfolioOrdersBatched returns a channel that yields a JSON object.
@@ -528,7 +528,7 @@ func (this *Kalshi) KalshiPrivatePostPortfolioOrdersBatched(args ...any) <-chan 
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders/batched", []string{"kalshi", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders/batched", []string{"kalshi", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivatePostPortfolioOrdersOrderIdAmend returns a channel that yields a JSON object.
@@ -537,7 +537,7 @@ func (this *Kalshi) KalshiPrivatePostPortfolioOrdersOrderIdAmend(args ...any) <-
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders/{order_id}/amend", []string{"kalshi", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders/{order_id}/amend", []string{"kalshi", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivatePostPortfolioOrdersOrderIdDecrease returns a channel that yields a JSON object.
@@ -546,7 +546,7 @@ func (this *Kalshi) KalshiPrivatePostPortfolioOrdersOrderIdDecrease(args ...any)
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders/{order_id}/decrease", []string{"kalshi", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders/{order_id}/decrease", []string{"kalshi", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivatePostPortfolioOrderGroupsCreate returns a channel that yields a JSON object.
@@ -555,7 +555,7 @@ func (this *Kalshi) KalshiPrivatePostPortfolioOrderGroupsCreate(args ...any) <-c
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/order_groups/create", []string{"kalshi", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/order_groups/create", []string{"kalshi", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivatePostPortfolioSubaccounts returns a channel that yields a JSON object.
@@ -564,7 +564,7 @@ func (this *Kalshi) KalshiPrivatePostPortfolioSubaccounts(args ...any) <-chan cc
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/subaccounts", []string{"kalshi", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/subaccounts", []string{"kalshi", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivatePostPortfolioSubaccountsTransfer returns a channel that yields a JSON object.
@@ -573,7 +573,7 @@ func (this *Kalshi) KalshiPrivatePostPortfolioSubaccountsTransfer(args ...any) <
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/subaccounts/transfer", []string{"kalshi", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/subaccounts/transfer", []string{"kalshi", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivatePostMultivariateEventCollectionsCollectionTicker returns a channel that yields a JSON object.
@@ -582,7 +582,7 @@ func (this *Kalshi) KalshiPrivatePostMultivariateEventCollectionsCollectionTicke
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "multivariate_event_collections/{collection_ticker}", []string{"kalshi", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "multivariate_event_collections/{collection_ticker}", []string{"kalshi", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset returns a channel that yields a JSON object.
@@ -591,7 +591,7 @@ func (this *Kalshi) KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset(args .
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/order_groups/{order_group_id}/reset", []string{"kalshi", "private"}, "PUT", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/order_groups/{order_group_id}/reset", []string{"kalshi", "private"}, "PUT", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger returns a channel that yields a JSON object.
@@ -600,7 +600,7 @@ func (this *Kalshi) KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger(args
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/order_groups/{order_group_id}/trigger", []string{"kalshi", "private"}, "PUT", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/order_groups/{order_group_id}/trigger", []string{"kalshi", "private"}, "PUT", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit returns a channel that yields a JSON object.
@@ -609,7 +609,7 @@ func (this *Kalshi) KalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit(args .
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/order_groups/{order_group_id}/limit", []string{"kalshi", "private"}, "PUT", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/order_groups/{order_group_id}/limit", []string{"kalshi", "private"}, "PUT", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivatePutPortfolioSubaccountsNetting returns a channel that yields a JSON object.
@@ -618,7 +618,7 @@ func (this *Kalshi) KalshiPrivatePutPortfolioSubaccountsNetting(args ...any) <-c
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/subaccounts/netting", []string{"kalshi", "private"}, "PUT", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/subaccounts/netting", []string{"kalshi", "private"}, "PUT", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup returns a channel that yields a JSON object.
@@ -627,7 +627,7 @@ func (this *Kalshi) KalshiPrivatePutMultivariateEventCollectionsCollectionTicker
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "multivariate_event_collections/{collection_ticker}/lookup", []string{"kalshi", "private"}, "PUT", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "multivariate_event_collections/{collection_ticker}/lookup", []string{"kalshi", "private"}, "PUT", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateDeletePortfolioOrdersOrderId returns a channel that yields a JSON object.
@@ -636,7 +636,7 @@ func (this *Kalshi) KalshiPrivateDeletePortfolioOrdersOrderId(args ...any) <-cha
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders/{order_id}", []string{"kalshi", "private"}, "DELETE", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders/{order_id}", []string{"kalshi", "private"}, "DELETE", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateDeletePortfolioOrdersBatched returns a channel that yields a JSON object.
@@ -645,7 +645,7 @@ func (this *Kalshi) KalshiPrivateDeletePortfolioOrdersBatched(args ...any) <-cha
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders/batched", []string{"kalshi", "private"}, "DELETE", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/orders/batched", []string{"kalshi", "private"}, "DELETE", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateDeletePortfolioEventsOrdersOrderId returns a channel that yields a JSON object.
@@ -654,7 +654,7 @@ func (this *Kalshi) KalshiPrivateDeletePortfolioEventsOrdersOrderId(args ...any)
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/events/orders/{order_id}", []string{"kalshi", "private"}, "DELETE", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/events/orders/{order_id}", []string{"kalshi", "private"}, "DELETE", params, map[string]any{"cost": float64(1)})
 }
 
 // KalshiPrivateDeletePortfolioOrderGroupsOrderGroupId returns a channel that yields a JSON object.
@@ -663,7 +663,7 @@ func (this *Kalshi) KalshiPrivateDeletePortfolioOrderGroupsOrderGroupId(args ...
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "portfolio/order_groups/{order_group_id}", []string{"kalshi", "private"}, "DELETE", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "portfolio/order_groups/{order_group_id}", []string{"kalshi", "private"}, "DELETE", params, map[string]any{"cost": float64(1)})
 }
 
 // ElectionsPublicGetSearchSeries returns a channel that yields a JSON object.
@@ -672,5 +672,5 @@ func (this *Kalshi) ElectionsPublicGetSearchSeries(args ...any) <-chan ccxt.Endp
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "search/series", []string{"elections", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "search/series", []string{"elections", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }

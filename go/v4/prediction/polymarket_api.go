@@ -15,7 +15,7 @@ func (this *Polymarket) GammaPublicGetStatus(args ...any) <-chan ccxt.EndpointRe
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[string](this, "status", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[string](this, "status", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetComments returns a channel that yields a JSON array.
@@ -24,7 +24,7 @@ func (this *Polymarket) GammaPublicGetComments(args ...any) <-chan ccxt.Endpoint
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "comments", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "comments", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetCommentsId returns a channel that yields a JSON array.
@@ -33,7 +33,7 @@ func (this *Polymarket) GammaPublicGetCommentsId(args ...any) <-chan ccxt.Endpoi
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "comments/{id}", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "comments/{id}", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetCommentsUserAddressUserAddress returns a channel that yields a JSON array.
@@ -42,7 +42,7 @@ func (this *Polymarket) GammaPublicGetCommentsUserAddressUserAddress(args ...any
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "comments/user_address/{user_address}", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "comments/user_address/{user_address}", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEvents returns a channel that yields a JSON array.
@@ -51,7 +51,7 @@ func (this *Polymarket) GammaPublicGetEvents(args ...any) <-chan ccxt.EndpointRe
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "events", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "events", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsCreators returns a channel that yields a JSON array.
@@ -60,7 +60,7 @@ func (this *Polymarket) GammaPublicGetEventsCreators(args ...any) <-chan ccxt.En
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "events/creators", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "events/creators", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsCreatorsId returns a channel that yields a JSON object.
@@ -69,7 +69,7 @@ func (this *Polymarket) GammaPublicGetEventsCreatorsId(args ...any) <-chan ccxt.
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "events/creators/{id}", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "events/creators/{id}", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsKeyset returns a channel that yields a JSON object.
@@ -78,7 +78,7 @@ func (this *Polymarket) GammaPublicGetEventsKeyset(args ...any) <-chan ccxt.Endp
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "events/keyset", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "events/keyset", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsPagination returns a channel that yields a JSON object.
@@ -87,7 +87,7 @@ func (this *Polymarket) GammaPublicGetEventsPagination(args ...any) <-chan ccxt.
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "events/pagination", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "events/pagination", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsResults returns a channel that yields a JSON array.
@@ -96,7 +96,7 @@ func (this *Polymarket) GammaPublicGetEventsResults(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "events/results", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "events/results", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsSlugSlug returns a channel that yields a JSON object.
@@ -105,7 +105,7 @@ func (this *Polymarket) GammaPublicGetEventsSlugSlug(args ...any) <-chan ccxt.En
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "events/slug/{slug}", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "events/slug/{slug}", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsId returns a channel that yields a JSON object.
@@ -114,7 +114,7 @@ func (this *Polymarket) GammaPublicGetEventsId(args ...any) <-chan ccxt.Endpoint
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "events/{id}", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "events/{id}", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsIdCommentsCount returns a channel that yields a JSON object.
@@ -123,7 +123,7 @@ func (this *Polymarket) GammaPublicGetEventsIdCommentsCount(args ...any) <-chan 
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "events/{id}/comments/count", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "events/{id}/comments/count", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsIdTags returns a channel that yields a JSON array.
@@ -132,7 +132,7 @@ func (this *Polymarket) GammaPublicGetEventsIdTags(args ...any) <-chan ccxt.Endp
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "events/{id}/tags", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "events/{id}/tags", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsIdTweetCount returns a channel that yields a JSON object.
@@ -141,7 +141,7 @@ func (this *Polymarket) GammaPublicGetEventsIdTweetCount(args ...any) <-chan ccx
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "events/{id}/tweet-count", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "events/{id}/tweet-count", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetMarkets returns a channel that yields a JSON array.
@@ -150,7 +150,7 @@ func (this *Polymarket) GammaPublicGetMarkets(args ...any) <-chan ccxt.EndpointR
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "markets", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "markets", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetMarketsKeyset returns a channel that yields a JSON object.
@@ -159,7 +159,7 @@ func (this *Polymarket) GammaPublicGetMarketsKeyset(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/keyset", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/keyset", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetMarketsSlugSlug returns a channel that yields a JSON object.
@@ -168,7 +168,7 @@ func (this *Polymarket) GammaPublicGetMarketsSlugSlug(args ...any) <-chan ccxt.E
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/slug/{slug}", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/slug/{slug}", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetMarketsId returns a channel that yields a JSON object.
@@ -177,7 +177,7 @@ func (this *Polymarket) GammaPublicGetMarketsId(args ...any) <-chan ccxt.Endpoin
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/{id}", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/{id}", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetMarketsIdDescription returns a channel that yields a JSON object.
@@ -186,7 +186,7 @@ func (this *Polymarket) GammaPublicGetMarketsIdDescription(args ...any) <-chan c
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/{id}/description", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/{id}/description", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetMarketsIdTags returns a channel that yields a JSON array.
@@ -195,7 +195,7 @@ func (this *Polymarket) GammaPublicGetMarketsIdTags(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "markets/{id}/tags", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "markets/{id}/tags", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetProfilesUserAddressUserAddress returns a channel that yields a JSON object.
@@ -204,7 +204,7 @@ func (this *Polymarket) GammaPublicGetProfilesUserAddressUserAddress(args ...any
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "profiles/user_address/{user_address}", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "profiles/user_address/{user_address}", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetPublicProfile returns a channel that yields a JSON object.
@@ -213,7 +213,7 @@ func (this *Polymarket) GammaPublicGetPublicProfile(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "public-profile", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "public-profile", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetPublicSearch returns a channel that yields a JSON object.
@@ -222,7 +222,7 @@ func (this *Polymarket) GammaPublicGetPublicSearch(args ...any) <-chan ccxt.Endp
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "public-search", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "public-search", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetSeries returns a channel that yields a JSON array.
@@ -231,7 +231,7 @@ func (this *Polymarket) GammaPublicGetSeries(args ...any) <-chan ccxt.EndpointRe
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "series", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "series", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetSeriesSummarySlugSlug returns a channel that yields a JSON object.
@@ -240,7 +240,7 @@ func (this *Polymarket) GammaPublicGetSeriesSummarySlugSlug(args ...any) <-chan 
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "series-summary/slug/{slug}", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "series-summary/slug/{slug}", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetSeriesSummaryId returns a channel that yields a JSON object.
@@ -249,7 +249,7 @@ func (this *Polymarket) GammaPublicGetSeriesSummaryId(args ...any) <-chan ccxt.E
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "series-summary/{id}", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "series-summary/{id}", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetSeriesId returns a channel that yields a JSON object.
@@ -258,7 +258,7 @@ func (this *Polymarket) GammaPublicGetSeriesId(args ...any) <-chan ccxt.Endpoint
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "series/{id}", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "series/{id}", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetSeriesIdCommentsCount returns a channel that yields a JSON object.
@@ -267,7 +267,7 @@ func (this *Polymarket) GammaPublicGetSeriesIdCommentsCount(args ...any) <-chan 
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "series/{id}/comments/count", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "series/{id}/comments/count", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetSports returns a channel that yields a JSON array.
@@ -276,7 +276,7 @@ func (this *Polymarket) GammaPublicGetSports(args ...any) <-chan ccxt.EndpointRe
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "sports", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "sports", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetSportsMarketTypes returns a channel that yields a JSON object.
@@ -285,7 +285,7 @@ func (this *Polymarket) GammaPublicGetSportsMarketTypes(args ...any) <-chan ccxt
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "sports/market-types", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "sports/market-types", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetTags returns a channel that yields a JSON array.
@@ -294,7 +294,7 @@ func (this *Polymarket) GammaPublicGetTags(args ...any) <-chan ccxt.EndpointResu
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "tags", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "tags", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetTagsSlugSlug returns a channel that yields a JSON object.
@@ -303,7 +303,7 @@ func (this *Polymarket) GammaPublicGetTagsSlugSlug(args ...any) <-chan ccxt.Endp
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "tags/slug/{slug}", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "tags/slug/{slug}", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetTagsSlugSlugRelatedTags returns a channel that yields a JSON array.
@@ -312,7 +312,7 @@ func (this *Polymarket) GammaPublicGetTagsSlugSlugRelatedTags(args ...any) <-cha
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "tags/slug/{slug}/related-tags", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "tags/slug/{slug}/related-tags", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetTagsSlugSlugRelatedTagsTags returns a channel that yields a JSON array.
@@ -321,7 +321,7 @@ func (this *Polymarket) GammaPublicGetTagsSlugSlugRelatedTagsTags(args ...any) <
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "tags/slug/{slug}/related-tags/tags", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "tags/slug/{slug}/related-tags/tags", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetTagsId returns a channel that yields a JSON object.
@@ -330,7 +330,7 @@ func (this *Polymarket) GammaPublicGetTagsId(args ...any) <-chan ccxt.EndpointRe
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "tags/{id}", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "tags/{id}", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetTagsIdRelatedTags returns a channel that yields a JSON array.
@@ -339,7 +339,7 @@ func (this *Polymarket) GammaPublicGetTagsIdRelatedTags(args ...any) <-chan ccxt
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "tags/{id}/related-tags", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "tags/{id}/related-tags", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetTagsIdRelatedTagsTags returns a channel that yields a JSON array.
@@ -348,7 +348,7 @@ func (this *Polymarket) GammaPublicGetTagsIdRelatedTagsTags(args ...any) <-chan 
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "tags/{id}/related-tags/tags", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "tags/{id}/related-tags/tags", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetTeams returns a channel that yields a JSON array.
@@ -357,7 +357,7 @@ func (this *Polymarket) GammaPublicGetTeams(args ...any) <-chan ccxt.EndpointRes
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "teams", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "teams", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetTeamsId returns a channel that yields a JSON object.
@@ -366,7 +366,7 @@ func (this *Polymarket) GammaPublicGetTeamsId(args ...any) <-chan ccxt.EndpointR
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "teams/{id}", []string{"gamma", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "teams/{id}", []string{"gamma", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicPostMarketsAbridged returns a channel that yields a JSON array.
@@ -375,7 +375,7 @@ func (this *Polymarket) GammaPublicPostMarketsAbridged(args ...any) <-chan ccxt.
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "markets/abridged", []string{"gamma", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "markets/abridged", []string{"gamma", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicPostMarketsInformation returns a channel that yields a JSON array.
@@ -384,7 +384,7 @@ func (this *Polymarket) GammaPublicPostMarketsInformation(args ...any) <-chan cc
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "markets/information", []string{"gamma", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "markets/information", []string{"gamma", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetBook returns a channel that yields a JSON object.
@@ -393,7 +393,7 @@ func (this *Polymarket) ClobPublicGetBook(args ...any) <-chan ccxt.EndpointResul
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "book", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "book", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetBooks returns a channel that yields a JSON array.
@@ -402,7 +402,7 @@ func (this *Polymarket) ClobPublicGetBooks(args ...any) <-chan ccxt.EndpointResu
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "books", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "books", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetBuilderTrades returns a channel that yields a JSON object.
@@ -411,7 +411,7 @@ func (this *Polymarket) ClobPublicGetBuilderTrades(args ...any) <-chan ccxt.Endp
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "builder/trades", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "builder/trades", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetClobMarketsConditionId returns a channel that yields a JSON object.
@@ -420,7 +420,7 @@ func (this *Polymarket) ClobPublicGetClobMarketsConditionId(args ...any) <-chan 
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "clob-markets/{condition_id}", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "clob-markets/{condition_id}", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetFeeRate returns a channel that yields a JSON object.
@@ -429,7 +429,7 @@ func (this *Polymarket) ClobPublicGetFeeRate(args ...any) <-chan ccxt.EndpointRe
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "fee-rate", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "fee-rate", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetFeeRateTokenId returns a channel that yields a JSON object.
@@ -438,7 +438,7 @@ func (this *Polymarket) ClobPublicGetFeeRateTokenId(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "fee-rate/{token_id}", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "fee-rate/{token_id}", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetLastTradePrice returns a channel that yields a JSON object.
@@ -447,7 +447,7 @@ func (this *Polymarket) ClobPublicGetLastTradePrice(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "last-trade-price", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "last-trade-price", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetLastTradesPrices returns a channel that yields a JSON array.
@@ -456,7 +456,7 @@ func (this *Polymarket) ClobPublicGetLastTradesPrices(args ...any) <-chan ccxt.E
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "last-trades-prices", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "last-trades-prices", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetMarketsByTokenTokenId returns a channel that yields a JSON object.
@@ -465,7 +465,7 @@ func (this *Polymarket) ClobPublicGetMarketsByTokenTokenId(args ...any) <-chan c
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets-by-token/{token_id}", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets-by-token/{token_id}", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetMarketsLiveActivityConditionId returns a channel that yields a JSON object.
@@ -474,7 +474,7 @@ func (this *Polymarket) ClobPublicGetMarketsLiveActivityConditionId(args ...any)
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/live-activity/{condition_id}", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/live-activity/{condition_id}", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetMidpoint returns a channel that yields a JSON object.
@@ -483,7 +483,7 @@ func (this *Polymarket) ClobPublicGetMidpoint(args ...any) <-chan ccxt.EndpointR
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "midpoint", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "midpoint", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetMidpoints returns a channel that yields a JSON object.
@@ -492,7 +492,7 @@ func (this *Polymarket) ClobPublicGetMidpoints(args ...any) <-chan ccxt.Endpoint
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "midpoints", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "midpoints", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetNegRisk returns a channel that yields a JSON object.
@@ -501,7 +501,7 @@ func (this *Polymarket) ClobPublicGetNegRisk(args ...any) <-chan ccxt.EndpointRe
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "neg-risk", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "neg-risk", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetNegRiskTokenId returns a channel that yields a JSON object.
@@ -510,7 +510,7 @@ func (this *Polymarket) ClobPublicGetNegRiskTokenId(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "neg-risk/{token_id}", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "neg-risk/{token_id}", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetPrice returns a channel that yields a JSON object.
@@ -519,7 +519,7 @@ func (this *Polymarket) ClobPublicGetPrice(args ...any) <-chan ccxt.EndpointResu
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "price", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "price", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetPrices returns a channel that yields a JSON object.
@@ -528,7 +528,7 @@ func (this *Polymarket) ClobPublicGetPrices(args ...any) <-chan ccxt.EndpointRes
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "prices", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "prices", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetPricesHistory returns a channel that yields a JSON object.
@@ -537,7 +537,7 @@ func (this *Polymarket) ClobPublicGetPricesHistory(args ...any) <-chan ccxt.Endp
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "prices-history", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "prices-history", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetRebatesCurrent returns a channel that yields a JSON array.
@@ -546,7 +546,7 @@ func (this *Polymarket) ClobPublicGetRebatesCurrent(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "rebates/current", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "rebates/current", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetRewardsMarketsCurrent returns a channel that yields a JSON object.
@@ -555,7 +555,7 @@ func (this *Polymarket) ClobPublicGetRewardsMarketsCurrent(args ...any) <-chan c
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "rewards/markets/current", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "rewards/markets/current", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetRewardsMarketsMulti returns a channel that yields a JSON object.
@@ -564,7 +564,7 @@ func (this *Polymarket) ClobPublicGetRewardsMarketsMulti(args ...any) <-chan ccx
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "rewards/markets/multi", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "rewards/markets/multi", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetRewardsMarketsConditionId returns a channel that yields a JSON object.
@@ -573,7 +573,7 @@ func (this *Polymarket) ClobPublicGetRewardsMarketsConditionId(args ...any) <-ch
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "rewards/markets/{condition_id}", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "rewards/markets/{condition_id}", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetSamplingMarkets returns a channel that yields a JSON object.
@@ -582,7 +582,7 @@ func (this *Polymarket) ClobPublicGetSamplingMarkets(args ...any) <-chan ccxt.En
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "sampling-markets", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "sampling-markets", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetSamplingSimplifiedMarkets returns a channel that yields a JSON object.
@@ -591,7 +591,7 @@ func (this *Polymarket) ClobPublicGetSamplingSimplifiedMarkets(args ...any) <-ch
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "sampling-simplified-markets", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "sampling-simplified-markets", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetSimplifiedMarkets returns a channel that yields a JSON object.
@@ -600,7 +600,7 @@ func (this *Polymarket) ClobPublicGetSimplifiedMarkets(args ...any) <-chan ccxt.
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "simplified-markets", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "simplified-markets", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetSpread returns a channel that yields a JSON object.
@@ -609,7 +609,7 @@ func (this *Polymarket) ClobPublicGetSpread(args ...any) <-chan ccxt.EndpointRes
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "spread", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "spread", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetTickSize returns a channel that yields a JSON object.
@@ -618,7 +618,7 @@ func (this *Polymarket) ClobPublicGetTickSize(args ...any) <-chan ccxt.EndpointR
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "tick-size", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "tick-size", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetTickSizeTokenId returns a channel that yields a JSON object.
@@ -627,7 +627,7 @@ func (this *Polymarket) ClobPublicGetTickSizeTokenId(args ...any) <-chan ccxt.En
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "tick-size/{token_id}", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "tick-size/{token_id}", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetTime returns a channel that yields a JSON scalar.
@@ -636,7 +636,7 @@ func (this *Polymarket) ClobPublicGetTime(args ...any) <-chan ccxt.EndpointResul
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[string](this, "time", []string{"clob", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[string](this, "time", []string{"clob", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicPostBatchPricesHistory returns a channel that yields a JSON object.
@@ -645,7 +645,7 @@ func (this *Polymarket) ClobPublicPostBatchPricesHistory(args ...any) <-chan ccx
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "batch-prices-history", []string{"clob", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "batch-prices-history", []string{"clob", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicPostBooks returns a channel that yields a JSON array.
@@ -654,7 +654,7 @@ func (this *Polymarket) ClobPublicPostBooks(args ...any) <-chan ccxt.EndpointRes
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "books", []string{"clob", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "books", []string{"clob", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicPostLastTradesPrices returns a channel that yields a JSON array.
@@ -663,7 +663,7 @@ func (this *Polymarket) ClobPublicPostLastTradesPrices(args ...any) <-chan ccxt.
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "last-trades-prices", []string{"clob", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "last-trades-prices", []string{"clob", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicPostMarketsLiveActivity returns a channel that yields a JSON array.
@@ -672,7 +672,7 @@ func (this *Polymarket) ClobPublicPostMarketsLiveActivity(args ...any) <-chan cc
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "markets/live-activity", []string{"clob", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "markets/live-activity", []string{"clob", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicPostMidpoints returns a channel that yields a JSON object.
@@ -681,7 +681,7 @@ func (this *Polymarket) ClobPublicPostMidpoints(args ...any) <-chan ccxt.Endpoin
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "midpoints", []string{"clob", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "midpoints", []string{"clob", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicPostPrices returns a channel that yields a JSON object.
@@ -690,7 +690,7 @@ func (this *Polymarket) ClobPublicPostPrices(args ...any) <-chan ccxt.EndpointRe
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "prices", []string{"clob", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "prices", []string{"clob", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicPostSpreads returns a channel that yields a JSON object.
@@ -699,7 +699,7 @@ func (this *Polymarket) ClobPublicPostSpreads(args ...any) <-chan ccxt.EndpointR
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "spreads", []string{"clob", "public"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "spreads", []string{"clob", "public"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetAuthApiKeys returns a channel that yields a JSON object.
@@ -708,7 +708,7 @@ func (this *Polymarket) ClobPrivateGetAuthApiKeys(args ...any) <-chan ccxt.Endpo
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "auth/api-keys", []string{"clob", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "auth/api-keys", []string{"clob", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetAuthBanStatusClosedOnly returns a channel that yields a JSON object.
@@ -717,7 +717,7 @@ func (this *Polymarket) ClobPrivateGetAuthBanStatusClosedOnly(args ...any) <-cha
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "auth/ban-status/closed-only", []string{"clob", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "auth/ban-status/closed-only", []string{"clob", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetAuthBuilderApiKey returns a channel that yields a JSON array.
@@ -726,7 +726,7 @@ func (this *Polymarket) ClobPrivateGetAuthBuilderApiKey(args ...any) <-chan ccxt
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "auth/builder-api-key", []string{"clob", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "auth/builder-api-key", []string{"clob", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetAuthDeriveApiKey returns a channel that yields a JSON object.
@@ -735,7 +735,7 @@ func (this *Polymarket) ClobPrivateGetAuthDeriveApiKey(args ...any) <-chan ccxt.
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "auth/derive-api-key", []string{"clob", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "auth/derive-api-key", []string{"clob", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetBalanceAllowance returns a channel that yields a JSON object.
@@ -744,7 +744,7 @@ func (this *Polymarket) ClobPrivateGetBalanceAllowance(args ...any) <-chan ccxt.
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "balance-allowance", []string{"clob", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "balance-allowance", []string{"clob", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetBalanceAllowanceUpdate returns a channel that yields a JSON object.
@@ -753,7 +753,7 @@ func (this *Polymarket) ClobPrivateGetBalanceAllowanceUpdate(args ...any) <-chan
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "balance-allowance/update", []string{"clob", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "balance-allowance/update", []string{"clob", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetDataOrderId returns a channel that yields a JSON object.
@@ -762,7 +762,7 @@ func (this *Polymarket) ClobPrivateGetDataOrderId(args ...any) <-chan ccxt.Endpo
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "data/order/{id}", []string{"clob", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "data/order/{id}", []string{"clob", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetDataOrders returns a channel that yields a JSON object.
@@ -771,7 +771,7 @@ func (this *Polymarket) ClobPrivateGetDataOrders(args ...any) <-chan ccxt.Endpoi
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "data/orders", []string{"clob", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "data/orders", []string{"clob", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetDataTrades returns a channel that yields a JSON object.
@@ -780,7 +780,7 @@ func (this *Polymarket) ClobPrivateGetDataTrades(args ...any) <-chan ccxt.Endpoi
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "data/trades", []string{"clob", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "data/trades", []string{"clob", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetNotifications returns a channel that yields a JSON array.
@@ -789,7 +789,7 @@ func (this *Polymarket) ClobPrivateGetNotifications(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "notifications", []string{"clob", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "notifications", []string{"clob", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetOrderScoring returns a channel that yields a JSON object.
@@ -798,7 +798,7 @@ func (this *Polymarket) ClobPrivateGetOrderScoring(args ...any) <-chan ccxt.Endp
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "order-scoring", []string{"clob", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "order-scoring", []string{"clob", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetOrdersScoring returns a channel that yields a JSON object.
@@ -807,7 +807,7 @@ func (this *Polymarket) ClobPrivateGetOrdersScoring(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "orders-scoring", []string{"clob", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "orders-scoring", []string{"clob", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetRewardsUser returns a channel that yields a JSON object.
@@ -816,7 +816,7 @@ func (this *Polymarket) ClobPrivateGetRewardsUser(args ...any) <-chan ccxt.Endpo
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "rewards/user", []string{"clob", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "rewards/user", []string{"clob", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetRewardsUserMarkets returns a channel that yields a JSON object.
@@ -825,7 +825,7 @@ func (this *Polymarket) ClobPrivateGetRewardsUserMarkets(args ...any) <-chan ccx
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "rewards/user/markets", []string{"clob", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "rewards/user/markets", []string{"clob", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetRewardsUserPercentages returns a channel that yields a JSON object.
@@ -834,7 +834,7 @@ func (this *Polymarket) ClobPrivateGetRewardsUserPercentages(args ...any) <-chan
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "rewards/user/percentages", []string{"clob", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "rewards/user/percentages", []string{"clob", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetRewardsUserTotal returns a channel that yields a JSON array.
@@ -843,7 +843,7 @@ func (this *Polymarket) ClobPrivateGetRewardsUserTotal(args ...any) <-chan ccxt.
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "rewards/user/total", []string{"clob", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "rewards/user/total", []string{"clob", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivatePostAuthApiKey returns a channel that yields a JSON object.
@@ -852,7 +852,7 @@ func (this *Polymarket) ClobPrivatePostAuthApiKey(args ...any) <-chan ccxt.Endpo
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "auth/api-key", []string{"clob", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "auth/api-key", []string{"clob", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivatePostAuthBuilderApiKey returns a channel that yields a JSON object.
@@ -861,7 +861,7 @@ func (this *Polymarket) ClobPrivatePostAuthBuilderApiKey(args ...any) <-chan ccx
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "auth/builder-api-key", []string{"clob", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "auth/builder-api-key", []string{"clob", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivatePostHeartbeats returns a channel that yields a JSON object.
@@ -870,7 +870,7 @@ func (this *Polymarket) ClobPrivatePostHeartbeats(args ...any) <-chan ccxt.Endpo
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "heartbeats", []string{"clob", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "heartbeats", []string{"clob", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivatePostOrder returns a channel that yields a JSON object.
@@ -879,7 +879,7 @@ func (this *Polymarket) ClobPrivatePostOrder(args ...any) <-chan ccxt.EndpointRe
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "order", []string{"clob", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "order", []string{"clob", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivatePostOrders returns a channel that yields a JSON array.
@@ -888,7 +888,7 @@ func (this *Polymarket) ClobPrivatePostOrders(args ...any) <-chan ccxt.EndpointR
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "orders", []string{"clob", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "orders", []string{"clob", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivatePostV1Heartbeats returns a channel that yields a JSON object.
@@ -897,7 +897,7 @@ func (this *Polymarket) ClobPrivatePostV1Heartbeats(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/heartbeats", []string{"clob", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/heartbeats", []string{"clob", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateDeleteAuthApiKey returns a channel that yields a JSON scalar.
@@ -906,7 +906,7 @@ func (this *Polymarket) ClobPrivateDeleteAuthApiKey(args ...any) <-chan ccxt.End
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[string](this, "auth/api-key", []string{"clob", "private"}, "DELETE", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[string](this, "auth/api-key", []string{"clob", "private"}, "DELETE", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateDeleteAuthBuilderApiKey returns a channel that yields a JSON scalar.
@@ -915,7 +915,7 @@ func (this *Polymarket) ClobPrivateDeleteAuthBuilderApiKey(args ...any) <-chan c
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[string](this, "auth/builder-api-key", []string{"clob", "private"}, "DELETE", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[string](this, "auth/builder-api-key", []string{"clob", "private"}, "DELETE", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateDeleteCancelAll returns a channel that yields a JSON object.
@@ -924,7 +924,7 @@ func (this *Polymarket) ClobPrivateDeleteCancelAll(args ...any) <-chan ccxt.Endp
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "cancel-all", []string{"clob", "private"}, "DELETE", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "cancel-all", []string{"clob", "private"}, "DELETE", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateDeleteCancelMarketOrders returns a channel that yields a JSON object.
@@ -933,7 +933,7 @@ func (this *Polymarket) ClobPrivateDeleteCancelMarketOrders(args ...any) <-chan 
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "cancel-market-orders", []string{"clob", "private"}, "DELETE", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "cancel-market-orders", []string{"clob", "private"}, "DELETE", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateDeleteNotifications returns a channel that yields a JSON scalar.
@@ -942,7 +942,7 @@ func (this *Polymarket) ClobPrivateDeleteNotifications(args ...any) <-chan ccxt.
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[string](this, "notifications", []string{"clob", "private"}, "DELETE", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[string](this, "notifications", []string{"clob", "private"}, "DELETE", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateDeleteOrder returns a channel that yields a JSON object.
@@ -951,7 +951,7 @@ func (this *Polymarket) ClobPrivateDeleteOrder(args ...any) <-chan ccxt.Endpoint
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "order", []string{"clob", "private"}, "DELETE", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "order", []string{"clob", "private"}, "DELETE", params, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateDeleteOrders returns a channel that yields a JSON object.
@@ -960,7 +960,7 @@ func (this *Polymarket) ClobPrivateDeleteOrders(args ...any) <-chan ccxt.Endpoin
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "orders", []string{"clob", "private"}, "DELETE", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "orders", []string{"clob", "private"}, "DELETE", params, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetActivity returns a channel that yields a JSON array.
@@ -969,7 +969,7 @@ func (this *Polymarket) DataPublicGetActivity(args ...any) <-chan ccxt.EndpointR
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "activity", []string{"data", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "activity", []string{"data", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetClosedPositions returns a channel that yields a JSON array.
@@ -978,7 +978,7 @@ func (this *Polymarket) DataPublicGetClosedPositions(args ...any) <-chan ccxt.En
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "closed-positions", []string{"data", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "closed-positions", []string{"data", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetHolders returns a channel that yields a JSON array.
@@ -987,7 +987,7 @@ func (this *Polymarket) DataPublicGetHolders(args ...any) <-chan ccxt.EndpointRe
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "holders", []string{"data", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "holders", []string{"data", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetLiveVolume returns a channel that yields a JSON array.
@@ -996,7 +996,7 @@ func (this *Polymarket) DataPublicGetLiveVolume(args ...any) <-chan ccxt.Endpoin
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "live-volume", []string{"data", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "live-volume", []string{"data", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetOi returns a channel that yields a JSON array.
@@ -1005,7 +1005,7 @@ func (this *Polymarket) DataPublicGetOi(args ...any) <-chan ccxt.EndpointResult[
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "oi", []string{"data", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "oi", []string{"data", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetOther returns a channel that yields a JSON array.
@@ -1014,7 +1014,7 @@ func (this *Polymarket) DataPublicGetOther(args ...any) <-chan ccxt.EndpointResu
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "other", []string{"data", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "other", []string{"data", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetPositions returns a channel that yields a JSON object.
@@ -1023,7 +1023,7 @@ func (this *Polymarket) DataPublicGetPositions(args ...any) <-chan ccxt.Endpoint
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "positions", []string{"data", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "positions", []string{"data", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetRevisions returns a channel that yields a JSON array.
@@ -1032,7 +1032,7 @@ func (this *Polymarket) DataPublicGetRevisions(args ...any) <-chan ccxt.Endpoint
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "revisions", []string{"data", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "revisions", []string{"data", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetTraded returns a channel that yields a JSON object.
@@ -1041,7 +1041,7 @@ func (this *Polymarket) DataPublicGetTraded(args ...any) <-chan ccxt.EndpointRes
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "traded", []string{"data", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "traded", []string{"data", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetTrades returns a channel that yields a JSON array.
@@ -1050,7 +1050,7 @@ func (this *Polymarket) DataPublicGetTrades(args ...any) <-chan ccxt.EndpointRes
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "trades", []string{"data", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "trades", []string{"data", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetV1AccountingSnapshot returns a channel that yields a JSON object.
@@ -1059,7 +1059,7 @@ func (this *Polymarket) DataPublicGetV1AccountingSnapshot(args ...any) <-chan cc
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/accounting/snapshot", []string{"data", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/accounting/snapshot", []string{"data", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetV1ActivityCombos returns a channel that yields a JSON object.
@@ -1068,7 +1068,7 @@ func (this *Polymarket) DataPublicGetV1ActivityCombos(args ...any) <-chan ccxt.E
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/activity/combos", []string{"data", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/activity/combos", []string{"data", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetV1BuildersLeaderboard returns a channel that yields a JSON array.
@@ -1077,7 +1077,7 @@ func (this *Polymarket) DataPublicGetV1BuildersLeaderboard(args ...any) <-chan c
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "v1/builders/leaderboard", []string{"data", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "v1/builders/leaderboard", []string{"data", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetV1BuildersVolume returns a channel that yields a JSON array.
@@ -1086,7 +1086,7 @@ func (this *Polymarket) DataPublicGetV1BuildersVolume(args ...any) <-chan ccxt.E
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "v1/builders/volume", []string{"data", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "v1/builders/volume", []string{"data", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetV1Leaderboard returns a channel that yields a JSON array.
@@ -1095,7 +1095,7 @@ func (this *Polymarket) DataPublicGetV1Leaderboard(args ...any) <-chan ccxt.Endp
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "v1/leaderboard", []string{"data", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "v1/leaderboard", []string{"data", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetV1MarketPositions returns a channel that yields a JSON array.
@@ -1104,7 +1104,7 @@ func (this *Polymarket) DataPublicGetV1MarketPositions(args ...any) <-chan ccxt.
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "v1/market-positions", []string{"data", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "v1/market-positions", []string{"data", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetV1PositionsCombos returns a channel that yields a JSON object.
@@ -1113,7 +1113,7 @@ func (this *Polymarket) DataPublicGetV1PositionsCombos(args ...any) <-chan ccxt.
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/positions/combos", []string{"data", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/positions/combos", []string{"data", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetValue returns a channel that yields a JSON array.
@@ -1122,7 +1122,7 @@ func (this *Polymarket) DataPublicGetValue(args ...any) <-chan ccxt.EndpointResu
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[[]any](this, "value", []string{"data", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[[]any](this, "value", []string{"data", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // CombosPublicGetV1RfqComboMarkets returns a channel that yields a JSON object.
@@ -1131,7 +1131,7 @@ func (this *Polymarket) CombosPublicGetV1RfqComboMarkets(args ...any) <-chan ccx
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/rfq/combo-markets", []string{"combos", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/rfq/combo-markets", []string{"combos", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // CombosPrivatePostV1MakerConfirmations returns a channel that yields a JSON object.
@@ -1140,7 +1140,7 @@ func (this *Polymarket) CombosPrivatePostV1MakerConfirmations(args ...any) <-cha
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/maker/confirmations", []string{"combos", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/maker/confirmations", []string{"combos", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // CombosPrivatePostV1MakerQuotes returns a channel that yields a JSON object.
@@ -1149,7 +1149,7 @@ func (this *Polymarket) CombosPrivatePostV1MakerQuotes(args ...any) <-chan ccxt.
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/maker/quotes", []string{"combos", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/maker/quotes", []string{"combos", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // CombosPrivatePostV1MakerQuotesCancel returns a channel that yields a JSON object.
@@ -1158,5 +1158,5 @@ func (this *Polymarket) CombosPrivatePostV1MakerQuotesCancel(args ...any) <-chan
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "v1/maker/quotes/cancel", []string{"combos", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "v1/maker/quotes/cancel", []string{"combos", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }

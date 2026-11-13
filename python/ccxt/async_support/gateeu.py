@@ -9,7 +9,7 @@ from ccxt.abstract.gateeu import ImplicitAPI
 
 class gateeu(gate, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(gateeu, self).describe(), {
             'id': 'gateeu',
             'name': 'Gate EU',

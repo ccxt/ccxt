@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\bybiteu as bybit;
 
 class bybiteu extends bybit {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bybiteu',
             'name' => 'Bybit EU',

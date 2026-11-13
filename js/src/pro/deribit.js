@@ -89,7 +89,7 @@ export default class deribit extends deribitRest {
         const currencies = this.safeList(this.options, 'currencies', []);
         const channels = [];
         for (let i = 0; i < currencies.length; i++) {
-            const currencyCode = this.safeString(currencies, i);
+            const currencyCode = this.safeString(currencies, i, '');
             channels.push('user.portfolio.' + currencyCode);
         }
         const subscribe = {
@@ -183,12 +183,13 @@ export default class deribit extends deribitRest {
         if (interval === 'raw') {
             await this.authenticate();
         }
-        const channel = 'ticker.' + market['id'] + '.' + interval;
+        const marketId = this.safeString(market, 'id', '');
+        const channel = 'ticker.' + marketId + '.' + interval;
         const message = {
             'jsonrpc': '2.0',
             'method': 'public/subscribe',
             'params': {
-                'channels': ['ticker.' + market['id'] + '.' + interval],
+                'channels': ['ticker.' + marketId + '.' + interval],
             },
             'id': this.requestId(),
         };
@@ -222,7 +223,7 @@ export default class deribit extends deribitRest {
         const channels = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market(symbolsNormalized[i]);
-            channels.push('ticker.' + market['id'] + '.' + interval);
+            channels.push('ticker.' + this.safeString(market, 'id', '') + '.' + interval);
         }
         const message = {
             'jsonrpc': '2.0',
@@ -301,7 +302,7 @@ export default class deribit extends deribitRest {
         const channels = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market(symbolsNormalized[i]);
-            channels.push('quote.' + market['id']);
+            channels.push('quote.' + this.safeString(market, 'id', ''));
         }
         const message = {
             'jsonrpc': '2.0',
@@ -344,7 +345,7 @@ export default class deribit extends deribitRest {
         const params = this.safeDict(message, 'params', {});
         const data = this.safeDict(params, 'data', {});
         const ticker = this.parseWsBidAsk(data);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString(ticker, 'symbol');
         this.bidsasks[symbol] = ticker;
         const messageHash = this.safeString(params, 'channel');
         client.resolve(ticker, messageHash);
@@ -432,7 +433,6 @@ export default class deribit extends deribitRest {
         const channel = this.safeString(params, 'channel', '');
         const parts = channel.split('.');
         const marketId = this.safeString(parts, 1);
-        const interval = this.safeString(parts, 2);
         const symbol = this.safeSymbol(marketId);
         const market = this.safeMarket(marketId);
         const trades = this.safeList(params, 'data', []);
@@ -447,6 +447,7 @@ export default class deribit extends deribitRest {
             stored.append(parsed);
         }
         this.trades[symbol] = stored;
+        const interval = this.safeString(parts, 2, '');
         const messageHash = 'trades|' + symbol + '|' + interval;
         client.resolve(this.trades[symbol], messageHash);
     }
@@ -530,7 +531,7 @@ export default class deribit extends deribitRest {
         for (let i = 0; i < parsed.length; i++) {
             const trade = parsed[i];
             cachedTrades.append(trade);
-            const symbol = trade['symbol'];
+            const symbol = this.safeString(trade, 'symbol');
             marketIds[symbol] = true;
         }
         client.resolve(cachedTrades, channel);
@@ -634,14 +635,11 @@ export default class deribit extends deribitRest {
         const partsLength = parts.length;
         const isDetailed = partsLength === 5;
         if (isDetailed) {
-            const group = this.safeString(parts, 2);
-            const depth = this.safeString(parts, 3);
-            const interval = this.safeString(parts, 4);
-            descriptor = group + '.' + depth + '.' + interval;
+            const interval = this.safeString(parts, 4, '');
+            descriptor = this.safeString(parts, 2, '') + '.' + this.safeString(parts, 3, '') + '.' + interval;
         }
         else {
-            const interval = this.safeString(parts, 2);
-            descriptor = interval;
+            descriptor = this.safeString(parts, 2, '');
         }
         const marketId = this.safeString(data, 'instrument_name');
         const symbol = this.safeSymbol(marketId);
@@ -667,19 +665,21 @@ export default class deribit extends deribitRest {
         const asks = this.safeList(data, 'asks', []);
         const cleanedBids = [];
         for (let i = 0; i < bids.length; i++) {
-            cleanedBids.push([bids[i][1], bids[i][2]]);
+            const bid = this.safeList(bids, i, []);
+            cleanedBids.push([bid[1], bid[2]]);
         }
         const cleanedAsks = [];
         for (let i = 0; i < asks.length; i++) {
-            cleanedAsks.push([asks[i][1], asks[i][2]]);
+            const ask = this.safeList(asks, i, []);
+            cleanedAsks.push([ask[1], ask[2]]);
         }
         data['bids'] = cleanedBids;
         data['asks'] = cleanedAsks;
         return data;
     }
     handleDelta(bookside, delta) {
-        const price = delta[1];
-        const amount = delta[2];
+        const price = this.safeValue(delta, 1);
+        const amount = this.safeValue(delta, 2);
         const action = this.safeString(delta, 0);
         if (action === 'new' || action === 'change') {
             bookside.storeArray([price, amount, 1]);
@@ -873,7 +873,7 @@ export default class deribit extends deribitRest {
         stored.append(parsed);
         this.ohlcvs[symbol][unifiedTimeframe] = stored;
         const resolveData = [symbol, unifiedTimeframe, stored];
-        const messageHash = 'chart.trades|' + symbol + '|' + rawTimeframe;
+        const messageHash = 'chart.trades|' + symbol + '|' + this.safeString(parts, 3, '');
         client.resolve(resolveData, messageHash);
     }
     parseWsOHLCV(ohlcv, market = undefined) {
@@ -914,21 +914,21 @@ export default class deribit extends deribitRest {
             if (symbolsArray === undefined) {
                 throw new ArgumentsRequired(this.id + ' watchMultipleWrapper() symbolsArray is required');
             }
-            const current = symbolsArray[i];
             let market = undefined;
             let currentDescriptor = undefined;
             if (isOHLCV) {
-                market = this.market(current[0]);
-                const unifiedTf = current[1];
+                const currentPair = this.safeList(symbolsArray, i, []);
+                market = this.market(this.safeString(currentPair, 0));
+                const unifiedTf = this.safeString(currentPair, 1);
                 currentDescriptor = this.safeString(this.timeframes, unifiedTf, unifiedTf);
             }
             else {
-                market = this.market(current);
+                market = this.market(this.safeString(symbolsArray, i));
                 currentDescriptor = channelDescriptor;
             }
-            const message = channelName + '.' + market['id'] + '.' + currentDescriptor;
+            const message = channelName + '.' + this.safeString(market, 'id', '') + '.' + currentDescriptor;
             rawSubscriptions.push(message);
-            messageHashes.push(channelName + '|' + market['symbol'] + '|' + currentDescriptor);
+            messageHashes.push(channelName + '|' + this.safeString(market, 'symbol', '') + '|' + currentDescriptor);
         }
         const request = {
             'jsonrpc': '2.0',

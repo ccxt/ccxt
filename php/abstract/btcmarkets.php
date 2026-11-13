@@ -152,7 +152,7 @@ abstract class btcmarkets extends \ccxt\Exchange {
         return $this->request('accounts/me/withdrawal-limits', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function private_get_accounts_me_balances($params = array()) {
         return $this->request('accounts/me/balances', array('private'), 'GET', $params, array("cost" => 1));
@@ -362,7 +362,7 @@ abstract class btcmarkets extends \ccxt\Exchange {
         return $this->request('accounts/me/withdrawal-limits', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function privateGetAccountsMeBalances($params = array()) {
         return $this->request('accounts/me/balances', array('private'), 'GET', $params, array("cost" => 1));

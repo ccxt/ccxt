@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\okx as Exchange;
 
 class okx extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'okx',
             'name' => 'OKX',
@@ -251,6 +251,7 @@ class okx extends Exchange {
                         'public/vip-interest-rate-loan-quota' => array( 'cost' => 10 ), // not documented
                         'public/mm-instrument-types' => array( 'cost' => 4 ),
                         'public/delta-hedge-currencies' => array( 'cost' => 1 ),
+                        'public/corporate-actions' => array( 'cost' => 1 ),
                         // rubik
                         'rubik/stat/trading-data/support-coin' => array( 'cost' => 4 ),
                         'rubik/stat/contracts/open-interest-history' => array( 'cost' => 2 ),
@@ -1511,27 +1512,24 @@ class okx extends Exchange {
         $quote = 'USD';
         $optionParts = explode('-', $symbol);
         $symbolBase = explode('/', $symbol);
-        $base = null;
+        $base = $this->safe_string($optionParts, 0, '');
         if (mb_strpos($symbol, '/') > -1) {
-            $base = $this->safe_string($symbolBase, 0);
-        } else {
-            $base = $this->safe_string($optionParts, 0);
+            $base = $this->safe_string($symbolBase, 0, '');
         }
-        $settle = $base;
-        $expiry = $this->safe_string($optionParts, 2);
-        $strike = $this->safe_string($optionParts, 3);
-        $optionType = $this->safe_string($optionParts, 4);
-        $datetime = ($expiry === null) ? null : $this->convert_expire_date($expiry);
+        $expiry = $this->safe_string($optionParts, 2, '');
+        $strike = $this->safe_string($optionParts, 3, '');
+        $optionType = $this->safe_string($optionParts, 4, '');
+        $datetime = ($expiry === '') ? null : $this->convert_expire_date($expiry);
         $timestamp = $this->parse8601($datetime);
         return array(
             'id' => $base . '-' . $quote . '-' . $expiry . '-' . $strike . '-' . $optionType,
-            'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
+            'symbol' => $base . '/' . $quote . ':' . $base . '-' . $expiry . '-' . $strike . '-' . $optionType,
             'base' => $base,
             'quote' => $quote,
-            'settle' => $settle,
+            'settle' => $base,
             'baseId' => $base,
             'quoteId' => $quote,
-            'settleId' => $settle,
+            'settleId' => $base,
             'active' => false,
             'type' => 'option',
             'linear' => null,
@@ -1735,7 +1733,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         $timeDifference = $this->safe_integer($this->options, 'timeDifference');
         if ($timeDifference === null) {
             throw new ExchangeError($this->id . ' nonce() requires a numeric options["timeDifference"]');
@@ -1765,7 +1763,7 @@ class okx extends Exchange {
         $promises = array();
         $result = array();
         for ($i = 0; $i < count($types); $i++) {
-            $promises[] = $this->fetch_markets_by_type($types[$i], $params);
+            $promises[] = $this->fetch_markets_by_type($this->safe_string($types, $i, ''), $params);
         }
         $responses = $promises;
         for ($i = 0; $i < count($responses); $i++) {
@@ -1862,31 +1860,32 @@ class okx extends Exchange {
         if (($base === null) || ($quote === null)) {
             return null;
         }
-        $symbol = $base . '/' . $quote;
+        $baseSymbol = $base . '/' . $quote;
         // handle preopen empty markets
         if ($base === '' || $quote === '') {
-            $symbol = $id;
+            $baseSymbol = $id . '';
         }
+        $symbol = $baseSymbol;
         $expiry = null;
         $strikePrice = null;
         $optionType = null;
         if ($contract) {
+            $settledSymbol = $baseSymbol;
             if ($settle !== null) {
-                $symbol = $symbol . ':' . $settle;
+                $settledSymbol = $baseSymbol . ':' . $settle;
             }
+            $symbol = $settledSymbol;
             if ($future) {
                 $expiry = $this->safe_integer($market, 'expTime');
                 if ($expiry !== null) {
-                    $ymd = $this->yymmdd($expiry);
-                    $symbol = $symbol . '-' . $ymd;
+                    $symbol = $settledSymbol . '-' . $this->yymmdd($expiry);
                 }
             } elseif ($option) {
                 $expiry = $this->safe_integer($market, 'expTime');
                 $strikePrice = $this->safe_string($market, 'stk');
                 $optionType = $this->safe_string($market, 'optType');
                 if ($expiry !== null) {
-                    $ymd = $this->yymmdd($expiry);
-                    $symbol = $symbol . '-' . $ymd . '-' . $strikePrice . '-' . $optionType;
+                    $symbol = $settledSymbol . '-' . $this->yymmdd($expiry) . '-' . $strikePrice . '-' . $optionType;
                     $optionType = ($optionType === 'P') ? 'put' : 'call';
                 }
             }
@@ -2191,9 +2190,7 @@ class okx extends Exchange {
         $isFullBook = ($method === 'publicGetMarketBooksFull');
         $largeLimit = (($limit === null) && $isFullBook) || (($limit !== null) && ($limit > 400));
         $limitResolved = ($rpi && $largeLimit) ? 400 : $requestedLimit;
-        if ($limitResolved !== null) {
-            $request['sz'] = $limitResolved; // max 400
-        }
+        $request['sz'] = $limitResolved; // max 400
         if ($rpi) {
             $response = $this->publicGetMarketBooksRpi($this->extend($request, $paramsMethod));
         } elseif ($isFullBook || $largeLimit) {
@@ -2604,7 +2601,7 @@ class okx extends Exchange {
             'instId' => $market['id'],
         );
         $response = null;
-        if ($market['option'] === true) {
+        if ($this->safe_bool($market, 'option', false)) {
             $response = $this->publicGetPublicOptionTrades($this->extend($request, $paramsPaginate));
         } else {
             if ($limit !== null) {
@@ -2768,7 +2765,8 @@ class okx extends Exchange {
                 $response = $this->publicGetMarketMarkPriceCandles($this->extend($request, $paramsType));
             }
         } elseif ($priceType === 'index') {
-            $request['instId'] = $market['info']['instFamily']; // okx index candles require instFamily instead of instId
+            $marketInfo = $this->safe_dict($market, 'info', array());
+            $request['instId'] = $marketInfo['instFamily']; // okx index candles require instFamily instead of instId
             if ($isHistoryCandles) {
                 $response = $this->publicGetMarketHistoryIndexCandles($this->extend($request, $paramsType));
             } else {
@@ -2975,10 +2973,10 @@ class okx extends Exchange {
             // "uly": market["id"], // only applicable to FUTURES/SWAP/OPTION
             // "category": "1", // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
         );
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $request['instId'] = $market['id'];
-        } elseif (($market['swap'] === true) || ($market['future'] === true) || ($market['option'] === true)) {
-            $request['uly'] = $market['baseId'] . '-' . $market['quoteId'];
+        } elseif (($this->safe_bool($market, 'swap', false)) || ($this->safe_bool($market, 'future', false)) || ($this->safe_bool($market, 'option', false))) {
+            $request['uly'] = $this->safe_string($market, 'baseId', '') . '-' . $this->safe_string($market, 'quoteId', '');
         } else {
             throw new NotSupported($this->id . ' fetchTradingFee() supports spot, swap, future or option markets only');
         }
@@ -3149,7 +3147,7 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot markets only');
         }
         $req = array(
@@ -3174,7 +3172,7 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot markets only');
         }
         $req = array(
@@ -3227,8 +3225,8 @@ class okx extends Exchange {
         if (!$shouldOmitSize) {
             $request['sz'] = $this->amount_to_precision($symbol, $amount);
         }
-        $spot = $market['spot'];
-        $contract = $market['contract'];
+        $spot = $this->safe_bool($market, 'spot', false);
+        $contract = $this->safe_bool($market, 'contract');
         $triggerPrice = $this->safe_value_n($params, array( 'triggerPrice', 'stopPrice', 'triggerPx' ));
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
@@ -3255,7 +3253,7 @@ class okx extends Exchange {
             $marginMode = $defaultMarginMode;
         }
         $marginParam = $this->safe_bool($params, 'margin', false);
-        $margin = $marginModeIsExplicit || ($marginParam === true);
+        $margin = $marginModeIsExplicit || $marginParam;
         // position side / hedged options only apply to swap and future orders
         $isSwapOrFuture = ($contract === true) && (($market['swap'] === true) || ($market['future'] === true));
         list($positionSide, $paramsPositionSide) = $this->handle_option_string_and_params($params, 'createOrder', 'positionSide');
@@ -3274,7 +3272,7 @@ class okx extends Exchange {
         if ($omitReduceOnly) {
             $paramsReduceOnly = $this->omit($paramsHedged, 'reduceOnly');
         }
-        if ($spot === true) {
+        if ($spot) {
             if ($margin) {
                 $defaultCurrency = ($side === 'buy') ? $market['quote'] : $market['base'];
                 $currency = $this->safe_string($params, 'ccy', $defaultCurrency);
@@ -3283,7 +3281,7 @@ class okx extends Exchange {
             $tradeMode = ($margin) ? $marginMode : 'cash';
             $request['tdMode'] = $tradeMode;
         } elseif ($contract === true) {
-            if (($market['swap'] === true) || ($market['future'] === true)) {
+            if (($this->safe_bool($market, 'swap', false)) || ($this->safe_bool($market, 'future', false))) {
                 if ($positionSide !== null) {
                     $request['posSide'] = $positionSide;
                 } else {
@@ -3311,12 +3309,13 @@ class okx extends Exchange {
         $marketIOC = ($isMarketOrder && $ioc) || ($type === 'optimal_limit_ioc');
         $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
         $tgtCcy = $this->safe_string($orderParams, 'tgtCcy', $defaultTgtCcy);
-        if (($contract !== true) && (!$margin)) {
+        // conditional sell orders must not carry tgtCcy
+        if (($contract !== true) && (!$margin) && ($trigger || (!$conditional) || ($side !== 'sell'))) {
             $request['tgtCcy'] = $tgtCcy;
         }
         if ($isMarketOrder || $marketIOC) {
             $request['ordType'] = 'market';
-            if (($spot === true) && ($side === 'buy')) {
+            if ($spot && ($side === 'buy')) {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if ($tgtCcy === 'quote_ccy') {
@@ -3462,10 +3461,7 @@ class okx extends Exchange {
             if ($twoWayCondition) {
                 $request['ordType'] = 'oco';
             }
-            if ($side === 'sell') {
-                $request = $this->omit($request, 'tgtCcy');
-            }
-            if ($this->safe_string($request, 'tdMode') === 'cash') {
+            if ($spot && (!$margin)) {
                 // for some reason tdMode = cash throws
                 // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
                 $request['tdMode'] = $marginMode;
@@ -3491,7 +3487,7 @@ class okx extends Exchange {
         }
         // unified stp
         $selfTradePrevention = null;
-        list($selfTradePrevention, $orderParams) = $this->handle_option_and_params($orderParams, 'createOrder', 'selfTradePrevention');
+        list($selfTradePrevention, $orderParams) = $this->handle_option_string_and_params($orderParams, 'createOrder', 'selfTradePrevention');
         if ($selfTradePrevention !== null) {
             $stpModes = array(
                 'EXPIRE_MAKER' => 'cancel_maker',
@@ -3978,7 +3974,7 @@ class okx extends Exchange {
             if ($algoIds !== null) {
                 for ($i = 0; $i < count($algoIds); $i++) {
                     $request[] = array(
-                        'algoId' => $algoIds[$i],
+                        'algoId' => $this->safe_string($algoIds, $i),
                         'instId' => $market['id'],
                     );
                 }
@@ -3986,12 +3982,12 @@ class okx extends Exchange {
             for ($i = 0; $i < count($orderIds); $i++) {
                 if (($trailing) || $isTrigger) {
                     $request[] = array(
-                        'algoId' => $orderIds[$i],
+                        'algoId' => $this->safe_string($orderIds, $i),
                         'instId' => $market['id'],
                     );
                 } else {
                     $request[] = array(
-                        'ordId' => $orderIds[$i],
+                        'ordId' => $this->safe_string($orderIds, $i),
                         'instId' => $market['id'],
                     );
                 }
@@ -4001,12 +3997,12 @@ class okx extends Exchange {
                 if (($trailing) || $isTrigger) {
                     $request[] = array(
                         'instId' => $market['id'],
-                        'algoClOrdId' => $clientOrderIds[$i],
+                        'algoClOrdId' => $this->safe_string($clientOrderIds, $i),
                     );
                 } else {
                     $request[] = array(
                         'instId' => $market['id'],
-                        'clOrdId' => $clientOrderIds[$i],
+                        'clOrdId' => $this->safe_string($clientOrderIds, $i),
                     );
                 }
             }
@@ -6461,7 +6457,7 @@ class okx extends Exchange {
         $side = $this->safe_string_2($position, 'posSide', 'direction');
         $hedged = $side !== 'net';
         $contracts = $this->parse_number($contractsAbs);
-        if ($marketResolved['margin'] === true) {
+        if ($this->safe_bool($marketResolved, 'margin', false)) {
             // margin position
             if ($side === 'net') {
                 $posCcy = $this->safe_string($position, 'posCcy');
@@ -6490,7 +6486,7 @@ class okx extends Exchange {
         $contractSizeString = $this->number_to_string($contractSize);
         $markPriceString = $this->safe_string($position, 'markPx');
         $notionalString = $this->safe_string($position, 'notionalUsd');
-        if ($marketResolved['inverse'] === true) {
+        if ($this->safe_bool($marketResolved, 'inverse', false)) {
             $notionalString = Precise::string_div(Precise::string_mul($contractsAbs, $contractSizeString), $markPriceString);
         }
         $notional = $this->parse_number($notionalString);
@@ -6520,7 +6516,7 @@ class okx extends Exchange {
         if ($initialMarginPercentage === null) {
             $initialMarginPercentage = $this->parse_number(Precise::string_div($initialMarginString, $notionalString, 4));
         } elseif ($initialMarginString === null) {
-            if ($marketResolved['linear'] === true) {
+            if ($this->safe_bool($marketResolved, 'linear', false)) {
                 $initialMarginPercentageString = $this->number_to_string($initialMarginPercentage);
                 $initialMarginString = Precise::string_mul($initialMarginPercentageString, $notionalString);
             } else {
@@ -6845,7 +6841,7 @@ class okx extends Exchange {
         $jsonBody = null;
         // const type = this.getPathAuthenticationType (path);
         if ($apiName === 'public') {
-            if (count($query) > 0) {
+            if (!$this->is_empty($query)) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($apiName === 'private') {
@@ -6871,7 +6867,7 @@ class okx extends Exchange {
                     }
                 }
             }
-            $hasJsonBody = ($method !== 'GET') && ($isArray || (count($query) > 0));
+            $hasJsonBody = ($method !== 'GET') && ($isArray || (!$this->is_empty($query)));
             $jsonBody = $hasJsonBody ? $this->json($query) : null;
             $timestamp = $this->iso8601($this->nonce());
             $privateHeaders = array(
@@ -6884,7 +6880,7 @@ class okx extends Exchange {
             );
             $auth = $timestamp . $method . $request;
             if ($method === 'GET') {
-                if (count($query) > 0) {
+                if (!$this->is_empty($query)) {
                     $urlencodedQuery = '?' . $this->urlencode($query);
                     $url .= $urlencodedQuery;
                     $auth .= $urlencodedQuery;
@@ -7009,7 +7005,7 @@ class okx extends Exchange {
         $marketInfo = $this->safe_dict($market, 'info', array());
         $ruleType = $this->safe_string($marketInfo, 'ruleType');
         $isExtendedPerpetual = ($ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-        if (($market['swap'] !== true) && !$isExtendedPerpetual) {
+        if ((!$this->safe_bool($market, 'swap', false)) && !$isExtendedPerpetual) {
             throw new ExchangeError($this->id . ' fetchFundingRate() is only valid for swap markets or XPERP futures');
         }
         $request = array(
@@ -7057,8 +7053,8 @@ class okx extends Exchange {
                 $marketInfo = $this->safe_dict($market, 'info', array());
                 $ruleType = $this->safe_string($marketInfo, 'ruleType');
                 $isExtendedPerpetual = ($ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-                if (($market['swap'] !== true) && !$isExtendedPerpetual) {
-                    throw new BadRequest($this->id . ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' . $symbolsNormalized[$i] . ' is not');
+                if ((!$this->safe_bool($market, 'swap', false)) && !$isExtendedPerpetual) {
+                    throw new BadRequest($this->id . ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' . $this->safe_string($symbolsNormalized, $i, '') . ' is not');
                 }
             }
         }
@@ -7177,14 +7173,14 @@ class okx extends Exchange {
             // "limit": "100", // default 100, max 100
         );
         if ($limit !== null) {
-            $request['limit'] = (string) $limit; // default 100, max 100
+            $request['limit'] = $this->number_to_string($limit); // default 100, max 100
         }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['instId'] = $market['id'];
-            if ($market['contract'] === true) {
-                if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'contract', false)) {
+                if ($this->safe_bool($market, 'linear', false)) {
                     $request['ctType'] = 'linear';
                     $request['ccy'] = $market['quoteId'];
                 } else {
@@ -7761,7 +7757,7 @@ class okx extends Exchange {
         $amount = Precise::string_abs($amountRaw);
         $marketId = $this->safe_string($data, 'instId');
         $responseMarket = $this->safe_market($marketId, $market);
-        $code = ($responseMarket['inverse'] === true) ? $responseMarket['base'] : $responseMarket['quote'];
+        $code = ($this->safe_bool($responseMarket, 'inverse', false)) ? $responseMarket['base'] : $responseMarket['quote'];
         $timestamp = $this->safe_integer($data, 'ts');
         return array(
             'info' => $data,
@@ -7821,7 +7817,7 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $type = ($market['spot'] === true) ? 'MARGIN' : $this->convert_to_instrument_type($market['type']);
+        $type = ($this->safe_bool($market, 'spot', false)) ? 'MARGIN' : $this->convert_to_instrument_type($market['type']);
         $instFamily = $this->safe_string($market['info'], 'instFamily');
         if (($instFamily === null) || ($instFamily === '')) {
             if ($type !== 'MARGIN') {
@@ -8115,7 +8111,7 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['contract'] !== true) {
+        if (!$this->safe_bool($market, 'contract', false)) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
         }
         $type = $this->convert_to_instrument_type($market['type']);
@@ -8247,7 +8243,7 @@ class okx extends Exchange {
             'period' => $timeframeValue,
         );
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchOpenInterestHistory', $market, $params);
-        if (($market !== null) && (($market['swap'] === true) || ($market['future'] === true))) {
+        if (($market !== null) && (($this->safe_bool($market, 'swap', false)) || ($this->safe_bool($market, 'future', false)))) {
             $instrumentRequest = array(
                 'instId' => $market['id'],
                 'period' => $timeframeValue,
@@ -8316,7 +8312,10 @@ class okx extends Exchange {
          * @return {array[]} the $request and the remaining $params
          */
         $maxLimit = 100;
-        $effectiveLimit = (($limit === null) || ($limit > 100)) ? 100 : $limit;
+        $effectiveLimit = $this->parse_to_int(100);
+        if (($limit !== null) && (100 > $limit)) {
+            $effectiveLimit = $this->parse_to_int($limit);
+        }
         if ($limit !== null) {
             $request['limit'] = $effectiveLimit;
         }
@@ -8650,9 +8649,10 @@ class okx extends Exchange {
             'type' => '3', // delivery
         );
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['instId'] = $market['id'];
-            $request['instType'] = $this->convert_to_instrument_type($market['type']);
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['instId'] = $symbolMarket['id'];
+            $request['instType'] = $this->convert_to_instrument_type($symbolMarket['type']);
         }
         if ($since !== null) {
             $request['begin'] = $since;
@@ -8660,7 +8660,7 @@ class okx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        list($method, $paramsMethod) = $this->handle_option_and_params($params, 'fetchMySettlementHistory', 'method', 'privateGetAccountBillsArchive');
+        list($method, $paramsMethod) = $this->handle_option_string_and_params($params, 'fetchMySettlementHistory', 'method', 'privateGetAccountBillsArchive');
         $until = $this->safe_integer($paramsMethod, 'until');
         if ($until !== null) {
             $request['end'] = $until;
@@ -8802,9 +8802,10 @@ class okx extends Exchange {
         $market = $this->market($symbol);
         $marketId = $this->safe_string($market, 'id', '');
         $optionParts = explode('-', $marketId);
+        $marketInfo = $this->safe_dict($market, 'info', array());
         $request = array(
-            'uly' => $market['info']['uly'],
-            'instFamily' => $market['info']['instFamily'],
+            'uly' => $marketInfo['uly'],
+            'instFamily' => $marketInfo['instFamily'],
             'expTime' => $this->safe_string($optionParts, 2),
         );
         $response = $this->publicGetPublicOptSummary($this->extend($request, $params));
@@ -8885,8 +8886,9 @@ class okx extends Exchange {
                 $market = $this->market($symbolsNormalized[0]);
                 $marketId = $this->safe_string($market, 'id', '');
                 $optionParts = explode('-', $marketId);
-                $request['uly'] = $market['info']['uly'];
-                $request['instFamily'] = $market['info']['instFamily'];
+                $marketInfo = $this->safe_dict($market, 'info', array());
+                $request['uly'] = $marketInfo['uly'];
+                $request['instFamily'] = $marketInfo['instFamily'];
                 $request['expTime'] = $this->safe_string($optionParts, 2);
             }
         }
@@ -9540,7 +9542,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -9564,8 +9566,8 @@ class okx extends Exchange {
         //        "msg": "Incorrect trade password"
         //    }
         //
-        $code = $this->safe_string($response, 'code');
-        if (($code !== '0') && ($code !== '2')) { // 2 means that bulk operation partially succeeded
+        $codeError = $this->safe_string($response, 'code');
+        if (($codeError !== '0') && ($codeError !== '2')) { // 2 means that bulk operation partially succeeded
             $feedback = $this->id . ' ' . $body;
             $data = $this->safe_list($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
@@ -9575,7 +9577,7 @@ class okx extends Exchange {
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             }
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
         return null;
@@ -9599,13 +9601,13 @@ class okx extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $auto = $this->safe_bool($params, 'auto');
+        $auto = $this->safe_bool($params, 'auto', false);
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' fetchMarginAdjustmentHistory () requires a type argument');
         }
         $isAdd = $type === 'add';
         $subType = $isAdd ? '160' : '161';
-        if ($auto === true) {
+        if ($auto) {
             if ($isAdd) {
                 $subType = '162';
             } else {

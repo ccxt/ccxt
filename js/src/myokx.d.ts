@@ -1,4 +1,5 @@
 import okx from './abstract/myokx.js';
+import type { Dict } from './base/types.js';
 export default class myokx extends okx {
-    describe(): any;
+    describe(): Dict;
 }

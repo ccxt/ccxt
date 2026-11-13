@@ -127,16 +127,16 @@ public partial class BaseTest
             //
             Assert(!isEqual(exchange.options, null));
             //
-            // credentials
+            // credentials: the Go port declares them as plain strings, so unset is '' there
             //
-            Assert(isEqual(exchangeProp(exchange, "apiKey"), null), "apiKey should be empty string");
-            Assert(isEqual(exchange.secret, null), "secret should be empty string");
-            Assert(isEqual(exchange.uid, null), "uid should be empty string");
+            Assert((isEqual(exchangeProp(exchange, "apiKey"), null)) || (isEqual(exchangeProp(exchange, "apiKey"), "")), "apiKey should be empty string");
+            Assert((isEqual(exchange.secret, null)) || (isEqual(exchange.secret, "")), "secret should be empty string");
+            Assert((isEqual(exchange.uid, null)) || (isEqual(exchange.uid, "")), "uid should be empty string");
             Assert(isEqual(exchange.login, null), "login should be empty string");
-            Assert(isEqual(exchange.password, null), "password should be empty string");
+            Assert((isEqual(exchange.password, null)) || (isEqual(exchange.password, "")), "password should be empty string");
             Assert(isEqual(exchange.twofa, null), "twofa should be undefined");
-            Assert(isEqual(exchangeProp(exchange, "privateKey"), null), "privateKey should be empty string");
-            Assert(isEqual(exchangeProp(exchange, "walletAddress"), null), "walletAddress should be empty string");
+            Assert((isEqual(exchangeProp(exchange, "privateKey"), null)) || (isEqual(exchangeProp(exchange, "privateKey"), "")), "privateKey should be empty string");
+            Assert((isEqual(exchangeProp(exchange, "walletAddress"), null)) || (isEqual(exchangeProp(exchange, "walletAddress"), "")), "walletAddress should be empty string");
             Assert(isEqual(exchange.token, null), "token should be empty string");
             Dictionary<string, object> requiredCredentials = new Dictionary<string, object>() {
                 { "apiKey", true },

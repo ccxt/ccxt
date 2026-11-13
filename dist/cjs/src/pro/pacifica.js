@@ -111,7 +111,9 @@ class pacifica extends pacifica$1["default"] {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString(this.urls[urlKey]['ws'], 'public');
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
         if (url === undefined) {
             throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
         }
@@ -198,7 +200,9 @@ class pacifica extends pacifica$1["default"] {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString(this.urls[urlKey]['ws'], 'public');
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
         if (url === undefined) {
             throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
         }
@@ -262,7 +266,9 @@ class pacifica extends pacifica$1["default"] {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString(this.urls[urlKey]['ws'], 'public');
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
         if (url === undefined) {
             throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
         }
@@ -343,7 +349,9 @@ class pacifica extends pacifica$1["default"] {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString(this.urls[urlKey]['ws'], 'public');
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
         if (url === undefined) {
             throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
         }
@@ -404,7 +412,9 @@ class pacifica extends pacifica$1["default"] {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString(this.urls[urlKey]['ws'], 'public');
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
         if (url === undefined) {
             throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
         }
@@ -451,7 +461,9 @@ class pacifica extends pacifica$1["default"] {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString(this.urls[urlKey]['ws'], 'public');
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
         if (url === undefined) {
             throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
         }
@@ -490,7 +502,9 @@ class pacifica extends pacifica$1["default"] {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString(this.urls[urlKey]['ws'], 'public');
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
         if (url === undefined) {
             throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
         }
@@ -554,13 +568,13 @@ class pacifica extends pacifica$1["default"] {
         if ((nonce !== undefined) && (nonce !== 0)) {
             snapshot['nonce'] = nonce;
         }
+        const messageHash = 'orderbook:' + symbol;
         if (!(symbol in this.orderbooks)) {
             const ob = this.orderBook(snapshot);
             this.orderbooks[symbol] = ob;
         }
         const orderbook = this.orderbooks[symbol];
         orderbook.reset(snapshot);
-        const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
     }
     /**
@@ -597,7 +611,9 @@ class pacifica extends pacifica$1["default"] {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString(this.urls[urlKey]['ws'], 'public');
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
         if (url === undefined) {
             throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
         }
@@ -634,7 +650,9 @@ class pacifica extends pacifica$1["default"] {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString(this.urls[urlKey]['ws'], 'public');
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
         if (url === undefined) {
             throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
         }
@@ -667,14 +685,16 @@ class pacifica extends pacifica$1["default"] {
         let symbolResolved = undefined;
         if (symbol !== undefined) {
             symbolResolved = this.symbol(symbol);
-            messageHash += ':' + symbolResolved;
+            messageHash = 'myTrades:' + symbolResolved;
         }
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey = 'api';
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString(this.urls[urlKey]['ws'], 'public');
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
         if (url === undefined) {
             throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
         }
@@ -717,7 +737,9 @@ class pacifica extends pacifica$1["default"] {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString(this.urls[urlKey]['ws'], 'public');
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
         if (url === undefined) {
             throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
         }
@@ -817,7 +839,7 @@ class pacifica extends pacifica$1["default"] {
         }
         const keys = Object.keys(symbols);
         for (let i = 0; i < keys.length; i++) {
-            const currentMessageHash = 'myTrades:' + keys[i];
+            const currentMessageHash = 'myTrades:' + this.safeString(keys, i, '');
             client.resolve(trades, currentMessageHash);
         }
         // non-symbol specific
@@ -847,7 +869,9 @@ class pacifica extends pacifica$1["default"] {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString(this.urls[urlKey]['ws'], 'public');
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
         if (url === undefined) {
             throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
         }
@@ -888,7 +912,9 @@ class pacifica extends pacifica$1["default"] {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString(this.urls[urlKey]['ws'], 'public');
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
         if (url === undefined) {
             throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
         }
@@ -925,6 +951,7 @@ class pacifica extends pacifica$1["default"] {
         const marketId = this.safeString(first, 's');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
+        const messageHash = 'trade:' + symbol;
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             const stored = new Cache.ArrayCache(limit);
@@ -936,7 +963,6 @@ class pacifica extends pacifica$1["default"] {
             const trade = this.parseWsTrade(data);
             trades.append(trade);
         }
-        const messageHash = 'trade:' + symbol;
         client.resolve(trades, messageHash);
     }
     parseWsTrade(trade, market = undefined) {
@@ -1045,7 +1071,9 @@ class pacifica extends pacifica$1["default"] {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString(this.urls[urlKey]['ws'], 'public');
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
         if (url === undefined) {
             throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
         }
@@ -1087,7 +1115,9 @@ class pacifica extends pacifica$1["default"] {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString(this.urls[urlKey]['ws'], 'public');
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
         if (url === undefined) {
             throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
         }
@@ -1130,6 +1160,7 @@ class pacifica extends pacifica$1["default"] {
         if (timeframe === undefined) {
             return;
         }
+        const messageHash = 'candles:' + timeframe + ':' + symbol;
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -1142,7 +1173,6 @@ class pacifica extends pacifica$1["default"] {
         }
         const parsed = this.parseOHLCV(data);
         ohlcv.append(parsed);
-        const messageHash = 'candles:' + timeframe + ':' + symbol;
         client.resolve(ohlcv, messageHash);
     }
     /**
@@ -1168,14 +1198,16 @@ class pacifica extends pacifica$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbolResolved = this.safeString(market, 'symbol');
-            messageHash = messageHash + ':' + symbolResolved;
+            messageHash = messageHash + ':' + this.safeString(market, 'symbol', '');
         }
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey = 'api';
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString(this.urls[urlKey]['ws'], 'public');
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
         if (url === undefined) {
             throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
         }
@@ -1217,7 +1249,9 @@ class pacifica extends pacifica$1["default"] {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString(this.urls[urlKey]['ws'], 'public');
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
         if (url === undefined) {
             throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
         }
@@ -1301,8 +1335,11 @@ class pacifica extends pacifica$1["default"] {
         if (id === undefined) {
             id = this.safeString(data, 'id');
         }
+        const wsOptions = this.safeDict(this.options, 'ws', {});
+        const wsHeaders = this.safeDict(wsOptions, 'options', {});
+        const wsHeadersFinal = this.safeDict(wsHeaders, 'headers', {});
         try {
-            this.handleErrors(0, error, '', postType, this.options['ws']['options']['headers'], this.json(data), message, {}, {});
+            this.handleErrors(0, error, '', postType, wsHeadersFinal, this.json(data), message, {}, '');
         }
         catch (e) {
             client.reject(e, id);
@@ -1354,7 +1391,7 @@ class pacifica extends pacifica$1["default"] {
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if ((symbol !== undefined) && (symbol in this.ohlcvs)) {
-            if ((timeframe !== undefined) && (timeframe in this.ohlcvs[symbol])) {
+            if (timeframe in this.ohlcvs[symbol]) {
                 delete this.ohlcvs[symbol][timeframe];
             }
         }
@@ -1493,11 +1530,12 @@ class pacifica extends pacifica$1["default"] {
             throw new errors.ArgumentsRequired(this.id + 'postAction() requires a "operationType" argument!');
         }
         const requestId = this.requestId();
+        const postParams = {};
+        postParams[operationType] = request;
         const payload = {
             'id': requestId,
-            'params': {},
+            'params': postParams,
         };
-        payload['params'][operationType] = request;
         return payload;
     }
     handleWsPost(client, message) {
