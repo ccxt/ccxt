@@ -339,7 +339,7 @@ class PredictionExchange extends Exchange.BaseExchange {
             this.events_by_slug = {};
         }
         for (let i = 0; i < events.length; i++) {
-            const event = this.safeValue(events, i);
+            const event = this.safeDict(events, i);
             const id = this.safeString(event, 'id');
             const slug = this.safeString(event, 'slug');
             const handle = this.safeString(event, 'event');
@@ -394,10 +394,10 @@ class PredictionExchange extends Exchange.BaseExchange {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
         // through fetchEvents; this never fetches
         if ((this.events !== undefined) && (eventIdOrSlug in this.events)) {
-            return this.safeValue(this.events, eventIdOrSlug);
+            return this.safeDict(this.events, eventIdOrSlug);
         }
         if ((this.events_by_slug !== undefined) && (eventIdOrSlug in this.events_by_slug)) {
-            return this.safeValue(this.events_by_slug, eventIdOrSlug);
+            return this.safeDict(this.events_by_slug, eventIdOrSlug);
         }
         throw new errors.BadSymbol(this.id + ' has no cached event ' + eventIdOrSlug + " - call fetchEvents ({ 'query': ... }) first");
     }
@@ -619,7 +619,7 @@ class PredictionExchange extends Exchange.BaseExchange {
                 // on a real collision of same handle but different outcomeId, disambiguate the
                 // second one deterministically instead of silently overwriting the first —
                 // trading the wrong market would otherwise be indistinguishable
-                const existing = this.safeValue(this.outcomes, ocSymbol);
+                const existing = this.safeDict(this.outcomes, ocSymbol);
                 if (existing !== undefined) {
                     const existingId = this.safeString(existing, 'outcomeId');
                     if ((existingId !== undefined) && (ocId !== undefined) && (existingId !== ocId)) {

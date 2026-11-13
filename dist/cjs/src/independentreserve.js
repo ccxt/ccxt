@@ -334,7 +334,7 @@ class independentreserve extends independentreserve$1["default"] {
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         const limitsPromise = this.publicGetGetOrderMinimumVolumes(params);
         const responses = await Promise.all([baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise]);
-        const limits = this.safeValue(responses, 2);
+        const limits = this.safeDict(responses, 2);
         //
         //     {
         //         "Xbt": 0.0001,

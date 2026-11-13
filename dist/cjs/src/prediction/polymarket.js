@@ -2470,7 +2470,7 @@ class polymarket extends polymarket$1["default"] {
                     detailedEvent = await this.gammaPublicGetEventsSlugSlug({ 'slug': rawEventSlug });
                 }
                 if (detailedEvent !== undefined) {
-                    eventForParsing = this.safeValue(detailedEvent, 'event', detailedEvent);
+                    eventForParsing = this.safeDict(detailedEvent, 'event', detailedEvent);
                     ccxtMarkets = this.parseEventToMarkets(eventForParsing);
                 }
             }

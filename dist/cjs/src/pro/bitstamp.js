@@ -820,12 +820,14 @@ class bitstamp extends bitstamp$1["default"] {
         if ((topic === 'orders') && (this.orders !== undefined)) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             const freshOrdersCache = new Cache.ArrayCacheBySymbolById(limit);
-            this.orders = this.pruneCachedBySymbols(freshOrdersCache, this.orders, symbols);
+            this.pruneCachedBySymbols(freshOrdersCache, this.orders, symbols);
+            this.orders = freshOrdersCache;
         }
         else if ((topic === 'myTrades') && (this.myTrades !== undefined)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             const freshTradesCache = new Cache.ArrayCacheBySymbolById(limit);
-            this.myTrades = this.pruneCachedBySymbols(freshTradesCache, this.myTrades, symbols);
+            this.pruneCachedBySymbols(freshTradesCache, this.myTrades, symbols);
+            this.myTrades = freshTradesCache;
         }
         else {
             this.cleanCache(subscription);

@@ -2039,7 +2039,7 @@ class bitfinex extends bitfinex$1["default"] {
         }
         const paramsOmitted = (cid !== undefined) ? this.omit(params, ['cid', 'clientOrderId']) : params;
         const response = await this.privatePostAuthWOrderCancel(this.extend(request, paramsOmitted));
-        const order = this.safeValue(response, 4);
+        const order = this.safeList(response, 4);
         const newOrder = { 'result': order };
         return this.parseOrder(newOrder, market);
     }

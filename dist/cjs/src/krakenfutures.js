@@ -3576,7 +3576,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 'symbol': this.safeSymbol(marketId, marketResolved),
                 'currency': marketResolved['quote'],
                 'minNotional': minNotional,
-                'maxNotional': this.safeNumber2(this.safeValue(marginLevels, this.sum(i, 1)), 'numNonContractUnits', 'contracts'),
+                'maxNotional': this.safeNumber2(this.safeDict(marginLevels, this.sum(i, 1)), 'numNonContractUnits', 'contracts'),
                 'maintenanceMarginRate': this.safeNumber(tier, 'maintenanceMargin'),
                 'maxLeverage': this.parseNumber(Precise["default"].stringDiv('1', initialMargin)),
                 'info': tier,

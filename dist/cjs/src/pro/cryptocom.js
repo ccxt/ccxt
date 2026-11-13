@@ -121,7 +121,7 @@ class cryptocom extends cryptocom$1["default"] {
         if ((limit !== undefined) && (limit !== 0)) {
             limitResolved = limit;
         }
-        const topicParams = this.safeValue(params, 'params');
+        const topicParams = this.safeDict(params, 'params');
         if (topicParams === undefined) {
             params['params'] = {};
         }
@@ -164,7 +164,7 @@ class cryptocom extends cryptocom$1["default"] {
         const subMessageHashes = [];
         const messageHashes = [];
         const limit = this.safeInteger(params, 'limit', 50);
-        const topicParams = this.safeValue(params, 'params');
+        const topicParams = this.safeDict(params, 'params');
         if (topicParams === undefined) {
             params['params'] = {};
         }

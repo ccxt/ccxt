@@ -2141,7 +2141,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        let accounts = this.safeValue(this.options, 'coinbaseAccounts');
+        let accounts = this.safeList(this.options, 'coinbaseAccounts');
         if (accounts === undefined) {
             accounts = await this.privateGetCoinbaseAccounts();
             this.options['coinbaseAccounts'] = accounts; // cache it

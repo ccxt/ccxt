@@ -122,7 +122,7 @@ export default class cryptocom extends cryptocomRest {
         if ((limit !== undefined) && (limit !== 0)) {
             limitResolved = limit;
         }
-        const topicParams = this.safeValue(params, 'params');
+        const topicParams = this.safeDict(params, 'params');
         if (topicParams === undefined) {
             params['params'] = {};
         }
@@ -165,7 +165,7 @@ export default class cryptocom extends cryptocomRest {
         const subMessageHashes = [];
         const messageHashes = [];
         const limit = this.safeInteger(params, 'limit', 50);
-        const topicParams = this.safeValue(params, 'params');
+        const topicParams = this.safeDict(params, 'params');
         if (topicParams === undefined) {
             params['params'] = {};
         }

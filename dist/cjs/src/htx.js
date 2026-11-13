@@ -5088,7 +5088,7 @@ class htx extends htx$1["default"] {
             };
         }
         const average = this.safeString(order, 'trade_avg_price');
-        const trades = this.safeValue(order, 'trades');
+        const trades = this.safeList(order, 'trades');
         let reduceOnly = undefined;
         if (isLinearOrder) {
             reduceOnly = this.safeBool(order, 'reduce_only');

@@ -3202,7 +3202,7 @@ class binance extends binance$1["default"] {
         const responseCurrencies = this.safeValue(results, 0);
         let marginablesById = undefined;
         if (fetchMargins) {
-            const responseMarginables = this.safeValue(results, 1);
+            const responseMarginables = this.safeList(results, 1);
             marginablesById = this.indexBy(responseMarginables, 'assetName');
         }
         return this.parseCurrenciesCustom(responseCurrencies, marginablesById);

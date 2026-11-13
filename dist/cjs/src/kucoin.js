@@ -11969,7 +11969,7 @@ class kucoin extends kucoin$1["default"] {
             let partner = this.safeDict(this.options, 'partner', {});
             const isUtaFuturePrivate = isUtaPrivate && (tradeType === 'FUTURES');
             const isFuturePartner = isFuturePrivate || isUtaFuturePrivate;
-            partner = isFuturePartner ? this.safeValue(partner, 'future', partner) : this.safeValue(partner, 'spot', partner);
+            partner = isFuturePartner ? this.safeDict(partner, 'future', partner) : this.safeDict(partner, 'spot', partner);
             const partnerId = this.safeString(partner, 'id');
             const partnerSecret = this.safeString2(partner, 'secret', 'key');
             if ((partnerId !== undefined) && (partnerSecret !== undefined)) {
