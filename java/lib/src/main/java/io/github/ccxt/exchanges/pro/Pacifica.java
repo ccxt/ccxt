@@ -1430,16 +1430,15 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }
-        Map<String, Object> symbolOhlcvs = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
-        Object ohlcv = this.safeValue(symbolOhlcvs, timeframe);
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
         if (java.util.Objects.equals(ohlcv, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ohlcv = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(symbolOhlcvs, timeframe, ohlcv);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, ohlcv);
         }
         List<Object> parsed = (List<Object>) this.parseOHLCV(data, (Map<String, Object>) null);
-        ((io.github.ccxt.ws.ArrayCache) ohlcv).append(parsed);
+        ohlcv.append(parsed);
         client.resolve(ohlcv, messageHash);
     }
 

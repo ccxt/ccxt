@@ -347,7 +347,13 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 }
                 Long candleTimestamp = this.parseToInt(Helpers.multiply(((((double) timestamp) / ((double) duration))), duration));
                 List<Object> parsed = new ArrayList<Object>(Arrays.asList(candleTimestamp, this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)));
-                Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayList<Object>(Arrays.asList()));
+                io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
+                if (java.util.Objects.equals(stored, null))
+                {
+                    Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                    stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
+                    Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+                }
                 Integer length = (switch ((Object)(stored)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; });
                 Object previous = this.safeValue(stored, (((long) length) - 1L));
                 Long previousTimestamp = this.safeInteger(previous, 0);
@@ -375,7 +381,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                             low = previousLow;
                         }
                     }
-                    Helpers.addElementToObject(stored, (((long) length) - 1L), new ArrayList<Object>(Arrays.asList(candleTimestamp, this.safeFloat(previous, 1), high, low, this.safeFloat(ohlcv, 4), this.sum(this.safeFloat(ohlcv, 5), this.safeFloat(previous, 5)))));
+                    stored.append(new ArrayList<Object>(Arrays.asList(candleTimestamp, this.safeFloat(previous, 1), high, low, this.safeFloat(ohlcv, 4), this.sum(this.safeFloat(ohlcv, 5), this.safeFloat(previous, 5)))));
                     if (!java.util.Objects.equals(marketId, null))
                     {
                         marketUpdates.put((String)timeframe, true);
@@ -389,18 +395,12 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                             continue;
                         }
                     }
-                    ((List<Object>)stored).add(parsed);
-                    Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-                    if ((limit == null || (length != null && length >= limit)))
-                    {
-                        ((List<Object>)stored).get(0);
-                    }
+                    stored.append(parsed);
                     if (!java.util.Objects.equals(marketId, null))
                     {
                         marketUpdates.put((String)timeframe, true);
                     }
                 }
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
             }
             if (!java.util.Objects.equals(marketId, null))
             {
@@ -419,8 +419,8 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 String messageHash = ((((name + ":") + timeframe) + ":") + marketId);
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 String symbol = this.safeString(market, "symbol", "");
-                List<Object> stored = (List<Object>) this.safeList(this.safeValue(this.ohlcvs, symbol), timeframe, new ArrayList<Object>(Arrays.asList()));
-                client.resolve(stored, messageHash);
+                io.github.ccxt.ws.ArrayCache symbolOhlcv = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
+                client.resolve(symbolOhlcv, messageHash);
             }
         }
     }

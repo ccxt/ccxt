@@ -535,7 +535,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //    }
         //
         List<Object> response = (List<Object>) this.safeList(message, "response", (Object) null);
-        List<Object> ohlcv = this.parseOHLCVs(response, (Object) null, "1m", (Long) null, (Long) null, false);
+        List<Object> ohlcv = this.parseOHLCVs(response, (Map<String, Object>) null, "1m", (Long) null, (Long) null, false);
         String messageHash = this.safeString(message, "requestId");
         client.resolve(ohlcv, messageHash);
     }

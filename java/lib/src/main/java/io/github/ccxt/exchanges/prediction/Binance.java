@@ -1956,7 +1956,7 @@ public class Binance extends BinanceApi
     public String priceToPrecision(Object outcome, Object price)
     {
         Map<String, Object> market = this.market(outcome);
-        Double prec = this.safeNumber(this.safeDict(((Object)market), "precision", new HashMap<String, Object>() {{}}), "price", 0.0001);
+        Double prec = this.safeNumber(this.safeDict(market, "precision", new HashMap<String, Object>() {{}}), "price", 0.0001);
         Object decimals = 4;
         if ((!java.util.Objects.equals(prec, null)) && ((prec != null && prec > 0)))
         {
@@ -1968,7 +1968,7 @@ public class Binance extends BinanceApi
     public String amountToPrecision(Object outcome, Object amount)
     {
         Map<String, Object> market = this.market(outcome);
-        Double prec = this.safeNumber(this.safeDict(((Object)market), "precision", new HashMap<String, Object>() {{}}), "amount", 0.01);
+        Double prec = this.safeNumber(this.safeDict(market, "precision", new HashMap<String, Object>() {{}}), "amount", 0.01);
         Object decimals = 2;
         if ((!java.util.Objects.equals(prec, null)) && ((prec != null && prec > 0)))
         {

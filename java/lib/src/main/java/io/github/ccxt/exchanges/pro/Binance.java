@@ -2519,7 +2519,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //    }
         //
         List<Object> result = (List<Object>) this.safeList(message, "result", (Object) null);
-        List<Object> parsed = this.parseOHLCVs(result, (Object) null, "1m", (Long) null, (Long) null, false);
+        List<Object> parsed = this.parseOHLCVs(result, (Map<String, Object>) null, "1m", (Long) null, (Long) null, false);
         // use a reverse lookup in a static map instead
         String messageHash = this.safeString(message, "id");
         client.resolve(parsed, messageHash);

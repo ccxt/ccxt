@@ -949,13 +949,13 @@ public class Btcturk extends BtcturkApi
 
     }
 
-    public List<Object> parseOHLCVs(Object ohlcvs, Object market, String timeframe, Long since, Long limit, Object tail)
+    public List<Object> parseOHLCVs(Object ohlcvs, Map<String, Object> market, String timeframe, Long since, Long limit, Object tail)
     {
         List<Object> rows = this.toArray(ohlcvs);
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rows).size(); i++)
         {
-            ((List<Object>)results).add(this.parseOHLCV(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); }))));
+            ((List<Object>)results).add(this.parseOHLCV(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), market));
         }
         List<Object> sorted = this.sortBy(results, 0);
         return this.filterBySinceLimit(sorted, since, limit, 0, java.util.Objects.requireNonNullElse(tail, false));

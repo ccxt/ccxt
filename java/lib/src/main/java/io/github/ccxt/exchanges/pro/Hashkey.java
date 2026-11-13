@@ -77,7 +77,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         }});
     }
 
-    public CompletableFuture<Object> wathPublic(Map<String, Object> market, String topic, String messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> wathPublic(Object market, String topic, String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -724,7 +724,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         mapLiteral2.put("id", this.safeString2(trade, "v", "T"));
         mapLiteral2.put("timestamp", timestamp);
         mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("symbol", ((Map<String, Object>)marketResolved).get("symbol"));
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
         mapLiteral2.put("side", side);
         mapLiteral2.put("price", this.safeString(trade, "p"));
         mapLiteral2.put("amount", this.safeString(trade, "q"));

@@ -318,7 +318,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "subscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
                     put( "type", "l2Book" );
-                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? ((Map<String, Object>)market).get("baseName") : market.get("id") );
+                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? market.get("baseName") : market.get("id") );
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
@@ -359,7 +359,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "unsubscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
                     put( "type", "l2Book" );
-                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? ((Map<String, Object>)market).get("baseName") : market.get("id") );
+                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? market.get("baseName") : market.get("id") );
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
@@ -448,7 +448,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "subscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
                     put( "type", "activeAssetCtx" );
-                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? ((Map<String, Object>)market).get("baseName") : market.get("id") );
+                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? market.get("baseName") : market.get("id") );
                 }} );
             }};
             (this.waitForPendingUnsubscribe(url, messageHash)).join();
@@ -484,7 +484,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "unsubscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
                     put( "type", "activeAssetCtx" );
-                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? ((Map<String, Object>)market).get("baseName") : market.get("id") );
+                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? market.get("baseName") : market.get("id") );
                 }} );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
@@ -993,7 +993,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "subscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
                     put( "type", "trades" );
-                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? ((Map<String, Object>)market).get("baseName") : market.get("id") );
+                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? market.get("baseName") : market.get("id") );
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
@@ -1036,7 +1036,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "unsubscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
                     put( "type", "trades" );
-                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? ((Map<String, Object>)market).get("baseName") : market.get("id") );
+                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? market.get("baseName") : market.get("id") );
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
@@ -1188,7 +1188,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "subscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
                     put( "type", "candle" );
-                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? ((Map<String, Object>)market).get("baseName") : market.get("id") );
+                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? market.get("baseName") : market.get("id") );
                     put( "interval", java.util.Objects.requireNonNullElse(timeframe, "1m") );
                 }} );
             }};
@@ -1232,7 +1232,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "unsubscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
                     put( "type", "candle" );
-                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? ((Map<String, Object>)market).get("baseName") : market.get("id") );
+                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? market.get("baseName") : market.get("id") );
                     put( "interval", java.util.Objects.requireNonNullElse(timeframe, "1m") );
                 }} );
             }};

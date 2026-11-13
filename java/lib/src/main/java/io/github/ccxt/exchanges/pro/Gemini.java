@@ -408,8 +408,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         List<Object> changes = (List<Object>) this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
         String timeframe = this.findTimeframe(timeframeId, (Object) null);
-        Map<String, Object> ohlcvsBySymbol = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol, (Object) null);
-        if (java.util.Objects.equals(ohlcvsBySymbol, null))
+        if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
             this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }

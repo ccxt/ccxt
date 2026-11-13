@@ -5735,7 +5735,7 @@ public Map<String, Object> describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v34 -> (List<String>) hx4J40v34; case Object hx4J40v34 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v34.getClass().getName()); })), parameters)).join();
+            return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v33 -> (List<String>) hx4J40v33; case Object hx4J40v33 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v33.getClass().getName()); })), parameters)).join();
         }).thenApply(FundingRates::new);
 
     }
@@ -8239,7 +8239,7 @@ public Map<String, Object> describe()
         }};
     }
 
-    public List<Object> parseOHLCVs(Object ohlcvs, Object market, String timeframe, Long since, Long limit, Object tail)
+    public List<Object> parseOHLCVs(Object ohlcvs, Map<String, Object> market, String timeframe, Long since, Long limit, Object tail)
     {
         if (java.util.Objects.equals(ohlcvs, null))
         {
@@ -8248,7 +8248,7 @@ public Map<String, Object> describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
         {
-            ((List<Object>)results).add(this.parseOHLCV((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v28 -> (Map<String, Object>) hx4J40v28; case Object hx4J40v28 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v28.getClass().getName()); }))));
+            ((List<Object>)results).add(this.parseOHLCV((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), market));
         }
         List<Object> sorted = this.sortBy(results, 0);
         return this.filterBySinceLimit(sorted, since, limit, 0, java.util.Objects.requireNonNullElse(tail, false));
@@ -10731,8 +10731,8 @@ public Map<String, Object> describe()
         List<Object> interests = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Object row = this.safeValue(response, i);
-            ((List<Object>)interests).add(this.parseBorrowInterest((Map<String, Object>) (row), market));
+            Map<String, Object> row = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
+            ((List<Object>)interests).add(this.parseBorrowInterest(row, market));
         }
         return interests;
     }
@@ -10747,7 +10747,7 @@ public Map<String, Object> describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v43 -> j39v43.size(); case String j39v44 -> j39v44.length(); case Object j39v45 -> j39v45.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v45) : 0; }); i++)
         {
-            Object item = this.safeValue(response, i);
+            Map<String, Object> item = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             Map<String, Object> borrowRate = (Map<String, Object>) this.parseBorrowRate(item, (Map<String, Object>) null);
             ((List<Object>)result).add(borrowRate);
         }
@@ -10760,8 +10760,8 @@ public Map<String, Object> describe()
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)info).size(); i++)
         {
-            Object item = this.safeValue(info, i);
-            Map<String, Object> borrowRate = (Map<String, Object>) this.parseIsolatedBorrowRate((Map<String, Object>) (item), (Map<String, Object>) null);
+            Map<String, Object> item = (Map<String, Object>) this.safeDict(info, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> borrowRate = (Map<String, Object>) this.parseIsolatedBorrowRate(item, (Map<String, Object>) null);
             String symbol = this.safeString(borrowRate, "symbol");
             result.put((String)symbol, borrowRate);
         }

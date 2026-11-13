@@ -1519,8 +1519,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object timeframe = (marketIds == null || symbol == null ? null : marketIds.get(symbol));
             String interval = this.findTimeframe(timeframe, (Object) null);
             String hash = (((("candles" + ":") + interval) + ":") + symbol);
-            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), interval);
-            client.resolve(stored, hash);
+            io.github.ccxt.ws.ArrayCache symbolOhlcv = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), interval);
+            client.resolve(symbolOhlcv, hash);
         }
     }
 
