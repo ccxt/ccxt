@@ -807,7 +807,7 @@ public class Hyperliquid extends HyperliquidApi
                 for (var i = 0; i < ((List<?>)outcomes).size(); i++)
                 {
                     Object requested = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
-                    Map<String, Object> requestedOutcomeObj = this.safeOutcome((String) (requested), (Object) null);
+                    Map<String, Object> requestedOutcomeObj = this.safeOutcome((String) (requested), (Map<String, Object>) null);
                     String requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                     requestedOutcomeSymbols.put(requestedOutcome, true);
                 }
@@ -1175,7 +1175,7 @@ public class Hyperliquid extends HyperliquidApi
                 for (var i = 0; i < ((List<?>)outcomes).size(); i++)
                 {
                     Object requested = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
-                    Map<String, Object> requestedOutcomeObj = this.safeOutcome((String) (requested), (Object) null);
+                    Map<String, Object> requestedOutcomeObj = this.safeOutcome((String) (requested), (Map<String, Object>) null);
                     String requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                     requestedOutcomeSymbols.put(requestedOutcome, true);
                 }
@@ -1224,7 +1224,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
                 // the trade/orderbook form ("#<encoding>") resolves the outcome and the mid price
                 String tradeCoin = ("#" + (coin == null ? null : ((String)coin).substring(Math.min(1, ((String)coin).length()))));
-                Map<String, Object> outcomeObj = this.safeOutcome(tradeCoin, (Object) null);
+                Map<String, Object> outcomeObj = this.safeOutcome(tradeCoin, (Map<String, Object>) null);
                 if (!java.util.Objects.equals(outcomes, null))
                 {
                     String outcomeHandle = this.safeString(outcomeObj, "outcome");

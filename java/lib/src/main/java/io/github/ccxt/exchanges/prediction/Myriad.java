@@ -4107,7 +4107,7 @@ public class Myriad extends MyriadApi
             return;
         }
         Map<String, Object> market = this.safeMarket(sym, (Map<String, Object>) null, (String) null, (String) null);
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (sym), (Object) null);
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (sym), (Map<String, Object>) null);
         // the trades channel reports human-decimal values (averagePrice "0.14", totalAmount "1"),
         // unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
         Map<String, Object> fees = (Map<String, Object>) this.safeDict(taker, "totalFees", new HashMap<String, Object>() {{}});
@@ -4164,7 +4164,7 @@ public class Myriad extends MyriadApi
                 {
                     String makerSym = this.marketOutcomeToSymbol((String) (networkId), (String) (marketId), this.safeString(maker, "outcome"));
                     Map<String, Object> makerMarket = this.safeMarket(makerSym, (Map<String, Object>) null, (String) null, (String) null);
-                    Map<String, Object> makerOutcomeObj = this.safeOutcome((String) (makerSym), (Object) null);
+                    Map<String, Object> makerOutcomeObj = this.safeOutcome((String) (makerSym), (Map<String, Object>) null);
                     Map<String, Object> makerFees = (Map<String, Object>) this.safeDict(maker, "fees", new HashMap<String, Object>() {{}});
                     Object makerTrade = this.safePredictionTrade(new HashMap<String, Object>() {{
                         put( "id", txHash );
@@ -4335,7 +4335,7 @@ public class Myriad extends MyriadApi
                 continue;
             }
             Map<String, Object> market = this.safeMarket(sym, (Map<String, Object>) null, (String) null, (String) null);
-            Map<String, Object> outcomeObj = this.safeOutcome((String) (sym), (Object) null);
+            Map<String, Object> outcomeObj = this.safeOutcome((String) (sym), (Map<String, Object>) null);
             Double last = this.fromWei(this.safeString(oc, "last"));
             HashMap<String, Object> mapLiteral17 = new HashMap<String, Object>();
             mapLiteral17.put("outcome", sym);
@@ -4414,7 +4414,7 @@ public class Myriad extends MyriadApi
         String marketId = this.safeString(data, "marketId");
         String outcomeId = this.safeString(data, "outcome");
         String sym = this.marketOutcomeToSymbol((String) (networkId), (String) (marketId), (String) (outcomeId));
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (sym), (Object) null);
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (sym), (Map<String, Object>) null);
         Double price = this.fromWei(this.safeString(data, "price"));
         Double amount = this.fromWei(this.safeString(data, "amount"));
         Double filled = this.fromWei(this.safeString(data, "filledAmount"));
@@ -4540,7 +4540,7 @@ public class Myriad extends MyriadApi
         String marketId = this.safeString(data, "marketId");
         String outcomeId = this.safeString(data, "outcome");
         String sym = this.marketOutcomeToSymbol((String) (networkId), (String) (marketId), (String) (outcomeId));
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (sym), (Object) null);
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (sym), (Map<String, Object>) null);
         Long ts = this.safeInteger(data, "ts");
         // the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance);
         // apply it to the REST-seeded balance keyed by outcome id to maintain a running contracts figure

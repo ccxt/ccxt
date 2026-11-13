@@ -957,8 +957,7 @@ public class Binance extends BinanceApi
         //
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
-        Object marketAny = ((Object)market);
-        Map<String, Object> outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
+        Map<String, Object> outcomeObj = this.safeOutcome(this.safeString(market, "outcome"), market);
         // the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
         // any other outcome of a binary market mirrors as 1 - price
         Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
@@ -1200,7 +1199,7 @@ public class Binance extends BinanceApi
                 outcomeName = marketId;
             }
             outcomeName = (outcomeName + (":" + outcome));
-            outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Object) null);
+            outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Map<String, Object>) null);
         }
         String side = this.safeStringLower(order, "side");
         Long timestamp = this.safeInteger(order, "createTime");
@@ -1477,7 +1476,7 @@ public class Binance extends BinanceApi
                 for (var i = 0; i < ((List<?>)outcomes).size(); i++)
                 {
                     Object requested = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
-                    Map<String, Object> requestedOutcomeObj = this.safeOutcome((String) (requested), (Object) null);
+                    Map<String, Object> requestedOutcomeObj = this.safeOutcome((String) (requested), (Map<String, Object>) null);
                     String requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                     requestedOutcomeSymbols.put(requestedOutcome, true);
                 }
@@ -1617,7 +1616,7 @@ public class Binance extends BinanceApi
                 outcomeName = marketId;
             }
             outcomeName = (outcomeName + (":" + outcome));
-            outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Object) null);
+            outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Map<String, Object>) null);
         }
         Long timestamp = this.safeInteger(position, "createdTime");
         Double totalCost = this.parseNumber(this.safeString(position, "totalCost"));
@@ -1810,7 +1809,7 @@ public class Binance extends BinanceApi
                 outcomeName = marketId;
             }
             outcomeName = (outcomeName + (":" + outcome));
-            outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Object) null);
+            outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Map<String, Object>) null);
         }
         Long timestamp = this.safeInteger(trade, "createTime");
         String filled = this.safeString(trade, "filledShareQty");

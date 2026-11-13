@@ -567,7 +567,7 @@ public Map<String, Object> describe()
         return false;
     }
 
-    public Map<String, Object> safeOutcome(String outcomeIdOrSymbol, Object outcomeObj)
+    public Map<String, Object> safeOutcome(String outcomeIdOrSymbol, Map<String, Object> market)
     {
         if (!java.util.Objects.equals(outcomeIdOrSymbol, null))
         {
@@ -580,9 +580,9 @@ public Map<String, Object> describe()
                 return (Map<String, Object>) (this.safeValue(this.outcomes_by_id, outcomeIdOrSymbol));
             }
         }
-        if (!java.util.Objects.equals(outcomeObj, null))
+        if (!java.util.Objects.equals(market, null))
         {
-            return (Map<String, Object>) (outcomeObj);
+            return (Map<String, Object>) (market);
         }
         // stub for an unknown handle; it only carries the identity keys, not the market fields
         Map<String, Object> outcomeObjValue = new HashMap<String, Object>();
@@ -597,7 +597,13 @@ public Map<String, Object> describe()
 
     public Object safeOutcomeSymbol(String outcomeIdOrSymbol, Object outcomeObj)
     {
-        Map<String, Object> outcomeObjValue = this.safeOutcome((String) (outcomeIdOrSymbol), outcomeObj);
+        // outcomeObj may be any outcome-shaped dict, not only a market: read it here instead of
+        // handing it to safeOutcome (whose fallback slot is a Market)
+        if (!this.hasOutcome((String) (outcomeIdOrSymbol)) && (!java.util.Objects.equals(outcomeObj, null)))
+        {
+            return this.safeString(outcomeObj, "outcome");
+        }
+        Map<String, Object> outcomeObjValue = this.safeOutcome((String) (outcomeIdOrSymbol), (Map<String, Object>) null);
         return outcomeObjValue.get("outcome");
     }
 
@@ -965,7 +971,7 @@ public Map<String, Object> describe()
             {
                 if (this.hasOutcome((String) (outcomeSymbol)))
                 {
-                    return this.safeOutcome((String) (outcomeSymbol), (Object) null);
+                    return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
                 }
                 Boolean wasWarm = (!java.util.Objects.equals(this.outcomes, null)) && !this.isEmpty(this.outcomes);
                 // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
@@ -976,7 +982,7 @@ public Map<String, Object> describe()
                     this.populateOutcomes();
                     if (this.hasOutcome((String) (outcomeSymbol)))
                     {
-                        return this.safeOutcome((String) (outcomeSymbol), (Object) null);
+                        return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
                     }
                 }
                 Boolean loadAll = (Boolean) this.safeBool(this.options, "loadAllOutcomes", false);
@@ -989,7 +995,7 @@ public Map<String, Object> describe()
                     (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
                     if (this.hasOutcome((String) (outcomeSymbol)))
                     {
-                        return this.safeOutcome((String) (outcomeSymbol), (Object) null);
+                        return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
                     }
                 }
             }
@@ -1090,7 +1096,7 @@ public Map<String, Object> describe()
                 }
                 if (this.hasOutcome((String) (outcomeSymbol)))
                 {
-                    return this.safeOutcome((String) (outcomeSymbol), (Object) null);
+                    return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
                 }
             }
             throw new BadSymbol((((this.id + " could not resolve outcome ") + outcomeSymbol) + " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;

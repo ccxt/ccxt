@@ -1525,7 +1525,7 @@ public class Sxbet extends SxbetApi
         {
             outcomeId = ((marketHash + "-2"));
         }
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId), ((Object)market));
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId), market);
         String oneDenom = "100000000000000000000";
         String usdcDecimals = "1000000";
         String percentageOdds = this.safeString(order, "percentageOdds");
@@ -1829,7 +1829,7 @@ public class Sxbet extends SxbetApi
         {
             outcomeId = ((marketHash + "-2"));
         }
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId), ((Object)market));
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId), market);
         String oneDenom = "100000000000000000000";
         String usdcDecimals = "1000000";
         String fillOdds = this.safeString(fill, "fillOdds");
@@ -2007,7 +2007,7 @@ public class Sxbet extends SxbetApi
         {
             outcomeId = ((marketHash + "-2"));
         }
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId), (Object) null);
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId), (Map<String, Object>) null);
         String oneDenom = "100000000000000000000";
         String usdcDecimals = "1000000";
         Map<String, Object> odds = (Map<String, Object>) this.safeDict(raw, "odds", new HashMap<String, Object>() {{}});
@@ -2130,7 +2130,7 @@ public class Sxbet extends SxbetApi
         {
             outcomeId = ((marketHash + "-2"));
         }
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId), ((Object)market));
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId), market);
         Map<String, Object> settlement = (Map<String, Object>) this.safeDict(trade, "settlement", new HashMap<String, Object>() {{}});
         Long winner = this.safeInteger(settlement, "outcome");
         Boolean isVoid = ((winner != null && winner == 0));
@@ -2414,8 +2414,7 @@ public class Sxbet extends SxbetApi
         //         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
         //     }
         //
-        Object marketAny = ((Object)market);
-        Map<String, Object> outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
+        Map<String, Object> outcomeObj = this.safeOutcome(this.safeString(market, "outcome"), market);
         String outcomeId = this.safeString(outcomeObj, "outcomeId");
         String marketHash = this.safeString(raw, "marketHash");
         Boolean isOutcomeOne = (java.util.Objects.equals(outcomeId, marketHash));
@@ -3119,7 +3118,7 @@ public class Sxbet extends SxbetApi
         {
             outcomeId = ((marketHash + "-2"));
         }
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId), (Object) null);
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId), (Map<String, Object>) null);
         String oneDenom = "100000000000000000000";
         String usdcDecimals = "1000000";
         String odds = this.safeString(trade, "weightedAverageOdds");

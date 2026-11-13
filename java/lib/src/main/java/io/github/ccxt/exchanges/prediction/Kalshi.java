@@ -597,7 +597,7 @@ public class Kalshi extends KalshiApi
                     }
                     if (this.hasOutcome((String) (outcomeSymbol)))
                     {
-                        return this.safeOutcome((String) (outcomeSymbol), (Object) null);
+                        return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
                     }
                 }
             }
@@ -1178,8 +1178,7 @@ public class Kalshi extends KalshiApi
         //         }
         //     }
         //
-        Map<String, Object> marketAny = market;
-        Map<String, Object> outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
+        Map<String, Object> outcomeObj = this.safeOutcome(this.safeString(market, "outcome"), market);
         String outcomeLabel = (((!java.util.Objects.equals(market, null) && !java.util.Objects.equals(market, null)))) ? this.safeStringUpper(market, "label", this.safeStringUpper(market.get("info"), "outcomeLabel", "YES")) : "YES";
         Boolean isNo = java.util.Objects.equals(outcomeLabel, "NO");
         Long timestamp = this.parse8601(this.safeString(raw, "updated_time"));
@@ -1689,8 +1688,7 @@ public class Kalshi extends KalshiApi
         Double amountFp = this.safeNumber2(trade, "count_fp", "size_fp", (Object) null);
         Double amount = this.safeNumber(trade, "count", amountFp);
         String rawSide = this.safeStringLower(trade, "taker_side");
-        Map<String, Object> marketAny = market;
-        Map<String, Object> outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
+        Map<String, Object> outcomeObj = this.safeOutcome(this.safeString(market, "outcome"), market);
         Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
         String requestedOutcomeLabel = this.safeStringLower(outcomeObj, "label", this.safeStringLower(marketInfo, "outcomeLabel"));
         String outcomeSymbol = this.safeString(outcomeObj, "outcome");

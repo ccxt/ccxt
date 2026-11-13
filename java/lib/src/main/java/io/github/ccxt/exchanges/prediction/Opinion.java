@@ -318,7 +318,7 @@ public class Opinion extends OpinionApi
                 (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
                 if (this.hasOutcome((String) (outcomeSymbol)))
                 {
-                    return this.safeOutcome((String) (outcomeSymbol), (Object) null);
+                    return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
                 }
             }
             return (super.fetchOutcome(outcomeSymbol)).join();
@@ -1674,7 +1674,7 @@ public class Opinion extends OpinionApi
     public Object parsePredictionTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         String tokenId = this.safeString(trade, "tokenId");
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (tokenId), ((Object)market));
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (tokenId), market);
         Long timestamp = this.safeTimestamp(trade, "createdAt");
         String side = this.safeStringLower(trade, "side");
         return this.safePredictionTrade(new HashMap<String, Object>() {{
@@ -1833,7 +1833,7 @@ public class Opinion extends OpinionApi
     public Object parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
     {
         String tokenId = this.safeString(position, "tokenId");
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (tokenId), ((Object)market));
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (tokenId), market);
         String outcomeSideEnum = this.safeStringLower(position, "outcomeSideEnum");
         return this.safePredictionPosition(new HashMap<String, Object>() {{
             put( "contracts", Opinion.this.safeNumber(position, "sharesOwned", (Object) null) );

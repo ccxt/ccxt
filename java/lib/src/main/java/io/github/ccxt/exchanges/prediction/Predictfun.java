@@ -3777,7 +3777,7 @@ public class Predictfun extends PredictfunApi
      * @param {object} [market] the outcome the caller asked about
      * @returns {object} the outcome object, or a stub keyed by the token id when it is not cached
      */
-    public Object outcomeForToken(String tokenId, Object market)
+    public Object outcomeForToken(String tokenId, Map<String, Object> market)
     {
         // the list endpoints (orders, matches, positions) answer for the whole wallet rather than
         // for the outcome asked about, so the caller's outcome is only a hint. safeOutcome falls
@@ -3788,7 +3788,7 @@ public class Predictfun extends PredictfunApi
         {
             return this.safeOutcome((String) (tokenId), market);
         }
-        return this.safeOutcome((String) (tokenId), (Object) null);
+        return this.safeOutcome((String) (tokenId), (Map<String, Object>) null);
     }
 
     /**

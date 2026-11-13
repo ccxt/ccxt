@@ -2140,7 +2140,7 @@ public class Polymarket extends PolymarketApi
             mkt = market;
         } else
         {
-            mkt = this.safeOutcome((String) (assetId), (Object) null);
+            mkt = this.safeOutcome((String) (assetId), (Map<String, Object>) null);
         }
         Object outcome = this.safeOutcomeSymbol((String) (null), mkt);
         String rawTakerOrMaker = this.safeStringLower(trade, "trader_side");
@@ -2471,7 +2471,7 @@ public class Polymarket extends PolymarketApi
             put( "datetime", Polymarket.this.iso8601(ts) );
             put( "lastTradeTimestamp", null );
             put( "status", status );
-            put( "outcome", mkt.get("outcome") );
+            put( "outcome", Polymarket.this.safeString(mkt, "outcome") );
             put( "outcomeId", Polymarket.this.safeString(mkt, "outcomeId") );
             put( "label", Polymarket.this.safeString(mkt, "label") );
             put( "market", Polymarket.this.safeString(mkt, "market") );
@@ -3916,7 +3916,7 @@ public class Polymarket extends PolymarketApi
             Map<String, Object> a = (Map<String, Object>) this.safeDict(rawAsks, j, (Object) null);
             ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(this.safeNumber(a, "price", (Object) null), this.safeNumber(a, "size", (Object) null))));
         }
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (outcome), (Object) null);
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (outcome), (Map<String, Object>) null);
         HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
         mapLiteral12.put("bids", bids);
         mapLiteral12.put("asks", asks);
@@ -3977,7 +3977,7 @@ public class Polymarket extends PolymarketApi
         Long timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
         Double price = this.safeNumber(eventVar, "price", (Object) null);
         Double amount = this.safeNumber(eventVar, "size", (Object) null);
-        Map<String, Object> market = this.safeOutcome((String) (tokenId), (Object) null);
+        Map<String, Object> market = this.safeOutcome((String) (tokenId), (Map<String, Object>) null);
         HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
         mapLiteral13.put("id", this.safeString(eventVar, "transaction_hash"));
         mapLiteral13.put("info", eventVar);
@@ -4146,7 +4146,7 @@ public class Polymarket extends PolymarketApi
             {
                 mid = bestAsk;
             }
-            Map<String, Object> market = this.safeOutcome((String) (outcomeValue), (Object) null);
+            Map<String, Object> market = this.safeOutcome((String) (outcomeValue), (Map<String, Object>) null);
             HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
             mapLiteral14.put("outcome", outcomeValue);
             mapLiteral14.put("outcomeId", this.safeString(market, "outcomeId"));
