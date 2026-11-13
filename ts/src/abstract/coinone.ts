@@ -29,6 +29,10 @@ abstract class Exchange extends _Exchange {
         return this.request ('range_units', [ 'v2Public' ], 'GET', params, { 'cost': 1 });
     }
 
+    v2PublicGetRangeUnitsQuoteCurrencyTargetCurrency (params = {}): Promise<Dict> {
+        return this.request ('range_units/{quote_currency}/{target_currency}', [ 'v2Public' ], 'GET', params, { 'cost': 1 });
+    }
+
     v2PublicGetMarketsQuoteCurrency (params = {}): Promise<Dict> {
         return this.request ('markets/{quote_currency}', [ 'v2Public' ], 'GET', params, { 'cost': 1 });
     }
@@ -209,12 +213,20 @@ abstract class Exchange extends _Exchange {
         return this.request ('account/balance', [ 'v2_1Private' ], 'POST', params, { 'cost': 1 });
     }
 
+    v2_1PrivatePostAccountDepositAddress (params = {}): Promise<Dict> {
+        return this.request ('account/deposit_address', [ 'v2_1Private' ], 'POST', params, { 'cost': 1 });
+    }
+
     v2_1PrivatePostAccountTradeFee (params = {}): Promise<Dict> {
         return this.request ('account/trade_fee', [ 'v2_1Private' ], 'POST', params, { 'cost': 1 });
     }
 
     v2_1PrivatePostAccountTradeFeeQuoteCurrencyTargetCurrency (params = {}): Promise<Dict> {
         return this.request ('account/trade_fee/{quote_currency}/{target_currency}', [ 'v2_1Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2_1PrivatePostOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'v2_1Private' ], 'POST', params, { 'cost': 1 });
     }
 
     v2_1PrivatePostOrderLimit (params = {}): Promise<Dict> {
@@ -237,6 +249,10 @@ abstract class Exchange extends _Exchange {
         return this.request ('order/open_orders/all', [ 'v2_1Private' ], 'POST', params, { 'cost': 1 });
     }
 
+    v2_1PrivatePostOrderActiveOrders (params = {}): Promise<Dict> {
+        return this.request ('order/active_orders', [ 'v2_1Private' ], 'POST', params, { 'cost': 1 });
+    }
+
     v2_1PrivatePostOrderCompleteOrders (params = {}): Promise<Dict> {
         return this.request ('order/complete_orders', [ 'v2_1Private' ], 'POST', params, { 'cost': 1 });
     }
@@ -245,8 +261,20 @@ abstract class Exchange extends _Exchange {
         return this.request ('order/complete_orders/all', [ 'v2_1Private' ], 'POST', params, { 'cost': 1 });
     }
 
+    v2_1PrivatePostOrderCompletedOrders (params = {}): Promise<Dict> {
+        return this.request ('order/completed_orders', [ 'v2_1Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2_1PrivatePostOrderCompletedOrdersAll (params = {}): Promise<Dict> {
+        return this.request ('order/completed_orders/all', [ 'v2_1Private' ], 'POST', params, { 'cost': 1 });
+    }
+
     v2_1PrivatePostOrderInfo (params = {}): Promise<Dict> {
         return this.request ('order/info', [ 'v2_1Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2_1PrivatePostOrderDetail (params = {}): Promise<Dict> {
+        return this.request ('order/detail', [ 'v2_1Private' ], 'POST', params, { 'cost': 1 });
     }
 
     v2_1PrivatePostTransactionKrwHistory (params = {}): Promise<Dict> {
@@ -255,6 +283,18 @@ abstract class Exchange extends _Exchange {
 
     v2_1PrivatePostTransactionCoinHistory (params = {}): Promise<Dict> {
         return this.request ('transaction/coin/history', [ 'v2_1Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2_1PrivatePostTransactionCoinHistoryDetail (params = {}): Promise<Dict> {
+        return this.request ('transaction/coin/history/detail', [ 'v2_1Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2_1PrivatePostTransactionCoinWithdrawal (params = {}): Promise<Dict> {
+        return this.request ('transaction/coin/withdrawal', [ 'v2_1Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2_1PrivatePostTransactionCoinWithdrawalAddressBook (params = {}): Promise<Dict> {
+        return this.request ('transaction/coin/withdrawal/address_book', [ 'v2_1Private' ], 'POST', params, { 'cost': 1 });
     }
 
     v2_1PrivatePostTransactionCoinWithdrawalLimit (params = {}): Promise<Dict> {
