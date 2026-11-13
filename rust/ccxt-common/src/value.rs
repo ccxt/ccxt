@@ -693,6 +693,17 @@ pub type Dict = Arc<HashMap<String, Value>>;
 /// The shared list a list-typed local holds; a non-list value reads like an empty list.
 pub type List = Arc<Vec<Value>>;
 
+/// A byte buffer (TS `Uint8Array`): the port's existing binary form, a list of `Value::Int` bytes,
+/// behind a typed handle. Boxing it (`Value::from`) moves or shares the same list; nothing is copied.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct Bytes(pub List);
+
+impl Bytes {
+    pub(crate) fn of(bytes: &[u8]) -> Bytes { Bytes(Arc::new(bytes.iter().map(|b| Value::Int(*b as i64)).collect())) }
+}
+impl From<Bytes> for Value { fn from(b: Bytes) -> Self { Value::Arr(b.0) } }
+impl From<&Bytes> for Value { fn from(b: &Bytes) -> Self { Value::Arr(Arc::clone(&b.0)) } }
+
 /// A container the `safe_*` readers accept: a `Value` by value, a map or list by reference.
 /// `key_read` takes a literal key, `read` any key (a string key on a list reads nothing, as `get_value` does).
 pub trait KeyRead: Clone {

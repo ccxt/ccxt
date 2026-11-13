@@ -1201,7 +1201,7 @@ pub fn decode_mexc_push_data(bytes: &[u8]) -> Value {
 
 /// `rsa(message, key, hash)` — RSA PKCS#1 v1.5 signature (SHA-256),
 /// returned base64-encoded. `key` is a PKCS#1 PEM private key.
-pub fn rsa(message: Value, key: Value, _hash: Value) -> Value {
+pub fn rsa(message: Value, key: Value, _hash: Value) -> String {
     use rsa::RsaPrivateKey;
     use rsa::pkcs1::DecodeRsaPrivateKey;
     use rsa::pkcs1v15::SigningKey;
@@ -1210,20 +1210,20 @@ pub fn rsa(message: Value, key: Value, _hash: Value) -> Value {
     let pem = String::from_utf8_lossy(&crate::exchange::value_to_bytes(&key)).into_owned();
     let pk = match RsaPrivateKey::from_pkcs1_pem(pem.trim()) {
         Ok(k) => k,
-        Err(_) => return Value::Str(String::new().into()),
+        Err(_) => return String::new(),
     };
     let signing_key = SigningKey::<sha2::Sha256>::new(pk);
     let sig = signing_key.sign(&msg);
-    Value::Str(b64_encode(&sig.to_bytes()).into())
+    b64_encode(&sig.to_bytes())
 }
 
 /// `ecdsa(message, secret, curve, preHash)` — secp256k1 ECDSA signature
 /// with public-key recovery. Returns `{r, s, v}` (hex r/s, integer
 /// recovery id). `message` is a hex digest (already hashed) unless
 /// `preHash` names a hash algorithm to apply first.
-pub fn ecdsa(message: Value, secret: Value, _curve: Value, pre_hash: Value) -> Value {
+pub fn ecdsa(message: Value, secret: Value, _curve: Value, pre_hash: Value) -> crate::value::Dict {
     use k256::ecdsa::SigningKey;
-    let empty = || Value::Map(indexmap::IndexMap::new());
+    let empty = || std::sync::Arc::new(indexmap::IndexMap::new());
     let msg_s = match &message { Value::Str(s) => s.trim_start_matches("0x").to_string(), _ => return empty() };
     let sk_s  = match &secret  { Value::Str(s) => s.trim_start_matches("0x").to_string(), _ => return empty() };
     let sk_bytes = match hex::decode(&sk_s) { Ok(b) => b, Err(_) => return empty() };
@@ -1243,7 +1243,7 @@ pub fn ecdsa(message: Value, secret: Value, _curve: Value, pre_hash: Value) -> V
     m.insert("r".to_string(), Value::Str(hex::encode(&bytes[0..32]).into()));
     m.insert("s".to_string(), Value::Str(hex::encode(&bytes[32..64]).into()));
     m.insert("v".to_string(), Value::Int(recid.to_byte() as i64));
-    Value::Map(m)
+    std::sync::Arc::new(m)
 }
 
 /// Strip PEM armor (`-----BEGIN…-----` / `-----END…-----`) and base64-decode the
@@ -1264,14 +1264,14 @@ fn pem_to_der(pem: &str) -> Vec<u8> {
 /// either a 32-byte raw seed string or a base64/PEM PKCS#8 key (seed at DER
 /// offset 16). Returns the standard-base64 signature. Fails loudly (NotSupported
 /// panic) rather than returning an empty/invalid signature.
-pub fn eddsa(request: Value, secret: Value, _curve: Value) -> Value {
+pub fn eddsa(request: impl Into<Value>, secret: impl Into<Value>, _curve: Value) -> String {
     use ed25519_dalek::{Signer, SigningKey};
     let bad = |why: &str| -> ! {
         panic!("{}", crate::exchange_errors::not_supported(
             Value::Str(format!("eddsa: {why}").into())));
     };
-    let msg: Vec<u8> = match &request {
-        Value::Arr(_) => crate::exchange::value_to_bytes(&request),
+    let msg: Vec<u8> = match &request.into() {
+        request @ Value::Arr(_) => crate::exchange::value_to_bytes(request),
         Value::Str(s) => {
             let t = s.trim_start_matches("0x");
             hex::decode(t).unwrap_or_else(|_| s.as_bytes().to_vec())
@@ -1281,9 +1281,9 @@ pub fn eddsa(request: Value, secret: Value, _curve: Value) -> Value {
     // The seed (32 bytes) comes in as either raw bytes (`Value::Arr`, e.g.
     // pacifica's base58-decoded key sliced to 32), a 32-char raw string, or a
     // base64/PEM PKCS#8 key (seed at DER offset 16).
-    let seed: [u8; 32] = match &secret {
-        Value::Arr(_) => {
-            let b = crate::exchange::value_to_bytes(&secret);
+    let seed: [u8; 32] = match &secret.into() {
+        secret @ Value::Arr(_) => {
+            let b = crate::exchange::value_to_bytes(secret);
             if b.len() >= 32 { b[..32].try_into().unwrap() } else { bad("seed shorter than 32 bytes") }
         }
         Value::Str(sec_s) if sec_s.len() == 32 => {
@@ -1303,7 +1303,7 @@ pub fn eddsa(request: Value, secret: Value, _curve: Value) -> Value {
     };
     let sk = SigningKey::from_bytes(&seed);
     let sig = sk.sign(&msg);
-    Value::Str(b64_encode(&sig.to_bytes()).into())
+    b64_encode(&sig.to_bytes())
 }
 
 /// Standard base64.
@@ -1320,7 +1320,7 @@ fn b64url_encode(data: &[u8]) -> String {
 
 /// `jwt(request, secret, algorithm, isRsa, opts)` — JSON Web Token.
 /// HS256 (HMAC) or RS256 (RSA), signing `header.payload`.
-pub fn jwt(request: Value, secret: Value, algorithm: Value, is_rsa: Value, _opts: Value) -> Value {
+pub fn jwt(request: Value, secret: impl Into<Value>, algorithm: Value, is_rsa: Value, _opts: Value) -> String {
     let rsa_mode = matches!(is_rsa, Value::Bool(true));
     let bits = match algorithm.as_str() {
         Some("sha512") => "512",
@@ -1336,12 +1336,9 @@ pub fn jwt(request: Value, secret: Value, algorithm: Value, is_rsa: Value, _opts
         b64url_encode(payload.as_bytes()));
     // Signature: standard base64 from rsa()/hmac(), then made URL-safe.
     let sig_std: String = if rsa_mode {
-        match rsa(Value::Str(token.clone().into()), secret, algorithm) {
-            Value::Str(s) => s.to_string(),
-            _ => String::new(),
-        }
+        rsa(Value::Str(token.clone().into()), secret.into(), algorithm)
     } else {
-        match hmac(encode(Value::Str(token.clone().into())), secret, algorithm,
+        match hmac(encode(Value::Str(token.clone().into())), secret.into(), algorithm,
                    Value::Str("base64".into())) {
             Value::Str(s) => s.to_string(),
             _ => String::new(),
@@ -1349,7 +1346,7 @@ pub fn jwt(request: Value, secret: Value, algorithm: Value, is_rsa: Value, _opts
     };
     let sig_url = sig_std.replace('+', "-").replace('/', "_")
         .trim_end_matches('=').to_string();
-    Value::Str(format!("{token}.{sig_url}").into())
+    format!("{token}.{sig_url}")
 }
 
 /// `replace_str(s, old, new)` — string replacement, alias for string_replace.

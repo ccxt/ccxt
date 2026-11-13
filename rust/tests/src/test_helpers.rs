@@ -448,7 +448,7 @@ pub fn preloadWsMessages(_exchange: Value, url: Value, messages: Value) -> Value
 fn binary_frame(m: &Value) -> Value {
     if let Value::Dict(d) = m {
         if let Some(Value::Str(h)) = d.get("binary") {
-            return with_base(|e| e.base16_to_binary(Value::Str(h.clone()), &[]));
+            return Value::from(with_base(|e| e.base16_to_binary(Value::Str(h.clone()), &[])));
         }
     }
     m.clone()
@@ -608,7 +608,7 @@ impl ExchangeOps for Value {
     fn group_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.group_by(arr, key, o)) }
     fn filter_by(&self, arr: Value, key: Value, value: Value, o: &[Value]) -> Value { with_base(|e| e.filter_by(arr, key, value, o)) }
     fn number_to_string(&self, n: Value) -> Option<String> { with_base(|e| e.number_to_string(n)) }
-    fn base16_to_binary(&self, s: Value, o: &[Value]) -> Value { with_base(|e| e.base16_to_binary(s, o)) }
+    fn base16_to_binary(&self, s: Value, o: &[Value]) -> Value { Value::from(with_base(|e| e.base16_to_binary(s, o))) }
     fn precision_from_string(&self, s: Value) -> Value { with_base(|e| e.precision_from_string(s)) }
     fn parse_precision(&self, o: &[Value]) -> Value { with_base(|e| e.parse_precision(o)) }
     fn sort_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.sort_by(arr, key, o)) }

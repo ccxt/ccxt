@@ -1205,11 +1205,11 @@ impl Exchange {
 
     // ── crypto ──────────────────────────────────────────────────────────────
 
-    pub fn hmac(&self, data: Value, secret: Value, hash: Value, optional_args: &[Value]) -> String {
+    pub fn hmac(&self, data: impl Into<Value>, secret: impl Into<Value>, hash: Value, optional_args: &[Value]) -> String {
         // `data`/`secret` may be a string OR the byte-array produced by
         // `encode()` (CCXT's `hmac` takes the encoded request/secret).
-        let dbytes = value_to_bytes(&data);
-        let sbytes = value_to_bytes(&secret);
+        let dbytes = value_to_bytes(&data.into());
+        let sbytes = value_to_bytes(&secret.into());
         let h = match &hash { Value::Str(s) => s.clone(), _ => "sha256".to_string().into() };
         let digest = match optional_args.get(0) {
             Some(Value::Str(d)) => d.clone(),
@@ -1235,9 +1235,9 @@ impl Exchange {
         })
     }
 
-    pub fn hash(&self, data: Value, algo: Value, optional_args: &[Value]) -> Value {
+    pub fn hash(&self, data: impl Into<Value>, algo: Value, optional_args: &[Value]) -> Value {
         // `data` may be a string OR the byte-array produced by `encode()`.
-        let dbytes = value_to_bytes(&data);
+        let dbytes = value_to_bytes(&data.into());
         let a = match &algo { Value::Str(s) => s.clone(), _ => "sha256".to_string().into() };
         let digest = match optional_args.get(0) {
             Some(Value::Str(d)) => d.clone(),
@@ -1260,27 +1260,21 @@ impl Exchange {
         }
     }
 
-    pub fn binary_to_base64(&self, data: Value, _optional_args: &[Value]) -> Value {
-        let bytes = value_to_bytes(&data);
-        Value::Str(B64.encode(&bytes).into())
+    pub fn binary_to_base64(&self, data: impl Into<Value>, _optional_args: &[Value]) -> String {
+        let bytes = value_to_bytes(&data.into());
+        B64.encode(&bytes)
     }
-    pub fn base64_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
-        let str_val = match &s { Value::Str(s) => s.clone(), _ => return Value::Null };
-        match B64.decode(&*str_val) {
-            Ok(b) => Value::Array(b.into_iter().map(|n| Value::Int(n as i64)).collect()),
-            Err(_) => Value::Null,
-        }
+    pub fn base64_to_binary(&self, s: Value, _optional_args: &[Value]) -> crate::value::Bytes {
+        let str_val = match &s { Value::Str(s) => s.clone(), _ => return crate::value::Bytes::default() };
+        crate::value::Bytes::of(&B64.decode(&*str_val).unwrap_or_default())
     }
-    pub fn binary_to_base16(&self, data: Value, _optional_args: &[Value]) -> Value {
-        let bytes = value_to_bytes(&data);
-        Value::Str(hex::encode(&bytes).into())
+    pub fn binary_to_base16(&self, data: impl Into<Value>, _optional_args: &[Value]) -> String {
+        let bytes = value_to_bytes(&data.into());
+        hex::encode(&bytes)
     }
-    pub fn base16_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
-        let str_val = match &s { Value::Str(s) => s.clone(), _ => return Value::Null };
-        match hex::decode(&*str_val) {
-            Ok(b) => Value::Array(b.into_iter().map(|n| Value::Int(n as i64)).collect()),
-            Err(_) => Value::Null,
-        }
+    pub fn base16_to_binary(&self, s: Value, _optional_args: &[Value]) -> crate::value::Bytes {
+        let str_val = match &s { Value::Str(s) => s.clone(), _ => return crate::value::Bytes::default() };
+        crate::value::Bytes::of(&hex::decode(&*str_val).unwrap_or_default())
     }
 
     // ── time ────────────────────────────────────────────────────────────────

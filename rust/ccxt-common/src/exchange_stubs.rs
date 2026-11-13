@@ -2463,23 +2463,20 @@ impl Exchange {
         Value::Map(m)
     }
 
-    pub fn base16ToBinary(&self, hex: Value, optional_args: &[Value]) -> Value {
+    pub fn base16ToBinary(&self, hex: Value, optional_args: &[Value]) -> crate::value::Bytes {
         self.base16_to_binary(hex, optional_args)
     }
-    pub fn base58_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
+    pub fn base58_to_binary(&self, s: Value, _optional_args: &[Value]) -> crate::value::Bytes {
         match &s {
-            Value::Str(s) => match base58_decode(s) {
-                Some(b) => bytes_to_value(&b),
-                None => Value::Null,
-            },
-            _ => Value::Null,
+            Value::Str(s) => crate::value::Bytes::of(&base58_decode(s).unwrap_or_default()),
+            _ => crate::value::Bytes::default(),
         }
     }
-    pub fn binary_to_base58(&self, b: Value, _optional_args: &[Value]) -> Value {
-        Value::Str(base58_encode(&crate::exchange::value_to_bytes(&b)).into())
+    pub fn binary_to_base58(&self, b: impl Into<Value>, _optional_args: &[Value]) -> String {
+        base58_encode(&crate::exchange::value_to_bytes(&b.into()))
     }
-    pub fn binary_length(&self, b: Value, _optional_args: &[Value]) -> Value {
-        match b {
+    pub fn binary_length(&self, b: impl Into<Value>, _optional_args: &[Value]) -> Value {
+        match b.into() {
             Value::Arr(a) => Value::Int(a.len() as i64),
             _ => Value::Int(0),
         }
@@ -2491,7 +2488,7 @@ impl Exchange {
         Value::Bool(is_byte_array(&v))
     }
     /// `numberToBE(n, padding)` — big-endian byte array of width `padding`.
-    pub fn number_to_be(&self, n: Value, optional_args: &[Value]) -> Value {
+    pub fn number_to_be(&self, n: Value, optional_args: &[Value]) -> crate::value::Bytes {
         let num: u64 = match &n {
             Value::Int(i) => (*i).max(0) as u64,
             Value::Float(f) => (*f).max(0.0) as u64,
@@ -2511,7 +2508,7 @@ impl Exchange {
         } else {
             out.extend_from_slice(&be[be.len() - padding..]);
         }
-        bytes_to_value(&out)
+        crate::value::Bytes::of(&out)
     }
     /// `parseDate(x)` — ports `functions/time.ts`. Parses an ISO-8601
     /// timestamp (with `T`/`Z` or a plain `YYYY-MM-DD HH:MM:SS` form,
@@ -2581,39 +2578,34 @@ impl Exchange {
     }
     /// `binaryConcat(a, b, ...)` — concatenates byte buffers. The
     /// variadic call-site wrap folds the tail args into `optional_args`.
-    pub fn binary_concat(&self, first: Value, optional_args: &[Value]) -> Value {
-        let mut out = crate::exchange::value_to_bytes(&first);
+    pub fn binary_concat(&self, first: impl Into<Value>, optional_args: &[Value]) -> crate::value::Bytes {
+        let mut out = crate::exchange::value_to_bytes(&first.into());
         for v in optional_args {
             out.extend(crate::exchange::value_to_bytes(v));
         }
-        bytes_to_value(&out)
+        crate::value::Bytes::of(&out)
     }
-    pub fn stringToBase64(&self, s: Value, optional_args: &[Value]) -> Value {
+    pub fn stringToBase64(&self, s: Value, optional_args: &[Value]) -> String {
         self.string_to_base64(s, optional_args)
     }
     /// `binaryToString(buffer)` — decodes a byte buffer as UTF-8.
-    pub fn binary_to_string(&self, b: Value, _optional_args: &[Value]) -> Value {
-        let bytes = crate::exchange::value_to_bytes(&b);
-        Value::Str(String::from_utf8_lossy(&bytes).into_owned().into())
+    pub fn binary_to_string(&self, b: impl Into<Value>, _optional_args: &[Value]) -> String {
+        let bytes = crate::exchange::value_to_bytes(&b.into());
+        String::from_utf8_lossy(&bytes).into_owned()
     }
-    pub fn string_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
+    pub fn string_to_binary(&self, s: Value, _optional_args: &[Value]) -> crate::value::Bytes {
         match s {
-            Value::Str(s) => Value::Array(s.bytes().map(|b| Value::Int(b as i64)).collect()),
-            _ => Value::Array(vec![]),
+            Value::Str(s) => crate::value::Bytes::of(s.as_bytes()),
+            _ => crate::value::Bytes::default(),
         }
     }
     /// `urlencodeBase64(payload)` — url-safe base64 with `+/` → `-_`
     /// and trailing `=` padding stripped. Accepts a string or a byte
     /// buffer (`Value::Array`).
-    pub fn urlencode_base64(&self, v: Value, _optional_args: &[Value]) -> Value {
-        let bytes = match &v {
-            Value::Str(s) => s.as_bytes().to_vec(),
-            _ => crate::exchange::value_to_bytes(&v),
-        };
-        let encoded = match self.binary_to_base64(bytes_to_value(&bytes), &[]) {
-            Value::Str(s) => s,
-            _ => String::new().into(),
-        };
+    pub fn urlencode_base64(&self, v: impl Into<Value>, _optional_args: &[Value]) -> Value {
+        // a string reads as its UTF-8 bytes, as `value_to_bytes` does for `Value::Str`
+        let bytes = crate::exchange::value_to_bytes(&v.into());
+        let encoded = self.binary_to_base64(bytes_to_value(&bytes), &[]);
         let trimmed = encoded.trim_end_matches('=');
         Value::Str(trimmed.replace('+', "-").replace('/', "_").into())
     }
@@ -2932,10 +2924,10 @@ impl Exchange {
     }
 
     /// `encode(s)` — UTF-8 encode string to bytes (as Value::Array of ints).
-    pub fn encode(&self, s: Value) -> Value {
+    pub fn encode(&self, s: Value) -> crate::value::Bytes {
         match s {
-            Value::Str(s) => Value::Array(s.bytes().map(|b| Value::Int(b as i64)).collect()),
-            _ => Value::Array(vec![]),
+            Value::Str(s) => crate::value::Bytes::of(s.as_bytes()),
+            _ => crate::value::Bytes::default(),
         }
     }
 
@@ -3087,7 +3079,7 @@ impl Exchange {
         Value::Array(s.chars().map(|c| Value::Str(c.to_string().into())).collect())
     }
 
-    pub fn string_to_base64(&self, s: Value, _optional_args: &[Value]) -> Value {
+    pub fn string_to_base64(&self, s: Value, _optional_args: &[Value]) -> String {
         self.binary_to_base64(s, &[])
     }
 
