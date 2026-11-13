@@ -873,7 +873,7 @@ public partial class BaseExchange
     {
         try
         {
-            var floored = Math.Floor(Convert.ToDouble(a));
+            var floored = Math.Truncate(Convert.ToDouble(a));
             return Convert.ToInt64(floored);
         }
         catch (Exception e)
