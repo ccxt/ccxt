@@ -1716,12 +1716,13 @@ class htx extends \ccxt\async\htx {
         $swap = ($type === 'swap');
         $future = ($type === 'future');
         $isV5Linear = ($linear && ($swap || $future));
-        $isLinear = ($subType === 'linear');
-        $url = $this->get_url_by_market_type($type, $isLinear, true, false, $isV5Linear);
         $messageHash = $marginMode . ':positions' . $messageHash;
         $channel = 'positions.*';
+        // one positions cache per margin mode: linear, inverse and futures symbols never collide
+        $cacheKey = 'isolated';
         if ($marginMode === 'cross') {
             $channel = 'positions_cross.*';
+            $cacheKey = 'cross';
         }
         if ($isV5Linear) {
             $v5Market = null;
@@ -1740,7 +1741,7 @@ class htx extends \ccxt\async\htx {
         if ($this->newUpdates) {
             return $newPositions;
         }
-        return $this->filter_by_symbols_since_limit($this->safe_value($this->safe_value($this->positions, $url), $marginMode), $symbolsNormalized, $since, $limit, false);
+        return $this->filter_by_symbols_since_limit($this->safe_value($this->positionsByType, $cacheKey), $symbolsNormalized, $since, $limit, false);
     }
 
     public function handle_positions(Client $client, array $message) {
@@ -1823,18 +1824,10 @@ class htx extends \ccxt\async\htx {
         //         ]
         //     }
         //
-        $url = $client->url;
         $topic = $this->safe_string($message, 'topic', '');
         $defaultMarginMode = 'isolated';
         if ($topic === 'positions_cross') {
             $defaultMarginMode = 'cross';
-        }
-        if ($this->positions === null) {
-            $this->positions = array();
-        }
-        $clientPositions = $this->safe_dict($this->positions, $url);
-        if ($clientPositions === null) {
-            $this->positions[$url] = array();
         }
         $rawPositions = $this->safe_list($message, 'data', array());
         if ($this->is_empty($rawPositions)) {
@@ -1859,10 +1852,10 @@ class htx extends \ccxt\async\htx {
             if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
                 $marginMode = $defaultMarginMode;
             }
-            $cache = $this->safe_value($this->positions[$url], $marginMode);
+            $cache = $this->safe_value($this->positionsByType, $marginMode);
             if ($cache === null) {
                 $cache = new ArrayCacheBySymbolBySide();
-                $this->positions[$url][$marginMode] = $cache;
+                $this->positionsByType[$marginMode] = $cache;
             }
             $newPositions[] = $position;
             $positionsByMarginMode[$marginMode] = $this->safe_list($positionsByMarginMode, $marginMode, array());

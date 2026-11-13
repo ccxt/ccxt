@@ -1625,7 +1625,7 @@ class gate extends \ccxt\async\gate {
         $this->set_positions_cache($client, $type, $symbolsNormalized);
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
-        $cache = $this->safe_value($this->positions, $type);
+        $cache = $this->safe_value($this->positionsByType, $type);
         if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($cache === null)) {
             return Async\await($client->future($type . ':fetchPositionsSnapshot'));
         }
@@ -1633,14 +1633,11 @@ class gate extends \ccxt\async\gate {
         if ($this->newUpdates) {
             return $positions;
         }
-        return $this->filter_by_symbols_since_limit($this->safe_value($this->positions, $type), $symbolsNormalized, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($this->safe_value($this->positionsByType, $type), $symbolsNormalized, $since, $limit, true);
     }
 
     public function set_positions_cache(Client $client, string $type, ?array $symbols = null) {
-        if ($this->positions === null) {
-            $this->positions = array();
-        }
-        if (is_array($this->positions) && array_key_exists($type ?? '', $this->positions)) {
+        if (is_array($this->positionsByType) && array_key_exists($type ?? '', $this->positionsByType)) {
             return;
         }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
@@ -1651,7 +1648,7 @@ class gate extends \ccxt\async\gate {
                 $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash, $type);
             }
         } else {
-            $this->positions[$type] = new ArrayCacheBySymbolBySide();
+            $this->positionsByType[$type] = new ArrayCacheBySymbolBySide();
         }
     }
 
@@ -1661,8 +1658,8 @@ class gate extends \ccxt\async\gate {
 
     private function do_load_positions_snapshot(Client $client, string $messageHash, string $type) {
         $positions = Async\await($this->fetch_positions(null, array( 'type' => $type )));
-        $this->positions[$type] = new ArrayCacheBySymbolBySide();
-        $cache = $this->positions[$type];
+        $this->positionsByType[$type] = new ArrayCacheBySymbolBySide();
+        $cache = $this->positionsByType[$type];
         for ($i = 0; $i < count($positions); $i++) {
             $position = $positions[$i];
             $contracts = $this->safe_number($position, 'contracts', 0);
@@ -1711,7 +1708,7 @@ class gate extends \ccxt\async\gate {
         //
         $type = $this->get_market_type_by_url($client->url);
         $data = $this->safe_list($message, 'result', array());
-        $cache = $this->positions[$type];
+        $cache = $this->positionsByType[$type];
         $newPositions = array();
         for ($i = 0; $i < count($data); $i++) {
             $rawPosition = $data[$i];

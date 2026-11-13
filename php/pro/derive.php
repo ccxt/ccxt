@@ -993,16 +993,14 @@ class derive extends \ccxt\async\derive {
         $symbolsResolved = $this->market_symbols($symbols, null, true);
         list($fetchSnapshot, $paramsSnapshot) = $this->handle_option_bool_and_params($params, 'watchPositions', 'fetchPositionsSnapshot', true);
         list($subaccountId, $paramsDeriveSubaccountId) = $this->handleDeriveSubaccountId('watchPositions', $paramsSnapshot);
-        if ($this->positions === null) {
-            $emptyCaches = array();
-            $this->positions = $emptyCaches;
+        if ($this->is_empty($this->positionsByType)) {
             $emptySnapshots = array();
             $this->options['loadedPositionsSnapshots'] = $emptySnapshots;
         }
         // the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
         $subaccountIdKey = $this->number_to_string($subaccountId);
-        if (!(is_array($this->positions) && array_key_exists($subaccountIdKey ?? '', $this->positions))) {
-            $this->positions[$subaccountIdKey] = new ArrayCacheBySymbolBySide();
+        if (!(is_array($this->positionsByType) && array_key_exists($subaccountIdKey ?? '', $this->positionsByType))) {
+            $this->positionsByType[$subaccountIdKey] = new ArrayCacheBySymbolBySide();
         }
         $loadedSnapshots = $this->safe_dict($this->options, 'loadedPositionsSnapshots', array());
         if ($fetchSnapshot && !(is_array($loadedSnapshots) && array_key_exists($subaccountIdKey ?? '', $loadedSnapshots))) {
@@ -1011,7 +1009,7 @@ class derive extends \ccxt\async\derive {
             );
             $snapshotParams = $this->extend($snapshotRequest, $paramsDeriveSubaccountId);
             $positionsSnapshot = Async\await($this->fetch_positions(null, $snapshotParams));
-            $cache = $this->safe_value($this->positions, $subaccountIdKey);
+            $cache = $this->safe_value($this->positionsByType, $subaccountIdKey);
             for ($i = 0; $i < count($positionsSnapshot); $i++) {
                 $snapshotPosition = $this->safe_dict($positionsSnapshot, $i);
                 $cache->append($snapshotPosition);
@@ -1039,7 +1037,7 @@ class derive extends \ccxt\async\derive {
         if ($this->newUpdates) {
             return $newPositions;
         }
-        return $this->filter_by_symbols_since_limit($this->safe_value($this->positions, $subaccountIdKey), $symbolsResolved, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($this->safe_value($this->positionsByType, $subaccountIdKey), $symbolsResolved, $since, $limit, true);
     }
 
     public function handle_position_delta(string $subaccountIdKey, array $entry): array {
@@ -1050,7 +1048,7 @@ class derive extends \ccxt\async\derive {
         $isShort = Precise::string_lt($newSize, '0');
         $side = $isShort ? 'short' : 'long';
         $contracts = Precise::string_abs($newSize);
-        $cache = $this->safe_value($this->positions, $subaccountIdKey);
+        $cache = $this->safe_value($this->positionsByType, $subaccountIdKey);
         $symbolPositions = $this->safe_dict($cache->hashmap, $symbol, array());
         // a fill through zero flattens the opposite side first
         $oppositeSide = $isShort ? 'long' : 'short';
@@ -1116,7 +1114,7 @@ class derive extends \ccxt\async\derive {
             $name = $this->safe_string($entry, 'name', '');
             if (mb_strpos($name, '-') !== false) {
                 // position deltas carry instrument names and do not belong into the balance structure
-                if (($this->positions !== null) && (is_array($this->positions) && array_key_exists($subaccountIdKey ?? '', $this->positions))) {
+                if (is_array($this->positionsByType) && array_key_exists($subaccountIdKey ?? '', $this->positionsByType)) {
                     $position = $this->handle_position_delta($subaccountIdKey, $entry);
                     $positionUpdates[] = $position;
                 }

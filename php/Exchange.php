@@ -3501,6 +3501,7 @@ class BaseExchange {
         $this->ohlcvs = $this->create_safe_dictionary(true);
         $this->myTrades = null;
         $this->positions = null;
+        $this->positionsByType = array();
     }
 
     public function safe_bool_n(mixed $dictionaryOrList, array $keys, ?bool $defaultValue = null) {

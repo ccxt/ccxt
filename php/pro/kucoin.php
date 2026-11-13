@@ -3106,8 +3106,7 @@ class kucoin extends \ccxt\async\kucoin {
         if ($this->positions === null) {
             return null;
         }
-        $cache = $this->positions.hashmap;
-        $symbolCache = $this->safe_dict($cache, $symbol, array());
+        $symbolCache = $this->safe_dict($this->positions.hashmap, $symbol, array());
         $values = is_array($symbolCache) ? array_values($symbolCache) : array();
         return $this->safe_dict($values, 0);
     }
@@ -3289,7 +3288,10 @@ class kucoin extends \ccxt\async\kucoin {
             }
         }
         $position = $this->extend($currentPosition, $newPosition);
-        $cache->append($position);
+        // the cache exists once watchPosition(s) set it up
+        if ($cache !== null) {
+            $cache->append($position);
+        }
         $client->resolve($position, $messageHash);
     }
 

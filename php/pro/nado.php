@@ -1146,11 +1146,11 @@ class nado extends \ccxt\async\nado {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
-    public function watch_public(?string $streamType, mixed $market, string $messageHash, $params = array()) {
+    public function watch_public(?string $streamType, ?array $market, string $messageHash, $params = array()) {
         return Async\async(self::do_watch_public(...))($streamType, $market, $messageHash, $params);
     }
 
-    private function do_watch_public(?string $streamType, mixed $market, string $messageHash, $params = array()) {
+    private function do_watch_public(?string $streamType, ?array $market, string $messageHash, $params = array()) {
         $url = $this->safe_string($this->urls['api']['ws'], 'subscriptions');
         $stream = array(
             'type' => $streamType,

@@ -1608,14 +1608,11 @@ class bitget extends \ccxt\async\bitget {
         //
         $arg = $this->safe_dict($message, 'arg', array());
         $instType = $this->safe_string($arg, 'instType', '');
-        if ($this->positions === null) {
-            $this->positions = array();
-        }
         $action = $this->safe_string($message, 'action');
-        if (!(is_array($this->positions) && array_key_exists($instType ?? '', $this->positions)) || ($action === 'snapshot')) {
-            $this->positions[$instType] = new ArrayCacheBySymbolBySide();
+        if (!(is_array($this->positionsByType) && array_key_exists($instType ?? '', $this->positionsByType)) || ($action === 'snapshot')) {
+            $this->positionsByType[$instType] = new ArrayCacheBySymbolBySide();
         }
-        $cache = $this->positions[$instType];
+        $cache = $this->positionsByType[$instType];
         $rawPositions = $this->safe_list($message, 'data', array());
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
