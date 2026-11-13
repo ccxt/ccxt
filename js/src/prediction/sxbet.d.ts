@@ -26,7 +26,7 @@ export default class sxbet extends Exchange {
      * @param {int} [userLimit] stop collecting once this many raw markets have been gathered
      * @returns {object[]} the raw (unparsed) sx.bet market objects
      */
-    fetchRawMarketsPaged(extra?: Dict, userLimit?: Int): Promise<any[]>;
+    fetchRawMarketsPaged(extra?: Dict, userLimit?: Int): Promise<Dict[]>;
     /**
      * @ignore
      * @method
@@ -36,7 +36,7 @@ export default class sxbet extends Exchange {
      * @param {string} sportXeventId the fixture id to keep
      * @returns {object[]} the raw markets of that fixture only
      */
-    filterRawMarketsByFixture(rawMarkets: any[], sportXeventId: string): any[];
+    filterRawMarketsByFixture(rawMarkets: Dict[], sportXeventId: string): Dict[];
     /**
      * @ignore
      * @method
@@ -92,7 +92,7 @@ export default class sxbet extends Exchange {
      * @param {object[]} rawMarkets the raw sx.bet market objects belonging to this fixture
      * @returns {object} an event structure
      */
-    parseEvent(fixtureId: string, rawMarkets: any[]): PredictionEvent;
+    parseEvent(fixtureId: string, rawMarkets: Dict[]): PredictionEvent;
     /**
      * @ignore
      * @method
@@ -406,7 +406,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} the raw bestOdds rows ({marketHash, outcomeOne, outcomeTwo})
      */
-    fetchSxbetBestOdds(marketHashes: string[], params?: Dict): Promise<any[]>;
+    fetchSxbetBestOdds(marketHashes: string[], params?: Dict): Promise<Dict[]>;
     /**
      * @ignore
      * @method

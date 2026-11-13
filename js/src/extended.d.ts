@@ -99,7 +99,7 @@ export default class extended extends Exchange {
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
     parseFundingHistory(history: Dict, market?: Market): FundingHistory;
-    parseFundingHistories(histories: any[], market?: Market, since?: Int, limit?: Int): FundingHistory[];
+    parseFundingHistories(histories: Dict[], market?: Market, since?: Int, limit?: Int): FundingHistory[];
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
