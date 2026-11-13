@@ -8,6 +8,7 @@
 - [Exchanges By Country](Exchange-Markets-By-Country.md)
 - [API Spec By Method](baseSpec.md)
 - [Order Router](OrderRouter.md)
+- [Record and Replay](Replay.md)
 - [FAQ](FAQ.md)
 - [Changelog](CHANGELOG.md)
 - [Awesome](Awesome.md)
