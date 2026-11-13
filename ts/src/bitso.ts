@@ -427,7 +427,7 @@ export default class bitso extends Exchange {
             const cost = Precise.stringAbs (amount);
             fee = {
                 'cost': cost,
-                'currency': currencyResolved,
+                'currency': code,
             };
         }
         const timestamp = this.parse8601 (this.safeString (item, 'created_at'));

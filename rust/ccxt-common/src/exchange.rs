@@ -172,7 +172,7 @@ pub struct Internals {
     /// `fetchWebEndpoint` treats a miss as fatal — see
     /// `crate::exchange::call_dynamic_required`.
     pub dynamic_dispatch_miss: Option<String>,
-    /// Typed views of `markets_by_id` / `currencies_by_id`, rebuilt only when the source map changes.
+    /// Typed views of `markets_by_id` / `currencies_by_id` / `currencies`, rebuilt only when the source map changes.
     pub typed_by_id: std::sync::Mutex<TypedByIdStores>,
 }
 
@@ -191,6 +191,7 @@ impl<T> Default for TypedById<T> {
 pub struct TypedByIdStores {
     pub markets:    Arc<TypedById<crate::types::Market>>,
     pub currencies: Arc<TypedById<crate::types::Currency>>,
+    pub currencies_by_code: Arc<TypedById<crate::types::Currency>>,
 }
 
 impl<T> TypedById<T> {
@@ -231,12 +232,12 @@ pub trait DerivedExchange {
     fn parse_balance(&self, _response: Value) -> Value { Value::Null }
     fn parse_position(&self, _position: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     fn parse_funding_rate(&self, _rate: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_deposit(&self, _tx: Value, _currency: Value) -> Value { Value::Null }
-    fn parse_deposit_address(&self, _addr: Value, _currency: Value) -> Value { Value::Null }
+    fn parse_deposit(&self, _tx: Value, _currency: Option<&crate::types::Currency>) -> Value { Value::Null }
+    fn parse_deposit_address(&self, _addr: Value, _currency: Option<&crate::types::Currency>) -> Value { Value::Null }
     fn parse_last_price(&self, _entry: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_withdrawal(&self, _tx: Value, _currency: Value) -> Value { Value::Null }
-    fn parse_ledger_entry(&self, _entry: Value, _currency: Value) -> Value { Value::Null }
-    fn parse_transfer(&self, _transfer: Value, _currency: Value) -> Value { Value::Null }
+    fn parse_withdrawal(&self, _tx: Value, _currency: Option<&crate::types::Currency>) -> Value { Value::Null }
+    fn parse_ledger_entry(&self, _entry: Value, _currency: Option<&crate::types::Currency>) -> Value { Value::Null }
+    fn parse_transfer(&self, _transfer: Value, _currency: Option<&crate::types::Currency>) -> Value { Value::Null }
     fn parse_currency(&self, _currency: Value) -> Value { Value::Null }
     fn parse_bid_ask(&self, _bidask: Value, _price_key: Value, _amount_key: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     fn parse_open_interest(&self, _interest: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
@@ -245,17 +246,17 @@ pub trait DerivedExchange {
     fn parse_margin_modification(&self, _data: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     fn parse_account(&self, _account: Value) -> Value { Value::Null }
     fn parse_my_trade(&self, _trade: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_transaction(&self, _transaction: Value, _currency: Value) -> Value { Value::Null }
+    fn parse_transaction(&self, _transaction: Value, _currency: Option<&crate::types::Currency>) -> Value { Value::Null }
     fn parse_borrow_interest(&self, _info: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     fn parse_adl_rank(&self, _info: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     fn parse_income(&self, _info: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     fn parse_greeks(&self, _greeks: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     fn parse_margin_mode(&self, _margin_mode: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_conversion(&self, _conversion: Value, _from_currency: Value, _to_currency: Value) -> Value { Value::Null }
-    fn parse_borrow_rate(&self, _info: Value, _currency: Value) -> Value { Value::Null }
+    fn parse_conversion(&self, _conversion: Value, _from_currency: Option<&crate::types::Currency>, _to_currency: Option<&crate::types::Currency>) -> Value { Value::Null }
+    fn parse_borrow_rate(&self, _info: Value, _currency: Option<&crate::types::Currency>) -> Value { Value::Null }
     fn parse_leverage(&self, _leverage: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     fn parse_market_leverage_tiers(&self, _info: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_deposit_withdraw_fee(&self, _fee: Value, _currency: Value) -> Value { Value::Null }
+    fn parse_deposit_withdraw_fee(&self, _fee: Value, _currency: Option<&crate::types::Currency>) -> Value { Value::Null }
     fn create_expired_option_market(&self, _symbol: Value) -> Value { Value::Null }
     fn market(&self, _symbol: Value) -> Value { Value::Null }
     // ── prediction-tier parsers (overridden by prediction venues) ────────
@@ -1103,6 +1104,15 @@ impl Exchange {
     pub fn currencies_by_id_typed(&self) -> Arc<TypedById<crate::types::Currency>> {
         let mut stores = self.internals.typed_by_id.lock().unwrap_or_else(|e| e.into_inner());
         TypedById::refresh(&mut stores.currencies, &self.currencies_by_id, |v| match v {
+            Value::Dict(_) => vec![crate::types::Currency::from_value(v.clone())],
+            _ => Vec::new(),
+        })
+    }
+
+    /// Currencies by unified code, typed and shared (same store shape as the by-id one).
+    pub fn currencies_by_code_typed(&self) -> Arc<TypedById<crate::types::Currency>> {
+        let mut stores = self.internals.typed_by_id.lock().unwrap_or_else(|e| e.into_inner());
+        TypedById::refresh(&mut stores.currencies_by_code, &self.currencies, |v| match v {
             Value::Dict(_) => vec![crate::types::Currency::from_value(v.clone())],
             _ => Vec::new(),
         })
@@ -2044,8 +2054,8 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn super_handle_margin_mode_and_params(&self, method_name: Value, params: Value, default_value: Value) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::handle_margin_mode_and_params(self, method_name, &[params, default_value])
     }
-    fn super_safe_currency_code(&self, currency_id: Value, currency: Value) -> Option<String> {
-        <Self as crate::exchange_generated::ExchangeBase>::safe_currency_code(self, currency_id, &[currency])
+    fn super_safe_currency_code(&self, currency_id: Value, currency: Option<&crate::types::Currency>) -> Option<String> {
+        <Self as crate::exchange_generated::ExchangeBase>::safe_currency_code(self, currency_id, currency)
     }
     fn super_set_markets(&mut self, markets: Value, currencies: Value) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, markets, &[currencies])
