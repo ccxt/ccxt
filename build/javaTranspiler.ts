@@ -5250,7 +5250,7 @@ class NewTranspiler {
             // the main live runner (initExchange (exchangeId, ...)) also serves prediction venues,
             // so it must STAY BaseExchange-typed — only the base-tests literal init is a real Exchange
             [/BaseExchange exchange = (initExchange\("Exchange"[^;]*\))/g, 'Exchange exchange = ((Exchange)$1)'],
-            [/BaseExchange exchange = this\.initOfflineExchange\(("[a-z]+")\)/g, 'Exchange exchange = ((Exchange)this.initOfflineExchange($1))'],
+            [/BaseExchange exchange = this\.initOfflineExchange\(("[a-z0-9]+")\)/g, 'Exchange exchange = ((Exchange)this.initOfflineExchange($1))'],
             [/testReturnResponseHeaders\(BaseExchange exchange\)/g, 'testReturnResponseHeaders(Exchange exchange)'],
             [/throw new Error/g, 'throw new Exception'],
             [/public class TestMainClass/g, 'public class TestMain extends BaseTest'],

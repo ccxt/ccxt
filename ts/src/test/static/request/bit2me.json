@@ -1,0 +1,501 @@
+{
+    "exchange": "bit2me",
+    "skipKeys": [
+        "clientOrderId"
+    ],
+    "options": {},
+    "methods": {
+        "createMarketSellOrderWithCost": [
+            {
+                "description": "market sell with cost",
+                "method": "createMarketSellOrderWithCost",
+                "url": "https://gateway.bit2me.com/v1/trading/order",
+                "input": [
+                    "BTC/USDC",
+                    5
+                ],
+                "output": "{\"symbol\":\"BTC/USDC\",\"side\":\"sell\",\"orderType\":\"market\",\"amount\":\"5\",\"amountInQuote\":true,\"clientOrderId\":\"CCXT-4dfca3e0-fbd6-44e6-8a8b-6230978c735a\"}"
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "market buy with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://gateway.bit2me.com/v1/trading/order",
+                "input": [
+                    "BTC/USDC",
+                    5
+                ],
+                "output": "{\"symbol\":\"BTC/USDC\",\"side\":\"buy\",\"orderType\":\"market\",\"amount\":\"5\",\"amountInQuote\":true,\"clientOrderId\":\"CCXT-924ca5bc-baef-4e01-abfe-734d153cf8ed\"}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "market sell by base amount",
+                "method": "createOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order",
+                "input": [
+                    "BTC/USDC",
+                    "market",
+                    "sell",
+                    9.36e-05
+                ],
+                "output": "{\"symbol\":\"BTC/USDC\",\"side\":\"sell\",\"orderType\":\"market\",\"amount\":\"0.0000936\",\"clientOrderId\":\"CCXT-2f21a7d5-bb61-4497-a107-50a2a8ae7614\"}"
+            },
+            {
+                "description": "oco sell with take profit and stop loss",
+                "method": "createOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order",
+                "input": [
+                    "BTC/USDC",
+                    "limit",
+                    "sell",
+                    0.00016147,
+                    51500,
+                    {
+                        "takeProfitPrice": 96000,
+                        "stopLossPrice": 52000
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC/USDC\",\"side\":\"sell\",\"orderType\":\"oco\",\"amount\":\"0.00016147\",\"takeProfitPrice\":\"96000\",\"stopPrice\":\"52000\",\"stopLimitPrice\":\"51500\"}"
+            },
+            {
+                "description": "take profit sell as a stop-limit",
+                "method": "createOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order",
+                "input": [
+                    "BTC/USDC",
+                    "limit",
+                    "sell",
+                    0.00016147,
+                    96000,
+                    {
+                        "takeProfitPrice": 96000
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC/USDC\",\"side\":\"sell\",\"orderType\":\"stop-limit\",\"amount\":\"0.00016147\",\"price\":\"96000\",\"stopPrice\":\"96000\",\"clientOrderId\":\"CCXT-f46b1a8c-1eb2-4e51-b83d-00aa7953450b\"}"
+            },
+            {
+                "description": "stop loss sell as a stop-limit",
+                "method": "createOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order",
+                "input": [
+                    "BTC/USDC",
+                    "limit",
+                    "sell",
+                    0.00016147,
+                    51500,
+                    {
+                        "stopLossPrice": 52000
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC/USDC\",\"side\":\"sell\",\"orderType\":\"stop-limit\",\"amount\":\"0.00016147\",\"price\":\"51500\",\"stopPrice\":\"52000\",\"clientOrderId\":\"CCXT-8f6e7252-25e7-4a00-986d-cbad7c1d0902\"}"
+            },
+            {
+                "description": "market buy by cost as accepted",
+                "method": "createOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order",
+                "input": [
+                    "BTC/USDC",
+                    "market",
+                    "buy",
+                    0,
+                    null,
+                    {
+                        "cost": 6
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC/USDC\",\"side\":\"buy\",\"orderType\":\"market\",\"amount\":\"6\",\"amountInQuote\":true,\"clientOrderId\":\"CCXT-6114e682-9cf6-4735-be54-bd76e3af20a1\"}"
+            },
+            {
+                "description": "inactive stop-limit buy",
+                "method": "createOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order",
+                "input": [
+                    "BTC/USDC",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    97000,
+                    {
+                        "triggerPrice": 96000
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC/USDC\",\"side\":\"buy\",\"orderType\":\"stop-limit\",\"amount\":\"0.0001\",\"price\":\"97000\",\"stopPrice\":\"96000\",\"clientOrderId\":\"CCXT-0c04e2e8-64cb-4440-93b0-33136157e370\"}"
+            },
+            {
+                "description": "fill-or-kill limit buy as accepted",
+                "method": "createOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order",
+                "input": [
+                    "BTC/USDC",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    36000,
+                    {
+                        "timeInForce": "FOK"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC/USDC\",\"side\":\"buy\",\"orderType\":\"limit\",\"amount\":\"0.0001\",\"price\":\"36000\",\"timeInForce\":\"FOK\",\"clientOrderId\":\"CCXT-59aaaf1f-d818-4a54-a9b3-e8f955b0a0b5\"}"
+            },
+            {
+                "description": "post-only limit buy",
+                "method": "createOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order",
+                "input": [
+                    "BTC/USDC",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    36000,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC/USDC\",\"side\":\"buy\",\"orderType\":\"limit\",\"amount\":\"0.0001\",\"price\":\"36000\",\"postOnly\":true,\"clientOrderId\":\"CCXT-423f1df8-755c-4dfc-a68c-671993b4f954\"}"
+            },
+            {
+                "description": "limit buy with clientOrderId",
+                "method": "createOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order",
+                "input": [
+                    "BTC/USDC",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    36000,
+                    {
+                        "clientOrderId": "my-order-1"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC/USDC\",\"side\":\"buy\",\"orderType\":\"limit\",\"amount\":\"0.0001\",\"price\":\"36000\",\"clientOrderId\":\"CCXT-my-order-1\"}",
+                "skipKeys": []
+            },
+            {
+                "description": "limit buy resting in the book",
+                "method": "createOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order",
+                "input": [
+                    "BTC/USDC",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    36000
+                ],
+                "output": "{\"symbol\":\"BTC/USDC\",\"side\":\"buy\",\"orderType\":\"limit\",\"amount\":\"0.0001\",\"price\":\"36000\",\"clientOrderId\":\"CCXT-6fea183c-26c3-4768-ae3c-16e40f75a56c\"}"
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "movements of the trading wallet",
+                "method": "fetchTransfers",
+                "url": "https://gateway.bit2me.com/v1/trading/movement?currency=USDC&limit=10",
+                "input": [
+                    "USDC",
+                    null,
+                    10
+                ],
+                "output": null
+            }
+        ],
+        "transfer": [
+            {
+                "description": "main wallet to trading wallet",
+                "method": "transfer",
+                "url": "https://gateway.bit2me.com/v1/trading/wallet/deposit",
+                "input": [
+                    "USDC",
+                    1,
+                    "funding",
+                    "spot"
+                ],
+                "output": "{\"currency\":\"USDC\",\"amount\":\"1\"}"
+            },
+            {
+                "description": "trading wallet to main wallet",
+                "method": "transfer",
+                "url": "https://gateway.bit2me.com/v1/trading/wallet/withdraw",
+                "input": [
+                    "USDC",
+                    1,
+                    "spot",
+                    "funding"
+                ],
+                "output": "{\"currency\":\"USDC\",\"amount\":\"1\"}"
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "orders of the last two hours",
+                "method": "fetchOrders",
+                "url": "https://gateway.bit2me.com/v1/trading/order?symbol=BTC%2FUSDC&limit=20&startTime=2026-11-11T04%3A02%3A51.356Z&endTime=2026-11-11T06%3A02%3A51.356Z",
+                "input": [
+                    "BTC/USDC",
+                    1794369771356,
+                    20,
+                    {
+                        "until": 1794376971356
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "filled and cancelled orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://gateway.bit2me.com/v1/trading/order?symbol=BTC%2FUSDC&limit=20&status_in=filled%2Ccancelled",
+                "input": [
+                    "BTC/USDC",
+                    null,
+                    20
+                ],
+                "output": null
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "filled orders",
+                "method": "fetchClosedOrders",
+                "url": "https://gateway.bit2me.com/v1/trading/order?symbol=BTC%2FUSDC&limit=20&status=filled",
+                "input": [
+                    "BTC/USDC",
+                    null,
+                    20
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "recent fills",
+                "method": "fetchMyTrades",
+                "url": "https://gateway.bit2me.com/v1/trading/trade?symbol=BTC%2FUSDC&limit=10",
+                "input": [
+                    "BTC/USDC",
+                    null,
+                    10
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "fills of a market buy",
+                "method": "fetchOrderTrades",
+                "url": "https://gateway.bit2me.com/v1/trading/order/f30d17b5-b070-46e2-9190-b757a9a67226/trades",
+                "input": [
+                    "f30d17b5-b070-46e2-9190-b757a9a67226",
+                    "BTC/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "cancelled orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://gateway.bit2me.com/v1/trading/order?symbol=BTC%2FUSDC&limit=20&status=cancelled",
+                "input": [
+                    "BTC/USDC",
+                    null,
+                    20
+                ],
+                "output": null
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel the stop-limit order",
+                "method": "cancelOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order/11b23e3e-bed2-4741-b696-7ccaf71ad31b",
+                "input": [
+                    "11b23e3e-bed2-4741-b696-7ccaf71ad31b",
+                    "BTC/USDC"
+                ],
+                "output": null
+            },
+            {
+                "description": "cancel the post-only order",
+                "method": "cancelOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order/273f4edf-b985-4697-8f88-007b33fca8f3",
+                "input": [
+                    "273f4edf-b985-4697-8f88-007b33fca8f3",
+                    "BTC/USDC"
+                ],
+                "output": null
+            },
+            {
+                "description": "cancel the clientOrderId order",
+                "method": "cancelOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order/078bd391-35bc-4f8b-839f-8c4313511faf",
+                "input": [
+                    "078bd391-35bc-4f8b-839f-8c4313511faf",
+                    "BTC/USDC"
+                ],
+                "output": null
+            },
+            {
+                "description": "cancelled by the user",
+                "method": "cancelOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order/b843723c-7cb9-472e-a4f5-2c3aacaefce7",
+                "input": [
+                    "b843723c-7cb9-472e-a4f5-2c3aacaefce7",
+                    "BTC/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://gateway.bit2me.com/v1/trading/order?symbol=BTC%2FUSDC&status_in=open%2Cinactive",
+                "input": [
+                    "BTC/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "filled market sell",
+                "method": "fetchOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order/f1389a15-6145-460a-b15e-327eeb2437c6",
+                "input": [
+                    "f1389a15-6145-460a-b15e-327eeb2437c6",
+                    "BTC/USDC"
+                ],
+                "output": null
+            },
+            {
+                "description": "filled market buy",
+                "method": "fetchOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order/f30d17b5-b070-46e2-9190-b757a9a67226",
+                "input": [
+                    "f30d17b5-b070-46e2-9190-b757a9a67226",
+                    "BTC/USDC"
+                ],
+                "output": null
+            },
+            {
+                "description": "by clientOrderId",
+                "method": "fetchOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order?clientOrderId=ccxt-cli-1794376944",
+                "input": [
+                    "",
+                    "BTC/USDC",
+                    {
+                        "clientOrderId": "ccxt-cli-1794376944"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "cancelled limit buy",
+                "method": "fetchOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order/b843723c-7cb9-472e-a4f5-2c3aacaefce7",
+                "input": [
+                    "b843723c-7cb9-472e-a4f5-2c3aacaefce7",
+                    "BTC/USDC"
+                ],
+                "output": null
+            },
+            {
+                "description": "open limit buy",
+                "method": "fetchOrder",
+                "url": "https://gateway.bit2me.com/v1/trading/order/b843723c-7cb9-472e-a4f5-2c3aacaefce7",
+                "input": [
+                    "b843723c-7cb9-472e-a4f5-2c3aacaefce7",
+                    "BTC/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "trading wallets after two market buys",
+                "method": "fetchBalance",
+                "url": "https://gateway.bit2me.com/v1/trading/wallet/balance",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "trading wallets",
+                "method": "fetchBalance",
+                "url": "https://gateway.bit2me.com/v1/trading/wallet/balance",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot",
+                "method": "fetchTrades",
+                "url": "https://gateway.bit2me.com/v1/trading/trade/last?symbol=BTC%2FEUR&limit=5",
+                "input": [
+                    "BTC/EUR",
+                    null,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "all",
+                "method": "fetchMarkets",
+                "url": "https://gateway.bit2me.com/v2/trading/market-config",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "all",
+                "method": "fetchTickers",
+                "url": "https://gateway.bit2me.com/v2/trading/tickers",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot",
+                "method": "fetchOHLCV",
+                "url": "https://gateway.bit2me.com/v1/trading/candle?symbol=BTC%2FEUR&interval=60&limit=3&startTime=1793600000000",
+                "input": [
+                    "BTC/EUR",
+                    "1h",
+                    1793600000000,
+                    3
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot",
+                "method": "fetchOrderBook",
+                "url": "https://gateway.bit2me.com/v2/trading/order-book?symbol=BTC%2FEUR",
+                "input": [
+                    "BTC/EUR"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot",
+                "method": "fetchTicker",
+                "url": "https://gateway.bit2me.com/v2/trading/tickers?symbol=BTC%2FEUR",
+                "input": [
+                    "BTC/EUR"
+                ],
+                "output": null
+            }
+        ]
+    },
+    "outputType": "json"
+}
