@@ -7450,21 +7450,6 @@ export class RustTranspilerBuilder {
                 (_: string, indent: string, n: string, e: string) =>
                     `${indent}${n} = Value::Bool(${e});`],
 
-            // `<LHS> = <ident>;` — RHS is a bare local. Clone it so the
-            // original remains usable. (Allows trailing whitespace/comment.)
-            [/^(\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*;/gm,
-                (_: string, indent: string, lhs: string, rhs: string) => {
-                    if (rhs === 'self' || rhs === 'true' || rhs === 'false') return _;
-                    return `${indent}${lhs} = ${rhs}.clone();`;
-                }],
-
-            // `let mut X: Value = <ident>;` — RHS is a bare local. Clone.
-            [/^(\s*)let\s+mut\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*Value\s*=\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*;$/gm,
-                (_: string, indent: string, lhs: string, rhs: string) => {
-                    if (rhs === 'self' || rhs === 'true' || rhs === 'false') return _;
-                    return `${indent}let mut ${lhs}: Value = ${rhs}.clone();`;
-                }],
-
 
             // `set_value(...)`, `append_to_array(...)`, and
             // `add_element_to_object(...)` take the value arg by move.
@@ -10950,12 +10935,8 @@ export class RustTranspilerBuilder {
         return true;
     }
 
-    /**
-     * Walks every `self.<X>(...)` and bare-fn `ternary(...) / append_to_array(...)` calls,
-     * cloning simple-identifier args (so locals like `symbol`, `market`,
-     * `params` aren't moved into the call and remain usable on the next line).
-     * Paren-balanced parser.
-     */
+    /** Boxes a bool-helper argument of every `self.<X>(...)` / test-helper call as `Value::Bool(..)` (the
+     *  bare-local argument clones are printed by ast-transpiler). Paren-balanced parser. */
     autoCloneCallArgs(content: string): string {
         let i = 0;
         let out = '';
@@ -10983,7 +10964,6 @@ export class RustTranspilerBuilder {
             const boolPrefix = /^!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer|is_function|is_instance|starts_with|ends_with|in_op)\(/;
             const cloned = args.map(a => {
                 const t = a.trim();
-                if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(t) && !['self', 'None', 'true', 'false'].includes(t)) return `${t}.clone()`;
                 if (boolPrefix.test(t)) return `Value::Bool(${t})`;
                 return a;
             }).join(', ');
@@ -12332,13 +12312,6 @@ ${arms.join('\n')}
             /\b((?:Indexed|Counted)?OrderBook|ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide|ByOutcomeById))::new\(/g,
         );
 
-        // `let mut <X>: Value = <ident>;` moves the source local. Clone
-        // the RHS since `Value::clone()` is an Arc bump anyway; the
-        // source typically gets used again on a later line.
-        content = content.replace(
-            /(let\s+mut\s+\w+\s*:\s*Value\s*=\s*)([a-zA-Z_]\w*)(;)/g,
-            '$1$2.clone()$3',
-        );
         // Wrap `error.clone()` in a `Value::from(...)` when it appears
         // inside a Value-slice arg to `client.reject(...)`. The TS
         // sites pass `new ExchangeError(...)` directly; in Rust the
