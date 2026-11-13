@@ -349,7 +349,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $this->events_by_slug = array();
         }
         for ($i = 0; $i < count($events); $i++) {
-            $event = $this->safe_value($events, $i);
+            $event = $this->safe_dict($events, $i);
             $id = $this->safe_string($event, 'id');
             $slug = $this->safe_string($event, 'slug');
             $handle = $this->safe_string($event, 'event');
@@ -416,10 +416,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
         // through fetchEvents; this never fetches
         if (($this->events !== null) && (is_array($this->events) && array_key_exists($eventIdOrSlug ?? '', $this->events))) {
-            return $this->safe_value($this->events, $eventIdOrSlug);
+            return $this->safe_dict($this->events, $eventIdOrSlug);
         }
         if (($this->events_by_slug !== null) && (is_array($this->events_by_slug) && array_key_exists($eventIdOrSlug ?? '', $this->events_by_slug))) {
-            return $this->safe_value($this->events_by_slug, $eventIdOrSlug);
+            return $this->safe_dict($this->events_by_slug, $eventIdOrSlug);
         }
         throw new BadSymbol($this->id . ' has no cached event ' . $eventIdOrSlug . " - call fetchEvents (array( 'query' => ... )) first");
     }
@@ -648,7 +648,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
                 // on a real collision of same handle but different outcomeId, disambiguate the
                 // second one deterministically instead of silently overwriting the first —
                 // trading the wrong market would otherwise be indistinguishable
-                $existing = $this->safe_value($this->outcomes, $ocSymbol);
+                $existing = $this->safe_dict($this->outcomes, $ocSymbol);
                 if ($existing !== null) {
                     $existingId = $this->safe_string($existing, 'outcomeId');
                     if (($existingId !== null) && ($ocId !== null) && ($existingId !== $ocId)) {

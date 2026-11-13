@@ -717,7 +717,7 @@ class ndax extends Exchange {
         $bids = array();
         $asks = array();
         for ($i = 0; $i < count($orderbook); $i++) {
-            $level = $this->safe_value($orderbook, $i);
+            $level = $this->safe_list($orderbook, $i);
             $newTimestamp = $this->safe_integer($level, 2);
             if (($newTimestamp !== null) && (($latestTimestamp === null) || ($newTimestamp > $latestTimestamp))) {
                 $latestTimestamp = $newTimestamp;

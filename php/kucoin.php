@@ -11876,7 +11876,7 @@ class kucoin extends Exchange {
             $partner = $this->safe_dict($this->options, 'partner', array());
             $isUtaFuturePrivate = $isUtaPrivate && ($tradeType === 'FUTURES');
             $isFuturePartner = $isFuturePrivate || $isUtaFuturePrivate;
-            $partner = $isFuturePartner ? $this->safe_value($partner, 'future', $partner) : $this->safe_value($partner, 'spot', $partner);
+            $partner = $isFuturePartner ? $this->safe_dict($partner, 'future', $partner) : $this->safe_dict($partner, 'spot', $partner);
             $partnerId = $this->safe_string($partner, 'id');
             $partnerSecret = $this->safe_string_2($partner, 'secret', 'key');
             if (($partnerId !== null) && ($partnerSecret !== null)) {

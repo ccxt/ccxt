@@ -3198,7 +3198,7 @@ class binance extends Exchange {
         $responseCurrencies = $this->safe_value($results, 0);
         $marginablesById = null;
         if ($fetchMargins) {
-            $responseMarginables = $this->safe_value($results, 1);
+            $responseMarginables = $this->safe_list($results, 1);
             $marginablesById = $this->index_by($responseMarginables, 'assetName');
         }
         return $this->parse_currencies_custom($responseCurrencies, $marginablesById);

@@ -831,12 +831,11 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //         "reason": 'edited_by_user'
         //     }
         //
-        $orders = $this->orders;
-        if ($orders === null) {
+        if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit');
-            $orders = new ArrayCacheBySymbolById($limit);
-            $this->orders = $orders;
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
+        $orders = $this->orders;
         $order = $this->safe_dict($message, 'order');
         if ($order !== null) {
             $marketId = $this->safe_string($order, 'instrument');

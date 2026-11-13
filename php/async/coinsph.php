@@ -1490,7 +1490,7 @@ class coinsph extends Exchange {
             'side' => $orderSide,
         );
         $options = $this->safe_dict($this->options, 'createOrder', array());
-        $newOrderRespTypes = $this->safe_value($options, 'newOrderRespType', array());
+        $newOrderRespTypes = $this->safe_dict($options, 'newOrderRespType', array());
         $newOrderRespType = 'FULL';
         // if limit order
         if ($orderType === 'LIMIT' || $orderType === 'STOP_LOSS_LIMIT' || $orderType === 'TAKE_PROFIT_LIMIT' || $orderType === 'LIMIT_MAKER') {

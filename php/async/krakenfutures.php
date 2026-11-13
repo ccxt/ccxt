@@ -3703,7 +3703,7 @@ class krakenfutures extends Exchange {
                 'symbol' => $this->safe_symbol($marketId, $marketResolved),
                 'currency' => $marketResolved['quote'],
                 'minNotional' => $minNotional,
-                'maxNotional' => $this->safe_number_2($this->safe_value($marginLevels, $this->sum($i, 1)), 'numNonContractUnits', 'contracts'),
+                'maxNotional' => $this->safe_number_2($this->safe_dict($marginLevels, $this->sum($i, 1)), 'numNonContractUnits', 'contracts'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMargin'),
                 'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMargin)),
                 'info' => $tier,

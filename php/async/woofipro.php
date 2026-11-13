@@ -1924,7 +1924,7 @@ class woofipro extends Exchange {
         $hasStopLoss = ($stopLoss !== null);
         $hasTakeProfit = ($takeProfit !== null);
         $algoType = $this->safe_string($params, 'algoType');
-        $paramsChildOrders = $this->safe_value($params, 'childOrders');
+        $paramsChildOrders = $this->safe_list($params, 'childOrders');
         $isConditional = $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($paramsChildOrders !== null);
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
@@ -2172,7 +2172,7 @@ class woofipro extends Exchange {
         if ($triggerPrice !== null) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
-        $paramsChildOrders = $this->safe_value($params, 'childOrders');
+        $paramsChildOrders = $this->safe_list($params, 'childOrders');
         $isConditional = ($triggerPrice !== null) || ($paramsChildOrders !== null);
         $orderQtyKey = $isConditional ? 'quantity' : 'order_quantity';
         $priceKey = $isConditional ? 'price' : 'order_price';

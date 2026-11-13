@@ -452,7 +452,7 @@ class latoken extends Exchange {
         $result = array();
         $rawMarkets = $this->to_array($response);
         for ($i = 0; $i < count($rawMarkets); $i++) {
-            $market = $this->safe_value($rawMarkets, $i);
+            $market = $this->safe_dict($rawMarkets, $i);
             $id = $this->safe_string($market, 'id');
             // the exchange shows them inverted
             $baseId = $this->safe_string($market, 'baseCurrency');

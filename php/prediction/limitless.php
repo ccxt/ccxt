@@ -281,7 +281,7 @@ class limitless extends Exchange {
                         break;
                     }
                     for ($i = 0; $i < $pageMarketsLength; $i++) {
-                        $raw = $this->safe_value($page_markets, $i);
+                        $raw = $this->safe_dict($page_markets, $i);
                         $allRaw[] = $raw;
                     }
                     $allRawCount = count($allRaw);

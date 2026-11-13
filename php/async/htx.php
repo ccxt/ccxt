@@ -5133,7 +5133,7 @@ class htx extends Exchange {
             );
         }
         $average = $this->safe_string($order, 'trade_avg_price');
-        $trades = $this->safe_value($order, 'trades');
+        $trades = $this->safe_list($order, 'trades');
         $reduceOnly = null;
         if ($isLinearOrder) {
             $reduceOnly = $this->safe_bool($order, 'reduce_only');

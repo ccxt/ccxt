@@ -150,7 +150,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         if (($limit !== null) && ($limit !== 0)) {
             $limitResolved = $limit;
         }
-        $topicParams = $this->safe_value($params, 'params');
+        $topicParams = $this->safe_dict($params, 'params');
         if ($topicParams === null) {
             $params['params'] = array();
         }
@@ -198,7 +198,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $subMessageHashes = array();
         $messageHashes = array();
         $limit = $this->safe_integer($params, 'limit', 50);
-        $topicParams = $this->safe_value($params, 'params');
+        $topicParams = $this->safe_dict($params, 'params');
         if ($topicParams === null) {
             $params['params'] = array();
         }

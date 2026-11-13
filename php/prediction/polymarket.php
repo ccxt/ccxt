@@ -2595,7 +2595,7 @@ class polymarket extends Exchange {
                     $detailedEvent = Async\await($this->gammaPublicGetEventsSlugSlug(array( 'slug' => $rawEventSlug )));
                 }
                 if ($detailedEvent !== null) {
-                    $eventForParsing = $this->safe_value($detailedEvent, 'event', $detailedEvent);
+                    $eventForParsing = $this->safe_dict($detailedEvent, 'event', $detailedEvent);
                     $ccxtMarkets = $this->parse_event_to_markets($eventForParsing);
                 }
             }

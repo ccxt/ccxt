@@ -876,11 +876,13 @@ class bitstamp extends \ccxt\async\bitstamp {
         if (($topic === 'orders') && ($this->orders !== null)) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $freshOrdersCache = new ArrayCacheBySymbolById($limit);
-            $this->orders = $this->prune_cached_by_symbols($freshOrdersCache, $this->orders, $symbols);
+            $this->prune_cached_by_symbols($freshOrdersCache, $this->orders, $symbols);
+            $this->orders = $freshOrdersCache;
         } elseif (($topic === 'myTrades') && ($this->myTrades !== null)) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $freshTradesCache = new ArrayCacheBySymbolById($limit);
-            $this->myTrades = $this->prune_cached_by_symbols($freshTradesCache, $this->myTrades, $symbols);
+            $this->prune_cached_by_symbols($freshTradesCache, $this->myTrades, $symbols);
+            $this->myTrades = $freshTradesCache;
         } else {
             $this->clean_cache($subscription);
         }

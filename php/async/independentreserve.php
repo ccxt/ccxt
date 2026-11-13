@@ -339,7 +339,7 @@ class independentreserve extends Exchange {
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         $limitsPromise = $this->publicGetGetOrderMinimumVolumes($params);
         $responses = Async\await(Promise\all(array( $baseCurrenciesPromise, $quoteCurrenciesPromise, $limitsPromise )));
-        $limits = $this->safe_value($responses, 2);
+        $limits = $this->safe_dict($responses, 2);
         //
         //     {
         //         "Xbt": 0.0001,

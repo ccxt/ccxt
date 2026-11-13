@@ -2264,7 +2264,7 @@ class coinbaseexchange extends Exchange {
             Async\await($this->load_markets());
         }
         $currency = $this->currency($code);
-        $accounts = $this->safe_value($this->options, 'coinbaseAccounts');
+        $accounts = $this->safe_list($this->options, 'coinbaseAccounts');
         if ($accounts === null) {
             $accounts = Async\await($this->privateGetCoinbaseAccounts());
             $this->options['coinbaseAccounts'] = $accounts; // cache it
