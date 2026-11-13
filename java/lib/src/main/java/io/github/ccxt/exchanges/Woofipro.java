@@ -3411,7 +3411,8 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return new ArrayList<Object>(Arrays.asList(currency, this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()))));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            return rows;
         });
 
     }
@@ -3470,10 +3471,13 @@ public class Woofipro extends WoofiproApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object currencyRows = (this.getAssetHistoryRows(code, since, limit, parameters)).join();
-            Object currency = this.safeValue(currencyRows, 0);
-            List<Object> rows = (List<Object>) this.safeList(currencyRows, 1, (Object) null);
-            return this.parseLedger(rows, ((Map<String, Object>) (switch ((Object) (currency)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })), since, limit, parameters);
+            Object rows = (this.getAssetHistoryRows(code, since, limit, parameters)).join();
+            Map<String, Object> currency = null;
+            if (!java.util.Objects.equals(code, null))
+            {
+                currency = this.currency((String) (code));
+            }
+            return this.parseLedger(rows, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -3594,9 +3598,12 @@ public class Woofipro extends WoofiproApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object currencyRows = (this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters))).join();
-            Object currency = this.safeValue(currencyRows, 0);
-            List<Object> rows = (List<Object>) this.safeList(currencyRows, 1, (Object) null);
+            Object rows = (this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters))).join();
+            Map<String, Object> currency = null;
+            if (!java.util.Objects.equals(code, null))
+            {
+                currency = this.currency((String) (code));
+            }
             //
             //     {
             //         "rows":[],
@@ -3608,12 +3615,7 @@ public class Woofipro extends WoofiproApi
             //         "success":true
             //     }
             //
-            List<Object> rowsList = new ArrayList<Object>(Arrays.asList());
-            if (!java.util.Objects.equals(rows, null))
-            {
-                rowsList = rows;
-            }
-            return this.parseTransactions(rowsList, ((Map<String, Object>) (switch ((Object) (currency)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })), since, limit, parameters);
+            return this.parseTransactions(rows, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }

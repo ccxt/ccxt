@@ -546,7 +546,7 @@ public class Bitso extends BitsoApi
             String cost = Precise.stringAbs(amount);
             fee = new HashMap<String, Object>() {{
                 put( "cost", cost );
-                put( "currency", currencyResolved );
+                put( "currency", code );
             }};
         }
         Long timestamp = this.parse8601(this.safeString(item, "created_at"));

@@ -241,8 +241,8 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             Map<String, Object> market = this.market(symbol);
             String marketId = this.safeString(market, "id", "");
             String messageHash = ((name + ":") + marketId);
-            io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
-            client.resolve(tradesArray, messageHash);
+            io.github.ccxt.ws.ArrayCache symbolTrades = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
+            client.resolve(symbolTrades, messageHash);
         }
     }
 

@@ -2244,7 +2244,7 @@ public class Hibachi extends HibachiApi
         }
         HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
         mapLiteral5.put("id", this.safeString(item, "id"));
-        mapLiteral5.put("currency", this.currency("USDT"));
+        mapLiteral5.put("currency", "USDT");
         mapLiteral5.put("account", this.numberToString(this.accountId));
         mapLiteral5.put("referenceAccount", referenceAccount);
         mapLiteral5.put("referenceId", referenceId);
