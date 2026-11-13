@@ -1,0 +1,452 @@
+{
+    "exchange": "truefinance",
+    "skipKeys": [],
+    "outputType": "json",
+    "apiKey": "tbk_fixture",
+    "secret": "tbs_fixture",
+    "options": {
+        "adjustForTimeDifference": false
+    },
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "server time",
+                "method": "fetchTime",
+                "url": "https://app.truefinance.ai/api/bot/v1/time",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "markets",
+                "method": "fetchMarkets",
+                "url": "https://app.truefinance.ai/api/bot/v1/markets",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "swap ticker (first request is the ticker row, bbo follows)",
+                "method": "fetchTicker",
+                "url": "https://app.truefinance.ai/api/bot/v1/ticker?market=BTCUSDC",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "all tickers in one call",
+                "method": "fetchTickers",
+                "url": "https://app.truefinance.ai/api/bot/v1/ticker?market=ALL",
+                "input": [
+                    [
+                        "BTC/USDC:USDC",
+                        "ETH/USDC:USDC"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "all tickers without symbols",
+                "method": "fetchTickers",
+                "url": "https://app.truefinance.ai/api/bot/v1/ticker?market=ALL",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "swap order book with depth",
+                "method": "fetchOrderBook",
+                "url": "https://app.truefinance.ai/api/bot/v1/orderbook?market=BTCUSDC&depth=5",
+                "input": [
+                    "BTC/USDC:USDC",
+                    5
+                ],
+                "output": null
+            },
+            {
+                "description": "swap order book default depth",
+                "method": "fetchOrderBook",
+                "url": "https://app.truefinance.ai/api/bot/v1/orderbook?market=BTCUSDC&depth=50",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "public trades since with limit",
+                "method": "fetchTrades",
+                "url": "https://app.truefinance.ai/api/bot/v1/trades?market=BTCUSDC&startAt=1792300000000&limit=5",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1792300000000,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "hourly candles since with limit",
+                "method": "fetchOHLCV",
+                "url": "https://app.truefinance.ai/api/bot/v1/candles?market=BTCUSDC&interval=1h&startTime=1792200000000&limit=3",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1h",
+                    1792200000000,
+                    3
+                ],
+                "output": null
+            },
+            {
+                "description": "candles with until",
+                "method": "fetchOHLCV",
+                "url": "https://app.truefinance.ai/api/bot/v1/candles?market=BTCUSDC&interval=1d&endTime=1792300000000",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1d",
+                    null,
+                    null,
+                    {
+                        "until": 1792300000000
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "funding rate reads the market list",
+                "method": "fetchFundingRate",
+                "url": "https://app.truefinance.ai/api/bot/v1/markets",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "funding rates",
+                "method": "fetchFundingRates",
+                "url": "https://app.truefinance.ai/api/bot/v1/markets",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "USDC collateral balance",
+                "method": "fetchBalance",
+                "url": "https://app.truefinance.ai/api/bot/v1/account",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "open positions",
+                "method": "fetchPositions",
+                "url": "https://app.truefinance.ai/api/bot/v1/positions",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "one position",
+                "method": "fetchPosition",
+                "url": "https://app.truefinance.ai/api/bot/v1/positions",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "open orders for a market",
+                "method": "fetchOpenOrders",
+                "url": "https://app.truefinance.ai/api/bot/v1/orders?market=BTCUSDC",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            },
+            {
+                "description": "open orders for all markets",
+                "method": "fetchOpenOrders",
+                "url": "https://app.truefinance.ai/api/bot/v1/orders",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "order history since",
+                "method": "fetchOrders",
+                "url": "https://app.truefinance.ai/api/bot/v1/orders/history?market=BTCUSDC&startAt=1792200000000",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1792200000000,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "closed orders come from the history",
+                "method": "fetchClosedOrders",
+                "url": "https://app.truefinance.ai/api/bot/v1/orders/history?market=BTCUSDC",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "one order by id",
+                "method": "fetchOrder",
+                "url": "https://app.truefinance.ai/api/bot/v1/orders/42834527?market=BTCUSDC",
+                "input": [
+                    "42834527",
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fills since with limit",
+                "method": "fetchMyTrades",
+                "url": "https://app.truefinance.ai/api/bot/v1/fills?market=BTCUSDC&startAt=1792200000000&limit=5",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1792200000000,
+                    5
+                ],
+                "output": null
+            },
+            {
+                "description": "fills for all markets",
+                "method": "fetchMyTrades",
+                "url": "https://app.truefinance.ai/api/bot/v1/fills",
+                "input": [],
+                "output": null
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "set leverage",
+                "method": "setLeverage",
+                "url": "https://app.truefinance.ai/api/bot/v1/leverage",
+                "input": [
+                    5,
+                    "BTC/USDC:USDC"
+                ],
+                "output": {
+                    "market": "BTCUSDC",
+                    "leverage": 5
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "limit buy post only with client id",
+                "method": "createOrder",
+                "url": "https://app.truefinance.ai/api/bot/v1/orders",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    50000,
+                    {
+                        "postOnly": true,
+                        "clientOrderId": "ccxt-fixture-1"
+                    }
+                ],
+                "output": {
+                    "market": "BTCUSDC",
+                    "side": "buy",
+                    "size": "0.0001",
+                    "type": "limit",
+                    "price": "50000",
+                    "postOnly": true,
+                    "clientOrderId": "ccxt-fixture-1"
+                }
+            },
+            {
+                "description": "limit sell IOC",
+                "method": "createOrder",
+                "url": "https://app.truefinance.ai/api/bot/v1/orders",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "sell",
+                    0.0002,
+                    90000,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": {
+                    "market": "BTCUSDC",
+                    "side": "sell",
+                    "size": "0.0002",
+                    "type": "limit",
+                    "price": "90000",
+                    "tif": "IOC"
+                }
+            },
+            {
+                "description": "market sell reduce only",
+                "method": "createOrder",
+                "url": "https://app.truefinance.ai/api/bot/v1/orders",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "market",
+                    "sell",
+                    0.0001,
+                    null,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "output": {
+                    "market": "BTCUSDC",
+                    "side": "sell",
+                    "size": "0.0001",
+                    "type": "market",
+                    "reduceOnly": true
+                }
+            },
+            {
+                "description": "stop market sell with trigger price",
+                "method": "createOrder",
+                "url": "https://app.truefinance.ai/api/bot/v1/orders",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "market",
+                    "sell",
+                    0.0001,
+                    null,
+                    {
+                        "triggerPrice": 40000,
+                        "reduceOnly": true
+                    }
+                ],
+                "output": {
+                    "market": "BTCUSDC",
+                    "side": "sell",
+                    "size": "0.0001",
+                    "type": "stop_market",
+                    "triggerPrice": "40000",
+                    "reduceOnly": true
+                }
+            },
+            {
+                "description": "take profit market sell",
+                "method": "createOrder",
+                "url": "https://app.truefinance.ai/api/bot/v1/orders",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "market",
+                    "sell",
+                    0.0001,
+                    null,
+                    {
+                        "takeProfitPrice": 120000
+                    }
+                ],
+                "output": {
+                    "market": "BTCUSDC",
+                    "side": "sell",
+                    "size": "0.0001",
+                    "type": "take_profit_market",
+                    "triggerPrice": "120000"
+                }
+            },
+            {
+                "description": "limit buy with leverage",
+                "method": "createOrder",
+                "url": "https://app.truefinance.ai/api/bot/v1/orders",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    50000,
+                    {
+                        "leverage": 10
+                    }
+                ],
+                "output": {
+                    "market": "BTCUSDC",
+                    "side": "buy",
+                    "size": "0.0001",
+                    "type": "limit",
+                    "price": "50000",
+                    "leverage": 10
+                }
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "edit price of a resting order (first request is the PATCH)",
+                "method": "editOrder",
+                "url": "https://app.truefinance.ai/api/bot/v1/orders/42834527",
+                "input": [
+                    "42834527",
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    null,
+                    81000
+                ],
+                "output": {
+                    "price": "81000"
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel one order",
+                "method": "cancelOrder",
+                "url": "https://app.truefinance.ai/api/bot/v1/orders/42834527?market=BTCUSDC",
+                "input": [
+                    "42834527",
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all orders in one market",
+                "method": "cancelAllOrders",
+                "url": "https://app.truefinance.ai/api/bot/v1/orders?market=BTCUSDC",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            },
+            {
+                "description": "cancel all orders everywhere",
+                "method": "cancelAllOrders",
+                "url": "https://app.truefinance.ai/api/bot/v1/orders",
+                "input": [],
+                "output": null
+            }
+        ]
+    }
+}
