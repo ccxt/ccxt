@@ -689,14 +689,14 @@ class mexc extends mexc$1["default"] {
         // }
         //
         let parsed;
-        let symbol = undefined;
+        let market = undefined;
         let timeframe = undefined;
         if ('publicSpotKline' in message) {
-            symbol = this.symbol(this.safeString(message, 'symbol'));
+            market = this.safeMarket(this.symbol(this.safeString(message, 'symbol')));
             const data = this.safeDict(message, 'publicSpotKline', {});
             const timeframeId = this.safeString(data, 'interval');
             timeframe = this.findTimeframe(timeframeId, this.options['timeframes']);
-            parsed = this.parseWsOHLCV(data, this.safeMarket(symbol));
+            parsed = this.parseWsOHLCV(data, market);
         }
         else {
             const d = this.safeDict2(message, 'd', 'data', {});
@@ -705,19 +705,18 @@ class mexc extends mexc$1["default"] {
             const timeframes = this.safeDict(this.options, 'timeframes', {});
             timeframe = this.findTimeframe(timeframeId, timeframes);
             const marketId = this.safeString2(message, 's', 'symbol');
-            const market = this.safeMarket(marketId);
-            symbol = market['symbol'];
+            market = this.safeMarket(marketId);
             parsed = this.parseWsOHLCV(rawOhlcv, market);
         }
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'candles:' + symbol + ':' + timeframe;
-        const symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, {});
-        this.ohlcvs[symbol] = symbolOhlcvs;
-        let stored = this.safeValue(symbolOhlcvs, timeframe);
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);
             if (timeframe !== undefined) {
-                symbolOhlcvs[timeframe] = stored;
+                this.ohlcvs[symbol][timeframe] = stored;
             }
         }
         stored.append(parsed);

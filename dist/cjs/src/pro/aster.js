@@ -1240,11 +1240,10 @@ class aster extends aster$1["default"] {
         if (timeframe === undefined) {
             return;
         }
-        const ohlcvsByTimeframe = this.safeDict(this.ohlcvs, symbol);
-        if (ohlcvsByTimeframe === undefined) {
+        if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (this.safeValue(ohlcvsByTimeframe, timeframe) === undefined) {
+        if (this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe) === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe] = new Cache.ArrayCacheByTimestamp(limit);
         }

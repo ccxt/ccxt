@@ -183248,7 +183248,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     parseBorrowInterests(response, market = undefined) {
         const interests = [];
         for(let i = 0; i < response.length; i++){
-            const row = this.safeValue(response, i);
+            const row = this.safeDict(response, i, {});
             interests.push(this.parseBorrowInterest(row, market));
         }
         return interests;
@@ -183259,7 +183259,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     parseBorrowRateHistory(response, code, since, limit) {
         const result = [];
         for(let i = 0; i < response.length; i++){
-            const item = this.safeValue(response, i);
+            const item = this.safeDict(response, i);
             const borrowRate = this.parseBorrowRate(item);
             result.push(borrowRate);
         }
@@ -183269,7 +183269,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     parseIsolatedBorrowRates(info) {
         const result = {};
         for(let i = 0; i < info.length; i++){
-            const item = this.safeValue(info, i);
+            const item = this.safeDict(info, i, {});
             const borrowRate = this.parseIsolatedBorrowRate(item);
             const symbol = this.safeString(borrowRate, 'symbol');
             result[symbol] = borrowRate;
@@ -522123,11 +522123,12 @@ class alpaca extends _alpaca_js__rspack_import_0/* ["default"] */.A {
         //
         const marketId = this.safeString(message, 'S');
         const symbol = this.safeSymbol(marketId);
-        let stored = this.safeValue(this.ohlcvs, symbol);
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), '1m');
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new _base_ws_Cache_js__rspack_import_1/* .ArrayCacheByTimestamp */.TG(limit);
-            this.ohlcvs[symbol] = stored;
+            this.ohlcvs[symbol]['1m'] = stored;
         }
         const parsed = this.parseOHLCV(message);
         stored.append(parsed);
@@ -525142,11 +525143,10 @@ class aster extends _aster_js__rspack_import_0/* ["default"] */.A {
         if (timeframe === undefined) {
             return;
         }
-        const ohlcvsByTimeframe = this.safeDict(this.ohlcvs, symbol);
-        if (ohlcvsByTimeframe === undefined) {
+        if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (this.safeValue(ohlcvsByTimeframe, timeframe) === undefined) {
+        if (this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe) === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe] = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheByTimestamp */.TG(limit);
         }
@@ -538109,8 +538109,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         const marketId = this.safeString2(arg, 'instId', 'symbol');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = this.safeString(market, 'symbol', '');
-        const symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, {});
-        this.ohlcvs[symbol] = symbolOhlcvs;
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         const channel = this.safeString2(arg, 'channel', 'topic', '');
         let interval = this.safeString(arg, 'interval');
         let isUta = undefined;
@@ -538125,11 +538124,11 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         if (timeframe === undefined) {
             return;
         }
-        let stored = this.safeValue(symbolOhlcvs, timeframe);
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new _base_ws_Cache_js__rspack_import_3/* .ArrayCacheByTimestamp */.TG(limit);
-            symbolOhlcvs[timeframe] = stored;
+            this.ohlcvs[symbol][timeframe] = stored;
         }
         const data = this.safeList(message, 'data', []);
         for(let i = 0; i < data.length; i++){
@@ -550338,11 +550337,10 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        const ohlcvsByTimeframe = this.safeDict(this.ohlcvs, symbol);
-        if (ohlcvsByTimeframe === undefined) {
+        if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (this.safeValue(ohlcvsByTimeframe, timeframe) === undefined) {
+        if (this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe) === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe] = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheByTimestamp */.TG(limit);
         }
@@ -566663,8 +566661,8 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
             const timeframe = marketIds[symbol];
             const interval = this.findTimeframe(timeframe);
             const hash = 'candles' + ':' + interval + ':' + symbol;
-            const stored = this.safeValue(this.ohlcvs[symbol], interval);
-            client.resolve(stored, hash);
+            const symbolOhlcv = this.safeValue(this.safeDict(this.ohlcvs, symbol), interval);
+            client.resolve(symbolOhlcv, hash);
         }
     }
     /**
@@ -568335,8 +568333,7 @@ class gemini extends _gemini_js__rspack_import_0/* ["default"] */.A {
         const symbol = this.safeSymbol(marketId, market);
         const changes = this.safeList(message, 'changes', []);
         const timeframe = this.findTimeframe(timeframeId);
-        const ohlcvsBySymbol = this.safeDict(this.ohlcvs, symbol);
-        if (ohlcvsBySymbol === undefined) {
+        if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
         let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
@@ -586215,6 +586212,27 @@ class lbank extends _lbank_js__rspack_import_0/* ["default"] */.A {
         const watchOHLCVOptions = this.safeDict(this.options, 'watchOHLCV', {});
         const timeframes = this.safeDict(watchOHLCVOptions, 'timeframes', {});
         const records = this.safeList(message, 'records');
+        let timeframeId = '';
+        let messageHash = '';
+        if (records !== undefined) {
+            timeframeId = this.safeString(message, 'kbar', '');
+            messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId;
+        } else {
+            timeframeId = this.safeString(this.safeDict(message, 'kbar', {}), 'slot', '');
+            messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
+            if (!(messageHash in client.subscriptions)) {
+                // a candle lbank pushed before it processed an unWatchOHLCV, which it does not acknowledge
+                return;
+            }
+        }
+        const timeframe = this.findTimeframe(timeframeId, timeframes);
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
+            stored = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheByTimestamp */.TG(limit);
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
         if (records !== undefined) {
             const rawOHLCV = this.safeList(records, 0, []);
             const parsed = [
@@ -586225,22 +586243,9 @@ class lbank extends _lbank_js__rspack_import_0/* ["default"] */.A {
                 this.safeNumber(rawOHLCV, 4),
                 this.safeNumber(rawOHLCV, 5)
             ];
-            const timeframeId = this.safeString(message, 'kbar', '');
-            const timeframe = this.findTimeframe(timeframeId, timeframes);
-            const ohlcvsForSymbol = this.safeDict(this.ohlcvs, symbol, {});
-            this.ohlcvs[symbol] = ohlcvsForSymbol;
-            let stored = this.safeValue(ohlcvsForSymbol, timeframe);
-            if (stored === undefined) {
-                const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
-                stored = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheByTimestamp */.TG(limit);
-                ohlcvsForSymbol[timeframe] = stored;
-            }
             stored.append(parsed);
-            const messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId;
-            client.resolve(stored, messageHash);
         } else {
             const rawOHLCV = this.safeDict(message, 'kbar', {});
-            const timeframeId = this.safeString(rawOHLCV, 'slot', '');
             const datetime = this.safeString(rawOHLCV, 't');
             const parsed = [
                 this.parse8601(datetime),
@@ -586250,23 +586255,9 @@ class lbank extends _lbank_js__rspack_import_0/* ["default"] */.A {
                 this.safeNumber(rawOHLCV, 'c'),
                 this.safeNumber(rawOHLCV, 'v')
             ];
-            const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
-            if (!(messageHash in client.subscriptions)) {
-                // a candle lbank pushed before it processed an unWatchOHLCV, which it does not acknowledge
-                return;
-            }
-            const timeframe = this.findTimeframe(timeframeId, timeframes);
-            const ohlcvsForSymbol = this.safeDict(this.ohlcvs, symbol, {});
-            this.ohlcvs[symbol] = ohlcvsForSymbol;
-            let stored = this.safeValue(ohlcvsForSymbol, timeframe);
-            if (stored === undefined) {
-                const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
-                stored = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheByTimestamp */.TG(limit);
-                ohlcvsForSymbol[timeframe] = stored;
-            }
             stored.append(parsed);
-            client.resolve(stored, messageHash);
         }
+        client.resolve(stored, messageHash);
     }
     /**
      * @method
@@ -589836,14 +589827,14 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         // }
         //
         let parsed;
-        let symbol = undefined;
+        let market = undefined;
         let timeframe = undefined;
         if ('publicSpotKline' in message) {
-            symbol = this.symbol(this.safeString(message, 'symbol'));
+            market = this.safeMarket(this.symbol(this.safeString(message, 'symbol')));
             const data = this.safeDict(message, 'publicSpotKline', {});
             const timeframeId = this.safeString(data, 'interval');
             timeframe = this.findTimeframe(timeframeId, this.options['timeframes']);
-            parsed = this.parseWsOHLCV(data, this.safeMarket(symbol));
+            parsed = this.parseWsOHLCV(data, market);
         } else {
             const d = this.safeDict2(message, 'd', 'data', {});
             const rawOhlcv = this.safeDict(d, 'k', d);
@@ -589851,19 +589842,18 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
             const timeframes = this.safeDict(this.options, 'timeframes', {});
             timeframe = this.findTimeframe(timeframeId, timeframes);
             const marketId = this.safeString2(message, 's', 'symbol');
-            const market = this.safeMarket(marketId);
-            symbol = market['symbol'];
+            market = this.safeMarket(marketId);
             parsed = this.parseWsOHLCV(rawOhlcv, market);
         }
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'candles:' + symbol + ':' + timeframe;
-        const symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, {});
-        this.ohlcvs[symbol] = symbolOhlcvs;
-        let stored = this.safeValue(symbolOhlcvs, timeframe);
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new _base_ws_Cache_js__rspack_import_3/* .ArrayCacheByTimestamp */.TG(limit);
             if (timeframe !== undefined) {
-                symbolOhlcvs[timeframe] = stored;
+                this.ohlcvs[symbol][timeframe] = stored;
             }
         }
         stored.append(parsed);
@@ -595390,7 +595380,12 @@ class ndax extends _ndax_js__rspack_import_0/* ["default"] */.A {
                     this.safeFloat(ohlcv, 4),
                     this.safeFloat(ohlcv, 5)
                 ];
-                const stored = this.safeValue(this.ohlcvs[symbol], timeframe, []);
+                let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
+                if (stored === undefined) {
+                    const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
+                    stored = new _base_ws_Cache_js__rspack_import_1/* .ArrayCacheByTimestamp */.TG(limit);
+                    this.ohlcvs[symbol][timeframe] = stored;
+                }
                 const length = stored.length;
                 const previous = this.safeValue(stored, length - 1);
                 const previousTimestamp = this.safeInteger(previous, 0);
@@ -595413,14 +595408,14 @@ class ndax extends _ndax_js__rspack_import_0/* ["default"] */.A {
                             low = previousLow;
                         }
                     }
-                    stored[length - 1] = [
+                    stored.append([
                         candleTimestamp,
                         this.safeFloat(previous, 1),
                         high,
                         low,
                         this.safeFloat(ohlcv, 4),
                         this.sum(this.safeFloat(ohlcv, 5), this.safeFloat(previous, 5))
-                    ];
+                    ]);
                     if (marketId !== undefined) {
                         marketUpdates[timeframe] = true;
                     }
@@ -595430,16 +595425,11 @@ class ndax extends _ndax_js__rspack_import_0/* ["default"] */.A {
                             continue;
                         }
                     }
-                    stored.push(parsed);
-                    const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
-                    if (length >= limit) {
-                        stored.shift();
-                    }
+                    stored.append(parsed);
                     if (marketId !== undefined) {
                         marketUpdates[timeframe] = true;
                     }
                 }
-                this.ohlcvs[symbol][timeframe] = stored;
             }
             if (marketId !== undefined) {
                 updates[marketId] = marketUpdates;
@@ -595455,8 +595445,8 @@ class ndax extends _ndax_js__rspack_import_0/* ["default"] */.A {
                 const messageHash = name + ':' + timeframe + ':' + marketId;
                 const market = this.safeMarket(marketId);
                 const symbol = this.safeString(market, 'symbol', '');
-                const stored = this.safeList(this.safeValue(this.ohlcvs, symbol), timeframe, []);
-                client.resolve(stored, messageHash);
+                const symbolOhlcv = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
+                client.resolve(symbolOhlcv, messageHash);
             }
         }
     }
@@ -599782,16 +599772,15 @@ class onetrading extends _onetrading_js__rspack_import_0/* ["default"] */.A {
             this.safeNumber(message, 'close'),
             this.safeNumber(message, 'volume')
         ];
-        const symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, {});
-        this.ohlcvs[symbol] = symbolOhlcvs;
-        let stored = this.safeValue(symbolOhlcvs, timeframe);
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheByTimestamp */.TG(limit);
         }
         stored.append(parsed);
         if (symbol !== undefined && timeframe !== undefined) {
-            symbolOhlcvs[timeframe] = stored;
+            this.ohlcvs[symbol][timeframe] = stored;
         }
         client.resolve(stored, channel);
     }
@@ -601679,12 +601668,11 @@ class pacifica extends _pacifica_js__rspack_import_0/* ["default"] */.A {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        const symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, {});
-        let ohlcv = this.safeValue(symbolOhlcvs, timeframe);
+        let ohlcv = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (ohlcv === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             ohlcv = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheByTimestamp */.TG(limit);
-            symbolOhlcvs[timeframe] = ohlcv;
+            this.ohlcvs[symbol][timeframe] = ohlcv;
         }
         const parsed = this.parseOHLCV(data);
         ohlcv.append(parsed);

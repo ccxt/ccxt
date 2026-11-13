@@ -348,8 +348,7 @@ export default class gemini extends geminiRest {
         const symbol = this.safeSymbol(marketId, market);
         const changes = this.safeList(message, 'changes', []);
         const timeframe = this.findTimeframe(timeframeId);
-        const ohlcvsBySymbol = this.safeDict(this.ohlcvs, symbol);
-        if (ohlcvsBySymbol === undefined) {
+        if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
         let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);

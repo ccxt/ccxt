@@ -192,11 +192,12 @@ class alpaca extends alpaca$1["default"] {
         //
         const marketId = this.safeString(message, 'S');
         const symbol = this.safeSymbol(marketId);
-        let stored = this.safeValue(this.ohlcvs, symbol);
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), '1m');
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);
-            this.ohlcvs[symbol] = stored;
+            this.ohlcvs[symbol]['1m'] = stored;
         }
         const parsed = this.parseOHLCV(message);
         stored.append(parsed);

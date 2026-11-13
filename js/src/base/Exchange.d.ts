@@ -783,7 +783,7 @@ export declare class BaseExchange {
     safeNumber2(dictionary: object | undefined, key1: NullableIndexType, key2: NullableIndexType, d?: Num): number;
     parseOrderBook(orderbook: object | undefined, symbol: Str, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBook;
     parseOrderBookL3(orderbook: object | undefined, symbol: Str, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBookL3;
-    parseOHLCVs(ohlcvs: NullableList, market?: any, timeframe?: string, since?: Int, limit?: Int, tail?: Bool): OHLCV[];
+    parseOHLCVs(ohlcvs: NullableList, market?: Market, timeframe?: string, since?: Int, limit?: Int, tail?: Bool): OHLCV[];
     parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: Str): LeverageTiers;
     loadTradingLimits(symbols?: Strings, reload?: boolean, params?: Dict): Promise<Dict | undefined>;
     safePosition(position: Dict): Position;

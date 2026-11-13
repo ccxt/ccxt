@@ -605,7 +605,7 @@ export default class btse extends Exchange {
             'BROKER-ID': string;
         } | undefined;
     };
-    futuresRequestId(market: Dict): Str;
+    futuresRequestId(market: Market): Str;
     cleanPath(path: string): string;
     nonce(): int;
 }

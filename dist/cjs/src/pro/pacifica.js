@@ -1164,12 +1164,11 @@ class pacifica extends pacifica$1["default"] {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        const symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, {});
-        let ohlcv = this.safeValue(symbolOhlcvs, timeframe);
+        let ohlcv = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (ohlcv === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             ohlcv = new Cache.ArrayCacheByTimestamp(limit);
-            symbolOhlcvs[timeframe] = ohlcv;
+            this.ohlcvs[symbol][timeframe] = ohlcv;
         }
         const parsed = this.parseOHLCV(data);
         ohlcv.append(parsed);
