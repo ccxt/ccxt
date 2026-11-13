@@ -4771,7 +4771,7 @@ public class Binance extends BinanceApi
             Map<String, Object> marginablesById = null;
             if (Boolean.TRUE.equals(fetchMargins))
             {
-                Object responseMarginables = this.safeValue(results, 1);
+                List<Object> responseMarginables = (List<Object>) this.safeList(results, 1, (Object) null);
                 marginablesById = this.indexBy(responseMarginables, "assetName");
             }
             return this.parseCurrenciesCustom(responseCurrencies, marginablesById);

@@ -450,7 +450,7 @@ public class Independentreserve extends IndependentreserveApi
             //     ['Aud', 'Usd', 'Nzd', 'Sgd']
             Object limitsPromise = this.publicGetGetOrderMinimumVolumes(parameters);
             Object responses = (CompletableFuture.allOf(((CompletableFuture<?>) baseCurrenciesPromise), ((CompletableFuture<?>) quoteCurrenciesPromise), ((CompletableFuture<?>) limitsPromise)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) baseCurrenciesPromise).join(), ((CompletableFuture<?>) quoteCurrenciesPromise).join(), ((CompletableFuture<?>) limitsPromise).join())))).join();
-            Object limits = this.safeValue(responses, 2);
+            Map<String, Object> limits = (Map<String, Object>) this.safeDict(responses, 2, (Object) null);
             //
             //     {
             //         "Xbt": 0.0001,

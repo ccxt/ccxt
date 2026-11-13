@@ -2512,7 +2512,7 @@ public class Bitfinex extends BitfinexApi
             }
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(cid, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("cid", "clientOrderId"))) : parameters;
             List<Object> response = (this.privatePostAuthWOrderCancel(this.extend(request, paramsOmitted))).join();
-            Object order = this.safeValue(response, 4);
+            List<Object> order = (List<Object>) this.safeList(response, 4, (Object) null);
             Map<String, Object> newOrder = new HashMap<String, Object>() {{
                 put( "result", order );
             }};

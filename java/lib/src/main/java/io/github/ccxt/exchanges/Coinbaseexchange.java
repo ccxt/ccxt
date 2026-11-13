@@ -2617,7 +2617,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Object accounts = this.safeValue(this.options, "coinbaseAccounts");
+            List<Object> accounts = (List<Object>) this.safeList(this.options, "coinbaseAccounts", (Object) null);
             if (java.util.Objects.equals(accounts, null))
             {
                 accounts = (this.privateGetCoinbaseAccounts(new HashMap<String, Object>() {{}})).join();

@@ -2360,7 +2360,7 @@ public class Woofipro extends WoofiproApi
         Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
         Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
         String algoType = this.safeString(parameters, "algoType");
-        Object paramsChildOrders = this.safeValue(parameters, "childOrders");
+        List<Object> paramsChildOrders = (List<Object>) this.safeList(parameters, "childOrders", (Object) null);
         Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(paramsChildOrders, null));
         Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
         String timeInForce = this.safeStringLower(parameters, "timeInForce");
@@ -2606,7 +2606,7 @@ public class Woofipro extends WoofiproApi
             {
                 request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
-            Object paramsChildOrders = this.safeValue(parameters, "childOrders");
+            List<Object> paramsChildOrders = (List<Object>) this.safeList(parameters, "childOrders", (Object) null);
             Boolean isConditional = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(paramsChildOrders, null));
             String orderQtyKey = ((Boolean.TRUE.equals(isConditional))) ? "quantity" : "order_quantity";
             String priceKey = ((Boolean.TRUE.equals(isConditional))) ? "price" : "order_price";

@@ -1709,7 +1709,7 @@ public class Coinsph extends CoinsphApi
             request.put("type", orderType);
             request.put("side", orderSide);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
-            Object newOrderRespTypes = this.safeValue(options, "newOrderRespType", new HashMap<String, Object>() {{}});
+            Map<String, Object> newOrderRespTypes = (Map<String, Object>) this.safeDict(options, "newOrderRespType", new HashMap<String, Object>() {{}});
             String newOrderRespType = "FULL";
             // if limit order
             if (java.util.Objects.equals(orderType, "LIMIT") || java.util.Objects.equals(orderType, "STOP_LOSS_LIMIT") || java.util.Objects.equals(orderType, "TAKE_PROFIT_LIMIT") || java.util.Objects.equals(orderType, "LIMIT_MAKER"))

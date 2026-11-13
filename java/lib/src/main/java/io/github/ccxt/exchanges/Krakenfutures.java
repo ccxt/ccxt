@@ -4114,7 +4114,7 @@ public class Krakenfutures extends KrakenfuturesApi
             j39v4.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
             j39v4.put("currency", marketResolved.get("quote"));
             j39v4.put("minNotional", minNotional);
-            j39v4.put("maxNotional", this.safeNumber2(this.safeValue(marginLevels, this.sum(i, 1)), "numNonContractUnits", "contracts", (Object) null));
+            j39v4.put("maxNotional", this.safeNumber2(this.safeDict(marginLevels, this.sum(i, 1), (Object) null), "numNonContractUnits", "contracts", (Object) null));
             j39v4.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin", (Object) null));
             j39v4.put("maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMargin)));
             j39v4.put("info", tier);

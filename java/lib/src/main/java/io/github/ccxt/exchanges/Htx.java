@@ -6330,7 +6330,7 @@ public class Htx extends HtxApi
             }
         }
         String average = this.safeString(order, "trade_avg_price");
-        Object trades = this.safeValue(order, "trades");
+        List<Object> trades = (List<Object>) this.safeList(order, "trades", (Object) null);
         Object reduceOnly = null;
         if (Boolean.TRUE.equals(isLinearOrder))
         {

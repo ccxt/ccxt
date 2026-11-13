@@ -963,7 +963,7 @@ public class Ndax extends NdaxApi
         List<Object> asks = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < (switch ((Object)(orderbook)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
-            Object level = this.safeValue(orderbook, i);
+            List<Object> level = (List<Object>) this.safeList(orderbook, i, (Object) null);
             Long newTimestamp = this.safeInteger(level, 2);
             if ((!java.util.Objects.equals(newTimestamp, null)) && ((java.util.Objects.equals(latestTimestamp, null)) || ((newTimestamp != null && (latestTimestamp == null || newTimestamp > latestTimestamp)))))
             {

@@ -986,12 +986,14 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             var freshOrdersCache = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
-            this.orders = this.pruneCachedBySymbols(freshOrdersCache, this.orders, symbols);
+            this.pruneCachedBySymbols(freshOrdersCache, this.orders, symbols);
+            this.orders = freshOrdersCache;
         } else if ((java.util.Objects.equals(topic, "myTrades")) && (!java.util.Objects.equals(this.myTrades, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var freshTradesCache = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
-            this.myTrades = this.pruneCachedBySymbols(freshTradesCache, this.myTrades, symbols);
+            this.pruneCachedBySymbols(freshTradesCache, this.myTrades, symbols);
+            this.myTrades = freshTradesCache;
         } else
         {
             this.cleanCache(subscription);

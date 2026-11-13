@@ -3201,6 +3201,6 @@ public class Bitvavo extends BitvavoApi
         {
             return config.get("noMarket");
         }
-        return this.safeValue(config, "cost", 1);
+        return this.safeInteger(config, "cost", 1);
     }
 }

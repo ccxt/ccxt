@@ -1373,7 +1373,7 @@ public class Gemini extends GeminiApi
                 put( "change", Gemini.this.safeString(tickerB, "change") );
                 put( "percentage", Gemini.this.safeString(tickerB, "percentage") );
                 put( "average", Gemini.this.safeString(tickerB, "average") );
-                put( "info", Gemini.this.safeValue(tickerB, "info") );
+                put( "info", Gemini.this.safeDict(tickerB, "info", (Object) null) );
             }});
         });
 

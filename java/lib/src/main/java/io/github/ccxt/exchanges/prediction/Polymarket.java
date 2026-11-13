@@ -3228,7 +3228,7 @@ public class Polymarket extends PolymarketApi
                     }
                     if (!java.util.Objects.equals(detailedEvent, null))
                     {
-                        eventForParsing = this.safeValue(detailedEvent, "event", detailedEvent);
+                        eventForParsing = this.safeDict(detailedEvent, "event", detailedEvent);
                         ccxtMarkets = this.parseEventToMarkets((Map<String, Object>) (eventForParsing));
                     }
                 }

@@ -433,7 +433,7 @@ public class Limitless extends LimitlessApi
                         }
                         for (var i = 0; (pageMarketsLength != null && i < pageMarketsLength); i++)
                         {
-                            Object raw = this.safeValue(page_markets, i);
+                            Map<String, Object> raw = (Map<String, Object>) this.safeDict(page_markets, i, (Object) null);
                             ((List<Object>)allRaw).add(raw);
                         }
                         Integer allRawCount = ((List<?>)allRaw).size();

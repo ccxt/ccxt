@@ -436,7 +436,7 @@ public Map<String, Object> describe()
         }
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object eventVar = this.safeValue(events, i);
+            Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(events, i, (Object) null);
             String id = this.safeString(eventVar, "id");
             String slug = this.safeString(eventVar, "slug");
             String handle = this.safeString(eventVar, "event");
@@ -517,11 +517,11 @@ public Map<String, Object> describe()
         // through fetchEvents; this never fetches
         if ((!java.util.Objects.equals(this.events, null)) && (((Map<?, ?>)this.events).containsKey(eventIdOrSlug)))
         {
-            return this.safeValue(this.events, eventIdOrSlug);
+            return this.safeDict(this.events, eventIdOrSlug, (Object) null);
         }
         if ((!java.util.Objects.equals(this.events_by_slug, null)) && (((Map<?, ?>)this.events_by_slug).containsKey(eventIdOrSlug)))
         {
-            return this.safeValue(this.events_by_slug, eventIdOrSlug);
+            return this.safeDict(this.events_by_slug, eventIdOrSlug, (Object) null);
         }
         throw new BadSymbol((((this.id + " has no cached event ") + eventIdOrSlug) + " - call fetchEvents ({ 'query': ... }) first")) ;
     }
@@ -791,7 +791,7 @@ public Map<String, Object> describe()
                 // on a real collision of same handle but different outcomeId, disambiguate the
                 // second one deterministically instead of silently overwriting the first —
                 // trading the wrong market would otherwise be indistinguishable
-                Object existing = this.safeValue(this.outcomes, ocSymbol);
+                Map<String, Object> existing = (Map<String, Object>) this.safeDict(this.outcomes, ocSymbol, (Object) null);
                 if (!java.util.Objects.equals(existing, null))
                 {
                     String existingId = this.safeString(existing, "outcomeId");

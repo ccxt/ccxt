@@ -600,7 +600,7 @@ public class Latoken extends LatokenApi
             List<Object> rawMarkets = this.toArray(response);
             for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
             {
-                Object market = this.safeValue(rawMarkets, i);
+                Map<String, Object> market = (Map<String, Object>) this.safeDict(rawMarkets, i, (Object) null);
                 String id = this.safeString(market, "id");
                 // the exchange shows them inverted
                 String baseId = this.safeString(market, "baseCurrency");

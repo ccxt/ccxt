@@ -175,7 +175,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             {
                 limitResolved = limit;
             }
-            Object topicParams = this.safeValue(parameters, "params");
+            Map<String, Object> topicParams = (Map<String, Object>) this.safeDict(parameters, "params", (Object) null);
             if (java.util.Objects.equals(topicParams, null))
             {
                 parameters.put("params", new HashMap<String, Object>() {{}});
@@ -237,7 +237,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Long limit = this.safeInteger(parameters, "limit", 50);
-            Object topicParams = this.safeValue(parameters, "params");
+            Map<String, Object> topicParams = (Map<String, Object>) this.safeDict(parameters, "params", (Object) null);
             if (java.util.Objects.equals(topicParams, null))
             {
                 parameters.put("params", new HashMap<String, Object>() {{}});

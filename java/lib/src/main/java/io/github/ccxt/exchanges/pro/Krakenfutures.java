@@ -928,13 +928,12 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //         "reason": 'edited_by_user'
         //     }
         //
-        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
-        if (java.util.Objects.equals(orders, null))
+        if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit");
-            orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
-            this.orders = orders;
+            this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> order = (Map<String, Object>) this.safeDict(message, "order", (Object) null);
         if (!java.util.Objects.equals(order, null))
         {
