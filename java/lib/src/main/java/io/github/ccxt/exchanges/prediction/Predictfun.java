@@ -629,7 +629,7 @@ public class Predictfun extends PredictfunApi
             {
                 Map<String, Object> parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
                 ((List<Object>)result).add(parsedEvent);
-                List<Object> parsedMarkets = (List<Object>)(this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList())));
+                List<Object> parsedMarkets = (List<Object>) this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList()));
                 Integer parsedMarketsLength = ((List<?>)parsedMarkets).size();
                 for (var mi = 0; (parsedMarketsLength != null && mi < parsedMarketsLength); mi++)
                 {
@@ -638,7 +638,7 @@ public class Predictfun extends PredictfunApi
                     String handle = this.safeString(m, "market");
                     if (!java.util.Objects.equals(handle, null))
                     {
-                        ((Map<Object, Object>) (Map<?, ?>) this.markets).put(handle, m);
+                        this.markets.put(handle, m);
                     }
                 }
             }
@@ -779,7 +779,7 @@ public class Predictfun extends PredictfunApi
                 // a term can match a market whose category row is not in the response - those rows are
                 // the other half of the payload and would otherwise be dropped, so bucket them by the
                 // categorySlug they carry
-                List<Object> rawMarkets = (List<Object>)(this.safeList(data, "markets", new ArrayList<Object>(Arrays.asList())));
+                List<Object> rawMarkets = (List<Object>) this.safeList(data, "markets", new ArrayList<Object>(Arrays.asList()));
                 Integer rawMarketsLength = ((List<?>)rawMarkets).size();
                 for (var mi = 0; (rawMarketsLength != null && mi < rawMarketsLength); mi++)
                 {

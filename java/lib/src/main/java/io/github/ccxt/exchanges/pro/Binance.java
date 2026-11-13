@@ -6698,7 +6698,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                                 Object orderFee = (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i));
                                 if (java.util.Objects.equals(this.safeString(orderFee, "currency"), this.safeString(tradeFee, "currency")))
                                 {
-                                    Object feeCost = this.sum(tradeFee.get("cost"), Helpers.GetValue(orderFee, "cost"));
+                                    Object feeCost = this.sum(tradeFee.get("cost"), ((Map<String, Object>)orderFee).get("cost"));
                                     String feeCostString = (String) this.currencyToPrecision((String) (tradeFee.get("currency")), feeCost, (String) null);
                                     if (java.util.Objects.equals(feeCostString, null))
                                     {

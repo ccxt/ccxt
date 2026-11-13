@@ -3194,7 +3194,7 @@ public class Lighter extends LighterApi
             Map<String, Object> first = (Map<String, Object>) this.safeDict(rows, 0, (Object) null);
             if ((!java.util.Objects.equals(first, null)) && (!java.util.Objects.equals(cursor, null)))
             {
-                Helpers.addElementToObject((rows == null || 0 >= rows.size() ? null : rows.get(0)), "cursor", cursor);
+                ((Map<String, Object>)(rows == null || 0 >= rows.size() ? null : rows.get(0))).put("cursor", cursor);
             }
             return this.parseTransfers(rows, currency, since, limit, paramsApiKeyIndex);
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
@@ -3315,7 +3315,7 @@ public class Lighter extends LighterApi
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
             if ((!java.util.Objects.equals(first, null)) && (!java.util.Objects.equals(cursor, null)))
             {
-                Helpers.addElementToObject((data == null || 0 >= data.size() ? null : data.get(0)), "cursor", cursor);
+                ((Map<String, Object>)(data == null || 0 >= data.size() ? null : data.get(0))).put("cursor", cursor);
             }
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -3392,7 +3392,7 @@ public class Lighter extends LighterApi
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
             if ((!java.util.Objects.equals(first, null)) && (!java.util.Objects.equals(cursor, null)))
             {
-                Helpers.addElementToObject((data == null || 0 >= data.size() ? null : data.get(0)), "cursor", cursor);
+                ((Map<String, Object>)(data == null || 0 >= data.size() ? null : data.get(0))).put("cursor", cursor);
             }
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -3692,7 +3692,7 @@ public class Lighter extends LighterApi
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
             if ((!java.util.Objects.equals(first, null)) && (!java.util.Objects.equals(nextCursor, null)))
             {
-                Helpers.addElementToObject((data == null || 0 >= data.size() ? null : data.get(0)), "next_cursor", nextCursor);
+                ((Map<String, Object>)(data == null || 0 >= data.size() ? null : data.get(0))).put("next_cursor", nextCursor);
             }
             return this.parseTrades(data, market, since, limit, paramsUntil);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
