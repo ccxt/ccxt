@@ -2697,7 +2697,7 @@ func (this *Bitfinex) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 		panic(responseRecv.Err)
 	}
 	var response []any = responseRecv.Value
-	var order any = this.SafeValue(response, 4)
+	var order []any = SafeListTyped(response, 4)
 	var newOrder map[string]any = map[string]any{
 		"result": order,
 	}

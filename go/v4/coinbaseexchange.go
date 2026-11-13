@@ -3021,8 +3021,8 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan AsyncResult[Depos
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var accounts any = this.SafeValue(this.Options, "coinbaseAccounts")
-	if IsEqual(accounts, nil) {
+	var accounts any = this.SafeList(this.Options, "coinbaseAccounts")
+	if accounts == nil {
 
 		r1 := <-this.PrivateGetCoinbaseAccounts()
 		if r1.Err != nil {

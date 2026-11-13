@@ -1112,12 +1112,11 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 	//         "reason": 'edited_by_user'
 	//     }
 	//
-	var orders ccxt.WsArrayCache = this.Orders
-	if orders == nil {
+	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit")
-		orders = ccxt.NewArrayCacheBySymbolById(limit)
-		this.Orders = orders
+		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
+	var orders ccxt.WsArrayCache = this.Orders
 	var order map[string]any = ccxt.SafeMapTyped(message, "order")
 	if order != nil {
 		var marketId *string = this.SafeString(order, "instrument")
@@ -1141,9 +1140,9 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 			if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
 				ccxt.AddElementToObject(previousOrder, "trades", []any{})
 			}
-			retRes80216 := ccxt.GetValue(previousOrder, "trades")
-			ccxt.AppendToArray(&retRes80216, trade)
-			ccxt.AddElementToObject(previousOrder, "trades", retRes80216)
+			retRes80116 := ccxt.GetValue(previousOrder, "trades")
+			ccxt.AppendToArray(&retRes80116, trade)
+			ccxt.AddElementToObject(previousOrder, "trades", retRes80116)
 			ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
 			var totalCost any = "0"
 			var totalAmount any = "0"

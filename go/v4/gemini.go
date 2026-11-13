@@ -1452,7 +1452,7 @@ func (this *Gemini) fetchTickerV1AndV2Body(ch chan AsyncResult[Ticker], symbol s
 		"change":     this.SafeString(tickerB, "change"),
 		"percentage": this.SafeString(tickerB, "percentage"),
 		"average":    this.SafeString(tickerB, "average"),
-		"info":       this.SafeValue(tickerB, "info"),
+		"info":       this.SafeDict(tickerB, "info"),
 	}))}
 	return nil
 }

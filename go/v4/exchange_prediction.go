@@ -358,7 +358,7 @@ func (this *PredictionExchange) SetEvents(events any) map[string]any {
 		this.Events_by_slug = map[string]any{}
 	}
 	for i := 0; i < GetArrayLength(events); i++ {
-		var event any = this.SafeValue(events, i)
+		var event any = this.SafeDict(events, i)
 		var id *string = this.SafeString(event, "id")
 		var slug *string = this.SafeString(event, "slug")
 		var handle *string = this.SafeString(event, "event")
@@ -467,10 +467,10 @@ func (this *PredictionExchange) GetEvent(eventIdOrSlug any) any {
 	// cache-only event resolver (the event analogue of this.outcome) - the cache fills
 	// through fetchEvents; this never fetches
 	if (this.Events != nil) && (InOp(this.Events, eventIdOrSlug)) {
-		return this.SafeValue(this.Events, eventIdOrSlug)
+		return this.SafeDict(this.Events, eventIdOrSlug)
 	}
 	if (this.Events_by_slug != nil) && (InOp(this.Events_by_slug, eventIdOrSlug)) {
-		return this.SafeValue(this.Events_by_slug, eventIdOrSlug)
+		return this.SafeDict(this.Events_by_slug, eventIdOrSlug)
 	}
 	panic(BadSymbol(Add(Add(this.Id+" has no cached event ", eventIdOrSlug), " - call fetchEvents ({ 'query': ... }) first")))
 }
@@ -715,7 +715,7 @@ func (this *PredictionExchange) IndexMarketOutcomes(market any) {
 			// on a real collision of same handle but different outcomeId, disambiguate the
 			// second one deterministically instead of silently overwriting the first —
 			// trading the wrong market would otherwise be indistinguishable
-			var existing any = this.SafeValue(this.Outcomes, ocSymbol)
+			var existing map[string]any = SafeMapTyped(this.Outcomes, ocSymbol)
 			if existing != nil {
 				var existingId *string = this.SafeString(existing, "outcomeId")
 				if (existingId != nil) && (ocId != nil) && (existingId != ocId && (existingId == nil || ocId == nil || *existingId != *ocId)) {

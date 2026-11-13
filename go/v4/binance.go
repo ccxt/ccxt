@@ -4758,7 +4758,7 @@ func (this *Binance) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	var responseCurrencies any = this.SafeValue(results, 0)
 	var marginablesById any = nil
 	if fetchMargins != nil && *fetchMargins {
-		var responseMarginables any = this.SafeValue(results, 1)
+		var responseMarginables []any = SafeListTyped(results, 1)
 		marginablesById = this.IndexBy(responseMarginables, "assetName")
 	}
 

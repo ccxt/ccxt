@@ -1085,7 +1085,7 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-		var deltas any = this.SafeValue(message, 1)
+		var deltas []any = ccxt.SafeListTyped(message, 1)
 		var orderbookItem ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		if isRaw {
 			var price *string = this.SafeString(deltas, 1)

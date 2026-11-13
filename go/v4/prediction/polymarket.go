@@ -3712,7 +3712,7 @@ func (this *Polymarket) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 				detailedEvent = r4.Raw
 			}
 			if !ccxt.IsEqual(detailedEvent, nil) {
-				eventForParsing = this.SafeValue(detailedEvent, "event", detailedEvent)
+				eventForParsing = this.SafeDict(detailedEvent, "event", detailedEvent)
 				ccxtMarkets = this.ParseEventToMarkets(eventForParsing)
 			}
 		}

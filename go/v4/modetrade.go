@@ -2466,7 +2466,7 @@ func (this *Modetrade) CreateOrderRequest(symbol string, typeVar string, side *s
 	var hasStopLoss bool = (stopLoss != nil)
 	var hasTakeProfit bool = (takeProfit != nil)
 	var algoType *string = this.SafeString(params, "algoType")
-	var paramsChildOrders any = this.SafeValue(params, "childOrders")
+	var paramsChildOrders []any = SafeListTyped(params, "childOrders")
 	var isConditional bool = (triggerPrice != nil) || hasStopLoss || hasTakeProfit || (paramsChildOrders != nil)
 	var isMarket bool = (orderType == "MARKET")
 	var timeInForce *string = this.SafeStringLower(params, "timeInForce")
@@ -2602,7 +2602,7 @@ func (this *Modetrade) createOrderBody(ch chan AsyncResult[Order], symbol string
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLoss any = this.SafeValue(params, "stopLoss")
 	var takeProfit any = this.SafeValue(params, "takeProfit")
-	var childOrders any = this.SafeValue(params, "childOrders")
+	var childOrders []any = SafeListTyped(params, "childOrders")
 	var isConditional bool = (triggerPrice != nil) || (stopLoss != nil) || (takeProfit != nil) || (childOrders != nil)
 	var response map[string]any = nil
 	if isConditional {
@@ -2670,7 +2670,7 @@ func (this *Modetrade) createOrdersBody(ch chan AsyncResult[[]Order], orders []a
 		var triggerPrice *string = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
 		var stopLoss map[string]any = SafeMapTyped(orderParams, "stopLoss")
 		var takeProfit map[string]any = SafeMapTyped(orderParams, "takeProfit")
-		var childOrders any = this.SafeValue(orderParams, "childOrders")
+		var childOrders []any = SafeListTyped(orderParams, "childOrders")
 		var isConditional bool = (triggerPrice != nil) || (stopLoss != nil) || (takeProfit != nil) || (childOrders != nil)
 		if isConditional {
 			panic(NotSupported(this.Id + " createOrders() only support non-stop order"))
@@ -2758,7 +2758,7 @@ func (this *Modetrade) editOrderBody(ch chan AsyncResult[Order], id string, symb
 	if triggerPrice != nil {
 		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
-	var childOrders any = this.SafeValue(params, "childOrders")
+	var childOrders []any = SafeListTyped(params, "childOrders")
 	var isConditional bool = (triggerPrice != nil) || (childOrders != nil)
 	var orderQtyKey string = "order_quantity"
 	if isConditional {

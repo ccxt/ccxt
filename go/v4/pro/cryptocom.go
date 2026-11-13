@@ -207,7 +207,7 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccx
 	if (limit != nil) && (limit == nil || *limit != 0) {
 		limitResolved = limit
 	}
-	var topicParams any = this.SafeValue(params, "params")
+	var topicParams map[string]any = ccxt.SafeMapTyped(params, "params")
 	if topicParams == nil {
 		params["params"] = map[string]any{}
 	}
@@ -271,7 +271,7 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[b
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
 	var limit int64 = *this.SafeInteger(params, "limit", 50)
-	var topicParams any = this.SafeValue(params, "params")
+	var topicParams map[string]any = ccxt.SafeMapTyped(params, "params")
 	if topicParams == nil {
 		params["params"] = map[string]any{}
 	}

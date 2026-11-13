@@ -1084,11 +1084,13 @@ func (this *Bitstamp) HandleUnsubscriptionStatus(client any, message map[string]
 	if (topic != nil && *topic == "orders") && (this.Orders != nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		freshOrdersCache := ccxt.NewArrayCacheBySymbolById(limit)
-		this.Orders = this.PruneCachedBySymbols(freshOrdersCache, this.Orders, symbols)
+		this.PruneCachedBySymbols(freshOrdersCache, this.Orders, symbols)
+		this.Orders = freshOrdersCache
 	} else if (topic != nil && *topic == "myTrades") && (this.MyTrades != nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		freshTradesCache := ccxt.NewArrayCacheBySymbolById(limit)
-		this.MyTrades = this.PruneCachedBySymbols(freshTradesCache, this.MyTrades, symbols)
+		this.PruneCachedBySymbols(freshTradesCache, this.MyTrades, symbols)
+		this.MyTrades = freshTradesCache
 	} else {
 		this.CleanCache(subscription)
 	}

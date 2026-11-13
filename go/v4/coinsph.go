@@ -1864,7 +1864,7 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		"side":   orderSide,
 	}
 	var options map[string]any = SafeMapTyped(this.Options, "createOrder")
-	var newOrderRespTypes any = this.SafeValue(options, "newOrderRespType", map[string]any{})
+	var newOrderRespTypes map[string]any = SafeMapTyped(options, "newOrderRespType")
 	var newOrderRespType string = "FULL"
 	// if limit order
 	if (orderType != nil && *orderType == "LIMIT") || (orderType != nil && *orderType == "STOP_LOSS_LIMIT") || (orderType != nil && *orderType == "TAKE_PROFIT_LIMIT") || (orderType != nil && *orderType == "LIMIT_MAKER") {

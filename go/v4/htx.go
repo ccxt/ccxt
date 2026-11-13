@@ -6845,7 +6845,7 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 	}
 	var average *string = this.SafeString(order, "trade_avg_price")
-	var trades any = this.SafeValue(order, "trades")
+	var trades []any = SafeListTyped(order, "trades")
 	var reduceOnly any = nil
 	if isLinearOrder {
 		if derefPtr := this.SafeBool(order, "reduce_only"); derefPtr != nil {

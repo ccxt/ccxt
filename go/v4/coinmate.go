@@ -828,7 +828,7 @@ func (this *Coinmate) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
 		var market map[string]any = this.Market(keys[i])
-		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeValue(data, keys[i]), market))
+		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeDict(data, keys[i], map[string]any{}), market))
 		AddElementToObject(result, market["symbol"], ticker)
 	}
 

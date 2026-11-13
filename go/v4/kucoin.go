@@ -16056,9 +16056,9 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) map[string]any {
 		var isFuturePartner bool = isFuturePrivate || isUtaFuturePrivate
 		partner = func() any {
 			if isFuturePartner {
-				return this.SafeValue(partner, "future", partner)
+				return this.SafeDict(partner, "future", partner)
 			}
-			return this.SafeValue(partner, "spot", partner)
+			return this.SafeDict(partner, "spot", partner)
 		}()
 		var partnerId *string = this.SafeString(partner, "id")
 		var partnerSecret *string = this.SafeString2(partner, "secret", "key")

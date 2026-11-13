@@ -4445,7 +4445,7 @@ func (this *Krakenfutures) ParseMarketLeverageTiers(info any, optionalArgs ...an
 			"symbol":                this.SafeSymbol(marketId, marketResolved),
 			"currency":              marketResolved["quote"],
 			"minNotional":           minNotional,
-			"maxNotional":           this.SafeNumber2(this.SafeValue(marginLevels, this.Sum(i, 1)), "numNonContractUnits", "contracts"),
+			"maxNotional":           this.SafeNumber2(this.SafeDict(marginLevels, this.Sum(i, 1)), "numNonContractUnits", "contracts"),
 			"maintenanceMarginRate": this.SafeNumber(tier, "maintenanceMargin"),
 			"maxLeverage":           this.ParseNumber(Precise.StringDiv("1", initialMargin)),
 			"info":                  tier,

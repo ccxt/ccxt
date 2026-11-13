@@ -990,7 +990,7 @@ func (this *Ndax) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any)
 	var bids []any = []any{}
 	var asks []any = []any{}
 	for i := 0; i < GetArrayLength(orderbook); i++ {
-		var level any = this.SafeValue(orderbook, i)
+		var level []any = SafeListTyped(orderbook, i)
 		var newTimestamp *int64 = this.SafeInteger(level, 2)
 		if (newTimestamp != nil) && ((latestTimestamp == nil) || (*newTimestamp > *latestTimestamp)) {
 			latestTimestamp = newTimestamp

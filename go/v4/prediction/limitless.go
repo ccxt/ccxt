@@ -431,7 +431,7 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 					break
 				}
 				for i := 0; i < pageMarketsLength; i++ {
-					var raw any = this.SafeValue(page_markets, i)
+					var raw map[string]any = ccxt.SafeMapTyped(page_markets, i)
 					allRaw = append(allRaw, raw)
 				}
 				var allRawCount int = len(allRaw)

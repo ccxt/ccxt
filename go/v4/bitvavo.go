@@ -3588,7 +3588,7 @@ func (this *Bitvavo) CalculateRateLimiterCost(api any, method string, path strin
 	if _, ok := config["noMarket"]; ok && !(InOp(params, "market")) {
 		return config["noMarket"]
 	}
-	return this.SafeValue(config, "cost", 1)
+	return this.SafeInteger(config, "cost", 1)
 }
 
 func NewBitvavo(userConfig map[string]any) *Bitvavo {

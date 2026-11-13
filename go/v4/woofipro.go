@@ -2550,7 +2550,7 @@ func (this *Woofipro) CreateOrderRequest(symbol *string, typeVar *string, side *
 	var hasStopLoss bool = (stopLoss != nil)
 	var hasTakeProfit bool = (takeProfit != nil)
 	var algoType *string = this.SafeString(params, "algoType")
-	var paramsChildOrders any = this.SafeValue(params, "childOrders")
+	var paramsChildOrders []any = SafeListTyped(params, "childOrders")
 	var isConditional bool = (triggerPrice != nil) || hasStopLoss || hasTakeProfit || (paramsChildOrders != nil)
 	var isMarket bool = (orderType == "MARKET")
 	var timeInForce *string = this.SafeStringLower(params, "timeInForce")
@@ -2843,7 +2843,7 @@ func (this *Woofipro) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	if triggerPrice != nil {
 		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
-	var paramsChildOrders any = this.SafeValue(params, "childOrders")
+	var paramsChildOrders []any = SafeListTyped(params, "childOrders")
 	var isConditional bool = (triggerPrice != nil) || (paramsChildOrders != nil)
 	var orderQtyKey string = func() string {
 		if isConditional {

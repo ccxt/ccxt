@@ -599,7 +599,7 @@ func (this *Latoken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	var result []any = []any{}
 	var rawMarkets []any = this.ToArray(response)
 	for i := 0; i < len(rawMarkets); i++ {
-		var market any = this.SafeValue(rawMarkets, i)
+		var market map[string]any = SafeMapTyped(rawMarkets, i)
 		var id *string = this.SafeString(market, "id")
 		// the exchange shows them inverted
 		var baseId *string = this.SafeString(market, "baseCurrency")

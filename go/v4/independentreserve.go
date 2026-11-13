@@ -442,7 +442,7 @@ func (this *Independentreserve) fetchMarketsBody(ch chan AsyncResult[[]MarketInt
 		panic(r.Err)
 	}
 	var responses []any = ListTyped(r.Value)
-	var limits any = this.SafeValue(responses, 2)
+	var limits map[string]any = SafeMapTyped(responses, 2)
 	//
 	//     {
 	//         "Xbt": 0.0001,
