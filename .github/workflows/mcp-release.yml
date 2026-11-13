@@ -1,24 +1,62 @@
 name: MCP Release
 
 # Publishes the ccxt-mcp sub-package to npm, mirroring the main release workflow
-# (manual dispatch, maintainer allowlist, Node 24, npm publish with provenance via OIDC).
+# (maintainer allowlist, Node 24, npm publish with provenance via OIDC).
 # The version is bumped by the workflow itself — same `build/smart-bump.sh` + commit-back
-# pattern as release.yml — so a release is a dispatch, never a hand-edited package.json.
-# One dispatch ships all three channels: npm, the MCP registry entry, and the .mcpb bundle.
+# pattern as release.yml — so a release is a run of this workflow, never a hand-edited package.json.
+# One run ships all three channels: npm, the MCP registry entry, and the .mcpb bundle.
 # npm auth uses OIDC trusted publishing — configure a trusted publisher for the `ccxt-mcp`
 # package on npmjs pointing at this workflow (one-time setup).
+#
+# It runs after every successful ccxt release, and on manual dispatch. Each run floors the
+# `ccxt` dependency at the newest ccxt release. Without the follow-up release, ccxt updates
+# never reach existing users: npx keeps the ccxt resolved at first install until the
+# ccxt-mcp version itself changes, and the .mcpb bundle freezes ccxt at build time.
+# A ccxt release that reached npm but failed in a later step (as 4.5.81 did) triggers
+# nothing here; dispatch this workflow by hand after one.
+#
+# Only the publish job uses the Prod environment, so a release needs one approval.
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Release workflow"]
+    types:
+      - completed
 
 permissions:
   id-token: write
   contents: write
 
+# One release at a time, oldest first. `queue: max` keeps every pending run (the default,
+# `single`, cancels an older pending run when a newer one arrives), and each run checks out
+# master when it starts (`ref: master` below), so it bumps past the release before it
+# instead of recomputing a version npm already has.
+concurrency:
+  group: mcp-release
+  queue: max
+
 jobs:
   publish:
     runs-on: ubuntu-latest
     environment: Prod
-    if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei", "pcriadoperez"]'), github.actor)
+    # dispatch: a maintainer on master. workflow_run: a successful Release workflow that a
+    # maintainer dispatched on master (a workflow_run-triggered run always executes on the
+    # default branch, so the release's own branch and event are what need checking).
+    # github.triggering_actor is whoever started this attempt; github.actor and the event
+    # payload keep the original actor on a re-run, so checking it too keeps re-runs of a
+    # failed run to the allowlist.
+    if: >-
+      (github.event_name == 'workflow_dispatch'
+        && github.ref == 'refs/heads/master'
+        && contains(fromJSON('["kroitor", "frosty00", "carlosmiei", "pcriadoperez"]'), github.actor)
+        && contains(fromJSON('["kroitor", "frosty00", "carlosmiei", "pcriadoperez"]'), github.triggering_actor))
+      || (github.event_name == 'workflow_run'
+        && github.repository == 'ccxt/ccxt'
+        && github.event.workflow_run.conclusion == 'success'
+        && github.event.workflow_run.event == 'workflow_dispatch'
+        && github.event.workflow_run.head_branch == 'master'
+        && contains(fromJSON('["kroitor", "frosty00", "carlosmiei", "pcriadoperez"]'), github.event.workflow_run.triggering_actor.login)
+        && contains(fromJSON('["kroitor", "frosty00", "carlosmiei", "pcriadoperez"]'), github.triggering_actor))
     outputs:
       version: ${{ steps.bump.outputs.version }}
       sha: ${{ steps.commit.outputs.sha }}
@@ -36,9 +74,13 @@ jobs:
           client-id: ${{ secrets.CCXT_APP_CLIENT_ID }}
           private-key: ${{ secrets.CCXT_APP_PRIVATE_KEY }}
           permission-contents: write
+      # master as it is when this run starts, not the commit the event pinned when the run was
+      # created: a run that sat in the queue or waited for approval behind another release must
+      # see that release's version bump, or smart-bump.sh recomputes a version npm already has
       - uses: actions/checkout@v4
         with:
           token: ${{ steps.app-token.outputs.token }}
+          ref: master
           fetch-depth: 2
       - uses: actions/setup-node@v6
         with:
@@ -47,6 +89,52 @@ jobs:
           package-manager-cache: false  # never use caching in release builds
       - name: Install
         run: npm ci
+      # Floor ccxt at the version the Release workflow committed to master, so the tarball, the
+      # lockfile and the .mcpb bundle all carry it, and `npm test` below runs against it.
+      - name: Raise the ccxt dependency floor to the released ccxt version
+        run: |
+          CCXT_VERSION=$(node -p "require('../package.json').version")
+          CURRENT_FLOOR=$(node -p "require('./package.json').dependencies.ccxt.replace(/^[\^~]/, '')")
+          # raise only, never lower
+          if [ "$(printf '%s\n%s\n' "$CURRENT_FLOOR" "$CCXT_VERSION" | sort -V | tail -n1)" = "$CURRENT_FLOOR" ]; then
+            echo "ccxt floor ^${CURRENT_FLOOR} already covers ${CCXT_VERSION}, leaving it"
+            exit 0
+          fi
+          # npm has taken 8-11 minutes to serve a ccxt release (~70 MB) after its publish step
+          # returned. An automatic run follows a successful release, so the version will appear:
+          # wait up to 30 minutes, then fail. A dispatch waits 5 minutes, then keeps the current
+          # floor: master can carry a release commit whose npm publish failed (4.5.86 never
+          # reached npm), and that must not block an unrelated ccxt-mcp release.
+          if [ "$GITHUB_EVENT_NAME" = "workflow_run" ]; then attempts=60; else attempts=10; fi
+          served=""
+          for attempt in $(seq 1 "$attempts"); do
+            if [ "$(npm view "ccxt@${CCXT_VERSION}" version 2>/dev/null)" = "$CCXT_VERSION" ]; then
+              served="yes"
+              break
+            fi
+            echo "ccxt@${CCXT_VERSION} not on npm yet (${attempt}/${attempts})..."
+            [ "$attempt" -lt "$attempts" ] && sleep 30
+          done
+          if [ -z "$served" ]; then
+            if [ "$GITHUB_EVENT_NAME" = "workflow_run" ]; then
+              echo "::error::master is at ccxt ${CCXT_VERSION} but npm still does not serve it after 30 minutes — refusing to release ccxt-mcp against a ccxt that cannot be installed"
+              exit 1
+            fi
+            echo "::warning::master is at ccxt ${CCXT_VERSION} but npm does not serve it — keeping the ccxt floor at ^${CURRENT_FLOOR}"
+            exit 0
+          fi
+          # retry the install too, in case the metadata it reads lags the document npm view read
+          for attempt in 1 2 3 4 5; do
+            if npm install "ccxt@^${CCXT_VERSION}" --save --no-audit --no-fund --ignore-scripts; then
+              break
+            fi
+            if [ "$attempt" -eq 5 ]; then
+              echo "::error::npm serves ccxt@${CCXT_VERSION} but npm install could not resolve it"
+              exit 1
+            fi
+            sleep 30
+          done
+          echo "ccxt dependency: $(node -p "require('./package.json').dependencies.ccxt"), locked at $(node -p "require('./package-lock.json').packages['node_modules/ccxt'].version")"
       # bump before building so the compiled server + doc manifest carry the new version.
       # smart-bump.sh reads ./package.json relative to cwd, so it bumps the mcp package
       # (not the root ccxt one) thanks to the job-level working-directory.
@@ -86,20 +174,30 @@ jobs:
         run: |
           git config --global user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
           git config --global user.email "${{ steps.app-user.outputs.id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
-          git add mcp/package.json mcp/package-lock.json mcp/mcpb/manifest.json mcp/server.json
-          git commit -m "[Automated changes] ccxt-mcp ${NEW_VERSION}"
-          # same retry pattern as release.yml: master can move while the release builds,
-          # so rebase onto it before every attempt
+          CCXT_RANGE=$(node -p "require('./mcp/package.json').dependencies.ccxt")
+          # Master can move while the release builds, so every attempt re-applies the bump on
+          # top of the newest master instead of rebasing a commit onto it. The bump edits
+          # mcp/package.json dependencies and lockfile entries that dependency PRs also touch,
+          # and a rebase conflict here, after npm already has the version, would leave master
+          # behind npm and wedge every later release on a 403.
+          bump_on_master () {
+            git fetch origin master &&
+              git reset --hard origin/master &&
+              (cd mcp &&
+                npm pkg set "version=${NEW_VERSION}" "dependencies.ccxt=${CCXT_RANGE}" &&
+                npm install --package-lock-only --ignore-scripts --no-audit --no-fund &&
+                node scripts/sync-versions.mjs) &&
+              git add mcp/package.json mcp/package-lock.json mcp/mcpb/manifest.json mcp/server.json &&
+              git commit -m "[Automated changes] ccxt-mcp ${NEW_VERSION}"
+          }
           pushed=""
           for attempt in 1 2 3 4 5; do
-            git fetch origin master
-            git rebase --autostash origin/master
-            if git push origin HEAD:master; then
+            if bump_on_master && git push origin HEAD:master; then
               echo "pushed on attempt ${attempt}"
               pushed="yes"
               break
             fi
-            echo "master moved, retrying (${attempt})..."
+            echo "push or re-apply failed, retrying (${attempt})..."
             sleep $(( (RANDOM % 5) + 2 ))
           done
           if [ -z "$pushed" ]; then
@@ -172,8 +270,9 @@ jobs:
   bundle:
     needs: publish
     runs-on: ubuntu-latest
-    environment: Prod
-    if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei", "pcriadoperez"]'), github.actor)
+    # No `environment`: this job uses only github.token, and it runs only after `publish`
+    # succeeded, so publish's Prod approval covers the whole release (one approval, not two).
+    if: needs.publish.result == 'success'
     permissions:
       contents: write
     defaults:
