@@ -194,6 +194,7 @@ type BaseExchange struct {
 	FetchResponseByUrl any
 
 	IsSandboxModeEnabled  bool
+	MarketsCacheMinutes   float64
 	FetchHistoryCacheSize int
 	FetchHistoryCache     *ConcurrentListForRequests
 
