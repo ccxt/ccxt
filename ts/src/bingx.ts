@@ -2166,7 +2166,7 @@ export default class bingx extends Exchange {
         };
         let response: Dict;
         if (this.safeBool (market, 'spot', false)) {
-            response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
+            response = await this.spotV2PublicGetQuoteTicker (this.extend (request, params));
         } else {
             if (this.safeBool (market, 'inverse', false)) {
                 response = await this.cswapV1PublicGetMarketTicker (this.extend (request, params));
@@ -2282,7 +2282,7 @@ export default class bingx extends Exchange {
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchTickers', market, paramsMarketType);
         let response: Dict;
         if (type === 'spot') {
-            response = await this.spotV1PublicGetTicker24hr (paramsSubType);
+            response = await this.spotV2PublicGetQuoteTicker (paramsSubType);
         } else {
             if (subType === 'inverse') {
                 response = await this.cswapV1PublicGetMarketTicker (paramsSubType);
