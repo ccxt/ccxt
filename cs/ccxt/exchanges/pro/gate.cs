@@ -1408,8 +1408,8 @@ public partial class gate : ccxt.gate
             object timeframe = (symbol != null && marketIds.ContainsKey(symbol) ? marketIds[symbol] : null);
             string? interval = this.findTimeframe(timeframe);
             string hash = (((("candles" + ":") + interval) + ":") + symbol);
-            ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), interval));
-            client.resolve(stored, hash);
+            ccxt.pro.ArrayCacheByTimestamp symbolOhlcv = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), interval));
+            client.resolve(symbolOhlcv, hash);
         }
     }
 

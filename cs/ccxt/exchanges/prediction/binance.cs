@@ -1850,7 +1850,7 @@ public partial class binance : PredictionExchange
     public override string? priceToPrecision(object outcome, object price)
     {
         Dictionary<string, object> market = this.market(outcome);
-        double? prec = this.safeNumber(this.safeDict(((object)market), "precision", new Dictionary<string, object>() {}), "price", 0.0001);
+        double? prec = this.safeNumber(this.safeDict(market, "precision", new Dictionary<string, object>() {}), "price", 0.0001);
         int decimals = 4;
         if (((prec != null)) && ((prec > 0)))
         {
@@ -1862,7 +1862,7 @@ public partial class binance : PredictionExchange
     public override string? amountToPrecision(object outcome, object amount)
     {
         Dictionary<string, object> market = this.market(outcome);
-        double? prec = this.safeNumber(this.safeDict(((object)market), "precision", new Dictionary<string, object>() {}), "amount", 0.01);
+        double? prec = this.safeNumber(this.safeDict(market, "precision", new Dictionary<string, object>() {}), "amount", 0.01);
         int decimals = 2;
         if (((prec != null)) && ((prec > 0)))
         {

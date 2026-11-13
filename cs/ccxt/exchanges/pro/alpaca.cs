@@ -209,12 +209,13 @@ public partial class alpaca : ccxt.alpaca
         //
         string? marketId = this.safeString(message, "S");
         string? symbol = this.safeSymbol(marketId);
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.ohlcvs, symbol));
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), "1m"));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            this.ohlcvs[(string)symbol] = stored;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))["1m"] = stored;
         }
         IList<object> parsed = this.parseOHLCV(message);
         stored.append(parsed);

@@ -1325,16 +1325,15 @@ public partial class pacifica : ccxt.pacifica
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        IDictionary<string, object> symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object ohlcv = this.safeValue(symbolOhlcvs, timeframe);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
         if ((ohlcv == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ohlcv = new ArrayCacheByTimestamp(limit);
-            symbolOhlcvs[timeframe] = ohlcv;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = ohlcv;
         }
         IList<object> parsed = this.parseOHLCV(data);
-        ccxt.pro.BaseCache.appendTo(ohlcv, parsed);
+        ohlcv.append(parsed);
         client.resolve(ohlcv, messageHash);
     }
 

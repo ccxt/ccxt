@@ -317,8 +317,14 @@ public partial class ndax : ccxt.ndax
                 }
                 Int64? candleTimestamp = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((((double?)timestamp / duration)), duration));
                 List<object> parsed = new List<object>() {candleTimestamp, this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)};
-                object stored = this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe, new List<object>() {});
-                int length = getArrayLength(stored);
+                ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
+                if ((stored == null))
+                {
+                    Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                    stored = new ArrayCacheByTimestamp(limit);
+                    ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+                }
+                int length = (stored?.Count ?? 0);
                 object previous = this.safeValue(stored, (length - 1));
                 Int64? previousTimestamp = this.safeInteger(previous, 0);
                 if ((length > 0) && ((previousTimestamp != null)) && ((previousTimestamp == candleTimestamp)))
@@ -345,7 +351,7 @@ public partial class ndax : ccxt.ndax
                             low = previousLow;
                         }
                     }
-                    ((List<object>)stored)[Convert.ToInt32((length - 1))] = new List<object>() {candleTimestamp, this.safeFloat(previous, 1), high, low, this.safeFloat(ohlcv, 4), this.sum(this.safeFloat(ohlcv, 5), this.safeFloat(previous, 5))};
+                    stored.append(new List<object>() {candleTimestamp, this.safeFloat(previous, 1), high, low, this.safeFloat(ohlcv, 4), this.sum(this.safeFloat(ohlcv, 5), this.safeFloat(previous, 5))});
                     if ((marketId != null))
                     {
                         marketUpdates[timeframe] = true;
@@ -359,18 +365,12 @@ public partial class ndax : ccxt.ndax
                             continue;
                         }
                     }
-                    ((IList<object>)stored).Add(parsed);
-                    Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-                    if ((limit == null || length >= limit))
-                    {
-                        ((IList<object>)stored).First();
-                    }
+                    stored.append(parsed);
                     if ((marketId != null))
                     {
                         marketUpdates[timeframe] = true;
                     }
                 }
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
             if ((marketId != null))
             {
@@ -389,8 +389,8 @@ public partial class ndax : ccxt.ndax
                 string messageHash = ((((name + ":") + timeframe) + ":") + marketId);
                 Dictionary<string, object> market = this.safeMarket(marketId);
                 string? symbol = this.safeString(market, "symbol", "");
-                List<object> stored = this.safeList(this.safeValue(this.ohlcvs, symbol), timeframe, new List<object>() {});
-                client.resolve(stored, messageHash);
+                ccxt.pro.ArrayCacheByTimestamp symbolOhlcv = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
+                client.resolve(symbolOhlcv, messageHash);
             }
         }
     }

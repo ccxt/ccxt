@@ -727,15 +727,15 @@ public partial class mexc : ccxt.mexc
         // }
         //
         List<object> parsed = null;
-        string? symbol = null;
+        IDictionary<string, object> market = null;
         string? timeframe = null;
         if ((message != null && ((IDictionary<string, object>)message).ContainsKey("publicSpotKline")))
         {
-            symbol = this.symbol(this.safeString(message, "symbol"));
+            market = this.safeMarket(this.symbol(this.safeString(message, "symbol")));
             IDictionary<string, object> data = this.safeDict(message, "publicSpotKline", new Dictionary<string, object>() {});
             string? timeframeId = this.safeString(data, "interval");
             timeframe = this.findTimeframe(timeframeId, (this.options != null && this.options.ContainsKey("timeframes") ? this.options["timeframes"] : null));
-            parsed = this.parseWsOHLCV(data, this.safeMarket(symbol));
+            parsed = this.parseWsOHLCV(data, market);
         } else
         {
             IDictionary<string, object> d = this.safeDict2(message, "d", "data", new Dictionary<string, object>() {});
@@ -744,24 +744,23 @@ public partial class mexc : ccxt.mexc
             IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
             timeframe = this.findTimeframe(timeframeId, timeframes);
             string? marketId = this.safeString2(message, "s", "symbol");
-            Dictionary<string, object> market = this.safeMarket(marketId);
-            symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            market = this.safeMarket(marketId);
             parsed = this.parseWsOHLCV(rawOhlcv, market);
         }
+        string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ((("candles:" + symbol) + ":") + timeframe);
-        IDictionary<string, object> symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        this.ohlcvs[(string)symbol] = symbolOhlcvs;
-        object stored = this.safeValue(symbolOhlcvs, timeframe);
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
             if ((timeframe != null))
             {
-                symbolOhlcvs[timeframe] = stored;
+                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
         }
-        ccxt.pro.BaseCache.appendTo(stored, parsed);
+        stored.append(parsed);
         client.resolve(stored, messageHash);
     }
 

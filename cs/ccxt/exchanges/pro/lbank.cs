@@ -298,49 +298,44 @@ public partial class lbank : ccxt.lbank
         IDictionary<string, object> watchOHLCVOptions = this.safeDict(this.options, "watchOHLCV", new Dictionary<string, object>() {});
         IDictionary<string, object> timeframes = this.safeDict(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
         List<object> records = this.safeList(message, "records");
+        string? timeframeId = "";
+        string messageHash = "";
         if ((records != null))
         {
-            List<object> rawOHLCV = this.safeList(records, 0, new List<object>() {});
-            List<object> parsed = new List<object> {this.safeInteger(rawOHLCV, 0), this.safeNumber(rawOHLCV, 1), this.safeNumber(rawOHLCV, 2), this.safeNumber(rawOHLCV, 3), this.safeNumber(rawOHLCV, 4), this.safeNumber(rawOHLCV, 5)};
-            string? timeframeId = this.safeString(message, "kbar", "");
-            string? timeframe = this.findTimeframe(timeframeId, timeframes);
-            IDictionary<string, object> ohlcvsForSymbol = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            this.ohlcvs[(string)symbol] = ohlcvsForSymbol;
-            object stored = this.safeValue(ohlcvsForSymbol, timeframe);
-            if ((stored == null))
-            {
-                Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-                stored = new ArrayCacheByTimestamp(limit);
-                ohlcvsForSymbol[timeframe] = stored;
-            }
-            ccxt.pro.BaseCache.appendTo(stored, parsed);
-            string messageHash = ((("fetchOHLCV:" + symbol) + ":") + timeframeId);
-            client.resolve(stored, messageHash);
+            timeframeId = this.safeString(message, "kbar", "");
+            messageHash = ((("fetchOHLCV:" + symbol) + ":") + timeframeId);
         } else
         {
-            IDictionary<string, object> rawOHLCV = this.safeDict(message, "kbar", new Dictionary<string, object>() {});
-            string? timeframeId = this.safeString(rawOHLCV, "slot", "");
-            string? datetime = this.safeString(rawOHLCV, "t");
-            List<object> parsed = new List<object> {this.parse8601(datetime), this.safeNumber(rawOHLCV, "o"), this.safeNumber(rawOHLCV, "h"), this.safeNumber(rawOHLCV, "l"), this.safeNumber(rawOHLCV, "c"), this.safeNumber(rawOHLCV, "v")};
-            string messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
+            timeframeId = this.safeString(this.safeDict(message, "kbar", new Dictionary<string, object>() {}), "slot", "");
+            messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
             if (!((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash))))
             {
                 // a candle lbank pushed before it processed an unWatchOHLCV, which it does not acknowledge
                 return;
             }
-            string? timeframe = this.findTimeframe(timeframeId, timeframes);
-            IDictionary<string, object> ohlcvsForSymbol = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            this.ohlcvs[(string)symbol] = ohlcvsForSymbol;
-            object stored = this.safeValue(ohlcvsForSymbol, timeframe);
-            if ((stored == null))
-            {
-                Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-                stored = new ArrayCacheByTimestamp(limit);
-                ohlcvsForSymbol[timeframe] = stored;
-            }
-            ccxt.pro.BaseCache.appendTo(stored, parsed);
-            client.resolve(stored, messageHash);
         }
+        string? timeframe = this.findTimeframe(timeframeId, timeframes);
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
+        if ((stored == null))
+        {
+            Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            stored = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+        }
+        if ((records != null))
+        {
+            List<object> rawOHLCV = this.safeList(records, 0, new List<object>() {});
+            List<object> parsed = new List<object> {this.safeInteger(rawOHLCV, 0), this.safeNumber(rawOHLCV, 1), this.safeNumber(rawOHLCV, 2), this.safeNumber(rawOHLCV, 3), this.safeNumber(rawOHLCV, 4), this.safeNumber(rawOHLCV, 5)};
+            stored.append(parsed);
+        } else
+        {
+            IDictionary<string, object> rawOHLCV = this.safeDict(message, "kbar", new Dictionary<string, object>() {});
+            string? datetime = this.safeString(rawOHLCV, "t");
+            List<object> parsed = new List<object> {this.parse8601(datetime), this.safeNumber(rawOHLCV, "o"), this.safeNumber(rawOHLCV, "h"), this.safeNumber(rawOHLCV, "l"), this.safeNumber(rawOHLCV, "c"), this.safeNumber(rawOHLCV, "v")};
+            stored.append(parsed);
+        }
+        client.resolve(stored, messageHash);
     }
 
     /**
