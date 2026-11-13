@@ -397,8 +397,8 @@ export default class bit2c extends Exchange {
         // feed filters these rows out, so a non-positive amount is a dead order
         // their full snapshot failed to purge - it is removed here, which also
         // uncrosses the book. rows are positional price and amount pairs
-        const rawBids = this.safeList (orderbook, 'bids', []);
-        const rawAsks = this.safeList (orderbook, 'asks', []);
+        const rawBids: any[][] = this.safeList (orderbook, 'bids', []);
+        const rawAsks: any[][] = this.safeList (orderbook, 'asks', []);
         const bids = [];
         const asks = [];
         for (let i = 0; i < rawBids.length; i++) {

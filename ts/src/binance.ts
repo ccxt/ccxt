@@ -11484,7 +11484,7 @@ export default class binance extends Exchange {
         }
         const contracts = this.parseNumber (contractsStringAbs);
         const leverageBrackets = this.safeDict (this.options, 'leverageBrackets', {});
-        const leverageBracket = this.safeList (leverageBrackets, symbol, []);
+        const leverageBracket: string[][] = this.safeList (leverageBrackets, symbol, []);
         let maintenanceMarginPercentageString: Str = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
@@ -11708,7 +11708,7 @@ export default class binance extends Exchange {
         const symbol = this.safeString (marketResolved, 'symbol');
         const isolatedMarginString = this.safeString (position, 'isolatedMargin');
         const leverageBrackets = this.safeDict (this.options, 'leverageBrackets', {});
-        const leverageBracket = this.safeList (leverageBrackets, symbol, []);
+        const leverageBracket: string[][] = this.safeList (leverageBrackets, symbol, []);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
         const notionalStringAbs = Precise.stringAbs (notionalString);
         let maintenanceMarginPercentageString: Str = undefined;

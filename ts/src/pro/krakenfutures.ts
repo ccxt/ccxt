@@ -926,7 +926,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //            ...
         //        ]
         //    }
-        const orders = this.safeList (message, 'orders', []);
+        const orders: Dict[] = this.safeList (message, 'orders', []);
         // reuse the existing cache: replacing it would orphan consumers holding
         // a reference to the old one across a reconnect snapshot
         if (this.orders === undefined) {

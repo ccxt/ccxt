@@ -352,7 +352,7 @@ export default class gemini extends geminiRest {
         const marketId = this.safeString (message, 'symbol', '').toLowerCase ();
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId, market);
-        const changes = this.safeList (message, 'changes', []);
+        const changes: any[][] = this.safeList (message, 'changes', []);
         const timeframe = this.findTimeframe (timeframeId);
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
@@ -420,7 +420,7 @@ export default class gemini extends geminiRest {
 
     handleOrderBook (client: Client, message: Dict) {
         const isInitial = ('auction_events' in message) && ('trades' in message) && ('changes' in message);
-        const changes = this.safeList (message, 'changes', []);
+        const changes: any[][] = this.safeList (message, 'changes', []);
         const marketId = this.safeStringLower (message, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = this.safeString (market, 'symbol', '');

@@ -2651,7 +2651,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'results', []) as List;
+        const data: Dict[] = this.safeList (response, 'results', []) as List;
         // the endpoint keeps returning a market's position after it is closed, with a size of 0
         const openPositions: List = [];
         for (let i = 0; i < data.length; i++) {
@@ -2850,7 +2850,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const rows = this.safeList (response, 'results', []) as List;
+        const rows: Dict[] = this.safeList (response, 'results', []) as List;
         // the cursor pagination reads the next page cursor from the parsed entries
         const next = this.safeString (response, 'next');
         for (let i = 0; i < rows.length; i++) {
@@ -2923,7 +2923,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const rows = this.safeList (response, 'results', []) as List;
+        const rows: Dict[] = this.safeList (response, 'results', []) as List;
         // the cursor pagination reads the next page cursor from the parsed entries
         const next = this.safeString (response, 'next');
         for (let i = 0; i < rows.length; i++) {

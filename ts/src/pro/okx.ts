@@ -863,7 +863,7 @@ export default class okx extends okxRest {
         //        ]
         //    }
         //
-        const rawLiquidations = this.safeList (message, 'data', []) as List;
+        const rawLiquidations: Dict[] = this.safeList (message, 'data', []) as List;
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseWsLiquidation (rawLiquidation);
@@ -1567,7 +1567,7 @@ export default class okx extends okxRest {
         const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const action = this.safeString (message, 'action');
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];

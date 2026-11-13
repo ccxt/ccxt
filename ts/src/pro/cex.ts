@@ -243,7 +243,7 @@ export default class cex extends cexRest {
     }
 
     handleTradesInner (client: Client, message: Dict) {
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const symbol = this.safeString (this.options['watchTrades'], 'symbol');
         if (symbol === undefined) {
             return;

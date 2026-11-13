@@ -688,7 +688,7 @@ export default class coinsph extends Exchange {
         } else if (('byNumberOfSymbols' in config) && hasSymbolsParam) {
             const symbols = this.safeList (params, 'symbols', []);
             const symbolsAmount = symbols.length;
-            const byNumberOfSymbols = this.safeList (config, 'byNumberOfSymbols', []);
+            const byNumberOfSymbols: number[][] = this.safeList (config, 'byNumberOfSymbols', []);
             for (let i = 0; i < byNumberOfSymbols.length; i++) {
                 const entry = byNumberOfSymbols[i];
                 const threshold = this.safeInteger (entry, 0);
@@ -697,7 +697,7 @@ export default class coinsph extends Exchange {
                 }
             }
         } else if (('byLimit' in config) && (limit !== undefined)) {
-            const byLimit = this.safeList (config, 'byLimit', []);
+            const byLimit: number[][] = this.safeList (config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 const threshold = this.safeInteger (entry, 0);

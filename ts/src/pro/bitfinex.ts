@@ -724,7 +724,7 @@ export default class bitfinex extends bitfinexRest {
             }
             const orderbook = this.orderbooks[symbol];
             if (isRaw) {
-                const deltas = this.safeList (message, 1, []);
+                const deltas: any[][] = this.safeList (message, 1, []);
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = deltas[i];
                     const delta2 = this.safeNumber (delta, 2);

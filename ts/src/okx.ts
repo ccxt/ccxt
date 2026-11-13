@@ -2012,7 +2012,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const dataResponse = this.safeList (response, 'data', []) as List;
+        const dataResponse: Dict[] = this.safeList (response, 'data', []) as List;
         const marketsWithoutTest: List = [];
         for (let i = 0; i < dataResponse.length; i++) {
             const data = dataResponse[i];
