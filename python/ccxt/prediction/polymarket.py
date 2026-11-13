@@ -1750,7 +1750,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'datetime': self.iso8601(ts),
             'lastTradeTimestamp': None,
             'status': status,
-            'outcome': mkt['outcome'],
+            'outcome': self.safe_string(mkt, 'outcome'),
             'outcomeId': self.safe_string(mkt, 'outcomeId'),
             'label': self.safe_string(mkt, 'label'),
             'market': self.safe_string(mkt, 'market'),

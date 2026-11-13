@@ -732,8 +732,7 @@ class binance(PredictionExchange, ImplicitAPI):
         #
         #     { "marketId": 5567895, "lastTradePrice": "0.52" }
         #
-        marketAny = market
-        outcomeObj = self.safe_outcome(self.safe_string(marketAny, 'outcome'), marketAny)
+        outcomeObj = self.safe_outcome(self.safe_string(market, 'outcome'), market)
         # the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
         # any other outcome of a binary market mirrors as 1 - price
         outcomeInfo = self.safe_dict(outcomeObj, 'info', {})

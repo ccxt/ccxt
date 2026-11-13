@@ -3095,7 +3095,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         self.unlock_id()
         return next
 
-    def outcome_for_token(self, tokenId: Str, market: object = None) -> object:
+    def outcome_for_token(self, tokenId: Str, market: Market = None) -> object:
         """
  @ignore
         resolves the outcome a row belongs to from its own token id, taking the caller's outcome only when it names that same token

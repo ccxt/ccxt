@@ -367,20 +367,24 @@ class PredictionExchange(BaseExchange):
             return True
         return False
 
-    def safe_outcome(self, outcomeIdOrSymbol: Str, outcomeObj: object = None):
+    def safe_outcome(self, outcomeIdOrSymbol: Str, market: Market = None):
         if outcomeIdOrSymbol is not None:
             if (self.outcomes is not None) and (outcomeIdOrSymbol in self.outcomes):
                 return self.safe_value(self.outcomes, outcomeIdOrSymbol)
             if (self.outcomes_by_id is not None) and (outcomeIdOrSymbol in self.outcomes_by_id):
                 return self.safe_value(self.outcomes_by_id, outcomeIdOrSymbol)
-        if outcomeObj is not None:
-            return outcomeObj
+        if market is not None:
+            return market
         # stub for an unknown handle; it only carries the identity keys, not the market fields
         outcomeObjValue = {'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': None, 'label': None, 'event': None, 'info': {}}
         return outcomeObjValue
 
     def safe_outcome_symbol(self, outcomeIdOrSymbol: Str, outcomeObj: object = None):
-        outcomeObjValue = self.safe_outcome(outcomeIdOrSymbol, outcomeObj)
+        # outcomeObj may be any outcome-shaped dict, not only a market: read it here instead of
+        # handing it to safeOutcome (whose fallback slot is a Market)
+        if not self.has_outcome(outcomeIdOrSymbol) and (outcomeObj is not None):
+            return self.safe_string(outcomeObj, 'outcome')
+        outcomeObjValue = self.safe_outcome(outcomeIdOrSymbol)
         return outcomeObjValue['outcome']
 
     def shorten_slug(self, slug: Str):

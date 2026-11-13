@@ -843,8 +843,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         #         }
         #     }
         #
-        marketAny = market
-        outcomeObj = self.safe_outcome(self.safe_string(marketAny, 'outcome'), marketAny)
+        outcomeObj = self.safe_outcome(self.safe_string(market, 'outcome'), market)
         outcomeLabel = self.safe_string_upper(market, 'label', self.safe_string_upper(market['info'], 'outcomeLabel', 'YES')) if (market is not None and market is not None) else 'YES'
         isNo = outcomeLabel == 'NO'
         timestamp = self.parse8601(self.safe_string(raw, 'updated_time'))
@@ -1253,8 +1252,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         amountFp = self.safe_number_2(trade, 'count_fp', 'size_fp')
         amount = self.safe_number(trade, 'count', amountFp)
         rawSide = self.safe_string_lower(trade, 'taker_side')
-        marketAny = market
-        outcomeObj = self.safe_outcome(self.safe_string(marketAny, 'outcome'), marketAny)
+        outcomeObj = self.safe_outcome(self.safe_string(market, 'outcome'), market)
         marketInfo = self.safe_dict(outcomeObj, 'info', {})
         requestedOutcomeLabel = self.safe_string_lower(outcomeObj, 'label', self.safe_string_lower(marketInfo, 'outcomeLabel'))
         outcomeSymbol = self.safe_string(outcomeObj, 'outcome')

@@ -1805,8 +1805,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         #         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
         #     }
         #
-        marketAny = market
-        outcomeObj = self.safe_outcome(self.safe_string(marketAny, 'outcome'), marketAny)
+        outcomeObj = self.safe_outcome(self.safe_string(market, 'outcome'), market)
         outcomeId = self.safe_string(outcomeObj, 'outcomeId')
         marketHash = self.safe_string(raw, 'marketHash')
         isOutcomeOne = (outcomeId == marketHash)
