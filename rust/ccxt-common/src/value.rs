@@ -1176,6 +1176,8 @@ pub(crate) fn try_cache_hashmap_write(bucket: &HashMap<String, Value>, key: &str
     true
 }
 
+pub(crate) fn cache_kind_of(v: &Value) -> bool { cache_kind(v).is_some() }
+
 fn cache_kind(v: &Value) -> Option<String> {
     match v {
         Value::Dict(d) => match d.get("__cacheKind") {

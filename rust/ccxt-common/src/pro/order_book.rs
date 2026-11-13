@@ -184,7 +184,8 @@ impl From<&Option<Book>> for Value { fn from(b: &Option<Book>) -> Value { b.as_r
 /// The book operations on an optional book slot; an absent book ignores them and reads `Null`, as a
 /// `Value::Null` receiver did.
 pub trait BookSlot {
-    fn limit(&mut self);
+    /// `book.limit()`: trims the book and hands it back boxed (`Null` for no book, as `Value::Null.limit()` did).
+    fn limit(&mut self) -> Value;
     fn reset(&mut self, snapshot: Value);
     fn reset0(&mut self);
     fn book_field(&self, k: &str) -> Value;
@@ -192,7 +193,7 @@ pub trait BookSlot {
 }
 
 impl BookSlot for Option<Book> {
-    fn limit(&mut self) { if let Some(b) = self { b.limit(); } }
+    fn limit(&mut self) -> Value { match self { Some(b) => Value::from(b.limit()), None => Value::Null } }
     fn reset(&mut self, snapshot: Value) { if let Some(b) = self { b.reset(snapshot) } }
     fn reset0(&mut self) { if let Some(b) = self { b.reset0() } }
     fn book_field(&self, k: &str) -> Value { self.as_ref().map_or(Value::Null, |b| b.book_field(k)) }

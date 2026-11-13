@@ -77,6 +77,11 @@ impl From<Cache> for Value { fn from(c: Cache) -> Value { c.0 } }
 /// The shared marker (an Arc bump, as `From<&List>` lends a list); a `Cache` always holds a `Dict`.
 impl From<&Cache> for Value { fn from(c: &Cache) -> Value { if let Value::Dict(d) = &c.0 { Value::Dict(std::sync::Arc::clone(d)) } else { Value::Null } } }
 impl From<Option<Cache>> for Value { fn from(c: Option<Cache>) -> Value { c.map_or(Value::Null, |c| c.0) } }
+/// A resolved watch value: a cache marker is that cache, anything else is no cache (`Value::get_limit` answered
+/// `limit` and the `Rows` readers took it as rows, exactly as `CacheSlot` / `Rows` do for `None`).
+impl From<Value> for Option<Cache> {
+    fn from(v: Value) -> Option<Cache> { if crate::value::cache_kind_of(&v) { Some(Cache(v)) } else { None } }
+}
 impl From<&Option<Cache>> for Value { fn from(c: &Option<Cache>) -> Value { c.as_ref().map_or(Value::Null, Value::from) } }
 
 impl crate::value::Rows for &Cache {
