@@ -2911,7 +2911,7 @@ export default class woofipro extends Exchange {
      */
     override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         const request: Dict = {};
-        const rows = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
+        const rows: Dict[] = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
