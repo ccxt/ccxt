@@ -2,6 +2,152 @@
     "exchange": "cryptocom",
     "options": {},
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "paginate walks back from until over the returned timestamps; with a fixed 8h step the hourly contract got one request, and crypto.com answers it with the newest rows of the range (3 of 6)",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USD:USD",
+                    1792368000000,
+                    null,
+                    {
+                        "paginate": true,
+                        "maxEntriesPerRequest": 3,
+                        "until": 1792389599000
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "instrument_name=BTCUSD-PERP&valuation_type=funding_hist&count=3&end_ts=1792389599000": {
+                        "id": -1,
+                        "method": "public/get-valuations",
+                        "code": 0,
+                        "result": {
+                            "data": [
+                                {
+                                    "v": "0.000010722",
+                                    "t": 1792386000000
+                                },
+                                {
+                                    "v": "0.000012105",
+                                    "t": 1792382400000
+                                },
+                                {
+                                    "v": "0.000012105",
+                                    "t": 1792378800000
+                                }
+                            ],
+                            "instrument_name": "BTCUSD-PERP"
+                        }
+                    },
+                    "instrument_name=BTCUSD-PERP&valuation_type=funding_hist&count=3&end_ts=1792378799999": {
+                        "id": -1,
+                        "method": "public/get-valuations",
+                        "code": 0,
+                        "result": {
+                            "data": [
+                                {
+                                    "v": "0.000012105",
+                                    "t": 1792375200000
+                                },
+                                {
+                                    "v": "0.000012105",
+                                    "t": 1792371600000
+                                },
+                                {
+                                    "v": "0.000005107",
+                                    "t": 1792368000000
+                                }
+                            ],
+                            "instrument_name": "BTCUSD-PERP"
+                        }
+                    },
+                    "instrument_name=BTCUSD-PERP&valuation_type=funding_hist&start_ts=1792368000000&count=3&end_ts=1792389599000": {
+                        "id": -1,
+                        "method": "public/get-valuations",
+                        "code": 0,
+                        "result": {
+                            "data": [
+                                {
+                                    "v": "0.000010722",
+                                    "t": 1792386000000
+                                },
+                                {
+                                    "v": "0.000012105",
+                                    "t": 1792382400000
+                                },
+                                {
+                                    "v": "0.000012105",
+                                    "t": 1792378800000
+                                }
+                            ],
+                            "instrument_name": "BTCUSD-PERP"
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "v": "0.000005107",
+                            "t": 1792368000000
+                        },
+                        "symbol": "BTC/USD:USD",
+                        "fundingRate": 0.000005107,
+                        "timestamp": 1792368000000,
+                        "datetime": "2026-10-19T00:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "v": "0.000012105",
+                            "t": 1792371600000
+                        },
+                        "symbol": "BTC/USD:USD",
+                        "fundingRate": 0.000012105,
+                        "timestamp": 1792371600000,
+                        "datetime": "2026-10-19T01:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "v": "0.000012105",
+                            "t": 1792375200000
+                        },
+                        "symbol": "BTC/USD:USD",
+                        "fundingRate": 0.000012105,
+                        "timestamp": 1792375200000,
+                        "datetime": "2026-10-19T02:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "v": "0.000012105",
+                            "t": 1792378800000
+                        },
+                        "symbol": "BTC/USD:USD",
+                        "fundingRate": 0.000012105,
+                        "timestamp": 1792378800000,
+                        "datetime": "2026-10-19T03:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "v": "0.000012105",
+                            "t": 1792382400000
+                        },
+                        "symbol": "BTC/USD:USD",
+                        "fundingRate": 0.000012105,
+                        "timestamp": 1792382400000,
+                        "datetime": "2026-10-19T04:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "v": "0.000010722",
+                            "t": 1792386000000
+                        },
+                        "symbol": "BTC/USD:USD",
+                        "fundingRate": 0.000010722,
+                        "timestamp": 1792386000000,
+                        "datetime": "2026-10-19T05:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchFundingRate": [
             {
                 "description": "fetch funding rate",
