@@ -76,17 +76,17 @@ impl crate::exchange::DerivedExchange for Dydx {
         // Forward to the inherent method on Dydx.
         Dydx::parse_position(self, position, market)
     }
-    fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_ledger_entry(&self, entry: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Dydx.
-        Dydx::parse_ledger_entry(self, entry, &[currency])
+        Dydx::parse_ledger_entry(self, entry, currency)
     }
-    fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transfer(&self, transfer: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Dydx.
-        Dydx::parse_transfer(self, transfer, &[currency])
+        Dydx::parse_transfer(self, transfer, currency)
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Dydx.
-        Dydx::parse_transaction(self, transaction, &[currency])
+        Dydx::parse_transaction(self, transaction, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Dydx.
@@ -139,14 +139,14 @@ impl crate::exchange_generated::ExchangeBase for Dydx {
                 "hash_message" => self.hash_message(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "pow" => self.pow(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "retrieve_credentials" => self.retrieve_credentials(),
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
@@ -996,13 +996,13 @@ impl Dydx {
         let mut parts: Value = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
         let mut baseName: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut baseId: Value = self.safe_string_k(market.clone(), "baseId", &[baseName.clone().map(Value::from).unwrap_or(Value::Null)]); // idk where 'baseId' comes from, but leaving as is
-        let mut base: Option<String> = self.safe_currency_code(baseId.clone(), &[]);
-        let mut quote: Option<String> = self.safe_currency_code(Value::from(quoteId.clone()), &[]);
+        let mut base: Option<String> = self.safe_currency_code(baseId.clone(), None);
+        let mut quote: Option<String> = self.safe_currency_code(Value::from(quoteId.clone()), None);
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
         let mut settleId: String = "USDC".to_string();
-        let mut settle: Option<String> = self.safe_currency_code(Value::from(settleId.clone()), &[]);
+        let mut settle: Option<String> = self.safe_currency_code(Value::from(settleId.clone()), None);
         if (settle.is_none()) {
             return Value::Null;
         }
@@ -1870,7 +1870,7 @@ impl Dydx {
 }
 
     pub fn sign_hash(&self, mut hash: Value, mut privateKey: Value) -> Value {
-        let mut signature: Value = ecdsa((match (&(hash), (-64i64), (match &(Value::Null) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
+        let mut signature: crate::value::Dict = ecdsa((match (&(hash), (-64i64), (match &(Value::Null) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
             __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
             __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
             Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }), (match (&(privateKey), (-64i64), (match &(Value::Null) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64),
@@ -1878,13 +1878,13 @@ impl Dydx {
             Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
             __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }),
             Value::Str("secp256k1".into()), Value::Null);
-        let mut r: Value = self.safe_string_k(signature.clone(), "r", &[Value::Str("".into())]);
-        let mut s: Value = self.safe_string_k(signature.clone(), "s", &[Value::Str("".into())]);
+        let mut r: Value = self.safe_string_k(&signature, "r", &[Value::Str("".into())]);
+        let mut s: Value = self.safe_string_k(&signature, "s", &[Value::Str("".into())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("r".to_string(), r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null));
         m.insert("s".to_string(), s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null));
-        m.insert("v".to_string(), self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]));
+        m.insert("v".to_string(), self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]));
     m
 });
 
@@ -1927,8 +1927,8 @@ impl Dydx {
         if (self.privateKey.clone() == Value::Null) || (self.privateKey.as_str() == Some("")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" signOnboardingAction() requires a privateKey to be set.".into()))));
         }
-        let mut signature: Value = self.sign_message(msg, self.privateKey.clone());
-        return signature;
+        let mut signature: crate::value::Dict = self.sign_message(msg, self.privateKey.clone()).into_dict();
+        return Value::Dict(signature);
 
     Value::Null
 }
@@ -1941,9 +1941,9 @@ impl Dydx {
         let encodedTxsignDocVariable: Vec<Value> = self.encode_dydx_tx_for_signing(message, memo, chainId, account, authenticators, &[fee]).as_array().cloned().unwrap_or_default();
         let mut encodedTx: Option<String> = encodedTxsignDocVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut signDoc: Value = encodedTxsignDocVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut signature: Value = self.sign_hash(encodedTx.map(Value::from).unwrap_or(Value::Null), privateKey);
-        let mut signatureR: String = self.safe_string_k(signature.clone(), "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut signatureS: String = self.safe_string_k(signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut signature: crate::value::Dict = self.sign_hash(encodedTx.map(Value::from).unwrap_or(Value::Null), privateKey).into_dict();
+        let mut signatureR: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut signatureS: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         return self.encode_dydx_tx_raw(signDoc, Value::Str(format!("{}{}", signatureR, signatureS).into())).as_str().map(str::to_owned);
 }
 
@@ -1957,12 +1957,12 @@ impl Dydx {
             credentials = self.retrieve_dydx_credentials(privateKeyOption.map(Value::from).unwrap_or(Value::Null));
         }  else {
             let mut signature: Value = self.sign_onboarding_action();
-            credentials = self.retrieve_dydx_credentials(self.hash_message(self.base16_to_binary(Value::Str(format!("{}{}", self.safe_string_k(signature.clone(), "r", &[Value::Str("".into())]), self.safe_string_k(signature, "s", &[Value::Str("".into())])).into()), &[])));
+            credentials = self.retrieve_dydx_credentials(self.hash_message(Value::from(self.base16_to_binary(Value::Str(format!("{}{}", self.safe_string_k(signature.clone(), "r", &[Value::Str("".into())]), self.safe_string_k(signature, "s", &[Value::Str("".into())])).into()), &[]))));
         }
         credentials = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("privateKey".to_string(), self.binary_to_base16(crate::value::get_value_k(&credentials, "privateKey"), &[]));
-                m.insert("publicKey".to_string(), self.binary_to_base16(crate::value::get_value_k(&credentials, "publicKey"), &[]));
+                m.insert("privateKey".to_string(), Value::from(self.binary_to_base16(crate::value::get_value_k(&credentials, "privateKey"), &[])));
+                m.insert("publicKey".to_string(), Value::from(self.binary_to_base16(crate::value::get_value_k(&credentials, "publicKey"), &[])));
             m
         });
         if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("dydxCredentials".into(), credentials.clone()); }
@@ -2201,12 +2201,12 @@ impl Dydx {
         let mut paramsOmitted: Value = self.omit(&paramsGoodTillBlockTimeInSeconds, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("clientOrderId".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()),
             Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("latestBlockHeight".into()), Value::Str("goodTillBlock".into()), Value::Str("goodTillBlockTimeInSeconds".into()), Value::Str("subaccountId".into())]), &[]);
         let mut walletAddress: Option<String> = self.get_wallet_address().as_str().map(str::to_owned);
-        let mut clobPairId: Value = self.safe_integer_k(Value::Map(marketInfo), "clobPairId", &[Value::Int(0)]);
+        let mut clobPairId: i64 = self.safe_integer_k(Value::Map(marketInfo), "clobPairId", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut subaccountIdValue: Value = (if (subaccountIdOption == Value::Null) { Value::Int(0) } else { subaccountIdOption });
         let mut clientOrderIdValue: Value = (if (clientOrderId == Value::Null) { Value::Int(0) } else { clientOrderId });
         let mut orderFlagValue: Option<i64> = (if (orderFlag.is_none()) { Some(0) } else { orderFlag });
-        let mut clobPairIdValue: Value = (if (clobPairId == Value::Null) { Value::Int(0) } else { clobPairId });
-        let mut orderId: Option<String> = self.create_order_id_from_parts(walletAddress.as_deref().unwrap_or_default(), subaccountIdValue.as_f64().unwrap_or_default(), clientOrderIdValue.as_f64().unwrap_or_default(), Value::from(orderFlagValue).as_f64().unwrap_or_default(), clobPairIdValue.as_f64().unwrap_or_default());
+        let mut clobPairIdValue: i64 = (if (false) { 0 } else { clobPairId });
+        let mut orderId: Option<String> = self.create_order_id_from_parts(walletAddress.as_deref().unwrap_or_default(), subaccountIdValue.as_f64().unwrap_or_default(), clientOrderIdValue.as_f64().unwrap_or_default(), Value::from(orderFlagValue).as_f64().unwrap_or_default(), (clobPairIdValue as f64));
         return Value::from(vec![orderId.map(Value::from).unwrap_or(Value::Null), self.extend(Value::Map(signingPayload), &[paramsOmitted])]);
 
     Value::Null
@@ -2634,9 +2634,8 @@ impl Dydx {
         }).await?))
     }
 
-    pub fn parse_ledger_entry(&self, item: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut item: Value = item.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // {
         //     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
@@ -2657,8 +2656,8 @@ impl Dydx {
         // }
         //
         let mut currencyId: Option<String> = self.safe_string_k(item.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency.clone()]);
-        let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency.clone());
+        let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut type_var: Option<String> = self.safe_string_upper_k(item.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut direction: Option<String> = None;
         if (type_var.is_some()) {
@@ -2690,7 +2689,7 @@ impl Dydx {
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[currencyResolved]);
+}), Some(&currencyResolved));
 
     Value::Null
 }
@@ -2737,12 +2736,12 @@ impl Dydx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = Some(self.currency(code.clone()));
         }
         let mut response: Value = self.fetch_transactions_helper("fetchLedger", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await;
-        return self.parse_ledger(response, &[currency, since, limit]);
+        return self.parse_ledger(response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2867,14 +2866,14 @@ impl Dydx {
         let mut credentials: Value = self.retrieve_credentials();
         let mut account: Value = self.fetch_dydx_account().await;
         let mut usd: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount)), &Value::Str("1000000".into())));
-        let mut payload: Value = Value::Null;
+        let mut payload: Option<crate::value::Dict> = None;
         let mut signingPayload: Value = Value::Null;
         if (fromAccount.as_str() == Some("main")) {
             // deposit to subaccount
             if (toSubaccountId.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requeire toSubaccoutnId.".into()))));
             }
-            payload = Value::Map({
+            payload = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("sender".to_string(), self.get_wallet_address());
                     m.insert("recipient".to_string(), Value::Map({
@@ -2886,15 +2885,15 @@ impl Dydx {
                     m.insert("assetId".to_string(), Value::Int(0));
                     m.insert("quantums".to_string(), Value::from(usd));
                 m
-            });
+            }));
             signingPayload = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("typeUrl".to_string(), Value::Str("/dydxprotocol.sending.MsgDepositToSubaccount".into()));
-                    m.insert("value".to_string(), payload.clone());
+                    m.insert("value".to_string(), payload.clone().map_or(Value::Null, Value::Dict));
                 m
             });
         }  else {
-            payload = Value::Map({
+            payload = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("transfer".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2915,17 +2914,17 @@ impl Dydx {
     m
 }));
                 m
-            });
+            }));
             signingPayload = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("typeUrl".to_string(), Value::Str("/dydxprotocol.sending.MsgCreateTransfer".into()));
-                    m.insert("value".to_string(), payload);
+                    m.insert("value".to_string(), payload.map_or(Value::Null, Value::Dict));
                 m
             });
         }
-        let mut txFee: Value = self.estimate_tx_fee(signingPayload.clone(), Some(""), account.clone()).await;
+        let mut txFee: crate::value::Dict = self.estimate_tx_fee(signingPayload.clone(), Some(""), account.clone()).await.into_dict();
         let mut chainName: Option<String> = self.safe_string_k(self.options.clone(), "chainName", &[]).as_str().map(str::to_owned);
-        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(credentials, "privateKey", &[])).as_str(), signingPayload, Some(""), chainName.as_deref(), account, Value::Null, &[txFee]);
+        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(credentials, "privateKey", &[])).as_str(), signingPayload, Some(""), chainName.as_deref(), account, Value::Null, &[Value::Dict(txFee)]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx.map(Value::from).unwrap_or(Value::Null));
@@ -2933,14 +2932,13 @@ impl Dydx {
         });
         // nodeRpcGetBroadcastTxAsync
         let mut response: crate::value::Dict = self.node_rpc_get_broadcast_tx_sync(&[Value::Map(request)]).await.into_dict();
-        return self.parse_transfer(&response, &[]);
+        return self.parse_transfer(&response, None);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transfer: Value = transfer.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // {
         //     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
@@ -2962,7 +2960,7 @@ impl Dydx {
         //
         let mut id: Option<String> = self.safe_string_k(transfer.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(transfer.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut amount: Option<f64> = self.safe_number_k(transfer.clone(), "size", &[]).as_f64();
         let mut sender: crate::value::Dict = self.safe_dict_k(transfer.clone(), "sender", &[]).into_dict();
         let mut recipient: crate::value::Dict = self.safe_dict_k(transfer.clone(), "recipient", &[]).into_dict();
@@ -3015,22 +3013,21 @@ impl Dydx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = Some(self.currency(code.clone()));
         }
-        let mut response: Value = self.fetch_transactions_helper("fetchTransfers", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await;
-        let mut transferIn: Value = self.filter_by(response.clone(), Value::Str("type".into()), Value::Str("TRANSFER_IN".into()), &[]);
-        let mut transferOut: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("TRANSFER_OUT".into()), &[]);
+        let mut response: crate::value::List = self.fetch_transactions_helper("fetchTransfers", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await.into_list();
+        let mut transferIn: Value = self.filter_by(Value::from(&response), Value::Str("type".into()), Value::Str("TRANSFER_IN".into()), &[]);
+        let mut transferOut: Value = self.filter_by(Value::Arr(response), Value::Str("type".into()), Value::Str("TRANSFER_OUT".into()), &[]);
         let mut rows: Value = self.array_concat(transferIn, transferOut);
-        return self.parse_transfers(rows, &[currency, since, limit]);
+        return self.parse_transfers(rows, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // {
         //     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
@@ -3057,7 +3054,7 @@ impl Dydx {
         let mut addressFrom: Option<String> = self.safe_string_k(&sender, "address", &[]).as_str().map(str::to_owned);
         let mut txid: Option<String> = self.safe_string_k(transaction.clone(), "transactionHash", &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "createdAt", &[]));
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "size", &[]).as_f64();
         return Value::Map({
@@ -3126,7 +3123,7 @@ impl Dydx {
         if (subaccountId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw requires subaccountId.".into()))));
         }
-        let mut currency: Value = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code);
         let mut credentials: Value = self.retrieve_credentials();
         let mut account: Value = self.fetch_dydx_account().await;
         let mut usd: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount)), &Value::Str("1000000".into())));
@@ -3149,9 +3146,9 @@ impl Dydx {
                 m.insert("value".to_string(), Value::Map(payload));
             m
         });
-        let mut txFee: Value = self.estimate_tx_fee(Value::Map(signingPayload.clone()), tag.as_deref(), account.clone()).await;
+        let mut txFee: crate::value::Dict = self.estimate_tx_fee(Value::Map(signingPayload.clone()), tag.as_deref(), account.clone()).await.into_dict();
         let mut chainName: Option<String> = self.safe_string_k(self.options.clone(), "chainName", &[]).as_str().map(str::to_owned);
-        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(credentials, "privateKey", &[])).as_str(), Value::Map(signingPayload), tag.as_deref(), chainName.as_deref(), account, Value::Null, &[txFee]);
+        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(credentials, "privateKey", &[])).as_str(), Value::Map(signingPayload), tag.as_deref(), chainName.as_deref(), account, Value::Null, &[Value::Dict(txFee)]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx.map(Value::from).unwrap_or(Value::Null));
@@ -3176,7 +3173,7 @@ impl Dydx {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_transaction(&data, &[currency]);
+        return self.parse_transaction(&data, Some(&currency));
         Value::Null
         }).await?))
     }
@@ -3210,13 +3207,13 @@ impl Dydx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = Some(self.currency(code.clone()));
         }
-        let mut response: Value = self.fetch_transactions_helper("fetchWithdrawals", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await;
-        let mut rows: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]);
-        return self.parse_transactions(rows, &[currency, since, limit]);
+        let mut response: crate::value::List = self.fetch_transactions_helper("fetchWithdrawals", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await.into_list();
+        let mut rows: Value = self.filter_by(Value::Arr(response), Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]);
+        return self.parse_transactions(rows, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3250,13 +3247,13 @@ impl Dydx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = Some(self.currency(code.clone()));
         }
-        let mut response: Value = self.fetch_transactions_helper("fetchDeposits", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await;
-        let mut rows: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]);
-        return self.parse_transactions(rows, &[currency, since, limit]);
+        let mut response: crate::value::List = self.fetch_transactions_helper("fetchDeposits", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await.into_list();
+        let mut rows: Value = self.filter_by(Value::Arr(response), Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]);
+        return self.parse_transactions(rows, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3290,15 +3287,15 @@ impl Dydx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.currency(code.clone());
+            currency = Some(self.currency(code.clone()));
         }
-        let mut response: Value = self.fetch_transactions_helper("fetchDepositsWithdrawals", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await;
-        let mut withdrawals: Value = self.filter_by(response.clone(), Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]);
-        let mut deposits: Value = self.filter_by(response, Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]);
+        let mut response: crate::value::List = self.fetch_transactions_helper("fetchDepositsWithdrawals", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await.into_list();
+        let mut withdrawals: Value = self.filter_by(Value::from(&response), Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]);
+        let mut deposits: Value = self.filter_by(Value::Arr(response), Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]);
         let mut rows: Value = self.array_concat(withdrawals, deposits);
-        return self.parse_transactions(rows, &[currency, since, limit]);
+        return self.parse_transactions(rows, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

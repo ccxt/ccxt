@@ -2413,7 +2413,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut frame: Value = messages.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut binaryFrame: Value = exchange.safe_string(frame.clone(), Value::Str("binary".into()), &[]);
             if (binaryFrame != Value::Null) {
-                frame = exchange.base16_to_binary(binaryFrame.clone(), &[]);
+                frame = Value::from(exchange.base16_to_binary(binaryFrame.clone(), &[]));
             }
             injectWsMessage(exchange.clone(), url.clone(), frame.clone());
             // threaded runtimes resolve futures on another thread — wait for

@@ -15,34 +15,34 @@ pub fn testUuid() {
         m
     }));
     // uuid() - standard UUID v4: xxxxxxxx-xxxx-4xxx-[89ab]xxx-xxxxxxxxxxxx
-    let mut id1: Value = Value::from(exchange.uuid(&[])); // need type for .length understanding
-    let mut id2: Value = Value::from(exchange.uuid(&[]));
-    assert!(ccxt::runtime::is_true(&((id1 != Value::Null))));
-    assert!(ccxt::runtime::is_true(&((id2 != Value::Null))));
-    assert!(ccxt::runtime::is_true(&((id1.as_str() != id2.as_str()))));
-    assert!(ccxt::runtime::is_true(&((Value::Str(format!("{}", id1).into()).as_str() == id1.as_str()))));
-    assert!(ccxt::runtime::is_true(&((Value::Str(format!("{}", id2).into()).as_str() == id2.as_str()))));
-    assert!(ccxt::runtime::is_true(&((Value::Int(id1.len() as i64).as_f64() == Some(36.0)))));
-    assert!(ccxt::runtime::is_true(&((Value::Int(id2.len() as i64).as_f64() == Some(36.0)))));
-    assert!(ccxt::runtime::is_true(&((Value::Int(id1.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(8.0)))));
+    let mut id1: String = exchange.uuid(&[]); // need type for .length understanding
+    let mut id2: String = exchange.uuid(&[]);
+    assert!(ccxt::runtime::is_true(&((true))));
+    assert!(ccxt::runtime::is_true(&((true))));
+    assert!(ccxt::runtime::is_true(&((id1 != id2))));
+    assert!(ccxt::runtime::is_true(&(((id1) == id1))));
+    assert!(ccxt::runtime::is_true(&(((id2) == id2))));
+    assert!(ccxt::runtime::is_true(&((((id1.chars().count() as i64)) == 36))));
+    assert!(ccxt::runtime::is_true(&((((id2.chars().count() as i64)) == 36))));
+    assert!(ccxt::runtime::is_true(&((((if let (Some(__h), Some(__n)) = (Some(id1.as_str()), Some("-")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 8))));
     // uuid16() - 16-char hex string
-    let mut id16a: Value = Value::from(exchange.uuid16(&[]));
-    let mut id16b: Value = Value::from(exchange.uuid16(&[]));
-    assert!(ccxt::runtime::is_true(&((id16a != Value::Null))));
-    assert!(ccxt::runtime::is_true(&((id16b != Value::Null))));
-    assert!(ccxt::runtime::is_true(&((id16a.as_str() != id16b.as_str()))));
-    assert!(ccxt::runtime::is_true(&((Value::Str(format!("{}", id16a).into()).as_str() == id16a.as_str()))));
-    assert!(ccxt::runtime::is_true(&((Value::Str(format!("{}", id16b).into()).as_str() == id16b.as_str()))));
-    assert!(ccxt::runtime::is_true(&((Value::Int(id16a.len() as i64).as_f64() == Some(16.0)))));
-    assert!(ccxt::runtime::is_true(&((Value::Int(id16b.len() as i64).as_f64() == Some(16.0)))));
+    let mut id16a: String = exchange.uuid16(&[]);
+    let mut id16b: String = exchange.uuid16(&[]);
+    assert!(ccxt::runtime::is_true(&((true))));
+    assert!(ccxt::runtime::is_true(&((true))));
+    assert!(ccxt::runtime::is_true(&((id16a != id16b))));
+    assert!(ccxt::runtime::is_true(&(((id16a) == id16a))));
+    assert!(ccxt::runtime::is_true(&(((id16b) == id16b))));
+    assert!(ccxt::runtime::is_true(&((((id16a.chars().count() as i64)) == 16))));
+    assert!(ccxt::runtime::is_true(&((((id16b.chars().count() as i64)) == 16))));
     // uuid22() - 22-char hex string
-    let mut id22a: Value = Value::from(exchange.uuid22(&[]));
-    let mut id22b: Value = Value::from(exchange.uuid22(&[]));
-    assert!(ccxt::runtime::is_true(&((id22a != Value::Null))));
-    assert!(ccxt::runtime::is_true(&((id22b != Value::Null))));
-    assert!(ccxt::runtime::is_true(&((id22a.as_str() != id22b.as_str()))));
-    assert!(ccxt::runtime::is_true(&((Value::Str(format!("{}", id22a).into()).as_str() == id22a.as_str()))));
-    assert!(ccxt::runtime::is_true(&((Value::Str(format!("{}", id22b).into()).as_str() == id22b.as_str()))));
-    assert!(ccxt::runtime::is_true(&((Value::Int(id22a.len() as i64).as_f64() == Some(22.0)))));
-    assert!(ccxt::runtime::is_true(&((Value::Int(id22b.len() as i64).as_f64() == Some(22.0)))));
+    let mut id22a: String = exchange.uuid22(&[]);
+    let mut id22b: String = exchange.uuid22(&[]);
+    assert!(ccxt::runtime::is_true(&((true))));
+    assert!(ccxt::runtime::is_true(&((true))));
+    assert!(ccxt::runtime::is_true(&((id22a != id22b))));
+    assert!(ccxt::runtime::is_true(&(((id22a) == id22a))));
+    assert!(ccxt::runtime::is_true(&(((id22b) == id22b))));
+    assert!(ccxt::runtime::is_true(&((((id22a.chars().count() as i64)) == 22))));
+    assert!(ccxt::runtime::is_true(&((((id22b.chars().count() as i64)) == 22))));
 }

@@ -15,5 +15,5 @@ pub fn testStringToBase64() {
         m
     }));
     // todo: add single & double quotes in transpilable manner
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.string_to_base64(Value::Str("hello world 123!@#$%^&*()\"-+)S".into()), &[]).as_str() == Some("aGVsbG8gd29ybGQgMTIzIUAjJCVeJiooKSItKylT")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.string_to_base64(Value::Str("hello world 123!@#$%^&*()\"-+)S".into()), &[])).as_str() == Some("aGVsbG8gd29ybGQgMTIzIUAjJCVeJiooKSItKylT")))));
 }

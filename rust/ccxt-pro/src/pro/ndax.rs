@@ -79,22 +79,22 @@ impl crate::exchange::DerivedExchange for Ndax {
     fn parse_funding_rate(&self, rate: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_funding_rate(&self.parent, rate, market)
     }
-    fn parse_deposit(&self, tx: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit(&self, tx: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit(&self.parent, tx, currency)
     }
-    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_address(&self.parent, depositAddress, currency)
     }
     fn parse_last_price(&self, entry: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_last_price(&self.parent, entry, market)
     }
-    fn parse_withdrawal(&self, tx: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_withdrawal(&self, tx: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_withdrawal(&self.parent, tx, currency)
     }
-    fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_ledger_entry(&self, entry: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_ledger_entry(&self.parent, entry, currency)
     }
-    fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transfer(&self, transfer: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_transfer(&self.parent, transfer, currency)
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
@@ -121,7 +121,7 @@ impl crate::exchange::DerivedExchange for Ndax {
     fn parse_my_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_my_trade(&self.parent, trade, market)
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_transaction(&self.parent, transaction, currency)
     }
     fn parse_borrow_interest(&self, info: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
@@ -139,10 +139,10 @@ impl crate::exchange::DerivedExchange for Ndax {
     fn parse_margin_mode(&self, margin_mode: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_margin_mode(&self.parent, margin_mode, market)
     }
-    fn parse_conversion(&self, conversion: crate::Value, from_currency: crate::Value, to_currency: crate::Value) -> crate::Value {
+    fn parse_conversion(&self, conversion: crate::Value, from_currency: Option<&crate::types::Currency>, to_currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_conversion(&self.parent, conversion, from_currency, to_currency)
     }
-    fn parse_borrow_rate(&self, info: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_borrow_rate(&self, info: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_borrow_rate(&self.parent, info, currency)
     }
     fn parse_leverage(&self, leverage: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
@@ -151,7 +151,7 @@ impl crate::exchange::DerivedExchange for Ndax {
     fn parse_market_leverage_tiers(&self, info: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_market_leverage_tiers(&self.parent, info, market)
     }
-    fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
     fn parse_prediction_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
@@ -461,16 +461,16 @@ impl Ndax {
                         let mut i: i64 = 0;
             let mut __for_first_519: bool = true;
             while { if !__for_first_519 { i += 1; } __for_first_519 = false; i < (payload.len() as i64) } {
-            let mut trade: Value = self.parse_trade(payload.get(i as usize).cloned().unwrap_or(Value::Null), None);
-            let mut symbol: Option<String> = self.safe_string_k_opt(trade.clone(), "symbol", &[]);
-            let mut tradesArray: Value = (if (symbol.is_none()) { Value::Null } else { self.safe_value(self.trades.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
-            if (tradesArray == Value::Null) {
+            let mut trade: crate::value::Dict = self.parse_trade(payload.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
+            let mut symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
+            let mut tradesArray: Option<crate::pro::cache::Cache> = (if (symbol.is_none()) { None } else { self.trades.lookup(&symbol.clone().map(Value::from).unwrap_or(Value::Null)) });
+            if (tradesArray.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                tradesArray = Value::from(ArrayCache::new(limit));
+                tradesArray = Some(ArrayCache::new(limit));
             }
-            tradesArray.append(trade);
+            tradesArray.append(Value::Dict(trade));
             if (symbol.is_some()) {
-                if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), tradesArray.clone()); }
+                CacheStore::put(&mut self.trades, &symbol.clone().map(Value::from).unwrap_or(Value::Null), tradesArray);
             }
             if (symbol.is_some()) {
                 if let Value::Dict(__d) = &mut updates { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
@@ -486,8 +486,8 @@ impl Ndax {
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId);
-            let mut tradesArray: Value = self.safe_value(self.trades.clone(), symbol.map(Value::from).unwrap_or(Value::Null), &[]);
-            client.resolve(tradesArray, messageHash.as_str());
+            let mut symbolTrades: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
+            client.resolve(Value::from(&symbolTrades), messageHash.as_str());
         }
         }
 }
@@ -627,25 +627,25 @@ impl Ndax {
                 let mut previous: Value = self.safe_value(stored.clone(), Value::Int((length - 1)), &[]);
                 let mut previousTimestamp: Value = self.safe_integer(previous.clone(), Value::Int(0), &[]);
                 if (length > 0) && (previousTimestamp != Value::Null) && (previousTimestamp.as_f64() == candleTimestamp.as_f64()) {
-                    let mut parsedHigh: Value = self.safe_float(&ohlcv, Value::Int(1), &[]);
-                    let mut previousHigh: Value = self.safe_float(previous.clone(), Value::Int(1), &[]);
-                    let mut high: Value = previousHigh.clone();
-                    if (parsedHigh != Value::Null) {
+                    let mut parsedHigh: Option<f64> = self.safe_float(&ohlcv, Value::Int(1), &[]).as_f64();
+                    let mut previousHigh: Option<f64> = self.safe_float(previous.clone(), Value::Int(1), &[]).as_f64();
+                    let mut high: Option<f64> = previousHigh;
+                    if (parsedHigh.is_some()) {
                         high = parsedHigh.clone();
-                        if (previousHigh != Value::Null) && (previousHigh.as_f64().unwrap_or(f64::NAN) > parsedHigh.as_f64().unwrap_or(f64::NAN)) {
-                            high = previousHigh;
+                        if (previousHigh.is_some()) && ((previousHigh.is_some() && parsedHigh.is_some() && previousHigh > parsedHigh)) {
+                            high = previousHigh.clone();
                         }
                     }
-                    let mut parsedLow: Value = self.safe_float(&ohlcv, Value::Int(2), &[]);
-                    let mut previousLow: Value = self.safe_float(previous.clone(), Value::Int(2), &[]);
-                    let mut low: Value = previousLow.clone();
-                    if (parsedLow != Value::Null) {
+                    let mut parsedLow: Option<f64> = self.safe_float(&ohlcv, Value::Int(2), &[]).as_f64();
+                    let mut previousLow: Option<f64> = self.safe_float(previous.clone(), Value::Int(2), &[]).as_f64();
+                    let mut low: Option<f64> = previousLow;
+                    if (parsedLow.is_some()) {
                         low = parsedLow.clone();
-                        if (previousLow != Value::Null) && (parsedLow.as_f64().unwrap_or(f64::NAN) > previousLow.as_f64().unwrap_or(f64::NAN)) {
-                            low = previousLow;
+                        if (previousLow.is_some()) && ((parsedLow.is_some() && previousLow.is_some() && parsedLow > previousLow)) {
+                            low = previousLow.clone();
                         }
                     }
-                    add_element_to_object(&mut stored, &Value::Int((length - 1)), Value::from(vec![candleTimestamp.clone(), self.safe_float(previous.clone(), Value::Int(1), &[]), high, low, self.safe_float(&ohlcv, Value::Int(4), &[]), self.sum(&[self.safe_float(&ohlcv, Value::Int(5), &[]), self.safe_float(previous, Value::Int(5), &[])])]));
+                    add_element_to_object(&mut stored, &Value::Int((length - 1)), Value::from(vec![candleTimestamp.clone(), self.safe_float(previous.clone(), Value::Int(1), &[]), Value::from(high), Value::from(low), self.safe_float(&ohlcv, Value::Int(4), &[]), self.sum(&[self.safe_float(&ohlcv, Value::Int(5), &[]), self.safe_float(previous, Value::Int(5), &[])])]));
                     if (marketId.is_some()) {
                         marketUpdates.insert(crate::runtime::stringify_param(&timeframe), Value::Bool(true));
                     }
@@ -805,27 +805,27 @@ impl Ndax {
             return;
         }
         // seeded from the first entry so the locals keep a typed initializer (the loop re-reads it as a no-op)
-        let mut timestamp: Value = self.safe_integer(&firstBidAsk, Value::Int(2), &[]);
-        let mut nonce: Value = self.safe_integer(&firstBidAsk, Value::Int(0), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer(&firstBidAsk, Value::Int(2), &[]).as_i64();
+        let mut nonce: Option<i64> = self.safe_integer(&firstBidAsk, Value::Int(0), &[]).as_i64();
         {
                         let mut i: i64 = 0;
             let mut __for_first_525: bool = true;
             while { if !__for_first_525 { i += 1; } __for_first_525 = false; i < (payload.len() as i64) } {
             let mut bidask: crate::value::List = self.safe_list(&payload, Value::Int(i), &[]).into_list();
-            if (timestamp == Value::Null) {
-                timestamp = self.safe_integer(&bidask, Value::Int(2), &[]);
+            if (timestamp.is_none()) {
+                timestamp = self.safe_integer(&bidask, Value::Int(2), &[]).as_i64();
             }  else {
-                let mut newTimestamp: Value = self.safe_integer(&bidask, Value::Int(2), &[]);
-                if (newTimestamp != Value::Null) && (newTimestamp.as_f64().unwrap_or(f64::NAN) > timestamp.as_f64().unwrap_or(f64::NAN)) {
-                    timestamp = newTimestamp;
+                let mut newTimestamp: Option<i64> = self.safe_integer(&bidask, Value::Int(2), &[]).as_i64();
+                if (newTimestamp.is_some()) && ((newTimestamp.is_some() && timestamp.is_some() && newTimestamp > timestamp)) {
+                    timestamp = newTimestamp.clone();
                 }
             }
-            if (nonce == Value::Null) {
-                nonce = self.safe_integer(&bidask, Value::Int(0), &[]);
+            if (nonce.is_none()) {
+                nonce = self.safe_integer(&bidask, Value::Int(0), &[]).as_i64();
             }  else {
-                let mut newNonce: Value = self.safe_integer(&bidask, Value::Int(0), &[]);
-                if (newNonce != Value::Null) && (newNonce.as_f64().unwrap_or(f64::NAN) > nonce.as_f64().unwrap_or(f64::NAN)) {
-                    nonce = newNonce;
+                let mut newNonce: Option<i64> = self.safe_integer(&bidask, Value::Int(0), &[]).as_i64();
+                if (newNonce.is_some()) && ((newNonce.is_some() && nonce.is_some() && newNonce > nonce)) {
+                    nonce = newNonce.clone();
                 }
             }
             // 0 new, 1 update, 2 remove
@@ -845,9 +845,9 @@ impl Ndax {
             }
         }
         }
-        orderbook.set_book_meta("nonce", nonce);
-        orderbook.set_book_meta("timestamp", timestamp.clone());
-        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
+        orderbook.set_book_meta("nonce", Value::from(nonce));
+        orderbook.set_book_meta("timestamp", Value::from(timestamp));
+        orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         let mut name: String = "SubscribeLevel2".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId.map(Value::from).unwrap_or(Value::Null));
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
@@ -886,7 +886,7 @@ impl Ndax {
         if (symbol.is_none()) {
             return;
         }
-        let mut snapshot: Value = self.parse_order_book(&payload, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&payload, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
         let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
         // reset the existing orderbook instead of replacing it: a consumer
         // holds a reference to the old object and would never see updates
@@ -898,7 +898,7 @@ impl Ndax {
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
         }
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        orderbook.reset(snapshot);
+        orderbook.reset(Value::Dict(snapshot));
         let mut messageHash: Option<String> = self.safe_string_k(subscription, "messageHash", &[]).as_str().map(str::to_owned);
         client.resolve(orderbook, messageHash.as_deref());
 }

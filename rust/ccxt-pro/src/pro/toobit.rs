@@ -79,22 +79,22 @@ impl crate::exchange::DerivedExchange for Toobit {
     fn parse_funding_rate(&self, rate: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_funding_rate(&self.parent, rate, market)
     }
-    fn parse_deposit(&self, tx: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit(&self, tx: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit(&self.parent, tx, currency)
     }
-    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_address(&self.parent, depositAddress, currency)
     }
     fn parse_last_price(&self, entry: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_last_price(&self.parent, entry, market)
     }
-    fn parse_withdrawal(&self, tx: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_withdrawal(&self, tx: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_withdrawal(&self.parent, tx, currency)
     }
-    fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_ledger_entry(&self, entry: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_ledger_entry(&self.parent, entry, currency)
     }
-    fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transfer(&self, transfer: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_transfer(&self.parent, transfer, currency)
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
@@ -122,7 +122,7 @@ impl crate::exchange::DerivedExchange for Toobit {
         // Forward to the inherent method on Toobit.
         Toobit::parse_my_trade(self, trade, market)
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_transaction(&self.parent, transaction, currency)
     }
     fn parse_borrow_interest(&self, info: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
@@ -140,10 +140,10 @@ impl crate::exchange::DerivedExchange for Toobit {
     fn parse_margin_mode(&self, margin_mode: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_margin_mode(&self.parent, margin_mode, market)
     }
-    fn parse_conversion(&self, conversion: crate::Value, from_currency: crate::Value, to_currency: crate::Value) -> crate::Value {
+    fn parse_conversion(&self, conversion: crate::Value, from_currency: Option<&crate::types::Currency>, to_currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_conversion(&self.parent, conversion, from_currency, to_currency)
     }
-    fn parse_borrow_rate(&self, info: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_borrow_rate(&self, info: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_borrow_rate(&self.parent, info, currency)
     }
     fn parse_leverage(&self, leverage: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
@@ -152,7 +152,7 @@ impl crate::exchange::DerivedExchange for Toobit {
     fn parse_market_leverage_tiers(&self, info: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_market_leverage_tiers(&self.parent, info, market)
     }
-    fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
     fn parse_prediction_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
@@ -610,11 +610,11 @@ impl Toobit {
         let mut marketId: Option<String> = self.safe_string_k(message, "symbol", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        if !(matches!(&self.trades, Value::Dict(__d) if __d.contains_key(symbol.as_str()))) {
+        if !(self.trades.has(&symbol)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(ArrayCache::new(limit))); }
+            CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(limit));
         }
-        let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), Some(symbol.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
         let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
         let mut parsedTrades: crate::value::List = self.array_concat(self.parse_ws_trades(&data, Some(&market), &[]), Value::from(vec![])).into_list();
         {
@@ -625,7 +625,7 @@ impl Toobit {
         }
         }
         let mut messageHash: String = format!("{}{}", Value::Str("trade::".into()), symbol);
-        client.resolve(stored, messageHash.as_str());
+        client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
     pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
@@ -822,8 +822,8 @@ impl Toobit {
         //                 st: 0
         //             }
         //
-        let mut parsed: Value = self.parse_ohlcv(ohlcv, market);
-        return parsed;
+        let mut parsed: crate::value::List = self.parse_ohlcv(ohlcv, market).into_list();
+        return Value::Arr(parsed);
 
     Value::Null
 }
@@ -1183,8 +1183,8 @@ impl Toobit {
                         let mut i: i64 = 0;
             let mut __for_first_673: bool = true;
             while { if !__for_first_673 { i += 1; } __for_first_673 = false; (i as f64) < length } {
-            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[]);
-            let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "s", &[]).as_str().map(str::to_owned);
+            let mut entry: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(i), &[]).into_opt_dict();
+            let mut marketId: Option<String> = self.safe_string_k(&entry, "s", &[]).as_str().map(str::to_owned);
             let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook::".into()), symbol).into()), Value::Str("::".into())).into()), channel);
             if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -1195,9 +1195,9 @@ impl Toobit {
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }
             let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "t", &[]).as_i64();
-            let mut snapshot: Value = self.parse_order_book(entry, symbol, &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
-            orderbook.reset(snapshot);
+            let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "t", &[]).as_i64();
+            let mut snapshot: crate::value::Dict = self.parse_order_book(&entry, symbol, &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
+            orderbook.reset(Value::Dict(snapshot));
             client.resolve(orderbook, messageHash.as_str());
         }
         }
@@ -1334,7 +1334,7 @@ impl Toobit {
             while { if !__for_first_674 { i += 1; } __for_first_674 = false; i < (data.len() as i64) } {
             let mut balance: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "a", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).map(Value::from).unwrap_or(Value::Null);
+            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("info".into(), balance.clone());
             account.insert("used".into(), self.safe_string_k(balance.clone(), "l", &[]));
@@ -1458,11 +1458,11 @@ impl Toobit {
             self.orders = Some(ArrayCacheBySymbolById::new(limit));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
-        let mut order: Value = self.parse_ws_order(message, None);
-        orders.append(order.clone());
+        let mut order: crate::value::Dict = self.parse_ws_order(message, None).into_dict();
+        orders.append(Value::from(&order));
         let mut messageHash: String = "orders".to_string();
         client.resolve(Value::from(&orders), messageHash.as_str());
-        messageHash = format!("{}{}", Value::Str("orders:".into()), self.safe_string_k(order, "symbol", &[Value::Str("".into())]));
+        messageHash = format!("{}{}", Value::Str("orders:".into()), self.safe_string_k(&order, "symbol", &[Value::Str("".into())]));
         client.resolve(Value::from(&orders), messageHash.as_str());
 }
 
@@ -1480,14 +1480,14 @@ impl Toobit {
             orderType = rawOrderType;
         }
         let mut feeCost: Option<f64> = self.safe_number_k(order.clone(), "n", &[]).as_f64();
-        let mut fee: Value = Value::Null;
+        let mut fee: Option<crate::value::Dict> = None;
         if (feeCost.is_some()) {
-            fee = Value::Map({
+            fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), Value::from(feeCost));
                     m.insert("currency".to_string(), Value::Null);
                 m
-            });
+            }));
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1511,7 +1511,7 @@ impl Toobit {
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "z", &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), self.parent.parse_order_status((self.safe_string_k(order, "X", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("fee".to_string(), fee);
+        m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Null);
     m
 }), market);
@@ -1588,9 +1588,9 @@ impl Toobit {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             myTrades = Some(ArrayCacheBySymbolById::new(limit));
         }
-        let mut trade: Value = self.parse_my_trade(message, None);
-        myTrades.append(trade.clone());
-        let mut messageHash: String = format!("{}{}", Value::Str("myTrades:".into()), self.safe_string_k(trade, "symbol", &[Value::Str("".into())]));
+        let mut trade: crate::value::Dict = self.parse_my_trade(message, None).into_dict();
+        myTrades.append(Value::from(&trade));
+        let mut messageHash: String = format!("{}{}", Value::Str("myTrades:".into()), self.safe_string_k(&trade, "symbol", &[Value::Str("".into())]));
         client.resolve(Value::from(&myTrades), messageHash.as_str());
         messageHash = "myTrades".to_string();
         client.resolve(Value::from(&myTrades), messageHash.as_str());
@@ -1771,9 +1771,9 @@ impl Toobit {
         }
         let mut cache: Value = (if let (Some(__m), Some(__k)) = (self.positions.as_map(), accountType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         // handleMessage's fallback dispatches one item at a time
-        let mut position: Value = self.parse_ws_position(message, None);
-        let mut newPositions: Value = Value::from(vec![position.clone()]);
-        cache.append(position);
+        let mut position: crate::value::Dict = self.parse_ws_position(message, None).into_dict();
+        let mut newPositions: Value = Value::from(vec![Value::from(&position)]);
+        cache.append(Value::Dict(position));
         // no local may be named `positions` in this method: build/transpile.ts
         // appends `$` to every local name wherever it appears, string literals
         // included, so a local `positions` rewrites the hash prefix below to

@@ -79,22 +79,22 @@ impl crate::exchange::DerivedExchange for Bullish {
     fn parse_funding_rate(&self, rate: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_funding_rate(&self.parent, rate, market)
     }
-    fn parse_deposit(&self, tx: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit(&self, tx: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit(&self.parent, tx, currency)
     }
-    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_address(&self.parent, depositAddress, currency)
     }
     fn parse_last_price(&self, entry: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_last_price(&self.parent, entry, market)
     }
-    fn parse_withdrawal(&self, tx: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_withdrawal(&self, tx: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_withdrawal(&self.parent, tx, currency)
     }
-    fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_ledger_entry(&self, entry: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_ledger_entry(&self.parent, entry, currency)
     }
-    fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transfer(&self, transfer: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_transfer(&self.parent, transfer, currency)
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
@@ -121,7 +121,7 @@ impl crate::exchange::DerivedExchange for Bullish {
     fn parse_my_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_my_trade(&self.parent, trade, market)
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_transaction(&self.parent, transaction, currency)
     }
     fn parse_borrow_interest(&self, info: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
@@ -139,10 +139,10 @@ impl crate::exchange::DerivedExchange for Bullish {
     fn parse_margin_mode(&self, margin_mode: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_margin_mode(&self.parent, margin_mode, market)
     }
-    fn parse_conversion(&self, conversion: crate::Value, from_currency: crate::Value, to_currency: crate::Value) -> crate::Value {
+    fn parse_conversion(&self, conversion: crate::Value, from_currency: Option<&crate::types::Currency>, to_currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_conversion(&self.parent, conversion, from_currency, to_currency)
     }
-    fn parse_borrow_rate(&self, info: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_borrow_rate(&self, info: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_borrow_rate(&self.parent, info, currency)
     }
     fn parse_leverage(&self, leverage: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
@@ -151,7 +151,7 @@ impl crate::exchange::DerivedExchange for Bullish {
     fn parse_market_leverage_tiers(&self, info: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_market_leverage_tiers(&self.parent, info, market)
     }
-    fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
     fn parse_prediction_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
@@ -505,12 +505,12 @@ impl Bullish {
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut rawTrades: crate::value::List = self.safe_list_k(&data, "trades", &[Value::from(vec![])]).into_list();
         let mut trades: Value = self.parse_trades(&rawTrades, Some(&market), &[]);
-        if !(matches!((&self.trades, symbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+        if !(self.trades.has(&symbol)) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut tradesArrayCache: crate::pro::cache::Cache = ArrayCache::new(limit);
-            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&tradesArrayCache)); }
+            CacheStore::put(&mut self.trades, &symbol, tradesArrayCache);
         }
-        let mut tradesArray: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
         let mut tradesList: crate::value::List = self.to_array(trades.clone()).into_list();
         {
                         let mut i: i64 = 0;
@@ -519,9 +519,9 @@ impl Bullish {
             tradesArray.append(tradesList.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
-        if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), tradesArray.clone()); }
+        CacheStore::put(&mut self.trades, &symbol, tradesArray.clone());
         let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), Value::from((market).symbol.as_str()));
-        client.resolve(tradesArray, messageHash.as_str());
+        client.resolve(Value::from(&tradesArray), messageHash.as_str());
 }
 
 /*
@@ -702,12 +702,12 @@ impl Bullish {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut bids: Value = self.separate_bids_or_asks(self.safe_list_k(&data, "bids", &[Value::from(vec![])]));
-        let mut asks: Value = self.separate_bids_or_asks(self.safe_list_k(&data, "asks", &[Value::from(vec![])]));
+        let mut bids: crate::value::List = self.separate_bids_or_asks(self.safe_list_k(&data, "bids", &[Value::from(vec![])])).into_list();
+        let mut asks: crate::value::List = self.separate_bids_or_asks(self.safe_list_k(&data, "asks", &[Value::from(vec![])])).into_list();
         let mut snapshot: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("bids".to_string(), bids);
-                m.insert("asks".to_string(), asks);
+                m.insert("bids".to_string(), Value::Arr(bids));
+                m.insert("asks".to_string(), Value::Arr(asks));
             m
         });
         let mut parsed: Value = self.parse_order_book(Value::Map(snapshot), symbol.clone(), &[Value::from(timestamp)]);
@@ -871,9 +871,9 @@ impl Bullish {
                                 let mut i: i64 = 0;
                 let mut __for_first_177: bool = true;
                 while { if !__for_first_177 { i += 1; } __for_first_177 = false; i < (rawOrders.len() as i64) } {
-                let mut parsedOrder: Value = self.parse_order(rawOrders.get(i as usize).cloned().unwrap_or(Value::Null), None);
-                orders.append(parsedOrder.clone());
-                let mut symbol: Option<String> = self.safe_string_k_opt(parsedOrder, "symbol", &[]);
+                let mut parsedOrder: crate::value::Dict = self.parse_order(rawOrders.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
+                orders.append(Value::from(&parsedOrder));
+                let mut symbol: Option<String> = self.safe_string_k_opt(&parsedOrder, "symbol", &[]);
                 if (symbol.is_some()) {
                     if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
                 }
@@ -1015,9 +1015,9 @@ impl Bullish {
                                 let mut i: i64 = 0;
                 let mut __for_first_179: bool = true;
                 while { if !__for_first_179 { i += 1; } __for_first_179 = false; i < (rawTrades.len() as i64) } {
-                let mut parsedTrade: Value = self.parse_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), None);
-                trades.append(parsedTrade.clone());
-                let mut symbol: Option<String> = self.safe_string_k_opt(parsedTrade, "symbol", &[]);
+                let mut parsedTrade: crate::value::Dict = self.parse_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
+                trades.append(Value::from(&parsedTrade));
+                let mut symbol: Option<String> = self.safe_string_k_opt(&parsedTrade, "symbol", &[]);
                 if (symbol.is_some()) {
                     if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
                 }
@@ -1158,7 +1158,7 @@ impl Bullish {
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(data.clone(), "availableQuantity", &[]));
             account.insert("used".into(), self.safe_string_k(data, "lockedQuantity", &[]));
-            let mut code: Value = self.safe_currency_code(assetId.map(Value::from).unwrap_or(Value::Null), &[]).map(Value::from).unwrap_or(Value::Null);
+            let mut code: Value = self.safe_currency_code(assetId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
             if (tradingAccountId.is_some()) && (code != Value::Null) {
                 if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(tradingAccountId.as_deref().unwrap_or("null").to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); } }
             }
@@ -1248,9 +1248,9 @@ impl Bullish {
                         let mut i: i64 = 0;
             let mut __for_first_182: bool = true;
             while { if !__for_first_182 { i += 1; } __for_first_182 = false; i < (rawPositions.len() as i64) } {
-            let mut position: Value = self.parse_position(rawPositions.get(i as usize).cloned().unwrap_or(Value::Null), None);
-            positions.append(position.clone());
-            std::sync::Arc::make_mut(&mut newPositions).push(position);
+            let mut position: crate::value::Dict = self.parse_position(rawPositions.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
+            positions.append(Value::from(&position));
+            std::sync::Arc::make_mut(&mut newPositions).push(Value::Dict(position));
         }
         }
         let mut messageHashes: Vec<Value> = self.find_message_hashes(client.clone(), Value::Str("positions::".into())).as_array().cloned().unwrap_or_default();
@@ -1262,7 +1262,7 @@ impl Bullish {
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
             let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
-            let mut symbolPositions: Value = self.filter_by_array(Value::Arr(newPositions.clone()), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
+            let mut symbolPositions: Value = self.filter_by_array(&newPositions, Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
             if !(self.is_empty(symbolPositions.clone()).as_bool() == Some(true)) {
                 client.resolve(symbolPositions, messageHash.as_deref());
             }
@@ -1286,7 +1286,7 @@ impl Bullish {
         //     }
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&Value::from(&data)));
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&data));
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let mut errorCode: Option<String> = self.safe_string_k(&data, "errorCode", &[]).as_str().map(str::to_owned);
             let mut errorCodeName: Option<String> = self.safe_string_k(&data, "errorCodeName", &[]).as_str().map(str::to_owned);

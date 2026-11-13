@@ -273,25 +273,25 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_191: bool = true;
             while { if !__for_first_191 { i += 1; } __for_first_191 = false; i < (events.len() as i64) } {
             let mut event: Value = self.safe_value(events.clone(), Value::Int(i), &[]);
-            let mut title: Value = self.safe_string_lower_k(event.clone(), "title", &[Value::Str("".into())]);
-            let mut description: Value = self.safe_string_lower_k(event.clone(), "description", &[Value::Str("".into())]);
+            let mut title: String = self.safe_string_lower_k(event.clone(), "title", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut description: String = self.safe_string_lower_k(event.clone(), "description", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut matched: bool = false;
             {
                                 let mut qi: i64 = 0;
                 let mut __for_first_190: bool = true;
                 while { if !__for_first_190 { qi += 1; } __for_first_190 = false; (qi as f64) < (queriesLength as f64) } {
                 let mut q: Value = (self.safe_string(queries.clone(), Value::Int(qi), &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-                if (title == Value::Null) {
+                if (false) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" filterEventsBySearchIn() missing title".into()))));
                 }
-                if checkTitle && (Value::Int(title.as_str().zip(q.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
+                if checkTitle && (((if let (Some(__h), Some(__n)) = (Some(title.as_str()), (q).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
                     matched = true;
                     break;
                 }
-                if (description == Value::Null) {
+                if (false) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" filterEventsBySearchIn() missing description".into()))));
                 }
-                if checkDescription && (Value::Int(description.as_str().zip(q.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
+                if checkDescription && (((if let (Some(__h), Some(__n)) = (Some(description.as_str()), (q).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
                     matched = true;
                     break;
                 }
@@ -2571,9 +2571,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (value.as_f64() == Some(0.0)) {
             return Value::Str("".into());
         }
-        let mut hex: Value = Value::from(self.int_to_base16(value, &[]));
-        hex = self.pad_hex_to_even(hex.clone());
-        return hex;
+        let mut hex: Option<String> = Some(self.int_to_base16(value, &[]));
+        hex = self.pad_hex_to_even(hex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        return hex.map(Value::from).unwrap_or(Value::Null);
 
     Value::Null
 }

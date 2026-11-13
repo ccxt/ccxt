@@ -15,7 +15,7 @@ pub fn testEncode() {
         m
     }));
     let mut input: Value = Value::Str("encode-test".into());
-    let mut encoded: Value = exchange.encode(input.clone());
+    let mut encoded: Value = Value::from(exchange.encode(input.clone()));
     let mut decoded: Value = exchange.decode(encoded.clone());
     assert!(ccxt::runtime::is_true(&((decoded.as_str() == input.as_str()))));
 }
@@ -26,7 +26,7 @@ pub fn testDecode() {
         m
     }));
     let mut input: Value = Value::Str("decode-test".into());
-    let mut encoded: Value = exchange.encode(input.clone());
+    let mut encoded: Value = Value::from(exchange.encode(input.clone()));
     let mut decoded: Value = exchange.decode(encoded.clone());
     assert!(ccxt::runtime::is_true(&((decoded.as_str() == input.as_str()))));
 }

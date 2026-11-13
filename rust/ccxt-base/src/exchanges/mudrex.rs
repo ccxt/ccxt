@@ -1403,14 +1403,14 @@ impl Mudrex {
         let mut orderPrice: Option<String> = priceString.clone();
         let mut triggerPrice: Value = Value::Null;
         let mut stopLossPrice: Value = Value::Null;
-        let mut takeProfitPrice: Value = Value::Null;
+        let mut takeProfitPrice: Option<String> = None;
         if isRiskOrder {
             triggerPrice = priceString.clone().map(Value::from).unwrap_or(Value::Null);
             orderPrice = None.clone();
             if (rawSide.as_deref() == Some("STOPLOSS")) {
                 stopLossPrice = priceString.clone().map(Value::from).unwrap_or(Value::Null);
             }  else {
-                takeProfitPrice = priceString.map(Value::from).unwrap_or(Value::Null);
+                takeProfitPrice = priceString.take();
             }
         }
         let mut trig: Option<String> = self.safe_string_upper_k(order.clone(), "trigger_type", &[]).as_str().map(str::to_owned);
@@ -1439,7 +1439,7 @@ impl Mudrex {
         m.insert("price".to_string(), orderPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), triggerPrice);
         m.insert("stopLossPrice".to_string(), stopLossPrice);
-        m.insert("takeProfitPrice".to_string(), takeProfitPrice);
+        m.insert("takeProfitPrice".to_string(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_string2(order.clone(), Value::Str("quantity".into()), Value::Str("amount".into()), &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "filled_price", &[]));
@@ -1728,8 +1728,8 @@ impl Mudrex {
             let mut p: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symRaw: Option<String> = self.safe_string_k(p.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut m: crate::types::Market = self.safe_market(symRaw.map(Value::from).unwrap_or(Value::Null), None, &[]);
-            let mut pos: Value = self.parse_position(p, Some(&m));
-            outPos.push(pos);
+            let mut pos: crate::value::Dict = self.parse_position(p, Some(&m)).into_dict();
+            outPos.push(Value::Dict(pos));
         }
         }
         return self.filter_by_array_positions(Value::from(outPos), Value::Str("symbol".into()), &[symbols]);
@@ -2190,7 +2190,7 @@ impl Mudrex {
             // a market execution always takes liquidity, a limit execution can be either
             takerOrMaker = Some("taker".to_string());
         }
-        let mut fee: Value = Value::Null;
+        let mut fee: Option<crate::value::Dict> = None;
         let mut feeCostString: Option<String> = self.safe_string_k(trade.clone(), "fee_amount", &[]).as_str().map(str::to_owned);
         // rebate_amount is attached by fetchMyTrades from the fill's REBATE row - the reported fee is the net charge
         let mut rebateString: Option<String> = self.safe_string_k(trade.clone(), "rebate_amount", &[]).as_str().map(str::to_owned);
@@ -2198,12 +2198,12 @@ impl Mudrex {
             feeCostString = crate::precise::Precise::stringSub(&feeCostString.clone().map(Value::from).unwrap_or(Value::Null), &rebateString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         if (feeCostString.is_some()) {
-            fee = Value::Map({
+            fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString.map(Value::from).unwrap_or(Value::Null));
                     m.insert("currency".to_string(), self.safe_string_k(trade.clone(), "trade_currency", &[]));
                 m
-            });
+            }));
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2219,7 +2219,7 @@ impl Mudrex {
         m.insert("price".to_string(), Value::Null);
         m.insert("amount".to_string(), Value::Null);
         m.insert("cost".to_string(), self.safe_string_k(trade, "transaction_amount", &[]));
-        m.insert("fee".to_string(), fee);
+        m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
 }), Some(&marketResolved));
 

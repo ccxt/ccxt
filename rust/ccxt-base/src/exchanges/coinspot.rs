@@ -946,7 +946,7 @@ impl Coinspot {
                     while { if !__for_first_581 { j += 1; } __for_first_581 = false; j < (currencyIdsList.len() as i64) } {
                     let mut currencyId: Value = currencyIdsList.get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut balance: crate::value::Dict = self.safe_dict(&currencies, currencyId.clone(), &[]).into_dict();
-                    let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), &[]);
+                    let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), None);
                     let mut account: Value = self.account();
                     if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(&balance, "balance", &[])); }
                     if (code.is_some()) {
@@ -963,7 +963,7 @@ impl Coinspot {
                 let mut __for_first_583: bool = true;
                 while { if !__for_first_583 { i += 1; } __for_first_583 = false; i < (currencyIdsMap.len() as i64) } {
                 let mut currencyId: Value = currencyIdsMap.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), &[]);
+                let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), None);
                 let mut account: Value = self.account();
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(balances.clone(), currencyId, &[])); }
                 if (code.is_some()) {
@@ -1373,9 +1373,9 @@ impl Coinspot {
         //       "side": "buy",
         //       "price": 0.5168600000125209
         //     }
-        let mut timestamp: Value = Value::Null;
+        let mut timestamp: Option<i64> = None;
         let mut priceString: Option<String> = None;
-        let mut fee: Value = Value::Null;
+        let mut fee: Option<crate::value::Dict> = None;
         let mut audTotal: Option<String> = self.safe_string_k(trade.clone(), "audtotal", &[]).as_str().map(str::to_owned);
         let mut costString: Value = self.safe_string_k(trade.clone(), "total", &[audTotal.map(Value::from).unwrap_or(Value::Null)]);
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
@@ -1385,30 +1385,30 @@ impl Coinspot {
         let mut solddate: Option<i64> = self.safe_integer_k(trade.clone(), "solddate", &[]).as_i64();
         if (solddate.is_some()) {
             priceString = self.safe_string_k(trade.clone(), "rate", &[]).as_str().map(str::to_owned);
-            timestamp = Value::from(solddate);
+            timestamp = solddate.take();
         }  else {
             priceString = crate::precise::Precise::stringDiv(&costString, &amountString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut createdString: Option<String> = self.safe_string_k(trade.clone(), "created", &[]).as_str().map(str::to_owned);
-            timestamp = Value::from(self.parse8601(createdString.map(Value::from).unwrap_or(Value::Null)));
+            timestamp = self.parse8601(createdString.map(Value::from).unwrap_or(Value::Null));
             let mut audfeeExGst: Option<String> = self.safe_string_k(trade.clone(), "audfeeExGst", &[]).as_str().map(str::to_owned);
             let mut audGst: Option<String> = self.safe_string_k(trade.clone(), "audGst", &[]).as_str().map(str::to_owned);
             // The transaction fee which consumers pay is inclusive of GST by default
             let mut feeCost: Option<String> = crate::precise::Precise::stringAdd(&audfeeExGst.map(Value::from).unwrap_or(Value::Null), &audGst.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut feeCurrencyId: String = "AUD".to_string();
-            fee = Value::Map({
+            fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(feeCost.map(Value::from).unwrap_or(Value::Null), &[]));
-                    m.insert("currency".to_string(), self.safe_currency_code(Value::from(feeCurrencyId), &[]).map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), self.safe_currency_code(Value::from(feeCurrencyId), None).map(Value::from).unwrap_or(Value::Null));
                 m
-            });
+            }));
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -1416,7 +1416,7 @@ impl Coinspot {
         m.insert("price".to_string(), self.parse_number(priceString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("amount".to_string(), self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("cost".to_string(), self.parse_number(costString, &[]));
-        m.insert("fee".to_string(), fee);
+        m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
 }), market);
 
@@ -1563,8 +1563,8 @@ impl Coinspot {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut requestHeaders: Value = Value::Null;
-        let mut requestBody: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
+        let mut requestBody: Option<String> = None;
         let mut apiLength: i64 = api.len() as i64;
         let mut isVersionedApi: bool = apiLength > 1;
         let mut accessType: Value = api.as_array().into_iter().flatten().nth(0).cloned().unwrap_or(Value::Null);
@@ -1586,25 +1586,25 @@ impl Coinspot {
             // coinspot requires an increasing nonce
             let mut nonce: i64 = self.incrementing_nonce();
             let __ws_arg_7 = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("nonce".to_string(), Value::from(nonce));
-                m
-            }), &[params]);
-            requestBody = self.json(__ws_arg_7);
-            requestHeaders = Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("nonce".to_string(), Value::from(nonce));
+    m
+}), &[params]);
+            requestBody = self.json(__ws_arg_7).as_str().map(str::to_owned);
+            requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("key".to_string(), self.apiKey.clone());
-                    m.insert("sign".to_string(), Value::from(self.hmac(self.encode(requestBody.clone()), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
+                    m.insert("sign".to_string(), Value::from(self.hmac(self.encode(Value::from(requestBody.as_deref())), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
                 m
-            });
+            }));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
-        m.insert("headers".to_string(), requestHeaders);
+        m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
+        m.insert("headers".to_string(), requestHeaders.map_or(Value::Null, Value::Dict));
     m
 });
 

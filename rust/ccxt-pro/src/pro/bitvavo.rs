@@ -79,22 +79,22 @@ impl crate::exchange::DerivedExchange for Bitvavo {
     fn parse_funding_rate(&self, rate: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_funding_rate(&self.parent, rate, market)
     }
-    fn parse_deposit(&self, tx: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit(&self, tx: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit(&self.parent, tx, currency)
     }
-    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_address(&self.parent, depositAddress, currency)
     }
     fn parse_last_price(&self, entry: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_last_price(&self.parent, entry, market)
     }
-    fn parse_withdrawal(&self, tx: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_withdrawal(&self, tx: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_withdrawal(&self.parent, tx, currency)
     }
-    fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_ledger_entry(&self, entry: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_ledger_entry(&self.parent, entry, currency)
     }
-    fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transfer(&self, transfer: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_transfer(&self.parent, transfer, currency)
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
@@ -121,7 +121,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
     fn parse_my_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_my_trade(&self.parent, trade, market)
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_transaction(&self.parent, transaction, currency)
     }
     fn parse_borrow_interest(&self, info: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
@@ -139,10 +139,10 @@ impl crate::exchange::DerivedExchange for Bitvavo {
     fn parse_margin_mode(&self, margin_mode: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_margin_mode(&self.parent, margin_mode, market)
     }
-    fn parse_conversion(&self, conversion: crate::Value, from_currency: crate::Value, to_currency: crate::Value) -> crate::Value {
+    fn parse_conversion(&self, conversion: crate::Value, from_currency: Option<&crate::types::Currency>, to_currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_conversion(&self.parent, conversion, from_currency, to_currency)
     }
-    fn parse_borrow_rate(&self, info: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_borrow_rate(&self, info: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_borrow_rate(&self.parent, info, currency)
     }
     fn parse_leverage(&self, leverage: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
@@ -151,7 +151,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
     fn parse_market_leverage_tiers(&self, info: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_market_leverage_tiers(&self.parent, info, market)
     }
-    fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         crate::exchange::DerivedExchange::parse_deposit_withdraw_fee(&self.parent, fee, currency)
     }
     fn parse_prediction_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
@@ -707,15 +707,15 @@ impl Bitvavo {
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut name: String = "trades".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), (match __pro_message.get("market").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }));
-        let mut trade: Value = self.parse_trade(message, Some(&market));
-        let mut tradesArray: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
-        if (tradesArray == Value::Null) {
+        let mut trade: crate::value::Dict = self.parse_trade(message, Some(&market)).into_dict();
+        let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
+        if (tradesArray.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            tradesArray = Value::from(ArrayCache::new(limit));
+            tradesArray = Some(ArrayCache::new(limit));
         }
-        tradesArray.append(trade);
-        if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
-        client.resolve(tradesArray, messageHash.as_str());
+        tradesArray.append(Value::Dict(trade));
+        CacheStore::put(&mut self.trades, &symbol, tradesArray.clone());
+        client.resolve(Value::from(&tradesArray), messageHash.as_str());
 }
 
 /*
@@ -930,8 +930,8 @@ impl Bitvavo {
         //        ]
         //    }
         //
-        let mut response: Value = (match message.get("response") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
-        let mut ohlcv: Value = self.parse_ohlc_vs(response, &[Value::Null, Value::Null, Value::Null]);
+        let mut response: Option<crate::value::List> = message.get("response").cloned().unwrap_or_default().into_opt_list();
+        let mut ohlcv: Value = self.parse_ohlc_vs(&response, &[Value::Null, Value::Null, Value::Null]);
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         client.resolve(ohlcv, messageHash.as_deref());
 }
@@ -981,8 +981,8 @@ impl Bitvavo {
             let mut __for_first_149: bool = true;
             while { if !__for_first_149 { i += 1; } __for_first_149 = false; i < (candles.len() as i64) } {
             let mut candle: Value = candles.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parsed: Value = self.parse_ohlcv(candle, Some(&market));
-            stored.append(parsed);
+            let mut parsed: crate::value::List = self.parse_ohlcv(candle, Some(&market)).into_list();
+            stored.append(Value::Arr(parsed));
         }
         }
         client.resolve(stored.clone(), messageHash.as_str());
@@ -1417,12 +1417,12 @@ impl Bitvavo {
         //         ]
         //     }
         //
-        let mut nonce: Value = self.safe_integer_k(message, "nonce", &[]);
-        let mut currentNonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
-        if (nonce != Value::Null) && (currentNonce != Value::Null) && (nonce.as_f64().unwrap_or(f64::NAN) > currentNonce.as_f64().unwrap_or(f64::NAN)) {
+        let mut nonce: Option<i64> = self.safe_integer_k(message, "nonce", &[]).as_i64();
+        let mut currentNonce: Option<i64> = self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_i64();
+        if (nonce.is_some()) && (currentNonce.is_some()) && ((nonce.is_some() && currentNonce.is_some() && nonce > currentNonce)) {
             self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), (match __pro_message.get("asks").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }));
             self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), (match __pro_message.get("bids").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }));
-            add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), nonce);
+            add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::from(nonce));
         }
         return orderbook;
 
@@ -1533,20 +1533,20 @@ impl Bitvavo {
         //         }
         //     }
         //
-        let mut response: Value = (match message.get("response") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
-        if (response == Value::Null) {
+        let mut response: Option<crate::value::Dict> = message.get("response").cloned().unwrap_or_default().into_opt_dict();
+        if (response.is_none()) {
             return;
         }
-        let mut marketId: Option<String> = self.safe_string_k(response.clone(), "market", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k(&response, "market", &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]);
         let mut name: String = "book".to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), self.safe_string_k(response.clone(), "market", &[Value::Str("".into())]));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), self.safe_string_k(&response, "market", &[Value::Str("".into())]));
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         if (orderbook == Value::Null) {
             return;
         }
-        let mut snapshot: Value = self.parse_order_book(response.clone(), symbol.clone(), &[]);
-        snapshot.set_book_meta("nonce", self.safe_integer_k(response.clone(), "nonce", &[]));
+        let mut snapshot: Value = self.parse_order_book(&response, symbol.clone(), &[]);
+        snapshot.set_book_meta("nonce", self.safe_integer_k(&response, "nonce", &[]));
         orderbook.reset(snapshot);
         // unroll the accumulated deltas
         let mut messages: Value = orderbook.book_field("cache");
@@ -1563,7 +1563,7 @@ impl Bitvavo {
         // getBook is a one-shot request but this.watch tracks it as a persistent
         // subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
         // instead of suppressing the request as an already-active subscription
-        let mut snapshotHash: String = format!("{}{}", Value::Str("getBook@".into()), self.safe_string_k(response, "market", &[Value::Str("".into())]));
+        let mut snapshotHash: String = format!("{}{}", Value::Str("getBook@".into()), self.safe_string_k(&response, "market", &[Value::Str("".into())]));
         if (__ch.has_subscription(snapshotHash.as_str())) {
             __ch.remove_subscription(snapshotHash.as_str());
         }
@@ -1850,8 +1850,8 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        let mut request: Value = self.parent.create_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]);
-        return self.watch_request("privateCreateOrder", request).await;
+        let mut request: crate::value::Dict = self.parent.create_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).into_dict();
+        return self.watch_request("privateCreateOrder", Value::Dict(request)).await;
         Value::Null
         }).await?))
     }
@@ -1890,8 +1890,8 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        let mut request: Value = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[amount, price, params]);
-        return self.watch_request("privateUpdateOrder", request).await;
+        let mut request: crate::value::Dict = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[amount, price, params]).into_dict();
+        return self.watch_request("privateUpdateOrder", Value::Dict(request)).await;
         Value::Null
         }).await?))
     }
@@ -1922,8 +1922,8 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        let mut request: Value = self.parent.cancel_order_request(id.as_str(), symbol.as_str(), &[params]);
-        return self.watch_request("privateCancelOrder", request).await;
+        let mut request: crate::value::Dict = self.parent.cancel_order_request(id.as_str(), symbol.as_str(), &[params]).into_dict();
+        return self.watch_request("privateCancelOrder", Value::Dict(request)).await;
         Value::Null
         }).await?))
     }
@@ -1987,10 +1987,10 @@ impl Bitvavo {
         //    }
         //
         // const action = this.safeString (message, 'action');
-        let mut response: Value = (match message.get("response") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
+        let mut response: Option<crate::value::List> = message.get("response").cloned().unwrap_or_default().into_opt_list();
         // const firstRawOrder = this.safeValue (response, 0, {});
         // const marketId = this.safeString (firstRawOrder, 'market');
-        let mut orders: Value = self.parse_orders(response, None, &[]);
+        let mut orders: Value = self.parse_orders(&response, None, &[]);
         // let messageHash = this.buildMessageHash (action, { 'market': marketId });
         // client.resolve (orders, messageHash);
         // messageHash = this.buildMessageHash (action, message);
@@ -2071,8 +2071,8 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        let mut request: Value = self.parent.fetch_orders_request(symbol.as_str(), since.as_i64(), limit.as_i64(), &[params]);
-        let mut orders: Value = self.watch_request("privateGetOrders", request).await;
+        let mut request: crate::value::Dict = self.parent.fetch_orders_request(symbol.as_str(), since.as_i64(), limit.as_i64(), &[params]).into_dict();
+        let mut orders: Value = self.watch_request("privateGetOrders", Value::Dict(request)).await;
         return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
@@ -2171,8 +2171,8 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        let mut request: Value = self.parent.fetch_my_trades_request(symbol.as_str(), since.as_i64(), limit.as_i64(), &[params]);
-        let mut myTrades: Value = self.watch_request("privateGetTrades", request).await;
+        let mut request: crate::value::Dict = self.parent.fetch_my_trades_request(symbol.as_str(), since.as_i64(), limit.as_i64(), &[params]).into_dict();
+        let mut myTrades: Value = self.watch_request("privateGetTrades", Value::Dict(request)).await;
         return self.filter_by_symbol_since_limit(myTrades, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
@@ -2203,9 +2203,9 @@ impl Bitvavo {
         //
         //
         // const action = this.safeString (message, 'action');
-        let mut response: Value = (match message.get("response") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
+        let mut response: Option<crate::value::List> = message.get("response").cloned().unwrap_or_default().into_opt_list();
         // const marketId = this.safeString (firstRawTrade, 'market');
-        let mut trades: Value = self.parse_trades(response, None, &[Value::Null, Value::Null]);
+        let mut trades: Value = self.parse_trades(&response, None, &[Value::Null, Value::Null]);
         // const messageHash = this.buildMessageHash (action, { 'market': marketId });
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         client.resolve(trades, messageHash.as_deref());
@@ -2243,8 +2243,8 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        let mut request: Value = self.parent.withdraw_request(code.as_str(), amount, address.as_str().unwrap_or_default(), tagWithdrawTag.as_deref(), &[Value::Dict(paramsWithdrawTag)]);
-        return self.watch_request("privateWithdrawAssets", request).await;
+        let mut request: crate::value::Dict = self.parent.withdraw_request(code.as_str(), amount, address.as_str().unwrap_or_default(), tagWithdrawTag.as_deref(), &[Value::Dict(paramsWithdrawTag)]).into_dict();
+        return self.watch_request("privateWithdrawAssets", Value::Dict(request)).await;
         Value::Null
         }).await?))
     }
@@ -2269,8 +2269,8 @@ impl Bitvavo {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut withdraw: Value = self.parse_transaction(response, &[]);
-        client.resolve(withdraw, messageHash.as_deref());
+        let mut withdraw: crate::value::Dict = self.parse_transaction(response, None).into_dict();
+        client.resolve(Value::Dict(withdraw), messageHash.as_deref());
 }
 
 /*
@@ -2301,8 +2301,8 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        let mut request: Value = self.parent.fetch_withdrawals_request(code.as_str(), since.as_i64(), limit.as_i64(), &[params]);
-        let mut withdraws: Value = self.watch_request("privateGetWithdrawalHistory", request).await;
+        let mut request: crate::value::Dict = self.parent.fetch_withdrawals_request(code.as_str(), since.as_i64(), limit.as_i64(), &[params]).into_dict();
+        let mut withdraws: Value = self.watch_request("privateGetWithdrawalHistory", Value::Dict(request)).await;
         return self.filter_by_currency_since_limit(withdraws, &[code, since, limit]);
         Value::Null
         }).await?))
@@ -2328,9 +2328,9 @@ impl Bitvavo {
         //
         // const action = this.safeString (message, 'action');
         // const messageHash = this.buildMessageHash (action, message);
-        let mut response: Value = (match message.get("response") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
+        let mut response: Option<crate::value::List> = message.get("response").cloned().unwrap_or_default().into_opt_list();
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut withdrawals: Value = self.parse_transactions(response, &[Value::Null, Value::Null, Value::Null, Value::Map({
+        let mut withdrawals: Value = self.parse_transactions(&response, None, &[Value::Null, Value::Null, Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("withdrawal".into()));
             m
@@ -2367,9 +2367,9 @@ impl Bitvavo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut request: Value = self.parent.fetch_ohlcv_request(symbol.as_str(), &[timeframe, since.clone(), limit.clone(), params]);
+        let mut request: crate::value::Dict = self.parent.fetch_ohlcv_request(symbol.as_str(), &[timeframe, since.clone(), limit.clone(), params]).into_dict();
         let mut action: String = "getCandles".to_string();
-        let mut ohlcv: Value = self.watch_request(action.as_str(), request).await;
+        let mut ohlcv: Value = self.watch_request(action.as_str(), Value::Dict(request)).await;
         return self.filter_by_since_limit(ohlcv, since.as_i64(), limit.as_i64(), &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
@@ -2403,8 +2403,8 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        let mut request: Value = self.parent.fetch_deposits_request(code.as_str(), since.as_i64(), limit.as_i64(), &[params]);
-        let mut deposits: Value = self.watch_request("privateGetDepositHistory", request).await;
+        let mut request: crate::value::Dict = self.parent.fetch_deposits_request(code.as_str(), since.as_i64(), limit.as_i64(), &[params]).into_dict();
+        let mut deposits: Value = self.watch_request("privateGetDepositHistory", Value::Dict(request)).await;
         return self.filter_by_currency_since_limit(deposits, &[code, since, limit]);
         Value::Null
         }).await?))
@@ -2429,7 +2429,7 @@ impl Bitvavo {
         //    }
         //
         let mut response: crate::value::List = message.get("response").cloned().unwrap_or_default().into_list();
-        let mut deposits: Value = self.parse_transactions(&response, &[Value::Null, Value::Null, Value::Null, Value::Map({
+        let mut deposits: Value = self.parse_transactions(&response, None, &[Value::Null, Value::Null, Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("deposit".into()));
             m
@@ -2539,8 +2539,8 @@ impl Bitvavo {
         //
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut response: crate::value::List = message.get("response").cloned().unwrap_or_default().into_list();
-        let mut currencies: Value = self.parse_currencies(&response);
-        client.resolve(currencies, messageHash.as_deref());
+        let mut currencies: crate::value::Dict = self.parse_currencies(&response).into_dict();
+        client.resolve(Value::Dict(currencies), messageHash.as_deref());
 }
 
     pub fn handle_trading_fees(&self, mut client: Value, mut message: Value) {
@@ -2560,8 +2560,8 @@ impl Bitvavo {
         //
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut response: Value = (match message.get("response") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
-        let mut fees: Value = self.parent.parse_trading_fees(response, None);
-        client.resolve(fees, messageHash.as_deref());
+        let mut fees: crate::value::Dict = self.parent.parse_trading_fees(response, None).into_dict();
+        client.resolve(Value::Dict(fees), messageHash.as_deref());
 }
 
 /*
@@ -2647,9 +2647,9 @@ impl Bitvavo {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut order: Value = self.parse_order(response, None);
+        let mut order: crate::value::Dict = self.parse_order(response, None).into_dict();
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        client.resolve(order, messageHash.as_deref());
+        client.resolve(Value::Dict(order), messageHash.as_deref());
 }
 
     pub fn handle_markets(&self, mut client: Value, mut message: Value) {
@@ -2675,9 +2675,9 @@ impl Bitvavo {
         //    }
         //
         let mut response: crate::value::List = message.get("response").cloned().unwrap_or_default().into_list();
-        let mut markets: Value = self.parse_markets(&response);
+        let mut markets: crate::value::List = self.parse_markets(&response).into_list();
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        client.resolve(markets, messageHash.as_deref());
+        client.resolve(Value::Arr(markets), messageHash.as_deref());
 }
 
     pub fn build_message_hash(&mut self, mut action: Value, optional_args: &[Value]) -> Option<String> {
@@ -2755,13 +2755,13 @@ impl Bitvavo {
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut messageHash: String = format!("{}{}", Value::Str("order:".into()), symbol);
-        let mut order: Value = self.parse_order(message, Some(&market));
+        let mut order: crate::value::Dict = self.parse_order(message, Some(&market)).into_dict();
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(limit));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
-        orders.append(order);
+        orders.append(Value::Dict(order));
         client.resolve(Value::from(&self.orders), messageHash.as_str());
 }
 
@@ -2787,13 +2787,13 @@ impl Bitvavo {
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut messageHash: String = format!("{}{}", Value::Str("myTrades:".into()), symbol);
-        let mut trade: Value = self.parse_trade(message, Some(&market));
+        let mut trade: crate::value::Dict = self.parse_trade(message, Some(&market)).into_dict();
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCache::new(limit));
         }
         let mut tradesArray: Option<crate::pro::cache::Cache> = self.myTrades.clone();
-        tradesArray.append(trade);
+        tradesArray.append(Value::Dict(trade));
         client.resolve(Value::from(&tradesArray), messageHash.as_str());
 }
 

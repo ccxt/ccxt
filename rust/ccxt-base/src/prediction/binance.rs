@@ -431,9 +431,9 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_1210: bool = true;
             while { if !__for_first_1210 { i += 1; } __for_first_1210 = false; (i as f64) < rawTopicsLength } {
-            let mut parsedEvent: Value = self.parse_event(rawTopics.get(i as usize).cloned().unwrap_or(Value::Null));
-            parsedEvents.push(parsedEvent.clone());
-            let mut eventMarkets: Value = self.safe_list_k(parsedEvent, "markets", &[Value::from(vec![])]);
+            let mut parsedEvent: crate::value::Dict = self.parse_event(rawTopics.get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
+            parsedEvents.push(Value::from(&parsedEvent));
+            let mut eventMarkets: Value = self.safe_list_k(&parsedEvent, "markets", &[Value::from(vec![])]);
             let mut eventMarketsLength: f64 = ((eventMarkets.len() as i64) as f64);
             {
                                 let mut mi: i64 = 0;
@@ -719,8 +719,8 @@ impl Binance {
                 }
             }
             let __ws_arg_2 = self.extend(Value::Map(listingRequest), &[rest]);
-            let mut listed: Value = self.fetch_raw_topics(Value::from(fetchCap), &[__ws_arg_2]).await;
-            rawTopics = self.complete_raw_topics(listed).await;
+            let mut listed: crate::value::List = self.fetch_raw_topics(Value::from(fetchCap), &[__ws_arg_2]).await.into_list();
+            rawTopics = self.complete_raw_topics(Value::Arr(listed)).await;
         }
         let mut rawTopicsLength: f64 = ((rawTopics.len() as i64) as f64);
         let mut result: Vec<Value> = Vec::new();
@@ -728,9 +728,9 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_1216: bool = true;
             while { if !__for_first_1216 { i += 1; } __for_first_1216 = false; (i as f64) < rawTopicsLength } {
-            let mut parsedEvent: Value = self.parse_event(rawTopics.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
-            result.push(parsedEvent.clone());
-            let mut parsedMarkets: crate::value::List = self.safe_list_k(parsedEvent, "markets", &[Value::from(vec![])]).into_list();
+            let mut parsedEvent: crate::value::Dict = self.parse_event(rawTopics.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
+            result.push(Value::from(&parsedEvent));
+            let mut parsedMarkets: crate::value::List = self.safe_list_k(&parsedEvent, "markets", &[Value::from(vec![])]).into_list();
             let mut parsedMarketsLength: f64 = ((parsedMarkets.len() as i64) as f64);
             {
                                 let mut mi: i64 = 0;
@@ -916,9 +916,9 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_1219: bool = true;
             while { if !__for_first_1219 { i += 1; } __for_first_1219 = false; (i as f64) < rawMarketsLength } {
-            let mut parsed: Value = self.parse_topic_market(rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null), rawTopic.clone());
-            marketsList.push(parsed.clone());
-            if matches!(self.safe_bool_k(parsed, "active", &[Value::Bool(false)]), Value::Bool(true)) {
+            let mut parsed: crate::value::Dict = self.parse_topic_market(rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null), rawTopic.clone()).into_dict();
+            marketsList.push(Value::from(&parsed));
+            if matches!(self.safe_bool_k(&parsed, "active", &[Value::Bool(false)]), Value::Bool(true)) {
                 anyActive = Value::Bool(true);
             }
         }
@@ -1329,8 +1329,8 @@ impl Binance {
                 responsesByMarketId.insert(marketId.as_deref().unwrap_or("null").to_string(), response.clone());
             }
             let mut ticker: Value = self.parse_prediction_ticker(response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
-            let mut symbolKey: Value = self.safe_string_k(ticker.clone(), "outcome", &[outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)]);
-            result.insert(crate::runtime::stringify_param(&symbolKey), ticker);
+            let mut symbolKey: Option<String> = self.safe_string_k(ticker.clone(), "outcome", &[outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), ticker);
         }
         }
         return Value::Map(result);
@@ -1385,8 +1385,8 @@ impl Binance {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
-        let mut orderbook: Value = self.parse_order_book(&response, self.safe_outcome_symbol(outcome, &[outcomeObj.clone()]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
-        return self.safe_prediction_order_book(orderbook, &[outcomeObj]);
+        let mut orderbook: crate::value::Dict = self.parse_order_book(&response, self.safe_outcome_symbol(outcome, &[outcomeObj.clone()]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]).into_dict();
+        return self.safe_prediction_order_book(Value::Dict(orderbook), &[outcomeObj]);
         Value::Null
         }).await?))
     }
@@ -1933,8 +1933,8 @@ impl Binance {
         //
         //
         let mut positions: Value = self.safe_list_k(&response, "positions", &[Value::from(vec![])]);
-        let mut parsedPositions: Value = self.parse_prediction_positions(positions, &[]);
-        let mut filteredPositions: Value = self.filter_by_outcome_since_limit(parsedPositions, &[outcome, Value::Null, Value::Null]);
+        let mut parsedPositions: crate::value::List = self.parse_prediction_positions(positions, &[]).into_list();
+        let mut filteredPositions: Value = self.filter_by_outcome_since_limit(Value::Arr(parsedPositions), &[outcome, Value::Null, Value::Null]);
         return self.safe_dict(filteredPositions, Value::Int(0), &[]);
         Value::Null
         }).await?))
@@ -2171,17 +2171,17 @@ impl Binance {
         let mut cost: Option<String> = self.safe_string_k(trade.clone(), "filledUsdtAmount", &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut orderType: Option<String> = self.safe_string_lower_k(trade.clone(), "orderType", &[]).as_str().map(str::to_owned);
-        let mut fee: Value = Value::Null;
+        let mut fee: Option<crate::value::Dict> = None;
         if (orderType.as_deref() == Some("market")) && (cost.is_some()) && (price.is_some()) && (filled.is_some()) {
             // buys pay cost above price*filled, sells receive proceeds net of the fee —
             // either way the fee is the absolute difference
             let mut feeCost: Option<String> = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&cost.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &filled.map(Value::from).unwrap_or(Value::Null)))).as_str().map(str::to_owned);
-            fee = Value::Map({
+            fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), Value::Str("USDT".into()));
                     m.insert("cost".to_string(), self.parse_number(feeCost.map(Value::from).unwrap_or(Value::Null), &[]));
                 m
-            });
+            }));
         }
         return self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2200,7 +2200,7 @@ impl Binance {
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_string_k(trade, "makerShareQty", &[]));
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
-        m.insert("fee".to_string(), fee);
+        m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
 }), &[outcomeObjResolved]);
 

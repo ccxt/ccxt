@@ -632,8 +632,8 @@ impl Cryptomus {
         let mut parts: Value = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut baseId: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
-        let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
+        let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
@@ -760,7 +760,7 @@ impl Cryptomus {
         let mut rawCurrency: Value = rawCurrency.into();
         // currency here is array of networks
         let mut id: Option<String> = None; // all entries have same id, as they were grouped by
-        let mut code: Value = Value::Null;
+        let mut code: Option<String> = None;
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -773,10 +773,10 @@ impl Cryptomus {
             // set ID on first loop
             if (id.is_none()) {
                 id = self.safe_string_k(networkEntry.clone(), "currency_code", &[]).as_str().map(str::to_owned);
-                code = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]).map(Value::from).unwrap_or(Value::Null);
+                code = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
             }
             let mut networkId: Option<String> = self.safe_string_k(networkEntry.clone(), "network_code", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]));
+            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), Value::from(code.as_deref())]));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -812,7 +812,7 @@ impl Cryptomus {
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("code".to_string(), code);
+        m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("networks".to_string(), Value::Map(networks));
         m.insert("info".to_string(), rawCurrency);
     m
@@ -858,8 +858,8 @@ impl Cryptomus {
         //         ...
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "data", &[]);
-        return self.parse_tickers(data, &[symbolsNormalized]);
+        let mut data: Option<crate::value::List> = self.safe_list_k(&response, "data", &[]).into_opt_list();
+        return self.parse_tickers(&data, &[symbolsNormalized]);
         Value::Null
         }).await?))
     }
@@ -1134,7 +1134,7 @@ impl Cryptomus {
             while { if !__for_first_603 { i += 1; } __for_first_603 = false; i < (balance.len() as i64) } {
             let mut balanceEntry: crate::value::Dict = self.safe_dict(balance.clone(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balanceEntry, "ticker", &[]).as_str().map(str::to_owned);
-            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&balanceEntry, "available", &[]));
             account.insert("used".into(), self.safe_string_k(&balanceEntry, "held", &[]));
@@ -1523,16 +1523,16 @@ impl Cryptomus {
         let mut side: Option<String> = self.safe_string_k(order.clone(), "direction", &[]).as_str().map(str::to_owned);
         let mut price: Option<f64> = self.safe_number_k(order.clone(), "price", &[]).as_f64();
         let mut transaction: crate::value::List = self.safe_list_k(&deal, "transactions", &[Value::from(vec![])]).into_list();
-        let mut fee: Value = Value::Null;
+        let mut fee: Option<crate::value::Dict> = None;
         let mut firstTx: crate::value::Dict = self.safe_dict(&transaction, Value::Int(0), &[]).into_dict();
         let mut feeCurrency: Option<String> = self.safe_string_k(&firstTx, "feeCurrency", &[]).as_str().map(str::to_owned);
         if (feeCurrency.is_some()) {
-            fee = Value::Map({
+            fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("currency".to_string(), self.safe_currency_code(feeCurrency.map(Value::from).unwrap_or(Value::Null), &[]).map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), self.safe_currency_code(feeCurrency.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null));
                     m.insert("cost".to_string(), self.safe_number_k(&firstTx, "fee", &[]));
                 m
-            });
+            }));
         }
         if (price.is_none()) {
             price = self.safe_number_k(&firstTx, "filledPrice", &[]).as_f64();
@@ -1562,7 +1562,7 @@ impl Cryptomus {
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "filledQuantity", &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
-        m.insert("fee".to_string(), fee);
+        m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Null);
         m.insert("info".to_string(), order);
     m
@@ -1759,8 +1759,8 @@ impl Cryptomus {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), query));
                 }
             }
-            let mut jsonParamsBase64: Option<String> = self.string_to_base64(jsonParams.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-            let mut stringToSign: String = format!("{}{}", jsonParamsBase64.map(Value::from).unwrap_or(Value::Null), self.secret.clone());
+            let mut jsonParamsBase64: String = self.string_to_base64(jsonParams.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut stringToSign: String = format!("{}{}", jsonParamsBase64, self.secret.clone());
             let mut signature: Option<String> = self.hash(self.encode(Value::from(stringToSign)), Value::Str("md5".into()), &[]).as_str().map(str::to_owned);
             privateHeaders.insert("sign".into(), signature.map(Value::from).unwrap_or(Value::Null));
             let mut privateBody: Option<String> = (if (method.as_str() != Some("GET")) { jsonParams } else { None });

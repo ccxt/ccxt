@@ -624,8 +624,8 @@ impl P2b {
         let mut marketId: Option<String> = self.safe_string_k(market.clone(), "name", &[]).as_str().map(str::to_owned);
         let mut baseId: Option<String> = self.safe_string_k(market.clone(), "stock", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "money", &[]).as_str().map(str::to_owned);
-        let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
+        let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
@@ -1249,7 +1249,7 @@ impl P2b {
             while { if !__for_first_1041 { i += 1; } __for_first_1041 = false; i < (keys.len() as i64) } {
             let mut currencyId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::from(currencyId.as_deref()), &[]).into_dict();
-            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).map(Value::from).unwrap_or(Value::Null);
+            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
             let mut used: Option<String> = self.safe_string_k(&balance, "freeze", &[]).as_str().map(str::to_owned);
             let mut available: Option<String> = self.safe_string_k(&balance, "available", &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = ({
@@ -1333,8 +1333,8 @@ impl P2b {
         //        }
         //    }
         //
-        let mut result: Value = self.safe_dict_k(&response, "result", &[]);
-        return self.parse_order(result, Some(&market));
+        let mut result: Option<crate::value::Dict> = self.safe_dict_k(&response, "result", &[]).into_opt_dict();
+        return self.parse_order(&result, Some(&market));
         Value::Null
         }).await?))
     }
@@ -1398,8 +1398,8 @@ impl P2b {
         //        }
         //    }
         //
-        let mut result: Value = self.safe_dict_k(&response, "result", &[]);
-        return self.parse_order(result, None);
+        let mut result: Option<crate::value::Dict> = self.safe_dict_k(&response, "result", &[]).into_opt_dict();
+        return self.parse_order(&result, None);
         Value::Null
         }).await?))
     }
@@ -1890,13 +1890,13 @@ impl P2b {
                     m.insert("nonce".to_string(), Value::Str(format!("{}", Value::Int(__ws_arg_10)).into()));
                 m
             })]);
-            let mut payload: Value = self.string_to_base64(json_stringify(&paramsOmitted), &[]); // Body json encoded in base64
+            let mut payload: String = self.string_to_base64(json_stringify(&paramsOmitted), &[]); // Body json encoded in base64
             let mut headersSigned: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("X-TXC-APIKEY".to_string(), self.apiKey.clone());
-                    m.insert("X-TXC-PAYLOAD".to_string(), payload.clone());
-                    m.insert("X-TXC-SIGNATURE".to_string(), Value::from(self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
+                    m.insert("X-TXC-PAYLOAD".to_string(), Value::from(payload.clone()));
+                    m.insert("X-TXC-SIGNATURE".to_string(), Value::from(self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
                 m
             });
             let mut bodyJson: Option<String> = json_stringify(&paramsOmitted).as_str().map(str::to_owned);

@@ -626,11 +626,11 @@ impl Limitless {
         let mut allRaw: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut queriesLength: i64 = queries.len() as i64;
         if queriesLength > 0 {
-            let mut requestedLimit: Value = self.safe_integer_k(params, "limit", &[Value::Int(50)]);
+            let mut requestedLimit: i64 = self.safe_integer_k(params, "limit", &[Value::Int(50)]).as_i64().unwrap_or(50);
             // the search endpoint rejects limit > 50 - cap the per-query request and let
             // maxMarkets bound the overall collection
-            let mut limit: Value = Value::Int(50);
-            if (requestedLimit != Value::Null) && (requestedLimit.as_f64().unwrap_or(f64::NAN) < ((50i64) as f64)) {
+            let mut limit: i64 = 50;
+            if (true) && (requestedLimit < 50) {
                 limit = requestedLimit;
             }
             let mut searchRest: crate::value::Dict = self.omit(&rest, Value::from(vec![Value::Str("limit".into())]), &[]).into_dict();
@@ -646,7 +646,7 @@ impl Limitless {
                 let __ws_arg_0 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("query".to_string(), q.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("limit".to_string(), limit.clone());
+                        m.insert("limit".to_string(), Value::from(limit));
                     m
                 }), &[&searchRest]);
                 let mut response: crate::value::Dict = self.limitless_public_get_markets_search(&[__ws_arg_0]).await.into_dict();
@@ -759,8 +759,8 @@ impl Limitless {
             if (groupId != Value::Null) && (groupId.as_str() != Some("")) {
                 eventKey = self.shorten_slug(groupId.clone());
             }
-            let mut m: Value = self.parse_market(raw.clone());
-            markets.push(m.clone());
+            let mut m: crate::value::Dict = self.parse_market(raw.clone()).into_dict();
+            markets.push(Value::from(&m));
             if (eventKey != Value::Null) && (eventKey.as_str() != Some("")) {
                 if !(matches!((&eventGroups, &eventKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut eventGroups { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), Value::Map({
@@ -777,7 +777,7 @@ impl Limitless {
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
                 let mut groupMarkets: Value = crate::value::get_value_k(&eventGroup, "markets");
-                if let Value::Arr(__a) = &mut groupMarkets { std::sync::Arc::make_mut(__a).push(m.clone()); };
+                if let Value::Arr(__a) = &mut groupMarkets { std::sync::Arc::make_mut(__a).push(Value::Dict(m)); };
                 add_element_to_object(&mut eventGroup, &Value::Str("markets".into()), groupMarkets);
             }
         }
@@ -1093,15 +1093,15 @@ impl Limitless {
         // a group response carries its tradeable children in `markets` (each a full market row
         // with tokens) — expandGroupRows unwraps them; a single market has no nested markets
         // and wraps as its own one-market event, which parseEvent's loop then parses
-        let mut rows: Value = self.expand_group_rows(Value::from(vec![response.clone()]));
+        let mut rows: crate::value::List = self.expand_group_rows(Value::from(vec![response.clone()])).into_list();
         let mut wrapped: Value = self.extend(response, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("markets".to_string(), rows);
+                m.insert("markets".to_string(), Value::Arr(rows));
             m
         })]);
-        let mut event: Value = self.parse_event(wrapped);
-        self.index_event_outcomes(event.clone());
-        return event;
+        let mut event: crate::value::Dict = self.parse_event(wrapped).into_dict();
+        self.index_event_outcomes(Value::from(&event));
+        return Value::Dict(event);
         Value::Null
         }).await?))
     }
@@ -2149,11 +2149,11 @@ impl Limitless {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                    let mut title: Value = self.safe_string_upper_k(series.clone(), "title", &[Value::Str("".into())]);
-                    if (title == Value::Null) {
+                    let mut title: String = self.safe_string_upper_k(series.clone(), "title", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                    if (false) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing title".into()))));
                     }
-                    if (outcomeLabel.is_some()) && (Value::Int(title.as_str().zip(outcomeLabel.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
+                    if (outcomeLabel.is_some()) && (((if let (Some(__h), Some(__n)) = (Some(title.as_str()), (outcomeLabel.clone().map(Value::from).unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
                         selectedSeries = series;
                         break;
                     }
@@ -2208,30 +2208,30 @@ impl Limitless {
             while { if !__for_first_1319 { i += 1; } __for_first_1319 = false; i < (sorted.len() as i64) } {
             let mut point: Value = self.safe_dict(sorted.clone(), Value::Int(i), &[]);
             let mut pTs: Value = self.safe_integer_k(point.clone(), "timestamp", &[]);
-            let mut pPrice: Value = self.safe_number_k(point, "price", &[]);
+            let mut pPrice: Option<f64> = self.safe_number_k(point, "price", &[]).as_f64();
             if (pTs == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing pTs".into()))));
             }
-            if (pPrice == Value::Null) {
+            if (pPrice.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing pPrice".into()))));
             }
             let mut bucketIndex: Value = Value::from(self.parse_to_int((match ((pTs).as_f64(), (ms).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
             let mut bucket: Value = (match (&(bucketIndex), &(ms)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             let mut key: Value = Value::Str(format!("{}", bucket).into());
             if !(matches!((&candles, &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut candles { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), Value::from(vec![bucket, pPrice.clone(), pPrice.clone(), pPrice.clone(), pPrice.clone(), Value::Int(0)])); }
+                if let Value::Dict(__d) = &mut candles { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), Value::from(vec![bucket, Value::from(pPrice), Value::from(pPrice), Value::from(pPrice), Value::from(pPrice), Value::Int(0)])); }
                 bucketOrder.push(key.clone());
             }  else {
                 let mut candle: Value = (if let (Some(__m), Some(__k)) = (candles.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-                let mut prevHigh: Value = self.safe_number(candle.clone(), Value::Int(2), &[]);
-                if (prevHigh == Value::Null) || (pPrice.as_f64().unwrap_or(f64::NAN) > prevHigh.as_f64().unwrap_or(f64::NAN)) {
-                    add_element_to_object(&mut candle, &Value::Int(2), pPrice.clone());
+                let mut prevHigh: Option<f64> = self.safe_number(candle.clone(), Value::Int(2), &[]).as_f64();
+                if (prevHigh.is_none()) || ((pPrice.is_some() && prevHigh.is_some() && pPrice > prevHigh)) {
+                    add_element_to_object(&mut candle, &Value::Int(2), Value::from(pPrice));
                 }
-                let mut prevLow: Value = self.safe_number(candle.clone(), Value::Int(3), &[]);
-                if (prevLow == Value::Null) || (prevLow.as_f64().unwrap_or(f64::NAN) > pPrice.as_f64().unwrap_or(f64::NAN)) {
-                    add_element_to_object(&mut candle, &Value::Int(3), pPrice.clone());
+                let mut prevLow: Option<f64> = self.safe_number(candle.clone(), Value::Int(3), &[]).as_f64();
+                if (prevLow.is_none()) || ((prevLow.is_some() && pPrice.is_some() && prevLow > pPrice)) {
+                    add_element_to_object(&mut candle, &Value::Int(3), Value::from(pPrice));
                 }
-                add_element_to_object(&mut candle, &Value::Int(4), pPrice);
+                add_element_to_object(&mut candle, &Value::Int(4), Value::from(pPrice));
                 if let Value::Dict(__d) = &mut candles { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), candle); }; // php arrays are value types - write the mutation back
             }
         }
@@ -2719,7 +2719,7 @@ impl Limitless {
         }
         let mut rawStatus: Option<String> = self.safe_string_k(rawOrder, "status", &[]).as_str().map(str::to_owned);
         let mut execution: Option<crate::value::Dict> = self.safe_dict_k(&data, "execution", &[]).into_opt_dict();
-        let mut fee: Value = Value::Null;
+        let mut fee: Option<crate::value::Dict> = None;
         let mut filled: Option<String> = None;
         let mut cost: Option<String> = None;
         if (execution.is_some()) {
@@ -2733,12 +2733,12 @@ impl Limitless {
                 feeCurrency = outcomeSymbol.clone();
                 feeCost = self.safe_string_k(&totals, "contractsFee", &[]).as_str().map(str::to_owned);
             }
-            fee = Value::Map({
+            fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(self.apply_scale(feeCost.as_deref(), &[]), &[]));
                     m.insert("currency".to_string(), feeCurrency.map(Value::from).unwrap_or(Value::Null));
                 m
-            });
+            }));
         }
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2765,7 +2765,7 @@ impl Limitless {
         m.insert("cost".to_string(), self.apply_scale(cost.as_deref(), &[]));
         m.insert("filled".to_string(), self.apply_scale(filled.as_deref(), &[]));
         m.insert("remaining".to_string(), self.apply_scale(remaining.as_deref(), &[]));
-        m.insert("fee".to_string(), fee);
+        m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::from(vec![]));
     m
 }), &[]);
@@ -3172,11 +3172,11 @@ if _try_result.is_err() {
 
     pub fn sign_hash(&self, hash: &str, mut privateKey: Value) -> Option<String> {
         let mut hash: Value = hash.into();
-        let mut signature: Value = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
+        let mut signature: crate::value::Dict = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
             privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
-        let mut r: Value = signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null);
-        let mut s: Value = signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null);
-        let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
+        let mut r: Value = crate::value::KeyRead::key_read(&&signature, "r");
+        let mut s: Value = crate::value::KeyRead::key_read(&&signature, "s");
+        let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]), &[]);
         let mut rPadded: Value = r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
         let mut sPadded: Value = s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
         let mut result: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), rPadded).into()), sPadded).into()), v);
@@ -3196,12 +3196,12 @@ if _try_result.is_err() {
             self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx.clone(), "value", &[Value::Str("0x0".into())]))), self.rlp_encode_bytes(self.remove0x_prefix(self.safe_string_k(tx, "data", &[Value::Str("0x".into())]))), accessList.map(Value::from).unwrap_or(Value::Null)]);
         let mut payload: String = format!("{}{}", Value::Str("02".into()), self.rlp_encode_list(fields.clone()));
         let mut hashHex: Value = self.hash(self.base16_to_binary(Value::from(payload), &[]), Value::Str("keccak".into()), &[Value::Str("hex".into())]);
-        let mut signature: Value = ecdsa(hashHex, self.remove0x_prefix(privateKey), Value::Str("secp256k1".into()), Value::Null);
-        let mut rHex: Option<String> = self.safe_string_k(signature.clone(), "r", &[]).as_str().map(str::to_owned);
-        let mut sHex: Option<String> = self.safe_string_k(signature.clone(), "s", &[]).as_str().map(str::to_owned);
+        let mut signature: crate::value::Dict = ecdsa(hashHex, self.remove0x_prefix(privateKey), Value::Str("secp256k1".into()), Value::Null);
+        let mut rHex: Option<String> = self.safe_string_k(&signature, "r", &[]).as_str().map(str::to_owned);
+        let mut sHex: Option<String> = self.safe_string_k(&signature, "s", &[]).as_str().map(str::to_owned);
         rHex = self.pad_hex_to_even(rHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         sHex = self.pad_hex_to_even(sHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut yParity: Option<i64> = self.safe_integer_k(signature, "v", &[]).as_i64();
+        let mut yParity: Option<i64> = self.safe_integer_k(&signature, "v", &[]).as_i64();
         let mut signedFields: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3398,9 +3398,9 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.limitless_private_post_orders_cancel_batch(&[__ws_arg_27]).await;
-        let mut canceled: Value = self.safe_list_k(response.clone(), "canceled", &[Value::from(vec![])]);
-        let mut failed: crate::value::List = self.safe_list_k(response.clone(), "failed", &[Value::from(vec![])]).into_list();
+        let mut response: crate::value::Dict = self.limitless_private_post_orders_cancel_batch(&[__ws_arg_27]).await.into_dict();
+        let mut canceled: Value = self.safe_list_k(&response, "canceled", &[Value::from(vec![])]);
+        let mut failed: crate::value::List = self.safe_list_k(&response, "failed", &[Value::from(vec![])]).into_list();
         let mut failedLethgn: i64 = failed.len() as i64;
         if failedLethgn > 0 {
             let mut message: Option<String> = json_stringify(&response).as_str().map(str::to_owned);
@@ -4030,10 +4030,10 @@ if _try_result.is_err() {
         // eventId/slug does a direct lookup, and any other scope (tags) pages the active-markets listing
         let mut rawMarkets: Vec<Value> = Vec::new();
         if queriesLength > 0 {
-            let mut requestedLimit: Value = self.safe_integer_k(params.clone(), "limit", &[Value::Int(50)]);
+            let mut requestedLimit: i64 = self.safe_integer_k(params.clone(), "limit", &[Value::Int(50)]).as_i64().unwrap_or(50);
             // the search endpoint rejects limit > 50 - cap the per-query request
-            let mut limit: Value = Value::Int(50);
-            if (requestedLimit != Value::Null) && (requestedLimit.as_f64().unwrap_or(f64::NAN) < ((50i64) as f64)) {
+            let mut limit: i64 = 50;
+            if (true) && (requestedLimit < 50) {
                 limit = requestedLimit;
             }
             let mut seen: indexmap::IndexMap<String, Value> = ({
@@ -4051,7 +4051,7 @@ if _try_result.is_err() {
                 let __ws_arg_30 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("query".to_string(), q.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("limit".to_string(), limit.clone());
+                        m.insert("limit".to_string(), Value::from(limit));
                     m
                 }), &[&rest]);
                 let mut response: crate::value::Dict = self.limitless_public_get_markets_search(&[__ws_arg_30]).await.into_dict();
@@ -4152,11 +4152,11 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1332: bool = true;
             while { if !__for_first_1332 { i += 1; } __for_first_1332 = false; (i as f64) < eventKeysLength } {
-            let mut ev: Value = self.parse_event(self.safe_dict(eventGroups.clone(), eventKeys.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
+            let mut ev: crate::value::Dict = self.parse_event(self.safe_dict(eventGroups.clone(), eventKeys.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]));
-            result.push(ev);
+})])).into_dict();
+            result.push(Value::Dict(ev));
         }
         }
         // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
@@ -4279,20 +4279,17 @@ if _try_result.is_err() {
             let mut __for_first_1336: bool = true;
             while { if !__for_first_1336 { i += 1; } __for_first_1336 = false; (i as f64) < categoriesLength } {
             let mut category: crate::value::Dict = self.safe_dict(categories.clone(), Value::Int(i), &[]).into_dict();
-            let mut name: Value = self.safe_string_lower_k(&category, "name", &[Value::Str("".into())]);
+            let mut name: String = self.safe_string_lower_k(&category, "name", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut categoryId: Option<String> = self.safe_string_k(&category, "id", &[]).as_str().map(str::to_owned);
             let mut matched: bool = false;
             {
                                 let mut wi: i64 = 0;
                 let mut __for_first_1335: bool = true;
                 while { if !__for_first_1335 { wi += 1; } __for_first_1335 = false; wi < (wanted.len() as i64) } {
-                if (name == Value::Null) {
+                if (false) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchRawMarketsByTags() missing name".into()))));
                 }
-                if (match (&(name), &(wanted.get(wi as usize).cloned().unwrap_or(Value::Null))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x),
-                    Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
-                    (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x == __y, _ => false } }).map(|__i| __i as i64).unwrap_or(-1)), (Value::Str(__s),
-                    Value::Str(__nd)) => Value::Int(__s.find(&**__nd).map(|__i| __i as i64).unwrap_or(-1)), _ => Value::Int(-1) }).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+                if ((if let (Some(__h), Some(__n)) = (Some(name.as_str()), (wanted.get(wi as usize).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                     matched = true;
                     break;
                 }

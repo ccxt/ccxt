@@ -76,9 +76,9 @@ impl crate::exchange::DerivedExchange for Apex {
         // Forward to the inherent method on Apex.
         Apex::parse_position(self, position, market)
     }
-    fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transfer(&self, transfer: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Apex.
-        Apex::parse_transfer(self, transfer, &[currency])
+        Apex::parse_transfer(self, transfer, currency)
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on Apex.
@@ -150,7 +150,7 @@ impl crate::exchange_generated::ExchangeBase for Apex {
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "safe_market" => crate::types::IntoRaw::into_raw(self.safe_market(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -914,9 +914,9 @@ impl Apex {
         let mut rows: crate::value::List = self.safe_list_k(&spotConfig, "assets", &[Value::from(vec![])]).into_list();
         let mut chains: Value = self.safe_list_k(&multiChain, "chains", &[Value::from(vec![])]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("_temp_currencies_chains".into(), chains); }
-        let mut result: Value = self.parse_currencies(&rows);
+        let mut result: crate::value::Dict = self.parse_currencies(&rows).into_dict();
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).shift_remove("_temp_currencies_chains"); }
-        return result;
+        return Value::Dict(result);
         Value::Null
         }).await?))
     }
@@ -924,7 +924,7 @@ impl Apex {
     pub fn parse_currency(&self, currency: impl Into<crate::Value>) -> Value {
         let mut currency: Value = currency.into();
         let mut currencyId: Option<String> = self.safe_string_k(currency.clone(), "token", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut name: Option<String> = self.safe_string_k(currency.clone(), "displayName", &[]).as_str().map(str::to_owned);
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1066,9 +1066,9 @@ impl Apex {
         let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "l2PairId", &[]).as_str().map(str::to_owned);
         let mut baseId: Option<String> = self.safe_string_k(market.clone(), "baseTokenId", &[]).as_str().map(str::to_owned);
         let mut quote: Option<String> = self.safe_string_k(market.clone(), "settleAssetId", &[]).as_str().map(str::to_owned);
-        let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut settleId: Option<String> = self.safe_string_k(market.clone(), "settleAssetId", &[]).as_str().map(str::to_owned);
-        let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
         if (baseId.is_none()) || (quote.is_none()) || (settle.is_none()) {
             return Value::Null;
         }
@@ -1584,8 +1584,8 @@ impl Apex {
         // }
         //
         let mut marketId: Option<String> = self.safe_string_k(interest.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[]));
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved.clone()).as_ref(), &[]).as_str().map(str::to_owned);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[]);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]).as_str().map(str::to_owned);
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -1595,7 +1595,7 @@ impl Apex {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("info".to_string(), interest);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -1862,9 +1862,9 @@ impl Apex {
             }  else if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 marketResolved = (if let (Some(__m), Some(__k)) = (self.markets_by_id.as_map(), marketId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             }  else {
-                let mut newMarketId: Value = self.add_hyphen_before_usdt(marketId.as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
-                if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &newMarketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    let mut markets: Value = (if let (Some(__m), Some(__k)) = (self.markets_by_id.as_map(), newMarketId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                let mut newMarketId: Option<String> = self.add_hyphen_before_usdt(marketId.as_str().unwrap_or_default());
+                if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, newMarketId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                    let mut markets: Value = (if let (Some(__m), Some(__k)) = (self.markets_by_id.as_map(), newMarketId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                     let mut numMarkets: Value = get_array_length(&markets);
                     if numMarkets.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                         if is_equal(&crate::value::get_value_k(&get_value(&markets, &Value::Int(0)), "id2"), &marketId) {
@@ -1920,8 +1920,8 @@ impl Apex {
     pub async fn get_account_id(&mut self) -> Value {
         let mut accountId: Option<String> = self.safe_string_k(self.options.clone(), "accountId", &[Value::Str("0".into())]).as_str().map(str::to_owned);
         if (accountId.as_deref() == Some("0")) {
-            let mut accountData: Value = self.fetch_account(&[]).await;
-            { let __be_tmp = self.safe_string_k(accountData, "id", &[Value::Str("0".into())]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("accountId".into(), __be_tmp); } }
+            let mut accountData: crate::value::Dict = self.fetch_account(&[]).await.into_dict();
+            { let __be_tmp = self.safe_string_k(&accountData, "id", &[Value::Str("0".into())]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("accountId".into(), __be_tmp); } }
         }
         return self.safe_string_k(self.options.clone(), "accountId", &[]);
 
@@ -2208,7 +2208,7 @@ impl Apex {
             })]);
             let mut currentTime: i64 = self.milliseconds();
             let mut parsedAmount: Value = self.parse_number(amount.clone(), &[]);
-            let __ws_arg_8 = self.parse_transfer(data.clone(), &[self.currency(code.clone())]);
+            let __ws_arg_8 = self.parse_transfer(data.clone(), Some(&self.currency(code.clone())));
             let __ws_arg_9 = self.iso8601(Value::from(currentTime));
             return self.extend(__ws_arg_8, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2260,7 +2260,7 @@ impl Apex {
                 m
             })]);
             let mut currentTime: i64 = self.milliseconds();
-            let __ws_arg_11 = self.parse_transfer(data, &[self.currency(code)]);
+            let __ws_arg_11 = self.parse_transfer(data, Some(&self.currency(code)));
             let __ws_arg_12 = self.iso8601(Value::from(currentTime));
             let __ws_arg_13 = self.parse_number(amount, &[]);
             return self.extend(__ws_arg_11, &[Value::Map({
@@ -2277,9 +2277,8 @@ impl Apex {
         }).await?))
     }
 
-    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transfer: Value = transfer.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut currencyId: Option<String> = self.safe_string_k(transfer.clone(), "coin", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "timestamp", &[]).as_i64();
         let mut fromAccount: Option<String> = self.safe_string_k(transfer.clone(), "fromAccount", &[]).as_str().map(str::to_owned);
@@ -2290,7 +2289,7 @@ impl Apex {
         m.insert("id".to_string(), self.safe_string2(transfer.clone(), Value::Str("transferId".into()), Value::Str("id".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
         m.insert("fromAccount".to_string(), fromAccount.map(Value::from).unwrap_or(Value::Null));
         m.insert("toAccount".to_string(), toAccount.map(Value::from).unwrap_or(Value::Null));
@@ -2934,7 +2933,7 @@ impl Apex {
             if (signBody.is_some()) {
                 messageString = format!("{}{}", messageString, signBody.as_deref().unwrap_or("null"));
             }
-            let mut signature: String = self.hmac(self.encode(Value::from(messageString)), self.encode(self.string_to_base64(self.secret.clone(), &[])), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+            let mut signature: String = self.hmac(self.encode(Value::from(messageString)), self.encode(Value::from(self.string_to_base64(self.secret.clone(), &[]))), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             headersValue.insert("APEX-SIGNATURE".into(), Value::from(signature));
             headersValue.insert("APEX-API-KEY".into(), self.apiKey.clone());
             headersValue.insert("APEX-TIMESTAMP".into(), Value::from(timestamp));

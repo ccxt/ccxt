@@ -658,7 +658,7 @@ impl Predictfun {
         if !allowUnscopedFetchEvents {
             self.require_event_query(&[params.clone()]);
         }
-        let mut queries: Value = self.parse_search_queries(&[params.clone()]);
+        let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
         let mut queriesLength: i64 = queries.len() as i64;
         let mut paramsValue: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]);
         // keys dropped before the client-side pass; the categories listing also drops its limit
@@ -687,7 +687,7 @@ impl Predictfun {
             // a query/queries scope is answered by the dedicated search endpoint — the categories
             // listing has no text filter, so paging it and matching client-side would both miss
             // the venue's semantic matches and cost one request per page
-            rawTopics = self.fetch_raw_topics_by_queries(queries.clone(), &[paramsValue.clone()]).await;
+            rawTopics = self.fetch_raw_topics_by_queries(Value::from(&queries), &[paramsValue.clone()]).await;
         }  else {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -890,9 +890,9 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1459: bool = true;
             while { if !__for_first_1459 { i += 1; } __for_first_1459 = false; (i as f64) < rawTopicsLength } {
-            let mut parsedEvent: Value = self.parse_event(rawTopics.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
-            result.push(parsedEvent.clone());
-            let mut parsedMarkets: crate::value::List = self.safe_list_k(parsedEvent, "markets", &[Value::from(vec![])]).into_list();
+            let mut parsedEvent: crate::value::Dict = self.parse_event(rawTopics.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
+            result.push(Value::from(&parsedEvent));
+            let mut parsedMarkets: crate::value::List = self.safe_list_k(&parsedEvent, "markets", &[Value::from(vec![])]).into_list();
             let mut parsedMarketsLength: f64 = ((parsedMarkets.len() as i64) as f64);
             {
                                 let mut mi: i64 = 0;
@@ -929,7 +929,7 @@ impl Predictfun {
                 m
             })]);
         }
-        return self.apply_event_fetch_params(Value::from(result), &[postParams, queries]);
+        return self.apply_event_fetch_params(Value::from(result), &[postParams, Value::Arr(queries)]);
         Value::Null
         }).await?))
     }
@@ -1313,9 +1313,9 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1464: bool = true;
             while { if !__for_first_1464 { i += 1; } __for_first_1464 = false; (i as f64) < rawMarketsLength } {
-            let mut parsed: Value = self.parse_topic_market(rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null), rawTopic.clone());
-            marketsList.push(parsed.clone());
-            if matches!(self.safe_bool_k(parsed, "active", &[Value::Bool(false)]), Value::Bool(true)) {
+            let mut parsed: crate::value::Dict = self.parse_topic_market(rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null), rawTopic.clone()).into_dict();
+            marketsList.push(Value::from(&parsed));
+            if matches!(self.safe_bool_k(&parsed, "active", &[Value::Bool(false)]), Value::Bool(true)) {
                 anyActive = Value::Bool(true);
             }
         }
@@ -1749,8 +1749,8 @@ impl Predictfun {
         let mut outcomeSymbol: Option<String> = self.safe_outcome_symbol(outcome, &[outcomeObj.clone()]).as_str().map(str::to_owned);
         // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
         if isYesOutcome {
-            let mut yesOrderbook: Value = self.parse_order_book(&data, outcomeSymbol.map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
-            return self.safe_prediction_order_book(yesOrderbook, &[outcomeObj.clone()]);
+            let mut yesOrderbook: crate::value::Dict = self.parse_order_book(&data, outcomeSymbol.map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]).into_dict();
+            return self.safe_prediction_order_book(Value::Dict(yesOrderbook), &[outcomeObj.clone()]);
         }  else {
             let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
             let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
@@ -2280,7 +2280,7 @@ impl Predictfun {
         amountStr = crate::precise::Precise::stringDiv(&amountStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000".into())).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
         let mut order: Option<String> = None;
-        let mut fee: Value = Value::Null;
+        let mut fee: Option<crate::value::Dict> = None;
         let mut quoteType: Option<String> = self.safe_string_lower_k(&party, "quoteType", &[]).as_str().map(str::to_owned);
         if (quoteType.as_deref() == Some("bid")) {
             side = Some("buy".to_string());
@@ -2292,12 +2292,12 @@ impl Predictfun {
         if (rawFee.is_some()) {
             let mut feeType: Option<String> = self.safe_string_k(&rawFee, "type", &[]).as_str().map(str::to_owned);
             let mut feeCost: Option<String> = self.safe_string_k(&rawFee, "amount", &[]).as_str().map(str::to_owned);
-            fee = Value::Map({
+            fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), (if (feeType.as_deref() == Some("COLLATERAL")) { Value::Str("USDT".into()) } else { Value::Null }));
                     m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&feeCost.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000000000000000".into())), &[]));
                 m
-            });
+            }));
         }
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(trade.clone(), "executedAt", &[]));
         return self.safe_prediction_trade(Value::Map({
@@ -2316,7 +2316,7 @@ impl Predictfun {
         m.insert("price".to_string(), self.parse_number(priceStr, &[]));
         m.insert("amount".to_string(), self.parse_number(amountStr.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("cost".to_string(), Value::Null);
-        m.insert("fee".to_string(), fee);
+        m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("info".to_string(), self.omit(trade, Value::Str("partyToParse".into()), &[]));
     m
 }), &[]);
@@ -2377,12 +2377,12 @@ impl Predictfun {
  */
     pub fn hash_message(&self, message: &str) -> Option<String> {
         let mut message: Value = message.into();
-        let mut binaryMessage: Value = self.encode(message);
-        let mut binaryMessageLength: Value = self.binary_length(binaryMessage.clone(), &[]);
-        let mut x19: Value = self.base16_to_binary(Value::Str("19".into()), &[]);
-        let mut newline: Value = self.base16_to_binary(Value::Str("0a".into()), &[]);
-        let mut prefix: Value = self.binary_concat(x19, &[self.encode(Value::Str("Ethereum Signed Message:".into())), newline, self.encode(Value::from(self.number_to_string(binaryMessageLength)))]);
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(self.binary_concat(prefix, &[binaryMessage]), Value::Str("keccak".into()), &[Value::Str("hex".into())])).into()).as_str().map(str::to_owned);
+        let mut binaryMessage: crate::value::Bytes = self.encode(message);
+        let mut binaryMessageLength: Value = self.binary_length(&binaryMessage, &[]);
+        let mut x19: crate::value::Bytes = self.base16_to_binary(Value::Str("19".into()), &[]);
+        let mut newline: crate::value::Bytes = self.base16_to_binary(Value::Str("0a".into()), &[]);
+        let mut prefix: crate::value::Bytes = self.binary_concat(&x19, &[Value::from(self.encode(Value::Str("Ethereum Signed Message:".into()))), Value::from(&newline), Value::from(self.encode(Value::from(self.number_to_string(binaryMessageLength))))]);
+        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(self.binary_concat(&prefix, &[Value::from(&binaryMessage)]), Value::Str("keccak".into()), &[Value::Str("hex".into())])).into()).as_str().map(str::to_owned);
 }
 
 /*
@@ -2397,15 +2397,15 @@ impl Predictfun {
     pub fn sign_hash(&self, hash: &str, privateKey: &str) -> Option<String> {
         let mut hash: Value = hash.into();
         let mut privateKey: Value = privateKey.into();
-        let mut signature: Value = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
+        let mut signature: crate::value::Dict = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
             privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
-        let mut rRaw: Value = signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null);
-        let mut sRaw: Value = signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null);
+        let mut rRaw: Value = crate::value::KeyRead::key_read(&&signature, "r");
+        let mut sRaw: Value = crate::value::KeyRead::key_read(&&signature, "s");
         let mut r: Value = rRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
         let mut s: Value = sRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
         // ecrecover wants v in {27,28} while the raw recovery id is {0,1}
-        let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
+        let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]), &[]);
         // assign before toLowerCase so the php regex matches, it only handles a bare identifier
         let mut signatureHex: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), r).into()), s).into()), v);
         return Value::from(signatureHex.to_lowercase()).as_str().map(str::to_owned);
@@ -2735,9 +2735,9 @@ impl Predictfun {
                 m.insert("signatureType".to_string(), Value::Int(0));
             m
         });
-        let mut signed: Value = self.sign_predictfun_order(Value::Map(contractOrder.clone()), isNegRisk, isYieldBearing);
-        let __ws_arg_7 = self.safe_string_k(signed.clone(), "hash", &[]);
-        let __ws_arg_8 = self.safe_string_k(signed, "signature", &[]);
+        let mut signed: crate::value::Dict = self.sign_predictfun_order(Value::Map(contractOrder.clone()), isNegRisk, isYieldBearing).into_dict();
+        let __ws_arg_7 = self.safe_string_k(&signed, "hash", &[]);
+        let __ws_arg_8 = self.safe_string_k(&signed, "signature", &[]);
         let mut orderPayload: Value = self.extend(Value::Map(contractOrder), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hash".to_string(), __ws_arg_7);
@@ -3026,10 +3026,10 @@ impl Predictfun {
             payout = (if (won == Some(true)) { contracts.clone() } else { Some("0".to_string()) });
         }
         // pnl is realized once the market has resolved, unrealized while it is still trading
-        let mut realizedPnl: Value = Value::Null;
+        let mut realizedPnl: Option<String> = None;
         let mut unrealizedPnl: Option<String> = pnl.clone();
         if resolved {
-            realizedPnl = pnl.map(Value::from).unwrap_or(Value::Null);
+            realizedPnl = pnl.take();
             unrealizedPnl = None.clone();
         }
         return self.safe_prediction_position(Value::Map({
@@ -3042,7 +3042,7 @@ impl Predictfun {
         m.insert("side".to_string(), Value::Str("long".into()));
         m.insert("notional".to_string(), self.parse_number(notional.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnl.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("realizedPnl".to_string(), self.parse_number(realizedPnl, &[]));
+        m.insert("realizedPnl".to_string(), self.parse_number(realizedPnl.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("collateral".to_string(), self.parse_number(collateral.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("entryPrice".to_string(), self.parse_number(entryPrice.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("markPrice".to_string(), self.parse_number(markPrice.clone().map(Value::from).unwrap_or(Value::Null), &[]));
@@ -3707,12 +3707,12 @@ impl Predictfun {
             self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx.clone(), "value", &[Value::Str("0x0".into())]))), self.rlp_encode_bytes(self.remove0x_prefix(self.safe_string_k(tx, "data", &[Value::Str("0x".into())]))), accessList.map(Value::from).unwrap_or(Value::Null)]);
         let mut payload: String = format!("{}{}", Value::Str("02".into()), self.rlp_encode_list(fields.clone()));
         let mut hashHex: Value = self.hash(self.base16_to_binary(Value::from(payload), &[]), Value::Str("keccak".into()), &[Value::Str("hex".into())]);
-        let mut signature: Value = ecdsa(hashHex, self.remove0x_prefix(privateKey), Value::Str("secp256k1".into()), Value::Null);
-        let mut rHex: Option<String> = self.safe_string_k(signature.clone(), "r", &[]).as_str().map(str::to_owned);
-        let mut sHex: Option<String> = self.safe_string_k(signature.clone(), "s", &[]).as_str().map(str::to_owned);
+        let mut signature: crate::value::Dict = ecdsa(hashHex, self.remove0x_prefix(privateKey), Value::Str("secp256k1".into()), Value::Null);
+        let mut rHex: Option<String> = self.safe_string_k(&signature, "r", &[]).as_str().map(str::to_owned);
+        let mut sHex: Option<String> = self.safe_string_k(&signature, "s", &[]).as_str().map(str::to_owned);
         rHex = self.pad_hex_to_even(rHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         sHex = self.pad_hex_to_even(sHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut yParity: Option<i64> = self.safe_integer_k(signature, "v", &[]).as_i64();
+        let mut yParity: Option<i64> = self.safe_integer_k(&signature, "v", &[]).as_i64();
         let mut signedFields: Value = self.array_concat(fields, Value::from(vec![self.rlp_encode_bytes(self.int_to_rlp_hex(Value::from(yParity))), self.rlp_encode_bytes(rHex.map(Value::from).unwrap_or(Value::Null)), self.rlp_encode_bytes(sHex.map(Value::from).unwrap_or(Value::Null))]));
         return Value::Str(format!("{}{}", Value::Str("0x02".into()), self.rlp_encode_list(signedFields)).into());
 
@@ -4040,10 +4040,7 @@ impl Predictfun {
         let message = message.as_map().unwrap_or(&__message_empty);
         let __subscription_empty = indexmap::IndexMap::new();
         let subscription = subscription.as_map().unwrap_or(&__subscription_empty);
-        let mut rawError: Value = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut rawError: crate::value::Dict = message.get("error").cloned().unwrap_or_default().into_dict();
         let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" subscribe request rejected ".into())).into()), json_stringify(&rawError))));
         // watch () registers a subscription before it sends and only sends while the hash is still
         // unregistered, so a rejected request has to take its own entry down - otherwise a retry
@@ -4946,15 +4943,15 @@ impl Predictfun {
             takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
         let mut rawFee: Option<crate::value::Dict> = self.safe_dict_k(event.clone(), "fee", &[]).into_opt_dict();
-        let mut fee: Value = Value::Null;
+        let mut fee: Option<crate::value::Dict> = None;
         if (rawFee.is_some()) {
             let mut feeType: Option<String> = self.safe_string_k(&rawFee, "type", &[]).as_str().map(str::to_owned);
-            fee = Value::Map({
+            fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), (if (feeType.as_deref() == Some("COLLATERAL")) { Value::Str("USDT".into()) } else { Value::Null }));
                     m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(&rawFee, "amountWei", &[]), &Value::Str("1000000000000000000".into())), &[]));
                 m
-            });
+            }));
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(event.clone(), "timestamp", &[]).as_i64();
         return self.safe_prediction_trade(Value::Map({
@@ -4973,7 +4970,7 @@ impl Predictfun {
         m.insert("price".to_string(), self.parse_number(price.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("cost".to_string(), self.parse_number(cost.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("fee".to_string(), fee);
+        m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("info".to_string(), event);
     m
 }), &[]);

@@ -757,7 +757,7 @@ impl Onetrading {
     pub fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
         let mut rawCurrency: Value = rawCurrency.into();
         let mut id: Option<String> = self.safe_string_k(rawCurrency.clone(), "code", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -891,8 +891,8 @@ impl Onetrading {
         let mut baseId: Option<String> = self.safe_string_k(&baseAsset, "code", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(&quoteAsset, "code", &[]).as_str().map(str::to_owned);
         let mut id: Option<String> = self.safe_string_k(market.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
+        let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
@@ -1087,13 +1087,13 @@ impl Onetrading {
 })]).into_dict();
         let mut spotFeeTiers: Value = self.safe_list_k(&spotFees, "fee_tiers", &[Value::from(vec![])]);
         let mut futuresFeeTiers: Value = self.safe_list_k(&futuresFees, "fee_tiers", &[Value::from(vec![])]);
-        let mut spotTiers: Value = self.parse_fee_tiers(spotFeeTiers, None);
-        let mut futuresTiers: Value = self.parse_fee_tiers(futuresFeeTiers, None);
-        let mut firstSpotTier: Value = self.safe_dict(spotTiers.clone(), Value::Int(0), &[Value::Map({
+        let mut spotTiers: crate::value::Dict = self.parse_fee_tiers(spotFeeTiers, None).into_dict();
+        let mut futuresTiers: crate::value::Dict = self.parse_fee_tiers(futuresFeeTiers, None).into_dict();
+        let mut firstSpotTier: Value = self.safe_dict(&spotTiers, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut firstFuturesTier: Value = self.safe_dict(futuresTiers, Value::Int(0), &[Value::Map({
+        let mut firstFuturesTier: Value = self.safe_dict(&futuresTiers, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1117,7 +1117,7 @@ impl Onetrading {
         m.insert("taker".to_string(), self.safe_number_k(tierObject, "taker_fee", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
-        m.insert("tiers".to_string(), spotTiers.clone());
+        m.insert("tiers".to_string(), Value::from(&spotTiers));
     m
 }));
         }
@@ -1615,8 +1615,8 @@ impl Onetrading {
         //         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521},
         //     ]
         //
-        let mut ohlcv: Value = self.safe_list_k(&response, "candlesticks", &[]);
-        return self.parse_ohlc_vs(ohlcv, &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
+        let mut ohlcv: Option<crate::value::List> = self.safe_list_k(&response, "candlesticks", &[]).into_opt_list();
+        return self.parse_ohlc_vs(&ohlcv, &[(market).raw.clone(), timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -1678,18 +1678,18 @@ impl Onetrading {
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Str("_".into())]).as_str().map(str::to_owned);
         let mut feeCostString: Option<String> = self.safe_string_k(&feeInfo, "fee_amount", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Option<String> = None;
-        let mut fee: Value = Value::Null;
+        let mut fee: Option<crate::value::Dict> = None;
         if (feeCostString.is_some()) {
             let mut feeCurrencyId: Option<String> = self.safe_string_k(&feeInfo, "fee_currency", &[]).as_str().map(str::to_owned);
-            let mut feeCurrencyCode: Option<String> = self.safe_currency_code(feeCurrencyId.map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut feeCurrencyCode: Option<String> = self.safe_currency_code(feeCurrencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut feeRateString: Option<String> = self.safe_string_k(&feeInfo, "fee_percentage", &[]).as_str().map(str::to_owned);
-            fee = Value::Map({
+            fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString.map(Value::from).unwrap_or(Value::Null));
                     m.insert("currency".to_string(), feeCurrencyCode.map(Value::from).unwrap_or(Value::Null));
                     m.insert("rate".to_string(), feeRateString.map(Value::from).unwrap_or(Value::Null));
                 m
-            });
+            }));
             takerOrMaker = self.safe_string_lower_k(&feeInfo, "fee_type", &[]).as_str().map(str::to_owned);
         }
         return self.safe_trade(Value::Map({
@@ -1705,7 +1705,7 @@ impl Onetrading {
         m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), costString.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("fee".to_string(), fee);
+        m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("info".to_string(), tradeValue);
     m
 }), market);
@@ -1727,7 +1727,7 @@ impl Onetrading {
             while { if !__for_first_1040 { i += 1; } __for_first_1040 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency_code", &[]).as_str().map(str::to_owned);
-            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
             account.insert("used".into(), self.safe_string_k(&balance, "locked", &[]));
@@ -2161,8 +2161,8 @@ impl Onetrading {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_account_orders_order_id(&[__ws_arg_8]).await;
-        return self.parse_order(response, None);
+        let mut response: crate::value::Dict = self.private_get_account_orders_order_id(&[__ws_arg_8]).await.into_dict();
+        return self.parse_order(&response, None);
         Value::Null
         }).await?))
     }

@@ -30,14 +30,14 @@ pub fn testCryptography() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(hmac(encode(Value::Str("a message".into())), encode(Value::Str("a secret".into())), Value::Str("md5".into()), Value::Str("hex".into())).as_str() == Some("0bfa503bdbc7358185fcd49b4869e23d")))));
     // ---------------------------------------------------------------------------------------------------------------------
     let mut privateKey: Value = Value::Str("1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a".into());
-    assert!(ccxt::runtime::is_true(&(equals(ecdsa(Value::Str("1a".into()), privateKey.clone(), Value::Str("secp256k1".into()), Value::Str("sha256".into())), Value::Map({
+    assert!(ccxt::runtime::is_true(&(equals(Value::Dict(ecdsa(Value::Str("1a".into()), privateKey.clone(), Value::Str("secp256k1".into()), Value::Str("sha256".into()))), Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("r".to_string(), Value::Str("23dcb2a2a3728a35eb1a35cc01743c4609550d9cceaf2083550f13a9eb135f9f".into()));
             m.insert("s".to_string(), Value::Str("317963fcac18e4ec9f7921b97d7ea0c82a873dd6299cbfb6af016e08ef5ed667".into()));
             m.insert("v".to_string(), Value::Int(0));
         m
     })))));
-    assert!(ccxt::runtime::is_true(&(equals(ecdsa(privateKey.clone(), privateKey.clone(), Value::Str("secp256k1".into()), Value::Null), Value::Map({
+    assert!(ccxt::runtime::is_true(&(equals(Value::Dict(ecdsa(privateKey.clone(), privateKey.clone(), Value::Str("secp256k1".into()), Value::Null)), Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("r".to_string(), Value::Str("b84a36a6fbabd5277ede578448b93d48e70b38efb5b15b1d4e2a298accf938b1".into()));
             m.insert("s".to_string(), Value::Str("66ebfb8221cda925526e699a59cd221bb4cc84bdc563024b1802c4d9e1d8bbe9".into()));
@@ -69,24 +69,24 @@ pub fn testCryptography() {
         Value::Str("o8+Sqh2Jp36vTq71iSRj5RA5r3ND3K+8eFzPZzGj6AWUA1lrljFxzV7kLfiF8gH1".into()), Value::Str("FpvWUrhNoGT/vcFJno/uabECgYAecRC5hxfLserfVDoC261PvjyK492BHUDhbxob".into()), Value::Str("h1U2v4qGAdjOxd5Gwm5uPxjPEZzRt5oTB5pXKe5953xWWTiGh/hGyW6ZBTy/9E65".into()), Value::Str("sqBub0lZVHqZ1zamcwqD1WWFkiM3NbVoMQpk3iuhKzMAqpqekiofiSlqKi16+GvY".into()),
         Value::Str("j4IW7QKBgQCrIUckPZ6IY3ERIN1IL4TIcK2gOJcznp7fLWpC+sv35ya3OhtDXKFt".into()), Value::Str("GjIHmwLuiUNc0iPzA9Rw89W0zIkKWmWcxM88/ithdxh3MEeNDUGSnd4hQ9SECwxB".into()), Value::Str("Wem3eBT7I4VtFYoaTE3/bX1SKfgBdTzIRqWKSDpgBNZg/P2Tc+s11g==".into()), Value::Str("-----END RSA PRIVATE KEY-----".into())]);
     let mut pemKey: Value = Value::Str(pemKeyArray.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into());
-    assert!(ccxt::runtime::is_true(&(Value::Bool(rsa(Value::Str("hello".into()), pemKey.clone(),
-        Value::Str("sha256".into())).as_str() ==
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(rsa(Value::Str("hello".into()), pemKey.clone(),
+        Value::Str("sha256".into()))).as_str() ==
         Some("PqHotvSEBvM/AejnMOWBXUcOf3uHtcGu2zAYdlYdnlNSSQ80Uq4lcyAEstnZ2AnQJ9l5TCC53uoRZ26GQ47zlACgqtYglmPhQKLvQ5fldRzeBauYhGgM2C0mUuUGxh074fNGbK+bgmwEmDMIrnSPtXwiCqTAHh+8VEnC7us3t09D61y298dPBJYEBNN3dFZT0w0pCIQg3j3DSiFJOCfywmOKyXqS1pvmk6A38DVclQZORQ5WZXp2yvSKRLjxpzjxDl76h1GfbBl7sMLEFMyzk0wyIhIz8ZELMibYn036G4X1IcSlDcimthEkIbn2QjM0ntyYDZIS4QnsMBjvkV2UHw==")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(rsa(Value::Str("poopy".into()), pemKey.clone(),
-        Value::Str("sha256".into())).as_str() ==
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(rsa(Value::Str("poopy".into()), pemKey.clone(),
+        Value::Str("sha256".into()))).as_str() ==
         Some("or069qHwRDyl162T1s5G5+LfLnvDxlgk9kEsJvwI3vM02KB1LHW4+8gWqsV4TENZpeqed2Tb4na6ex+L/UR8JxJnnZtpVp33nUBgcp3miqp/YhcGN4++qolP4YN/21/AyfLFZW+VYggc+Mhh6PJSm+0dSEWMVsP35uH+35abXVxgB8GVOn7YTOSPaL8aw7hn4wlZWf2ieikKAi7AwAjkxnd7/Bu5+cW8D+ZdPHQfSKj+XHuPXlJNuQX0MDIqhdD2yuYJOQL56eKYs6nHPlClATkndSaAemQSGKet3X3Iz1awG4MGgz2Ei6bOanlNugc0f6Rng6rdwmqiMU3G4it6cw==")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(jwt(Value::Map({
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(jwt(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("chicken".to_string(), Value::Str("salad".into()));
     m
 }), encode(pemKey), Value::Str("sha256".into()), Value::Bool(true),
-    Value::Null).as_str() ==
+    Value::Null)).as_str() ==
     Some("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGlja2VuIjoic2FsYWQifQ.FSKD5Y6RNzkHTuHdvG3753U7QNZ-u-GUSPfP1FMjEaK0Rr_iyQTSSmHhkdYSFFnmBvrrN_l-UwKwir52WlsgmQm9HYm0kidxbj7fWwrK2E1oe0P7OjupFjv1BZxc5W69WeaHtOPWe28tiHiON1LCnax6HgfI5lcIBsESGIIBZMVeaioQn9gDVwea7JxJvAlrhDIWZowIHTIdCQocXip7g5jREWHeEIuJNug67mwnfAFxCjvTRiTd0Bw6oBwjM3FLya-RyEyWrejQOWSuC8CNWVUHISaSmEyZ7uM6wTi2m_58TaE9mQwlef32OPErPvvBpgL5pZIyQ4ymwrCIFQLBQQ")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(jwt(Value::Map({
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(jwt(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("lil".to_string(), Value::Str("xan".into()));
     m
-}), encode(Value::Str("betrayed".into())), Value::Str("sha256".into()), Value::Bool(false), Value::Null).as_str() == Some("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWwiOiJ4YW4ifQ.md-oFvZagA-NXmZoRNyJOQ7zwK-PWUMmMQ_LI9ZOKaM")))));
+}), encode(Value::Str("betrayed".into())), Value::Str("sha256".into()), Value::Bool(false), Value::Null)).as_str() == Some("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWwiOiJ4YW4ifQ.md-oFvZagA-NXmZoRNyJOQ7zwK-PWUMmMQ_LI9ZOKaM")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(crc32(Value::Str("hello".into()), Value::Bool(true)).as_f64() == Some(907060870.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(crc32(Value::Str("tasty chicken breast :)".into()), Value::Bool(true)).as_f64() == Some(825820175.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(crc32(Value::Str("21101:0.00123125:21102:-0.001:21100:0.710705:21103:-0.001:21096:0.71076:21104:-0.001:21094:1.0746:21105:-0.001:21093:0.710854:21106:-0.419:21092:0.01368102:21107:-0.001:21090:0.710975:21109:-0.001:21089:0.63586344:21110:-1.186213:21087:0.299:21111:-0.48751202:21086:0.9493:21112:-0.03702409:21082:0.03537667:21113:-0.712385:21081:0.00101366:21114:-0.2903:21079:0.710713:21115:-0.001:21078:0.997048:21116:-0.60089827:21077:0.23770225:21117:-0.83201:21076:0.03619135:21118:-0.09996142:21075:0.1272433:21119:-1.09681107:21074:0.7447885:21120:-0.04771792:21073:0.0011:21121:-0.91495684:21072:0.73311632:21122:-0.07940416:21071:0.09817:21123:-0.39376843:21070:0.19101052:21124:-1.51692599:21069:0.2757:21125:-0.11107322:21068:0.12480303:21126:-0.12704666:21067:0.4201:21128:-0.12804666".into()),

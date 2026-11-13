@@ -41,6 +41,6 @@ pub fn testUrlencodeBase64() {
     //
     // add binary tests
     //
-    let mut binaryData: Value = exchange.base16_to_binary(Value::Str("191919191919".into()), &[]);
+    let mut binaryData: Value = Value::from(exchange.base16_to_binary(Value::Str("191919191919".into()), &[]));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(binaryData.clone(), &[]).as_str() == Some("GRkZGRkZ")))));
 }

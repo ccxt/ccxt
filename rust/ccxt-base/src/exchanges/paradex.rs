@@ -76,9 +76,9 @@ impl crate::exchange::DerivedExchange for Paradex {
         // Forward to the inherent method on Paradex.
         Paradex::parse_funding_rate(self, rate, market)
     }
-    fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transfer(&self, transfer: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Paradex.
-        Paradex::parse_transfer(self, transfer, &[currency])
+        Paradex::parse_transfer(self, transfer, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Paradex.
@@ -88,9 +88,9 @@ impl crate::exchange::DerivedExchange for Paradex {
         // Forward to the inherent method on Paradex.
         Paradex::parse_liquidation(self, liquidation, market)
     }
-    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+    fn parse_transaction(&self, transaction: crate::Value, currency: Option<&crate::types::Currency>) -> crate::Value {
         // Forward to the inherent method on Paradex.
-        Paradex::parse_transaction(self, transaction, &[currency])
+        Paradex::parse_transaction(self, transaction, currency)
     }
     fn parse_income(&self, info: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Paradex.
@@ -185,8 +185,8 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "prepare_paradex_domain" => self.prepare_paradex_domain(&args[..]).await,
                 "retrieve_account" => self.retrieve_account().await,
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
@@ -1498,12 +1498,12 @@ impl Paradex {
             quoteId = settleId.clone();
             settleId = None.clone();
         }
-        let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
+        let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
         if !(matches!(&isSpot, Value::Bool(true))) && (settle.is_some()) {
             symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2125,7 +2125,8 @@ impl Paradex {
         }).await?))
     }
 
-    pub fn parse_funding_rate(&self, mut contract: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut contract: Value = contract.into();
         //
         //     {
         //         "symbol": "BTC-USD-PERP",
@@ -2381,7 +2382,7 @@ impl Paradex {
             takerOrMaker = "taker".to_string();
         }
         let mut currencyId: Option<String> = self.safe_string_k(trade.clone(), "fee_currency", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
@@ -2495,8 +2496,8 @@ impl Paradex {
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(interest.clone(), "created_at", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(interest.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
-        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
+        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
@@ -2506,7 +2507,7 @@ impl Paradex {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("info".to_string(), interest);
     m
-}), &[marketResolved]);
+}), Some(&marketResolved));
 
     Value::Null
 }
@@ -2518,11 +2519,11 @@ impl Paradex {
 
     pub fn sign_hash(&self, hash: &str, mut privateKey: Value) -> Option<String> {
         let mut hash: Value = hash.into();
-        let mut signature: Value = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
+        let mut signature: crate::value::Dict = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
             privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
-        let mut r: Value = signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null);
-        let mut s: Value = signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null);
-        let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
+        let mut r: Value = crate::value::KeyRead::key_read(&&signature, "r");
+        let mut s: Value = crate::value::KeyRead::key_read(&&signature, "s");
+        let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]), &[]);
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), v).into()).as_str().map(str::to_owned);
 }
 
@@ -2573,7 +2574,7 @@ impl Paradex {
         if (self.safe_dict_k(self.options.clone(), "paradexAccount", &[]) == Value::Null) {
             self.check_required_credentials(&[]);
             let mut systemConfig: Value = self.get_system_config().await;
-            let mut domain: Value = self.prepare_paradex_domain(&[Value::Bool(true)]).await;
+            let mut domain: crate::value::Dict = self.prepare_paradex_domain(&[Value::Bool(true)]).await.into_dict();
             let mut messageTypes: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Constant".to_string(), Value::from(vec![Value::Map({
@@ -2589,7 +2590,7 @@ impl Paradex {
                     m.insert("action".to_string(), Value::Str("STARK Key".into()));
                 m
             });
-            let mut msg: Value = self.eth_encode_structured_data(domain, Value::Map(messageTypes), Value::Map(message));
+            let mut msg: Value = self.eth_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(message));
             let mut signature: Value = self.sign_message(msg, (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
             let mut account: indexmap::IndexMap<String, Value> = self.retrieve_stark_account(signature, self.safe_string_k(systemConfig.clone(), "paraclear_account_hash", &[]), self.safe_string_k(systemConfig, "paraclear_account_proxy_hash", &[])).as_map().cloned().unwrap_or_default();
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("paradexAccount".into(), Value::Map(account)); }
@@ -2613,7 +2614,7 @@ impl Paradex {
                 m.insert("action".to_string(), Value::Str("Onboarding".into()));
             m
         });
-        let mut domain: Value = self.prepare_paradex_domain(&[]).await;
+        let mut domain: crate::value::Dict = self.prepare_paradex_domain(&[]).await.into_dict();
         let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Constant".to_string(), Value::from(vec![Value::Map({
@@ -2624,7 +2625,7 @@ impl Paradex {
 })]));
             m
         });
-        let mut msg: Option<String> = self.starknet_encode_structured_data(domain, Value::Map(messageTypes), Value::Map(req), self.safe_string_k(account.clone(), "address", &[])).as_str().map(str::to_owned);
+        let mut msg: Option<String> = self.starknet_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(req), self.safe_string_k(account.clone(), "address", &[])).as_str().map(str::to_owned);
         let mut signature: Option<String> = self.starknet_sign(msg.map(Value::from).unwrap_or(Value::Null), account.as_map().and_then(|__m| __m.get("privateKey")).cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("signature".into(), signature.map(Value::from).unwrap_or(Value::Null)); }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".into(), self.safe_string_k(account.clone(), "address", &[])); }
@@ -2663,7 +2664,7 @@ impl Paradex {
                 m.insert("expiration".to_string(), expires.clone());
             m
         });
-        let mut domain: Value = self.prepare_paradex_domain(&[]).await;
+        let mut domain: crate::value::Dict = self.prepare_paradex_domain(&[]).await.into_dict();
         let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Request".to_string(), Value::from(vec![Value::Map({
@@ -2694,7 +2695,7 @@ impl Paradex {
 })]));
             m
         });
-        let mut msg: Option<String> = self.starknet_encode_structured_data(domain, Value::Map(messageTypes), Value::Map(req.clone()), self.safe_string_k(account.clone(), "address", &[])).as_str().map(str::to_owned);
+        let mut msg: Option<String> = self.starknet_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(req.clone()), self.safe_string_k(account.clone(), "address", &[])).as_str().map(str::to_owned);
         let mut signature: Option<String> = self.starknet_sign(msg.map(Value::from).unwrap_or(Value::Null), account.as_map().and_then(|__m| __m.get("privateKey")).cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("signature".into(), signature.map(Value::from).unwrap_or(Value::Null)); }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".into(), self.safe_string_k(account, "address", &[])); }
@@ -3076,8 +3077,8 @@ impl Paradex {
                 m
             });
         }
-        let mut domain: Value = self.prepare_paradex_domain(&[]).await;
-        let mut msg: Option<String> = self.starknet_encode_structured_data(domain, Value::Map(messageTypes), Value::Map(orderReq.clone()), self.safe_string_k(account.clone(), "address", &[])).as_str().map(str::to_owned);
+        let mut domain: crate::value::Dict = self.prepare_paradex_domain(&[]).await.into_dict();
+        let mut msg: Option<String> = self.starknet_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(orderReq.clone()), self.safe_string_k(account.clone(), "address", &[])).as_str().map(str::to_owned);
         let mut signature: Option<String> = self.starknet_sign(msg.map(Value::from).unwrap_or(Value::Null), account.as_map().and_then(|__m| __m.get("privateKey")).cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut signedRequest: Value = self.extend(request, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3163,8 +3164,8 @@ impl Paradex {
         //     "type": "MARKET"
         // }
         //
-        let mut order: Value = self.parse_order(&response, Some(&market));
-        return order;
+        let mut order: crate::value::Dict = self.parse_order(&response, Some(&market)).into_dict();
+        return Value::Dict(order);
         Value::Null
         }).await?))
     }
@@ -3304,9 +3305,9 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1059: bool = true;
             while { if !__for_first_1059 { i += 1; } __for_first_1059 = false; i < (orders.len() as i64) } {
-            let mut responseOrder: Value = self.safe_dict(&responseOrders, Value::Int(i), &[]);
-            if (responseOrder != Value::Null) {
-                result.push(self.parse_order(responseOrder, None));
+            let mut responseOrder: Option<crate::value::Dict> = self.safe_dict(&responseOrders, Value::Int(i), &[]).into_opt_dict();
+            if (responseOrder.is_some()) {
+                result.push(self.parse_order(&responseOrder, None));
             }  else {
                 let mut error: Value = self.safe_dict(&errors, Value::Int(i), &[]);
                 result.push(self.safe_order(Value::Map({
@@ -3804,7 +3805,7 @@ impl Paradex {
     m
 })]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "token", &[]).as_str().map(str::to_owned);
-            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&balance, "size", &[]));
             if (code.is_some()) {
@@ -4227,8 +4228,8 @@ impl Paradex {
     m
 })]);
             let mut transactions: Value = self.fetch_paginated_call_cursor(Value::Str("fetchDeposits".into()), &[code, since.clone(), Value::Null, __ws_arg_18, Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
-            let mut transactionsOfKind: Value = self.filter_transactions_by_kind(transactions, "DEPOSIT");
-            return self.filter_by_since_limit(transactionsOfKind, since.as_i64(), limit.as_i64(), &[]);
+            let mut transactionsOfKind: crate::value::List = self.filter_transactions_by_kind(transactions, "DEPOSIT").into_list();
+            return self.filter_by_since_limit(Value::Arr(transactionsOfKind), since.as_i64(), limit.as_i64(), &[]);
         }
         let mut allKinds: bool = self.safe_bool_k(&paramsPaginate, "allKinds", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsKinds: crate::value::Dict = self.omit(&paramsPaginate, Value::Str("allKinds".into()), &[]).into_dict();
@@ -4289,7 +4290,7 @@ impl Paradex {
             }
         }
         }
-        return self.parse_transactions(Value::from(deposits), &[Value::Null, since, limit]);
+        return self.parse_transactions(Value::from(deposits), None, &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4335,8 +4336,8 @@ impl Paradex {
     m
 })]);
             let mut transactions: Value = self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".into()), &[code, since.clone(), Value::Null, __ws_arg_20, Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
-            let mut transactionsOfKind: Value = self.filter_transactions_by_kind(transactions, "WITHDRAWAL");
-            return self.filter_by_since_limit(transactionsOfKind, since.as_i64(), limit.as_i64(), &[]);
+            let mut transactionsOfKind: crate::value::List = self.filter_transactions_by_kind(transactions, "WITHDRAWAL").into_list();
+            return self.filter_by_since_limit(Value::Arr(transactionsOfKind), since.as_i64(), limit.as_i64(), &[]);
         }
         let mut allKinds: bool = self.safe_bool_k(&paramsPaginate, "allKinds", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsKinds: crate::value::Dict = self.omit(&paramsPaginate, Value::Str("allKinds".into()), &[]).into_dict();
@@ -4397,7 +4398,7 @@ impl Paradex {
             }
         }
         }
-        return self.parse_transactions(Value::from(deposits), &[Value::Null, since, limit]);
+        return self.parse_transactions(Value::from(deposits), None, &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4442,9 +4443,9 @@ impl Paradex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut currency: Value = Value::Null;
+        let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = self.safe_currency(code, &[]);
+            currency = Some(self.safe_currency(code, None));
         }
         if (limit != Value::Null) {
             request.insert("page_size".into(), limit.clone());
@@ -4488,14 +4489,13 @@ impl Paradex {
             add_element_to_object(get_value_mut(&mut rows, &Value::Int(i)), &Value::Str("next".into()), next.clone().map(Value::from).unwrap_or(Value::Null));
         }
         }
-        return self.parse_transfers(rows, &[currency, since, limit]);
+        return self.parse_transfers(rows, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transfer: Value = transfer.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "id": "1718940471200201703989430000",
@@ -4512,7 +4512,7 @@ impl Paradex {
         //     }
         //
         let mut currencyId: Option<String> = self.safe_string_k(transfer.clone(), "token", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut timestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "created_at", &[]).as_i64();
         let mut kind: Option<String> = self.safe_string_k(transfer.clone(), "kind", &[]).as_str().map(str::to_owned);
         let mut fromAccount: Option<String> = None;
@@ -4541,9 +4541,8 @@ impl Paradex {
     Value::Null
 }
 
-    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut transaction: Value = transaction.into();
-        let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         // fetchDeposits & fetchWithdrawals
         //
@@ -4565,7 +4564,7 @@ impl Paradex {
         let mut address: Option<String> = self.safe_string_k(transaction.clone(), "account", &[]).as_str().map(str::to_owned);
         let mut txid: Option<String> = self.safe_string_k(transaction.clone(), "txn_hash", &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "token", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "created_at", &[]).as_i64();
         let mut updated: Option<i64> = self.safe_integer_k(transaction.clone(), "last_updated_at", &[]).as_i64();
         let mut type_var: Option<String> = self.safe_string_k(transaction.clone(), "kind", &[]).as_str().map(str::to_owned);

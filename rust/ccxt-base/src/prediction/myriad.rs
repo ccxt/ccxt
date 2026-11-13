@@ -575,12 +575,12 @@ impl Myriad {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut queries: Value = self.parse_search_queries(&[params.clone()]);
+        let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
         let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]);
         let mut queriesLength: i64 = queries.len() as i64;
         let mut rawMarkets: Value = Value::from(vec![]);
         if queriesLength > 0 {
-            rawMarkets = self.fetch_raw_markets_by_search(queries, &[rest.clone()]).await;
+            rawMarkets = self.fetch_raw_markets_by_search(Value::Arr(queries), &[rest.clone()]).await;
         }  else {
             rawMarkets = self.fetch_raw_markets_list(&[rest]).await;
         }
@@ -594,9 +594,9 @@ impl Myriad {
             let mut __for_first_1339: bool = true;
             while { if !__for_first_1339 { i += 1; } __for_first_1339 = false; i < (rawMarkets.len() as i64) } {
             let mut raw: Value = rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut m: Value = self.parse_myriad_market(raw.clone(), None);
-            flatMarkets.push(m.clone());
-            let mut ev: Value = self.parse_market_to_event(raw, m);
+            let mut m: crate::value::Dict = self.parse_myriad_market(raw.clone(), None).into_dict();
+            flatMarkets.push(Value::from(&m));
+            let mut ev: Value = self.parse_market_to_event(raw, Value::Dict(m));
             let mut evKey: Option<String> = self.safe_string_k(ev.clone(), "event", &[]).as_str().map(str::to_owned);
             if (evKey.is_some()) {
                 if let Value::Dict(__d) = &mut eventsDict { std::sync::Arc::make_mut(__d).insert(evKey.as_deref().unwrap_or("null").to_string(), ev); }
@@ -758,15 +758,15 @@ impl Myriad {
 }));
         if !id.as_str().unwrap_or("").contains(":") {
             let mut rawQuestion: Value = self.fetch_raw_question_by_id(id.as_str().unwrap_or_default(), &[params.clone()]).await;
-            let mut orderBookEvent: Value = self.parse_event(rawQuestion);
-            self.index_event_outcomes(orderBookEvent.clone());
-            return orderBookEvent;
+            let mut orderBookEvent: crate::value::Dict = self.parse_event(rawQuestion).into_dict();
+            self.index_event_outcomes(Value::from(&orderBookEvent));
+            return Value::Dict(orderBookEvent);
         }
         let mut response: Value = self.fetch_raw_market_by_id(id.as_str().unwrap_or_default(), &[params]).await;
-        let mut market: Value = self.parse_myriad_market(response.clone(), None);
-        let mut event: Value = self.parse_market_to_event(response, market);
-        self.index_event_outcomes(event.clone());
-        return event;
+        let mut market: crate::value::Dict = self.parse_myriad_market(response.clone(), None).into_dict();
+        let mut event: crate::value::Dict = self.parse_market_to_event(response, Value::Dict(market)).into_dict();
+        self.index_event_outcomes(Value::from(&event));
+        return Value::Dict(event);
         Value::Null
         }).await?))
     }
@@ -1237,9 +1237,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx.clone(), "value", &[Value::Str("0x0".into())]))), self.rlp_encode_bytes(self.remove0x_prefix(self.safe_string_k(tx, "data", &[Value::Str("0x".into())]))), accessList.map(Value::from).unwrap_or(Value::Null)]);
         let mut payload: String = format!("{}{}", Value::Str("02".into()), self.rlp_encode_list(fields.clone()));
         let mut hashHex: Value = self.hash(self.base16_to_binary(Value::from(payload), &[]), Value::Str("keccak".into()), &[Value::Str("hex".into())]);
-        let mut signature: Value = ecdsa(hashHex, self.remove0x_prefix(privateKey), Value::Str("secp256k1".into()), Value::Null);
-        let mut rHex: Option<String> = self.safe_string_k(signature.clone(), "r", &[]).as_str().map(str::to_owned);
-        let mut sHex: Option<String> = self.safe_string_k(signature.clone(), "s", &[]).as_str().map(str::to_owned);
+        let mut signature: crate::value::Dict = ecdsa(hashHex, self.remove0x_prefix(privateKey), Value::Str("secp256k1".into()), Value::Null);
+        let mut rHex: Option<String> = self.safe_string_k(&signature, "r", &[]).as_str().map(str::to_owned);
+        let mut sHex: Option<String> = self.safe_string_k(&signature, "s", &[]).as_str().map(str::to_owned);
         if (rHex.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" signEvmTransaction() missing rHex".into()))));
         }
@@ -1254,7 +1254,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (((match (&(sHexLength), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_f64() != Some(0.0)) {
             sHex = Some(format!("{}{}", Value::Str("0".into()), sHex.clone().map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut yParity: Option<i64> = self.safe_integer_k(signature, "v", &[]).as_i64();
+        let mut yParity: Option<i64> = self.safe_integer_k(&signature, "v", &[]).as_i64();
         let mut signedFields: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1394,14 +1394,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut built: Value = self.build_orderbook_order(outcome.as_str(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), params]);
-        let mut order: Value = self.safe_dict_k(built.clone(), "order", &[]);
-        let mut networkId: Option<String> = self.safe_string_k(built.clone(), "networkId", &[]).as_str().map(str::to_owned);
-        let mut timeInForce: Option<String> = self.safe_string_k(built.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
+        let mut built: crate::value::Dict = self.build_orderbook_order(outcome.as_str(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), params]).into_dict();
+        let mut order: Value = self.safe_dict_k(&built, "order", &[]);
+        let mut networkId: Option<String> = self.safe_string_k(&built, "networkId", &[]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.safe_string_k(&built, "timeInForce", &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order".to_string(), order.clone());
-                m.insert("signature".to_string(), self.safe_string_k(built, "signature", &[]));
+                m.insert("signature".to_string(), self.safe_string_k(&built, "signature", &[]));
                 m.insert("network_id".to_string(), Value::from(self.parse_to_int(networkId.clone().map(Value::from).unwrap_or(Value::Null))));
                 m.insert("time_in_force".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
             m
@@ -1807,12 +1807,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), types, message);
         let mut digest: Value = self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]);
-        let mut signature: Value = ecdsa(digest, self.remove0x_prefix(self.privateKey.clone()), Value::Str("secp256k1".into()), Value::Null);
-        let mut rRaw: Value = signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null);
-        let mut sRaw: Value = signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null);
+        let mut signature: crate::value::Dict = ecdsa(digest, self.remove0x_prefix(self.privateKey.clone()), Value::Str("secp256k1".into()), Value::Null);
+        let mut rRaw: Value = crate::value::KeyRead::key_read(&&signature, "r");
+        let mut sRaw: Value = crate::value::KeyRead::key_read(&&signature, "s");
         let mut r: Value = rRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
         let mut s: Value = sRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
-        let mut v: Value = self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]);
+        let mut v: Value = self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]);
         let mut sigHex: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), r).into()), s).into()), self.int_to_base16(v, &[]));
         return Value::from(sigHex.to_lowercase()).as_str().map(str::to_owned);
 }
@@ -2366,12 +2366,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (networkId.is_none()) {
             networkId = self.safe_string_k(self.options.clone(), "defaultNetworkId", &[Value::Str("56".into())]).as_str().map(str::to_owned);
         }
-        let mut message: Value = self.clob_order_message(rawOrder);
-        let mut signature: Option<String> = self.sign_clob_order(message.clone(), networkId.as_deref().unwrap_or_default());
+        let mut message: crate::value::Dict = self.clob_order_message(rawOrder).into_dict();
+        let mut signature: Option<String> = self.sign_clob_order(Value::from(&message), networkId.as_deref().unwrap_or_default());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hash".to_string(), id);
-                m.insert("order".to_string(), message);
+                m.insert("order".to_string(), Value::Dict(message));
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                 m.insert("network_id".to_string(), Value::from(self.parse_to_int(networkId.clone().map(Value::from).unwrap_or(Value::Null))));
             m
@@ -2505,12 +2505,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1353: bool = true;
             while { if !__for_first_1353 { i += 1; } __for_first_1353 = false; (i as f64) < idsLength } {
-            let mut id: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut fetched: Value = self.get_order_response_from_params(id.as_str(), &[paramsForLookup.clone()]);
+            let mut id: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut fetched: Value = self.get_order_response_from_params(id.as_deref(), &[paramsForLookup.clone()]);
             if (fetched == Value::Null) {
                 fetched = self.myriad_public_get_orders_hash(&[Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("hash".to_string(), id);
+                        m.insert("hash".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                     m
                 })]).await;
             }
@@ -2540,11 +2540,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (fetchedNetworkId.is_some()) {
                 networkId = fetchedNetworkId;
             }
-            let mut message: Value = self.clob_order_message(rawOrder);
-            let mut signature: Option<String> = self.sign_clob_order(message.clone(), networkId.as_deref().unwrap_or_default());
+            let mut message: crate::value::Dict = self.clob_order_message(rawOrder).into_dict();
+            let mut signature: Option<String> = self.sign_clob_order(Value::from(&message), networkId.as_deref().unwrap_or_default());
             signedOrders.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("order".to_string(), message);
+                    m.insert("order".to_string(), Value::Dict(message));
                     m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                 m
             }));
@@ -4879,16 +4879,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
     m
 }), &[market]);
-        if (self.trades.clone() == Value::Null) {
-            { let __t = self.create_safe_dictionary(&[]); self.trades = __t; }
+        if (false) {
+            self.trades = crate::pro::cache::CacheMap::new();
         }
-        if (self.safe_value(self.trades.clone(), sym.clone(), &[]) == Value::Null) {
+        if (self.trades.lookup(&sym).is_none()) {
             let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), Value::from(ArrayCache::new(tradesLimit))); }
+            CacheStore::put(&mut self.trades, &sym, ArrayCache::new(tradesLimit));
         }
-        let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), sym.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&sym);
         stored.append(trade.clone());
-        client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("trades::".into()), sym).into())));
+        client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", Value::Str("trades::".into()), sym).into())));
         // also surface the wallet's own fills (taker or maker leg) with their real execution prices
         let mut myWallet: Option<String> = self.wallet_address_or_undefined();
         if (myWallet.is_some()) {
