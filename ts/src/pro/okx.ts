@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import okxRest from '../okx.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, AuthenticationError, InvalidNonce, ChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, NullableDict, List, Liquidation, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -1422,9 +1422,10 @@ export default class okx extends okxRest {
         //         "17" // orders
         //     ]
         //
+        // the checksum is taken over the raw strings, so they are kept
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
-        bookside.store (price, amount);
+        bookside.storeArray ([ price, amount, delta ]);
     }
 
     override handleDeltas (bookside: any, deltas: any[]) {
@@ -1476,6 +1477,48 @@ export default class okx extends okxRest {
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         return orderbook;
+    }
+
+    handleChecksum (client: Client, message: any, orderbook: any, messageHash: string, channel: Str): boolean {
+        // okx sends a crc32 over the raw strings of the top 25 levels a side
+        const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+        const responseChecksum = this.safeInteger (message, 'checksum');
+        // a channel that computes no checksum says so in one of two ways: books-rpi
+        // omits the field, books carries a literal 0 on every frame, snapshot and
+        // update alike
+        const supplied = (responseChecksum !== undefined) && (responseChecksum !== 0);
+        if ((checksum !== true) || !supplied) {
+            return true;
+        }
+        const storedAsks = orderbook['asks'];
+        const storedBids = orderbook['bids'];
+        const asksLength = storedAsks.length;
+        const bidsLength = storedBids.length;
+        const payloadArray: string[] = [];
+        for (let i = 0; i < 25; i++) {
+            if (i < bidsLength) {
+                payloadArray.push (storedBids[i][2][0]);
+                payloadArray.push (storedBids[i][2][1]);
+            }
+            if (i < asksLength) {
+                payloadArray.push (storedAsks[i][2][0]);
+                payloadArray.push (storedAsks[i][2][1]);
+            }
+        }
+        const payload = payloadArray.join (':');
+        if (this.crc32 (payload, true) === responseChecksum) {
+            return true;
+        }
+        this.spawn (this.handleCheckSumError, client, orderbook['symbol'], messageHash, channel);
+        return false;
+    }
+
+    async handleCheckSumError (client: Client, symbol: string, messageHash: string, channel: Str) {
+        // without the depth, unWatchOrderBookForSymbols defaults to books and
+        // leaves the real subscription live on any other channel
+        await this.unWatchOrderBook (symbol, { 'depth': channel });
+        const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+        client.reject (error, messageHash);
     }
 
     handleOrderBook (client: Client, message: Dict): Dict {
@@ -1584,24 +1627,20 @@ export default class okx extends okxRest {
         if (action === 'snapshot') {
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
-                // reset the existing orderbook instead of replacing it: a consumer
-                // holds a reference to the old object and would never see updates
-                // after a re-subscription snapshot
+                // Consumers retain the book object across resubscriptions.
                 if (!(symbol in this.orderbooks)) {
-                    this.orderbooks[symbol] = this.orderBook ({}, limit);
+                    this.orderbooks[symbol] = this.countedOrderBook ({}, limit);
                 }
                 const snapshotBook: WsOrderBook = this.orderbooks[symbol];
-                const timestamp = this.safeInteger (update, 'ts');
-                // rows are [ price, amount, liquidatedOrders, numOrders ] - store
-                // price and amount only, matching handleDelta, so countOrIdKey
-                // points past the row on purpose
-                const snapshot = this.parseOrderBook (update, symbol, timestamp, 'bids', 'asks', 0, 1, 4);
-                snapshot['nonce'] = this.safeInteger (update, 'seqId');
-                snapshotBook.reset (snapshot);
+                snapshotBook.reset ({});
+                snapshotBook['symbol'] = symbol;
+                this.handleOrderBookMessage (client, update, snapshotBook, messageHash, market);
                 if (!(messageHash in client.subscriptions)) {
                     break;
                 }
-                client.resolve (snapshotBook, messageHash);
+                if (this.handleChecksum (client, update, snapshotBook, messageHash, channel)) {
+                    client.resolve (snapshotBook, messageHash);
+                }
             }
         } else if (action === 'update') {
             if (symbol in this.orderbooks) {
@@ -1614,22 +1653,22 @@ export default class okx extends okxRest {
                         client.subscriptions[messageHash] = 'resync';
                         break;
                     }
-                    client.resolve (updatedBook, messageHash);
+                    if (this.handleChecksum (client, update, updatedBook, messageHash, channel)) {
+                        client.resolve (updatedBook, messageHash);
+                    }
                 }
             }
         } else if ((channel === 'books5') || (channel === 'bbo-tbt')) {
-            // watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
-            // shared order-book cache when watchOrderBook subscribed to this
+            // watchBidsAsks reuses bbo-tbt with bidask:: hashes; only build a
+            // book when watchOrderBook subscribed to this
             // channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in client.subscriptions)
             if (messageHash in client.subscriptions) {
-                if (!(symbol in this.orderbooks)) {
-                    this.orderbooks[symbol] = this.orderBook ({}, limit);
-                }
-                const bboBook: WsOrderBook = this.orderbooks[symbol];
                 for (let i = 0; i < data.length; i++) {
                     const update = data[i];
                     const timestamp = this.safeInteger (update, 'ts');
                     const snapshot = this.parseOrderBook (update, symbol, timestamp, 'bids', 'asks', 0, 1);
+                    // each frame is a whole book, kept apart from the counted book the checksum channels store under the symbol
+                    const bboBook: WsOrderBook = this.orderBook ({}, limit);
                     bboBook.reset (snapshot);
                     client.resolve (bboBook, messageHash);
                 }
