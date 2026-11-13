@@ -1429,12 +1429,10 @@ class bitget(ccxt.async_support.bitget):
         #
         arg = self.safe_dict(message, 'arg', {})
         instType = self.safe_string(arg, 'instType', '')
-        if self.positions is None:
-            self.positions = {}
         action = self.safe_string(message, 'action')
-        if not (instType in self.positions) or (action == 'snapshot'):
-            self.positions[instType] = ArrayCacheBySymbolBySide()
-        cache = self.positions[instType]
+        if not (instType in self.positionsByType) or (action == 'snapshot'):
+            self.positionsByType[instType] = ArrayCacheBySymbolBySide()
+        cache = self.positionsByType[instType]
         rawPositions = self.safe_list(message, 'data', [])
         newPositions = []
         for i in range(0, len(rawPositions)):

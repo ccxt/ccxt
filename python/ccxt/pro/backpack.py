@@ -288,15 +288,9 @@ class backpack(ccxt.async_support.backpack):
                     if (self.orders is not None) and (symbol in cache):
                         del cache[symbol]
             elif messageHash.find('positions') >= 0:
+                # the positions cache is one ArrayCacheBySymbolById: dropping it forgets every symbol
                 if messageHash == 'unsubscribe:positions':
-                    keys = list(self.positions.keys())
-                    for j in range(0, len(keys)):
-                        symbol = keys[j]
-                        del self.positions[symbol]
-                else:
-                    symbol = messageHash.replace('unsubscribe:positions:', '')
-                    if symbol in self.positions:
-                        del self.positions[symbol]
+                    self.positions = None
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """

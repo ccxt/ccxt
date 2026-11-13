@@ -1336,10 +1336,10 @@ class PredictionExchange(BaseExchange):
             results.append(position)
         return results
 
-    def filter_by_outcome_since_limit(self, array: object, outcome: Str = None, since: Int = None, limit: Int = None, tail=False):
+    def filter_by_outcome_since_limit(self, array: list[object] | None, outcome: Str = None, since: Int = None, limit: Int = None, tail=False):
         return self.filter_by_value_since_limit(array, 'outcome', outcome, since, limit, 'timestamp', tail)
 
-    def filter_by_outcomes_since_limit(self, array: object, outcomes: Strings = None, since: Int = None, limit: Int = None, tail=False):
+    def filter_by_outcomes_since_limit(self, array: list[object] | None, outcomes: Strings = None, since: Int = None, limit: Int = None, tail=False):
         result = self.filter_by_array(array, 'outcome', outcomes, False)
         return self.filter_by_since_limit(result, since, limit, 'timestamp', tail)
 

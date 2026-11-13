@@ -848,15 +848,13 @@ class derive(ccxt.async_support.derive):
         symbolsResolved = self.market_symbols(symbols, None, True)
         fetchSnapshot, paramsSnapshot = self.handle_option_bool_and_params(params, 'watchPositions', 'fetchPositionsSnapshot', True)
         subaccountId, paramsDeriveSubaccountId = self.handleDeriveSubaccountId('watchPositions', paramsSnapshot)
-        if self.positions is None:
-            emptyCaches = {}
-            self.positions = emptyCaches
+        if self.is_empty(self.positionsByType):
             emptySnapshots = {}
             self.options['loadedPositionsSnapshots'] = emptySnapshots
         # the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
         subaccountIdKey = self.number_to_string(subaccountId)
-        if not (subaccountIdKey in self.positions):
-            self.positions[subaccountIdKey] = ArrayCacheBySymbolBySide()
+        if not (subaccountIdKey in self.positionsByType):
+            self.positionsByType[subaccountIdKey] = ArrayCacheBySymbolBySide()
         loadedSnapshots = self.safe_dict(self.options, 'loadedPositionsSnapshots', {})
         if fetchSnapshot and not (subaccountIdKey in loadedSnapshots):
             snapshotRequest = {
@@ -864,7 +862,7 @@ class derive(ccxt.async_support.derive):
             }
             snapshotParams = self.extend(snapshotRequest, paramsDeriveSubaccountId)
             positionsSnapshot = await self.fetch_positions(None, snapshotParams)
-            cache = self.safe_value(self.positions, subaccountIdKey)
+            cache = self.safe_value(self.positionsByType, subaccountIdKey)
             for i in range(0, len(positionsSnapshot)):
                 snapshotPosition = self.safe_dict(positionsSnapshot, i)
                 cache.append(snapshotPosition)
@@ -889,7 +887,7 @@ class derive(ccxt.async_support.derive):
         newPositions = await self.watch_private(messageHash, message, subscription)
         if self.newUpdates:
             return newPositions
-        return self.filter_by_symbols_since_limit(self.safe_value(self.positions, subaccountIdKey), symbolsResolved, since, limit, True)
+        return self.filter_by_symbols_since_limit(self.safe_value(self.positionsByType, subaccountIdKey), symbolsResolved, since, limit, True)
 
     def handle_position_delta(self, subaccountIdKey: str, entry: dict) -> Position:
         marketId = self.safe_string(entry, 'name')
@@ -899,7 +897,7 @@ class derive(ccxt.async_support.derive):
         isShort = Precise.string_lt(newSize, '0')
         side = 'short' if isShort else 'long'
         contracts = Precise.string_abs(newSize)
-        cache = self.safe_value(self.positions, subaccountIdKey)
+        cache = self.safe_value(self.positionsByType, subaccountIdKey)
         symbolPositions = self.safe_dict(cache.hashmap, symbol, {})
         # a fill through zero flattens the opposite side first
         oppositeSide = 'long' if isShort else 'short'
@@ -960,7 +958,7 @@ class derive(ccxt.async_support.derive):
             name = self.safe_string(entry, 'name', '')
             if name.find('-') >= 0:
                 # position deltas carry instrument names and do not belong into the balance structure
-                if (self.positions is not None) and (subaccountIdKey in self.positions):
+                if subaccountIdKey in self.positionsByType:
                     position = self.handle_position_delta(subaccountIdKey, entry)
                     positionUpdates.append(position)
                 continue

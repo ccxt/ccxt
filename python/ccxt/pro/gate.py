@@ -1400,18 +1400,16 @@ class gate(ccxt.async_support.gate):
         self.set_positions_cache(client, type, symbolsNormalized)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
-        cache = self.safe_value(self.positions, type)
+        cache = self.safe_value(self.positionsByType, type)
         if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and (cache is None):
             return await client.future(type + ':fetchPositionsSnapshot')
         positions = await self.subscribe_private(url, messageHash, payload, channel, query, True)
         if self.newUpdates:
             return positions
-        return self.filter_by_symbols_since_limit(self.safe_value(self.positions, type), symbolsNormalized, since, limit, True)
+        return self.filter_by_symbols_since_limit(self.safe_value(self.positionsByType, type), symbolsNormalized, since, limit, True)
 
     def set_positions_cache(self, client: Client, type: str, symbols: Strings = None):
-        if self.positions is None:
-            self.positions = {}
-        if type in self.positions:
+        if type in self.positionsByType:
             return
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
         if fetchPositionsSnapshot is True:
@@ -1420,12 +1418,12 @@ class gate(ccxt.async_support.gate):
                 client.future(messageHash)
                 self.spawn(self.load_positions_snapshot, client, messageHash, type)
         else:
-            self.positions[type] = ArrayCacheBySymbolBySide()
+            self.positionsByType[type] = ArrayCacheBySymbolBySide()
 
     async def load_positions_snapshot(self, client: Client, messageHash: str, type: str):
         positions = await self.fetch_positions(None, {'type': type})
-        self.positions[type] = ArrayCacheBySymbolBySide()
-        cache = self.positions[type]
+        self.positionsByType[type] = ArrayCacheBySymbolBySide()
+        cache = self.positionsByType[type]
         for i in range(0, len(positions)):
             position = positions[i]
             contracts = self.safe_number(position, 'contracts', 0)
@@ -1470,7 +1468,7 @@ class gate(ccxt.async_support.gate):
         #
         type = self.get_market_type_by_url(client.url)
         data = self.safe_list(message, 'result', [])
-        cache = self.positions[type]
+        cache = self.positionsByType[type]
         newPositions = []
         for i in range(0, len(data)):
             rawPosition = data[i]

@@ -662,12 +662,11 @@ class binance(ccxt.async_support.binance):
         market = self.safe_market(marketId, None, None, 'swap')
         symbol = self.safe_symbol(marketId, market)
         liquidation = self.parse_ws_liquidation(message, market)
-        cache = self.myLiquidations
-        if cache is None:
+        if self.myLiquidations is None:
             limit = self.safe_integer(self.options, 'myLiquidationsLimit', 1000)
-            cache = ArrayCache(limit)
+            self.myLiquidations = ArrayCache(limit)
+        cache = self.myLiquidations
         cache.append(liquidation)
-        self.myLiquidations = cache
         client.resolve([liquidation], 'myLiquidations')
         client.resolve([liquidation], 'myLiquidations::' + symbol)
 
@@ -4717,7 +4716,7 @@ class binance(ccxt.async_support.binance):
         self.set_positions_cache(client, type, symbolsNormalized, isPortfolioMargin)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
-        cache = self.positions[type]
+        cache = self.positionsByType[type]
         if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and (cache is None):
             snapshot = await client.future(type + ':fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbolsNormalized, since, limit, True)
@@ -4729,17 +4728,15 @@ class binance(ccxt.async_support.binance):
     def set_positions_cache(self, client: Client, type: str, symbols: Strings = None, isPortfolioMargin: bool = False):
         if type == 'spot':
             return
-        if self.positions is None:
-            self.positions = {}
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
-        if type in self.positions:
+        if type in self.positionsByType:
             # a fresh client has no snapshot future yet, which means the
             # connection was re-established after a disconnect: positions
             # closed while disconnected never arrive as stream deltas, so
             # the cached positions are stale and must be reloaded
             messageHash = type + ':fetchPositionsSnapshot'
             if (fetchPositionsSnapshot is True) and (not(messageHash in client.futures)):
-                del self.positions[type]
+                del self.positionsByType[type]
             else:
                 return
         if fetchPositionsSnapshot is True:
@@ -4748,7 +4745,7 @@ class binance(ccxt.async_support.binance):
                 client.future(messageHash)
                 self.spawn(self.load_positions_snapshot, client, messageHash, type, isPortfolioMargin)
         else:
-            self.positions[type] = ArrayCacheBySymbolBySide()
+            self.positionsByType[type] = ArrayCacheBySymbolBySide()
 
     async def load_positions_snapshot(self, client: Client, messageHash: str, type: str, isPortfolioMargin: bool):
         params = {
@@ -4763,8 +4760,8 @@ class binance(ccxt.async_support.binance):
         currentClient = self.safe_value(self.clients, client.url)
         if currentClient != client:
             return
-        self.positions[type] = ArrayCacheBySymbolBySide()
-        cache = self.positions[type]
+        self.positionsByType[type] = ArrayCacheBySymbolBySide()
+        cache = self.positionsByType[type]
         for i in range(0, len(positions)):
             position = positions[i]
             contracts = self.safe_number(position, 'contracts', 0)
@@ -4809,11 +4806,9 @@ class binance(ccxt.async_support.binance):
         subscriptions = client.subscriptions
         subscriptionsKeys = list(subscriptions.keys())
         accountType = self.get_account_type_from_subscriptions(subscriptionsKeys)
-        if self.positions is None:
-            self.positions = {}
-        if not (accountType in self.positions):
-            self.positions[accountType] = ArrayCacheBySymbolBySide()
-        cache = self.positions[accountType]
+        if not (accountType in self.positionsByType):
+            self.positionsByType[accountType] = ArrayCacheBySymbolBySide()
+        cache = self.positionsByType[accountType]
         data = self.safe_dict(message, 'a', {})
         rawPositions = self.safe_list(data, 'P', [])
         newPositions = []
@@ -5276,11 +5271,9 @@ class binance(ccxt.async_support.binance):
         self.balance[accountType] = self.safe_balance(self.balance[accountType])
         client.resolve(self.balance[accountType], accountType + ':balance')
         # --- positions ---
-        if self.positions is None:
-            self.positions = {}
-        if not (accountType in self.positions):
-            self.positions[accountType] = ArrayCacheBySymbolBySide()
-        cache = self.positions[accountType]
+        if not (accountType in self.positionsByType):
+            self.positionsByType[accountType] = ArrayCacheBySymbolBySide()
+        cache = self.positionsByType[accountType]
         P = self.safe_list(message, 'P', [])
         newPositions = []
         for i in range(0, len(P)):

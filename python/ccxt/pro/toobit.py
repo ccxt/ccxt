@@ -972,7 +972,7 @@ class toobit(ccxt.async_support.toobit):
         url = self.get_user_stream_url()
         client = self.client(url)
         self.set_positions_cache(client, type, symbolsNormalized)
-        cache = self.safe_value(self.positions, type)
+        cache = self.safe_value(self.positionsByType, type)
         if cache is None:
             snapshot = await client.future(type + ':fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbolsNormalized, since, limit, True)
@@ -982,9 +982,7 @@ class toobit(ccxt.async_support.toobit):
         return self.filter_by_symbols_since_limit(cache, symbolsNormalized, since, limit, True)
 
     def set_positions_cache(self, client: Client, type: str, symbols: Strings = None):
-        if self.positions is None:
-            self.positions = {}
-        if type in self.positions:
+        if type in self.positionsByType:
             return
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
         if fetchPositionsSnapshot is True:
@@ -993,15 +991,15 @@ class toobit(ccxt.async_support.toobit):
                 client.future(messageHash)
                 self.spawn(self.load_positions_snapshot, client, messageHash, type)
         else:
-            self.positions[type] = ArrayCacheBySymbolBySide()
+            self.positionsByType[type] = ArrayCacheBySymbolBySide()
 
     async def load_positions_snapshot(self, client: Client, messageHash: str, type: str):
         params = {
             'type': type,
         }
         positions = await self.fetch_positions(None, params)
-        self.positions[type] = ArrayCacheBySymbolBySide()
-        cache = self.positions[type]
+        self.positionsByType[type] = ArrayCacheBySymbolBySide()
+        cache = self.positionsByType[type]
         for i in range(0, len(positions)):
             position = positions[i]
             cache.append(position)
@@ -1037,11 +1035,9 @@ class toobit(ccxt.async_support.toobit):
         # ]
         #
         accountType = 'swap'
-        if self.positions is None:
-            self.positions = {}
-        if not (accountType in self.positions):
-            self.positions[accountType] = ArrayCacheBySymbolBySide()
-        cache = self.positions[accountType]
+        if not (accountType in self.positionsByType):
+            self.positionsByType[accountType] = ArrayCacheBySymbolBySide()
+        cache = self.positionsByType[accountType]
         # handleMessage's fallback dispatches one item at a time
         position = self.parse_ws_position(message)
         newPositions = [position]

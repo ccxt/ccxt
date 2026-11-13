@@ -931,7 +931,7 @@ class nado(ccxt.async_support.nado):
         messageHash = 'execute:' + requestIdString
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def watch_public(self, streamType: Str, market: object, messageHash: str, params: dict = {}):
+    async def watch_public(self, streamType: Str, market: Market | None, messageHash: str, params: dict = {}):
         url = self.safe_string(self.urls['api']['ws'], 'subscriptions')
         stream = {
             'type': streamType,

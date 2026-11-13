@@ -3131,6 +3131,7 @@ class BaseExchange(object):
         self.ohlcvs = self.create_safe_dictionary(True)
         self.myTrades = None
         self.positions = None
+        self.positionsByType = {}
 
     def safe_bool_n(self, dictionaryOrList: object, keys: list[NullableIndexType], defaultValue: Bool = None):
         """
@@ -3474,7 +3475,7 @@ class BaseExchange(object):
         shouldFilterFromStart = not tail and sinceIsDefined
         return self.filter_by_limit(result, limit, key, shouldFilterFromStart)
 
-    def filter_by_value_since_limit(self, array: list[object], field: IndexType, value: object = None, since: Int = None, limit: Int = None, key='timestamp', tail=False):
+    def filter_by_value_since_limit(self, array: list[object] | None, field: IndexType, value: object = None, since: Int = None, limit: Int = None, key='timestamp', tail=False):
         valueIsDefined = self.value_is_defined(value)
         sinceIsDefined = since is not None and since is not None
         parsedArray = self.to_array(array)
@@ -5940,7 +5941,7 @@ class BaseExchange(object):
         filteredMarkets = self.filter_by_array(filteredMarkets, 'active', activeStatuses, False)
         return self.get_list_from_object_values(filteredMarkets, 'symbol')
 
-    def filter_by_array(self, objects: object, key: IndexType, values: object = None, indexed=True):
+    def filter_by_array(self, objects: dict | list[object] | None, key: IndexType, values: object = None, indexed=True):
         objectsValue = self.to_array(objects)
         # return all of them if no values were passed
         if (values is None) or (values is None) or (values is False) or (values == 0) or (values == ''):
@@ -6882,13 +6883,13 @@ class BaseExchange(object):
         currencyResolved = self.safe_currency(currencyId, currency)
         return currencyResolved['code']
 
-    def filter_by_symbol_since_limit(self, array: object, symbol: Str = None, since: Int = None, limit: Int = None, tail=False):
+    def filter_by_symbol_since_limit(self, array: list[object] | None, symbol: Str = None, since: Int = None, limit: Int = None, tail=False):
         return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp', tail)
 
-    def filter_by_currency_since_limit(self, array: object, code: Str = None, since: Int = None, limit: Int = None, tail=False):
+    def filter_by_currency_since_limit(self, array: list[object] | None, code: Str = None, since: Int = None, limit: Int = None, tail=False):
         return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
 
-    def filter_by_symbols_since_limit(self, array: object, symbols: Strings = None, since: Int = None, limit: Int = None, tail=False):
+    def filter_by_symbols_since_limit(self, array: list[object] | None, symbols: Strings = None, since: Int = None, limit: Int = None, tail=False):
         result = self.filter_by_array(array, 'symbol', symbols, False)
         return self.filter_by_since_limit(result, since, limit, 'timestamp', tail)
 
@@ -7448,21 +7449,21 @@ class BaseExchange(object):
         else:
             raise NotSupported(self.id + ' fetchTransactions () is not supported yet')
 
-    def filter_by_array_positions(self, objects: object, key: IndexType, values: object = None):
+    def filter_by_array_positions(self, objects: dict | list[object] | None, key: IndexType, values: object = None):
         """
  @ignore
         Typed wrapper for filterByArray that returns a list of positions
         """
         return self.to_array(self.filter_by_array(objects, key, values, False))
 
-    def filter_by_array_tickers(self, objects: object, key: IndexType, values: object = None):
+    def filter_by_array_tickers(self, objects: dict | list[object] | None, key: IndexType, values: object = None):
         """
  @ignore
         Typed wrapper for filterByArray that returns a dictionary of tickers
         """
         return self.index_by(self.filter_by_array(objects, key, values, False), key)
 
-    def filter_by_array_adl_ranks(self, objects: object, key: IndexType, values: object = None, indexed=True):
+    def filter_by_array_adl_ranks(self, objects: dict | list[object] | None, key: IndexType, values: object = None, indexed=True):
         """
  @ignore
         Typed wrapper for filterByArray that returns a list of ADL Ranks

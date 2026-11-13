@@ -2715,8 +2715,7 @@ class kucoin(ccxt.async_support.kucoin):
     def get_current_position(self, symbol: str) -> dict:
         if self.positions is None:
             return None
-        cache = self.positions.hashmap
-        symbolCache = self.safe_dict(cache, symbol, {})
+        symbolCache = self.safe_dict(self.positions.hashmap, symbol, {})
         values = list(symbolCache.values())
         return self.safe_dict(values, 0)
 
@@ -2874,7 +2873,9 @@ class kucoin(ccxt.async_support.kucoin):
             if newPosition[key] is None:
                 del newPosition[key]
         position = self.extend(currentPosition, newPosition)
-        cache.append(position)
+        # the cache exists once watchPosition(s) set it up
+        if cache is not None:
+            cache.append(position)
         client.resolve(position, messageHash)
 
     def handle_uta_position(self, client: Client, message: dict):
