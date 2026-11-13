@@ -1690,10 +1690,9 @@ impl Exchange {
 
     /// `urlencodeWithArrayRepeat(params)` — `qs.stringify(object, { arrayFormat: 'repeat' })`:
     /// array values repeat the key (`a=1&a=2`); scalars encode normally.
-    pub fn urlencode_with_array_repeat(&self, params: Value) -> String {
-        let m = match &params {
-            Value::Dict(m) => m,
-            _ => return String::new(),
+    pub fn urlencode_with_array_repeat(&self, params: impl Into<Value>) -> String {
+        let Value::Dict(m) = Into::<Value>::into(params) else {
+            return String::new();
         };
         let mut pairs: Vec<String> = Vec::new();
         for (k, v) in m.iter() {
@@ -1924,8 +1923,8 @@ impl Exchange {
     /// `isEmpty(value)` — true when an array/dict is empty, or the
     /// value is null/undefined. Scalars (strings, numbers, bools) are
     /// never considered empty — mirrors `functions/generic.ts`.
-    pub fn is_empty(&self, v: Value) -> Value {
-        let empty = match &v {
+    pub fn is_empty(&self, v: impl Into<Value>) -> Value {
+        let empty = match &Into::<Value>::into(v) {
             Value::Null => true,
             Value::Arr(a) => a.is_empty(),
             Value::Dict(m) => m.is_empty(),
@@ -2613,10 +2612,9 @@ impl Exchange {
     /// `urlencodeNested(object)` — `qs.stringify(object, { encodeValuesOnly: true })`:
     /// nested maps → `parent[child]`, arrays → `parent[index]`, only
     /// values are percent-encoded.
-    pub fn urlencode_nested(&self, v: Value, _optional_args: &[Value]) -> String {
-        let m = match &v {
-            Value::Dict(m) => m,
-            _ => return String::new(),
+    pub fn urlencode_nested(&self, v: impl Into<Value>, _optional_args: &[Value]) -> String {
+        let Value::Dict(m) = Into::<Value>::into(v) else {
+            return String::new();
         };
         let mut pairs: Vec<String> = Vec::new();
         for (k, val) in m.iter() {
@@ -2832,10 +2830,9 @@ impl Exchange {
     /// `rawencode(params, [doSeq])` — URL-encode without sorting.
     /// `rawencode(object)` — `qs.stringify(object, { encode: false })`:
     /// flat `key=value` pairs with no percent-encoding.
-    pub fn rawencode(&self, params: Value, _optional_args: &[Value]) -> String {
-        let m = match &params {
-            Value::Dict(m) => m,
-            _ => return String::new(),
+    pub fn rawencode(&self, params: impl Into<Value>, _optional_args: &[Value]) -> String {
+        let Value::Dict(m) = Into::<Value>::into(params) else {
+            return String::new();
         };
         let pairs: Vec<String> = m
             .iter()
@@ -2915,8 +2912,8 @@ impl Exchange {
     }
 
     /// `urlencode(params)` — wraps the typed `urlencode_kv` for Value args.
-    pub fn urlencode(&self, params: Value, _optional_args: &[Value]) -> String {
-        self.urlencode_kv(&params)
+    pub fn urlencode(&self, params: impl Into<Value>, _optional_args: &[Value]) -> String {
+        self.urlencode_kv(&params.into())
     }
 
     /// `json(value)` — JSON-stringify.
