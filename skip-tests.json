@@ -1726,9 +1726,6 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "asset/currencies lists deposit coins only, inverse USD quotes and tokenized stocks are missing"
-            },
-            "fetchOHLCV": {
-                "compareTimestampToLimit": "todo"
             }
         }
     },
