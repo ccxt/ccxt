@@ -220953,7 +220953,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         };
         let response;
         if (this.safeBool(market, 'spot', false)) {
-            response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
+            response = await this.spotV2PublicGetQuoteTicker(this.extend(request, params));
         } else {
             if (this.safeBool(market, 'inverse', false)) {
                 response = await this.cswapV1PublicGetMarketTicker(this.extend(request, params));
@@ -221067,7 +221067,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchTickers', market, paramsMarketType);
         let response;
         if (type === 'spot') {
-            response = await this.spotV1PublicGetTicker24hr(paramsSubType);
+            response = await this.spotV2PublicGetQuoteTicker(paramsSubType);
         } else {
             if (subType === 'inverse') {
                 response = await this.cswapV1PublicGetMarketTicker(paramsSubType);
