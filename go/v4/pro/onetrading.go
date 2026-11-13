@@ -1415,13 +1415,12 @@ func (this *Onetrading) HandleOHLCV(client any, message map[string]any) {
 	var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv."+*symbol+".", timeframe))
 	var parsed []any = []any{this.Parse8601(dateTime), this.SafeNumber(message, "open"), this.SafeNumber(message, "high"), this.SafeNumber(message, "low"), this.SafeNumber(message, "close"), this.SafeNumber(message, "volume")}
-	var symbolOhlcvs map[string]any = this.SafeDictMap(this.Ohlcvs, symbol, map[string]any{})
-	if symbol != nil {
-		this.Ohlcvs[*symbol] = symbolOhlcvs
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var stored any
-	if timeframe != nil {
-		stored = symbolOhlcvs[*timeframe]
+	if symbol != nil && timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1429,7 +1428,9 @@ func (this *Onetrading) HandleOHLCV(client any, message map[string]any) {
 	}
 	stored.(ccxt.Appender).Append(parsed)
 	if (symbol != nil) && (timeframe != nil) {
-		symbolOhlcvs[*timeframe] = stored
+		if this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*timeframe] = stored
+		}
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, channel)
 }

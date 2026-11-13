@@ -1817,13 +1817,12 @@ func (this *Aster) HandleOHLCV(client any, message map[string]any) {
 	if timeframe == nil {
 		return
 	}
-	var ohlcvsByTimeframe map[string]any = ccxt.SafeMapTyped(this.Ohlcvs, symbol)
-	if ohlcvsByTimeframe == nil {
+	if _, ok := this.Ohlcvs[*symbol]; !ok {
 		if symbol != nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 	}
-	if ccxt.IsEqual(this.SafeValue(ohlcvsByTimeframe, timeframe), nil) {
+	if ccxt.IsEqual(this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		if symbol != nil && this.Ohlcvs[*symbol] != nil {
 			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
@@ -2678,9 +2677,9 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes187232 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes187232, tradeFee)
-							ccxt.AddElementToObject(order, "fees", retRes187232)
+							retRes187132 := ccxt.GetValue(order, "fees")
+							ccxt.AppendToArray(&retRes187132, tradeFee)
+							ccxt.AddElementToObject(order, "fees", retRes187132)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {

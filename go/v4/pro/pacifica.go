@@ -1652,12 +1652,16 @@ func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 	}
-	var symbolOhlcvs map[string]any = this.SafeDictMap(this.Ohlcvs, symbol, map[string]any{})
-	var ohlcv any = symbolOhlcvs[*timeframe]
+	var ohlcv any
+	if symbol != nil {
+		ohlcv = this.Ohlcvs[*symbol][*timeframe]
+	}
 	if ohlcv == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		ohlcv = ccxt.NewArrayCacheByTimestamp(limit)
-		symbolOhlcvs[*timeframe] = ohlcv
+		if symbol != nil && this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*timeframe] = ohlcv
+		}
 	}
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data))
 	ohlcv.(ccxt.Appender).Append(parsed)

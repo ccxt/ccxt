@@ -1813,11 +1813,11 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 		var timeframe any = marketIds[symbol]
 		var interval *string = this.FindTimeframe(timeframe)
 		var hash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("candles"+":", interval), ":"), symbol))
-		var stored any
+		var symbolOhlcv any
 		if interval != nil {
-			stored = this.Ohlcvs[symbol][*interval]
+			symbolOhlcv = this.Ohlcvs[symbol][*interval]
 		}
-		client.(ccxt.ClientInterface).Resolve(stored, hash)
+		client.(ccxt.ClientInterface).Resolve(symbolOhlcv, hash)
 	}
 }
 

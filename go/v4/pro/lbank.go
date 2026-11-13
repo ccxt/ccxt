@@ -378,58 +378,45 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 	var watchOHLCVOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOHLCV")
 	var timeframes map[string]any = this.SafeDictMap(watchOHLCVOptions, "timeframes", map[string]any{})
 	var records []any = ccxt.SafeListTyped(message, "records")
+	var timeframeId string = ""
+	var messageHash string = ""
 	if records != nil {
-		var rawOHLCV []any = ccxt.SafeListTyped(records, 0)
-		var parsed []any = []any{this.SafeInteger(rawOHLCV, 0), this.SafeNumber(rawOHLCV, 1), this.SafeNumber(rawOHLCV, 2), this.SafeNumber(rawOHLCV, 3), this.SafeNumber(rawOHLCV, 4), this.SafeNumber(rawOHLCV, 5)}
-		var timeframeId *string = this.SafeString(message, "kbar", "")
-		var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
-		var ohlcvsForSymbol map[string]any = this.SafeDictMap(this.Ohlcvs, symbol, map[string]any{})
-		if symbol != nil {
-			this.Ohlcvs[*symbol] = ohlcvsForSymbol
-		}
-		var stored any
-		if timeframe != nil {
-			stored = ohlcvsForSymbol[*timeframe]
-		}
-		if stored == nil {
-			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
-			stored = ccxt.NewArrayCacheByTimestamp(limit)
-			if timeframe != nil {
-				ohlcvsForSymbol[*timeframe] = stored
-			}
-		}
-		stored.(ccxt.Appender).Append(parsed)
-		var messageHash string = "fetchOHLCV:" + *symbol + ":" + *timeframeId
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		timeframeId = (*this.SafeString(message, "kbar", ""))
+		messageHash = "fetchOHLCV:" + *symbol + ":" + timeframeId
 	} else {
-		var rawOHLCV map[string]any = ccxt.SafeMapTyped(message, "kbar")
-		var timeframeId *string = this.SafeString(rawOHLCV, "slot", "")
-		var datetime *string = this.SafeString(rawOHLCV, "t")
-		var parsed []any = []any{this.Parse8601(datetime), this.SafeNumber(rawOHLCV, "o"), this.SafeNumber(rawOHLCV, "h"), this.SafeNumber(rawOHLCV, "l"), this.SafeNumber(rawOHLCV, "c"), this.SafeNumber(rawOHLCV, "v")}
-		var messageHash string = "ohlcv:" + *symbol + ":" + *timeframeId
+		timeframeId = (*this.SafeString(this.SafeDict(message, "kbar", map[string]any{}), "slot", ""))
+		messageHash = "ohlcv:" + *symbol + ":" + timeframeId
 		if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
 			// a candle lbank pushed before it processed an unWatchOHLCV, which it does not acknowledge
 			return
 		}
-		var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
-		var ohlcvsForSymbol map[string]any = this.SafeDictMap(this.Ohlcvs, symbol, map[string]any{})
-		if symbol != nil {
-			this.Ohlcvs[*symbol] = ohlcvsForSymbol
-		}
-		var stored any
-		if timeframe != nil {
-			stored = ohlcvsForSymbol[*timeframe]
-		}
-		if stored == nil {
-			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
-			stored = ccxt.NewArrayCacheByTimestamp(limit)
-			if timeframe != nil {
-				ohlcvsForSymbol[*timeframe] = stored
-			}
-		}
-		stored.(ccxt.Appender).Append(parsed)
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
+	var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
+	}
+	var stored any
+	if symbol != nil && timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
+	}
+	if stored == nil {
+		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
+		stored = ccxt.NewArrayCacheByTimestamp(limit)
+		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*timeframe] = stored
+		}
+	}
+	if records != nil {
+		var rawOHLCV []any = ccxt.SafeListTyped(records, 0)
+		var parsed []any = []any{this.SafeInteger(rawOHLCV, 0), this.SafeNumber(rawOHLCV, 1), this.SafeNumber(rawOHLCV, 2), this.SafeNumber(rawOHLCV, 3), this.SafeNumber(rawOHLCV, 4), this.SafeNumber(rawOHLCV, 5)}
+		stored.(ccxt.Appender).Append(parsed)
+	} else {
+		var rawOHLCV map[string]any = ccxt.SafeMapTyped(message, "kbar")
+		var datetime *string = this.SafeString(rawOHLCV, "t")
+		var parsed []any = []any{this.Parse8601(datetime), this.SafeNumber(rawOHLCV, "o"), this.SafeNumber(rawOHLCV, "h"), this.SafeNumber(rawOHLCV, "l"), this.SafeNumber(rawOHLCV, "c"), this.SafeNumber(rawOHLCV, "v")}
+		stored.(ccxt.Appender).Append(parsed)
+	}
+	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 
 /**

@@ -379,7 +379,14 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 			}
 			var candleTimestamp int64 = this.ParseToInt(ccxt.Multiply((float64(*timestamp) / float64(duration)), duration))
 			var parsed []any = []any{candleTimestamp, this.SafeFloat(ohlcv, 3), this.SafeFloat(ohlcv, 1), this.SafeFloat(ohlcv, 2), this.SafeFloat(ohlcv, 4), this.SafeFloat(ohlcv, 5)}
-			var stored any = this.SafeValue(this.Ohlcvs[*symbol], timeframe, []any{})
+			var stored any = this.Ohlcvs[*symbol][timeframe]
+			if stored == nil {
+				var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
+				stored = ccxt.NewArrayCacheByTimestamp(limit)
+				if this.Ohlcvs[*symbol] != nil {
+					this.Ohlcvs[*symbol][timeframe] = stored
+				}
+			}
 			var length int = ccxt.GetArrayLength(stored)
 			var previous any = this.SafeValue(stored, length-1)
 			var previousTimestamp *int64 = this.SafeInteger(previous, 0)
@@ -402,7 +409,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 						low = previousLow
 					}
 				}
-				ccxt.AddElementToObject(stored, length-1, []any{candleTimestamp, this.SafeFloat(previous, 1), high, low, this.SafeFloat(ohlcv, 4), this.Sum(this.SafeFloat(ohlcv, 5), this.SafeFloat(previous, 5))})
+				stored.(ccxt.Appender).Append([]any{candleTimestamp, this.SafeFloat(previous, 1), high, low, this.SafeFloat(ohlcv, 4), this.Sum(this.SafeFloat(ohlcv, 5), this.SafeFloat(previous, 5))})
 				if marketId != nil {
 					marketUpdates[timeframe] = true
 				}
@@ -412,17 +419,10 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 						continue
 					}
 				}
-				ccxt.AppendToArray(&stored, parsed)
-				var limit int64 = *this.SafeInteger(this.Options, "OHLCVLimit", 1000)
-				if int64(length) >= limit {
-					ccxt.Shift(stored)
-				}
+				stored.(ccxt.Appender).Append(parsed)
 				if marketId != nil {
 					marketUpdates[timeframe] = true
 				}
-			}
-			if this.Ohlcvs[*symbol] != nil {
-				this.Ohlcvs[*symbol][timeframe] = stored
 			}
 		}
 		if marketId != nil {
@@ -445,8 +445,8 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 			var messageHash string = name + ":" + timeframe + ":" + marketId
 			var market map[string]any = this.SafeMarket(marketId)
 			var symbol *string = this.SafeString(market, "symbol", "")
-			var stored any = this.SafeList(this.SafeValue(this.Ohlcvs, symbol), timeframe, []any{})
-			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+			var symbolOhlcv any = this.Ohlcvs[*symbol][timeframe]
+			client.(ccxt.ClientInterface).Resolve(symbolOhlcv, messageHash)
 		}
 	}
 }

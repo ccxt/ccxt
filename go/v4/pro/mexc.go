@@ -856,14 +856,14 @@ func (this *Mexc) HandleOHLCV(client any, message any) {
 	// }
 	//
 	var parsed any = nil
-	var symbol any = nil
+	var market map[string]any = nil
 	var timeframe *string = nil
 	if ccxt.InOp(message, "publicSpotKline") {
-		symbol = this.Symbol(this.SafeString(message, "symbol"))
+		market = this.SafeMarket(this.Symbol(this.SafeString(message, "symbol")))
 		var data map[string]any = this.SafeDictMap(message, "publicSpotKline", map[string]any{})
 		var timeframeId *string = this.SafeString(data, "interval")
 		timeframe = this.FindTimeframe(timeframeId, this.Options["timeframes"])
-		parsed = this.ParseWsOHLCV(data, this.SafeMarket(symbol))
+		parsed = this.ParseWsOHLCV(data, market)
 	} else {
 		var d map[string]any = ccxt.SafeDict2Typed(message, "d", "data", map[string]any{})
 		var rawOhlcv any = this.SafeDict(d, "k", d)
@@ -871,23 +871,24 @@ func (this *Mexc) HandleOHLCV(client any, message any) {
 		var timeframes map[string]any = this.SafeDictMap(this.Options, "timeframes", map[string]any{})
 		timeframe = this.FindTimeframe(timeframeId, timeframes)
 		var marketId *string = this.SafeString2(message, "s", "symbol")
-		var market map[string]any = this.SafeMarket(marketId)
-		symbol = market["symbol"]
+		market = this.SafeMarket(marketId)
 		parsed = this.ParseWsOHLCV(rawOhlcv, market)
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("candles:", symbol), ":"), timeframe))
-	var symbolOhlcvs map[string]any = this.SafeDictMap(this.Ohlcvs, symbol, map[string]any{})
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, symbolOhlcvs)
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("candles:"+symbol+":", timeframe))
+	if this.Ohlcvs[symbol] == nil {
+		this.Ohlcvs[symbol] = map[string]any{}
+	}
 	var stored any
 	if timeframe != nil {
-		stored = symbolOhlcvs[*timeframe]
+		stored = this.Ohlcvs[symbol][*timeframe]
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if timeframe != nil {
-			if timeframe != nil {
-				symbolOhlcvs[*timeframe] = stored
+			if timeframe != nil && this.Ohlcvs[symbol] != nil {
+				this.Ohlcvs[symbol][*timeframe] = stored
 			}
 		}
 	}

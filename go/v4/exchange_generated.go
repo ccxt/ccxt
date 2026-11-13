@@ -4173,7 +4173,7 @@ func (this *BaseExchange) ParseOrderBookL3(orderbook any, symbol any, optionalAr
 	}
 }
 func (this *BaseExchange) ParseOHLCVs(ohlcvs any, optionalArgs ...any) []any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timeframe string = GetArgString(optionalArgs, 1, "1m")
 	_ = timeframe
@@ -7083,7 +7083,7 @@ func (this *BaseExchange) ParseBorrowInterests(response any, optionalArgs ...any
 	_ = market
 	var interests []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var row any = this.SafeValue(response, i)
+		var row any = this.SafeDict(response, i, map[string]any{})
 		interests = append(interests, this.DerivedExchange.ParseBorrowInterest(row, market))
 	}
 	return interests
@@ -7096,7 +7096,7 @@ func (this *BaseExchange) ParseBorrowRate(info any, optionalArgs ...any) map[str
 func (this *BaseExchange) ParseBorrowRateHistory(response any, code any, since any, limit any) []any {
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var item any = this.SafeValue(response, i)
+		var item any = this.SafeDict(response, i)
 
 		var borrowRate any = this.DerivedExchange.ParseBorrowRate(item)
 		PanicOnError(borrowRate)
@@ -7108,7 +7108,7 @@ func (this *BaseExchange) ParseBorrowRateHistory(response any, code any, since a
 func (this *BaseExchange) ParseIsolatedBorrowRates(info any) map[string]any {
 	var result map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(info); i++ {
-		var item any = this.SafeValue(info, i)
+		var item map[string]any = this.SafeDictMap(info, i, map[string]any{})
 		var borrowRate map[string]any = this.ParseIsolatedBorrowRate(item)
 		var symbol *string = this.SafeString(borrowRate, "symbol")
 		if symbol != nil {
