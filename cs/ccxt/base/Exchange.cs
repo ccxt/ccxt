@@ -52,6 +52,8 @@ public partial class BaseExchange
         {
             this.httpClient = new HttpClient(handler);
         }
+        // each request is bound by this.timeout instead (see fetch), which may be longer than HttpClient's 100 s
+        this.httpClient.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
     }
 
     private void transformApiNew(Dictionary<string, object> api, List<string> paths = null)
@@ -247,12 +249,16 @@ public partial class BaseExchange
         var result = "";
         HttpResponseMessage response = null;
         object responseBody = null;
+        // the request, its response read whole, within this.timeout, as in the other languages
+        var timeoutMs = Convert.ToInt32(this.timeout);
+        using var timeoutSource = timeoutMs > 0 ? new System.Threading.CancellationTokenSource(timeoutMs) : new System.Threading.CancellationTokenSource();
+        var timeoutToken = timeoutSource.Token;
         try
         {
             if (method == "GET")
             {
                 request.Method = HttpMethod.Get;
-                response = await httpClient.SendAsync(request);
+                response = await httpClient.SendAsync(request, timeoutToken);
                 result = await response.Content.ReadAsStringAsync();
             }
             else
@@ -285,25 +291,25 @@ public partial class BaseExchange
                 {
                     // response = await this.httpClient.PostAsync(url, stringContent);
                     request.Method = HttpMethod.Post;
-                    response = await this.httpClient.SendAsync(request);
+                    response = await this.httpClient.SendAsync(request, timeoutToken);
                 }
                 else if (method == "PUT")
                 {
                     request.Method = HttpMethod.Put;
-                    response = await this.httpClient.SendAsync(request);
+                    response = await this.httpClient.SendAsync(request, timeoutToken);
                     // response = await this.httpClient.PutAsync(url, stringContent);
                 }
                 else if (method == "DELETE")
                 {
                     request.Method = HttpMethod.Delete;
-                    response = await this.httpClient.SendAsync(request);
+                    response = await this.httpClient.SendAsync(request, timeoutToken);
                     // response = await this.httpClient.DeleteAsync(url);
                 }
                 else if (method == "PUT")
                 {
                     // response = await this.httpClient.PutAsync(url, stringContent);
                     request.Method = HttpMethod.Put;
-                    response = await this.httpClient.SendAsync(request);
+                    response = await this.httpClient.SendAsync(request, timeoutToken);
                 }
                 else if (method == "PATCH")
                 {
@@ -316,7 +322,7 @@ public partial class BaseExchange
                     // };
                     request.Method = new HttpMethod("PATCH");
                     // response = await httpClient.SendAsync(patchRequest);
-                    response = await httpClient.SendAsync(request);
+                    response = await httpClient.SendAsync(request, timeoutToken);
                 }
 
                 var responseEncoding = response.Content.Headers.ContentEncoding;
@@ -336,6 +342,10 @@ public partial class BaseExchange
         }
         catch (Exception e)
         {
+            if (e is OperationCanceledException && timeoutToken.IsCancellationRequested)
+            {
+                throw new RequestTimeout(this.id + " " + method + " " + url + " request timed out (" + this.timeout + " ms)");
+            }
             if (e is HttpRequestException || e is WebException || e is HttpListenerException) // add more exceptions here
             {
                 var errorMessage = this.id + ' ' + method + ' ' + url + ' ' + e.Message;
