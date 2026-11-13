@@ -297,6 +297,27 @@ public partial class BaseExchange
 
     public string rsa(object request, object secret, Delegate alg = null, object padding = null) => Rsa(request, secret, alg, padding);
 
+    // RSA PKCS#1 v1.5 decryption of a base64-encoded ciphertext with a PEM RSA private key,
+    // same as node's crypto.privateDecrypt ({ key, padding: RSA_PKCS1_PADDING }, base64.decode (secret))
+    public byte[] decryptPrivateKey(object encryptionPrivKey, object encryptionSecret)
+    {
+        var pem = encryptionPrivKey as string;
+        if (string.IsNullOrEmpty(pem))
+        {
+            throw new ArgumentException(this.id + " decryptPrivateKey() requires a PEM private key");
+        }
+        // same PEM handling as Rsa (): drop the header/footer and blank lines, keep the base64 body
+        var b64Lines = pem.Split(new[] { "\n" }, StringSplitOptions.None).Select(l => l.Trim()).Where(l => l.Length > 0 && !l.StartsWith("-----"));
+        var der = Convert.FromBase64String(string.Join("", b64Lines));
+        RSACryptoServiceProvider rsa = DecodeRSAPrivateKey(der);
+        if (rsa == null)
+        {
+            throw new ArgumentException(this.id + " decryptPrivateKey() could not read an RSA private key from the PEM");
+        }
+        var cipherText = Convert.FromBase64String(encryptionSecret as string);
+        return rsa.Decrypt(cipherText, false); // false = PKCS#1 v1.5 padding
+    }
+
     public static string Rsa(object data, object publicKey, Delegate hash = null, object padding = null)
     {
         var pk = ((string)publicKey);

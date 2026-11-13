@@ -6,6 +6,14 @@ import (
 	"strings"
 )
 
+// InitFileSystemAsync is a no-op: file io is synchronous in go, nothing to load before the first ReadFile call
+func (this *BaseExchange) InitFileSystemAsync(args ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	ch <- AsyncResult[any]{Value: nil}
+	close(ch)
+	return ch
+}
+
 // ReadFile reads a file and returns its contents
 func (this *BaseExchange) ReadFile(path any, args ...any) string {
 	this.EnsureWhitelistedFile(path)
@@ -44,15 +52,17 @@ func (this *BaseExchange) ExistsFile(path any) bool {
 
 // EnsureWhitelistedFile ensures the file path is ccxt file, so users would be safeguarded
 func (this *BaseExchange) EnsureWhitelistedFile(filePath any) {
-	tempDir := this.GetTempDir()
 	sanitized, err := filepath.Abs(derefScalar(filePath).(string))
 	if err != nil {
 		panic("invalid file path: " + derefScalar(filePath).(string))
 	}
-	if strings.HasPrefix(sanitized, tempDir) && strings.HasSuffix(sanitized, ".ccxtfile") {
-		return
+	allowedExtensions := []string{".ccxtfile", ".pem"}
+	for _, ext := range allowedExtensions {
+		if strings.HasSuffix(sanitized, ext) {
+			return
+		}
 	}
-	panic("invalid file path: " + derefScalar(filePath).(string))
+	panic("invalid file path: " + derefScalar(filePath).(string) + ", allowed extensions are: " + strings.Join(allowedExtensions, ", "))
 }
 
 // GetTempDir returns the temporary directory

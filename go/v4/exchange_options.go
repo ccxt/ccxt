@@ -55,6 +55,7 @@ func (this *BaseExchange) initializeProperties(extendedProperties map[string]any
 		this.Currencies = this.Extend(propCurrencies)
 	}
 	this.EnableRateLimit = SafeValue(extendedProperties, "enableRateLimit", true).(bool)
+	this.ValidateServerSsl = SafeBool(extendedProperties, "validateServerSsl", true).(bool)
 	this.RateLimit = SafeFloat(extendedProperties, "rateLimit", -1).(float64)
 	this.RollingWindowSize = SafeFloat(extendedProperties, "rollingWindowSize", 0.0).(float64)
 	this.RateLimiterAlgorithm = SafeString(extendedProperties, "rateLimiterAlgorithm", "leakyBucket").(string)

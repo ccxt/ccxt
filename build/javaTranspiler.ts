@@ -3673,6 +3673,15 @@ class NewTranspiler {
             content = this.regexAll (content, this.getJavaWsRegexes());
             content = this.postProcessWsJava(content, name, true, true);
         }
+        if (!ws && !prediction) {
+            // this.delay(ms, this.cb[, args]) also appears in REST files (e.g. the
+            // interactivebrokers gateway keep-alive loop) — turn the method reference into a
+            // string and dispatch through scheduleCallback (same as the WS tier's string form);
+            // the spawn-lambda form is unusable here because a reassigned delay variable is
+            // not effectively final, while scheduleCallback evaluates its arguments eagerly
+            content = content.replace(/this\.delay\(([^,]+),\s*this\.(\w+)/gm, 'this.delay($1, "$2"');
+            content = this.rewriteDelayWithStringCallback(content);
+        }
         content = this.addDeprecatedAnnotations(content);
 
         // retype the raw-text `final Object` hoists (see retypeFinalVarDeclarations)

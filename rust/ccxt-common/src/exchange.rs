@@ -148,6 +148,8 @@ fn now_ms() -> i64 {
 
 pub struct Internals {
     pub http_client:    Option<reqwest::Client>,
+    /// `validateServerSsl` the cached `http_client` was built with, so a later flip rebuilds it.
+    pub http_client_validates_ssl: bool,
     pub describe_cb:    Option<DescribeCallback>,
     pub last_rest_ts:   i64,
     pub headers:        HashMap<String, String>,
@@ -253,6 +255,7 @@ impl Default for Internals {
     fn default() -> Self {
         Self {
             http_client:      None,
+            http_client_validates_ssl: true,
             describe_cb:      None,
             last_rest_ts:     0,
             headers:          HashMap::new(),
@@ -309,6 +312,8 @@ pub struct Exchange {
     pub userConfig:             Value,
     pub verbose:                Value,
     pub isSandboxModeEnabled:   Value,
+    /// `false` disables tls certificate and hostname verification for REST and WS.
+    pub validateServerSsl:      Value,
 
     // proxy
     pub proxy:               Value,
@@ -655,6 +660,7 @@ impl Exchange {
             userConfig:           Value::Null,
             verbose:              Value::Bool(false),
             isSandboxModeEnabled: Value::Bool(false),
+            validateServerSsl:    Value::Bool(true),
 
             proxy:               Value::Null,
             proxyUrl:            Value::Null,
@@ -910,6 +916,7 @@ impl Exchange {
         if let Some(v) = safe_string(cfg, "wssProxy",      None) { self.wssProxy      = Value::Str(v.into()); }
         if let Some(b) = crate::value::safe_bool(cfg, "verbose",         None) { self.verbose         = Value::Bool(b); }
         if let Some(b) = crate::value::safe_bool(cfg, "enableRateLimit", None) { self.enableRateLimit = Value::Bool(b); }
+        if let Some(b) = crate::value::safe_bool(cfg, "validateServerSsl", None) { self.validateServerSsl = Value::Bool(b); }
         // Pre-populated state (mirrors CCXT TS Exchange constructor):
         // markets/currencies/options arrive ready to use from offline
         // tests, the CLI, or library users seeding state. `setMarkets`
@@ -965,6 +972,10 @@ impl Exchange {
     // ── http client ─────────────────────────────────────────────────────────
 
     fn http_client(&mut self) -> &reqwest::Client {
+        let validates_ssl = self.validates_server_ssl();
+        if self.internals.http_client_validates_ssl != validates_ssl {
+            self.internals.http_client = None;
+        }
         if self.internals.http_client.is_none() {
             let mut b = reqwest::Client::builder()
                 .timeout(std::time::Duration::from_millis(self.timeout_ms()))
@@ -1014,7 +1025,12 @@ impl Exchange {
                 }
             }
             for p in proxies { b = b.proxy(p); }
+            if !validates_ssl {
+                // with rustls this also skips the hostname check
+                b = b.danger_accept_invalid_certs(true);
+            }
             self.internals.http_client = Some(b.build().expect("reqwest client"));
+            self.internals.http_client_validates_ssl = validates_ssl;
         }
         self.internals.http_client.as_ref().unwrap()
     }
@@ -1036,6 +1052,18 @@ impl Exchange {
 
     fn is_verbose(&self) -> bool {
         matches!(self.verbose, Value::Bool(true))
+    }
+
+    pub fn validates_server_ssl(&self) -> bool {
+        !matches!(self.validateServerSsl, Value::Bool(false))
+    }
+
+    /// enables or disables server ssl certificate validation for REST and WS connections;
+    /// the cached http client is rebuilt on the next request when the value changes
+    pub fn set_validate_server_ssl(&mut self, validate: Value) {
+        // transpiled callers pass a Value (see set_sandbox_mode); anything but an
+        // explicit false keeps validation on, matching validates_server_ssl above
+        self.validateServerSsl = Value::Bool(!matches!(validate, Value::Bool(false)));
     }
 
 
@@ -1339,7 +1367,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             }).collect(),
             _ => Vec::new(),
         };
-        let client = match crate::pro::ws_client::ensure_client_with_headers(&url, &__ws_headers, __ws_proxy, __decompress_binary).await {
+        let client = match crate::pro::ws_client::ensure_client_with_options(&url, &__ws_headers, __ws_proxy, __decompress_binary, self.validates_server_ssl()).await {
             Ok(c) => c,
             Err(e) => panic!("{}", e),
         };
@@ -2848,5 +2876,94 @@ mod http_error_tests {
         let mut core = BaseCore::new(Exchange::new(None));
         let error = fetch_error(&mut core, url).await;
         assert!(error.contains("ExchangeError"), "{error}");
+    }
+}
+
+// validateServerSsl = false must let REST and WS reach a server whose certificate is
+// self-signed, expired and issued for another hostname, the default must reject it.
+// the shared server lives in ts/src/test/static/ssl/server.cjs (requires node on PATH)
+#[cfg(test)]
+mod validate_server_ssl_tests {
+    use super::{BaseCore, Exchange, ExchangeRuntime};
+    use crate::Value;
+    use futures::FutureExt;
+    use std::io::BufRead;
+
+    struct SslServer(std::process::Child);
+
+    impl Drop for SslServer {
+        fn drop(&mut self) {
+            drop(self.0.stdin.take());
+            let _ = self.0.kill();
+            let _ = self.0.wait();
+        }
+    }
+
+    fn start_server() -> (SslServer, u16) {
+        let script = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../ts/src/test/static/ssl/server.cjs");
+        let mut child = std::process::Command::new("node")
+            .arg(&script)
+            .stdin(std::process::Stdio::piped())
+            .stdout(std::process::Stdio::piped())
+            .spawn()
+            .expect("node must be on PATH to run the ssl test server");
+        let mut line = String::new();
+        std::io::BufReader::new(child.stdout.take().unwrap()).read_line(&mut line).unwrap();
+        let port = line.trim().parse().unwrap_or_else(|_| panic!("ssl test server did not report its port: {line:?}"));
+        (SslServer(child), port)
+    }
+
+    fn core(validate_server_ssl: Option<bool>) -> BaseCore {
+        let mut config = serde_json::json!({ "timeout": 5000 });
+        if let Some(validate) = validate_server_ssl {
+            config["validateServerSsl"] = serde_json::Value::Bool(validate);
+        }
+        BaseCore::new(Exchange::new(Some(Value::from_json(&config))))
+    }
+
+    async fn rest(core: &mut BaseCore, url: &str) -> Result<Value, String> {
+        let outcome = std::panic::AssertUnwindSafe(core.fetch(Value::Str(url.to_string().into()), &[])).catch_unwind().await;
+        outcome.map_err(|payload| payload.downcast_ref::<String>().cloned().unwrap_or_default())
+    }
+
+    async fn ws(url: &str, validate_server_ssl: bool) -> Result<Value, String> {
+        let result = async {
+            let client = crate::pro::ws_client::ensure_client_with_options(url, &[], None, true, validate_server_ssl).await?;
+            tokio::time::timeout(std::time::Duration::from_secs(10), client.next_message())
+                .await
+                .map_err(|_| "no ws message".to_string())?
+                .ok_or_else(|| "ws closed before the first message".to_string())
+        }.await;
+        crate::pro::ws_client::drop_client(url);
+        result
+    }
+
+    fn assert_ok(value: &Value, what: &str) {
+        assert_eq!(crate::get_value(value, &Value::Str("ok".into())), Value::Bool(true), "{what}, got {value:?}");
+    }
+
+    #[tokio::test]
+    async fn validate_server_ssl_false_accepts_an_invalid_certificate() {
+        let (_server, port) = start_server();
+        let rest_url = format!("https://127.0.0.1:{port}/ping");
+
+        let mut strict = core(None);
+        assert!(strict.validates_server_ssl(), "validateServerSsl must default to true");
+        assert!(rest(&mut strict, &rest_url).await.is_err(), "REST must fail against an invalid certificate by default");
+        // each ws case gets its own path, clients are shared per url
+        assert!(ws(&format!("wss://127.0.0.1:{port}/strict"), true).await.is_err(), "WS must fail against an invalid certificate by default");
+
+        let mut lax = core(Some(false));
+        assert!(!lax.validates_server_ssl(), "validateServerSsl: false must be read from the config");
+        assert_ok(&rest(&mut lax, &rest_url).await.expect("REST must succeed with validateServerSsl = false"), "REST response");
+        let message = ws(&format!("wss://127.0.0.1:{port}/lax"), false).await.expect("WS must succeed with validateServerSsl = false");
+        assert_ok(&message, "WS message");
+
+        // flipping the field after the first request must rebuild the cached http client
+        let mut flipped = core(None);
+        assert!(rest(&mut flipped, &rest_url).await.is_err(), "REST must fail before the flag is flipped");
+        flipped.validateServerSsl = Value::Bool(false);
+        assert_ok(&rest(&mut flipped, &rest_url).await.expect("REST must honor validateServerSsl set after construction"), "REST response");
     }
 }

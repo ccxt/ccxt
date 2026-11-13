@@ -213,7 +213,7 @@ public partial class BaseExchange
                 (c) => ping(c),
                 (c, error) => onClose(c, error),
                 (c, error) => onError(c, error),
-                this.verbose, keepAlive, decompressBinary);
+                this.verbose, keepAlive, decompressBinary, this.validateServerSsl);
 
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });
             // iterate through headers
