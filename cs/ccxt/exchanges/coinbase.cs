@@ -5784,7 +5784,7 @@ public partial class coinbase : Exchange
         List<object> parsedPositions = new List<object>() {};
         for (int i = 0; i < spotPositions.Count; i++)
         {
-            object position = spotPositions[i];
+            IDictionary<string, object> position = ((IDictionary<string, object>)spotPositions[i]);
             string? currencyCode = this.safeString(position, "asset", "Unknown");
             string? availableBalanceStr = this.safeString(position, "available_to_trade_fiat", "0");
             double? availableBalance = this.parseNumber(availableBalanceStr);

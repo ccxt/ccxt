@@ -390,8 +390,8 @@ public partial class backpack : ccxt.backpack
                         List<object> keys = new List<object>(((IDictionary<string,object>)cache).Keys);
                         for (int j = 0; j < keys.Count; j++)
                         {
-                            object symbol = keys[j];
-                            ((IDictionary<string,object>)cache).Remove((string)symbol);
+                            string? symbol = ((string)keys[j]);
+                            ((IDictionary<string,object>)cache).Remove(symbol);
                         }
                     }
                 } else
@@ -405,21 +405,10 @@ public partial class backpack : ccxt.backpack
                 }
             } else if ((messageHash?.IndexOf("positions", StringComparison.Ordinal) ?? -1) >= 0)
             {
+                // the positions cache is one ArrayCacheBySymbolById: dropping it forgets every symbol
                 if (messageHash == "unsubscribe:positions")
                 {
-                    List<object> keys = new List<object>(((IDictionary<string,object>)this.positions).Keys);
-                    for (int j = 0; j < keys.Count; j++)
-                    {
-                        object symbol = keys[j];
-                        ((IDictionary<string,object>)this.positions).Remove((string)symbol);
-                    }
-                } else
-                {
-                    string symbol = messageHash.Replace("unsubscribe:positions:", (string)"");
-                    if (inOp(this.positions, symbol))
-                    {
-                        ((IDictionary<string,object>)this.positions).Remove(symbol);
-                    }
+                    this.positions = null;
                 }
             }
         }
@@ -1477,7 +1466,7 @@ public partial class backpack : ccxt.backpack
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
-        IList<object> filtered = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
+        IList<object> filtered = this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true);
         if ((this.safeBool(query, "stock", false) == true))
         {
             return ccxt.BaseExchange.ToOrderList(this.filterStockStructures(filtered));

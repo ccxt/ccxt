@@ -241,7 +241,7 @@ public partial class onetrading : ccxt.onetrading
         string? datetime = this.safeString(message, "time");
         for (int i = 0; i < tickers.Count; i++)
         {
-            object ticker = tickers[i];
+            IDictionary<string, object> ticker = ((IDictionary<string, object>)tickers[i]);
             string? marketId = this.safeString(ticker, "instrument");
             string? symbol = this.safeSymbol(marketId);
             ccxt.Ticker parsedTicker = this.parseWSTicker(ticker);
@@ -254,7 +254,7 @@ public partial class onetrading : ccxt.onetrading
         client.resolve(this.tickers, "tickers");
     }
 
-    public virtual ccxt.Ticker parseWSTicker(object ticker, IDictionary<string, object>? market = null)
+    public virtual ccxt.Ticker parseWSTicker(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -337,7 +337,7 @@ public partial class onetrading : ccxt.onetrading
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
         }
-        trades = this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved);
+        trades = this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved);
         int numTrades = getArrayLength(trades);
         if ((numTrades == 0))
         {
@@ -524,7 +524,7 @@ public partial class onetrading : ccxt.onetrading
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
-        orders = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved);
+        orders = this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved);
         int numOrders = getArrayLength(orders);
         if ((numOrders == 0))
         {

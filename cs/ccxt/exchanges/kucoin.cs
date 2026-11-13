@@ -11004,7 +11004,7 @@ public partial class kucoin : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? code = ((string)keys[i]);
-            borrowRateHistories[(string)code] = this.filterByCurrencySinceLimit((code != null && borrowRateHistories.ContainsKey(code) ? borrowRateHistories[code] : null),code, since, limit);
+            borrowRateHistories[(string)code] = this.filterByCurrencySinceLimit(this.toArray((code != null && borrowRateHistories.ContainsKey(code) ? borrowRateHistories[code] : null)),code, since, limit);
         }
         return borrowRateHistories;
     }

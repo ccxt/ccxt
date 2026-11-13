@@ -4498,7 +4498,7 @@ public partial class hashkey : Exchange
         List<object> tiers = new List<object>() {};
         for (int i = 0; i < (riskLimits?.Count ?? 0); i++)
         {
-            object tier = riskLimits[i];
+            IDictionary<string, object> tier = ((IDictionary<string, object>)riskLimits[i]);
             string? initialMarginRate = this.safeString(tier, "initialMargin");
             tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },

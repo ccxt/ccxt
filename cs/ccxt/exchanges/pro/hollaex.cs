@@ -235,7 +235,7 @@ public partial class hollaex : ccxt.hollaex
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message, object subscription = null)
@@ -280,7 +280,7 @@ public partial class hollaex : ccxt.hollaex
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         for (int i = 0; i < rawTrades.Count; i++)
         {
-            object trade = rawTrades[i];
+            IDictionary<string, object> trade = ((IDictionary<string, object>)rawTrades[i]);
             ccxt.Trade parsed = this.parseTrade(trade);
             stored.append(ccxt.BaseExchange.FromTrade(parsed));
             string? symbol = this.safeString(trade, "symbol");
@@ -338,7 +338,7 @@ public partial class hollaex : ccxt.hollaex
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message, object subscription = null)

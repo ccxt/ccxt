@@ -1897,13 +1897,13 @@ public partial class PredictionExchange : BaseExchange
         return results;
     }
 
-    public virtual IList<object> filterByOutcomeSinceLimit(object array, object outcome = null, object since = null, object limit = null, bool? tail = null)
+    public virtual IList<object> filterByOutcomeSinceLimit(IList<object> array, object outcome = null, object since = null, object limit = null, bool? tail = null)
     {
         tail ??= false;
-        return this.filterByValueSinceLimit(this.toArray(array), "outcome", outcome, since, limit, "timestamp", tail);
+        return this.filterByValueSinceLimit(array, "outcome", outcome, since, limit, "timestamp", tail);
     }
 
-    public virtual object filterByOutcomesSinceLimit(object array, IList<object> outcomes = null, Int64? since = null, Int64? limit = null, bool? tail = null)
+    public virtual object filterByOutcomesSinceLimit(IList<object> array, IList<object> outcomes = null, Int64? since = null, Int64? limit = null, bool? tail = null)
     {
         tail ??= false;
         IList<object> result = ((IList<object>)this.filterByArray(array, "outcome", outcomes, false));

@@ -2622,7 +2622,7 @@ public partial class okx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object account = data[i];
+            IDictionary<string, object> account = ((IDictionary<string, object>)data[i]);
             string? accountId = this.safeString(account, "uid");
             string? type = this.safeString(account, "acctLv");
             result.Add(new Dictionary<string, object>() {
@@ -8967,7 +8967,7 @@ public partial class okx : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? code = ((string)keys[i]);
-            borrowRateHistories[(string)code] = this.filterByCurrencySinceLimit((code != null && borrowRateHistories.ContainsKey(code) ? borrowRateHistories[code] : null),code, since, limit);
+            borrowRateHistories[(string)code] = this.filterByCurrencySinceLimit(this.toArray((code != null && borrowRateHistories.ContainsKey(code) ? borrowRateHistories[code] : null)),code, since, limit);
         }
         return borrowRateHistories;
     }

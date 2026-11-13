@@ -4084,7 +4084,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(response, currency, since, limit));
     }
 
-    public virtual object parsePositionRisk(object position, IDictionary<string, object>? market = null)
+    public virtual object parsePositionRisk(IDictionary<string, object> position, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -4147,7 +4147,7 @@ public partial class aster : Exchange
         double? contractSize = this.safeNumber(marketResolved, "contractSize");
         string? contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
-        bool linear = ((position != null && ((IDictionary<string, object>)position).ContainsKey("notional")));
+        bool linear = ((position != null && position.ContainsKey("notional")));
         if (marginMode == "cross")
         {
             // calculate collateral
@@ -4326,7 +4326,7 @@ public partial class aster : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (rawPositions?.Count ?? 0); i++)
         {
-            object rawPosition = rawPositions[i];
+            IDictionary<string, object> rawPosition = ((IDictionary<string, object>)rawPositions[i]);
             string? entryPriceString = this.safeString(rawPosition, "entryPrice");
             if (Precise.stringGt(entryPriceString, "0"))
             {

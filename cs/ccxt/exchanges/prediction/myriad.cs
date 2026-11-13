@@ -4280,7 +4280,7 @@ public partial class myriad : PredictionExchange
         {
             return ccxt.BaseExchange.ToPositionList(positions);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterByOutcomesSinceLimit(positions, this.toArray(outcomes), since, limit, true));
+        return ccxt.BaseExchange.ToPositionList(this.filterByOutcomesSinceLimit(this.toArray(positions), this.toArray(outcomes), since, limit, true));
     }
 
     public async virtual Task seedPositionBalances(string? trader)

@@ -1708,7 +1708,7 @@ public partial class bullish : Exchange
                 { "datetime", datetime },
             });
         }
-        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(this.sortBy(rates, "timestamp"), this.safeString(market, "symbol"), since, limit));
+        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(this.toArray(this.sortBy(rates, "timestamp")), this.safeString(market, "symbol"), since, limit));
     }
 
     /**

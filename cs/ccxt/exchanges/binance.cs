@@ -14913,7 +14913,7 @@ public partial class binance : Exchange
         IList<object> positions = this.toArray(response);
         for (int i = 0; i < (positions?.Count ?? 0); i++)
         {
-            object rawPosition = positions[i];
+            IDictionary<string, object> rawPosition = ((IDictionary<string, object>)positions[i]);
             string? entryPriceString = this.safeString(rawPosition, "entryPrice");
             if (Precise.stringGt(entryPriceString, "0"))
             {

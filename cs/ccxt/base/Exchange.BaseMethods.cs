@@ -395,6 +395,7 @@ public partial class BaseExchange
         this.ohlcvs = this.createSafeDictionary(true);
         this.myTrades = null;
         this.positions = null;
+        this.positionsByType = new Dictionary<string, object>() {};
     }
 
     public virtual bool? safeBoolN(object dictionaryOrList, IList<object> keys, bool? defaultValue = null)
@@ -6322,19 +6323,19 @@ public partial class BaseExchange
         return ((string?)((object)((currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null))));
     }
 
-    public virtual IList<object> filterBySymbolSinceLimit(object array, object symbol = null, object since = null, object limit = null, bool? tail = null)
+    public virtual IList<object> filterBySymbolSinceLimit(IList<object> array, object symbol = null, object since = null, object limit = null, bool? tail = null)
     {
         tail ??= false;
-        return this.filterByValueSinceLimit(this.toArray(array), "symbol", symbol, since, limit, "timestamp", tail);
+        return this.filterByValueSinceLimit(array, "symbol", symbol, since, limit, "timestamp", tail);
     }
 
-    public virtual IList<object> filterByCurrencySinceLimit(object array, string code = null, object since = null, object limit = null, bool? tail = null)
+    public virtual IList<object> filterByCurrencySinceLimit(IList<object> array, string code = null, object since = null, object limit = null, bool? tail = null)
     {
         tail ??= false;
-        return this.filterByValueSinceLimit(this.toArray(array), "currency", code, since, limit, "timestamp", tail);
+        return this.filterByValueSinceLimit(array, "currency", code, since, limit, "timestamp", tail);
     }
 
-    public virtual IList<object> filterBySymbolsSinceLimit(object array, IList<object> symbols = null, Int64? since = null, Int64? limit = null, bool? tail = null)
+    public virtual IList<object> filterBySymbolsSinceLimit(IList<object> array, IList<object> symbols = null, Int64? since = null, Int64? limit = null, bool? tail = null)
     {
         tail ??= false;
         IList<object> result = ((IList<object>)this.filterByArray(array, "symbol", symbols, false));

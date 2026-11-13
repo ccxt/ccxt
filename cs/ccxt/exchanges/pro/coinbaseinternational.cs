@@ -319,7 +319,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             channel = ((("user.trades." + this.safeString(market, "id", "")) + ".") + interval);
         }
         object trades = await this.subscribe(new List<object>() {channel}, new List<object>() {channel}, true, paramsInterval);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limit, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limit, true));
     }
 
     /**
@@ -410,7 +410,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
     }
 
     /**

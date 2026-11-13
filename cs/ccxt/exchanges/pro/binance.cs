@@ -757,14 +757,13 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, "swap");
         string? symbol = this.safeSymbol(marketId, market);
         Dictionary<string, object> liquidation = this.parseWsLiquidation(message, market);
-        object cache = this.myLiquidations;
-        if ((cache == null))
+        if ((this.myLiquidations == null))
         {
             Int64? limit = this.safeInteger(this.options, "myLiquidationsLimit", 1000);
-            cache = new ArrayCache(limit);
+            this.myLiquidations = new ArrayCache(limit);
         }
-        ccxt.pro.BaseCache.appendTo(cache, liquidation);
-        this.myLiquidations = cache;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.myLiquidations);
+        cache.append(liquidation);
         client.resolve(new List<object>() {liquidation}, "myLiquidations");
         client.resolve(new List<object>() {liquidation}, ("myLiquidations::" + symbol));
     }
@@ -2811,7 +2810,7 @@ public partial class binance : ccxt.binance
                     string baseIdLower = this.safeStringLower(market, "baseId", "");
                     string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                     object underlying = ((baseIdLower + "") + quoteIdLower);
-                    if (!((underlying is string inOpKey3 && seenUnderlyings.ContainsKey(inOpKey3))))
+                    if (!((underlying is string inOpKey4 && seenUnderlyings.ContainsKey(inOpKey4))))
                     {
                         seenUnderlyings[(string)underlying] = true;
                         subscriptionArgs.Add((underlying + "@optionMarkPrice"));
@@ -2827,7 +2826,7 @@ public partial class binance : ccxt.binance
                     string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                     object underlying = ((baseIdLower + "") + quoteIdLower);
                     object subscriptionArg = ((underlying + "@optionTicker@") + expiryDate);
-                    if (!((subscriptionArg is string inOpKey4 && seenUnderlyings.ContainsKey(inOpKey4))))
+                    if (!((subscriptionArg is string inOpKey5 && seenUnderlyings.ContainsKey(inOpKey5))))
                     {
                         seenUnderlyings[(string)subscriptionArg] = true;
                         subscriptionArgs.Add(subscriptionArg);
@@ -5001,7 +5000,7 @@ public partial class binance : ccxt.binance
             { "method", this.handleOrdersWs },
         };
         object orders = await this.watch(url, messageHash, message, messageHash, subscription);
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limit));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbol, since, limit));
     }
 
     /**
@@ -5083,7 +5082,7 @@ public partial class binance : ccxt.binance
             { "method", this.handleOrdersWs },
         };
         object orders = await this.watch(url, messageHash, message, messageHash, subscription);
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limit));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbol, since, limit));
     }
 
     /**
@@ -5889,11 +5888,11 @@ public partial class binance : ccxt.binance
         this.setPositionsCache(client, type, symbolsNormalized, isPortfolioMargin);
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
         bool awaitPositionsSnapshot = ((bool)this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && type != null && ((IDictionary<string,object>)this.positions).ContainsKey((string)type) ? ((IDictionary<string,object>)this.positions)[(string)type] : null));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(this.positionsByType != null && type != null && this.positionsByType.ContainsKey((string)type) ? this.positionsByType[(string)type] : null));
         if (((fetchPositionsSnapshot == true)) && ((awaitPositionsSnapshot == true)) && ((cache == null)))
         {
             object snapshot = await client.future(((object)(type == null ? null : type + ":fetchPositionsSnapshot")));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, null, type);
         if (this.newUpdates)
@@ -5910,12 +5909,8 @@ public partial class binance : ccxt.binance
         {
             return;
         }
-        if ((this.positions == null))
-        {
-            this.positions = new Dictionary<string, object>() {};
-        }
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
-        if ((((IDictionary<string,object>)this.positions) != null && type is string entryKey0 && ((IDictionary<string,object>)this.positions).ContainsKey(entryKey0)))
+        if ((this.positionsByType != null && type is string inOpKey3 && this.positionsByType.ContainsKey(inOpKey3)))
         {
             // a fresh client has no snapshot future yet, which means the
             // connection was re-established after a disconnect: positions
@@ -5924,7 +5919,7 @@ public partial class binance : ccxt.binance
             object messageHash = add(type, ":fetchPositionsSnapshot");
             if (((fetchPositionsSnapshot == true)) && (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))))
             {
-                ((IDictionary<string,object>)this.positions).Remove((string)type);
+                this.positionsByType.Remove((string)type);
             } else
             {
                 return;
@@ -5940,7 +5935,7 @@ public partial class binance : ccxt.binance
             }
         } else
         {
-            ((IDictionary<string,object>)this.positions)[(string)type] = new ArrayCacheBySymbolBySide();
+            this.positionsByType[(string)type] = new ArrayCacheBySymbolBySide();
         }
     }
 
@@ -5962,8 +5957,8 @@ public partial class binance : ccxt.binance
         {
             return;
         }
-        ((IDictionary<string,object>)this.positions)[(string)type] = new ArrayCacheBySymbolBySide();
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && type != null && ((IDictionary<string,object>)this.positions).ContainsKey(type) ? ((IDictionary<string,object>)this.positions)[type] : null));
+        this.positionsByType[(string)type] = new ArrayCacheBySymbolBySide();
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(this.positionsByType != null && type != null && this.positionsByType.ContainsKey(type) ? this.positionsByType[type] : null));
         for (int i = 0; i < (positions?.Count ?? 0); i++)
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
@@ -6016,15 +6011,11 @@ public partial class binance : ccxt.binance
         IDictionary<string, object> subscriptions = client.subscriptions;
         List<object> subscriptionsKeys = new List<object>(subscriptions.Keys);
         string accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
-        if ((this.positions == null))
+        if (!((this.positionsByType != null && this.positionsByType.ContainsKey(accountType))))
         {
-            this.positions = new Dictionary<string, object>() {};
+            this.positionsByType[accountType] = new ArrayCacheBySymbolBySide();
         }
-        if (!((((IDictionary<string,object>)this.positions) != null && accountType != null && ((IDictionary<string,object>)this.positions).ContainsKey(accountType))))
-        {
-            ((IDictionary<string,object>)this.positions)[accountType] = new ArrayCacheBySymbolBySide();
-        }
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && accountType != null && ((IDictionary<string,object>)this.positions).ContainsKey(accountType) ? ((IDictionary<string,object>)this.positions)[accountType] : null));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(this.positionsByType != null && accountType != null && this.positionsByType.ContainsKey(accountType) ? this.positionsByType[accountType] : null));
         IDictionary<string, object> data = this.safeDict(message, "a", new Dictionary<string, object>() {});
         List<object> rawPositions = this.safeList(data, "P", new List<object>() {});
         List<object> newPositions = new List<object>() {};
@@ -6234,7 +6225,7 @@ public partial class binance : ccxt.binance
             { "method", this.handleTradesWs },
         };
         object trades = await this.watch(url, messageHash, message, messageHash, subscription);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limit));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbol, since, limit));
     }
 
     /**
@@ -6627,15 +6618,11 @@ public partial class binance : ccxt.binance
         this.balance[accountType] = this.safeBalance((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null));
         client.resolve((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), (accountType + ":balance"));
         // --- positions ---
-        if ((this.positions == null))
+        if (!((this.positionsByType != null && this.positionsByType.ContainsKey(accountType))))
         {
-            this.positions = new Dictionary<string, object>() {};
+            this.positionsByType[accountType] = new ArrayCacheBySymbolBySide();
         }
-        if (!((((IDictionary<string,object>)this.positions) != null && accountType != null && ((IDictionary<string,object>)this.positions).ContainsKey(accountType))))
-        {
-            ((IDictionary<string,object>)this.positions)[accountType] = new ArrayCacheBySymbolBySide();
-        }
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && accountType != null && ((IDictionary<string,object>)this.positions).ContainsKey(accountType) ? ((IDictionary<string,object>)this.positions)[accountType] : null));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(this.positionsByType != null && accountType != null && this.positionsByType.ContainsKey(accountType) ? this.positionsByType[accountType] : null));
         List<object> P = this.safeList(message, "P", new List<object>() {});
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < P.Count; i++)

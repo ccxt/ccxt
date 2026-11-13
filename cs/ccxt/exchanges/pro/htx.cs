@@ -1041,7 +1041,7 @@ public partial class htx : ccxt.htx
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
     }
 
     public virtual List<object> getOrderChannelAndMessageHash(string? type, string? subType, IDictionary<string, object>? market = null, object parameters = null)
@@ -1828,13 +1828,14 @@ public partial class htx : ccxt.htx
         bool swap = (type == "swap");
         bool future = (type == "future");
         bool isV5Linear = (linear && (swap || future));
-        bool isLinear = (subType == "linear");
-        string? url = this.getUrlByMarketType(type, isLinear, true, false, isV5Linear);
         messageHash = ((marginMode + ":positions") + messageHash);
         string? channel = "positions.*";
+        // one positions cache per margin mode: linear, inverse and futures symbols never collide
+        string cacheKey = "isolated";
         if ((marginMode == "cross"))
         {
             channel = "positions_cross.*";
+            cacheKey = "cross";
         }
         if (isV5Linear)
         {
@@ -1856,7 +1857,7 @@ public partial class htx : ccxt.htx
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.safeValue(this.safeValue(this.positions, url), marginMode), symbolsNormalized, since, limit, false));
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(this.safeValue(this.positionsByType, cacheKey)), symbolsNormalized, since, limit, false));
     }
 
     public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
@@ -1940,21 +1941,11 @@ public partial class htx : ccxt.htx
         //         ]
         //     }
         //
-        string url = client.url;
         string? topic = this.safeString(message, "topic", "");
         string defaultMarginMode = "isolated";
         if (topic == "positions_cross")
         {
             defaultMarginMode = "cross";
-        }
-        if ((this.positions == null))
-        {
-            this.positions = new Dictionary<string, object>() {};
-        }
-        IDictionary<string, object> clientPositions = this.safeDict(this.positions, url);
-        if ((clientPositions == null))
-        {
-            ((IDictionary<string,object>)this.positions)[url] = new Dictionary<string, object>() {};
         }
         List<object> rawPositions = this.safeList(message, "data", new List<object>() {});
         if (this.isEmpty(rawPositions))
@@ -1984,16 +1975,16 @@ public partial class htx : ccxt.htx
             {
                 marginMode = defaultMarginMode;
             }
-            ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.safeValue((((IDictionary<string,object>)this.positions) != null && url != null && ((IDictionary<string,object>)this.positions).ContainsKey(url) ? ((IDictionary<string,object>)this.positions)[url] : null), marginMode));
+            object cache = this.safeValue(this.positionsByType, marginMode);
             if ((cache == null))
             {
                 cache = new ArrayCacheBySymbolBySide();
-                ((IDictionary<string,object>)(((IDictionary<string,object>)this.positions) != null && url != null && ((IDictionary<string,object>)this.positions).ContainsKey(url) ? ((IDictionary<string,object>)this.positions)[url] : null))[(string)marginMode] = cache;
+                this.positionsByType[(string)marginMode] = cache;
             }
             newPositions.Add(position);
             positionsByMarginMode[(string)marginMode] = this.safeList(positionsByMarginMode, marginMode, new List<object>() {});
             ((IList<object>)(marginMode != null && positionsByMarginMode.ContainsKey(marginMode) ? positionsByMarginMode[marginMode] : null)).Add(position);
-            cache.append(position);
+            ccxt.pro.BaseCache.appendTo(cache, position);
         }
         List<object> marginModes = new List<object>(positionsByMarginMode.Keys);
         for (int i = 0; i < marginModes.Count; i++)

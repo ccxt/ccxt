@@ -934,7 +934,7 @@ public partial class revolutx : Exchange
             IDictionary<string, object> trade = this.safeDict(data, i, new Dictionary<string, object>() {});
             result.Add(ccxt.BaseExchange.FromTrade(this.parseTrade(trade, market)));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.sortBy(result, "timestamp"), symbol, since, limit));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(this.sortBy(result, "timestamp")), symbol, since, limit));
     }
 
     /**

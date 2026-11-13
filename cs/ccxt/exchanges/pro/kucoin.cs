@@ -2271,7 +2271,7 @@ public partial class kucoin : ccxt.kucoin
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
     }
 
     public virtual string? getOrdersMessageHashSuffix(string? topic)
@@ -2735,7 +2735,7 @@ public partial class kucoin : ccxt.kucoin
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
     }
 
     public virtual string? getMyTradesMessageHashSuffix(string topic)
@@ -3289,7 +3289,7 @@ public partial class kucoin : ccxt.kucoin
         if (((fetchPositionSnapshot == true)) && ((awaitPositionSnapshot == true)) && ((cache == null)))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
         }
         string channel = "positionAll";
         Dictionary<string, object> paramsExtended = this.extend(paramsUta, new Dictionary<string, object>() {
@@ -3309,8 +3309,7 @@ public partial class kucoin : ccxt.kucoin
         {
             return ((IDictionary<string, object>)((object)(null)));
         }
-        object cache = (this.positions as ArrayCache).hashmap;
-        IDictionary<string, object> symbolCache = this.safeDict(cache, symbol, new Dictionary<string, object>() {});
+        IDictionary<string, object> symbolCache = this.safeDict((this.positions as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
         List<object> values = new List<object>(symbolCache.Values);
         return this.safeDict(values, 0);
     }
@@ -3501,7 +3500,11 @@ public partial class kucoin : ccxt.kucoin
             }
         }
         Dictionary<string, object> position = this.extend(currentPosition, newPosition);
-        cache.append(position);
+        // the cache exists once watchPosition(s) set it up
+        if ((cache != null))
+        {
+            cache.append(position);
+        }
         client.resolve(position, messageHash);
     }
 
