@@ -189,6 +189,22 @@
                             },
                             "visibleOnUi": true,
                             "createdAt": 1752829532673
+                        },
+                        {
+                            "name": "XAU-USD",
+                            "type": "PERPETUAL",
+                            "category": "RWA",
+                            "subCategory": "Commodity",
+                            "assetName": "XAU",
+                            "collateralAssetName": "USD",
+                            "status": "ACTIVE",
+                            "tradingConfig": {
+                                "minOrderSize": "0.001",
+                                "minOrderSizeChange": "0.001",
+                                "minPriceChange": "0.1",
+                                "maxLimitOrderValue": "2500000",
+                                "maxLeverage": "25.00"
+                            }
                         }
                     ]
                 },
@@ -215,8 +231,8 @@
                         "linear": true,
                         "inverse": false,
                         "subType": null,
-                        "taker": 0.002,
-                        "maker": 0.002,
+                        "taker": 0.00025,
+                        "maker": 0,
                         "contractSize": 1,
                         "expiry": null,
                         "expiryDatetime": null,
@@ -345,6 +361,79 @@
                             },
                             "visibleOnUi": true,
                             "createdAt": 1752829532673
+                        }
+                    },
+                    {
+                        "id": "XAU-USD",
+                        "lowercaseId": null,
+                        "symbol": "XAU/USDC:USDC",
+                        "base": "XAU",
+                        "quote": "USDC",
+                        "settle": "USDC",
+                        "baseId": "XAU",
+                        "quoteId": "USD",
+                        "settleId": "USD",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.0001,
+                        "maker": 0,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.001,
+                            "price": 0.1
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": 1,
+                                "max": 25
+                            },
+                            "amount": {
+                                "min": 0.001,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": 2500000
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "name": "XAU-USD",
+                            "type": "PERPETUAL",
+                            "category": "RWA",
+                            "subCategory": "Commodity",
+                            "assetName": "XAU",
+                            "collateralAssetName": "USD",
+                            "status": "ACTIVE",
+                            "tradingConfig": {
+                                "minOrderSize": "0.001",
+                                "minOrderSizeChange": "0.001",
+                                "minPriceChange": "0.1",
+                                "maxLimitOrderValue": "2500000",
+                                "maxLeverage": "25.00"
+                            }
                         }
                     }
                 ]
