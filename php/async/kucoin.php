@@ -10579,7 +10579,7 @@ class kucoin extends Exchange {
         return $this->parse_funding_rates($rates, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $data, ?array $market = null): array {
+    public function parse_funding_rate(?array $data, ?array $market = null): array {
         // uta
         //     {
         //         "symbol": ".ETHUSDTMFPI8H",

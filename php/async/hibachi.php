@@ -2007,7 +2007,7 @@ class hibachi extends Exchange {
         }
         return $this->safe_ledger_entry(array(
             'id' => $this->safe_string($item, 'id'),
-            'currency' => $this->currency('USDT'),
+            'currency' => 'USDT',
             'account' => $this->number_to_string($this->accountId),
             'referenceAccount' => $referenceAccount,
             'referenceId' => $referenceId,

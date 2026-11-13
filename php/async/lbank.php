@@ -1431,7 +1431,7 @@ class lbank extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_funding_rate(mixed $ticker, ?array $market = null): array {
+    public function parse_funding_rate(?array $ticker, ?array $market = null): array {
         // {
         //     "symbol": "BTCUSDT",
         //     "highestPrice": "69495.5",

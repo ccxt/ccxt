@@ -3525,7 +3525,7 @@ class bitfinex extends Exchange {
         return $reversedArray;
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //       [
         //          "tBTCF0:USTF0",

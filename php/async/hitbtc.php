@@ -3568,7 +3568,7 @@ class hitbtc extends Exchange {
         return $this->parse_funding_rate($response, $market);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "contract_type": "perpetual",

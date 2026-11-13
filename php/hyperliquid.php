@@ -1420,7 +1420,7 @@ class hyperliquid extends Exchange {
         return $this->parse_funding_rates($result, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $info, ?array $market = null): array {
+    public function parse_funding_rate(?array $info, ?array $market = null): array {
         //
         //     {
         //         "maxLeverage": "50",

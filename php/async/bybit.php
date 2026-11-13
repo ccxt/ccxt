@@ -3006,7 +3006,7 @@ class bybit extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limitResolved);
     }
 
-    public function parse_funding_rate(mixed $ticker, ?array $market = null): array {
+    public function parse_funding_rate(?array $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol": "BTCUSDT",

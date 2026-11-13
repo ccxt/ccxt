@@ -1603,7 +1603,7 @@ class toobit extends Exchange {
         return $this->parse_funding_rates($response, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $nextFundingRate = $this->safe_number($contract, 'rate');

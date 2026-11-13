@@ -3593,7 +3593,7 @@ class digifinex extends Exchange {
         return $this->fetch_funding_rate($symbol, $params);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",

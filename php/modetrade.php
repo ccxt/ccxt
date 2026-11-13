@@ -882,7 +882,7 @@ class modetrade extends Exchange {
         return $this->parse_trades($rows, $market, $since, $limit);
     }
 
-    public function parse_funding_rate(mixed $fundingRate, ?array $market = null): array {
+    public function parse_funding_rate(?array $fundingRate, ?array $market = null): array {
         //
         //         {
         //             "symbol":"PERP_AAVE_USDT",
@@ -2683,7 +2683,8 @@ class modetrade extends Exchange {
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return array( $currency, $this->safe_list($data, 'rows', array()) );
+        $rows = $this->safe_list($data, 'rows', array());
+        return $rows;
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -2760,9 +2761,11 @@ class modetrade extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
-        $currencyRows = $this->get_asset_history_rows($code, $since, $limit, $params);
-        $currency = $this->safe_value($currencyRows, 0);
-        $rows = $this->safe_list($currencyRows, 1);
+        $rows = $this->get_asset_history_rows($code, $since, $limit, $params);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         return $this->parse_ledger($rows, $currency, $since, $limit, $params);
     }
 
@@ -2886,9 +2889,11 @@ class modetrade extends Exchange {
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         $request = array();
-        $currencyRows = $this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params));
-        $currency = $this->safe_value($currencyRows, 0);
-        $rows = $this->safe_list($currencyRows, 1, array());
+        $rows = $this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params));
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         //
         //     {
         //         "rows":[],

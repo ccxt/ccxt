@@ -4576,7 +4576,7 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "BTC_USDT",

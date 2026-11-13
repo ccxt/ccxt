@@ -1001,7 +1001,7 @@ class coinbaseinternational extends Exchange {
         );
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null) {
+    public function parse_funding_rate(?array $contract, ?array $market = null) {
         //
         // fetchFundingRateHistory
         //

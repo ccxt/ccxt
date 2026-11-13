@@ -4377,13 +4377,13 @@ class BaseExchange {
         return !$this->value_is_defined($value) || $value === '';
     }
 
-    public function safe_number_omit_zero(array $obj, int|string|null $key, ?float $defaultValue = null) {
+    public function safe_number_omit_zero(mixed $obj, int|string|null $key, ?float $defaultValue = null) {
         $value = $this->safe_string($obj, $key);
         $final = $this->parse_number($this->omit_zero($value));
         return ($final === null) ? $defaultValue : $final;
     }
 
-    public function safe_integer_omit_zero(array $obj, int|string|null $key, ?int $defaultValue = null) {
+    public function safe_integer_omit_zero(mixed $obj, int|string|null $key, ?int $defaultValue = null) {
         $timestamp = $this->safe_integer($obj, $key, $defaultValue);
         if ($timestamp === null || $timestamp === 0) {
             return null;
@@ -8303,7 +8303,7 @@ class BaseExchange {
         return $marketResolved['symbol'];
     }
 
-    public function parse_funding_rate(string $contract, ?array $market = null) {
+    public function parse_funding_rate(?array $contract, ?array $market = null) {
         throw new NotSupported($this->id . ' parseFundingRate() is not supported yet');
     }
 

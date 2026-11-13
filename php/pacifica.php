@@ -1170,7 +1170,7 @@ class pacifica extends Exchange {
         return $this->parse_funding_rates($result, $symbols);
     }
 
-    public function parse_funding_rate(mixed $info, ?array $market = null): array {
+    public function parse_funding_rate(?array $info, ?array $market = null): array {
         //
         //      {
         //         "funding": "0.00010529",

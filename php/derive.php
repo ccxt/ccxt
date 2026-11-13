@@ -1880,7 +1880,7 @@ class derive extends Exchange {
         return $this->parse_funding_rate($data);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         $symbol = $this->safe_string($contract, 'symbol');
         $fundingTimestamp = $this->safe_integer($contract, 'timestamp');
         return array(

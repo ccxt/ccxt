@@ -11457,7 +11457,7 @@ class binance extends Exchange {
         return $this->parse_funding_rates($response, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         // ensure it matches with https://www.binance.com/en/futures/funding-history/0
         //
         // fetchFundingRate, fetchFundingRates

@@ -284,9 +284,9 @@ class gemini extends \ccxt\async\gemini {
         $symbols = is_array($storesForSymbols) ? array_keys($storesForSymbols) : array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            $stored = $storesForSymbols[$symbol];
+            $symbolStore = $storesForSymbols[$symbol];
             $messageHash = 'trades:' . $symbol;
-            $client->resolve($stored, $messageHash);
+            $client->resolve($symbolStore, $messageHash);
         }
     }
 

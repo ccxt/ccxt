@@ -213,8 +213,8 @@ class ndax extends \ccxt\async\ndax {
             $market = $this->market($symbol);
             $marketId = $this->safe_string($market, 'id', '');
             $messageHash = $name . ':' . $marketId;
-            $tradesArray = $this->safe_value($this->trades, $symbol);
-            $client->resolve($tradesArray, $messageHash);
+            $symbolTrades = $this->safe_value($this->trades, $symbol);
+            $client->resolve($symbolTrades, $messageHash);
         }
     }
 

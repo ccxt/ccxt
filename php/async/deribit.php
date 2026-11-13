@@ -3522,7 +3522,7 @@ class deribit extends Exchange {
         return $this->filter_by_symbol_since_limit($rates, $symbol, $sinceResolved, $limit);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //   {
         //       "jsonrpc":"2.0",

@@ -1021,7 +1021,7 @@ class polymarket extends Exchange {
         return $this->index_by($this->filter_by_array($result, 'symbol', $symbolsNormalized, false), 'symbol');
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "instrument_id": 1,

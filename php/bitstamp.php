@@ -2526,7 +2526,7 @@ class bitstamp extends Exchange {
         return $this->parse_funding_rate($response, $market);
     }
 
-    public function parse_funding_rate(mixed $fundingRate, ?array $market = null): array {
+    public function parse_funding_rate(?array $fundingRate, ?array $market = null): array {
         //
         //     {
         //         "funding_rate": "0.0024",

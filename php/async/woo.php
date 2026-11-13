@@ -3109,7 +3109,8 @@ class woo extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return array( $currency, $this->safe_list($data, 'rows', array()) );
+        $rows = $this->safe_list($data, 'rows', array());
+        return $rows;
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -3128,9 +3129,11 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
-        $currencyRows = Async\await($this->get_asset_history_rows($code, $since, $limit, $params));
-        $currency = $this->safe_value($currencyRows, 0);
-        $rows = $this->safe_list($currencyRows, 1);
+        $rows = Async\await($this->get_asset_history_rows($code, $since, $limit, $params));
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         return $this->parse_ledger($rows, $currency, $since, $limit, $params);
     }
 
@@ -3273,9 +3276,11 @@ class woo extends Exchange {
         $request = array(
             'type' => 'BALANCE',
         );
-        $currencyRows = Async\await($this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params)));
-        $currency = $this->safe_value($currencyRows, 0);
-        $rows = $this->safe_list($currencyRows, 1, array());
+        $rows = Async\await($this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params)));
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         return $this->parse_transactions($rows, $currency, $since, $limit, $this->omit($params, 'tokenSide'));
     }
 
@@ -3858,7 +3863,7 @@ class woo extends Exchange {
         return $this->parse_incomes($rows, $market, $since, $limit);
     }
 
-    public function parse_funding_rate(mixed $fundingRate, ?array $market = null): array {
+    public function parse_funding_rate(?array $fundingRate, ?array $market = null): array {
         //
         //     {
         //         "symbol": "PERP_BTC_USDT",

@@ -2806,7 +2806,7 @@ class delta extends Exchange {
         return $this->parse_funding_rates($rates, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "close": 30600.5,
