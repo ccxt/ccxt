@@ -120,36 +120,52 @@ export default class kraken extends Exchange {
                 },
                 'www': 'https://www.kraken.com',
                 'doc': 'https://docs.kraken.com/api-reference/',
-                'fees': 'https://www.kraken.com/en-us/features/fee-schedule',
+                'fees': 'https://www.kraken.com/pro/fees',
             },
             'fees': {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': this.parseNumber ('0.0026'),
-                    'maker': this.parseNumber ('0.0016'),
+                    'taker': this.parseNumber ('0.008'),
+                    'maker': this.parseNumber ('0.004'),
                     'tiers': {
                         'taker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.0026') ],
-                            [ this.parseNumber ('50000'), this.parseNumber ('0.0024') ],
-                            [ this.parseNumber ('100000'), this.parseNumber ('0.0022') ],
-                            [ this.parseNumber ('250000'), this.parseNumber ('0.0020') ],
-                            [ this.parseNumber ('500000'), this.parseNumber ('0.0018') ],
-                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0016') ],
-                            [ this.parseNumber ('2500000'), this.parseNumber ('0.0014') ],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.008') ],
+                            [ this.parseNumber ('2500'), this.parseNumber ('0.006') ],
+                            [ this.parseNumber ('10000'), this.parseNumber ('0.0038') ],
+                            [ this.parseNumber ('25000'), this.parseNumber ('0.0035') ],
+                            [ this.parseNumber ('50000'), this.parseNumber ('0.003') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.0025') ],
+                            [ this.parseNumber ('250000'), this.parseNumber ('0.0022') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0018') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.0015') ],
                             [ this.parseNumber ('5000000'), this.parseNumber ('0.0012') ],
-                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0001') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('250000000'), this.parseNumber ('0.0007') ],
+                            [ this.parseNumber ('400000000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('500000000'), this.parseNumber ('0.0005') ],
                         ],
                         'maker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.0016') ],
-                            [ this.parseNumber ('50000'), this.parseNumber ('0.0014') ],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.004') ],
+                            [ this.parseNumber ('2500'), this.parseNumber ('0.003') ],
+                            [ this.parseNumber ('10000'), this.parseNumber ('0.0022') ],
+                            [ this.parseNumber ('25000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('50000'), this.parseNumber ('0.0015') ],
                             [ this.parseNumber ('100000'), this.parseNumber ('0.0012') ],
-                            [ this.parseNumber ('250000'), this.parseNumber ('0.0010') ],
+                            [ this.parseNumber ('250000'), this.parseNumber ('0.001') ],
                             [ this.parseNumber ('500000'), this.parseNumber ('0.0008') ],
                             [ this.parseNumber ('1000000'), this.parseNumber ('0.0006') ],
                             [ this.parseNumber ('2500000'), this.parseNumber ('0.0004') ],
                             [ this.parseNumber ('5000000'), this.parseNumber ('0.0002') ],
-                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('250000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('400000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('500000000'), this.parseNumber ('0') ],
                         ],
                     },
                 },
@@ -583,6 +599,29 @@ export default class kraken extends Exchange {
         return this.decimalToPrecision (fee, TRUNCATE, marketPrecision['amount'], this.precisionMode);
     }
 
+    spotMarketFeeDefaults (base: string, quote: string): Dict {
+        // https://www.kraken.com/pro/fees
+        // https://support.kraken.com/articles/360039299431-how-do-stablecoin-fx-fees-work-
+        if ((base === 'USDE') || (quote === 'USDE')) {
+            return { 'maker': this.parseNumber ('0'), 'taker': this.parseNumber ('0') };
+        }
+        if (base === 'USDG') {
+            return { 'maker': this.parseNumber ('0'), 'taker': this.parseNumber ('0.0001') };
+        }
+        const stablecoins = [
+            'APXUSD', 'AUDX', 'AUSD', 'BRL1', 'CASH', 'DAI', 'EURC', 'EURCV', 'EUROP', 'EURQ', 'EURR', 'EURT', 'FIDD', 'FRNT',
+            'MXNB', 'OUSD', 'PYUSD', 'QCAD', 'RLUSD', 'SOFID', 'TGBP', 'TUSD', 'USD1', 'USAT', 'USDC', 'USDD', 'USDGO',
+            'USDPT', 'USDQ', 'USDR', 'USDS', 'USDSUI', 'USDT', 'USDSM', 'USTABLES', 'ZCHF',
+        ];
+        const fiatCurrencies = [ 'AED', 'AUD', 'CAD', 'CHF', 'EUR', 'GBP', 'JPY', 'USD' ];
+        const fxPair = this.inArray (base, fiatCurrencies) && this.inArray (quote, fiatCurrencies);
+        const peggedPair = (quote === 'BTC') && ((base === 'TBTC') || (base === 'WBTC'));
+        if (this.inArray (base, stablecoins) || fxPair || peggedPair) {
+            return { 'maker': this.parseNumber ('0.002'), 'taker': this.parseNumber ('0.002') };
+        }
+        return this.fees['trading'];
+    }
+
     /**
      * @method
      * @name kraken#fetchMarkets
@@ -666,17 +705,19 @@ export default class kraken extends Exchange {
             if ((base === undefined) || (quote === undefined)) {
                 continue;
             }
+            // Use the public fee schedule when AssetPairs returns empty fee arrays.
+            const feeDefaults = this.spotMarketFeeDefaults (base, quote);
             const makerFees = this.safeList (market, 'fees_maker', []);
             const firstMakerFee = this.safeList (makerFees, 0, []);
             const firstMakerFeeRate = this.safeString (firstMakerFee, 1);
-            let maker: Num = undefined;
+            let maker = this.safeNumber (feeDefaults, 'maker');
             if (firstMakerFeeRate !== undefined) {
                 maker = this.parseNumber (Precise.stringDiv (firstMakerFeeRate, '100'));
             }
             const takerFees = this.safeList (market, 'fees', []);
             const firstTakerFee = this.safeList (takerFees, 0, []);
             const firstTakerFeeRate = this.safeString (firstTakerFee, 1);
-            let taker: Num = undefined;
+            let taker = this.safeNumber (feeDefaults, 'taker');
             if (firstTakerFeeRate !== undefined) {
                 taker = this.parseNumber (Precise.stringDiv (firstTakerFeeRate, '100'));
             }
