@@ -3402,7 +3402,7 @@ class predictfun extends Exchange {
         return $next;
     }
 
-    public function outcome_for_token(?string $tokenId, mixed $market = null): mixed {
+    public function outcome_for_token(?string $tokenId, ?array $market = null): mixed {
         /**
          * @ignore
          * resolves the outcome a row belongs to from its own token id, taking the caller's outcome only when it names that same token

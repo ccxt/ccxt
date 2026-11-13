@@ -922,8 +922,7 @@ class kalshi extends Exchange {
         //         }
         //     }
         //
-        $marketAny = $market;
-        $outcomeObj = $this->safe_outcome($this->safe_string($marketAny, 'outcome'), $marketAny);
+        $outcomeObj = $this->safe_outcome($this->safe_string($market, 'outcome'), $market);
         $outcomeLabel = ($market !== null && $market !== null) ? $this->safe_string_upper($market, 'label', $this->safe_string_upper($market['info'], 'outcomeLabel', 'YES')) : 'YES';
         $isNo = $outcomeLabel === 'NO';
         $timestamp = $this->parse8601($this->safe_string($raw, 'updated_time'));
@@ -1384,8 +1383,7 @@ class kalshi extends Exchange {
         $amountFp = $this->safe_number_2($trade, 'count_fp', 'size_fp');
         $amount = $this->safe_number($trade, 'count', $amountFp);
         $rawSide = $this->safe_string_lower($trade, 'taker_side');
-        $marketAny = $market;
-        $outcomeObj = $this->safe_outcome($this->safe_string($marketAny, 'outcome'), $marketAny);
+        $outcomeObj = $this->safe_outcome($this->safe_string($market, 'outcome'), $market);
         $marketInfo = $this->safe_dict($outcomeObj, 'info', array());
         $requestedOutcomeLabel = $this->safe_string_lower($outcomeObj, 'label', $this->safe_string_lower($marketInfo, 'outcomeLabel'));
         $outcomeSymbol = $this->safe_string($outcomeObj, 'outcome');

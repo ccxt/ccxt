@@ -2051,8 +2051,7 @@ class sxbet extends Exchange {
         //         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
         //     }
         //
-        $marketAny = $market;
-        $outcomeObj = $this->safe_outcome($this->safe_string($marketAny, 'outcome'), $marketAny);
+        $outcomeObj = $this->safe_outcome($this->safe_string($market, 'outcome'), $market);
         $outcomeId = $this->safe_string($outcomeObj, 'outcomeId');
         $marketHash = $this->safe_string($raw, 'marketHash');
         $isOutcomeOne = ($outcomeId === $marketHash);

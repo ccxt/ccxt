@@ -456,7 +456,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return false;
     }
 
-    public function safe_outcome(?string $outcomeIdOrSymbol, mixed $outcomeObj = null) {
+    public function safe_outcome(?string $outcomeIdOrSymbol, ?array $market = null) {
         if ($outcomeIdOrSymbol !== null) {
             if (($this->outcomes !== null) && (is_array($this->outcomes) && array_key_exists($outcomeIdOrSymbol ?? '', $this->outcomes))) {
                 return $this->safe_value($this->outcomes, $outcomeIdOrSymbol);
@@ -465,8 +465,8 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
                 return $this->safe_value($this->outcomes_by_id, $outcomeIdOrSymbol);
             }
         }
-        if ($outcomeObj !== null) {
-            return $outcomeObj;
+        if ($market !== null) {
+            return $market;
         }
         // stub for an unknown handle; it only carries the identity keys, not the market fields
         $outcomeObjValue = array( 'outcome' => $outcomeIdOrSymbol, 'outcomeId' => $outcomeIdOrSymbol, 'market' => null, 'label' => null, 'event' => null, 'info' => array());
@@ -474,7 +474,12 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     }
 
     public function safe_outcome_symbol(?string $outcomeIdOrSymbol, mixed $outcomeObj = null) {
-        $outcomeObjValue = $this->safe_outcome($outcomeIdOrSymbol, $outcomeObj);
+        // outcomeObj may be any outcome-shaped dict, not only a market: read it here instead of
+        // handing it to safeOutcome (whose fallback slot is a Market)
+        if (!$this->has_outcome($outcomeIdOrSymbol) && ($outcomeObj !== null)) {
+            return $this->safe_string($outcomeObj, 'outcome');
+        }
+        $outcomeObjValue = $this->safe_outcome($outcomeIdOrSymbol);
         return $outcomeObjValue['outcome'];
     }
 

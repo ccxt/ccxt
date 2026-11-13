@@ -1974,7 +1974,7 @@ class polymarket extends Exchange {
             'datetime' => $this->iso8601($ts),
             'lastTradeTimestamp' => null,
             'status' => $status,
-            'outcome' => $mkt['outcome'],
+            'outcome' => $this->safe_string($mkt, 'outcome'),
             'outcomeId' => $this->safe_string($mkt, 'outcomeId'),
             'label' => $this->safe_string($mkt, 'label'),
             'market' => $this->safe_string($mkt, 'market'),
