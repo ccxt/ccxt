@@ -33,6 +33,7 @@ public partial class testMainClass : BaseTest
     public static string httpsAgent = "";
     //public bool loadKeys = false;
     public static int TICK_SIZE = Exchange.TICK_SIZE;
+    public static int SIGNIFICANT_DIGITS = Exchange.SIGNIFICANT_DIGITS;
 
     // public static object AuthenticationError = typeof(Exchange.AuthenticationError);
     public static BaseExchange initExchange(object exchangeId, object exchangeArgs = null, object isWs2 = null)
