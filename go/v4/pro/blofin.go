@@ -1157,7 +1157,7 @@ func (this *Blofin) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channelName *string = this.SafeString(arg, "channel")
 	var data []any = ccxt.SafeListTyped(message, "data")
@@ -1165,7 +1165,7 @@ func (this *Blofin) HandlePositions(client any, message map[string]any) {
 	for i := 0; i < len(data); i++ {
 		var position any = this.ParseWsPosition(this.SafeDict(data, i, map[string]any{}))
 		newPositions = append(newPositions, position)
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 		if channelName != nil {
 			client.(ccxt.ClientInterface).Resolve(position, *channelName+":"+*this.SafeString(position, "symbol", ""))
 		}

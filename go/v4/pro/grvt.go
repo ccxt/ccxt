@@ -1130,7 +1130,7 @@ func (this *Grvt) HandlePosition(client any, message map[string]any) {
 	}
 	var data map[string]any = ccxt.SafeMapTyped(message, "feed")
 	var position any = this.ParseWsPosition(data)
-	this.Positions.(ccxt.Appender).Append(position)
+	this.Positions.Append(position)
 	var newPositions []any = []any{}
 	newPositions = append(newPositions, position)
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions::"+*this.SafeString(position, "symbol", ""))

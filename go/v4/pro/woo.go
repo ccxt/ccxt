@@ -1915,12 +1915,12 @@ func (this *Woo) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clien
 	}
 	var positions []any = ccxt.PositionsToList(r.Value)
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	for i := 0; i < len(positions); i++ {
 		var position any = positions[i]
 		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
 		if (contracts != nil) && (*contracts > 0) {
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 		}
 	}
 	// don't remove the future from the .futures cache
@@ -1969,7 +1969,7 @@ func (this *Woo) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(postitionsIds); i++ {
 		var marketId string = postitionsIds[i]
@@ -1977,7 +1977,7 @@ func (this *Woo) HandlePositions(client any, message map[string]any) {
 		var rawPosition any = rawPositions[marketId]
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition, market))
 		newPositions = append(newPositions, position)
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 		var marketSymbol string = *this.SafeString(market, "symbol", "")
 		var messageHash string = "positions::" + marketSymbol
 		client.(ccxt.ClientInterface).Resolve(position, messageHash)

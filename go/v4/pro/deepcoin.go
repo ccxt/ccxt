@@ -1580,7 +1580,7 @@ func (this *Deepcoin) HandlePosition(client any, message map[string]any) {
 			this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 		}
 		var parsed any = this.ParseWsPosition(data, market)
-		this.Positions.(ccxt.Appender).Append(parsed)
+		this.Positions.Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(this.Positions, messageHash)
 		client.(ccxt.ClientInterface).Resolve(this.Positions, symbolMessageHash)
 	}

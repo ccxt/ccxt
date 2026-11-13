@@ -440,7 +440,7 @@ func (this *Indodax) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	var result []any = []any{}
 	var rawMarkets []any = this.ToArray(response)
 	for i := 0; i < len(rawMarkets); i++ {
-		var market any = DerefScalar(rawMarkets[i])
+		var market any = rawMarkets[i]
 		var id *string = this.SafeString(market, "id")
 		var baseId *string = this.SafeString(market, "traded_currency")
 		var quoteId *string = this.SafeString(market, "base_currency")

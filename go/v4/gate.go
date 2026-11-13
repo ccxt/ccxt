@@ -3407,7 +3407,7 @@ func (this *Gate) fetchNetworkDepositAddressBody(ch chan AsyncResult[DepositAddr
 	var codeValue *string = this.SafeCurrencyCode(currencyId)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(addresses); i++ {
-		var entry any = DerefScalar(addresses[i])
+		var entry any = addresses[i]
 		//
 		//    {
 		//        "chain": "ETH",

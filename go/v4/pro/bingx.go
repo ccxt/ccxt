@@ -1698,7 +1698,7 @@ func (this *Bingx) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 		"unsubscribe": false,
 		"id":          uuid,
 	}
-	if fetchPositionsSnapshot && awaitPositionsSnapshot && (this.Positions == nil) {
+	if fetchPositionsSnapshot && awaitPositionsSnapshot && this.Positions == nil {
 
 		r2 := <-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot"))
 		if r2.Err != nil {
@@ -1769,12 +1769,12 @@ func (this *Bingx) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	}
 	var positions []any = ccxt.PositionsToList(r.Value)
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	for i := 0; i < len(positions); i++ {
 		var position any = positions[i]
 		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
 		if (contracts != nil) && (*contracts > 0) {
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 		}
 	}
 	// don't remove the future from the .futures cache
@@ -1872,7 +1872,7 @@ func (this *Bingx) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var data map[string]any = ccxt.SafeMapTyped(message, "a")
 	if _, ok := data["P"]; !ok {
 		return
@@ -1890,7 +1890,7 @@ func (this *Bingx) HandlePositions(client any, message map[string]any) {
 		ccxt.AddElementToObject(position, "timestamp", timestamp)
 		ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
 		newPositions = append(newPositions, position)
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "swap:positions::"))
 	for i := 0; i < len(messageHashes); i++ {

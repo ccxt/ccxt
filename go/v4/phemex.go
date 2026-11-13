@@ -6464,7 +6464,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	var rates []any = SafeListTyped(data, "rows")
 	var result []any = []any{}
 	for i := 0; i < len(rates); i++ {
-		var item any = DerefScalar(rates[i])
+		var item any = rates[i]
 		var timestamp *int64 = this.SafeInteger(item, "fundingTime")
 		result = append(result, map[string]any{
 			"info":        item,

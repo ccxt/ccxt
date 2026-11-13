@@ -2693,7 +2693,7 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	var networks map[string]any = map[string]any{}
 	var networksById map[string]any = map[string]any{}
 	for i := 0; i < len(currencies); i++ {
-		var currency any = DerefScalar(currencies[i])
+		var currency any = currencies[i]
 		var assetId *string = this.SafeString(currency, "asset_id")
 		var id *string = this.SafeString2(currency, "id", "code")
 		var code *string = this.SafeCurrencyCode(id)
@@ -7020,7 +7020,7 @@ func (this *Coinbase) ParsePortfolioDetails(portfolioData any) []any {
 	var spotPositions []any = SafeListTyped(breakdown, "spot_positions")
 	var parsedPositions []any = []any{}
 	for i := 0; i < len(spotPositions); i++ {
-		var position map[string]any = MapTyped(DerefScalar(spotPositions[i]))
+		var position map[string]any = MapTyped(spotPositions[i])
 		var currencyCode *string = this.SafeString(position, "asset", "Unknown")
 		var availableBalanceStr string = *this.SafeString(position, "available_to_trade_fiat", "0")
 		var availableBalance *float64 = this.ParseNumber(availableBalanceStr)

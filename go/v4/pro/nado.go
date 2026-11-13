@@ -2537,17 +2537,17 @@ func (this *Nado) HandlePosition(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var positions any = this.Positions
+	var positions ccxt.WsArrayCache = this.Positions
 	var side *string = this.SafeString(position, "side")
 	if side == nil {
 		var longPosition map[string]any = this.Extend(map[string]any{}, position)
 		longPosition["side"] = "long"
-		positions.(ccxt.Appender).Append(longPosition)
+		positions.Append(longPosition)
 		var shortPosition map[string]any = this.Extend(map[string]any{}, position)
 		shortPosition["side"] = "short"
-		positions.(ccxt.Appender).Append(shortPosition)
+		positions.Append(shortPosition)
 	} else {
-		positions.(ccxt.Appender).Append(position)
+		positions.Append(position)
 	}
 	client.(ccxt.ClientInterface).Resolve(positions, "positions")
 	client.(ccxt.ClientInterface).Resolve(positions, "positions:"+*this.SafeString(position, "symbol", ""))

@@ -405,7 +405,7 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	markets = this.ArrayConcat(markets, this.ToArray(eu_markets))
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		var market any = DerefScalar(markets[i])
+		var market any = markets[i]
 		var id *string = this.SafeString(market, "product_code")
 		var currencies []string = strings.Split(*id, "_")
 		var marketType *string = this.SafeString(market, "market_type")

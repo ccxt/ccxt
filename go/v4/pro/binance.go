@@ -844,13 +844,12 @@ func (this *Binance) HandleMyLiquidation(client any, message any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, "swap")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var liquidation any = this.ParseWsLiquidation(message, market)
-	var cache ccxt.WsArrayCache = this.MyLiquidations
-	if cache == nil {
+	if this.MyLiquidations == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "myLiquidationsLimit", 1000)
-		cache = ccxt.NewArrayCache(limit)
+		this.MyLiquidations = ccxt.NewArrayCache(limit)
 	}
+	var cache ccxt.WsArrayCache = this.MyLiquidations
 	cache.Append(liquidation)
-	this.MyLiquidations = cache
 	client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "myLiquidations")
 	client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "myLiquidations::"+*symbol)
 }
@@ -4717,11 +4716,11 @@ func (this *Binance) fetchPositionWsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes350215 []any = ccxt.PositionsToList(r.Value)
-	if retRes350215 == nil {
+	var retRes350115 []any = ccxt.PositionsToList(r.Value)
+	if retRes350115 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(retRes350215)}
+		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(retRes350115)}
 	}
 	return nil
 }
@@ -6756,7 +6755,7 @@ func (this *Binance) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	this.SetPositionsCache(client, typeVar, symbolsNormalized, isPortfolioMargin)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
-	var cache any = ccxt.GetValue(this.Positions, typeVar)
+	var cache ccxt.WsArrayCache = this.PositionsByType[typeVar.(string)]
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (cache == nil) {
 
 		r2 := <-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot"))
@@ -6801,18 +6800,17 @@ func (this *Binance) SetPositionsCache(client any, typeVar any, optionalArgs ...
 	if ccxt.IsEqual(typeVar, "spot") {
 		return
 	}
-	if this.Positions == nil {
-		this.Positions = map[string]any{}
-	}
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
-	if ccxt.InOp(this.Positions, typeVar) {
+	if this.PositionsByType[typeVar.(string)] != nil {
 		// a fresh client has no snapshot future yet, which means the
 		// connection was re-established after a disconnect: positions
 		// closed while disconnected never arrive as stream deltas, so
 		// the cached positions are stale and must be reloaded
 		var messageHash any = ccxt.Add(typeVar, ":fetchPositionsSnapshot")
 		if (fetchPositionsSnapshot == true) && (!(client.(ccxt.ClientInterface).FutureHas(messageHash))) {
-			ccxt.Remove(this.Positions, typeVar)
+			if wsKey, ok := typeVar.(string); ok {
+				delete(this.PositionsByType, wsKey)
+			}
 		} else {
 			return
 		}
@@ -6824,7 +6822,9 @@ func (this *Binance) SetPositionsCache(client any, typeVar any, optionalArgs ...
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash, typeVar, isPortfolioMargin)
 		}
 	} else {
-		ccxt.AddElementToObject(this.Positions, typeVar, ccxt.NewArrayCacheBySymbolBySide())
+		if wsKey, ok := typeVar.(string); ok {
+			this.PositionsByType[wsKey] = ccxt.NewArrayCacheBySymbolBySide()
+		}
 	}
 }
 func (this *Binance) LoadPositionsSnapshotAsync(client any, messageHash any, typeVar any, isPortfolioMargin bool) <-chan ccxt.AsyncResult[bool] {
@@ -6855,13 +6855,15 @@ func (this *Binance) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], c
 
 		return nil
 	}
-	ccxt.AddElementToObject(this.Positions, typeVar, ccxt.NewArrayCacheBySymbolBySide())
-	var cache any = ccxt.GetValue(this.Positions, typeVar)
+	if wsKey, ok := typeVar.(string); ok {
+		this.PositionsByType[wsKey] = ccxt.NewArrayCacheBySymbolBySide()
+	}
+	var cache ccxt.WsArrayCache = this.PositionsByType[typeVar.(string)]
 	for i := 0; i < len(positions); i++ {
 		var position any = positions[i]
 		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
 		if (contracts != nil) && (*contracts > 0) {
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 		}
 	}
 	// don't remove the future from the .futures cache
@@ -6905,13 +6907,10 @@ func (this *Binance) HandlePositions(client any, message map[string]any) {
 	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
 	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
 	var accountType string = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
-	if this.Positions == nil {
-		this.Positions = map[string]any{}
+	if !(this.PositionsByType[accountType] != nil) {
+		this.PositionsByType[accountType] = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	if !(ccxt.InOp(this.Positions, accountType)) {
-		ccxt.AddElementToObject(this.Positions, accountType, ccxt.NewArrayCacheBySymbolBySide())
-	}
-	var cache any = ccxt.GetValue(this.Positions, accountType)
+	var cache ccxt.WsArrayCache = this.PositionsByType[accountType]
 	var data map[string]any = ccxt.SafeMapTyped(message, "a")
 	var rawPositions []any = ccxt.SafeListTyped(data, "P")
 	var newPositions []any = []any{}
@@ -6922,7 +6921,7 @@ func (this *Binance) HandlePositions(client any, message map[string]any) {
 		ccxt.AddElementToObject(position, "timestamp", timestamp)
 		ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
 		newPositions = append(newPositions, position)
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), accountType+":positions::"))
 	for i := 0; i < len(messageHashes); i++ {
@@ -7401,9 +7400,9 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes568932 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes568932, tradeFee)
-							ccxt.AddElementToObject(order, "fees", retRes568932)
+							retRes568232 := ccxt.GetValue(order, "fees")
+							ccxt.AppendToArray(&retRes568232, tradeFee)
+							ccxt.AddElementToObject(order, "fees", retRes568232)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {
@@ -7542,13 +7541,10 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message map[string]a
 	this.Balance[accountType] = this.SafeBalance(this.Balance[accountType])
 	client.(ccxt.ClientInterface).Resolve(this.Balance[accountType], accountType+":balance")
 	// --- positions ---
-	if this.Positions == nil {
-		this.Positions = map[string]any{}
+	if !(this.PositionsByType[accountType] != nil) {
+		this.PositionsByType[accountType] = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	if !(ccxt.InOp(this.Positions, accountType)) {
-		ccxt.AddElementToObject(this.Positions, accountType, ccxt.NewArrayCacheBySymbolBySide())
-	}
-	var cache any = ccxt.GetValue(this.Positions, accountType)
+	var cache ccxt.WsArrayCache = this.PositionsByType[accountType]
 	var P []any = ccxt.SafeListTyped(message, "P")
 	var newPositions []any = []any{}
 	for i := 0; i < len(P); i++ {
@@ -7557,7 +7553,7 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message map[string]a
 		ccxt.AddElementToObject(position, "timestamp", timestamp)
 		ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
 		newPositions = append(newPositions, position)
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), accountType+":positions::"))
 	for i := 0; i < len(messageHashes); i++ {

@@ -2544,10 +2544,10 @@ func (this *Weex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	}
 	var positions []any = ccxt.PositionsToList(r.Value)
 	this.Positions = ccxt.NewArrayCacheBySymbolById()
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	for i := 0; i < len(positions); i++ {
 		var position any = positions[i]
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 	}
 	// don't remove the future from the .futures cache
 	var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
@@ -2652,13 +2652,13 @@ func (this *Weex) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolById()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	var data []any = ccxt.SafeListTyped(message, "d")
 	for i := 0; i < len(data); i++ {
 		var rawPosition map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var position any = this.ParseWsPosition(rawPosition)
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 		newPositions = append(newPositions, position)
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))

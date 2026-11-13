@@ -1992,7 +1992,7 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	var rates []any = []any{}
 	var result []any = this.ToArray(response)
 	for i := 0; i < len(result); i++ {
-		var entry any = DerefScalar(result[i])
+		var entry any = result[i]
 		var datetime *string = this.SafeString(entry, "updatedAtDatetime")
 		rates = append(rates, map[string]any{
 			"info":        entry,

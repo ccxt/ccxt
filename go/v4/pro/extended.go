@@ -595,7 +595,7 @@ func (this *Extended) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var stored any = this.Positions
+	var stored ccxt.WsArrayCache = this.Positions
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var rawPositions []any = ccxt.SafeListTyped(data, "positions")
 	var newPositions []any = []any{}
@@ -611,7 +611,7 @@ func (this *Extended) HandlePositions(client any, message map[string]any) {
 		}
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
 		newPositions = append(newPositions, position)
-		stored.(ccxt.Appender).Append(position)
+		stored.Append(position)
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))
 	for i := 0; i < len(messageHashes); i++ {

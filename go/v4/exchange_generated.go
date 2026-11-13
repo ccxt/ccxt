@@ -395,6 +395,7 @@ func (this *BaseExchange) CleanWsData() {
 	this.Ohlcvs = map[string]map[string]any{}
 	this.MyTrades = nil
 	this.Positions = nil
+	this.PositionsByType = map[string]WsArrayCache{}
 }
 
 func (this *BaseExchange) SafeDictN(dictionaryOrList any, keys any, optionalArgs ...any) any {
@@ -5661,11 +5662,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes706315 map[string]any = r.Value
-	if retRes706315 == nil {
+	var retRes706615 map[string]any = r.Value
+	if retRes706615 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes706315}
+		ch <- AsyncResult[map[string]any]{Value: retRes706615}
 	}
 	return nil
 }
@@ -11537,12 +11538,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1048015Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048015 []any = retRes1048015Recv
-	if retRes1048015 == nil {
+	retRes1048315Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048315 []any = retRes1048315Recv
+	if retRes1048315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048015)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048315)}
 	}
 	return nil
 }

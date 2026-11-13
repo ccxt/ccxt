@@ -306,7 +306,7 @@ func (this *Onetrading) HandleTicker(client any, message map[string]any) {
 	var tickers []any = ccxt.SafeListTyped(message, "ticker_updates")
 	var datetime *string = this.SafeString(message, "time")
 	for i := 0; i < len(tickers); i++ {
-		var ticker any = ccxt.DerefScalar(tickers[i])
+		var ticker any = tickers[i]
 		var marketId *string = this.SafeString(ticker, "instrument")
 		var symbol *string = this.SafeSymbol(marketId)
 		var parsedTicker any = this.ParseWSTicker(ticker)

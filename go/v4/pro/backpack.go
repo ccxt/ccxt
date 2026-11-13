@@ -456,17 +456,9 @@ func (this *Backpack) HandleUnsubscriptions(url string, messageHashes any, messa
 				}
 			}
 		} else if strings.Index(*messageHash, "positions") >= 0 {
+			// the positions cache is one ccxt.ArrayCacheBySymbolById: dropping it forgets every symbol
 			if messageHash != nil && *messageHash == "unsubscribe:positions" {
-				var keys []string = ccxt.ObjectKeys(this.Positions)
-				for j := 0; j < len(keys); j++ {
-					var symbol string = keys[j]
-					ccxt.Remove(this.Positions, symbol)
-				}
-			} else {
-				var symbol string = strings.Replace(*messageHash, "unsubscribe:positions:", "", 1)
-				if ccxt.InOp(this.Positions, symbol) {
-					ccxt.Remove(this.Positions, symbol)
-				}
+				this.Positions = nil
 			}
 		}
 	}
@@ -2504,13 +2496,13 @@ func (this *Backpack) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolById()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var parsedPosition any = this.ParseWsPosition(data)
 	var microseconds int64 = *this.SafeInteger(data, "E", 0)
 	var timestamp int64 = this.ParseToInt(float64(microseconds) / 1000)
 	ccxt.AddElementToObject(parsedPosition, "timestamp", timestamp)
 	ccxt.AddElementToObject(parsedPosition, "datetime", this.Iso8601(timestamp))
-	cache.(ccxt.Appender).Append(parsedPosition)
+	cache.Append(parsedPosition)
 	var symbolSpecificMessageHash string = messageHash + ":" + *this.SafeString(parsedPosition, "symbol", "")
 	client.(ccxt.ClientInterface).Resolve([]any{parsedPosition}, messageHash)
 	client.(ccxt.ClientInterface).Resolve([]any{parsedPosition}, symbolSpecificMessageHash)

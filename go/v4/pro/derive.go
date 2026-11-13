@@ -1306,16 +1306,16 @@ func (this *Derive) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("watchPositions", paramsSnapshot)
 	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = subaccountIdparamsDeriveSubaccountIdVariable[1].(map[string]any)
-	if this.Positions == nil {
-		var emptyCaches map[string]any = map[string]any{}
-		this.Positions = emptyCaches
+	if this.IsEmpty(this.PositionsByType) {
 		var emptySnapshots map[string]any = map[string]any{}
 		this.Options["loadedPositionsSnapshots"] = emptySnapshots
 	}
 	// the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
 	var subaccountIdKey *string = this.NumberToString(subaccountId)
-	if !(ccxt.InOp(this.Positions, subaccountIdKey)) {
-		ccxt.AddElementToObject(this.Positions, subaccountIdKey, ccxt.NewArrayCacheBySymbolBySide())
+	if !(subaccountIdKey != nil && this.PositionsByType[*subaccountIdKey] != nil) {
+		if subaccountIdKey != nil {
+			this.PositionsByType[*subaccountIdKey] = ccxt.NewArrayCacheBySymbolBySide()
+		}
 	}
 	var loadedSnapshots map[string]any = this.SafeDictMap(this.Options, "loadedPositionsSnapshots", map[string]any{})
 	var subaccountIdKeyKnown bool
@@ -1333,10 +1333,10 @@ func (this *Derive) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 			panic(r1.Err)
 		}
 		var positionsSnapshot []any = ccxt.PositionsToList(r1.Value)
-		var cache any = this.SafeValue(this.Positions, subaccountIdKey)
+		var cache ccxt.WsArrayCache = this.PositionsByType[*subaccountIdKey]
 		for i := 0; i < len(positionsSnapshot); i++ {
 			var snapshotPosition any = this.SafeDict(positionsSnapshot, i)
-			cache.(ccxt.Appender).Append(snapshotPosition)
+			cache.Append(snapshotPosition)
 		}
 		if subaccountIdKey != nil {
 			loadedSnapshots[*subaccountIdKey] = true
@@ -1379,7 +1379,7 @@ func (this *Derive) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.SafeValue(this.Positions, subaccountIdKey), symbolsResolved, since, limit, true))}
+	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.PositionsByType[*subaccountIdKey], symbolsResolved, since, limit, true))}
 	return nil
 }
 func (this *Derive) HandlePositionDelta(subaccountIdKey string, entry map[string]any) any {
@@ -1395,7 +1395,7 @@ func (this *Derive) HandlePositionDelta(subaccountIdKey string, entry map[string
 		return "long"
 	}()
 	var contracts *string = ccxt.Precise.StringAbs(newSize)
-	var cache any = this.SafeValue(this.Positions, subaccountIdKey)
+	var cache ccxt.WsArrayCache = this.PositionsByType[subaccountIdKey]
 	var symbolPositions map[string]any = ccxt.SafeMapTyped(cache.(*ccxt.ArrayCache).Hashmap, symbol)
 	// a fill through zero flattens the opposite side first
 	var oppositeSide string = func() string {
@@ -1410,7 +1410,7 @@ func (this *Derive) HandlePositionDelta(subaccountIdKey string, entry map[string
 		if (oppositeContracts != nil) && (oppositeContracts == nil || *oppositeContracts != "0") {
 			ccxt.AddElementToObject(opposite, "contracts", this.ParseNumber("0"))
 			ccxt.AddElementToObject(opposite, "lastUpdateTimestamp", this.Milliseconds())
-			cache.(ccxt.Appender).Append(opposite)
+			cache.Append(opposite)
 		}
 	}
 	var position any = this.SafeDict(symbolPositions, side)
@@ -1429,7 +1429,7 @@ func (this *Derive) HandlePositionDelta(subaccountIdKey string, entry map[string
 	ccxt.AddElementToObject(position, "side", side)
 	ccxt.AddElementToObject(position, "lastUpdateTimestamp", this.Milliseconds())
 	ccxt.AddElementToObject(position, "info", entry)
-	cache.(ccxt.Appender).Append(position)
+	cache.Append(position)
 	return position
 }
 func (this *Derive) HandleBalance(client any, message map[string]any) {
@@ -1465,7 +1465,7 @@ func (this *Derive) HandleBalance(client any, message map[string]any) {
 		var name string = *this.SafeString(entry, "name", "")
 		if strings.Index(name, "-") >= 0 {
 			// position deltas carry instrument names and do not belong into the balance structure
-			if (this.Positions != nil) && (ccxt.InOp(this.Positions, subaccountIdKey)) {
+			if subaccountIdKey != nil && this.PositionsByType[*subaccountIdKey] != nil {
 				var position any = this.HandlePositionDelta(*subaccountIdKey, entry)
 				positionUpdates = append(positionUpdates, position)
 			}

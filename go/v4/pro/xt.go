@@ -1153,7 +1153,7 @@ func (this *Xt) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], op
 	this.SetPositionsCache(client)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && this.IsEmpty(cache) {
 
 		r1 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
@@ -1334,12 +1334,12 @@ func (this *Xt) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client
 	}
 	var positions []any = ccxt.PositionsToList(r.Value)
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	for i := 0; i < len(positions); i++ {
 		var position any = positions[i]
 		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
 		if (contracts != nil) && (*contracts > 0) {
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 		}
 	}
 	// don't remove the future from the .futures cache
@@ -1384,10 +1384,10 @@ func (this *Xt) HandlePosition(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var position map[string]any = ccxt.PositionToMap(this.ParsePosition(data))
-	cache.(ccxt.Appender).Append(position)
+	cache.Append(position)
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "position::contract"))
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])

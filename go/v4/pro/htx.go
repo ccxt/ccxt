@@ -2076,12 +2076,13 @@ func (this *Htx) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], o
 	var swap bool = (ccxt.IsEqual(typeVar, "swap"))
 	var future bool = (ccxt.IsEqual(typeVar, "future"))
 	var isV5Linear bool = (linear && (swap || future))
-	var isLinear bool = (subType == "linear")
-	var url any = this.GetUrlByMarketType(typeVar, isLinear, true, false, isV5Linear)
 	messageHash = ccxt.Add(ccxt.Add(marginMode, ":positions"), messageHash)
 	var channel any = "positions.*"
+	// one positions cache per margin mode: linear, inverse and futures symbols never collide
+	var cacheKey string = "isolated"
 	if marginMode != nil && *marginMode == "cross" {
 		channel = "positions_cross.*"
+		cacheKey = "cross"
 	}
 	if isV5Linear {
 		var v5Market any = nil
@@ -2122,7 +2123,7 @@ func (this *Htx) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], o
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.SafeValue(this.SafeValue(this.Positions, url), marginMode), symbolsNormalized, since, limit, false))}
+	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.PositionsByType[cacheKey], symbolsNormalized, since, limit, false))}
 	return nil
 }
 func (this *Htx) HandlePositions(client any, message map[string]any) {
@@ -2205,18 +2206,10 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var url string = client.(ccxt.ClientInterface).GetUrl()
 	var topic string = *this.SafeString(message, "topic", "")
 	var defaultMarginMode string = "isolated"
 	if topic == "positions_cross" {
 		defaultMarginMode = "cross"
-	}
-	if this.Positions == nil {
-		this.Positions = map[string]any{}
-	}
-	var clientPositions map[string]any = ccxt.SafeMapTyped(this.Positions, url)
-	if clientPositions == nil {
-		ccxt.AddElementToObject(this.Positions, url, map[string]any{})
 	}
 	var rawPositions []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	if this.IsEmpty(rawPositions) {
@@ -2241,21 +2234,23 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 		if (marginMode == nil || *marginMode != "cross") && (marginMode == nil || *marginMode != "isolated") {
 			marginMode = ccxt.SafeStringPtr(defaultMarginMode)
 		}
-		var cache any = this.SafeValue(ccxt.GetValue(this.Positions, url), marginMode)
+		var cache ccxt.WsArrayCache = this.PositionsByType[*marginMode]
 		if cache == nil {
 			cache = ccxt.NewArrayCacheBySymbolBySide()
-			ccxt.AddElementToObject(ccxt.GetValue(this.Positions, url), marginMode, cache)
+			if marginMode != nil {
+				this.PositionsByType[*marginMode] = cache
+			}
 		}
 		newPositions = append(newPositions, position)
 		ccxt.AddElementToObject(positionsByMarginMode, marginMode, this.SafeList(positionsByMarginMode, marginMode, []any{}))
-		retRes181112 := func() any {
+		retRes180412 := func() any {
 			if marginMode == nil {
 				return nil
 			}
 			return positionsByMarginMode[*marginMode]
 		}()
-		ccxt.AppendToArray(&retRes181112, position)
-		cache.(ccxt.Appender).Append(position)
+		ccxt.AppendToArray(&retRes180412, position)
+		cache.Append(position)
 	}
 	var marginModes []string = nil
 	if positionsByMarginMode != nil {

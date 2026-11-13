@@ -2098,7 +2098,7 @@ func (this *Hyperliquid) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Posi
 	}
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbolsNormalized)
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 
 	r2 := <-this.Watch(url, messageHash, message, topic)
 	if r2.Err != nil {
@@ -2136,7 +2136,7 @@ func (this *Hyperliquid) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var clearinghouseState map[string]any = ccxt.SafeMapTyped(data, "clearinghouseState")
 	var newPositions []any = []any{}
@@ -2145,7 +2145,7 @@ func (this *Hyperliquid) HandlePositions(client any, message map[string]any) {
 		var rawPosition any = rawPositions[i]
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
 		newPositions = append(newPositions, position)
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 	}
 	var baseMessageHash string = "clearinghouseState::positions"
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), baseMessageHash))

@@ -1012,11 +1012,11 @@ func (this *Bullish) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var positions any = this.Positions
+	var positions ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositions[i]))
-		positions.(ccxt.Appender).Append(position)
+		positions.Append(position)
 		newPositions = append(newPositions, position)
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))

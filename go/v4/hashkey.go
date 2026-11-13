@@ -4624,7 +4624,7 @@ func (this *Hashkey) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	var rates []any = []any{}
 	var rows []any = this.ToArray(response)
 	for i := 0; i < len(rows); i++ {
-		var entry any = DerefScalar(rows[i])
+		var entry any = rows[i]
 		var timestamp *int64 = this.SafeInteger(entry, "settleTime")
 		rates = append(rates, map[string]any{
 			"info":        entry,

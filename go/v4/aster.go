@@ -5042,7 +5042,7 @@ func (this *Aster) fetchPositionsRiskBody(ch chan AsyncResult[[]Position], optio
 	var rawPositions []any = this.ToArray(response)
 	var result []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
-		var rawPosition any = DerefScalar(rawPositions[i])
+		var rawPosition any = rawPositions[i]
 		var entryPriceString *string = this.SafeString(rawPosition, "entryPrice")
 		if Precise.StringGt(entryPriceString, "0") {
 			result = append(result, this.ParsePositionRisk(rawPosition))

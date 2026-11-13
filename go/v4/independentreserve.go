@@ -1220,7 +1220,7 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan AsyncResult[map[str
 	var fees map[string]any = map[string]any{}
 	var rows []any = this.ToArray(response)
 	for i := 0; i < len(rows); i++ {
-		var fee any = DerefScalar(rows[i])
+		var fee any = rows[i]
 		var currencyId *string = this.SafeString(fee, "CurrencyCode")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var tradingFee *float64 = this.SafeNumber(fee, "Fee")

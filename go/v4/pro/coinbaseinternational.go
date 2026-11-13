@@ -773,7 +773,7 @@ func (this *Coinbaseinternational) HandlePositions(client any, message map[strin
 	var positions []any = this.ParsePositions(rawPositions)
 	var positionsLength int = len(positions)
 	for i := 0; i < positionsLength; i++ {
-		this.Positions.(ccxt.Appender).Append(positions[i])
+		this.Positions.Append(positions[i])
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Positions, channel)
 }

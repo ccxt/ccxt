@@ -601,7 +601,7 @@ func (this *Krakenfutures) HandlePositions(client any, message map[string]any) {
 		// https://github.com/ccxt/ccxt/issues/29709
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var rawPositions []any = ccxt.SafeListTyped(message, "positions")
 	if rawPositions == nil {
 		// an open_positions frame without the positions key is malformed
@@ -615,7 +615,7 @@ func (this *Krakenfutures) HandlePositions(client any, message map[string]any) {
 		var timestamp *int64 = this.SafeInteger(message, "timestamp")
 		var position any = this.ParseWsPosition(rawPosition, nil, timestamp)
 		newPositions = append(newPositions, position)
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))
 	for i := 0; i < len(messageHashes); i++ {

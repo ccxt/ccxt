@@ -818,7 +818,7 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	}
 	var contractMarkets []any = this.ToArray(contractResponse)
 	for i := 0; i < len(contractMarkets); i++ {
-		var market any = DerefScalar(contractMarkets[i])
+		var market any = contractMarkets[i]
 		var baseId *string = this.SafeString(market, "baseCurrency")
 		var quoteId *string = this.SafeString(market, "quoteCurrency")
 		var settleId *string = this.SafeString(market, "settleCurrency")

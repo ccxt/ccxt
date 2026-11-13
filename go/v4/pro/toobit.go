@@ -1387,7 +1387,7 @@ func (this *Toobit) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 	var url string = this.GetUserStreamUrl()
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, typeVar, symbolsNormalized)
-	var cache any = this.SafeValue(this.Positions, typeVar)
+	var cache ccxt.WsArrayCache = this.PositionsByType[typeVar]
 	if cache == nil {
 
 		r2 := <-client.(ccxt.ClientInterface).Future(typeVar + ":fetchPositionsSnapshot")
@@ -1427,10 +1427,7 @@ func (this *Toobit) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 func (this *Toobit) SetPositionsCache(client any, typeVar string, optionalArgs ...any) {
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
-	if this.Positions == nil {
-		this.Positions = map[string]any{}
-	}
-	if ccxt.InOp(this.Positions, typeVar) {
+	if this.PositionsByType[typeVar] != nil {
 		return
 	}
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
@@ -1441,7 +1438,7 @@ func (this *Toobit) SetPositionsCache(client any, typeVar string, optionalArgs .
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash, typeVar)
 		}
 	} else {
-		ccxt.AddElementToObject(this.Positions, typeVar, ccxt.NewArrayCacheBySymbolBySide())
+		this.PositionsByType[typeVar] = ccxt.NewArrayCacheBySymbolBySide()
 	}
 }
 func (this *Toobit) LoadPositionsSnapshotAsync(client any, messageHash string, typeVar string) <-chan ccxt.AsyncResult[bool] {
@@ -1461,11 +1458,11 @@ func (this *Toobit) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 		panic(r.Err)
 	}
 	var positions []any = ccxt.PositionsToList(r.Value)
-	ccxt.AddElementToObject(this.Positions, typeVar, ccxt.NewArrayCacheBySymbolBySide())
-	var cache any = ccxt.GetValue(this.Positions, typeVar)
+	this.PositionsByType[typeVar] = ccxt.NewArrayCacheBySymbolBySide()
+	var cache ccxt.WsArrayCache = this.PositionsByType[typeVar]
 	for i := 0; i < len(positions); i++ {
 		var position any = positions[i]
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 	}
 	// don't remove the future from the .futures cache
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
@@ -1501,17 +1498,14 @@ func (this *Toobit) HandlePositions(client any, message map[string]any) {
 	// ]
 	//
 	var accountType string = "swap"
-	if this.Positions == nil {
-		this.Positions = map[string]any{}
+	if !(this.PositionsByType[accountType] != nil) {
+		this.PositionsByType[accountType] = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	if !(ccxt.InOp(this.Positions, accountType)) {
-		ccxt.AddElementToObject(this.Positions, accountType, ccxt.NewArrayCacheBySymbolBySide())
-	}
-	var cache any = ccxt.GetValue(this.Positions, accountType)
+	var cache ccxt.WsArrayCache = this.PositionsByType[accountType]
 	// handleMessage's fallback dispatches one item at a time
 	var position any = this.ParseWsPosition(message)
 	var newPositions []any = []any{position}
-	cache.(ccxt.Appender).Append(position)
+	cache.Append(position)
 	// no local may be named `positions` in this method: build/transpile.ts
 	// appends `$` to every local name wherever it appears, string literals
 	// included, so a local `positions` rewrites the hash prefix below to

@@ -3992,7 +3992,7 @@ func (this *Kucoin) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 	this.SetPositionsCache(client, utaOption)
 	var fetchPositionSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	if (fetchPositionSnapshot == true) && (awaitPositionSnapshot == true) && (cache == nil) {
 
 		r3 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
@@ -4037,8 +4037,7 @@ func (this *Kucoin) GetCurrentPosition(symbol any) any {
 	if this.Positions == nil {
 		return nil
 	}
-	var cache any = this.Positions.(*ccxt.ArrayCache).Hashmap
-	var symbolCache map[string]any = ccxt.SafeMapTyped(cache, symbol)
+	var symbolCache map[string]any = ccxt.SafeMapTyped(this.Positions.(*ccxt.ArrayCache).Hashmap, symbol)
 	var values []any = nil
 	if symbolCache != nil {
 		values = make([]any, 0, len(symbolCache))
@@ -4080,12 +4079,12 @@ func (this *Kucoin) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 	}
 	var positions []any = ccxt.PositionsToList(r.Value)
 	this.Positions = ccxt.NewArrayCacheBySymbolById()
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	for i := 0; i < len(positions); i++ {
 		var position any = positions[i]
 		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
 		if (contracts != nil) && (*contracts > 0) {
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 		}
 	}
 	// don't remove the future from the .futures cache
@@ -4124,8 +4123,8 @@ func (this *Kucoin) loadPositionSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 		position = ccxt.StructBox(r.Value, ccxt.PositionToMap)
 	}
 	this.Positions = ccxt.NewArrayCacheBySymbolById()
-	var cache any = this.Positions
-	cache.(ccxt.Appender).Append(position)
+	var cache ccxt.WsArrayCache = this.Positions
+	cache.Append(position)
 	// don't remove the future from the .futures cache
 	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
 		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
@@ -4231,7 +4230,7 @@ func (this *Kucoin) HandlePosition(client any, message map[string]any) {
 	var parts []string = strings.Split(topic, ":")
 	var marketId *string = this.SafeString(parts, 1)
 	var symbol *string = this.SafeSymbol(marketId, nil, "")
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var currentPosition any = this.GetCurrentPosition(symbol)
 	var messageHash string = "position:" + *symbol
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
@@ -4250,7 +4249,10 @@ func (this *Kucoin) HandlePosition(client any, message map[string]any) {
 		}
 	}
 	var position map[string]any = this.Extend(currentPosition, newPosition)
-	cache.(ccxt.Appender).Append(position)
+	// the cache exists once watchPosition(s) set it up
+	if cache != nil {
+		cache.Append(position)
+	}
 	client.(ccxt.ClientInterface).Resolve(position, messageHash)
 }
 func (this *Kucoin) HandleUtaPosition(client any, message map[string]any) {
@@ -4285,7 +4287,7 @@ func (this *Kucoin) HandleUtaPosition(client any, message map[string]any) {
 	var data map[string]any = this.SafeDictMap(message, "d", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
 	var symbol *string = this.SafeSymbol(marketId)
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var currentPosition any = this.GetCurrentPosition(symbol)
 	var newPosition map[string]any = this.ParseWsUtaPosition(data)
 	var keys []string = nil
@@ -4302,7 +4304,7 @@ func (this *Kucoin) HandleUtaPosition(client any, message map[string]any) {
 		}
 	}
 	var position map[string]any = this.Extend(currentPosition, newPosition)
-	cache.(ccxt.Appender).Append(position)
+	cache.Append(position)
 	var messageHash string = "positions"
 	var symbolMessageHash string = messageHash + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(this.Positions, messageHash)

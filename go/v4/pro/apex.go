@@ -930,7 +930,7 @@ func (this *Apex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 		panic(r1.Err)
 	}
 	this.SetPositionsCache(client, symbolsNormalized2)
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	if cache == nil {
 
 		r2 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
@@ -1167,11 +1167,11 @@ func (this *Apex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	}
 	var promises []any = ccxt.ListTyped(r.Value)
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	for i := 0; i < len(promises); i++ {
 		var positions []any = ccxt.ArrayTyped(promises[i])
 		for ii := 0; ii < len(positions); ii++ {
-			cache.(ccxt.Appender).Append(positions[ii])
+			cache.Append(positions[ii])
 		}
 	}
 	// don't remove the future from the .futures cache
@@ -1208,7 +1208,7 @@ func (this *Apex) HandlePositions(client any, lists []any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(lists); i++ {
 		var rawPosition map[string]any = this.SafeDictMap(lists, i, map[string]any{})
@@ -1221,13 +1221,13 @@ func (this *Apex) HandlePositions(client any, lists []any) {
 			// closing update, adding both sides to "reset" both sides
 			// since we don't know which side is being closed
 			position["side"] = "long"
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 			position["side"] = "short"
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 			position["side"] = nil
 		} else {
 			// regular update
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 		}
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))

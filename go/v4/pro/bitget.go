@@ -1939,14 +1939,11 @@ func (this *Bitget) HandlePositions(client any, message map[string]any) {
 	//
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var instType string = *this.SafeString(arg, "instType", "")
-	if this.Positions == nil {
-		this.Positions = map[string]any{}
-	}
 	var action *string = this.SafeString(message, "action")
-	if !(ccxt.InOp(this.Positions, instType)) || (action != nil && *action == "snapshot") {
-		ccxt.AddElementToObject(this.Positions, instType, ccxt.NewArrayCacheBySymbolBySide())
+	if !(this.PositionsByType[instType] != nil) || (action != nil && *action == "snapshot") {
+		this.PositionsByType[instType] = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = ccxt.GetValue(this.Positions, instType)
+	var cache ccxt.WsArrayCache = this.PositionsByType[instType]
 	var rawPositions []any = ccxt.SafeListTyped(message, "data")
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
@@ -1955,7 +1952,7 @@ func (this *Bitget) HandlePositions(client any, message map[string]any) {
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, "contract")
 		var position any = this.ParseWsPosition(rawPosition, market)
 		newPositions = append(newPositions, position)
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), instType+":positions::"))
 	for i := 0; i < len(messageHashes); i++ {
@@ -2361,7 +2358,7 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 	}
 	var marketSymbols map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var order any = ccxt.DerefScalar(data[i])
+		var order any = data[i]
 		var marketId *string = this.SafeString2(order, "instId", "symbol", argInstId)
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 		var parsed map[string]any = this.ParseWsOrder(order, market)

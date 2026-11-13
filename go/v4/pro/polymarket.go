@@ -1339,9 +1339,9 @@ func (this *Polymarket) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool]
 	}
 	var positions []any = ccxt.PositionsToList(r.Value)
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	for i := 0; i < len(positions); i++ {
-		cache.(ccxt.Appender).Append(positions[i])
+		cache.Append(positions[i])
 	}
 	// don't remove the future from the .futures cache
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
@@ -1490,7 +1490,7 @@ func (this *Polymarket) HandlePortfolio(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var rows []any = ccxt.SafeListTyped(data, "positions")
 	var newPositions []any = []any{}
 	for i := 0; i < len(rows); i++ {
@@ -1500,7 +1500,7 @@ func (this *Polymarket) HandlePortfolio(client any, message map[string]any) {
 		})
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(extended))
 		newPositions = append(newPositions, position)
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
 	var margin map[string]any = ccxt.SafeMapTyped(data, "margin")

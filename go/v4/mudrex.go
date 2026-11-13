@@ -1570,7 +1570,7 @@ func (this *Mudrex) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	var rows []any = this.ToArray(data)
 	var outPos []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var p any = DerefScalar(rows[i])
+		var p any = rows[i]
 		var symRaw *string = this.SafeString(p, "symbol")
 		var m map[string]any = this.SafeMarket(symRaw)
 		var pos map[string]any = PositionToMap(this.ParsePosition(p, m))

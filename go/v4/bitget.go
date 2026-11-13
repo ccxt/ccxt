@@ -3965,7 +3965,7 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan AsyncResult[[]MarketInterfac
 	//
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		var market any = DerefScalar(markets[i])
+		var market any = markets[i]
 		var quoteId *string = this.SafeString(market, "quoteCoin")
 		var baseId *string = this.SafeString(market, "baseCoin")
 		var quote *string = this.SafeCurrencyCode(quoteId)
@@ -4309,7 +4309,7 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	//
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		var market any = DerefScalar(markets[i])
+		var market any = markets[i]
 		var quoteId *string = this.SafeString(market, "quoteCoin")
 		var baseId *string = this.SafeString(market, "baseCoin")
 		var quote *string = this.SafeCurrencyCode(quoteId)

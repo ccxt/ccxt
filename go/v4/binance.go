@@ -16131,7 +16131,7 @@ func (this *Binance) fetchPositionsRiskBody(ch chan AsyncResult[[]Position], opt
 	}
 	var positions []any = this.ToArray(response)
 	for i := 0; i < len(positions); i++ {
-		var rawPosition any = DerefScalar(positions[i])
+		var rawPosition any = positions[i]
 		var entryPriceString *string = this.SafeString(rawPosition, "entryPrice")
 		if Precise.StringGt(entryPriceString, "0") {
 			result = append(result, this.ParsePositionRisk(rawPosition))
@@ -19955,7 +19955,7 @@ func (this *Binance) fetchConvertCurrenciesBody(ch chan AsyncResult[Currencies],
 	var result map[string]any = map[string]any{}
 	var assets []any = this.ToArray(response)
 	for i := 0; i < len(assets); i++ {
-		var entry any = DerefScalar(assets[i])
+		var entry any = assets[i]
 		var id *string = this.SafeString(entry, "asset")
 		var code *string = this.SafeCurrencyCode(id)
 		if code != nil {

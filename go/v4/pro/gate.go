@@ -2173,7 +2173,7 @@ func (this *Gate) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 	this.SetPositionsCache(client, typeVar, symbolsNormalized)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
-	var cache any = this.SafeValue(this.Positions, typeVar)
+	var cache ccxt.WsArrayCache = this.PositionsByType[typeVar.(string)]
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (cache == nil) {
 
 		r1 := <-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot"))
@@ -2215,16 +2215,13 @@ func (this *Gate) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.SafeValue(this.Positions, typeVar), symbolsNormalized, since, limit, true))}
+	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.PositionsByType[typeVar.(string)], symbolsNormalized, since, limit, true))}
 	return nil
 }
 func (this *Gate) SetPositionsCache(client any, typeVar any, optionalArgs ...any) {
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
-	if this.Positions == nil {
-		this.Positions = map[string]any{}
-	}
-	if ccxt.InOp(this.Positions, typeVar) {
+	if this.PositionsByType[typeVar.(string)] != nil {
 		return
 	}
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
@@ -2235,7 +2232,9 @@ func (this *Gate) SetPositionsCache(client any, typeVar any, optionalArgs ...any
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash, typeVar)
 		}
 	} else {
-		ccxt.AddElementToObject(this.Positions, typeVar, ccxt.NewArrayCacheBySymbolBySide())
+		if wsKey, ok := typeVar.(string); ok {
+			this.PositionsByType[wsKey] = ccxt.NewArrayCacheBySymbolBySide()
+		}
 	}
 }
 func (this *Gate) LoadPositionsSnapshotAsync(client any, messageHash any, typeVar any) <-chan ccxt.AsyncResult[bool] {
@@ -2254,13 +2253,15 @@ func (this *Gate) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 		panic(r.Err)
 	}
 	var positions []any = ccxt.PositionsToList(r.Value)
-	ccxt.AddElementToObject(this.Positions, typeVar, ccxt.NewArrayCacheBySymbolBySide())
-	var cache any = ccxt.GetValue(this.Positions, typeVar)
+	if wsKey, ok := typeVar.(string); ok {
+		this.PositionsByType[wsKey] = ccxt.NewArrayCacheBySymbolBySide()
+	}
+	var cache ccxt.WsArrayCache = this.PositionsByType[typeVar.(string)]
 	for i := 0; i < len(positions); i++ {
 		var position any = positions[i]
 		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
 		if (contracts != nil) && (*contracts > 0) {
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 		}
 	}
 	// don't remove the future from the .futures cache
@@ -2304,7 +2305,7 @@ func (this *Gate) HandlePositions(client any, message map[string]any) {
 	//
 	var typeVar any = this.GetMarketTypeByUrl(client.(ccxt.ClientInterface).GetUrl())
 	var data []any = ccxt.SafeListTyped(message, "result")
-	var cache any = ccxt.GetValue(this.Positions, typeVar)
+	var cache ccxt.WsArrayCache = this.PositionsByType[typeVar.(string)]
 	var newPositions []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var rawPosition any = data[i]
@@ -2320,23 +2321,23 @@ func (this *Gate) HandlePositions(client any, message map[string]any) {
 			if prevLongPosition != nil {
 				position["side"] = prevLongPosition["side"]
 				newPositions = append(newPositions, position)
-				cache.(ccxt.Appender).Append(position)
+				cache.Append(position)
 			}
 			var prevShortPosition map[string]any = ccxt.SafeMapTyped(cache, *symbol+"short")
 			if prevShortPosition != nil {
 				position["side"] = prevShortPosition["side"]
 				newPositions = append(newPositions, position)
-				cache.(ccxt.Appender).Append(position)
+				cache.Append(position)
 			}
 			// if no prev position is found, default to long
 			if (prevLongPosition == nil) && (prevShortPosition == nil) {
 				position["side"] = "long"
 				newPositions = append(newPositions, position)
-				cache.(ccxt.Appender).Append(position)
+				cache.Append(position)
 			}
 		} else {
 			newPositions = append(newPositions, position)
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 		}
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), ccxt.Add(typeVar, ":positions::")))

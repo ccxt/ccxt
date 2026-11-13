@@ -2278,7 +2278,7 @@ func (this *Bybit) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 		panic(r2.Err)
 	}
 	this.SetPositionsCache(client, symbolsNormalized)
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (cache == nil) {
@@ -2358,12 +2358,12 @@ func (this *Bybit) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	}
 	var promises []any = ccxt.ListTyped(r.Value)
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	for i := 0; i < len(promises); i++ {
 		var positions []any = ccxt.ArrayTyped(promises[i])
 		for ii := 0; ii < len(positions); ii++ {
 			var position any = positions[ii]
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 		}
 	}
 	// don't remove the future from the .futures cache
@@ -2417,7 +2417,7 @@ func (this *Bybit) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	var rawPositions []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(rawPositions); i++ {
@@ -2431,13 +2431,13 @@ func (this *Bybit) HandlePositions(client any, message map[string]any) {
 			// closing update, adding both sides to "reset" both sides
 			// since we don't know which side is being closed
 			position["side"] = "long"
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 			position["side"] = "short"
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 			position["side"] = nil
 		} else {
 			// regular update
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 		}
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))

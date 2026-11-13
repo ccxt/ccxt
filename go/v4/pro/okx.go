@@ -2813,7 +2813,7 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var rawPosition any = data[i]
@@ -2823,11 +2823,11 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 			position["side"] = "long"
 			var shortPosition any = this.Clone(position)
 			ccxt.AddElementToObject(shortPosition, "side", "short")
-			cache.(ccxt.Appender).Append(shortPosition)
+			cache.Append(shortPosition)
 			newPositions = append(newPositions, shortPosition)
 		}
 		newPositions = append(newPositions, position)
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 	}
 	var messageHash *string = channel
 	if symbol != nil {

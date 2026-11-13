@@ -946,9 +946,9 @@ func (this *Hashkey) HandlePosition(client any, message any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var positions any = this.Positions
+	var positions ccxt.WsArrayCache = this.Positions
 	var parsed any = this.ParseWsPosition(message)
-	positions.(ccxt.Appender).Append(parsed)
+	positions.Append(parsed)
 	var messageHash string = "positions"
 	client.(ccxt.ClientInterface).Resolve(parsed, messageHash)
 	var symbol string = *this.SafeString(parsed, "symbol", "")

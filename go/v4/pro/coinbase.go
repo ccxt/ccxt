@@ -659,7 +659,7 @@ func (this *Coinbase) HandleTickers(client any, message map[string]any) {
 		var tickersObj map[string]any = ccxt.SafeMapTyped(events, i)
 		var tickers []any = ccxt.SafeListTyped(tickersObj, "tickers")
 		for j := 0; j < len(tickers); j++ {
-			var ticker any = ccxt.DerefScalar(tickers[j])
+			var ticker any = tickers[j]
 			var wsMarketId *string = this.SafeString(ticker, "product_id")
 			if wsMarketId == nil {
 				continue
@@ -812,7 +812,7 @@ func (this *Coinbase) HandleOHLCV(client any, message any) {
 		var event map[string]any = ccxt.MapTyped(events[i])
 		var candles []any = ccxt.SafeListTyped(event, "candles")
 		for j := 0; j < len(candles); j++ {
-			var candle map[string]any = ccxt.MapTyped(ccxt.DerefScalar(candles[j]))
+			var candle map[string]any = ccxt.MapTyped(candles[j])
 			var marketId *string = this.SafeString(candle, "product_id")
 			var market map[string]any = this.SafeMarket(marketId)
 			var symbol *string = ccxt.SafeStringPtr(market["symbol"])

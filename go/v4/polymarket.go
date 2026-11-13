@@ -585,7 +585,7 @@ func (this *Polymarket) fetchCurrenciesBody(ch chan AsyncResult[map[string]any],
 		"networks":  map[string]any{},
 	})
 	for i := 0; i < len(assets); i++ {
-		var asset any = DerefScalar(assets[i])
+		var asset any = assets[i]
 		var currencyId *string = this.SafeString(asset, "asset")
 		if currencyId == nil {
 			continue
@@ -858,14 +858,14 @@ func (this *Polymarket) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
 	var merged map[string]any = map[string]any{}
 	var statistics []any = SafeListTyped(responses, 1)
 	for i := 0; i < len(statistics); i++ {
-		var entry any = DerefScalar(statistics[i])
+		var entry any = statistics[i]
 		var instrumentId *string = this.SafeString(entry, "instrument_id")
 		// the 24 hourly kline rows are dropped from the merged payload to keep tickers light, candles are served by fetchOHLCV
 		AddElementToObject(merged, instrumentId, this.Omit(entry, "klines"))
 	}
 	var bbos []any = SafeListTyped(responses, 2)
 	for i := 0; i < len(bbos); i++ {
-		var entry any = DerefScalar(bbos[i])
+		var entry any = bbos[i]
 		var instrumentId *string = this.SafeString(entry, "instrument_id")
 		var previous map[string]any = this.SafeDictMap(merged, instrumentId, map[string]any{})
 		// the tickers endpoint timestamp wins the merge below because most unified fields come from it - bbo rows carry a slightly newer sampling time
@@ -876,7 +876,7 @@ func (this *Polymarket) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
 	var tickers []any = SafeListTyped(responses, 0)
 	var result []any = []any{}
 	for i := 0; i < len(tickers); i++ {
-		var entry any = DerefScalar(tickers[i])
+		var entry any = tickers[i]
 		var instrumentId *string = this.SafeString(entry, "instrument_id")
 		var previous map[string]any = this.SafeDictMap(merged, instrumentId, map[string]any{})
 		result = append(result, this.Extend(previous, entry))

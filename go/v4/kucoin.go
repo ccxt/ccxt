@@ -2722,7 +2722,7 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	var symbolsData []any = this.ArrayConcat(spotData, contractSymbolsData)
 	var result []any = []any{}
 	for i := 0; i < len(symbolsData); i++ {
-		var market any = DerefScalar(symbolsData[i])
+		var market any = symbolsData[i]
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseCurrency")
 		var quoteId *string = this.SafeString(market, "quoteCurrency")

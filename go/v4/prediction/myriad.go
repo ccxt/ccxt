@@ -5492,8 +5492,8 @@ func (this *Myriad) HandlePosition(client any, data any) {
 		"collateral":    nil,
 		"unrealizedPnl": nil,
 	})
-	var stored any = this.Positions
-	stored.(ccxt.Appender).Append(parsed)
+	var stored ccxt.WsArrayCache = this.Positions
+	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, "positions")
 }
 func (this *Myriad) WalletAddressFromKeys() string {

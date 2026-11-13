@@ -2269,7 +2269,7 @@ func (this *Aster) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 	}
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (cache == nil) {
 
 		r2 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
@@ -2336,12 +2336,12 @@ func (this *Aster) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	}
 	var positions []any = ccxt.PositionsToList(r.Value)
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	for i := 0; i < len(positions); i++ {
 		var position any = positions[i]
 		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
 		if (contracts != nil) && (*contracts > 0) {
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 		}
 	}
 	// don't remove the future from the .futures cache
@@ -2388,7 +2388,7 @@ func (this *Aster) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var data map[string]any = ccxt.SafeMapTyped(message, "a")
 	var rawPositions []any = ccxt.SafeListTyped(data, "P")
 	var newPositions []any = []any{}
@@ -2399,7 +2399,7 @@ func (this *Aster) HandlePositions(client any, message map[string]any) {
 		ccxt.AddElementToObject(position, "timestamp", timestamp)
 		ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
 		newPositions = append(newPositions, position)
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 	}
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), messageHash)
 	if !this.IsEmpty(messageHashes) {
