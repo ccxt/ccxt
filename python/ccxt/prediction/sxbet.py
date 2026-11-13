@@ -7,7 +7,7 @@ from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.sxbet import ImplicitAPI
 import json
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByOutcomeById
-from ccxt.base.types import Any, Balances, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionSettlement
+from ccxt.base.types import Balances, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionSettlement
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -241,7 +241,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             return self.array_slice(markets, 0, userLimit)
         return markets
 
-    async def fetch_raw_markets_paged(self, extra: dict = {}, userLimit: Int = None) -> list[object]:
+    async def fetch_raw_markets_paged(self, extra: dict = {}, userLimit: Int = None) -> list[dict]:
         """
  @ignore
         pages through GET /markets/active(cursor-based via paginationKey/nextKey), stopping once options.maxMarketsPages pages or userLimit raw markets have been collected
@@ -272,7 +272,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
                 break
         return rawMarkets
 
-    def filter_raw_markets_by_fixture(self, rawMarkets: list[object], sportXeventId: str) -> list[object]:
+    def filter_raw_markets_by_fixture(self, rawMarkets: list[dict], sportXeventId: str) -> list[dict]:
         """
  @ignore
         keeps only the raw markets belonging to one fixture — the venue's own sportXeventId filter on /markets/active is unreliable (observed live returning every fixture), so the scope is enforced client-side
@@ -436,7 +436,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         for i in range(0, tagsLength):
             queries.append(tags[i])
         rest = self.omit(params, ['eventId', 'slug', 'leagueId', 'sportId', 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit'])
-        rawMarkets: list[Any]
+        rawMarkets: list[dict]
         if eventId is not None:
             rawMarkets = await self.fetch_raw_markets_paged(self.extend({'sportXeventId': eventId}, rest), None)
             # the venue's sportXeventId filter on /markets/active is unreliable (observed live
@@ -539,7 +539,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
                     return True
         return False
 
-    def parse_event(self, fixtureId: str, rawMarkets: list[object]) -> PredictionEvent:
+    def parse_event(self, fixtureId: str, rawMarkets: list[dict]) -> PredictionEvent:
         """
  @ignore
         groups a fixture's raw markets (all sharing one sportXeventId) into one unified event structure
@@ -1677,7 +1677,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         raw = self.parse_sxbet_snapshot_best_odds(snapshot)
         return self.parse_prediction_ticker(raw, outcomeObj)
 
-    async def fetch_sxbet_best_odds(self, marketHashes: list[str], params: dict = {}) -> list[object]:
+    async def fetch_sxbet_best_odds(self, marketHashes: list[str], params: dict = {}) -> list[dict]:
         """
  @ignore
         fetches the best resting level of both sides for a set of markets in one request

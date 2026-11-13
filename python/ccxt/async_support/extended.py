@@ -1120,7 +1120,7 @@ class extended(Exchange, ImplicitAPI):
             'rate': self.safe_number(history, 'fundingRate'),
         }
 
-    def parse_funding_histories(self, histories: list[object], market: Market = None, since: Int = None, limit: Int = None) -> list[FundingHistory]:
+    def parse_funding_histories(self, histories: list[dict], market: Market = None, since: Int = None, limit: Int = None) -> list[FundingHistory]:
         result = []
         for i in range(0, len(histories)):
             result.append(self.parse_funding_history(self.safe_dict(histories, i, {}), market))
