@@ -54,5 +54,5 @@ pub fn testAggregate() {
     let mut result10: Value = exchange.aggregate(Value::from(vec![Value::from(vec![Value::Float(100.2), Value::Float(1.04)]), Value::from(vec![Value::Float(100.2), Value::Int(0)]), Value::from(vec![Value::Float(100.2), Value::Float(2.04)])]));
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testAggregate".into()).clone(), result10.clone(), Value::from(vec![Value::from(vec![Value::Float(100.2), Value::Float(3.08)])]).clone()]);
     // @SKIP_END_GO
-    exchange.uuid(&[]); // placeholder for astt
+    Value::from(exchange.uuid(&[])); // placeholder for astt
 }

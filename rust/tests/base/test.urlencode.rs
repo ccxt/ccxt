@@ -23,8 +23,8 @@ pub fn testUrlencode() {
         m
     });
     // as key-order not preserved, expect mixed order
-    let mut expected1: Value = Value::Str("a=1&c=%2B%26".into());
-    let mut expected2: Value = Value::Str("c=%2B%26&a=1".into());
-    let mut encoded: Value = exchange.urlencode(dict1.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&(((encoded.as_str() == expected1.as_str()) || (encoded.as_str() == expected2.as_str())))));
+    let mut expected1: String = "a=1&c=%2B%26".to_string();
+    let mut expected2: String = "c=%2B%26&a=1".to_string();
+    let mut encoded: String = exchange.urlencode(dict1.clone(), &[]);
+    assert!(ccxt::runtime::is_true(&(((encoded == expected1) || (encoded == expected2)))));
 }

@@ -52,17 +52,17 @@ impl crate::exchange::DerivedExchange for Latoken {
         // Forward to the inherent method on Latoken.
         Latoken::nonce(self, )
     }
-    fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ticker(&self, ticker: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Latoken.
-        Latoken::parse_ticker(self, ticker, &[market])
+        Latoken::parse_ticker(self, ticker, market)
     }
-    fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Latoken.
-        Latoken::parse_trade(self, trade, &[market])
+        Latoken::parse_trade(self, trade, market)
     }
-    fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_order(&self, order: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Latoken.
-        Latoken::parse_order(self, order, &[market])
+        Latoken::parse_order(self, order, market)
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on Latoken.
@@ -117,9 +117,9 @@ impl crate::exchange_generated::ExchangeBase for Latoken {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -860,7 +860,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_pair(&[params]).await;
+        let mut response: crate::value::List = self.public_get_pair(&[params]).await.into_list();
         //
         //     [
         //         {
@@ -890,12 +890,12 @@ impl Latoken {
 })]);
         let mut currenciesById: Value = self.index_by(currencies, Value::Str("id".into()));
         let mut result: Vec<Value> = Vec::new();
-        let mut rawMarkets: crate::value::List = self.to_array(response).into_list();
+        let mut rawMarkets: crate::value::List = self.to_array(&response).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_910: bool = true;
             while { if !__for_first_910 { i += 1; } __for_first_910 = false; i < (rawMarkets.len() as i64) } {
-            let mut market: Value = self.safe_value(&rawMarkets, Value::Int(i), &[]);
+            let mut market: Value = self.safe_dict(&rawMarkets, Value::Int(i), &[]);
             let mut id: Option<String> = self.safe_string_k(market.clone(), "id", &[]).as_str().map(str::to_owned);
             // the exchange shows them inverted
             let mut baseId: Option<String> = self.safe_string_k(market.clone(), "baseCurrency", &[]).as_str().map(str::to_owned);
@@ -905,8 +905,8 @@ impl Latoken {
             let mut baseCurrencyInfo: Option<crate::value::Dict> = self.safe_dict_k(&baseCurrency, "info", &[]).into_opt_dict();
             let mut quoteCurrencyInfo: Option<crate::value::Dict> = self.safe_dict_k(&quoteCurrency, "info", &[]).into_opt_dict();
             if (baseCurrencyInfo.is_some()) && (quoteCurrencyInfo.is_some()) {
-                let mut base: Option<String> = self.safe_currency_code(self.safe_string_k(&baseCurrencyInfo, "tag", &[]), &[]).as_str().map(str::to_owned);
-                let mut quote: Option<String> = self.safe_currency_code(self.safe_string_k(&quoteCurrencyInfo, "tag", &[]), &[]).as_str().map(str::to_owned);
+                let mut base: Option<String> = self.safe_currency_code(self.safe_string_k(&baseCurrencyInfo, "tag", &[]), &[]);
+                let mut quote: Option<String> = self.safe_currency_code(self.safe_string_k(&quoteCurrencyInfo, "tag", &[]), &[]);
                 if (base.is_none()) || (quote.is_none()) {
                     continue;
                 }
@@ -1005,7 +1005,7 @@ impl Latoken {
 }));
         // sequential on purpose - with Promise.all the static request harness records
         // whichever call finished last, which differs between the sync and async ports
-        let mut response: Value = self.public_get_currency(&[params]).await;
+        let mut response: crate::value::List = self.public_get_currency(&[params]).await.into_list();
         //
         //     [
         //         {
@@ -1060,7 +1060,7 @@ impl Latoken {
         // no params on this one - they belong to the currency request, not to the bindings
         let mut bindingsResponse: Value = self.public_get_transaction_bindings(&[]).await;
         let mut bindingsById: Value = self.index_by(bindingsResponse, Value::Str("id".into()));
-        let mut rawCurrencies: crate::value::List = self.to_array(response).into_list();
+        let mut rawCurrencies: crate::value::List = self.to_array(&response).into_list();
         let mut merged: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1089,7 +1089,7 @@ impl Latoken {
         let mut currency: Value = currency.into();
         let mut id: Option<String> = self.safe_string_k(currency.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = self.safe_string_k(currency.clone(), "tag", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(tag.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut code: Option<String> = self.safe_currency_code(tag.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut currencyType: Option<String> = self.safe_string_k(currency.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut isCrypto: bool = (currencyType.as_deref() == Some("CURRENCY_TYPE_CRYPTO")) || (currencyType.as_deref() == Some("CURRENCY_TYPE_IEO"));
         let mut bindings: crate::value::List = self.safe_list_k(currency.clone(), "bindings", &[Value::from(vec![])]).into_list();
@@ -1249,7 +1249,7 @@ impl Latoken {
                     maxTimestamp = timestamp;
                 }
             }
-            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
             account.insert("used".into(), self.safe_string_k(&balance, "blocked", &[]));
@@ -1363,9 +1363,8 @@ impl Latoken {
         }).await?))
     }
 
-    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //    {
         //        "symbol": "BTC/USDT",
@@ -1391,10 +1390,10 @@ impl Latoken {
         // the market from the currency ids like parseTrade and parseOrder do
         let mut baseId: Option<String> = self.safe_string_k(ticker.clone(), "baseCurrency", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(ticker.clone(), "quoteCurrency", &[]).as_str().map(str::to_owned);
-        let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-        let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut symbol: Value = Value::Null;
-        let mut marketResolved: Value = market.clone();
+        let mut marketResolved: Value = crate::Value::from(market);
         if (base.is_some()) && (quote.is_some()) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)).into());
             if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -1426,7 +1425,7 @@ impl Latoken {
         m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "volume24h", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), &[marketResolved]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
 
     Value::Null
 }
@@ -1462,8 +1461,8 @@ impl Latoken {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_ticker_base_quote(&[__ws_arg_1]).await;
-        return self.parse_ticker(response, &[(market).raw.clone()]);
+        let mut response: crate::value::Dict = self.public_get_ticker_base_quote(&[__ws_arg_1]).await.into_dict();
+        return self.parse_ticker(&response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -1491,15 +1490,14 @@ impl Latoken {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.public_get_ticker(&[params]).await;
-        return self.parse_tickers(response, &[symbols]);
+        let mut response: crate::value::List = self.public_get_ticker(&[params]).await.into_list();
+        return self.parse_tickers(&response, &[symbols]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut trade: Value = trade.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchTrades (public)
         //
@@ -1553,10 +1551,10 @@ impl Latoken {
         let mut takerOrMaker: String = (if isMaker { "maker".to_string() } else { "taker".to_string() });
         let mut baseId: Option<String> = self.safe_string_k(trade.clone(), "baseCurrency", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(trade.clone(), "quoteCurrency", &[]).as_str().map(str::to_owned);
-        let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-        let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut symbol: Value = Value::Null;
-        let mut marketResolved: Value = market.clone();
+        let mut marketResolved: Value = crate::Value::from(market);
         if (base.is_some()) && (quote.is_some()) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into());
             if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -1591,7 +1589,7 @@ impl Latoken {
         m.insert("cost".to_string(), costString.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
     m
-}), &[marketResolved]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
 
     Value::Null
 }
@@ -1634,8 +1632,8 @@ impl Latoken {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100))); // default 100, limit 100
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_trade_history_currency_quote(&[__ws_arg_2]).await;
-        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
+        let mut response: crate::value::List = self.public_get_trade_history_currency_quote(&[__ws_arg_2]).await.into_list();
+        return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1775,22 +1773,22 @@ impl Latoken {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default 100
         }
         let mut response: Value = Value::from(vec![]);
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("currency".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
-            request.insert("quote".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("currency".into(), crate::value::KeyRead::key_read(&&market, "baseId"));
+            request.insert("quote".into(), crate::value::KeyRead::key_read(&&market, "quoteId"));
             let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_get_auth_trade_pair_currency_quote(&[__ws_arg_5]).await;
         }  else {
             let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
             response = self.private_get_auth_trade(&[__ws_arg_6]).await;
         }
-        return self.parse_trades(response, &[market, since, limit]);
+        return self.parse_trades(response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -1830,9 +1828,8 @@ impl Latoken {
         return self.safe_string(&timeInForces, timeInForce.clone(), &[timeInForce.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // createOrder
         //
@@ -1880,14 +1877,14 @@ impl Latoken {
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "timestamp", &[]).as_i64();
         let mut baseId: Option<String> = self.safe_string_k(order.clone(), "baseCurrency", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(order.clone(), "quoteCurrency", &[]).as_str().map(str::to_owned);
-        let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-        let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut symbol: Value = Value::Null;
         if (base.is_some()) && (quote.is_some()) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)).into());
         }
         let mut symbolKnown: bool = (symbol != Value::Null) && (self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())));
-        let mut marketResolved: Value = market.clone();
+        let mut marketResolved: Value = crate::Value::from(market);
         if symbolKnown {
             marketResolved = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         }
@@ -1938,7 +1935,7 @@ impl Latoken {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), &[marketResolved]);
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
 
     Value::Null
 }
@@ -1993,7 +1990,7 @@ impl Latoken {
             let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_auth_order_pair_currency_quote_active(&[__ws_arg_8]).await;
         }
-        return self.parse_orders(response, &[(market).raw.clone(), since, limit]);
+        return self.parse_orders(response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2033,7 +2030,7 @@ impl Latoken {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         let mut isTrigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         if (limit != Value::Null) {
@@ -2041,9 +2038,9 @@ impl Latoken {
         }
         let mut response: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            request.insert("currency".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
-            request.insert("quote".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("currency".into(), crate::value::KeyRead::key_read(&&market, "baseId"));
+            request.insert("quote".into(), crate::value::KeyRead::key_read(&&market, "quoteId"));
             if (isTrigger == Some(true)) {
                 let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_get_auth_stop_order_pair_currency_quote(&[__ws_arg_9]).await;
@@ -2060,7 +2057,7 @@ impl Latoken {
                 response = self.private_get_auth_order(&[__ws_arg_12]).await;
             }
         }
-        return self.parse_orders(response, &[market, since, limit]);
+        return self.parse_orders(response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2107,7 +2104,7 @@ impl Latoken {
             let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_auth_order_get_order_id(&[__ws_arg_14]).await;
         }
-        return self.parse_order(response, &[]);
+        return self.parse_order(response, None);
         Value::Null
         }).await?))
     }
@@ -2159,7 +2156,7 @@ impl Latoken {
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("condition".to_string(), Value::Str("GTC".into()));
                 m.insert("type".to_string(), Value::from(uppercaseType.clone()));
-                m.insert("clientOrderId".to_string(), self.uuid(&[]));
+                m.insert("clientOrderId".to_string(), Value::from(self.uuid(&[])));
                 m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
                 m.insert("timestamp".to_string(), self.seconds());
             m
@@ -2178,7 +2175,7 @@ impl Latoken {
             let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_auth_order_place(&[__ws_arg_16]).await;
         }
-        return self.parse_order(response, &[(market).raw.clone()]);
+        return self.parse_order(response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2225,7 +2222,7 @@ impl Latoken {
             let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_auth_order_cancel(&[__ws_arg_18]).await;
         }
-        return self.parse_order(response, &[]);
+        return self.parse_order(response, None);
         Value::Null
         }).await?))
     }
@@ -2287,7 +2284,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
     m
-}), &[])]);
+}), None)]);
         Value::Null
         }).await?))
     }
@@ -2386,7 +2383,7 @@ impl Latoken {
         let mut id: Option<String> = self.safe_string_k(transaction.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "timestamp", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "currency", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
         let mut addressFrom: Option<String> = self.safe_string_k(transaction.clone(), "senderAddress", &[]).as_str().map(str::to_owned);
@@ -2615,7 +2612,7 @@ impl Latoken {
         m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "id", &[]));
         m.insert("timestamp".to_string(), self.safe_integer_k(transfer.clone(), "timestamp", &[]));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]));
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "transferringFunds", &[]));
         m.insert("fromAccount".to_string(), self.safe_string_k(transfer.clone(), "fromAccount", &[]));
         m.insert("toAccount".to_string(), self.safe_string_k(transfer, "toAccount", &[]));
@@ -2651,30 +2648,30 @@ impl Latoken {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut requestHeaders: Value = Value::Null;
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut requestString: String = request.clone();
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut urlencodedQuery: Option<String> = self.urlencode(query.clone(), &[]).as_str().map(str::to_owned);
+        let mut urlencodedQuery: String = self.urlencode(query.clone(), &[]);
         if (method.as_str() == Some("GET")) {
-            if (urlencodedQuery.as_deref() != Some("")) {
-                requestString.push_str(&format!("{}{}", Value::Str("?".into()), urlencodedQuery.clone().map(Value::from).unwrap_or(Value::Null)));
+            if (urlencodedQuery != "") {
+                requestString.push_str(&format!("{}{}", Value::Str("?".into()), urlencodedQuery));
             }
         }
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", method, request).into()), urlencodedQuery.map(Value::from).unwrap_or(Value::Null));
-            let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]).as_str().map(str::to_owned);
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", method, request).into()), urlencodedQuery);
+            let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-LA-APIKEY".to_string(), self.apiKey.clone());
-                    m.insert("X-LA-SIGNATURE".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("X-LA-SIGNATURE".to_string(), Value::from(signature));
                     m.insert("X-LA-DIGEST".to_string(), Value::Str("HMAC-SHA512".into()));
                 m
             });
             if (method.as_str() == Some("POST")) {
                 if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
-                requestBody = json_stringify(&query);
+                requestBody = json_stringify(&query).as_str().map(str::to_owned);
             }
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
@@ -2686,7 +2683,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), requestHeaders);
     m
 });

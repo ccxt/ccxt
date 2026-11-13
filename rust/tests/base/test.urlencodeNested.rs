@@ -27,10 +27,10 @@ pub fn testUrlencodeNested() {
             m.insert("d".to_string(), Value::from(vec![Value::Int(1), Value::Int(2)]));
         m
     });
-    let mut expected2a: Value = Value::Str("b[c]=2&b[target]=%2B%26&d[0]=1&d[1]=2".into());
-    let mut expected2c: Value = Value::Str("b[target]=%2B%26&b[c]=2&d[0]=1&d[1]=2".into());
-    let mut expected2b: Value = Value::Str("d[0]=1&d[1]=2&b[c]=2&b[target]=%2B%26".into());
-    let mut expected2d: Value = Value::Str("d[0]=1&d[1]=2&b[target]=%2B%26&b[c]=2".into());
-    let mut result2: Value = exchange.urlencode_nested(dict2.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&(((result2.as_str() == expected2a.as_str()) || (result2.as_str() == expected2b.as_str()) || (result2.as_str() == expected2c.as_str()) || (result2.as_str() == expected2d.as_str())))));
+    let mut expected2a: String = "b[c]=2&b[target]=%2B%26&d[0]=1&d[1]=2".to_string();
+    let mut expected2c: String = "b[target]=%2B%26&b[c]=2&d[0]=1&d[1]=2".to_string();
+    let mut expected2b: String = "d[0]=1&d[1]=2&b[c]=2&b[target]=%2B%26".to_string();
+    let mut expected2d: String = "d[0]=1&d[1]=2&b[target]=%2B%26&b[c]=2".to_string();
+    let mut result2: String = exchange.urlencode_nested(dict2.clone(), &[]);
+    assert!(ccxt::runtime::is_true(&(((result2 == expected2a) || (result2 == expected2b) || (result2 == expected2c) || (result2 == expected2d)))));
 }

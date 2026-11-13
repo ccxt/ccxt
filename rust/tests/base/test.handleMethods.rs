@@ -29,14 +29,14 @@ fn helperTestHandleMarketTypeAndParams() {
             m.insert("defaultType".to_string(), Value::Str("valueFromParam".into()));
         m
     });
-    let mut market: Value = exchange.safe_market(&[Value::Str("TEST1/TEST2".into())]);
+    let mut market: Value = ccxt::types::IntoRaw::into_raw(exchange.safe_market(Value::Str("TEST1/TEST2".into()), None, &[]));
     add_element_to_object(&mut market, &Value::Str("type".into()), Value::Str("spot".into()));
     //
     // ########### test different variations ###########
     //
     // case #1, should prevail: param
     //
-    let marketType1params1Variable: Vec<Value> = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), &[market.clone(), initialParams.clone(), Value::Str("valueDefault".into())]).as_array().cloned().unwrap_or_default();
+    let marketType1params1Variable: Vec<Value> = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), <Option<ccxt::types::Market> as ccxt::types::FromRaw>::from_raw(market.clone()).as_ref(), &[initialParams.clone(), Value::Str("valueDefault".into())]).as_array().cloned().unwrap_or_default();
     let mut marketType1: Value = marketType1params1Variable.get(0).cloned().unwrap_or(Value::Null);
     let mut params1: Value = marketType1params1Variable.get(1).cloned().unwrap_or(Value::Null);
     assert!(ccxt::runtime::is_true(&(Value::Bool(matches!(&initialParams, Value::Dict(__d) if __d.contains_key("defaultType"))))));
@@ -45,7 +45,7 @@ fn helperTestHandleMarketTypeAndParams() {
     //
     // case #2, should prevail: market.type
     //
-    let marketType2params2Variable: Vec<Value> = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), &[market.clone(), Value::Map({
+    let marketType2params2Variable: Vec<Value> = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), <Option<ccxt::types::Market> as ccxt::types::FromRaw>::from_raw(market.clone()).as_ref(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }), Value::Str("valueDefault".into())]).as_array().cloned().unwrap_or_default();
@@ -55,7 +55,7 @@ fn helperTestHandleMarketTypeAndParams() {
     //
     // case #3, should prevail: valueDefault
     //
-    let marketType3params3Variable: Vec<Value> = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), &[Value::Null, Value::Map({
+    let marketType3params3Variable: Vec<Value> = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), None, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }), Value::Str("valueDefault".into())]).as_array().cloned().unwrap_or_default();
@@ -65,7 +65,7 @@ fn helperTestHandleMarketTypeAndParams() {
     //
     // case #4, should prevail: method options
     //
-    let marketType4params4Variable: Vec<Value> = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), &[Value::Null, Value::Map({
+    let marketType4params4Variable: Vec<Value> = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), None, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_array().cloned().unwrap_or_default();
@@ -75,7 +75,7 @@ fn helperTestHandleMarketTypeAndParams() {
     //
     // case #5, should prevail: options
     //
-    let marketType5params5Variable: Vec<Value> = exchange.handle_market_type_and_params(Value::Str("fetchY".into()), &[Value::Null, Value::Map({
+    let marketType5params5Variable: Vec<Value> = exchange.handle_market_type_and_params(Value::Str("fetchY".into()), None, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }), Value::Null]).as_array().cloned().unwrap_or_default();
@@ -86,7 +86,7 @@ fn helperTestHandleMarketTypeAndParams() {
     // case #6, should prevail: spot (because hardcoded in base)
     //
     add_element_to_object(&mut exchange.options, &Value::Str("defaultType".into()), Value::Null);
-    let marketType6params6Variable: Vec<Value> = exchange.handle_market_type_and_params(Value::Str("fetchY".into()), &[Value::Null, Value::Map({
+    let marketType6params6Variable: Vec<Value> = exchange.handle_market_type_and_params(Value::Str("fetchY".into()), None, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }), Value::Null]).as_array().cloned().unwrap_or_default();

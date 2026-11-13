@@ -15,8 +15,8 @@ pub fn testUuid() {
         m
     }));
     // uuid() - standard UUID v4: xxxxxxxx-xxxx-4xxx-[89ab]xxx-xxxxxxxxxxxx
-    let mut id1: Value = exchange.uuid(&[]); // need type for .length understanding
-    let mut id2: Value = exchange.uuid(&[]);
+    let mut id1: Value = Value::from(exchange.uuid(&[])); // need type for .length understanding
+    let mut id2: Value = Value::from(exchange.uuid(&[]));
     assert!(ccxt::runtime::is_true(&((id1 != Value::Null))));
     assert!(ccxt::runtime::is_true(&((id2 != Value::Null))));
     assert!(ccxt::runtime::is_true(&((id1.as_str() != id2.as_str()))));
@@ -26,8 +26,8 @@ pub fn testUuid() {
     assert!(ccxt::runtime::is_true(&((Value::Int(id2.len() as i64).as_f64() == Some(36.0)))));
     assert!(ccxt::runtime::is_true(&((Value::Int(id1.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(8.0)))));
     // uuid16() - 16-char hex string
-    let mut id16a: Value = exchange.uuid16(&[]);
-    let mut id16b: Value = exchange.uuid16(&[]);
+    let mut id16a: Value = Value::from(exchange.uuid16(&[]));
+    let mut id16b: Value = Value::from(exchange.uuid16(&[]));
     assert!(ccxt::runtime::is_true(&((id16a != Value::Null))));
     assert!(ccxt::runtime::is_true(&((id16b != Value::Null))));
     assert!(ccxt::runtime::is_true(&((id16a.as_str() != id16b.as_str()))));
@@ -36,8 +36,8 @@ pub fn testUuid() {
     assert!(ccxt::runtime::is_true(&((Value::Int(id16a.len() as i64).as_f64() == Some(16.0)))));
     assert!(ccxt::runtime::is_true(&((Value::Int(id16b.len() as i64).as_f64() == Some(16.0)))));
     // uuid22() - 22-char hex string
-    let mut id22a: Value = exchange.uuid22(&[]);
-    let mut id22b: Value = exchange.uuid22(&[]);
+    let mut id22a: Value = Value::from(exchange.uuid22(&[]));
+    let mut id22b: Value = Value::from(exchange.uuid22(&[]));
     assert!(ccxt::runtime::is_true(&((id22a != Value::Null))));
     assert!(ccxt::runtime::is_true(&((id22b != Value::Null))));
     assert!(ccxt::runtime::is_true(&((id22a.as_str() != id22b.as_str()))));

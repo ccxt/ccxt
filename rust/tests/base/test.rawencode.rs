@@ -23,8 +23,8 @@ pub fn testRawencode() {
         m
     });
     // as key-order not preserved, expect mixed orde
-    let mut expected2a: Value = Value::Str("a=1&b=+&".into());
-    let mut expected2b: Value = Value::Str("b=+&&a=1".into());
-    let mut result2: Value = exchange.rawencode(dict2.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&(((result2.as_str() == expected2a.as_str()) || (result2.as_str() == expected2b.as_str())))));
+    let mut expected2a: String = "a=1&b=+&".to_string();
+    let mut expected2b: String = "b=+&&a=1".to_string();
+    let mut result2: String = exchange.rawencode(dict2.clone(), &[]);
+    assert!(ccxt::runtime::is_true(&(((result2 == expected2a) || (result2 == expected2b)))));
 }

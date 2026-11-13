@@ -55,25 +55,25 @@ impl crate::exchange::DerivedExchange for Polymarket {
         // Forward to the inherent method on Polymarket.
         Polymarket::nonce(self, )
     }
-    fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_ohlcv(&self, ohlcv: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Polymarket.
-        Polymarket::parse_ohlcv(self, ohlcv, &[market])
+        Polymarket::parse_ohlcv(self, ohlcv, market)
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
         // Forward to the inherent method on Polymarket.
         Polymarket::parse_balance(self, response)
     }
-    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Polymarket.
-        Polymarket::parse_prediction_trade(self, trade, &[market])
+        Polymarket::parse_prediction_trade(self, trade, market)
     }
-    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_order(&self, order: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Polymarket.
-        Polymarket::parse_prediction_order(self, order, &[market])
+        Polymarket::parse_prediction_order(self, order, market)
     }
-    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_position(&self, position: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Polymarket.
-        Polymarket::parse_prediction_position(self, position, &[market])
+        Polymarket::parse_prediction_position(self, position, market)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Polymarket.
@@ -136,13 +136,13 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_event_to_markets" => self.parse_event_to_markets(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_events" => self.parse_events(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_poly_timestamp" => self.parse_poly_timestamp(args.get(0).and_then(crate::Value::as_str)),
-                "parse_prediction_open_interest" => self.parse_prediction_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_prediction_open_interest" => self.parse_prediction_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "polymarket_order_raw_amounts" => self.polymarket_order_raw_amounts(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_f64), args.get(2).and_then(crate::Value::as_f64), args.get(3).and_then(crate::Value::as_str), args.get(4).and_then(crate::Value::as_f64)),
                 "set_api_credentials" => self.set_api_credentials(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -1880,7 +1880,7 @@ impl Polymarket {
                 m.insert("lastTrade".to_string(), lastTradeResponse);
             m
         });
-        return self.parse_prediction_ticker(Value::Map(response), &[outcomeObj]);
+        return self.parse_prediction_ticker(Value::Map(response), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
         Value::Null
         }).await?))
     }
@@ -2013,7 +2013,7 @@ impl Polymarket {
 })]));
                     m
                 });
-                let mut ticker: Value = self.parse_prediction_ticker(Value::Map(tickerInput), &[outcomeObj]);
+                let mut ticker: Value = self.parse_prediction_ticker(Value::Map(tickerInput), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
                 let mut symbolKey: Option<String> = self.safe_string_k(ticker.clone(), "outcome", &[tokenId.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
                 result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), ticker);
             }
@@ -2034,9 +2034,8 @@ impl Polymarket {
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-    pub fn parse_prediction_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "midpoint": {
@@ -2098,18 +2097,18 @@ impl Polymarket {
         if (last.is_none()) || (last == Some(0.0)) {
             last = mid.clone();
         }
-        let mut outcome: Option<String> = self.safe_outcome_symbol(Value::Null, &[market.clone()]).as_str().map(str::to_owned);
+        let mut outcome: Option<String> = self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(&bookData, "timestamp", &[]).as_i64();
-        let mut quoteVolume: Value = Value::Null;
-        if (market != Value::Null) {
-            quoteVolume = self.safe_number2(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("volume24hr".into()), Value::Str("volume".into()), &[]);
+        let mut quoteVolume: Option<f64> = None;
+        if (market.is_some()) {
+            quoteVolume = self.safe_number2(crate::value::KeyRead::key_read(&market, "info"), Value::Str("volume24hr".into()), Value::Str("volume".into()), &[]).as_f64();
         }
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), outcome.map(Value::from).unwrap_or(Value::Null));
-        m.insert("outcomeId".to_string(), self.safe_string_k(market.clone(), "outcomeId", &[]));
-        m.insert("label".to_string(), self.safe_string_k(market.clone(), "label", &[]));
-        m.insert("market".to_string(), self.safe_string_k(market.clone(), "market", &[]));
+        m.insert("outcomeId".to_string(), self.safe_string_k(&market, "outcomeId", &[]));
+        m.insert("label".to_string(), self.safe_string_k(&market, "label", &[]));
+        m.insert("market".to_string(), self.safe_string_k(&market, "market", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), Value::Null);
@@ -2127,10 +2126,10 @@ impl Polymarket {
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::from(mid));
         m.insert("baseVolume".to_string(), Value::Null);
-        m.insert("quoteVolume".to_string(), quoteVolume);
+        m.insert("quoteVolume".to_string(), Value::from(quoteVolume));
         m.insert("info".to_string(), ticker);
     m
-}), &[market]);
+}), &[crate::Value::from(market)]);
 
     Value::Null
 }
@@ -2165,7 +2164,7 @@ impl Polymarket {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.clob_public_get_book(&[__ws_arg_2]).await;
+        let mut response: crate::value::Dict = self.clob_public_get_book(&[__ws_arg_2]).await.into_dict();
         //
         //     {
         //         "market": "0x42d42b30124ed2d93800358dfd1d48253114e4d58cff15cb765cd0c69956555f",
@@ -2186,8 +2185,8 @@ impl Polymarket {
         //         "last_trade_price": "0.002"
         //     }
         //
-        let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "timestamp", &[]).as_i64();
-        let mut orderbook: Value = self.parse_order_book(response, self.safe_outcome_symbol(outcome, &[outcomeObj.clone()]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
+        let mut orderbook: Value = self.parse_order_book(&response, self.safe_outcome_symbol(outcome, &[outcomeObj.clone()]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
         return self.safe_prediction_order_book(orderbook, &[outcomeObj]);
         Value::Null
         }).await?))
@@ -2336,8 +2335,7 @@ impl Polymarket {
         }).await?))
     }
 
-    pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    pub fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {
         // Unused: fetchOHLCV performs client-side bucket aggregation directly.
         //
         //     {
@@ -2462,20 +2460,19 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        return self.parse_prediction_open_interest(&first, &[outcomeObj]);
+        return self.parse_prediction_open_interest(&first, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
         Value::Null
         }).await?))
     }
 
-    pub fn parse_prediction_open_interest(&self, interest: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_open_interest(&self, interest: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut interest: Value = interest.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
         let mut openInterest: Value = self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), self.safe_outcome_symbol(Value::Null, &[market.clone()]));
+        m.insert("symbol".to_string(), self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]));
         m.insert("openInterestAmount".to_string(), Value::Null);
         m.insert("openInterestValue".to_string(), self.safe_number_k(interest.clone(), "value", &[]));
         m.insert("baseVolume".to_string(), Value::Null);
@@ -2484,10 +2481,10 @@ impl Polymarket {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("info".to_string(), interest);
     m
-}), &[market.clone()]);
-        add_element_to_object(&mut openInterest, &Value::Str("outcome".into()), self.safe_outcome_symbol(Value::Null, &[market.clone()]));
-        add_element_to_object(&mut openInterest, &Value::Str("outcomeId".into()), self.safe_string_k(market.clone(), "outcomeId", &[]));
-        add_element_to_object(&mut openInterest, &Value::Str("market".into()), self.safe_string_k(market, "market", &[]));
+}), &[crate::Value::from(market)]);
+        add_element_to_object(&mut openInterest, &Value::Str("outcome".into()), self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]));
+        add_element_to_object(&mut openInterest, &Value::Str("outcomeId".into()), self.safe_string_k(&market, "outcomeId", &[]));
+        add_element_to_object(&mut openInterest, &Value::Str("market".into()), self.safe_string_k(&market, "market", &[]));
         remove(&mut openInterest, &Value::Str("symbol".into()));
         return openInterest;
 
@@ -2721,9 +2718,8 @@ impl Polymarket {
  * @param {object} [market] the outcome object the trade belongs to
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-    pub fn parse_prediction_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut trade: Value = trade.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         // public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp';
         // the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
         let mut id: Option<String> = self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("transactionHash".into()), Value::Str("transaction_hash".into()), Value::Str("id".into())]), &[]).as_str().map(str::to_owned);
@@ -2740,8 +2736,8 @@ impl Polymarket {
         }
         let mut assetId: Option<String> = self.safe_string2(trade.clone(), Value::Str("asset".into()), Value::Str("asset_id".into()), &[]).as_str().map(str::to_owned);
         let mut mkt: Value = Value::Null;
-        if (market != Value::Null) {
-            mkt = market;
+        if (market.is_some()) {
+            mkt = crate::Value::from(market);
         }  else {
             mkt = self.safe_outcome(assetId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         }
@@ -2815,8 +2811,8 @@ impl Polymarket {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[&rest]);
-        let mut response: Value = self.clob_private_get_balance_allowance(&[__ws_arg_8]).await;
-        return self.parse_balance(response);
+        let mut response: crate::value::Dict = self.clob_private_get_balance_allowance(&[__ws_arg_8]).await.into_dict();
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -2969,11 +2965,10 @@ impl Polymarket {
  * @param {object} [market] the outcome object the position belongs to
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-    pub fn parse_prediction_position(&self, position: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut position: Value = position.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         let mut tokenId: Option<String> = self.safe_string_k(position.clone(), "asset", &[]).as_str().map(str::to_owned);
-        let mut marketData: crate::value::Dict = self.safe_outcome(tokenId.map(Value::from).unwrap_or(Value::Null), &[market]).into_dict();
+        let mut marketData: crate::value::Dict = self.safe_outcome(tokenId.map(Value::from).unwrap_or(Value::Null), &[crate::Value::from(market)]).into_dict();
         let mut size: Value = self.safe_number_k(position.clone(), "size", &[]);
         let mut entryPrice: Option<f64> = self.safe_number_k(position.clone(), "avgPrice", &[]).as_f64();
         let mut curPrice: Value = self.safe_number_k(position.clone(), "currentPrice", &[]);
@@ -3091,8 +3086,8 @@ impl Polymarket {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.clob_private_get_data_order_id(&[__ws_arg_11]).await;
-        return self.parse_prediction_order(response, &[]);
+        let mut response: crate::value::Dict = self.clob_private_get_data_order_id(&[__ws_arg_11]).await.into_dict();
+        return self.parse_prediction_order(&response, None);
         Value::Null
         }).await?))
     }
@@ -3106,9 +3101,8 @@ impl Polymarket {
  * @param {object} [market] the outcome object the order belongs to
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-    pub fn parse_prediction_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // {
         //     "errorMsg":"",
@@ -3121,7 +3115,7 @@ impl Polymarket {
         // fetchOrder/fetchOpenOrders return 'id'; the createOrder POST response returns 'orderID'
         let mut id: Option<String> = self.safe_string2(order.clone(), Value::Str("id".into()), Value::Str("orderID".into()), &[]).as_str().map(str::to_owned);
         let mut tokenId: Option<String> = self.safe_string_k(order.clone(), "asset_id", &[]).as_str().map(str::to_owned);
-        let mut mkt: Value = self.safe_outcome(tokenId.map(Value::from).unwrap_or(Value::Null), &[market]);
+        let mut mkt: Value = self.safe_outcome(tokenId.map(Value::from).unwrap_or(Value::Null), &[crate::Value::from(market)]);
         // REST returns 'status'; the user-websocket order event carries lifecycle in 'type'
         let mut status: Option<String> = self.parse_order_status((self.safe_string2(order.clone(), Value::Str("status".into()), Value::Str("type".into()), &[])).as_str());
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
@@ -3237,7 +3231,7 @@ impl Polymarket {
         // request echo first so the response's real orderID/status/success win on overlap
         let __ws_arg_12 = self.safe_dict_k(built.clone(), "request", &[]);
         let mut enriched: crate::value::Dict = self.extend(__ws_arg_12, &[response.clone()]).into_dict();
-        let mut order: Value = self.parse_prediction_order(&enriched, &[self.safe_dict_k(built, "outcome", &[])]);
+        let mut order: Value = self.parse_prediction_order(&enriched, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_dict_k(built, "outcome", &[])).as_ref());
         if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("info".to_string(), response); } // keep info the raw exchange response, not the request echo
         return order;
         Value::Null
@@ -3327,13 +3321,13 @@ impl Polymarket {
                 // request echo first so the response's real orderID/status win on overlap
                 let mut rawItem: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut enriched: crate::value::Dict = self.extend(requests.get(i as usize).cloned().unwrap_or(Value::Null), &[rawItem.clone()]).into_dict();
-                let mut parsedItem: Value = self.parse_prediction_order(&enriched, &[outcomes.get(i as usize).cloned().unwrap_or(Value::Null)]);
+                let mut parsedItem: Value = self.parse_prediction_order(&enriched, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomes.get(i as usize).cloned().unwrap_or(Value::Null)).as_ref());
                 if let Value::Dict(__rda) = &mut parsedItem { std::sync::Arc::make_mut(__rda).insert("info".to_string(), rawItem); } // keep info the raw exchange response
                 result.push(parsedItem);
             }
             }
         }  else {
-            result.push(self.parse_prediction_order(response, &[]));
+            result.push(self.parse_prediction_order(response, None));
         }
         return Value::from(result);
         Value::Null
@@ -4061,7 +4055,7 @@ impl Polymarket {
                     })]).await;
                 }
                 if (detailedEvent != Value::Null) {
-                    eventForParsing = self.safe_value_k(detailedEvent.clone(), "event", &[detailedEvent.clone()]);
+                    eventForParsing = self.safe_dict_k(detailedEvent.clone(), "event", &[detailedEvent.clone()]);
                     ccxtMarkets = self.parse_event_to_markets(eventForParsing.clone());
                 }
             }
@@ -4388,9 +4382,9 @@ impl Polymarket {
             }
             let mut querystring: Option<String> = None;
             if hasArrayParam {
-                querystring = self.urlencode_with_array_repeat(query.clone()).as_str().map(str::to_owned);
+                querystring = Some(self.urlencode_with_array_repeat(query.clone()));
             }  else {
-                querystring = self.urlencode(query.clone(), &[]).as_str().map(str::to_owned);
+                querystring = Some(self.urlencode(query.clone(), &[]));
             }
             if (querystring.as_deref() != Some("")) {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), querystring.as_deref().unwrap_or("null")));
@@ -4468,16 +4462,16 @@ impl Polymarket {
                 let mut plusSecret: Option<String> = (if let Some(__s) = secret.as_deref() { Some(__s.replace("-", "+")) } else { None });
                 let mut normalizedSecret: Option<String> = (if let Some(__s) = plusSecret.as_deref() { Some(__s.replace("_", "/")) } else { None });
                 let mut secretBytes: Value = self.base64_to_binary(normalizedSecret.map(Value::from).unwrap_or(Value::Null), &[]);
-                let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), secretBytes, Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
+                let mut signature: String = self.hmac(self.encode(Value::from(auth)), secretBytes, Value::Str("sha256".into()), &[Value::Str("base64".into())]);
                 // url-safe base64, preserving '=' padding (matches the reference client)
-                signature = (if let Some(__s) = signature.as_deref() { Some(__s.replace("+", "-")) } else { None });
-                signature = (if let Some(__s) = signature.as_deref() { Some(__s.replace("/", "_")) } else { None });
+                signature = signature.replace("+", "-");
+                signature = signature.replace("/", "_");
                 headersValue = self.extend(headersValue.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("POLY_ADDRESS".to_string(), address);
                         m.insert("POLY_API_KEY".to_string(), apiKey.map(Value::from).unwrap_or(Value::Null));
                         m.insert("POLY_PASSPHRASE".to_string(), passphrase.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("POLY_SIGNATURE".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                        m.insert("POLY_SIGNATURE".to_string(), Value::from(signature));
                         m.insert("POLY_TIMESTAMP".to_string(), timestamp);
                     m
                 })]);
@@ -4912,7 +4906,7 @@ if _try_result.is_err() {
         let mut stored: Value = self.safe_value(self.trades.clone(), outcome.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = ArrayCache::new(limit);
+            stored = Value::from(ArrayCache::new(limit));
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcome), stored.clone()); }
         }
         stored.append(trade);
@@ -5231,32 +5225,32 @@ if _try_result.is_err() {
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut event: Value) {
-        if (self.orders.clone() == Value::Null) {
+        if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = ArrayCacheByOutcomeById::new(limit);
+            self.orders = Some(ArrayCacheByOutcomeById::new(limit));
         }
-        let mut stored: Value = self.orders.clone();
-        let mut parsed: Value = self.parse_prediction_order(event, &[]);
+        let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
+        let mut parsed: Value = self.parse_prediction_order(event, None);
         stored.append(parsed.clone());
-        client.resolve(stored.clone(), "orders");
+        client.resolve(Value::from(&stored), "orders");
         let mut outcome: Option<String> = self.safe_string_k(parsed, "outcome", &[]).as_str().map(str::to_owned);
         if (outcome.is_some()) {
-            client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("orders::".into()), outcome.map(Value::from).unwrap_or(Value::Null)).into())));
+            client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", Value::Str("orders::".into()), outcome.map(Value::from).unwrap_or(Value::Null)).into())));
         }
 }
 
     pub fn handle_my_trade(&mut self, mut client: Value, mut event: Value) {
-        if (self.myTrades.clone() == Value::Null) {
+        if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = ArrayCacheByOutcomeById::new(limit);
+            self.myTrades = Some(ArrayCacheByOutcomeById::new(limit));
         }
-        let mut stored: Value = self.myTrades.clone();
-        let mut parsed: Value = self.parse_prediction_trade(event, &[]);
+        let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
+        let mut parsed: Value = self.parse_prediction_trade(event, None);
         stored.append(parsed.clone());
-        client.resolve(stored.clone(), "myTrades");
+        client.resolve(Value::from(&stored), "myTrades");
         let mut outcome: Option<String> = self.safe_string_k(parsed, "outcome", &[]).as_str().map(str::to_owned);
         if (outcome.is_some()) {
-            client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str("myTrades::".into()), outcome.map(Value::from).unwrap_or(Value::Null)).into())));
+            client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", Value::Str("myTrades::".into()), outcome.map(Value::from).unwrap_or(Value::Null)).into())));
         }
 }
 

@@ -26,7 +26,7 @@ pub fn testSafeTicker() {
             m.insert("change".to_string(), Value::Int(1));
         m
     });
-    let mut result1: Value = exchange.safe_ticker(ticker1.clone(), &[]);
+    let mut result1: Value = exchange.safe_ticker(ticker1.clone(), None);
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result1.clone(), Value::Str("percentage".into()), Value::Str("20.0".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result1.clone(), Value::Str("average".into()), Value::Str("5.5".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result1.clone(), Value::Str("close".into()), Value::Str("6.0".into())))));
@@ -38,7 +38,7 @@ pub fn testSafeTicker() {
             m.insert("percentage".to_string(), Value::Int(20));
         m
     });
-    let mut result2: Value = exchange.safe_ticker(ticker2.clone(), &[]);
+    let mut result2: Value = exchange.safe_ticker(ticker2.clone(), None);
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result2.clone(), Value::Str("change".into()), Value::Str("1.0".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result2.clone(), Value::Str("average".into()), Value::Str("5.5".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result2.clone(), Value::Str("close".into()), Value::Str("6.0".into())))));
@@ -50,7 +50,7 @@ pub fn testSafeTicker() {
             m.insert("change".to_string(), Value::Int(1));
         m
     });
-    let mut result3: Value = exchange.safe_ticker(ticker3.clone(), &[]);
+    let mut result3: Value = exchange.safe_ticker(ticker3.clone(), None);
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result3.clone(), Value::Str("open".into()), Value::Str("5.0".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result3.clone(), Value::Str("percentage".into()), Value::Str("20.0".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result3.clone(), Value::Str("average".into()), Value::Str("5.5".into())))));
@@ -62,7 +62,7 @@ pub fn testSafeTicker() {
             m.insert("percentage".to_string(), Value::Int(20));
         m
     });
-    let mut result4: Value = exchange.safe_ticker(ticker4.clone(), &[]);
+    let mut result4: Value = exchange.safe_ticker(ticker4.clone(), None);
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result4.clone(), Value::Str("open".into()), Value::Str("5.0".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result4.clone(), Value::Str("change".into()), Value::Str("1.0".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result4.clone(), Value::Str("average".into()), Value::Str("5.5".into())))));
@@ -74,7 +74,7 @@ pub fn testSafeTicker() {
             m.insert("percentage".to_string(), Value::Int(20));
         m
     });
-    let mut result5: Value = exchange.safe_ticker(ticker5.clone(), &[]);
+    let mut result5: Value = exchange.safe_ticker(ticker5.clone(), None);
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result5.clone(), Value::Str("open".into()), Value::Str("5.0".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result5.clone(), Value::Str("change".into()), Value::Str("1.0".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result5.clone(), Value::Str("close".into()), Value::Str("6.0".into())))));
@@ -86,7 +86,7 @@ pub fn testSafeTicker() {
             m.insert("change".to_string(), Value::Int(1));
         m
     });
-    let mut result6: Value = exchange.safe_ticker(ticker6.clone(), &[]);
+    let mut result6: Value = exchange.safe_ticker(ticker6.clone(), None);
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result6.clone(), Value::Str("open".into()), Value::Str("5.0".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result6.clone(), Value::Str("percentage".into()), Value::Str("20.0".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result6.clone(), Value::Str("close".into()), Value::Str("6.0".into())))));
@@ -98,7 +98,7 @@ pub fn testSafeTicker() {
             m.insert("close".to_string(), Value::Int(6));
         m
     });
-    let mut result7: Value = exchange.safe_ticker(ticker7.clone(), &[]);
+    let mut result7: Value = exchange.safe_ticker(ticker7.clone(), None);
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result7.clone(), Value::Str("change".into()), Value::Str("1.0".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result7.clone(), Value::Str("percentage".into()), Value::Str("20.0".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result7.clone(), Value::Str("average".into()), Value::Str("5.5".into())))));
@@ -130,7 +130,7 @@ pub fn testSafeTicker() {
 }));
         m
     });
-    let mut result8: Value = exchange.safe_ticker(ticker8.clone(), &[]);
+    let mut result8: Value = exchange.safe_ticker(ticker8.clone(), None);
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result8.clone(), Value::Str("open".into()), Value::Str("5.0".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result8.clone(), Value::Str("high".into()), Value::Str("6.5".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result8.clone(), Value::Str("low".into()), Value::Str("4.5".into())))));
@@ -160,7 +160,7 @@ pub fn testSafeTicker() {
             m.insert("percentage".to_string(), Value::Int(0));
         m
     });
-    let mut result9: Value = exchange.safe_ticker(ticker9.clone(), &[]);
+    let mut result9: Value = exchange.safe_ticker(ticker9.clone(), None);
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result9.clone(), Value::Str("change".into()), Value::Str("0".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result9.clone(), Value::Str("percentage".into()), Value::Str("0".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result9.clone(), Value::Str("open".into()), Value::Str("6.0".into())))));
@@ -172,7 +172,7 @@ pub fn testSafeTicker() {
             m.insert("average".to_string(), Value::Float(5.5));
         m
     });
-    let mut result10: Value = exchange.safe_ticker(ticker10.clone(), &[]);
+    let mut result10: Value = exchange.safe_ticker(ticker10.clone(), None);
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result10.clone(), Value::Str("close".into()), Value::Str("6.0".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result10.clone(), Value::Str("last".into()), Value::Str("6.0".into())))));
     // the supplied average must survive untouched, and this path deliberately

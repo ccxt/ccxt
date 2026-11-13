@@ -63,17 +63,17 @@ impl crate::exchange::DerivedExchange for Limitless {
         // Forward to the inherent method on Limitless.
         Limitless::parse_account(self, account)
     }
-    fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_trade(&self, trade: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Limitless.
-        Limitless::parse_prediction_trade(self, trade, &[market])
+        Limitless::parse_prediction_trade(self, trade, market)
     }
-    fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_order(&self, order: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Limitless.
-        Limitless::parse_prediction_order(self, order, &[market])
+        Limitless::parse_prediction_order(self, order, market)
     }
-    fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
+    fn parse_prediction_position(&self, position: crate::Value, market: Option<&crate::types::Market>) -> crate::Value {
         // Forward to the inherent method on Limitless.
-        Limitless::parse_prediction_position(self, position, &[market])
+        Limitless::parse_prediction_position(self, position, market)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Limitless.
@@ -117,7 +117,7 @@ impl crate::exchange_generated::ExchangeBase for Limitless {
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "get_outcome_by_slug_and_label" => self.get_outcome_by_slug_and_label(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_str), &args[2.min(args.len())..]),
+                "get_outcome_by_slug_and_label" => self.get_outcome_by_slug_and_label(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_str), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(2).cloned().unwrap_or_default()).as_ref()),
                 "get_position_from_clob_entry" => self.get_position_from_clob_entry(args.get(0).and_then(crate::Value::as_str), &args[1.min(args.len())..]),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
@@ -125,10 +125,10 @@ impl crate::exchange_generated::ExchangeBase for Limitless {
                 "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "redeem" => self.redeem(args.get(0).and_then(crate::Value::as_str), &args[1.min(args.len())..]).await,
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign_evm_transaction" => self.sign_evm_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -676,8 +676,8 @@ impl Limitless {
             });
             let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[&rest]);
             let mut firstPageResponse: crate::value::Dict = self.limitless_public_get_markets_active(&[__ws_arg_1]).await.into_dict();
-            let mut firstData: Value = self.safe_list_k(&firstPageResponse, "data", &[Value::from(vec![])]);
-            allRaw = self.array_concat(Value::Arr(allRaw), firstData).into_list();
+            let mut firstData: crate::value::List = self.safe_list_k(&firstPageResponse, "data", &[Value::from(vec![])]).into_list();
+            allRaw = self.array_concat(Value::Arr(allRaw), &firstData).into_list();
             let mut promises: Vec<Value> = Vec::new();
             let mut cappedPages: Value = ((match ((maxMarkets).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
             let mut knownTotal: Value = self.safe_integer_k(&firstPageResponse, "totalMarketsCount", &[Value::Int(0)]);
@@ -702,8 +702,8 @@ impl Limitless {
                 let mut __for_first_1302: bool = true;
                 while { if !__for_first_1302 { j += 1; } __for_first_1302 = false; (j as f64) < length.as_f64().unwrap_or(f64::NAN) } {
                 let mut response: Value = self.safe_dict(responses.clone(), Value::Int(j), &[]);
-                let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
-                allRaw = self.array_concat(Value::Arr(allRaw), data).into_list();
+                let mut data: crate::value::List = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_list();
+                allRaw = self.array_concat(Value::Arr(allRaw), &data).into_list();
             }
             }
             let mut lastPageResponse: crate::value::Dict = self.safe_dict(responses, (match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
@@ -730,7 +730,7 @@ impl Limitless {
                                                 let mut i: i64 = 0;
                         let mut __for_first_1303: bool = true;
                         while { if !__for_first_1303 { i += 1; } __for_first_1303 = false; (i as f64) < pageMarketsLength } {
-                        let mut raw: Value = self.safe_value(&page_markets, Value::Int(i), &[]);
+                        let mut raw: Value = self.safe_dict(&page_markets, Value::Int(i), &[]);
                         std::sync::Arc::make_mut(&mut allRaw).push(raw.clone());
                     }
                     }
@@ -944,10 +944,10 @@ impl Limitless {
                 legIndex = Value::Int(1);
             }
             let mut winnerRaw: Value = Value::Null;
-            let mut settleFractionRaw: Value = Value::Null;
+            let mut settleFractionRaw: Option<i64> = None;
             if matches!(&marketResolved, Value::Bool(true)) {
                 winnerRaw = (Value::Bool(legIndex.as_f64() == winningOutcomeIndex.as_f64()));
-                settleFractionRaw = (if winnerRaw.as_bool() == Some(true) { Value::Int(1) } else { Value::Int(0) });
+                settleFractionRaw = (if winnerRaw.as_bool() == Some(true) { Some(1) } else { Some(0) });
                 if winnerRaw.as_bool() == Some(true) {
                     resolvedOutcome = outcomeHandle.clone();
                 }
@@ -955,7 +955,7 @@ impl Limitless {
             // effectively-final copies for the object literal below (Java cannot capture a
             // reassigned local into the anonymous inner class it emits for a map literal)
             let mut winner: Value = winnerRaw;
-            let mut settleFraction: Value = settleFractionRaw;
+            let mut settleFraction: Option<i64> = settleFractionRaw;
             outcomes.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("outcome".to_string(), outcomeHandle);
@@ -964,7 +964,7 @@ impl Limitless {
                     m.insert("label".to_string(), outcomeLabel.clone());
                     m.insert("active".to_string(), active.clone());
                     m.insert("winner".to_string(), winner);
-                    m.insert("settleFraction".to_string(), settleFraction);
+                    m.insert("settleFraction".to_string(), Value::from(settleFraction));
                     m.insert("precision".to_string(), Value::Map(precision.clone()));
                     m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1385,9 +1385,9 @@ impl Limitless {
         let mut endDate: Value = self.safe_string_k(event.clone(), "deadline", &[self.safe_string(event.clone(), Value::Str("expiresAt".into()), &[])]);
         let mut title: Option<String> = self.safe_string_k(event.clone(), "title", &[groupId.clone()]).as_str().map(str::to_owned);
         let mut hasGroupId: bool = (groupId != Value::Null) && (groupId.as_str() != Some(""));
-        let mut eventSlug: Value = Value::Null;
+        let mut eventSlug: Option<String> = None;
         if hasGroupId {
-            eventSlug = self.shorten_slug(groupId.clone());
+            eventSlug = self.shorten_slug(groupId.clone()).as_str().map(str::to_owned);
         }
         let mut hasEndDate: bool = (endDate != Value::Null) && (endDate.as_str() != Some(""));
         let mut endTimestamp: Option<i64> = (if hasEndDate { self.parse8601(endDate.clone()) } else { None });
@@ -1431,7 +1431,7 @@ impl Limitless {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), groupId.clone());
         m.insert("slug".to_string(), groupId);
-        m.insert("event".to_string(), eventSlug);
+        m.insert("event".to_string(), eventSlug.map(Value::from).unwrap_or(Value::Null));
         m.insert("title".to_string(), title.map(Value::from).unwrap_or(Value::Null));
         m.insert("description".to_string(), __ws_arg_5);
         m.insert("markets".to_string(), Value::from(markets));
@@ -1562,7 +1562,7 @@ impl Limitless {
                 m.insert("book".to_string(), responses.get(1).cloned().unwrap_or(Value::Null));
             m
         });
-        return self.parse_prediction_ticker(Value::Map(tickerInput), &[outcomeObj]);
+        return self.parse_prediction_ticker(Value::Map(tickerInput), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
         Value::Null
         }).await?))
     }
@@ -1576,9 +1576,8 @@ impl Limitless {
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-    pub fn parse_prediction_ticker(&self, ticker: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "id": "36814",
@@ -1652,7 +1651,7 @@ impl Limitless {
 })]);
             book = self.safe_dict_k(ticker.clone(), "book", &[]).into_opt_dict();
         }
-        let mut rawLabel: Option<String> = (if (market != Value::Null) { self.safe_string_k(market.clone(), "label", &[self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("outcomeLabel".into()), &[Value::Str("yes".into())])]).as_str().map(str::to_owned) } else { Some("yes".to_string()) });
+        let mut rawLabel: Option<String> = (if (market.is_some()) { self.safe_string_k(&market, "label", &[self.safe_string_k(crate::value::KeyRead::key_read(&market, "info"), "outcomeLabel", &[Value::Str("yes".into())])]).as_str().map(str::to_owned) } else { Some("yes".to_string()) });
         let mut isYes: bool = (rawLabel.as_deref().map(str::to_lowercase)).as_deref() != Some("no");
         let mut bidStr: Value = Value::Null;
         let mut askStr: Value = Value::Null;
@@ -1719,13 +1718,13 @@ impl Limitless {
         if (askSizeStr.is_some()) {
             askSizeStr = crate::precise::Precise::stringDiv(&askSizeStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())).as_str().map(str::to_owned);
         }
-        let mut outcomeSymbol: Option<String> = self.safe_outcome_symbol(Value::Null, &[market.clone()]).as_str().map(str::to_owned);
+        let mut outcomeSymbol: Option<String> = self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]).as_str().map(str::to_owned);
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), outcomeSymbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("outcomeId".to_string(), self.safe_string_k(market.clone(), "outcomeId", &[]));
-        m.insert("label".to_string(), self.safe_string_k(market.clone(), "label", &[]));
-        m.insert("market".to_string(), self.safe_string_k(market, "market", &[]));
+        m.insert("outcomeId".to_string(), self.safe_string_k(&market, "outcomeId", &[]));
+        m.insert("label".to_string(), self.safe_string_k(&market, "label", &[]));
+        m.insert("market".to_string(), self.safe_string_k(&market, "market", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("high".to_string(), Value::Null);
@@ -1849,7 +1848,7 @@ impl Limitless {
                                 let mut j: i64 = 0;
                 let mut __for_first_1312: bool = true;
                 while { if !__for_first_1312 { j += 1; } __for_first_1312 = false; j < (grouped.len() as i64) } {
-                let mut ticker: Value = self.parse_prediction_ticker(Value::Map(tickerInput.clone()), &[grouped.get(j as usize).cloned().unwrap_or(Value::Null)]);
+                let mut ticker: Value = self.parse_prediction_ticker(Value::Map(tickerInput.clone()), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(grouped.get(j as usize).cloned().unwrap_or(Value::Null)).as_ref());
                 let mut symbolKey: Option<String> = self.safe_string_k(ticker.clone(), "outcome", &[]).as_str().map(str::to_owned);
                 if (symbolKey.is_some()) {
                     result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), ticker);
@@ -2290,8 +2289,8 @@ impl Limitless {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.limitless_private_get_markets_slug_user_orders(&[__ws_arg_22]).await;
-        return self.parse_prediction_orders(self.to_array(response), &[Value::Null, since, limit]);
+        let mut response: crate::value::List = self.limitless_private_get_markets_slug_user_orders(&[__ws_arg_22]).await.into_list();
+        return self.parse_prediction_orders(self.to_array(&response), &[Value::Null, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2577,9 +2576,8 @@ impl Limitless {
  * @param {object} [market] the outcome object the order belongs to
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-    pub fn parse_prediction_order(&self, order: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // fetchOrders, fetchOpenOrders, fetchClosedOrders
         //     {
@@ -2698,7 +2696,7 @@ impl Limitless {
         }
         let mut id: Option<String> = self.safe_string_k(rawOrder.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut tokenId: Option<String> = self.safe_string2(rawOrder.clone(), Value::Str("token".into()), Value::Str("tokenId".into()), &[]).as_str().map(str::to_owned);
-        let mut mkt: crate::value::Dict = self.safe_outcome(tokenId.map(Value::from).unwrap_or(Value::Null), &[market]).into_dict();
+        let mut mkt: crate::value::Dict = self.safe_outcome(tokenId.map(Value::from).unwrap_or(Value::Null), &[crate::Value::from(market)]).into_dict();
         let mut outcomeSymbol: Option<String> = self.safe_string_k(&mkt, "outcome", &[]).as_str().map(str::to_owned);
         let mut rawSide: Option<String> = self.safe_string_k(rawOrder.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut side: Value = self.parse_order_side(rawSide.as_deref()).map(Value::from).unwrap_or(Value::Null);
@@ -3007,8 +3005,8 @@ if _try_result.is_err() {
         }
         let mut amountString: Option<String> = self.number_to_string(amount.clone());
         let mut priceString: Option<String> = self.number_to_string(price.clone());
-        let mut makerAmount: Value = Value::Null;
-        let mut takerAmount: Value = Value::Null;
+        let mut makerAmount: Option<String> = None;
+        let mut takerAmount: Option<String> = None;
         let mut isMarket: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
         let mut postOnly: Value = Value::Bool(false);
         { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(false), &[paramsValue.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
@@ -3030,26 +3028,26 @@ if _try_result.is_err() {
                 }  else {
                     let mut quoteAmount: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null)));
                     let mut costRequest: Value = (if (cost.is_some()) { Value::from(cost) } else { quoteAmount });
-                    makerAmount = self.cost_to_prediction_precision(outcome.clone(), costRequest);
+                    makerAmount = self.cost_to_prediction_precision(outcome.clone(), costRequest).as_str().map(str::to_owned);
                 }
             }  else {
-                makerAmount = self.cost_to_prediction_precision(outcome.clone(), amount.clone());
+                makerAmount = self.cost_to_prediction_precision(outcome.clone(), amount.clone()).as_str().map(str::to_owned);
             }
         }  else if isMarket {
-            makerAmount = self.amount_to_prediction_precision(outcome.clone(), amount.clone());
+            makerAmount = self.amount_to_prediction_precision(outcome.clone(), amount.clone()).as_str().map(str::to_owned);
         }  else {
             let mut calculatedCost: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             if (side.as_str() == Some("buy")) {
-                makerAmount = self.cost_to_prediction_precision(outcome.clone(), calculatedCost.clone().map(Value::from).unwrap_or(Value::Null));
-                takerAmount = self.amount_to_prediction_precision(outcome.clone(), amount.clone());
+                makerAmount = self.cost_to_prediction_precision(outcome.clone(), calculatedCost.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                takerAmount = self.amount_to_prediction_precision(outcome.clone(), amount.clone()).as_str().map(str::to_owned);
             }  else {
-                makerAmount = self.amount_to_prediction_precision(outcome.clone(), amount);
-                takerAmount = self.cost_to_prediction_precision(outcome, calculatedCost.map(Value::from).unwrap_or(Value::Null));
+                makerAmount = self.amount_to_prediction_precision(outcome.clone(), amount).as_str().map(str::to_owned);
+                takerAmount = self.cost_to_prediction_precision(outcome, calculatedCost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
         }
         // amounts must be integers (uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
-        signRequest.insert("makerAmount".into(), Value::from(self.parse_to_int(self.apply_scale(makerAmount.as_str(), &[Value::Bool(true)]))));
-        signRequest.insert("takerAmount".into(), (if isMarket { Value::Int(1) } else { Value::from(self.parse_to_int(self.apply_scale(takerAmount.as_str(), &[Value::Bool(true)]))) }));
+        signRequest.insert("makerAmount".into(), Value::from(self.parse_to_int(self.apply_scale(makerAmount.as_deref(), &[Value::Bool(true)]))));
+        signRequest.insert("takerAmount".into(), (if isMarket { Value::Int(1) } else { Value::from(self.parse_to_int(self.apply_scale(takerAmount.as_deref(), &[Value::Bool(true)]))) }));
         let mut signature: Value = self.sign_order_request(Value::Map(signRequest.clone()), marketSymbol.as_deref()).map(Value::from).unwrap_or(Value::Null);
         signRequest.insert("signature".into(), signature);
         // price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
@@ -3069,8 +3067,8 @@ if _try_result.is_err() {
             request.insert("postOnly".into(), postOnly);
         }
         let __ws_arg_24 = self.extend(Value::Map(request), &[paramsValue]);
-        let mut response: Value = self.limitless_private_post_orders(&[__ws_arg_24]).await;
-        let mut parsedOrder: Value = self.parse_prediction_order(response, &[outcomeObj]);
+        let mut response: crate::value::Dict = self.limitless_private_post_orders(&[__ws_arg_24]).await.into_dict();
+        let mut parsedOrder: Value = self.parse_prediction_order(&response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
         // the create-order response omits a status field; a freshly accepted order is open
         let mut parsedStatus: Option<String> = self.safe_string_k(parsedOrder.clone(), "status", &[]).as_str().map(str::to_owned);
         if (parsedStatus.is_none()) {
@@ -3087,7 +3085,7 @@ if _try_result.is_err() {
         if (self.privateKey.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders".into()))));
         }
-        let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(marketSymbol.as_str().unwrap_or_default())).into_dict();
+        let mut market: crate::types::Market = (match self.market(marketSymbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut info: crate::value::Dict = self.safe_dict_k(&market, "info", &[]).into_dict();
         let mut venue: crate::value::Dict = self.safe_dict_k(&info, "venue", &[]).into_dict();
         let mut exchange: Option<String> = self.safe_string_k(&venue, "exchange", &[]).as_str().map(str::to_owned);
@@ -3303,9 +3301,9 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_25 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.limitless_private_delete_orders_order_id(&[__ws_arg_25]).await;
+        let mut response: crate::value::Dict = self.limitless_private_delete_orders_order_id(&[__ws_arg_25]).await.into_dict();
         // the delete response carries no order body, so backfill the id and the resulting status
-        let mut order: Value = self.parse_prediction_order(response, &[]);
+        let mut order: Value = self.parse_prediction_order(&response, None);
         let mut orderId: Option<String> = self.safe_string_k(order.clone(), "id", &[]).as_str().map(str::to_owned);
         if (orderId.is_none()) {
             if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("id".to_string(), id); }
@@ -3608,9 +3606,8 @@ if _try_result.is_err() {
  * @param {object} [market] the outcome object the trade belongs to
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-    pub fn parse_prediction_trade(&self, trade: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut trade: Value = trade.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
         let mut matchedSize: Option<String> = self.safe_string_k(trade.clone(), "matchedSize", &[]).as_str().map(str::to_owned);
         if (matchedSize.is_some()) {
             // public market events feed trade, see fetchTrades for the response sample
@@ -3628,7 +3625,7 @@ if _try_result.is_err() {
             if (priceStr.is_some()) {
                 costStr = crate::precise::Precise::stringMul(&priceStr.clone().map(Value::from).unwrap_or(Value::Null), &amountStr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
-            let mut feedOutcome: Option<String> = self.safe_outcome_symbol(Value::Null, &[market.clone()]).as_str().map(str::to_owned);
+            let mut feedOutcome: Option<String> = self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]).as_str().map(str::to_owned);
             return self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "txHash", &[]));
@@ -3636,9 +3633,9 @@ if _try_result.is_err() {
         m.insert("timestamp".to_string(), Value::from(ts));
         m.insert("datetime".to_string(), self.iso8601(Value::from(ts)));
         m.insert("outcome".to_string(), feedOutcome.map(Value::from).unwrap_or(Value::Null));
-        m.insert("outcomeId".to_string(), self.safe_string_k(market.clone(), "outcomeId", &[]));
-        m.insert("label".to_string(), self.safe_string_k(market.clone(), "label", &[]));
-        m.insert("market".to_string(), self.safe_string_k(market.clone(), "market", &[]));
+        m.insert("outcomeId".to_string(), self.safe_string_k(&market, "outcomeId", &[]));
+        m.insert("label".to_string(), self.safe_string_k(&market, "label", &[]));
+        m.insert("market".to_string(), self.safe_string_k(&market, "market", &[]));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), feedSide.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3720,7 +3717,7 @@ if _try_result.is_err() {
         if (outcomeIndex == Some(0)) {
             label = "yes".to_string();
         }
-        let mut outcome: Value = self.get_outcome_by_slug_and_label(slug.as_deref(), Some(label.as_str()), &[market]);
+        let mut outcome: Value = self.get_outcome_by_slug_and_label(slug.as_deref(), Some(label.as_str()), market);
         let mut tradeOutcome: Option<String> = self.safe_string_k(outcome.clone(), "outcome", &[]).as_str().map(str::to_owned);
         return self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3746,11 +3743,10 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn get_outcome_by_slug_and_label(&self, slug: Option<&str>, label: Option<&str>, optional_args: &[Value]) -> Value {
+    pub fn get_outcome_by_slug_and_label(&self, slug: Option<&str>, label: Option<&str>, market: Option<&crate::types::Market>) -> Value {
         let mut slug: Value = slug.into();
         let mut label: Value = label.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut mkt: crate::value::Dict = self.safe_market(&[slug, market]).into_dict();
+        let mut mkt: crate::types::Market = self.safe_market(slug, market, &[]);
         let mut outcomes: crate::value::List = self.safe_list_k(&mkt, "outcomes", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
@@ -3922,8 +3918,8 @@ if _try_result.is_err() {
 })]).into_dict();
         let mut rawMarket: crate::value::Dict = self.safe_dict_k(entry.clone(), "market", &[]).into_dict();
         let mut slug: Option<String> = self.safe_string_k(&rawMarket, "slug", &[]).as_str().map(str::to_owned);
-        let mut outcomeObj: Value = self.get_outcome_by_slug_and_label(slug.as_deref(), label.as_str(), &[]);
-        let mut parsed: indexmap::IndexMap<String, Value> = self.parse_prediction_position(&position, &[outcomeObj]).as_map().cloned().unwrap_or_default();
+        let mut outcomeObj: Value = self.get_outcome_by_slug_and_label(slug.as_deref(), label.as_str(), None);
+        let mut parsed: indexmap::IndexMap<String, Value> = self.parse_prediction_position(&position, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).as_map().cloned().unwrap_or_default();
         parsed.insert("contracts".into(), self.parse_number(self.apply_scale(contracts.as_deref(), &[]), &[]));
         let mut latestTrade: crate::value::Dict = self.safe_dict_k(entry.clone(), "latestTrade", &[]).into_dict();
         let mut key: String = "latestYesPrice".to_string();
@@ -3946,11 +3942,8 @@ if _try_result.is_err() {
  * @param {object} [market] the outcome object the position belongs to
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-    pub fn parse_prediction_position(&self, position: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_prediction_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut position: Value = position.into();
-        let mut market = get_arg(optional_args, 0, Value::Null);
-        let __market_empty = indexmap::IndexMap::new();
-        let market = market.as_map().unwrap_or(&__market_empty);
         //
         //     {
         //         "cost": "995720",
@@ -3960,7 +3953,7 @@ if _try_result.is_err() {
         //         "unrealizedPnl": "0"
         //     }
         //
-        let mut outcomeSymbol: Option<String> = (match market.get("outcome") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut outcomeSymbol: Option<String> = self.safe_string_k(&market, "outcome", &[]).as_str().map(str::to_owned);
         let mut notional: Option<String> = self.apply_scale((self.safe_string_k(position.clone(), "marketValue", &[])).as_str(), &[]).as_str().map(str::to_owned);
         let mut unrealizedPnl: Option<String> = self.apply_scale((self.safe_string_k(position.clone(), "unrealizedPnl", &[])).as_str(), &[]).as_str().map(str::to_owned);
         let mut realizedPnl: Option<String> = self.apply_scale((self.safe_string_k(position.clone(), "realisedPnl", &[])).as_str(), &[]).as_str().map(str::to_owned);
@@ -3970,9 +3963,9 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Null);
         m.insert("outcome".to_string(), outcomeSymbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("outcomeId".to_string(), (match market.get("outcomeId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
-        m.insert("label".to_string(), (match market.get("label") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
-        m.insert("market".to_string(), (match market.get("market") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
+        m.insert("outcomeId".to_string(), self.safe_string_k(&market, "outcomeId", &[]));
+        m.insert("label".to_string(), self.safe_string_k(&market, "label", &[]));
+        m.insert("market".to_string(), self.safe_string_k(&market, "market", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("contracts".to_string(), Value::Null);
@@ -4375,9 +4368,9 @@ if _try_result.is_err() {
         let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup.map(Value::from).unwrap_or(Value::Null), &[baseUrls.as_map().and_then(|__m| __m.get("limitless")).cloned().unwrap_or(Value::Null)]);
         let mut url: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut querystring: Option<String> = self.urlencode_with_array_repeat(query.clone()).as_str().map(str::to_owned);
-        if (method.as_str() == Some("GET")) && (querystring.as_deref() != Some("")) {
-            url.push_str(&format!("{}{}", Value::Str("?".into()), querystring.clone().map(Value::from).unwrap_or(Value::Null)));
+        let mut querystring: String = self.urlencode_with_array_repeat(query.clone());
+        if (method.as_str() == Some("GET")) && (querystring != "") {
+            url.push_str(&format!("{}{}", Value::Str("?".into()), querystring));
         }
         let mut headersValue: Value = Value::Null;
         let mut bodyValue: Value = Value::Null;
@@ -4387,7 +4380,7 @@ if _try_result.is_err() {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            if (method.as_str() == Some("POST")) && (querystring.as_deref() != Some("")) {
+            if (method.as_str() == Some("POST")) && (querystring != "") {
                 bodyString = json_stringify(&query).as_str().map(str::to_owned);
                 bodyValue = bodyString.clone().map(Value::from).unwrap_or(Value::Null);
                 headersValue = self.extend(Value::Map({
@@ -4401,11 +4394,11 @@ if _try_result.is_err() {
             let mut timestamp: Option<String> = self.iso8601(Value::Int(self.milliseconds())).as_str().map(str::to_owned);
             let mut newline: String = "\n".to_string(); // eslint-disable-line quotes
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp.clone().map(Value::from).unwrap_or(Value::Null), newline).into()), method).into()), newline).into()), url).into()), newline).into()), bodyString.map(Value::from).unwrap_or(Value::Null));
-            let mut signature: Option<String> = self.hmac(self.encode(Value::from(payload)), self.base64_to_binary(self.secret.clone(), &[]), Value::Str("sha256".into()), &[Value::Str("base64".into())]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.base64_to_binary(self.secret.clone(), &[]), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             headersValue = self.extend(headersValue.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("lmts-timestamp".to_string(), timestamp.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("lmts-signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("lmts-signature".to_string(), Value::from(signature));
                 m
             })]);
             let mut headerKey: String = format!("{}{}", Value::Str("lmts-api".into()), Value::Str("-key".into())); // concatenating because of the php version
