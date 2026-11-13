@@ -3345,7 +3345,7 @@ export default class predictfun extends Exchange {
      * @param {object} [market] the outcome the caller asked about
      * @returns {object} the outcome object, or a stub keyed by the token id when it is not cached
      */
-    outcomeForToken (tokenId: Str, market: any = undefined): any {
+    outcomeForToken (tokenId: Str, market: Market = undefined): any {
         // the list endpoints (orders, matches, positions) answer for the whole wallet rather than
         // for the outcome asked about, so the caller's outcome is only a hint. safeOutcome falls
         // back to it on any cache miss, which stamped the requested outcome onto rows from other

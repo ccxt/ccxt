@@ -1365,7 +1365,7 @@ export default class opinion extends Exchange {
      */
     override parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
         const tokenId = this.safeString (trade, 'tokenId');
-        const outcomeObj = this.safeOutcome (tokenId, market as any);
+        const outcomeObj = this.safeOutcome (tokenId, market);
         const timestamp = this.safeTimestamp (trade, 'createdAt');
         const side = this.safeStringLower (trade, 'side');
         return this.safePredictionTrade ({
@@ -1495,7 +1495,7 @@ export default class opinion extends Exchange {
      */
     override parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
         const tokenId = this.safeString (position, 'tokenId');
-        const outcomeObj = this.safeOutcome (tokenId, market as any);
+        const outcomeObj = this.safeOutcome (tokenId, market);
         const outcomeSideEnum = this.safeStringLower (position, 'outcomeSideEnum');
         return this.safePredictionPosition ({
             'contracts': this.safeNumber (position, 'sharesOwned'),

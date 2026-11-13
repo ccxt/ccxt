@@ -1247,7 +1247,7 @@ export default class sxbet extends Exchange {
         } else {
             outcomeId = (marketHash + '-2');
         }
-        const outcomeObj = this.safeOutcome (outcomeId, market as any);
+        const outcomeObj = this.safeOutcome (outcomeId, market);
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000';
         const percentageOdds = this.safeString (order, 'percentageOdds');
@@ -1497,7 +1497,7 @@ export default class sxbet extends Exchange {
         } else {
             outcomeId = (marketHash + '-2');
         }
-        const outcomeObj = this.safeOutcome (outcomeId, market as any);
+        const outcomeObj = this.safeOutcome (outcomeId, market);
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000';
         const fillOdds = this.safeString (fill, 'fillOdds');
@@ -1753,7 +1753,7 @@ export default class sxbet extends Exchange {
         } else {
             outcomeId = (marketHash + '-2');
         }
-        const outcomeObj = this.safeOutcome (outcomeId, market as any);
+        const outcomeObj = this.safeOutcome (outcomeId, market);
         const settlement = this.safeDict (trade, 'settlement', {});
         const winner = this.safeInteger (settlement, 'outcome');
         const isVoid = (winner === 0);
@@ -1984,8 +1984,7 @@ export default class sxbet extends Exchange {
         //         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
         //     }
         //
-        const marketAny = market as any;
-        const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
+        const outcomeObj = this.safeOutcome (this.safeString (market, 'outcome'), market);
         const outcomeId = this.safeString (outcomeObj, 'outcomeId');
         const marketHash = this.safeString (raw, 'marketHash');
         const isOutcomeOne = (outcomeId === marketHash);
