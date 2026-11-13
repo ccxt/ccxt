@@ -1354,11 +1354,8 @@ export default class binance extends binanceRest {
         const trades: ArrayCache = await this.watchMultiple (url, messageHashes, this.extend (request, query), subscribeHashes, subscribe);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+        return this.filterBySinceLimit (cacheRead['data'], since, this.safeInteger (cacheRead, 'limit'), 'timestamp', true);
     }
 
     /**
@@ -1764,11 +1761,9 @@ export default class binance extends binanceRest {
             }
             const stockRes = await this.watchStockMarketStream (stockStreams, stockMessageHashes, paramsStock);
             const [ stockSymbol, stockTimeframe, stockCandles ] = stockRes;
-            let stockLimit: Int = limit;
-            if (this.newUpdates) {
-                stockLimit = stockCandles.getLimit (stockSymbol, limit);
-            }
-            const stockFiltered = this.filterBySinceLimit (stockCandles, since, stockLimit, 0, true);
+            const stockCacheRead = this.getCacheRead (stockCandles, stockSymbol, limit);
+            const stockLimit = this.safeInteger (stockCacheRead, 'limit');
+            const stockFiltered = this.filterBySinceLimit (stockCacheRead['data'], since, stockLimit, 0, true);
             return this.createOHLCVObject (stockSymbol, stockTimeframe, stockFiltered);
         }
         const [ klineType, paramsChannel ] = this.handleParamString2 (paramsStock, 'channel', 'name', 'kline');
@@ -1827,11 +1822,9 @@ export default class binance extends binanceRest {
         const paramsOmitted: Dict = this.omit (paramsTimezone, 'callerMethodName');
         const res = await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), subscribeHashes, subscribe);
         const [ symbol, timeframe, candles ] = res;
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = candles.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (candles, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (candles, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        const filtered = this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -4500,11 +4493,9 @@ export default class binance extends binanceRest {
                 'id': stockRequestId,
             };
             const stockOrders: ArrayCache = await this.watch (stockUrl, stockMessageHash, this.extend (stockRequest, stockQuery), stockMessageHash, stockSubscribe);
-            let stockLimit: Int = limit;
-            if (this.newUpdates) {
-                stockLimit = stockOrders.getLimit (symbol, limit);
-            }
-            return this.filterBySymbolSinceLimit (stockOrders, symbol, since, stockLimit, true);
+            const stockCacheRead = this.getCacheRead (stockOrders, symbol, limit);
+            const stockLimit = this.safeInteger (stockCacheRead, 'limit');
+            return this.filterBySymbolSinceLimit (stockCacheRead['data'], symbol, since, stockLimit, true);
         }
         let messageHash = 'orders';
         let market: Market = undefined;
@@ -4546,11 +4537,9 @@ export default class binance extends binanceRest {
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
         const message = undefined;
         const orders: ArrayCache = await this.watch (url, messageHash, message, type);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     override parseWsOrder (order: Dict, market: Market = undefined): Order {
@@ -5647,11 +5636,9 @@ export default class binance extends binanceRest {
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
         const message = undefined;
         const trades: ArrayCache = await this.watch (url, messageHash, message, type);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     handleMyTrade (client: Client, message: Dict) {

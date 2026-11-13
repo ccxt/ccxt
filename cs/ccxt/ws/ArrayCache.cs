@@ -4,9 +4,28 @@ namespace ccxt.pro;
 
 public abstract class BaseCache : SlimConcurrentList<object>
 {
+    // Counters and published rows must describe the same receive window. The
+    // receive loop owns mutations; this gate also coordinates caller consumption.
+    protected readonly object cacheReadLock = new object();
+
     public abstract Int64? getLimit(object symbol, object limit);
 
     public abstract void append(object item);
+
+    public Dictionary<string, object> getLimitAndSnapshot(object symbol, object limit)
+    {
+        // append() uses this same lock for both the update counters and the rows.
+        // The immutable row publication alone is not enough: its corresponding
+        // counters and the caller's consumption watermark must advance together.
+        lock (this.cacheReadLock)
+        {
+            var limitResolved = this.getLimit(symbol, limit);
+            return new Dictionary<string, object>() {
+                { "data", this.ToArray() },
+                { "limit", limitResolved },
+            };
+        }
+    }
 
     // typed entry points for receivers only known as object; a null or non-cache receiver
     // throws NullReferenceException, as the reflective callDynamically lookup did
@@ -36,7 +55,8 @@ public abstract class BaseCache : SlimConcurrentList<object>
     // Items and counters are written only on the ws receive loop of the client that
     // owns the cache. A caller thread reads the published window and records how far
     // it has consumed; the loop honours that watermark on its next append. Every field
-    // below has exactly one writer, so no lock is needed to keep them consistent.
+    // below has exactly one writer. cacheReadLock coordinates count consumption
+    // with the corresponding row publication for getLimitAndSnapshot.
     protected readonly struct Window
     {
         public readonly int count;
@@ -202,9 +222,12 @@ public abstract class BaseCache : SlimConcurrentList<object>
 
     public virtual void clear()
     {
-        this.Clear();
-        this.publishItems();
-        this.publishCounts();
+        lock (this.cacheReadLock)
+        {
+            this.Clear();
+            this.publishItems();
+            this.publishCounts();
+        }
     }
 }
 
@@ -244,14 +267,17 @@ public class ArrayCache : BaseCache
     // row - the item silently disappears. Reset the whole cache state together.
     public override void clear()
     {
-        this.Clear();
-        this.hashmap.Clear();
-        this.newUpdatesBySymbol.Clear();
-        this.seenUpdatesBySymbol.Clear();
-        this.seenUpdatesAll.Clear();
-        this.allNewUpdates = 0;
-        this.publishItems();
-        this.publishCounts();
+        lock (this.cacheReadLock)
+        {
+            this.Clear();
+            this.hashmap.Clear();
+            this.newUpdatesBySymbol.Clear();
+            this.seenUpdatesBySymbol.Clear();
+            this.seenUpdatesAll.Clear();
+            this.allNewUpdates = 0;
+            this.publishItems();
+            this.publishCounts();
+        }
     }
 
     // owner side: freeze the per-symbol windows for callers
@@ -271,7 +297,10 @@ public class ArrayCache : BaseCache
     // and ToInt64Arg normalises the incoming object without turning a null limit into 0.
     public override Int64? getLimit(object symbol2, object limit2)
     {
-        return _getLimit(symbol2, limit2);
+        lock (this.cacheReadLock)
+        {
+            return _getLimit(symbol2, limit2);
+        }
     }
 
     private Int64? _getLimit(object symbol2, object limit2)
@@ -313,7 +342,10 @@ public class ArrayCache : BaseCache
 
     public override void append(object item)
     {
-        _append(item);
+        lock (this.cacheReadLock)
+        {
+            _append(item);
+        }
     }
 
     private void _append(object item)
@@ -369,12 +401,15 @@ public class ArrayCacheByTimestamp : BaseCache
 
     public override void clear()
     {
-        this.Clear();
-        this.hashmap.Clear();
-        this.sizeTracker.Clear();
-        this.newUpdates = 0;
-        this.publishItems();
-        this.publishCounts();
+        lock (this.cacheReadLock)
+        {
+            this.Clear();
+            this.hashmap.Clear();
+            this.sizeTracker.Clear();
+            this.newUpdates = 0;
+            this.publishItems();
+            this.publishCounts();
+        }
     }
 
     // owner side: freeze the consumed candle window for callers
@@ -387,7 +422,10 @@ public class ArrayCacheByTimestamp : BaseCache
     // Int64? `limitVar` shadows, so every path hands back an Int64 box or null.
     public override Int64? getLimit(object symbol, object limit2)
     {
-        return _getLimit(symbol, limit2);
+        lock (this.cacheReadLock)
+        {
+            return _getLimit(symbol, limit2);
+        }
     }
 
     private Int64? _getLimit(object symbol, object limit2)
@@ -405,7 +443,10 @@ public class ArrayCacheByTimestamp : BaseCache
 
     public override void append(object item)
     {
-        _append(item);
+        lock (this.cacheReadLock)
+        {
+            _append(item);
+        }
     }
     private void _append(object item)
     {
@@ -470,7 +511,10 @@ public class ArrayCacheBySymbolById : ArrayCache
 
     public override void append(object item)
     {
-        _append(item);
+        lock (this.cacheReadLock)
+        {
+            _append(item);
+        }
     }
 
     private void _append(object item)
@@ -620,7 +664,10 @@ public class ArrayCacheBySymbolBySide : ArrayCache
 
     public override void append(object item)
     {
-        _append(item);
+        lock (this.cacheReadLock)
+        {
+            _append(item);
+        }
     }
 
     private void _append(object item)

@@ -674,11 +674,9 @@ export default class aster extends asterRest {
         const trades: ArrayCache = await this.watchMultiple (url, messageHashes, this.extend (request, this.omit (paramsCallerMethodName, 'callerMethodName')), messageHashes);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -1174,11 +1172,9 @@ export default class aster extends asterRest {
             messageHashes.push ('ohlcv:' + this.safeString (market, 'symbol', '') + ':' + unfiedTimeframe);
         }
         const [ symbol, timeframe, stored ] = await this.watchMultiple (url, messageHashes, this.extend (request, this.omit (paramsCallerMethodName, 'callerMethodName')), messageHashes);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = stored.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (stored, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        const filtered = this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -1771,11 +1767,9 @@ export default class aster extends asterRest {
         const client = this.client (url);
         this.setBalanceCache (client, typeMarketType);
         const orders: ArrayCache = await this.watchMultiple (url, [ messageHash ], undefined, [ typeMarketType ]);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -1815,11 +1809,9 @@ export default class aster extends asterRest {
         const client = this.client (url);
         this.setBalanceCache (client, typeMarketType);
         const trades: ArrayCache = await this.watchMultiple (url, [ messageHash ], undefined, [ typeMarketType ]);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     handleOrderUpdate (client: Client, message: Dict) {
