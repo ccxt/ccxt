@@ -4437,7 +4437,7 @@ func (this *Krakenfutures) ParseMarketLeverageTiers(info any, optionalArgs ...an
 		return tiers
 	}
 	for i := 0; i < len(marginLevels); i++ {
-		var tier any = DerefScalar(marginLevels[i])
+		var tier any = marginLevels[i]
 		var initialMargin *string = this.SafeString(tier, "initialMargin")
 		var minNotional *float64 = this.SafeNumber2(tier, "numNonContractUnits", "contracts")
 		tiers = append(tiers, map[string]any{

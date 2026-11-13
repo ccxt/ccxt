@@ -506,7 +506,7 @@ func (this *P2b) HandleTrade(client any, message map[string]any) any {
 		this.Trades[symbol] = tradesArray
 	}
 	for i := 0; i < len(trades); i++ {
-		var item any = ccxt.DerefScalar(trades[i])
+		var item any = trades[i]
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(item, market))
 		tradesArray.Append(trade)
 	}

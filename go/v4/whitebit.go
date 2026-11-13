@@ -2012,7 +2012,7 @@ func (this *Whitebit) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 				// Search for order in active orders response (array format)
 				var orders []any = this.ToArray(response)
 				for i := 0; i < len(orders); i++ {
-					var order any = DerefScalar(orders[i])
+					var order any = orders[i]
 					var orderId *string = this.SafeString(order, "orderId", "")
 					if orderId != nil && *orderId == id {
 						var marketId *string = this.SafeString(order, "market")

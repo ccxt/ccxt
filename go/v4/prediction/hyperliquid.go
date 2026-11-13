@@ -2514,7 +2514,7 @@ func (this *Hyperliquid) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	}
 	var lowerQueriesLength int = len(lowerQueries)
 	for i := 0; i < len(marketValues); i++ {
-		var mkt any = ccxt.DerefScalar(marketValues[i])
+		var mkt any = marketValues[i]
 		if !(*this.SafeBool(mkt, "prediction", false)) {
 			continue
 		}

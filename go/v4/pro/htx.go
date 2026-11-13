@@ -2226,7 +2226,7 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 	var positionsByMarginMode map[string]any = map[string]any{}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	for i := 0; i < len(rawPositions); i++ {
-		var rawPosition any = ccxt.DerefScalar(rawPositions[i])
+		var rawPosition any = rawPositions[i]
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
 		position["timestamp"] = timestamp
 		position["datetime"] = this.Iso8601(timestamp)

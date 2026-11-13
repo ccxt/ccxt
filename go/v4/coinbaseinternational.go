@@ -2601,7 +2601,7 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan AsyncRes
 	}
 	var transactions []any = []any{}
 	for i := 0; i < len(logs); i++ {
-		var transaction any = DerefScalar(logs[i])
+		var transaction any = logs[i]
 		var transactionType *string = this.SafeString(transaction, "type")
 		if (transactionType != nil && *transactionType == "deposit") || (transactionType != nil && *transactionType == "withdrawal") {
 			transactions = append(transactions, transaction)

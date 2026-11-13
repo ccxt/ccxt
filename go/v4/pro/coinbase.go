@@ -1326,7 +1326,7 @@ func (this *Coinbase) HandleOrder(client any, message map[string]any) {
 			continue
 		}
 		for j := 0; j < len(responseOrders); j++ {
-			var responseOrder any = ccxt.DerefScalar(responseOrders[j])
+			var responseOrder any = responseOrders[j]
 			var parsed map[string]any = this.ParseWsOrder(responseOrder)
 			var cachedOrders ccxt.WsArrayCache = this.Orders
 			var marketId *string = this.SafeString(responseOrder, "product_id")

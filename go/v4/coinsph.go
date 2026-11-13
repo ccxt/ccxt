@@ -2494,7 +2494,7 @@ func (this *Coinsph) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	var result map[string]any = map[string]any{}
 	var fees []any = this.ToArray(response)
 	for i := 0; i < len(fees); i++ {
-		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(DerefScalar(fees[i])))
+		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(fees[i]))
 		var symbol *string = SafeStringPtr(fee["symbol"])
 		if symbol != nil {
 			result[*symbol] = fee

@@ -532,7 +532,7 @@ func (this *Polymarket) fetchCurrenciesBody(ch chan AsyncResult[map[string]any],
 	var assets []any = SafeListTyped(responses, 1)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(instruments); i++ {
-		var instrument any = DerefScalar(instruments[i])
+		var instrument any = instruments[i]
 		var baseId *string = this.SafeString(instrument, "base_asset")
 		if baseId == nil {
 			continue
