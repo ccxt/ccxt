@@ -1,0 +1,641 @@
+{
+    "0G/TRY": {
+        "id": "0g_tl",
+        "lowercaseId": "0g_tl",
+        "symbol": "0G/TRY",
+        "base": "0G",
+        "quote": "TRY",
+        "settle": null,
+        "baseId": "0g",
+        "quoteId": "tl",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "badges": [
+                {
+                    "langkey": "labels.box",
+                    "severity": "dark"
+                }
+            ],
+            "labels": [
+                "box_tl",
+                "crypto_tl",
+                "ai_tl"
+            ],
+            "pairs": {
+                "market": "0g",
+                "payment": "tl"
+            },
+            "precisions": {
+                "amount": 3,
+                "price": 2
+            },
+            "steps": {
+                "amount": "0.001",
+                "price": "0.01"
+            },
+            "id": "0g_tl"
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "AGIX/TRY": {
+        "id": "agix_tl",
+        "lowercaseId": "agix_tl",
+        "symbol": "AGIX/TRY",
+        "base": "AGIX",
+        "quote": "TRY",
+        "settle": null,
+        "baseId": "agix",
+        "quoteId": "tl",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": false,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "badges": [
+                {
+                    "langkey": "labels.new",
+                    "severity": "success"
+                }
+            ],
+            "labels": [
+                "crypto_tl"
+            ],
+            "pairs": {
+                "market": "agix",
+                "payment": "tl"
+            },
+            "precisions": {
+                "amount": 1,
+                "price": 3
+            },
+            "steps": {
+                "amount": "0.1",
+                "price": "0.001"
+            },
+            "suspended": "system_messages.market_suspended",
+            "unlisted": true,
+            "id": "agix_tl"
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "ALIGN/TRY": {
+        "id": "align_tl",
+        "lowercaseId": "align_tl",
+        "symbol": "ALIGN/TRY",
+        "base": "ALIGN",
+        "quote": "TRY",
+        "settle": null,
+        "baseId": "align",
+        "quoteId": "tl",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1787313600000,
+        "info": {
+            "badges": [
+                {
+                    "langkey": "labels.new",
+                    "severity": "success"
+                }
+            ],
+            "labels": [
+                "crypto_tl"
+            ],
+            "listing_date": "2026-08-21T12:00:00Z",
+            "pairs": {
+                "market": "align",
+                "payment": "tl"
+            },
+            "precisions": {
+                "amount": 3,
+                "price": 4
+            },
+            "steps": {
+                "amount": "0.001",
+                "price": "0.0001"
+            },
+            "id": "align_tl"
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "BTC/TRY": {
+        "id": "btc_tl",
+        "lowercaseId": "btc_tl",
+        "symbol": "BTC/TRY",
+        "base": "BTC",
+        "quote": "TRY",
+        "settle": null,
+        "baseId": "btc",
+        "quoteId": "tl",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.000001,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "labels": [
+                "crypto_tl"
+            ],
+            "pairs": {
+                "market": "btc",
+                "payment": "tl"
+            },
+            "precisions": {
+                "amount": 6,
+                "price": 0
+            },
+            "steps": {
+                "amount": "0.000001",
+                "price": "1"
+            },
+            "id": "btc_tl"
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "ETH/TRY": {
+        "id": "eth_tl",
+        "lowercaseId": "eth_tl",
+        "symbol": "ETH/TRY",
+        "base": "ETH",
+        "quote": "TRY",
+        "settle": null,
+        "baseId": "eth",
+        "quoteId": "tl",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.00001,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "labels": [
+                "crypto_tl"
+            ],
+            "pairs": {
+                "market": "eth",
+                "payment": "tl"
+            },
+            "precisions": {
+                "amount": 5,
+                "price": 0
+            },
+            "steps": {
+                "amount": "0.00001",
+                "price": "1"
+            },
+            "id": "eth_tl"
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "ETH/USDT": {
+        "id": "eth_usdt",
+        "lowercaseId": "eth_usdt",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "eth",
+        "quoteId": "usdt",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "labels": [
+                "crypto_usdt"
+            ],
+            "pairs": {
+                "market": "eth",
+                "payment": "usdt"
+            },
+            "precisions": {
+                "amount": 5,
+                "price": 2
+            },
+            "steps": {
+                "amount": "0.00001",
+                "price": "0.01"
+            },
+            "id": "eth_usdt"
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "USDT/TRY": {
+        "id": "usdt_tl",
+        "lowercaseId": "usdt_tl",
+        "symbol": "USDT/TRY",
+        "base": "USDT",
+        "quote": "TRY",
+        "settle": null,
+        "baseId": "usdt",
+        "quoteId": "tl",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "labels": [
+                "crypto_tl"
+            ],
+            "pairs": {
+                "market": "usdt",
+                "payment": "tl"
+            },
+            "precisions": {
+                "amount": 2,
+                "price": 3
+            },
+            "steps": {
+                "amount": "0.01",
+                "price": "0.001"
+            },
+            "id": "usdt_tl"
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "ZRX/TRY": {
+        "id": "zrx_tl",
+        "lowercaseId": "zrx_tl",
+        "symbol": "ZRX/TRY",
+        "base": "ZRX",
+        "quote": "TRY",
+        "settle": null,
+        "baseId": "zrx",
+        "quoteId": "tl",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "labels": [
+                "crypto_tl"
+            ],
+            "pairs": {
+                "market": "zrx",
+                "payment": "tl"
+            },
+            "precisions": {
+                "amount": 2,
+                "price": 2
+            },
+            "steps": {
+                "amount": "0.01",
+                "price": "0.01"
+            },
+            "id": "zrx_tl"
+        },
+        "tierBased": true,
+        "percentage": true
+    }
+}
