@@ -902,6 +902,30 @@
                     "1h"
                 ],
                 "output": null
+            },
+            {
+                "description": "spot with since and limit sets endTime",
+                "method": "fetchOHLCV",
+                "url": "https://api.toobit.com/quote/v1/klines?symbol=BTCUSDT&interval=1h&startTime=1789621200000&endTime=1789631999999&limit=3",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1789621200000,
+                    3
+                ],
+                "output": null
+            },
+            {
+                "description": "swap with mid-candle since and limit sets endTime",
+                "method": "fetchOHLCV",
+                "url": "https://api.toobit.com/quote/v1/klines?symbol=BTC-SWAP-USDT&interval=1h&startTime=1789623000000&endTime=1789633799999&limit=3",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1789623000000,
+                    3
+                ],
+                "output": null
             }
         ],
         "fetchFundingRate": [
