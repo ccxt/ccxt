@@ -23,6 +23,24 @@ function testIo () {
     // delete methods removed atm
     // exchange.fileDelete (filePath);
     // assert (!exchange.fileExists (filePath), "file was not deleted: " + filePath);
+    // 
+    //
+    // Test safeguards
+    //
+    let passWrite = false;
+    let passRead = false;
+    try {
+        exchange.writeFile ('xyz.non-whitelisted-extension', 'nothing');
+    } catch (e) {
+        passWrite = true;
+    }
+    assert (passWrite, "writing non-whitelisted file did not throw an error");
+    try {
+        exchange.readFile ('xyz.non-whitelisted-extension');
+    } catch (e) {
+        passRead = true;
+    }
+    assert (passRead, "reading non-whitelisted file did not throw an error");
 }
 
 export default testIo;
