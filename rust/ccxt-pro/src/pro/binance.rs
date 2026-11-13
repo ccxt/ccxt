@@ -2596,12 +2596,12 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                                 let mut i: i64 = 0;
                 let mut __for_first_66: bool = true;
                 while { if !__for_first_66 { i += 1; } __for_first_66 = false; i < (symbolsAndTimeframes.len() as i64) } {
-                let mut stockSymAndTf: Value = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut stockSymbolString: String = self.symbol(self.safe_string(stockSymAndTf.clone(), Value::Int(0), &[Value::Str("".into())]));
+                let mut stockSymAndTf: crate::value::List = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_list();
+                let mut stockSymbolString: String = self.symbol(self.safe_string(&stockSymAndTf, Value::Int(0), &[Value::Str("".into())]));
                 let mut stockMarket: crate::types::Market = (match self.market(stockSymbolString.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let mut stockTicker: Option<String> = self.safe_string2(&stockMarket, Value::Str("base".into()), Value::Str("id".into()), &[]).as_str().map(str::to_owned);
                 let mut stockTickerString: Option<String> = (if (stockTicker.is_none()) { Some("".to_string()) } else { stockTicker.as_deref().map(str::to_lowercase) });
-                let mut stockTimeframeString: String = self.safe_string(stockSymAndTf, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut stockTimeframeString: String = self.safe_string(&stockSymAndTf, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut stockInterval: Option<String> = self.safe_string(self.timeframes.clone(), Value::from(stockTimeframeString.clone()), &[Value::from(stockTimeframeString.clone())]).as_str().map(str::to_owned);
                 if (stockInterval.as_deref() != Some("5m")) && (stockInterval.as_deref() != Some("1h")) && (stockInterval.as_deref() != Some("1d")) && (stockInterval.as_deref() != Some("1w")) && (stockInterval.as_deref() != Some("1M")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols only supports 5m, 1h, 1d, 1w, and 1M timeframes".into()))));
@@ -2649,9 +2649,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                         let mut i: i64 = 0;
             let mut __for_first_67: bool = true;
             while { if !__for_first_67 { i += 1; } __for_first_67 = false; i < (symbolsAndTimeframes.len() as i64) } {
-            let mut symAndTf: Value = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut symbolString: String = self.safe_string(symAndTf.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut timeframeString: String = self.safe_string(symAndTf, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut symAndTf: crate::value::List = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_list();
+            let mut symbolString: String = self.safe_string(&symAndTf, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut timeframeString: String = self.safe_string(&symAndTf, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), Value::from(timeframeString.clone()), &[Value::from(timeframeString.clone())]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbolString.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: Option<String> = self.safe_string_k(&market, "lowercaseId", &[]).as_str().map(str::to_owned);
@@ -2759,9 +2759,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                         let mut i: i64 = 0;
             let mut __for_first_68: bool = true;
             while { if !__for_first_68 { i += 1; } __for_first_68 = false; i < (symbolsAndTimeframes.len() as i64) } {
-            let mut symAndTf: Value = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut symbolString: String = self.safe_string(symAndTf.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut timeframeString: String = self.safe_string(symAndTf, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut symAndTf: crate::value::List = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_list();
+            let mut symbolString: String = self.safe_string(&symAndTf, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut timeframeString: String = self.safe_string(&symAndTf, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), Value::from(timeframeString.clone()), &[Value::from(timeframeString.clone())]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbolString.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: Option<String> = self.safe_string_k(&market, "lowercaseId", &[]).as_str().map(str::to_owned);
@@ -6096,13 +6096,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orders: Value = crate::types::IntoRaw::into_raw(self.fetch_orders_ws(symbol.as_str(), since.as_i64(), limit.as_i64(), params).await);
+        let mut orders: Vec<crate::types::Order> = (match self.fetch_orders_ws(symbol.as_str(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut closedOrders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_78: bool = true;
             while { if !__for_first_78 { i += 1; } __for_first_78 = false; i < (orders.len() as i64) } {
-            let mut order: Value = orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut order: Value = orders.get(i as usize).map(crate::Value::from).unwrap_or_default();
             if (self.safe_string_k(order.clone(), "status", &[]).as_str() == Some("closed")) {
                 closedOrders.push(order);
             }
@@ -7097,7 +7097,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if isPortfolioMargin.as_bool() == Some(true) {
             params.insert("portfolioMargin".into(), Value::Bool(true));
         }
-        let mut positions: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None, Value::Map(params)).await);
+        let mut positions: Vec<crate::types::Position> = (match self.fetch_positions(None, Value::Map(params)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         // the client may have been replaced by a reconnect while the
         // snapshot was in flight: a stale snapshot must not overwrite
         // the fresh one loaded for the new client
@@ -7111,7 +7111,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                         let mut i: i64 = 0;
             let mut __for_first_82: bool = true;
             while { if !__for_first_82 { i += 1; } __for_first_82 = false; i < (positions.len() as i64) } {
-            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut position: Value = positions.get(i as usize).map(crate::Value::from).unwrap_or_default();
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
             if (contracts != Value::Null) && (contracts.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
                 cache.append(position);

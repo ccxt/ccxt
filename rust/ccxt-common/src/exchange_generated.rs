@@ -5857,7 +5857,7 @@ pub trait ExchangeBase:
         let mut paramsMaxRetriesOnFailure: crate::value::Dict = retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut retryDelay: i64 = 0;
         let retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsMaxRetriesOnFailure, path.clone(), Value::Str("maxRetriesOnFailureDelay".into()), &[Value::from(retryDelay)]).as_array().cloned().unwrap_or_default();
-        let mut retryDelayMaxRetriesOnFailureDelay: Value = retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut retryDelayMaxRetriesOnFailureDelay: Option<i64> = retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable.get(0).and_then(Value::as_i64);
         let mut paramsMaxRetriesOnFailureDelay: crate::value::Dict = retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut fetchDataCacheEnabled: bool = self.fetchHistoryCacheSize.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64);
         {
@@ -5905,8 +5905,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                             self.log(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Request failed with the error: ".into()), to_string_val(&e)).into()), Value::Str(", retrying ".into())).into()), Value::Str(format!("{}",
                                 index).into())).into()), Value::Str(" of ".into())).into()), Value::Str(format!("{}", retriesMaxRetriesOnFailure).into())).into()), Value::Str("...".into())).into()));
                         }
-                        if (retryDelayMaxRetriesOnFailureDelay != Value::Null) && (retryDelayMaxRetriesOnFailureDelay.as_f64() != Some(0.0)) {
-                            self.sleep(retryDelayMaxRetriesOnFailureDelay.clone()).await;
+                        if (retryDelayMaxRetriesOnFailureDelay.is_some()) && (retryDelayMaxRetriesOnFailureDelay != Some(0)) {
+                            self.sleep(Value::from(retryDelayMaxRetriesOnFailureDelay)).await;
                         }
                     }  else {
                         panic!("{}", e);
@@ -9221,9 +9221,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         let newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_option_integer_and_params(params, method, Value::Str("maxEntriesPerRequest".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut newMaxEntriesPerRequest: Value = newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut newMaxEntriesPerRequest: Option<i64> = newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).and_then(Value::as_i64);
         let mut paramsMaxEntriesPerRequest: Value = newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut maxEntriesPerRequestOption: Value = (if (newMaxEntriesPerRequest != Value::Null) { newMaxEntriesPerRequest } else { maxEntriesPerRequest });
+        let mut maxEntriesPerRequestOption: Value = (if (newMaxEntriesPerRequest.is_some()) { Value::from(newMaxEntriesPerRequest) } else { maxEntriesPerRequest });
         let mut maxEntriesPerRequestResolved: Value = (if (maxEntriesPerRequestOption == Value::Null) { Value::Int(1000) } else { maxEntriesPerRequestOption }); // default to 1000
         return Value::from(vec![maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest]);
 
@@ -9244,7 +9244,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut maxCallsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPaginationCalls: crate::value::Dict = maxCallsPaginationCallsparamsPaginationCallsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let maxRetriesOptionparamsMaxRetriesVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsPaginationCalls, method.clone(), Value::Str("maxRetries".into()), &[Value::Int(3)]).as_array().cloned().unwrap_or_default();
-        let mut maxRetriesOption: Value = maxRetriesOptionparamsMaxRetriesVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut maxRetriesOption: Option<i64> = maxRetriesOptionparamsMaxRetriesVariable.get(0).and_then(Value::as_i64);
         let mut paramsMaxRetries: crate::value::Dict = maxRetriesOptionparamsMaxRetriesVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let removeRepeatedOptionparamsRemoveRepeatedVariable: Vec<Value> = self.handle_option_and_params(&paramsMaxRetries, method.clone(), Value::Str("removeRepeated".into()), &[removeRepeated]).as_array().cloned().unwrap_or_default();
         let mut removeRepeatedOption: Value = removeRepeatedOptionparamsRemoveRepeatedVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -9254,7 +9254,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut paramsPaginationDirection: crate::value::Dict = paginationDirectionparamsPaginationDirectionVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut paginationTimestamp: Value = Value::Null;
         let mut result: Value = Value::from(vec![]);
-        let mut errors: Value = Value::Int(0);
+        let mut errors: i64 = 0;
         let mut until: Option<i64> = self.safe_integer_n(Value::from(&paramsPaginationDirection), Value::from(vec![Value::Str("until".into()), Value::Str("untill".into()), Value::Str("till".into())]), &[]).as_i64(); // do not omit it from params here
         let maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, Value::from(&paramsPaginationDirection)]).as_array().cloned().unwrap_or_default();
         let mut maxEntriesPerRequestOption: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -9293,7 +9293,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         shouldBreak = true;
                         break;
                     }
-                    errors = Value::Int(0);
+                    errors = 0;
                     result = self.array_concat(result.clone(), response.clone());
                     let mut firstElement: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(0), &[]).into_dict();
                     paginationTimestamp = self.safe_integer2(&firstElement, Value::Str("timestamp".into()), Value::Int(0), &[]);
@@ -9322,7 +9322,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         shouldBreak = true;
                         break;
                     }
-                    errors = Value::Int(0);
+                    errors = 0;
                     result = self.array_concat(result.clone(), response.clone());
                     let mut last: crate::value::Dict = self.safe_dict(response, Value::Int((responseLength - 1)), &[]).into_dict();
                     let mut lastTimestamp: i64 = self.safe_integer_k(&last, "timestamp", &[Value::Int(0)]).as_i64().unwrap_or(0);
@@ -9365,10 +9365,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         let mut maxRetries: i64 = 3;
         let maxRetriesOptionparamsMaxRetriesVariable: Vec<Value> = self.handle_option_integer_and_params(params, method.clone(), Value::Str("maxRetries".into()), &[Value::from(maxRetries)]).as_array().cloned().unwrap_or_default();
-        let mut maxRetriesOption: Value = maxRetriesOptionparamsMaxRetriesVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut maxRetriesOption: Option<i64> = maxRetriesOptionparamsMaxRetriesVariable.get(0).and_then(Value::as_i64);
         let mut paramsMaxRetries: Value = maxRetriesOptionparamsMaxRetriesVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut errors: Value = Value::Int(0);
-        while errors.as_f64().unwrap_or(f64::NAN) <= maxRetriesOption.as_f64().unwrap_or(f64::NAN) {
+        let mut errors: i64 = 0;
+        while Some(errors) <= maxRetriesOption {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 if ((timeframe != Value::Null) && (timeframe.as_str() != Some(""))) && (method.as_str() != Some("fetchFundingRateHistory")) {
                     return self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (timeframe).clone(), (since).clone(), (limit).clone(), (paramsMaxRetries).clone()]).await;
@@ -9380,8 +9380,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if matches!(&e, Value::Str(__s) if __s.contains("[RateLimitExceeded]")) {
                     panic!("{}", e);
                 }
-                errors = (match (&(errors), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                if errors.as_f64().unwrap_or(f64::NAN) > maxRetriesOption.as_f64().unwrap_or(f64::NAN) {
+                errors += 1;
+                if (maxRetriesOption.is_some() && Some(errors) > maxRetriesOption) {
                     panic!("{}", e);
                 }
              } }
@@ -9403,9 +9403,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut maxEntriesPerRequest = get_arg(optional_args, 5, Value::Null);
         let mut maxCalls: i64 = 10;
         let maxCallsPaginationCallsparamsPaginationCallsVariable: Vec<Value> = self.handle_option_integer_and_params(params, method.clone(), Value::Str("paginationCalls".into()), &[Value::from(maxCalls)]).as_array().cloned().unwrap_or_default();
-        let mut maxCallsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut maxCallsPaginationCalls: Option<i64> = maxCallsPaginationCallsparamsPaginationCallsVariable.get(0).and_then(Value::as_i64);
         let mut paramsPaginationCalls: crate::value::Dict = maxCallsPaginationCallsparamsPaginationCallsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut maxCallsLimit: Value = Value::from(self.parse_to_int(maxCallsPaginationCalls));
+        let mut maxCallsLimit: Value = Value::from(self.parse_to_int(Value::from(maxCallsPaginationCalls)));
         let maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, Value::from(&paramsPaginationCalls)]).as_array().cloned().unwrap_or_default();
         let mut maxEntriesPerRequestOption: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMaxEntriesPerRequest: crate::value::Dict = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -9497,13 +9497,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut paramsPaginationCalls: crate::value::Dict = maxCallsPaginationCallsparamsPaginationCallsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut maxRetries: i64 = 3;
         let maxRetriesOptionparamsMaxRetriesVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsPaginationCalls, method.clone(), Value::Str("maxRetries".into()), &[Value::from(maxRetries)]).as_array().cloned().unwrap_or_default();
-        let mut maxRetriesOption: Value = maxRetriesOptionparamsMaxRetriesVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut maxRetriesOption: Option<i64> = maxRetriesOptionparamsMaxRetriesVariable.get(0).and_then(Value::as_i64);
         let mut paramsMaxRetries: crate::value::Dict = maxRetriesOptionparamsMaxRetriesVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, Value::from(&paramsMaxRetries)]).as_array().cloned().unwrap_or_default();
         let mut maxEntriesPerRequestOption: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMaxEntriesPerRequest: crate::value::Dict = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut cursorValue: Value = Value::Null;
-        let mut errors: Value = Value::Int(0);
+        let mut errors: i64 = 0;
         let mut result: Value = Value::from(vec![]);
         let mut timeframe: Option<String> = self.safe_string_k_opt(&paramsMaxEntriesPerRequest, "timeframe", &[]);
         let mut paramsOmitted: Value = self.omit(&paramsMaxEntriesPerRequest, Value::Str("timeframe".into()), &[]); // reading the timeframe from the method arguments to avoid changing the signature
@@ -9535,7 +9535,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }  else {
                     response = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (since).clone(), (maxEntriesPerRequestOption).clone(), (paramsOmitted).clone()]).await;
                 }
-                errors = Value::Int(0);
+                errors = 0;
                 if (response == Value::Null) {
                     panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" fetchPaginatedCallCursor() returned empty response".into()))));
                 }
@@ -9611,17 +9611,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut maxEntriesPerRequest = get_arg(optional_args, 5, Value::Null);
         let mut maxCalls: i64 = 10;
         let maxCallsPaginationCallsparamsPaginationCallsVariable: Vec<Value> = self.handle_option_integer_and_params(params, method.clone(), Value::Str("paginationCalls".into()), &[Value::from(maxCalls)]).as_array().cloned().unwrap_or_default();
-        let mut maxCallsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut maxCallsPaginationCalls: Option<i64> = maxCallsPaginationCallsparamsPaginationCallsVariable.get(0).and_then(Value::as_i64);
         let mut paramsPaginationCalls: crate::value::Dict = maxCallsPaginationCallsparamsPaginationCallsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut maxCallsLimit: Value = Value::from(self.parse_to_int(maxCallsPaginationCalls));
+        let mut maxCallsLimit: Value = Value::from(self.parse_to_int(Value::from(maxCallsPaginationCalls)));
         let mut maxRetries: i64 = 3;
         let maxRetriesOptionparamsMaxRetriesVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsPaginationCalls, method.clone(), Value::Str("maxRetries".into()), &[Value::from(maxRetries)]).as_array().cloned().unwrap_or_default();
-        let mut maxRetriesOption: Value = maxRetriesOptionparamsMaxRetriesVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut maxRetriesOption: Option<i64> = maxRetriesOptionparamsMaxRetriesVariable.get(0).and_then(Value::as_i64);
         let mut paramsMaxRetries: crate::value::Dict = maxRetriesOptionparamsMaxRetriesVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, Value::from(&paramsMaxRetries)]).as_array().cloned().unwrap_or_default();
         let mut maxEntriesPerRequestOption: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMaxEntriesPerRequest: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut errors: Value = Value::Int(0);
+        let mut errors: i64 = 0;
         let mut result: Value = Value::from(vec![]);
         let mut shouldBreak: bool = false;
         {
@@ -9632,7 +9632,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if let Value::Dict(__d) = &mut paramsMaxEntriesPerRequest { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&pageKey), (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
                     Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })); }
                 let mut response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (since).clone(), (maxEntriesPerRequestOption).clone(), (paramsMaxEntriesPerRequest).clone()]).await;
-                errors = Value::Int(0);
+                errors = 0;
                 let mut responseLength: i64 = get_array_length(&response).as_i64().unwrap_or_default();
                 if self.verbose.as_bool() == Some(true) {
                     let mut iteration: Value = ((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
@@ -9713,13 +9713,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_168: bool = true;
             while { if !__for_first_168 { i += 1; } __for_first_168 = false; i < (input.len() as i64) } {
-            let mut entry: Value = input.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut id: Value = self.safe_string_k(entry.clone(), "id", &[]);
+            let mut entry: crate::value::Dict = input.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut id: Value = self.safe_string_k(&entry, "id", &[]);
             if (id == Value::Null) {
-                let mut price: String = self.safe_string_k(entry.clone(), "price", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let mut amount: String = self.safe_string_k(entry.clone(), "amount", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let mut timestamp: Option<String> = self.safe_string_k_opt(entry.clone(), "timestamp", &[]);
-                let mut side: String = self.safe_string_k(entry.clone(), "side", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut price: String = self.safe_string_k(&entry, "price", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut amount: String = self.safe_string_k(&entry, "amount", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut timestamp: Option<String> = self.safe_string_k_opt(&entry, "timestamp", &[]);
+                let mut side: String = self.safe_string_k(&entry, "side", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 // unique trade identifier
                 if (timestamp.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" removeRepeatedTradesFromArray() missing timestamp".into()))));
@@ -9729,7 +9729,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 id = Value::Str(format!("{}{}", id, (Value::Str(format!("{}{}", Value::Str(format!("{}{}", price, Value::Str("_".into())).into()), amount).into()))).into());
             }
             if (id != Value::Null) && !(matches!((&uniqueResult, &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut uniqueResult { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&id), entry); }
+                if let Value::Dict(__d) = &mut uniqueResult { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&id), Value::Dict(entry)); }
             }
         }
         }

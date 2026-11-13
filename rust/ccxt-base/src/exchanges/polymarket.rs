@@ -968,7 +968,7 @@ impl Polymarket {
     pub fn parse_market(&self, market: impl Into<crate::Value>) -> Value {
         let mut market: Value = market.into();
         let mut numericId: Option<String> = self.safe_string_k(market.clone(), "instrument_id", &[]).as_str().map(str::to_owned);
-        let mut venueSymbol: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
+        let mut venueSymbol: Option<String> = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base_asset", &[]).as_str().map(str::to_owned);
         // prices are denominated using USD while pUSD is the 1:1 collateral and settlement token
         let mut settleId: Option<String> = self.safe_string_k(market.clone(), "quote_asset", &[]).as_str().map(str::to_owned);

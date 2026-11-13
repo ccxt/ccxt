@@ -774,7 +774,7 @@ impl Bitteam {
 
     pub fn parse_market(&self, market: impl Into<crate::Value>) -> Value {
         let mut market: Value = market.into();
-        let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "name", &[]);
+        let mut id: Option<String> = self.safe_string_k(market.clone(), "name", &[]).as_str().map(str::to_owned);
         let mut numericId: Option<i64> = self.safe_integer_k(market.clone(), "id", &[]).as_i64();
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut baseId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);

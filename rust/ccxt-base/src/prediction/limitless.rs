@@ -1928,12 +1928,12 @@ impl Limitless {
                         let mut i: i64 = 0;
             let mut __for_first_1314: bool = true;
             while { if !__for_first_1314 { i += 1; } __for_first_1314 = false; i < (rows.len() as i64) } {
-            let mut row: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut rowTokenId: Option<String> = self.safe_string_k(row.clone(), "tokenId", &[]).as_str().map(str::to_owned);
+            let mut row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut rowTokenId: Option<String> = self.safe_string_k(&row, "tokenId", &[]).as_str().map(str::to_owned);
             if (tokenId.is_some()) && (rowTokenId.is_some()) && (rowTokenId != tokenId) {
                 continue;
             }
-            filtered.push(row);
+            filtered.push(Value::Dict(row));
         }
         }
         return self.parse_prediction_trades(Value::from(filtered), &[outcomeObj, since, limit]);

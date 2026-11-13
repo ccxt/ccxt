@@ -2716,10 +2716,10 @@ impl Bingx {
             // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
             // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
             let timeZoneparamsTimeZoneVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsUntil, Value::Str("fetchOHLCV".into()), Value::Str("timeZone".into()), &[Value::Int(0)]).as_array().cloned().unwrap_or_default();
-            let mut timeZone: Value = timeZoneparamsTimeZoneVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut timeZone: Option<i64> = timeZoneparamsTimeZoneVariable.get(0).and_then(Value::as_i64);
             let mut paramsTimeZone: crate::value::Dict = timeZoneparamsTimeZoneVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-            if (timeZone != Value::Null) {
-                request.insert("timeZone".into(), timeZone);
+            if (timeZone.is_some()) {
+                request.insert("timeZone".into(), Value::from(timeZone));
             }
             let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[&paramsTimeZone]);
             response = self.spot_v1_public_get_market_kline(&[__ws_arg_0]).await.into_opt_dict();
@@ -4280,7 +4280,7 @@ impl Bingx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let standardparamsStandardVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchBalance".into()), Value::Str("standard".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut standard: bool = standardparamsStandardVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsStandard: crate::value::Dict = standardparamsStandardVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -4291,19 +4291,19 @@ impl Bingx {
         let mut marketType: Option<String> = marketTypemarketTypeQueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut marketTypeQuery: crate::value::Dict = marketTypemarketTypeQueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if standard {
-            response = self.contract_v1_private_get_balance(&[Value::from(&marketTypeQuery)]).await;
+            response = self.contract_v1_private_get_balance(&[Value::from(&marketTypeQuery)]).await.into_opt_dict();
         }  else if (marketType.as_deref() == Some("funding")) || (marketType.as_deref() == Some("fund")) {
-            response = self.fund_v1_private_get_account_balance(&[Value::from(&marketTypeQuery)]).await;
+            response = self.fund_v1_private_get_account_balance(&[Value::from(&marketTypeQuery)]).await.into_opt_dict();
         }  else if (marketType.as_deref() == Some("spot")) {
-            response = self.spot_v1_private_get_account_balance(&[Value::from(&marketTypeQuery)]).await;
+            response = self.spot_v1_private_get_account_balance(&[Value::from(&marketTypeQuery)]).await.into_opt_dict();
         }  else {
             if (subType.as_deref() == Some("inverse")) {
-                response = self.cswap_v1_private_get_user_balance(&[Value::from(&marketTypeQuery)]).await;
+                response = self.cswap_v1_private_get_user_balance(&[Value::from(&marketTypeQuery)]).await.into_opt_dict();
             }  else {
-                response = self.swap_v3_private_get_user_balance(&[Value::Dict(marketTypeQuery)]).await;
+                response = self.swap_v3_private_get_user_balance(&[Value::Dict(marketTypeQuery)]).await.into_opt_dict();
             }
         }
-        return self.parse_balance(response);
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }
@@ -6899,9 +6899,9 @@ impl Bingx {
                 request.insert("pageIndex".into(), Value::Int(1));
                 request.insert("pageSize".into(), (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() }));
                 request.insert("startTime".into(), (if (since == Value::Null) { Value::Int(1) } else { since.clone() }));
-                let mut until: Value = self.safe_integer_k(&paramsOmitted, "until", &[Value::Int(self.milliseconds())]);
+                let mut until: Option<i64> = self.safe_integer_k(&paramsOmitted, "until", &[Value::Int(self.milliseconds())]).as_i64();
                 let mut paramsUntil: crate::value::Dict = self.omit(&paramsOmitted, Value::Str("until".into()), &[]).into_dict();
-                request.insert("endTime".into(), until);
+                request.insert("endTime".into(), Value::from(until));
                 let __ws_arg_47 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
                 response = self.swap_v1_private_get_twap_history_orders(&[__ws_arg_47]).await.into_opt_dict();
             }  else if (subType.as_deref() == Some("inverse")) {

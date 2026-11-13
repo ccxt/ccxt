@@ -1267,11 +1267,11 @@ impl Polymarket {
                                 let mut ei: i64 = 0;
                 let mut __for_first_1411: bool = true;
                 while { if !__for_first_1411 { ei += 1; } __for_first_1411 = false; ei < (allEvents.len() as i64) } {
-                let mut rawEvent: Value = allEvents.get(ei as usize).cloned().unwrap_or(Value::Null);
-                let mut eventId: Option<String> = self.safe_string_k_opt(rawEvent.clone(), "id", &[]);
+                let mut rawEvent: crate::value::Dict = allEvents.get(ei as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut eventId: Option<String> = self.safe_string_k_opt(&rawEvent, "id", &[]);
                 if ((eventId.is_some()) && (eventId.as_deref() != Some(""))) && !(matches!(&eventId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if seen.contains_key(__k.as_ref()))) {
                     seen.insert(eventId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
-                    rawEvents.push(rawEvent);
+                    rawEvents.push(Value::Dict(rawEvent));
                 }
             }
             }
@@ -1386,11 +1386,11 @@ impl Polymarket {
                                         let mut ei: i64 = 0;
                     let mut __for_first_1414: bool = true;
                     while { if !__for_first_1414 { ei += 1; } __for_first_1414 = false; ei < (tagEvents.len() as i64) } {
-                    let mut rawEvent: Value = tagEvents.as_array().map(Vec::as_slice).unwrap_or_default().get(ei as usize).cloned().unwrap_or(Value::Null);
-                    let mut eventId: Option<String> = self.safe_string_k_opt(rawEvent.clone(), "id", &[]);
+                    let mut rawEvent: crate::value::Dict = tagEvents.as_array().map(Vec::as_slice).unwrap_or_default().get(ei as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    let mut eventId: Option<String> = self.safe_string_k_opt(&rawEvent, "id", &[]);
                     if (eventId.is_some()) && !(matches!(&eventId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if seen.contains_key(__k.as_ref()))) {
                         seen.insert(eventId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
-                        unioned.push(rawEvent);
+                        unioned.push(Value::Dict(rawEvent));
                     }
                 }
                 }
@@ -2673,13 +2673,13 @@ impl Polymarket {
 }));
         // the /data/trades endpoint has no order filter, so fetch the user's trades and keep
         // the ones where this order was the taker or one of the matched makers
-        let mut trades: Value = crate::types::IntoRaw::into_raw(self.fetch_my_trades(outcome.as_str(), None, None, params).await);
+        let mut trades: Vec<crate::types::Trade> = (match self.fetch_my_trades(outcome.as_str(), None, None, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1437: bool = true;
             while { if !__for_first_1437 { i += 1; } __for_first_1437 = false; i < (trades.len() as i64) } {
-            let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = trades.get(i as usize).map(crate::Value::from).unwrap_or_default();
             let mut info: crate::value::Dict = self.safe_dict_k(trade.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3129,7 +3129,7 @@ impl Polymarket {
         m.insert("datetime".to_string(), self.iso8601(Value::from(ts)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
-        m.insert("outcome".to_string(), mkt.as_map().and_then(|__m| __m.get("outcome")).cloned().unwrap_or(Value::Null));
+        m.insert("outcome".to_string(), self.safe_string_k(mkt.clone(), "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string_k(mkt.clone(), "outcomeId", &[]));
         m.insert("label".to_string(), self.safe_string_k(mkt.clone(), "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(mkt.clone(), "market", &[]));

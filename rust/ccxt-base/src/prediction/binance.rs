@@ -401,14 +401,14 @@ impl Binance {
         let mut queriesLength: i64 = queries.len() as i64;
         if queriesLength > 0 {
             let mut eventParams: Value = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into())]), &[]);
-            let mut events: Value = crate::types::IntoRaw::into_raw(self.fetch_events(eventParams).await);
+            let mut events: Vec<crate::types::PredictionEvent> = (match self.fetch_events(eventParams).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut eventsLength: f64 = ((events.len() as i64) as f64);
             let mut queryMarkets: Vec<Value> = Vec::new();
             {
                                 let mut ei: i64 = 0;
                 let mut __for_first_1208: bool = true;
                 while { if !__for_first_1208 { ei += 1; } __for_first_1208 = false; (ei as f64) < eventsLength } {
-                let mut eventMarkets: Value = self.safe_list_k(events.as_array().map(Vec::as_slice).unwrap_or_default().get(ei as usize).cloned().unwrap_or(Value::Null), "markets", &[Value::from(vec![])]);
+                let mut eventMarkets: Value = self.safe_list_k(events.get(ei as usize).map(crate::Value::from).unwrap_or_default(), "markets", &[Value::from(vec![])]);
                 let mut eventMarketsLength: f64 = ((eventMarkets.len() as i64) as f64);
                 {
                                         let mut mi: i64 = 0;
@@ -587,8 +587,8 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_1212: bool = true;
             while { if !__for_first_1212 { i += 1; } __for_first_1212 = false; (i as f64) < rawTopicsLength } {
-            let mut rawTopic: Value = rawTopics.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut rawMarkets: crate::value::List = self.safe_list_k(rawTopic.clone(), "markets", &[Value::from(vec![])]).into_list();
+            let mut rawTopic: crate::value::Dict = rawTopics.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut rawMarkets: crate::value::List = self.safe_list_k(&rawTopic, "markets", &[Value::from(vec![])]).into_list();
             let mut rawMarketsLength: i64 = rawMarkets.len() as i64;
             let mut hasOutcomes: bool = false;
             if rawMarketsLength > 0 {
@@ -601,9 +601,9 @@ impl Binance {
                 hasOutcomes = firstOutcomesLength > 0;
             }
             if hasOutcomes {
-                result.push(rawTopic.clone());
+                result.push(Value::from(&rawTopic));
             }  else {
-                let mut topicId: Option<String> = self.safe_string_k(rawTopic, "marketTopicId", &[]).as_str().map(str::to_owned);
+                let mut topicId: Option<String> = self.safe_string_k(&rawTopic, "marketTopicId", &[]).as_str().map(str::to_owned);
                 if (topicId.is_some()) {
                     let mut detail: Value = self.fetch_raw_topic_detail(topicId.as_deref().unwrap_or_default(), &[]).await;
                     result.push(detail);
@@ -1215,8 +1215,7 @@ impl Binance {
         //
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
-        let mut marketAny: Value = crate::Value::from(market);
-        let mut outcomeObj: crate::value::Dict = self.safe_outcome(self.safe_string_k(marketAny.clone(), "outcome", &[]), &[marketAny]).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(self.safe_string_k(&market, "outcome", &[]), &[crate::Value::from(market)]).into_dict();
         // the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
         // any other outcome of a binary market mirrors as 1 - price
         let mut outcomeInfo: crate::value::Dict = self.safe_dict_k(&outcomeObj, "info", &[Value::Map({
@@ -1590,21 +1589,20 @@ impl Binance {
         });
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let maxEntriesPerRequestparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginate, Value::Str("fetchOpenOrders".into()), Value::Str("maxEntriesPerRequest".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
-        let mut maxEntriesPerRequest: Value = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut maxEntriesPerRequest: Option<i64> = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).and_then(Value::as_i64);
         let mut paramsMaxEntriesPerRequest: crate::value::Dict = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut pageKey: String = "ccxtPageKey".to_string();
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchOpenOrders".into()), &[outcome.clone(), since.clone(), limit.clone(), Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey.clone()), maxEntriesPerRequest.clone()]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchOpenOrders".into()), &[outcome.clone(), since.clone(), limit.clone(), Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey.clone()), Value::from(maxEntriesPerRequest)]).await;
         }
         let mut page: i64 = ((self.safe_integer(Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey), &[Value::Int(1)]).as_i64().unwrap_or(1)) - 1);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut offSet: Value = self.safe_integer_k(&paramsMaxEntriesPerRequest, "offset", &[(match (&(Value::from(page)), &(maxEntriesPerRequest)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-        if offSet.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            request.insert("offset".into(), offSet);
+        let mut offSet: Option<i64> = self.safe_integer_k(&paramsMaxEntriesPerRequest, "offset", &[Value::from((if let Some(__r) = maxEntriesPerRequest { Some(page * __r) } else { None }))]).as_i64();
+        if offSet > Some(0) {
+            request.insert("offset".into(), Value::from(offSet));
         }
         let mut outcomeObj: Value = Value::Null;
         if (outcome != Value::Null) {
@@ -1697,21 +1695,20 @@ impl Binance {
         });
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let maxEntriesPerRequestparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginate, Value::Str("fetchOrders".into()), Value::Str("maxEntriesPerRequest".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
-        let mut maxEntriesPerRequest: Value = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut maxEntriesPerRequest: Option<i64> = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).and_then(Value::as_i64);
         let mut paramsMaxEntriesPerRequest: crate::value::Dict = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut pageKey: String = "ccxtPageKey".to_string();
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[outcome.clone(), since.clone(), limit.clone(), Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey.clone()), maxEntriesPerRequest.clone()]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[outcome.clone(), since.clone(), limit.clone(), Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey.clone()), Value::from(maxEntriesPerRequest)]).await;
         }
         let mut page: i64 = ((self.safe_integer(Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey), &[Value::Int(1)]).as_i64().unwrap_or(1)) - 1);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut offSet: Value = self.safe_integer_k(&paramsMaxEntriesPerRequest, "offset", &[(match (&(Value::from(page)), &(maxEntriesPerRequest)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-        if offSet.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            request.insert("offset".into(), offSet);
+        let mut offSet: Option<i64> = self.safe_integer_k(&paramsMaxEntriesPerRequest, "offset", &[Value::from((if let Some(__r) = maxEntriesPerRequest { Some(page * __r) } else { None }))]).as_i64();
+        if offSet > Some(0) {
+            request.insert("offset".into(), Value::from(offSet));
         }
         let mut outcomeObj: Value = Value::Null;
         if (outcome != Value::Null) {
@@ -2034,11 +2031,11 @@ impl Binance {
         });
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let maxEntriesPerRequestparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginate, Value::Str("fetchMyTrades".into()), Value::Str("maxEntriesPerRequest".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
-        let mut maxEntriesPerRequest: Value = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut maxEntriesPerRequest: Option<i64> = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(0).and_then(Value::as_i64);
         let mut paramsMaxEntriesPerRequest: crate::value::Dict = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut pageKey: String = "ccxtPageKey".to_string();
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchMyTrades".into()), &[outcome.clone(), since.clone(), limit.clone(), Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey.clone()), maxEntriesPerRequest.clone()]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchMyTrades".into()), &[outcome.clone(), since.clone(), limit.clone(), Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey.clone()), Value::from(maxEntriesPerRequest)]).await;
         }
         let mut page: i64 = ((self.safe_integer(Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey), &[Value::Int(1)]).as_i64().unwrap_or(1)) - 1);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2046,10 +2043,9 @@ impl Binance {
                 m.insert("status".to_string(), Value::Str("FILLED".into()));
             m
         });
-        let mut offSet: Value = self.safe_integer_k(&paramsMaxEntriesPerRequest, "offset", &[(match (&(Value::from(page)), &(maxEntriesPerRequest)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-        if offSet.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            request.insert("offset".into(), offSet);
+        let mut offSet: Option<i64> = self.safe_integer_k(&paramsMaxEntriesPerRequest, "offset", &[Value::from((if let Some(__r) = maxEntriesPerRequest { Some(page * __r) } else { None }))]).as_i64();
+        if offSet > Some(0) {
+            request.insert("offset".into(), Value::from(offSet));
         }
         let mut outcomeObj: Value = Value::Null;
         if (outcome != Value::Null) {

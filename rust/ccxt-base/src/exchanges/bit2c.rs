@@ -692,10 +692,10 @@ impl Bit2c {
                         let mut i: i64 = 0;
             let mut __for_first_331: bool = true;
             while { if !__for_first_331 { i += 1; } __for_first_331 = false; i < (rawBids.len() as i64) } {
-            let mut bidRow: Value = rawBids.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut bidAmount: Option<String> = self.safe_string(bidRow.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
+            let mut bidRow: crate::value::List = rawBids.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
+            let mut bidAmount: Option<String> = self.safe_string(&bidRow, Value::Int(1), &[]).as_str().map(str::to_owned);
             if crate::precise::Precise::stringGt(&bidAmount.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-                bids.push(bidRow);
+                bids.push(Value::Arr(bidRow));
             }
         }
         }
@@ -703,10 +703,10 @@ impl Bit2c {
                         let mut i: i64 = 0;
             let mut __for_first_332: bool = true;
             while { if !__for_first_332 { i += 1; } __for_first_332 = false; i < (rawAsks.len() as i64) } {
-            let mut askRow: Value = rawAsks.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut askAmount: Option<String> = self.safe_string(askRow.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
+            let mut askRow: crate::value::List = rawAsks.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
+            let mut askAmount: Option<String> = self.safe_string(&askRow, Value::Int(1), &[]).as_str().map(str::to_owned);
             if crate::precise::Precise::stringGt(&askAmount.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-                asks.push(askRow);
+                asks.push(Value::Arr(askRow));
             }
         }
         }
@@ -977,14 +977,14 @@ impl Bit2c {
                 m.insert("Pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
                 let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-                response = self.private_post_order_add_order_market_price_buy(&[__ws_arg_4]).await;
+                response = self.private_post_order_add_order_market_price_buy(&[__ws_arg_4]).await.into_opt_dict();
             }  else {
                 let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-                response = self.private_post_order_add_order_market_price_sell(&[__ws_arg_5]).await;
+                response = self.private_post_order_add_order_market_price_sell(&[__ws_arg_5]).await.into_opt_dict();
             }
         }  else {
             request.insert("Price".into(), price.clone());
@@ -993,9 +993,9 @@ impl Bit2c {
             request.insert("Total".into(), self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null))));
             request.insert("IsBid".into(), (Value::Bool(side.as_str() == Some("buy"))));
             let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_order_add_order(&[__ws_arg_6]).await;
+            response = self.private_post_order_add_order(&[__ws_arg_6]).await.into_opt_dict();
         }
-        return self.parse_order(response, Some(&market));
+        return self.parse_order(&response, Some(&market));
         Value::Null
         }).await?))
     }

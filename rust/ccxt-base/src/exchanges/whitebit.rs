@@ -3356,22 +3356,22 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut orderParams: crate::value::Dict = self.omit(&query, Value::from(vec![Value::Str("postOnly".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("timeInForce".into())]), &[]).into_dict();
         let mut useCollateralEndpoint: bool = (marginMode.is_some()) || (marketType.as_deref() == Some("swap"));
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isStopOrder {
             request.insert("activation_price".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
             if isLimitOrder {
                 // stop limit order
                 request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
                 let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[&orderParams]);
-                response = self.v4_private_post_order_stop_limit(&[__ws_arg_8]).await;
+                response = self.v4_private_post_order_stop_limit(&[__ws_arg_8]).await.into_opt_dict();
             }  else {
                 // stop market order
                 if useCollateralEndpoint {
                     let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&orderParams]);
-                    response = self.v4_private_post_order_collateral_trigger_market(&[__ws_arg_9]).await;
+                    response = self.v4_private_post_order_collateral_trigger_market(&[__ws_arg_9]).await.into_opt_dict();
                 }  else {
                     let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[&orderParams]);
-                    response = self.v4_private_post_order_stop_market(&[__ws_arg_10]).await;
+                    response = self.v4_private_post_order_stop_market(&[__ws_arg_10]).await.into_opt_dict();
                 }
             }
         }  else {
@@ -3380,28 +3380,28 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 request.insert("price".into(), self.price_to_precision(symbol, price));
                 if useCollateralEndpoint {
                     let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&orderParams]);
-                    response = self.v4_private_post_order_collateral_limit(&[__ws_arg_11]).await;
+                    response = self.v4_private_post_order_collateral_limit(&[__ws_arg_11]).await.into_opt_dict();
                 }  else {
                     let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&orderParams]);
-                    response = self.v4_private_post_order_new(&[__ws_arg_12]).await;
+                    response = self.v4_private_post_order_new(&[__ws_arg_12]).await.into_opt_dict();
                 }
             }  else {
                 // market order
                 if useCollateralEndpoint {
                     let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[&orderParams]);
-                    response = self.v4_private_post_order_collateral_market(&[__ws_arg_13]).await;
+                    response = self.v4_private_post_order_collateral_market(&[__ws_arg_13]).await.into_opt_dict();
                 }  else {
                     if (cost.is_some()) {
                         let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[&orderParams]);
-                        response = self.v4_private_post_order_market(&[__ws_arg_14]).await;
+                        response = self.v4_private_post_order_market(&[__ws_arg_14]).await.into_opt_dict();
                     }  else {
                         let __ws_arg_15 = self.extend(Value::Map(request), &[&orderParams]);
-                        response = self.v4_private_post_order_stock_market(&[__ws_arg_15]).await;
+                        response = self.v4_private_post_order_stock_market(&[__ws_arg_15]).await.into_opt_dict();
                     }
                 }
             }
         }
-        return self.parse_order(response, None);
+        return self.parse_order(&response, None);
         Value::Null
         }).await?))
     }
@@ -3747,20 +3747,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("swap")) {
-            response = self.v4_private_post_collateral_account_balance(&[Value::from(&paramsMarketType)]).await;
+            response = self.v4_private_post_collateral_account_balance(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
         }  else {
             let mut defaultAccount: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("fetchBalance")).cloned().unwrap_or(Value::Null), Value::Str("account".into()), &[]).as_str().map(str::to_owned);
             let mut account: Option<String> = self.safe_string2(Value::from(&paramsMarketType), Value::Str("account".into()), Value::Str("type".into()), &[defaultAccount.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut paramsOmitted: Value = self.omit(&paramsMarketType, Value::from(vec![Value::Str("account".into()), Value::Str("type".into())]), &[]);
             if (account.as_deref() == Some("main")) || (account.as_deref() == Some("funding")) {
-                response = self.v4_private_post_main_account_balance(&[paramsOmitted.clone()]).await;
+                response = self.v4_private_post_main_account_balance(&[paramsOmitted.clone()]).await.into_opt_dict();
             }  else {
-                response = self.v4_private_post_trade_account_balance(&[paramsOmitted]).await;
+                response = self.v4_private_post_trade_account_balance(&[paramsOmitted]).await.into_opt_dict();
             }
         }
-        return self.parse_balance(response);
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }

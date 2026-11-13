@@ -7548,15 +7548,15 @@ impl Kucoin {
                 request.insert("symbol".into(), Value::from((market).id.as_deref()));
             }
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tradeType".into())]), &[]).into_dict();
         if (clientOrderId.is_some()) {
             request.insert("clientOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             if trigger {
                 if isMarginOrder {
                     let __ws_arg_32 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                    response = self.private_delete_hf_margin_stop_order_cancel_by_client_oid(&[__ws_arg_32]).await;
-                    let mut data: Option<crate::value::Dict> = self.safe_dict_k(response.clone(), "data", &[]).into_opt_dict();
+                    response = self.private_delete_hf_margin_stop_order_cancel_by_client_oid(&[__ws_arg_32]).await.into_opt_dict();
+                    let mut data: Option<crate::value::Dict> = self.safe_dict_k(&response, "data", &[]).into_opt_dict();
                     let mut orderIds: crate::value::List = self.safe_list_k(&data, "cancelledOrderIds", &[Value::from(vec![])]).into_list();
                     let mut orderId: Option<String> = self.safe_string(&orderIds, Value::Int(0), &[]).as_str().map(str::to_owned);
                     return self.safe_order(Value::Map({
@@ -7576,29 +7576,29 @@ impl Kucoin {
                     //    }
                     //
                     let __ws_arg_33 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                    response = self.private_delete_stop_order_cancel_order_by_client_oid(&[__ws_arg_33]).await;
+                    response = self.private_delete_stop_order_cancel_order_by_client_oid(&[__ws_arg_33]).await.into_opt_dict();
                 }
             }  else if isMarginOrder {
                 let __ws_arg_34 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_delete_hf_margin_orders_client_order_client_oid(&[__ws_arg_34]).await;
+                response = self.private_delete_hf_margin_orders_client_order_client_oid(&[__ws_arg_34]).await.into_opt_dict();
             }  else if useSync {
                 let __ws_arg_35 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_delete_hf_orders_sync_client_order_client_oid(&[__ws_arg_35]).await;
+                response = self.private_delete_hf_orders_sync_client_order_client_oid(&[__ws_arg_35]).await.into_opt_dict();
             }  else if (hf == Some(true)) {
                 let __ws_arg_36 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_delete_hf_orders_client_order_client_oid(&[__ws_arg_36]).await;
+                response = self.private_delete_hf_orders_client_order_client_oid(&[__ws_arg_36]).await.into_opt_dict();
             }  else {
                 let __ws_arg_37 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_delete_order_client_order_client_oid(&[__ws_arg_37]).await;
+                response = self.private_delete_order_client_order_client_oid(&[__ws_arg_37]).await.into_opt_dict();
             }
-            response = self.safe_dict_k(response.clone(), "data", &[]);
-            return self.parse_order(response.clone(), None);
+            response = self.safe_dict_k(&response, "data", &[]).into_opt_dict();
+            return self.parse_order(&response, None);
         }  else {
             request.insert("orderId".into(), id);
             if trigger {
                 if isMarginOrder {
                     let __ws_arg_38 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                    response = self.private_delete_hf_margin_stop_order_cancel_by_id(&[__ws_arg_38]).await;
+                    response = self.private_delete_hf_margin_stop_order_cancel_by_id(&[__ws_arg_38]).await.into_opt_dict();
                 }  else {
                     //
                     //    {
@@ -7607,17 +7607,17 @@ impl Kucoin {
                     //    }
                     //
                     let __ws_arg_39 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                    response = self.private_delete_stop_order_order_id(&[__ws_arg_39]).await;
+                    response = self.private_delete_stop_order_order_id(&[__ws_arg_39]).await.into_opt_dict();
                 }
             }  else if isMarginOrder {
                 let __ws_arg_40 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_delete_hf_margin_orders_order_id(&[__ws_arg_40]).await;
+                response = self.private_delete_hf_margin_orders_order_id(&[__ws_arg_40]).await.into_opt_dict();
             }  else if useSync {
                 let __ws_arg_41 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_delete_hf_orders_sync_order_id(&[__ws_arg_41]).await;
+                response = self.private_delete_hf_orders_sync_order_id(&[__ws_arg_41]).await.into_opt_dict();
             }  else if (hf == Some(true)) {
                 let __ws_arg_42 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_delete_hf_orders_order_id(&[__ws_arg_42]).await;
+                response = self.private_delete_hf_orders_order_id(&[__ws_arg_42]).await.into_opt_dict();
                 //
                 //    {
                 //        "code": "200000",
@@ -7626,16 +7626,16 @@ impl Kucoin {
                 //        }
                 //    }
                 //
-                response = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+                response = self.safe_dict_k(&response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                return self.parse_order(response.clone(), None);
+})]).into_opt_dict();
+                return self.parse_order(&response, None);
             }  else {
                 let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.private_delete_orders_order_id(&[__ws_arg_43]).await;
+                response = self.private_delete_orders_order_id(&[__ws_arg_43]).await.into_opt_dict();
             }
-            let mut data: Option<crate::value::Dict> = self.safe_dict_k(response, "data", &[]).into_opt_dict();
+            let mut data: Option<crate::value::Dict> = self.safe_dict_k(&response, "data", &[]).into_opt_dict();
             let mut orderId: Value = self.safe_string_k(&data, "orderId", &[]);
             let mut orderIds: crate::value::List = self.safe_list_k(&data, "cancelledOrderIds", &[Value::from(vec![])]).into_list();
             orderId = self.safe_string(&orderIds, Value::Int(0), &[orderId.clone()]);
@@ -12652,10 +12652,10 @@ if _try_result.is_err() {
         //         "interestFreeBorrowLimit": "0.60000000000000000000"
         //     }
         //
-        let mut timestampId: Option<String> = self.safe_string2_opt(info.clone(), Value::Str("createdAt".into()), Value::Str("timestamp".into()), &[]);
+        let mut timestampId: Option<String> = self.safe_string2(info.clone(), Value::Str("createdAt".into()), Value::Str("timestamp".into()), &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = None;
         if (timestampId.is_some()) {
-            timestamp = self.parse_to_int(timestampId.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(13); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
+            timestamp = self.parse_to_int((if let Some(__s) = timestampId.as_deref() { Value::from(__s.chars().skip(0).take(13).collect::<String>()) } else { Value::Null }));
         }
         let mut currencyId: Option<String> = self.safe_string_k(info.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut rate: Option<String> = self.safe_string_n(info.clone(), Value::from(vec![Value::Str("dailyIntRate".into()), Value::Str("dayRatio".into()), Value::Str("currentRateDaily".into())]), &[]).as_str().map(str::to_owned);
@@ -13884,12 +13884,12 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_904: bool = true;
             while { if !__for_first_904 { i += 1; } __for_first_904 = false; i < (data.len() as i64) } {
-            let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut marketId: Option<String> = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
             // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
             let mut isFundingIndex: bool = (marketId.is_some()) && (marketId.as_deref().unwrap_or_default().starts_with("."));
             if !isFundingIndex {
-                rates.push(entry);
+                rates.push(Value::Dict(entry));
             }
         }
         }
@@ -14023,7 +14023,7 @@ if _try_result.is_err() {
         if (until.is_none()) {
             end = Some(self.milliseconds());
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut resultKey: String = "data".to_string();
         if utaOption {
             request.insert("startAt".into(), start.clone());
@@ -14045,9 +14045,9 @@ if _try_result.is_err() {
             let __ws_arg_132 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             let mut utaResponse: crate::value::Dict = self.uta_get_market_funding_rate_history(&[__ws_arg_132]).await.into_dict();
             response = self.safe_dict_k(&utaResponse, "data", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).into_opt_dict();
             resultKey = "list".to_string();
         }  else {
             request.insert("from".into(), start);
@@ -14065,9 +14065,9 @@ if _try_result.is_err() {
             //     }
             //
             let __ws_arg_133 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.futures_public_get_contract_funding_rates(&[__ws_arg_133]).await;
+            response = self.futures_public_get_contract_funding_rates(&[__ws_arg_133]).await.into_opt_dict();
         }
-        let mut result: crate::value::List = self.safe_list(response, Value::from(resultKey), &[Value::from(vec![])]).into_list();
+        let mut result: crate::value::List = self.safe_list(&response, Value::from(resultKey), &[Value::from(vec![])]).into_list();
         return self.parse_funding_rate_histories(&result, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -15384,15 +15384,15 @@ if _try_result.is_err() {
         if (marginMode.is_some()) {
             request.insert("marginMode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if testOrder {
             let __ws_arg_149 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.futures_private_post_orders_test(&[__ws_arg_149]).await;
+            response = self.futures_private_post_orders_test(&[__ws_arg_149]).await.into_opt_dict();
         }  else {
             let __ws_arg_150 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.futures_private_post_orders(&[__ws_arg_150]).await;
+            response = self.futures_private_post_orders(&[__ws_arg_150]).await.into_opt_dict();
         }
-        return self.parse_order(response, Some(&market));
+        return self.parse_order(&response, Some(&market));
         Value::Null
         }).await?))
     }

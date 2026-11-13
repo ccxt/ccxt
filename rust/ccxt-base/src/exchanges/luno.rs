@@ -1210,16 +1210,16 @@ impl Luno {
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (limit != Value::Null) && limit.as_f64().unwrap_or(f64::NAN) <= ((100i64) as f64) {
             let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.public_get_orderbook_top(&[__ws_arg_2]).await;
+            response = self.public_get_orderbook_top(&[__ws_arg_2]).await.into_opt_dict();
         }  else {
             let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-            response = self.public_get_orderbook(&[__ws_arg_3]).await;
+            response = self.public_get_orderbook(&[__ws_arg_3]).await.into_opt_dict();
         }
-        let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "timestamp", &[]).as_i64();
-        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into())]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
+        return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into())]);
         Value::Null
         }).await?))
     }

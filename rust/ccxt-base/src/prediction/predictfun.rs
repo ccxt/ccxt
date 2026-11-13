@@ -566,14 +566,14 @@ impl Predictfun {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut events: Value = crate::types::IntoRaw::into_raw(self.fetch_events(params).await);
+        let mut events: Vec<crate::types::PredictionEvent> = (match self.fetch_events(params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut eventsLength: f64 = ((events.len() as i64) as f64);
         let mut markets: Vec<Value> = Vec::new();
         {
                         let mut ei: i64 = 0;
             let mut __for_first_1457: bool = true;
             while { if !__for_first_1457 { ei += 1; } __for_first_1457 = false; (ei as f64) < eventsLength } {
-            let mut eventMarkets: crate::value::List = self.safe_list_k(events.as_array().map(Vec::as_slice).unwrap_or_default().get(ei as usize).cloned().unwrap_or(Value::Null), "markets", &[Value::from(vec![])]).into_list();
+            let mut eventMarkets: crate::value::List = self.safe_list_k(events.get(ei as usize).map(crate::Value::from).unwrap_or_default(), "markets", &[Value::from(vec![])]).into_list();
             let mut eventMarketsLength: f64 = ((eventMarkets.len() as i64) as f64);
             {
                                 let mut mi: i64 = 0;

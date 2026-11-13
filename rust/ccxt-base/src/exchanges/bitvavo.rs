@@ -2424,11 +2424,11 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let codGroupIdparamsCodGroupIdVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("cancelAllOrdersAfter".into()), Value::Str("codGroupId".into()), &[Value::Int(1)]).as_array().cloned().unwrap_or_default();
-        let mut codGroupId: Value = codGroupIdparamsCodGroupIdVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut codGroupId: Option<i64> = codGroupIdparamsCodGroupIdVariable.get(0).and_then(Value::as_i64);
         let mut paramsCodGroupId: crate::value::Dict = codGroupIdparamsCodGroupIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("codGroupId".to_string(), codGroupId);
+                m.insert("codGroupId".to_string(), Value::from(codGroupId));
                 m.insert("expiryAfterSeconds".to_string(), (if (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { Value::from(self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))) } else { Value::Int(0) }));
             m
         });

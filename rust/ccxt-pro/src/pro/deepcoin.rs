@@ -792,12 +792,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("trades".into()), Value::Str("::".into())).into()), Value::from((market).symbol.as_str()));
-        let mut trades: Value = self.watch_public(Some(&market), messageHash.as_str(), "2", &[params]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_public(Some(&market), messageHash.as_str(), "2", &[params]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1012,12 +1012,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut interval: Option<String> = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv".into()), Value::Str("::".into())).into()), symbolValue).into()), Value::Str("::".into())).into()), timeframe);
         let mut suffix: String = format!("{}{}", Value::Str("_".into()), interval.map(Value::from).unwrap_or(Value::Null));
-        let mut ohlcv: Value = self.watch_public(Some(&market), messageHash.as_str(), "11", &[params, Value::from(suffix)]).await;
+        let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch_public(Some(&market), messageHash.as_str(), "11", &[params, Value::from(suffix)]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1160,7 +1160,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let suffixparamsValueVariable: Vec<Value> = self.order_book_suffix(Some(&market), Value::Str("watchOrderBook".into()), &[params]).as_array().cloned().unwrap_or_default();
         let mut suffix: Option<String> = suffixparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsValue: crate::value::Dict = suffixparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut orderbook: Value = self.watch_public(Some(&market), messageHash.as_str(), "25", &[Value::Dict(paramsValue), suffix.map(Value::from).unwrap_or(Value::Null)]).await;
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch_public(Some(&market), messageHash.as_str(), "25", &[Value::Dict(paramsValue), suffix.map(Value::from).unwrap_or(Value::Null)]).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1437,12 +1437,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             symbolResolved = Some(self.symbol(symbol.clone()));
             messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str("::".into())).into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())), Value::Str("symbol".into()), &[Value::Str("".into())]));
         }
-        let mut trades: Value = self.watch_private(messageHash.as_str(), &[params]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_private(messageHash.as_str(), &[params]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(&trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1541,12 +1541,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             symbolResolved = Some(self.symbol(symbol.clone()));
             messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str("::".into())).into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())), Value::Str("symbol".into()), &[Value::Str("".into())]));
         }
-        let mut orders: Value = self.watch_private(messageHash.as_str(), &[params]).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.watch_private(messageHash.as_str(), &[params]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1727,9 +1727,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             messageHashes.push(Value::from(messageHash));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]), Value::Str("?listenKey=".into())).into()), listenKey.map(Value::from).unwrap_or(Value::Null));
-        let mut positions: Value = self.watch_multiple(url.as_str(), Value::from(messageHashes), params, Value::from(vec![Value::Str("private".into())]), Value::Null).await;
+        let mut positions: Option<crate::pro::cache::Cache> = self.watch_multiple(url.as_str(), Value::from(messageHashes), params, Value::from(vec![Value::Str("private".into())]), Value::Null).await.into();
         if self.newUpdates.as_bool() == Some(true) {
-            return positions;
+            return Value::from(&positions);
         }
         return self.filter_by_symbols_since_limit(&self.positions, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null

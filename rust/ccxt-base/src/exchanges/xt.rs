@@ -2249,9 +2249,9 @@ impl Xt {
         }
         let mut promisesUnresolved: Value = Value::from(vec![self.fetch_spot_markets(&[params.clone()]).await, self.fetch_swap_and_future_markets(&[params]).await]);
         let mut promises: Vec<Value> = promise_all(&promisesUnresolved).await.as_array().cloned().unwrap_or_default();
-        let mut spotMarkets: Value = promises.get(0).cloned().unwrap_or(Value::Null);
-        let mut swapAndFutureMarkets: Value = promises.get(1).cloned().unwrap_or(Value::Null);
-        return self.array_concat(spotMarkets, swapAndFutureMarkets);
+        let mut spotMarkets: crate::value::List = promises.get(0).cloned().unwrap_or(Value::Null).into_list();
+        let mut swapAndFutureMarkets: crate::value::List = promises.get(1).cloned().unwrap_or(Value::Null).into_list();
+        return self.array_concat(&spotMarkets, &swapAndFutureMarkets);
         Value::Null
         }).await?))
     }
@@ -4221,7 +4221,7 @@ impl Xt {
             if reduceOnly {
                 requestType = "SHORT".to_string();
             }
-            request.insert("positionSide".into(), Value::from(requestType.clone()));
+            request.insert("positionSide".into(), Value::from(requestType));
         }  else {
             let mut requestType: String = "SHORT".to_string();
             if reduceOnly {
@@ -6445,15 +6445,15 @@ impl Xt {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("modifyMarginHelper".into()), Some(&market), &[params]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("inverse")) {
             let __ws_arg_85 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
-            response = self.private_inverse_post_future_user_v1_position_margin(&[__ws_arg_85]).await;
+            response = self.private_inverse_post_future_user_v1_position_margin(&[__ws_arg_85]).await.into_opt_dict();
         }  else {
             let __ws_arg_86 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.private_linear_post_future_user_v1_position_margin(&[__ws_arg_86]).await;
+            response = self.private_linear_post_future_user_v1_position_margin(&[__ws_arg_86]).await.into_opt_dict();
         }
-        return self.parse_margin_modification(response, Some(&market));
+        return self.parse_margin_modification(&response, Some(&market));
 
     Value::Null
 }
@@ -7324,12 +7324,12 @@ impl Xt {
                         let mut i: i64 = 0;
             let mut __for_first_1197: bool = true;
             while { if !__for_first_1197 { i += 1; } __for_first_1197 = false; i < (breakList.len() as i64) } {
-            let mut breakEntry: Value = breakList.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut breakEntry: crate::value::Dict = breakList.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            breakBySymbolSide.insert(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(breakEntry.clone(), "symbol", &[Value::Str("".into())]), Value::Str("_".into())).into()), self.safe_string_k(breakEntry.clone(), "positionSide", &[Value::Str("".into())])), breakEntry);
+            breakBySymbolSide.insert(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&breakEntry, "symbol", &[Value::Str("".into())]), Value::Str("_".into())).into()), self.safe_string_k(&breakEntry, "positionSide", &[Value::Str("".into())])), Value::from(&breakEntry));
         }
         }
         return Value::Map(breakBySymbolSide);

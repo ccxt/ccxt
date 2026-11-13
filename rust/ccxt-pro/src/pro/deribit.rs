@@ -1124,7 +1124,7 @@ impl Deribit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
+        let mut channel: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut descriptor: String = "".to_string();
         let mut partsLength: i64 = parts.len() as i64;

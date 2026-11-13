@@ -4488,22 +4488,22 @@ impl Bitstamp {
                 m.insert("currency".to_string(), self.safe_string_upper_k(&currency, "id", &[]));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (fromAccount.as_str() == Some("main")) {
             request.insert("subAccount".into(), toAccount.clone());
             let __ws_arg_27 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_post_transfer_from_main(&[__ws_arg_27]).await;
+            response = self.private_post_transfer_from_main(&[__ws_arg_27]).await.into_opt_dict();
         }  else if (toAccount.as_str() == Some("main")) {
             request.insert("subAccount".into(), fromAccount.clone());
             let __ws_arg_28 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_transfer_to_main(&[__ws_arg_28]).await;
+            response = self.private_post_transfer_to_main(&[__ws_arg_28]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" transfer() only supports from or to main".into()))));
         }
         //
         //    { status: 'ok' }
         //
-        let mut transfer: Value = self.parse_transfer(response, Some(&currency));
+        let mut transfer: Value = self.parse_transfer(&response, Some(&currency));
         if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("amount".into(), amount); }
         if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("fromAccount".into(), fromAccount); }
         if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("toAccount".into(), toAccount); }

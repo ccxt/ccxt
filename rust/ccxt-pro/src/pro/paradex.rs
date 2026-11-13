@@ -3899,7 +3899,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut data: Option<crate::value::Dict> = __pro_message.get("params").cloned().unwrap_or_default().into_opt_dict();
         if (data.is_some()) {
-            let mut channel: Option<String> = self.safe_string_k_opt(&data, "channel", &[]);
+            let mut channel: Option<String> = self.safe_string_k(&data, "channel", &[]).as_str().map(str::to_owned);
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut name: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut methods: indexmap::IndexMap<String, Value> = ({

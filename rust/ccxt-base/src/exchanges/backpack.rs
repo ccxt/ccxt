@@ -2945,16 +2945,16 @@ impl Backpack {
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); // api maximum 1000
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         let mut offset: Option<i64> = self.safe_integer_k(&query, "offset", &[]).as_i64();
         if (offset.is_some()) {
             let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[&query]);
-            response = self.public_get_api_v1_trades_history(&[__ws_arg_10]).await;
+            response = self.public_get_api_v1_trades_history(&[__ws_arg_10]).await.into_opt_list();
         }  else {
             let __ws_arg_11 = self.extend(Value::Map(request), &[&query]);
-            response = self.public_get_api_v1_trades(&[__ws_arg_11]).await;
+            response = self.public_get_api_v1_trades(&[__ws_arg_11]).await.into_opt_list();
         }
-        let mut responseList: Value = self.to_array(response);
+        let mut responseList: Value = self.to_array(&response);
         return self.parse_trades(responseList, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -3379,10 +3379,10 @@ impl Backpack {
             request.insert("limit".into(), limit.clone()); // default 100, max 1000
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchDeposits".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut until: Option<i64> = untilparamsUntilVariable.get(0).and_then(Value::as_i64);
         let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (until != Value::Null) {
-            request.insert("endTime".into(), until);
+        if (until.is_some()) {
+            request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::List = self.private_get_wapi_v1_capital_deposits(&[__ws_arg_15]).await.into_list();
@@ -3434,10 +3434,10 @@ impl Backpack {
             request.insert("limit".into(), limit.clone());
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchWithdrawals".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut until: Option<i64> = untilparamsUntilVariable.get(0).and_then(Value::as_i64);
         let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (until != Value::Null) {
-            request.insert("to".into(), until);
+        if (until.is_some()) {
+            request.insert("to".into(), Value::from(until));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::List = self.private_get_wapi_v1_capital_withdrawals(&[__ws_arg_16]).await.into_list();

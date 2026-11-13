@@ -850,8 +850,8 @@ impl Toobit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolValue: Value = Value::from(self.symbol(symbol.clone()));
-        let mut tickers: Value = crate::types::IntoRaw::into_raw(self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await);
-        return (if let (Some(__m), Some(__k)) = (tickers.as_map(), symbolValue.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut tickers: crate::types::Tickers = (match self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return crate::value::KeyRead::read(&&tickers, &symbolValue);
         Value::Null
         }).await?))
     }
@@ -1329,13 +1329,13 @@ impl Toobit {
                         let mut i: i64 = 0;
             let mut __for_first_673: bool = true;
             while { if !__for_first_673 { i += 1; } __for_first_673 = false; i < (data.len() as i64) } {
-            let mut balance: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "a", &[]).as_str().map(str::to_owned);
+            let mut balance: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&balance, "a", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("info".into(), balance.clone());
-            account.insert("used".into(), self.safe_string_k(balance.clone(), "l", &[]));
-            account.insert("free".into(), self.safe_string_k(balance.clone(), "f", &[]));
+            account.insert("info".into(), Value::from(&balance));
+            account.insert("used".into(), self.safe_string_k(&balance, "l", &[]));
+            account.insert("free".into(), self.safe_string_k(&balance, "f", &[]));
             if (code != Value::Null) {
                 if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&type_var)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); } }
             }
@@ -1704,14 +1704,14 @@ impl Toobit {
                 m.insert("type".to_string(), type_var.clone());
             m
         });
-        let mut positions: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None, Value::Map(params)).await);
+        let mut positions: Vec<crate::types::Position> = (match self.fetch_positions(None, Value::Map(params)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         CacheStore::put(&mut self.positionsByType, &type_var, ArrayCacheBySymbolBySide::new(Value::Null));
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.at(&type_var);
         {
                         let mut i: i64 = 0;
             let mut __for_first_674: bool = true;
             while { if !__for_first_674 { i += 1; } __for_first_674 = false; i < (positions.len() as i64) } {
-            let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut position: Value = positions.get(i as usize).map(crate::Value::from).unwrap_or_default();
             cache.append(position);
         }
         }

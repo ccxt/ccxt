@@ -597,7 +597,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
 }
 
     fn safe_outcome(&self, mut outcomeIdOrSymbol: Value, optional_args: &[Value]) -> Value {
-        let mut outcomeObj = get_arg(optional_args, 0, Value::Null);
+        let mut market = get_arg(optional_args, 0, Value::Null);
         if (outcomeIdOrSymbol != Value::Null) {
             if (self.pred().outcomes.clone() != Value::Null) && (matches!((&self.pred().outcomes, &outcomeIdOrSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return self.safe_value(self.pred().outcomes.clone(), outcomeIdOrSymbol.clone(), &[]);
@@ -606,8 +606,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 return self.safe_value(self.pred().outcomes_by_id.clone(), outcomeIdOrSymbol.clone(), &[]);
             }
         }
-        if (outcomeObj != Value::Null) {
-            return outcomeObj;
+        if (market != Value::Null) {
+            return market;
         }
         // stub for an unknown handle; it only carries the identity keys, not the market fields
         let mut outcomeObjValue: indexmap::IndexMap<String, Value> = ({
@@ -630,7 +630,12 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
 
     fn safe_outcome_symbol(&self, mut outcomeIdOrSymbol: Value, optional_args: &[Value]) -> Value {
         let mut outcomeObj = get_arg(optional_args, 0, Value::Null);
-        let mut outcomeObjValue: crate::value::Dict = self.safe_outcome(outcomeIdOrSymbol, &[outcomeObj]).into_dict();
+        // outcomeObj may be any outcome-shaped dict, not only a market: read it here instead of
+        // handing it to safeOutcome (whose fallback slot is a Market)
+        if !(self.has_outcome(outcomeIdOrSymbol.clone()).as_bool() == Some(true)) && (outcomeObj != Value::Null) {
+            return self.safe_string_k(outcomeObj, "outcome", &[]);
+        }
+        let mut outcomeObjValue: crate::value::Dict = self.safe_outcome(outcomeIdOrSymbol, &[]).into_dict();
         return crate::value::KeyRead::key_read(&&outcomeObjValue, "outcome");
 
     Value::Null

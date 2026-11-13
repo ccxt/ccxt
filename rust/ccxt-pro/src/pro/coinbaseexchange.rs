@@ -522,12 +522,12 @@ impl Coinbaseexchange {
         }
         let mut symbolValue: String = self.symbol(symbol.clone());
         let mut name: String = "matches".to_string();
-        let mut trades: Value = self.subscribe(name.as_str(), Some(symbolValue.as_str()), Some(name.as_str()), &[params]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe(name.as_str(), Some(symbolValue.as_str()), Some(name.as_str()), &[params]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -564,14 +564,14 @@ impl Coinbaseexchange {
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut name: String = "matches".to_string();
-        let mut trades: Value = self.subscribe_multiple(name.clone().as_str(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::from(name), params]).await;
-        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_multiple(name.clone().as_str(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::from(name), params]).await.into();
+        let mut first: crate::value::Dict = self.safe_dict(Value::from(&trades), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -610,12 +610,12 @@ impl Coinbaseexchange {
         let mut messageHash: String = "myTrades".to_string();
         let mut authentication: crate::value::Dict = self.authenticate().into_dict();
         let __ws_arg_0 = self.extend(params, &[&authentication]);
-        let mut trades: Value = self.subscribe(name.as_str(), Some(symbolValue.as_str()), Some(messageHash.as_str()), &[__ws_arg_0]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe(name.as_str(), Some(symbolValue.as_str()), Some(messageHash.as_str()), &[__ws_arg_0]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -651,14 +651,14 @@ impl Coinbaseexchange {
         let mut messageHash: String = "myTrades".to_string();
         let mut authentication: crate::value::Dict = self.authenticate().into_dict();
         let __ws_arg_1 = self.extend(params, &[&authentication]);
-        let mut trades: Value = self.subscribe_multiple(name.as_str(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::from(messageHash), __ws_arg_1]).await;
-        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_multiple(name.as_str(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::from(messageHash), __ws_arg_1]).await.into();
+        let mut first: crate::value::Dict = self.safe_dict(Value::from(&trades), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -694,14 +694,14 @@ impl Coinbaseexchange {
         let mut messageHash: String = "orders".to_string();
         let mut authentication: crate::value::Dict = self.authenticate().into_dict();
         let __ws_arg_2 = self.extend(params, &[&authentication]);
-        let mut orders: Value = self.subscribe_multiple(name.as_str(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::from(messageHash), __ws_arg_2]).await;
-        let mut first: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(0), &[]).into_dict();
+        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_multiple(name.as_str(), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::from(messageHash), __ws_arg_2]).await.into();
+        let mut first: crate::value::Dict = self.safe_dict(Value::from(&orders), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -740,12 +740,12 @@ impl Coinbaseexchange {
         let mut messageHash: String = "orders".to_string();
         let mut authentication: crate::value::Dict = self.authenticate().into_dict();
         let __ws_arg_3 = self.extend(params, &[&authentication]);
-        let mut orders: Value = self.subscribe(name.as_str(), Some(symbolValue.as_str()), Some(messageHash.as_str()), &[__ws_arg_3]).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe(name.as_str(), Some(symbolValue.as_str()), Some(messageHash.as_str()), &[__ws_arg_3]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

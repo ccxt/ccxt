@@ -831,10 +831,8 @@ impl Delta {
         let mut baseIndex: i64 = (if hasSlash { 0 } else { 1 });
         let mut base: String = self.safe_string(partSource, Value::from(baseIndex), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut optionType: String = self.safe_string(optionParts.clone(), (if hasSlash { Value::Int(3) } else { Value::Int(0) }), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut rawExpiry: Value = self.safe_string(optionParts.clone(), (if hasSlash { Value::Int(1) } else { Value::Int(3) }), &[Value::Str("".into())]);
-        let mut expiry: String = format!("{}{}", Value::Str(format!("{}{}", rawExpiry.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
-            rawExpiry.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()),
-            rawExpiry.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
+        let mut rawExpiry: String = self.safe_string(optionParts.clone(), (if hasSlash { Value::Int(1) } else { Value::Int(3) }), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut expiry: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(rawExpiry.chars().skip(4).collect::<String>()), Value::from(rawExpiry.chars().skip(2).take(2).collect::<String>())).into()), Value::from(rawExpiry.chars().skip(0).take(2).collect::<String>()));
         let mut settle: String = quote.clone();
         let mut strike: String = self.safe_string(optionParts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut datetime: Option<String> = self.convert_expire_date(Value::from(expiry.clone())).as_str().map(str::to_owned);

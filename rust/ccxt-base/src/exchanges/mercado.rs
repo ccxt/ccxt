@@ -888,18 +888,18 @@ impl Mercado {
             request.insert("from".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let mut to: Option<i64> = self.safe_integer_k(params.clone(), "to", &[]).as_i64();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (since != Value::Null) && (to.is_some()) {
             let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.public_get_coin_trades_from_to(&[__ws_arg_2]).await;
+            response = self.public_get_coin_trades_from_to(&[__ws_arg_2]).await.into_opt_list();
         }  else if (since != Value::Null) {
             let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.public_get_coin_trades_from(&[__ws_arg_3]).await;
+            response = self.public_get_coin_trades_from(&[__ws_arg_3]).await.into_opt_list();
         }  else {
             let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-            response = self.public_get_coin_trades(&[__ws_arg_4]).await;
+            response = self.public_get_coin_trades(&[__ws_arg_4]).await.into_opt_list();
         }
-        return self.parse_trades(response, Some(&market), &[since, limit]);
+        return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }

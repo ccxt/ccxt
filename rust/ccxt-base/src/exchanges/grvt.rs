@@ -2824,18 +2824,18 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_723: bool = true;
             while { if !__for_first_723 { i += 1; } __for_first_723 = false; i < (transfers.len() as i64) } {
-            let mut transfer: Value = transfers.get(i as usize).cloned().unwrap_or(Value::Null);
-            if (onlyMainAccount && (self.safe_string_k(transfer.clone(), "fromAccount", &[]).as_str() == Some("0")) && (self.safe_string_k(transfer.clone(), "toAccount", &[]).as_str() == Some("0"))) || (!onlyMainAccount && ((self.safe_string_k(transfer.clone(), "fromAccount", &[]).as_str() != Some("0")) || (self.safe_string_k(transfer.clone(), "toAccount", &[]).as_str() != Some("0")))) {
-                let mut metadata: Option<String> = self.safe_string(self.safe_dict_k(transfer.clone(), "info", &[Value::Map({
+            let mut transfer: crate::value::Dict = transfers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            if (onlyMainAccount && (self.safe_string_k(&transfer, "fromAccount", &[]).as_str() == Some("0")) && (self.safe_string_k(&transfer, "toAccount", &[]).as_str() == Some("0"))) || (!onlyMainAccount && ((self.safe_string_k(&transfer, "fromAccount", &[]).as_str() != Some("0")) || (self.safe_string_k(&transfer, "toAccount", &[]).as_str() != Some("0")))) {
+                let mut metadata: Option<String> = self.safe_string(self.safe_dict_k(&transfer, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("transfer_metadata".into()), &[]).as_str().map(str::to_owned);
                 let mut parsedMetadata: Value = self.parse_json_value(metadata.map(Value::from).unwrap_or(Value::Null));
                 let mut direction: Option<String> = self.safe_string_k(parsedMetadata, "direction", &[]).as_str().map(str::to_owned);
                 if (direction.as_deref() == Some(transferType.as_str().unwrap_or_default().to_string().as_str())) {
-                    matchedResults.push(transfer.clone());
+                    matchedResults.push(Value::from(&transfer));
                 }  else {
-                    nonMatchedResults.push(transfer);
+                    nonMatchedResults.push(Value::Dict(transfer));
                 }
             }
         }
@@ -3033,7 +3033,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut mainAccountId: Option<String> = self.safe_string_k_opt(&result1, "main_account_id", &[]);
+        let mut mainAccountId: Option<String> = self.safe_string_k(&result1, "main_account_id", &[]).as_str().map(str::to_owned);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("userMainAccountId".into(), mainAccountId.map(Value::from).unwrap_or(Value::Null)); }
         if accountIsUndefined {
             let mut subAccountIds: crate::value::List = self.safe_list_k(responses.get(1).cloned().unwrap_or(Value::Null), "sub_account_ids", &[Value::from(vec![])]).into_list();
@@ -3044,7 +3044,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             if length > 1 {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: ".into())).into()), json_stringify(&Value::Arr(subAccountIds.clone())))));
             }
-            let mut subAccountId: Option<String> = self.safe_string_opt(&subAccountIds, Value::Int(0), &[]);
+            let mut subAccountId: Option<String> = self.safe_string(&subAccountIds, Value::Int(0), &[]).as_str().map(str::to_owned);
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("accountId".into(), subAccountId.map(Value::from).unwrap_or(Value::Null)); }
         }
         return Value::Bool(true);
@@ -4849,7 +4849,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 
     pub fn handle_errors(&mut self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (url.as_str().unwrap_or("").ends_with("auth/api_key/login")) || (url.as_str().unwrap_or("").ends_with("auth/wallet/login")) {
-            let mut accountId: Option<String> = self.safe_string2_opt(headers.clone(), Value::Str("X-Grvt-Account-Id".into()), Value::Str("x-grvt-account-id".into()), &[]);
+            let mut accountId: Option<String> = self.safe_string2(headers.clone(), Value::Str("X-Grvt-Account-Id".into()), Value::Str("x-grvt-account-id".into()), &[]).as_str().map(str::to_owned);
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("AuthAccountId".into(), accountId.map(Value::from).unwrap_or(Value::Null)); }
             let mut cookie: Option<String> = self.safe_string2_opt(headers, Value::Str("Set-Cookie".into()), Value::Str("set-cookie".into()), &[]);
             if (cookie.is_some()) {

@@ -572,9 +572,9 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_1492: bool = true;
             while { if !__for_first_1492 { i += 1; } __for_first_1492 = false; (i as f64) < rawMarketsLength } {
-            let mut raw: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
-            if (self.safe_string_k(raw.clone(), "sportXeventId", &[]).as_str() == sportXeventId.as_str()) {
-                result.push(raw);
+            let mut raw: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            if (self.safe_string_k(&raw, "sportXeventId", &[]).as_str() == sportXeventId.as_str()) {
+                result.push(Value::Dict(raw));
             }
         }
         }
@@ -2935,10 +2935,10 @@ impl Sxbet {
                                 let mut j: i64 = 0;
                 let mut __for_first_1518: bool = true;
                 while { if !__for_first_1518 { j += 1; } __for_first_1518 = false; (j as f64) < rowsLength } {
-                let mut row: Value = rows.get(j as usize).cloned().unwrap_or(Value::Null);
-                let mut rowHash: Option<String> = self.safe_string_k(row.clone(), "marketHash", &[]).as_str().map(str::to_owned);
+                let mut row: crate::value::Dict = rows.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut rowHash: Option<String> = self.safe_string_k(&row, "marketHash", &[]).as_str().map(str::to_owned);
                 if (rowHash.is_some()) {
-                    rowsByHash.insert(rowHash.as_deref().unwrap_or("null").to_string(), row);
+                    rowsByHash.insert(rowHash.as_deref().unwrap_or("null").to_string(), Value::Dict(row));
                 }
             }
             }
@@ -3007,8 +3007,7 @@ impl Sxbet {
         //         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
         //     }
         //
-        let mut marketAny: Value = crate::Value::from(market);
-        let mut outcomeObj: crate::value::Dict = self.safe_outcome(self.safe_string_k(marketAny.clone(), "outcome", &[]), &[marketAny]).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(self.safe_string_k(&market, "outcome", &[]), &[crate::Value::from(market)]).into_dict();
         let mut outcomeId: Option<String> = self.safe_string_k(&outcomeObj, "outcomeId", &[]).as_str().map(str::to_owned);
         let mut marketHash: Option<String> = self.safe_string_k(raw.clone(), "marketHash", &[]).as_str().map(str::to_owned);
         let mut isOutcomeOne: bool = outcomeId == marketHash;

@@ -1635,7 +1635,7 @@ impl Derive {
         let mut maxPages: Value = maxPagesparamsMaxPagesVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMaxPages: crate::value::Dict = maxPagesparamsMaxPagesVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let pageSizeparamsOmittedVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsMaxPages, Value::Str("getMarketsPaginated".into()), Value::Str("maxMarketsPerPage".into()), &[Value::Int(1000)]).as_array().cloned().unwrap_or_default();
-        let mut pageSize: Value = pageSizeparamsOmittedVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut pageSize: Option<i64> = pageSizeparamsOmittedVariable.get(0).and_then(Value::as_i64);
         let mut paramsOmitted: crate::value::Dict = pageSizeparamsOmittedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         {
                         let mut i: Value = Value::Int(0);
@@ -1645,7 +1645,7 @@ impl Derive {
             let mut requestExtension: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("page".to_string(), page);
-                    m.insert("page_size".to_string(), pageSize.clone());
+                    m.insert("page_size".to_string(), Value::from(pageSize));
                 m
             });
             let __ws_arg_1 = self.extend(request.clone(), &[Value::Map(requestExtension)]);
@@ -5872,12 +5872,12 @@ impl Derive {
         let mut paramsSubaccountId: Value = derivesubAccountIdparamsSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
         if (derivesubAccountId != Value::Null) && (derivesubAccountId.as_str() != Some("")) {
             // the venue rejects a string subaccount_id ("expected i64"), so coerce early
-            let mut subaccountIdInt: Value = Value::from(self.parse_to_int(derivesubAccountId));
+            let mut subaccountIdInt: Option<i64> = self.parse_to_int(derivesubAccountId);
             if !(matches!(&self.options, Value::Dict(__d) if __d.contains_key("subaccount_id"))) {
                 // remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
-                if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("subaccount_id".into(), subaccountIdInt.clone()); }
+                if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("subaccount_id".into(), Value::from(subaccountIdInt)); }
             }
-            return Value::from(vec![subaccountIdInt, self.extend(paramsSubaccountId.clone(), &[])]);
+            return Value::from(vec![Value::from(subaccountIdInt), self.extend(paramsSubaccountId.clone(), &[])]);
         }
         let mut optionsWallet: Option<i64> = self.safe_integer_k(self.options.clone(), "subaccount_id", &[]).as_i64();
         if (optionsWallet.is_some()) {

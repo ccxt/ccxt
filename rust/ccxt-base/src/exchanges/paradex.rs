@@ -2652,14 +2652,14 @@ impl Paradex {
         }
         let mut account: Value = self.retrieve_account().await;
         // https://docs.paradex.trade/api-reference/general-information/authentication
-        let mut expires: Value = Value::from((if let Some(__l) = now { Some(__l + 180) } else { None }));
+        let mut expires: Option<i64> = (if let Some(__l) = now { Some(__l + 180) } else { None });
         let mut req: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("POST".into()));
                 m.insert("path".to_string(), Value::Str("/v1/auth".into()));
                 m.insert("body".to_string(), Value::Str("".into()));
                 m.insert("timestamp".to_string(), Value::from(now));
-                m.insert("expiration".to_string(), expires.clone());
+                m.insert("expiration".to_string(), Value::from(expires));
             m
         });
         let mut domain: crate::value::Dict = self.prepare_paradex_domain(&[]).await.into_dict();
@@ -2707,7 +2707,7 @@ impl Paradex {
         //
         let mut token: Value = self.safe_string_k(&response, "jwt_token", &[]);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("authToken".into(), token.clone()); }
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expires".into(), expires); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expires".into(), Value::from(expires)); }
         return token;
 
     Value::Null
@@ -3355,17 +3355,17 @@ impl Paradex {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_some()) {
             request.insert("client_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_delete_orders_by_client_id_client_id(&[__ws_arg_8]).await;
+            response = self.private_delete_orders_by_client_id_client_id(&[__ws_arg_8]).await.into_opt_dict();
         }  else {
             request.insert("order_id".into(), id);
             let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-            response = self.private_delete_orders_order_id(&[__ws_arg_9]).await;
+            response = self.private_delete_orders_order_id(&[__ws_arg_9]).await.into_opt_dict();
         }
-        return self.parse_order(response, None);
+        return self.parse_order(&response, None);
         Value::Null
         }).await?))
     }
@@ -3552,17 +3552,17 @@ impl Paradex {
         });
         let mut clientOrderId: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_some()) {
             request.insert("client_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_get_orders_by_client_id_client_id(&[__ws_arg_12]).await;
+            response = self.private_get_orders_by_client_id_client_id(&[__ws_arg_12]).await.into_opt_dict();
         }  else {
             request.insert("order_id".into(), id);
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_get_orders_order_id(&[__ws_arg_13]).await;
+            response = self.private_get_orders_order_id(&[__ws_arg_13]).await.into_opt_dict();
         }
-        return self.parse_order(response, None);
+        return self.parse_order(&response, None);
         Value::Null
         }).await?))
     }
@@ -4015,11 +4015,11 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1064: bool = true;
             while { if !__for_first_1064 { i += 1; } __for_first_1064 = false; i < (data.len() as i64) } {
-            let mut position: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut status: Option<String> = self.safe_string_k(position.clone(), "status", &[]).as_str().map(str::to_owned);
-            let mut size: Option<String> = self.safe_string_k(position.clone(), "size", &[]).as_str().map(str::to_owned);
+            let mut position: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut status: Option<String> = self.safe_string_k(&position, "status", &[]).as_str().map(str::to_owned);
+            let mut size: Option<String> = self.safe_string_k(&position, "size", &[]).as_str().map(str::to_owned);
             if (status.as_deref() != Some("CLOSED")) && !(crate::precise::Precise::stringEq(&size.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
-                openPositions.push(position);
+                openPositions.push(Value::Dict(position));
             }
         }
         }
@@ -4282,9 +4282,9 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1066: bool = true;
             while { if !__for_first_1066 { i += 1; } __for_first_1066 = false; i < (rows.len() as i64) } {
-            let mut row: Value = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if allKinds || (self.safe_string_k(row.clone(), "kind", &[]).as_str() == Some("DEPOSIT")) {
-                deposits.push(row);
+            let mut row: crate::value::Dict = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            if allKinds || (self.safe_string_k(&row, "kind", &[]).as_str() == Some("DEPOSIT")) {
+                deposits.push(Value::Dict(row));
             }
         }
         }
@@ -4390,9 +4390,9 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1068: bool = true;
             while { if !__for_first_1068 { i += 1; } __for_first_1068 = false; i < (rows.len() as i64) } {
-            let mut row: Value = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if allKinds || (self.safe_string_k(row.clone(), "kind", &[]).as_str() == Some("WITHDRAWAL")) {
-                deposits.push(row);
+            let mut row: crate::value::Dict = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            if allKinds || (self.safe_string_k(&row, "kind", &[]).as_str() == Some("WITHDRAWAL")) {
+                deposits.push(Value::Dict(row));
             }
         }
         }

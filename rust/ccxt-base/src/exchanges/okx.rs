@@ -4424,18 +4424,18 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1005: bool = true;
             while { if !__for_first_1005 { i += 1; } __for_first_1005 = false; i < (dataResponse.len() as i64) } {
-            let mut data: Value = dataResponse.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut instId: Option<String> = self.safe_string_k(data.clone(), "instId", &[Value::Str("".into())]).as_str().map(str::to_owned);
+            let mut data: crate::value::Dict = dataResponse.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut instId: Option<String> = self.safe_string_k(&data, "instId", &[Value::Str("".into())]).as_str().map(str::to_owned);
             if (instId.as_deref() == Some("")) {
                 continue;
             }
             if self.isSandboxModeEnabled.as_bool() == Some(true) {
-                let mut instFamily: String = self.safe_string_k(data.clone(), "instFamily", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut instFamily: String = self.safe_string_k(&data, "instFamily", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 if (instFamily.starts_with("TEST")) {
                     continue;
                 }
             }
-            marketsWithoutTest.push(data);
+            marketsWithoutTest.push(Value::Dict(data));
         }
         }
         return self.parse_markets(Value::from(marketsWithoutTest));

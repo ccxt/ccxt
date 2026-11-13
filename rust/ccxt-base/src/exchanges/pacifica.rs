@@ -1732,11 +1732,11 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1044: bool = true;
             while { if !__for_first_1044 { i += 1; } __for_first_1044 = false; (i as f64) < settingsLen } {
-            let mut setting: Value = settings.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: Option<String> = self.safe_string_k(setting.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut setting: crate::value::Dict = settings.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut marketId: Option<String> = self.safe_string_k(&setting, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-            settingsBySymbol.insert(crate::runtime::stringify_param(&symbol), setting);
+            settingsBySymbol.insert(crate::runtime::stringify_param(&symbol), Value::Dict(setting));
         }
         }
         return Value::Map(settingsBySymbol);
@@ -1859,12 +1859,12 @@ if _try_result.is_err() {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let aggLevelparamsAggLevelVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOrderBook".into()), Value::Str("aggLevel".into()), &[Value::Int(1)]).as_array().cloned().unwrap_or_default();
-        let mut aggLevel: Value = aggLevelparamsAggLevelVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut aggLevel: Option<i64> = aggLevelparamsAggLevelVariable.get(0).and_then(Value::as_i64);
         let mut paramsAggLevel: crate::value::Dict = aggLevelparamsAggLevelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("agg_level".to_string(), aggLevel);
+                m.insert("agg_level".to_string(), Value::from(aggLevel));
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsAggLevel]);
@@ -5054,12 +5054,12 @@ if _try_result.is_err() {
         let mut timestamp: Option<i64> = timestampparamsTimestampVariable.get(0).and_then(Value::as_i64);
         let mut paramsTimestamp: crate::value::Dict = timestampparamsTimestampVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let expiryWindowparamsExpiryWindowVariable: Vec<Value> = self.handle_option_integer_and_params2(&paramsTimestamp, Value::Str("createSubAccount".into()), Value::Str("expiryWindow".into()), Value::Str("expiry_window".into()), &[Value::Int(5000)]).as_array().cloned().unwrap_or_default();
-        let mut expiryWindow: Value = expiryWindowparamsExpiryWindowVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut expiryWindow: Option<i64> = expiryWindowparamsExpiryWindowVariable.get(0).and_then(Value::as_i64);
         let mut paramsExpiryWindow: crate::value::Dict = expiryWindowparamsExpiryWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subaccountSignatureHeader: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("expiry_window".to_string(), expiryWindow.clone());
+                m.insert("expiry_window".to_string(), Value::from(expiryWindow));
                 m.insert("type".to_string(), Value::Str("subaccount_initiate".into()));
             m
         });
@@ -5072,7 +5072,7 @@ if _try_result.is_err() {
         let mut mainSignatureHeader: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("expiry_window".to_string(), expiryWindow.clone());
+                m.insert("expiry_window".to_string(), Value::from(expiryWindow));
                 m.insert("type".to_string(), Value::Str("subaccount_confirm".into()));
             m
         });
@@ -5087,7 +5087,7 @@ if _try_result.is_err() {
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("sub_signature".into(), subaccountSignature); }
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("main_signature".into(), main_signature); }
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
-        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("expiry_window".into(), expiryWindow); }
+        if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("expiry_window".into(), Value::from(expiryWindow)); }
         let mut request: Value = finalHeaders;
         let __ws_arg_34 = self.extend(request, &[&paramsExpiryWindow]);
         let mut response: Value = self.private_post_account_subaccount_create(&[__ws_arg_34]).await;
@@ -5491,13 +5491,13 @@ if _try_result.is_err() {
             }
         }
         let expiryWindowparamsExpiryWindowVariable: Vec<Value> = self.handle_option_integer_and_params2(params, Value::Str("postActionRequest".into()), Value::Str("expiryWindow".into()), Value::Str("expiry_window".into()), &[Value::Int(5000)]).as_array().cloned().unwrap_or_default();
-        let mut expiryWindow: Value = expiryWindowparamsExpiryWindowVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut expiryWindow: Option<i64> = expiryWindowparamsExpiryWindowVariable.get(0).and_then(Value::as_i64);
         let mut paramsExpiryWindow: crate::value::Dict = expiryWindowparamsExpiryWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&paramsExpiryWindow, "timestamp", &[Value::Int(self.milliseconds())]).as_i64();
         let mut signatureHeader: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("expiry_window".to_string(), expiryWindow);
+                m.insert("expiry_window".to_string(), Value::from(expiryWindow));
                 m.insert("type".to_string(), operationType.clone());
             m
         });

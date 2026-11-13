@@ -4026,7 +4026,7 @@ impl Bitrue {
         if !(market).swap {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setMargin only support swap markets".into()))));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("contractName".to_string(), Value::from((market).id.as_deref()));
@@ -4035,12 +4035,12 @@ impl Bitrue {
         });
         if ((market).linear == Some(true)) {
             let __ws_arg_40 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.fapi_v2_private_post_position_margin(&[__ws_arg_40]).await;
+            response = self.fapi_v2_private_post_position_margin(&[__ws_arg_40]).await.into_opt_dict();
         }  else if ((market).inverse == Some(true)) {
             let __ws_arg_41 = self.extend(Value::Map(request), &[params]);
-            response = self.dapi_v2_private_post_position_margin(&[__ws_arg_41]).await;
+            response = self.dapi_v2_private_post_position_margin(&[__ws_arg_41]).await.into_opt_dict();
         }
-        return self.parse_margin_modification(response, Some(&market));
+        return self.parse_margin_modification(&response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -4239,10 +4239,10 @@ impl Bitrue {
                                 let mut i: i64 = 0;
                 let mut __for_first_417: bool = true;
                 while { if !__for_first_417 { i += 1; } __for_first_417 = false; i < (byLimit.len() as i64) } {
-                let mut entry: Value = byLimit.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut threshold: Option<i64> = self.safe_integer(entry.clone(), Value::Int(0), &[]).as_i64();
+                let mut entry: crate::value::List = byLimit.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
+                let mut threshold: Option<i64> = self.safe_integer(&entry, Value::Int(0), &[]).as_i64();
                 if (limit.is_some()) && (threshold.is_some()) && (limit.is_some() && threshold.is_some() && limit <= threshold) {
-                    return self.safe_number(entry, Value::Int(1), &[]);
+                    return self.safe_number(&entry, Value::Int(1), &[]);
                 }
             }
             }

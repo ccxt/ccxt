@@ -849,12 +849,12 @@ impl Bitstamp {
                 m.insert("params".to_string(), params.clone());
             m
         });
-        let mut orders: Value = self.subscribe_private(&mut subscription, Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("_".into())).into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), &[params]).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_private(&mut subscription, Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("_".into())).into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), &[params]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1523,7 +1523,7 @@ impl Bitstamp {
                 if (sessionToken.is_none()) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty token".into()))));
                 }
-                let mut userId: Option<String> = self.safe_string_k_opt(&response, "user_id", &[]);
+                let mut userId: Option<String> = self.safe_string_k(&response, "user_id", &[]).as_str().map(str::to_owned);
                 let mut validity: Value = self.safe_integer_product_k(&response, "valid_sec", Value::Int(1000), &[]);
                 { let __be_tmp = self.sum(&[time, validity]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expiresIn".into(), __be_tmp); } }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("userId".into(), userId.map(Value::from).unwrap_or(Value::Null)); }

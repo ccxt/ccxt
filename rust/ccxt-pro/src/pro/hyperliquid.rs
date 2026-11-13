@@ -482,7 +482,7 @@ impl Hyperliquid {
         let orderglobalParamsVariable: Vec<Value> = self.parent.parse_create_edit_order_args(None, symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).as_array().cloned().unwrap_or_default();
         let mut order: Value = orderglobalParamsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut globalParams: Value = orderglobalParamsVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut orders: Value = crate::types::IntoRaw::into_raw(self.create_orders_ws(crate::types::FromRaw::from_raw(Value::from(vec![order])), globalParams).await);
+        let mut orders: Vec<crate::types::Order> = (match self.create_orders_ws(crate::types::FromRaw::from_raw(Value::from(vec![order])), globalParams).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut ordersLength: i64 = orders.len() as i64;
         if (ordersLength == 0) {
             return self.safe_order(Value::Map({
@@ -490,7 +490,7 @@ impl Hyperliquid {
     m
 }), None);
         }
-        let mut parsedOrder: Value = orders.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut parsedOrder: Value = orders.get(0).map(crate::Value::from).unwrap_or_default();
         return parsedOrder;
         Value::Null
         }).await?))

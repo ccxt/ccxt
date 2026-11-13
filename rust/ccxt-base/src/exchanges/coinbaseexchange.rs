@@ -1264,7 +1264,7 @@ impl Coinbaseexchange {
             let mut __for_first_551: bool = true;
             while { if !__for_first_551 { i += 1; } __for_first_551 = false; i < (rawMarkets.len() as i64) } {
             let mut market: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut id: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
+            let mut id: Option<String> = self.safe_string_k(&market, "id", &[]).as_str().map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = id.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut baseId: Option<String> = parts.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut quoteId: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
@@ -1727,15 +1727,15 @@ impl Coinbaseexchange {
         });
         // publicGetProductsIdTicker or publicGetProductsIdStats
         let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchTickerMethod", &[Value::Str("publicGetProductsIdTicker".into())]).as_str().map(str::to_owned);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("publicGetProductsIdStats")) {
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.public_get_products_id_stats(&[__ws_arg_7]).await;
+            response = self.public_get_products_id_stats(&[__ws_arg_7]).await.into_opt_dict();
         }  else {
             let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-            response = self.public_get_products_id_ticker(&[__ws_arg_8]).await;
+            response = self.public_get_products_id_ticker(&[__ws_arg_8]).await.into_opt_dict();
         }
-        return self.parse_ticker(response, Some(&market));
+        return self.parse_ticker(&response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2224,18 +2224,18 @@ impl Coinbaseexchange {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_oid".into()), &[]).as_str().map(str::to_owned);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_none()) {
             request.insert("id".into(), id);
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_get_orders_id(&[__ws_arg_12]).await;
+            response = self.private_get_orders_id(&[__ws_arg_12]).await.into_opt_dict();
         }  else {
             request.insert("client_oid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_oid".into())]), &[]).into_dict();
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_get_orders_client_client_oid(&[__ws_arg_13]).await;
+            response = self.private_get_orders_client_client_oid(&[__ws_arg_13]).await.into_opt_dict();
         }
-        return self.parse_order(response, None);
+        return self.parse_order(&response, None);
         Value::Null
         }).await?))
     }

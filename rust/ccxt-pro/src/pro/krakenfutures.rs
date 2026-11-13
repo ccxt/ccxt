@@ -519,8 +519,8 @@ impl Krakenfutures {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolValue: Value = Value::from(self.symbol(symbol.clone()));
-        let mut tickers: Value = crate::types::IntoRaw::into_raw(self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await);
-        return (if let (Some(__m), Some(__k)) = (tickers.as_map(), symbolValue.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut tickers: crate::types::Tickers = (match self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return crate::value::KeyRead::read(&&tickers, &symbolValue);
         Value::Null
         }).await?))
     }
@@ -1482,8 +1482,8 @@ impl Krakenfutures {
                         let mut i: i64 = 0;
             let mut __for_first_436: bool = true;
             while { if !__for_first_436 { i += 1; } __for_first_436 = false; i < (orders.len() as i64) } {
-            let mut order: Value = orders.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parsed: crate::value::Dict = self.parse_ws_order(order, None).into_dict();
+            let mut order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_ws_order(&order, None).into_dict();
             let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (symbol.is_some()) {
                 if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
@@ -2081,10 +2081,10 @@ impl Krakenfutures {
                                 let mut i: i64 = 0;
                 let mut __for_first_440: bool = true;
                 while { if !__for_first_440 { i += 1; } __for_first_440 = false; i < (holdingKeys.len() as i64) } {
-                let mut key: Value = holdingKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut code: Value = self.safe_currency_code(key.clone(), None).map(Value::from).unwrap_or(Value::Null);
+                let mut key: Option<String> = holdingKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut code: Value = self.safe_currency_code(Value::from(key.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
                 let mut newAccount: Value = self.account();
-                if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(holding.clone(), key.clone(), &[])); }
+                if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(holding.clone(), key.map(Value::from).unwrap_or(Value::Null), &[])); }
                 if (code != Value::Null) {
                     holdingCodes.insert(crate::runtime::stringify_param(&code), Value::Bool(true));
                     if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("cash".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), newAccount.clone()); } }
@@ -2499,9 +2499,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut challenge: Value = (match __pro_message.get("message").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null });
             let mut hashedChallenge: crate::value::Bytes = self.hash_binary(self.encode(challenge.clone()), Value::Str("sha256".into()));
             let mut base64Secret: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
-            let mut signature: Value = Value::from(self.hmac(&hashedChallenge, &base64Secret, Value::Str("sha512".into()), &[Value::Str("base64".into())]));
+            let mut signature: String = self.hmac(&hashedChallenge, &base64Secret, Value::Str("sha512".into()), &[Value::Str("base64".into())]);
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("challenge".into(), challenge); }
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("signedChallenge".into(), signature); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("signedChallenge".into(), Value::from(signature)); }
             let mut future: Value = self.safe_value(__ch.futures.clone(), Value::from(messageHash.clone()), &[]);
             future.resolve(Value::Bool(true), None);
         }  else {

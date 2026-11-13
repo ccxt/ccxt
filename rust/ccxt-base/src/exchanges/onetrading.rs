@@ -2028,15 +2028,15 @@ impl Onetrading {
         }  else {
             request.insert("order_id".into(), id);
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (method == "privateDeleteAccountOrdersOrderId") {
             let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_delete_account_orders_order_id(&[__ws_arg_4]).await;
+            response = self.private_delete_account_orders_order_id(&[__ws_arg_4]).await.into_opt_dict();
         }  else {
             let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_delete_account_orders_client_client_id(&[__ws_arg_5]).await;
+            response = self.private_delete_account_orders_client_client_id(&[__ws_arg_5]).await.into_opt_dict();
         }
-        return self.parse_order(response, None);
+        return self.parse_order(&response, None);
         Value::Null
         }).await?))
     }

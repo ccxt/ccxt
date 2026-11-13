@@ -2068,7 +2068,7 @@ impl Dydx {
         let mut orderSide: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut subaccountId: i64 = 0;
         let subaccountIdOptionparamsSubAccountIdVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("createOrder".into()), Value::Str("subAccountId".into()), &[Value::from(subaccountId)]).as_array().cloned().unwrap_or_default();
-        let mut subaccountIdOption: Value = subaccountIdOptionparamsSubAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subaccountIdOption: Option<i64> = subaccountIdOptionparamsSubAccountIdVariable.get(0).and_then(Value::as_i64);
         let mut paramsSubAccountId: crate::value::Dict = subaccountIdOptionparamsSubAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut triggerPrice: Option<String> = self.safe_string2(Value::from(&paramsSubAccountId), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
         let mut stopLossPrice: Option<String> = self.safe_string_k(&paramsSubAccountId, "stopLossPrice", &[triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
@@ -2137,11 +2137,11 @@ impl Dydx {
         }
         let mut latestBlockHeight: Option<i64> = self.safe_integer_k(&paramsSubAccountId, "latestBlockHeight", &[]).as_i64();
         let mut goodTillBlock: Option<i64> = self.safe_integer_k(&paramsSubAccountId, "goodTillBlock", &[]).as_i64();
-        let mut goodTillBlockTime: Value = Value::Null;
+        let mut goodTillBlockTime: Option<i64> = None;
         let mut goodTillBlockTimeInSeconds: i64 = 2592000;
         // default is 30 days
         let goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsSubAccountId, Value::Str("createOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[Value::from(goodTillBlockTimeInSeconds)]).as_array().cloned().unwrap_or_default();
-        let mut goodTillBlockTimeInSecondsOption: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut goodTillBlockTimeInSecondsOption: Option<i64> = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(0).and_then(Value::as_i64);
         let mut paramsGoodTillBlockTimeInSeconds: crate::value::Dict = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (orderFlag == Some(0)) {
             if (goodTillBlock.is_none()) {
@@ -2152,10 +2152,10 @@ impl Dydx {
                 goodTillBlock = (if let Some(__l) = latestBlockHeight { Some(__l + 20) } else { None });
             }
         }  else {
-            if (goodTillBlockTimeInSecondsOption == Value::Null) {
+            if (goodTillBlockTimeInSecondsOption.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required("goodTillBlockTimeInSeconds is required."));
             }
-            goodTillBlockTime = (match (&(self.seconds()), &(goodTillBlockTimeInSecondsOption)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            goodTillBlockTime = (if let Some(__r) = goodTillBlockTimeInSecondsOption { Some((self.seconds().as_i64().unwrap_or_default()) + __r) } else { None });
         }
         let mut sideNumber: i64 = (if (orderSide == "BUY") { 1 } else { 2 });
         let mut defaultClientOrderId: Value = self.rand_number(Value::Int(9)); // 2**32 - 1 is 10 digits, but it may overflow with 10
@@ -2169,7 +2169,7 @@ impl Dydx {
         m.insert("subaccountId".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("owner".to_string(), self.get_wallet_address());
-        m.insert("number".to_string(), subaccountIdOption.clone());
+        m.insert("number".to_string(), Value::from(subaccountIdOption));
     m
 }));
         m.insert("clientId".to_string(), clientOrderId.clone());
@@ -2181,7 +2181,7 @@ impl Dydx {
         m.insert("quantums".to_string(), self.to_dydx_long(quantums.map(Value::from).unwrap_or(Value::Null)));
         m.insert("subticks".to_string(), self.to_dydx_long(subticks.map(Value::from).unwrap_or(Value::Null)));
         m.insert("goodTilBlock".to_string(), Value::from(goodTillBlock));
-        m.insert("goodTilBlockTime".to_string(), goodTillBlockTime);
+        m.insert("goodTilBlockTime".to_string(), Value::from(goodTillBlockTime));
         m.insert("timeInForce".to_string(), Value::from(timeInForceNumber));
         m.insert("reduceOnly".to_string(), Value::Bool(reduceOnly));
         m.insert("clientMetadata".to_string(), Value::from(clientMetadata));
@@ -2202,11 +2202,11 @@ impl Dydx {
             Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("latestBlockHeight".into()), Value::Str("goodTillBlock".into()), Value::Str("goodTillBlockTimeInSeconds".into()), Value::Str("subaccountId".into())]), &[]);
         let mut walletAddress: Option<String> = self.get_wallet_address().as_str().map(str::to_owned);
         let mut clobPairId: i64 = self.safe_integer_k(Value::Map(marketInfo), "clobPairId", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut subaccountIdValue: Value = (if (subaccountIdOption == Value::Null) { Value::Int(0) } else { subaccountIdOption });
+        let mut subaccountIdValue: Option<i64> = (if (subaccountIdOption.is_none()) { Some(0) } else { subaccountIdOption });
         let mut clientOrderIdValue: Value = (if (clientOrderId == Value::Null) { Value::Int(0) } else { clientOrderId });
         let mut orderFlagValue: Option<i64> = (if (orderFlag.is_none()) { Some(0) } else { orderFlag });
         let mut clobPairIdValue: i64 = (if (false) { 0 } else { clobPairId });
-        let mut orderId: Option<String> = self.create_order_id_from_parts(walletAddress.as_deref().unwrap_or_default(), subaccountIdValue.as_f64().unwrap_or_default(), clientOrderIdValue.as_f64().unwrap_or_default(), Value::from(orderFlagValue).as_f64().unwrap_or_default(), (clobPairIdValue as f64));
+        let mut orderId: Option<String> = self.create_order_id_from_parts(walletAddress.as_deref().unwrap_or_default(), Value::from(subaccountIdValue).as_f64().unwrap_or_default(), clientOrderIdValue.as_f64().unwrap_or_default(), Value::from(orderFlagValue).as_f64().unwrap_or_default(), (clobPairIdValue as f64));
         return Value::from(vec![orderId.map(Value::from).unwrap_or(Value::Null), self.extend(Value::Map(signingPayload), &[paramsOmitted])]);
 
     Value::Null
@@ -2406,25 +2406,25 @@ impl Dydx {
         let mut goodTillBlockTimeInSeconds: i64 = 2592000;
         // default is 30 days
         let goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable: Vec<Value> = self.handle_option_integer_and_params(paramsOmitted, Value::Str("cancelOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[Value::from(goodTillBlockTimeInSeconds)]).as_array().cloned().unwrap_or_default();
-        let mut goodTillBlockTimeInSecondsOption: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut goodTillBlockTimeInSecondsOption: Option<i64> = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(0).and_then(Value::as_i64);
         let mut paramsGoodTillBlockTimeInSeconds: crate::value::Dict = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut goodTillBlockTime: Value = Value::Null;
+        let mut goodTillBlockTime: Option<i64> = None;
         let mut defaultOrderFlags: i64 = (if isTrigger { 32 } else { 64 });
         let mut orderFlags: Option<i64> = self.safe_integer_k(&paramsGoodTillBlockTimeInSeconds, "orderFlags", &[Value::from(defaultOrderFlags)]).as_i64();
         let mut subAccountId: i64 = 0;
         let subAccountIdOptionVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsGoodTillBlockTimeInSeconds, Value::Str("cancelOrder".into()), Value::Str("subAccountId".into()), &[Value::from(subAccountId)]).as_array().cloned().unwrap_or_default();
-        let mut subAccountIdOption: Value = subAccountIdOptionVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subAccountIdOption: Option<i64> = subAccountIdOptionVariable.get(0).and_then(Value::as_i64);
         if (orderFlags != Some(0)) && (orderFlags != Some(64)) && (orderFlags != Some(32)) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" invalid orderFlags, allowed values are (0, 64, 32).".into()))));
         }
         if orderFlags > Some(0) {
-            if (goodTillBlockTimeInSecondsOption == Value::Null) {
+            if (goodTillBlockTimeInSecondsOption.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" goodTillBlockTimeInSeconds is required in params for long term or conditional order.".into()))));
             }
             if (goodTillBlockOption.is_some()) && goodTillBlockOption > Some(0) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" goodTillBlock should be 0 for long term or conditional order.".into()))));
             }
-            goodTillBlockTime = (match (&(self.seconds()), &(goodTillBlockTimeInSecondsOption)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            goodTillBlockTime = (if let Some(__r) = goodTillBlockTimeInSecondsOption { Some((self.seconds().as_i64().unwrap_or_default()) + __r) } else { None });
         }  else {
             if (goodTillBlock.is_none()) {
                 let mut latestBlockHeight: i64 = self.fetch_latest_block_height(&[]).await.as_i64().unwrap_or_default();
@@ -2444,7 +2444,7 @@ impl Dydx {
         m.insert("subaccountId".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("owner".to_string(), self.get_wallet_address());
-        m.insert("number".to_string(), subAccountIdOption);
+        m.insert("number".to_string(), Value::from(subAccountIdOption));
     m
 }));
         m.insert("clientId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -2453,7 +2453,7 @@ impl Dydx {
     m
 }));
                 m.insert("goodTilBlock".to_string(), Value::from(goodTillBlock));
-                m.insert("goodTilBlockTime".to_string(), goodTillBlockTime);
+                m.insert("goodTilBlockTime".to_string(), Value::from(goodTillBlockTime));
             m
         });
         let mut signingPayload: indexmap::IndexMap<String, Value> = ({
@@ -2527,7 +2527,7 @@ impl Dydx {
         }
         let mut subAccountId: i64 = 0;
         let subAccountIdOptionparamsSubAccountIdVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("cancelOrders".into()), Value::Str("subAccountId".into()), &[Value::from(subAccountId)]).as_array().cloned().unwrap_or_default();
-        let mut subAccountIdOption: Value = subAccountIdOptionparamsSubAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subAccountIdOption: Option<i64> = subAccountIdOptionparamsSubAccountIdVariable.get(0).and_then(Value::as_i64);
         let mut paramsSubAccountId: crate::value::Dict = subAccountIdOptionparamsSubAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut goodTillBlock: Option<i64> = self.safe_integer_k(&paramsSubAccountId, "goodTillBlock", &[]).as_i64();
         if (goodTillBlock.is_none()) {
@@ -2551,7 +2551,7 @@ impl Dydx {
                 m.insert("subaccountId".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("owner".to_string(), self.get_wallet_address());
-        m.insert("number".to_string(), subAccountIdOption);
+        m.insert("number".to_string(), Value::from(subAccountIdOption));
     m
 }));
                 m.insert("shortTermCancels".to_string(), Value::from(vec![cancelOrders]));
@@ -3474,12 +3474,12 @@ impl Dydx {
         let mut userAddress: Option<String> = userAddressparamsPublicAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let subaccountNumberparamsSubaccountNumberVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsPublicAddress, Value::Str("fetchBalance".into()), Value::Str("subaccountNumber".into()), &[Value::Int(0)]).as_array().cloned().unwrap_or_default();
-        let mut subaccountNumber: Value = subaccountNumberparamsSubaccountNumberVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subaccountNumber: Option<i64> = subaccountNumberparamsSubaccountNumberVariable.get(0).and_then(Value::as_i64);
         let mut paramsSubaccountNumber: crate::value::Dict = subaccountNumberparamsSubaccountNumberVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
-                m.insert("subaccountNumber".to_string(), subaccountNumber);
+                m.insert("subaccountNumber".to_string(), Value::from(subaccountNumber));
             m
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsSubaccountNumber]);

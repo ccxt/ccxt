@@ -5494,15 +5494,15 @@ impl Bitfinex {
             m
         });
         let mut market: Option<crate::types::Market> = None;
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (symbol == Value::Null) {
             let __ws_arg_33 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_post_auth_r_orders(&[__ws_arg_33]).await;
+            response = self.private_post_auth_r_orders(&[__ws_arg_33]).await.into_opt_list();
         }  else {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
             let __ws_arg_34 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_auth_r_orders_symbol(&[__ws_arg_34]).await;
+            response = self.private_post_auth_r_orders_symbol(&[__ws_arg_34]).await.into_opt_list();
         }
         //
         //     [
@@ -5542,7 +5542,7 @@ impl Bitfinex {
         //         ]
         //     ]
         //
-        let mut order: Option<crate::value::List> = self.safe_list(response, Value::Int(0), &[]).into_opt_list();
+        let mut order: Option<crate::value::List> = self.safe_list(&response, Value::Int(0), &[]).into_opt_list();
         let mut newOrder: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("result".to_string(), order.map_or(Value::Null, Value::Arr));

@@ -2056,13 +2056,13 @@ impl Bigone {
         }
         let mut type_var: Option<String> = self.safe_string_k(params.clone(), "type", &[Value::Str("".into())]).as_str().map(str::to_owned);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("type".into()), &[]);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("funding")) || (type_var.as_deref() == Some("fund")) {
-            response = self.private_get_fund_accounts(&[paramsOmitted.clone()]).await;
+            response = self.private_get_fund_accounts(&[paramsOmitted.clone()]).await.into_opt_dict();
         }  else {
-            response = self.private_get_accounts(&[paramsOmitted]).await;
+            response = self.private_get_accounts(&[paramsOmitted]).await.into_opt_dict();
         }
-        return self.parse_balance(response);
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }

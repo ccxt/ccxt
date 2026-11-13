@@ -1110,7 +1110,7 @@ impl Ndax {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sessionToken".into(), sessionToken.clone().map(Value::from).unwrap_or(Value::Null)); }
             return response;
         }
-        let mut pending2faToken: Option<String> = self.safe_string_k_opt(response.clone(), "Pending2FaToken", &[]);
+        let mut pending2faToken: Option<String> = self.safe_string_k(response.clone(), "Pending2FaToken", &[]).as_str().map(str::to_owned);
         if (pending2faToken.is_some()) {
             if (self.twofa.clone() == Value::Null) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" signIn() requires exchange.twofa credentials".into()))));

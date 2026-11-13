@@ -3047,10 +3047,10 @@ impl Coinbaseinternational {
                         let mut i: i64 = 0;
             let mut __for_first_562: bool = true;
             while { if !__for_first_562 { i += 1; } __for_first_562 = false; i < (logs.len() as i64) } {
-            let mut transaction: Value = logs.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut transactionType: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
+            let mut transaction: crate::value::Dict = logs.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut transactionType: Option<String> = self.safe_string_k(&transaction, "type", &[]).as_str().map(str::to_owned);
             if (transactionType.as_deref() == Some("deposit")) || (transactionType.as_deref() == Some("withdrawal")) {
-                transactions.push(transaction);
+                transactions.push(Value::Dict(transaction));
             }
         }
         }

@@ -6341,10 +6341,10 @@ impl Bybit {
                         while { if !__for_first_509 { j += 1; } __for_first_509 = false; j < (coins.len() as i64) } {
                         let mut account: crate::value::Dict = self.account().into_dict();
                         let mut coinEntry: crate::value::Dict = self.safe_dict(&coins, Value::Int(j), &[]).into_dict();
-                        let mut loan: Option<String> = self.safe_string_k_opt(&coinEntry, "borrowAmount", &[]);
-                        let mut interest: Option<String> = self.safe_string_k_opt(&coinEntry, "accruedInterest", &[]);
+                        let mut loan: Option<String> = self.safe_string_k(&coinEntry, "borrowAmount", &[]).as_str().map(str::to_owned);
+                        let mut interest: Option<String> = self.safe_string_k(&coinEntry, "accruedInterest", &[]).as_str().map(str::to_owned);
                         if (loan.is_some()) && (interest.is_some()) {
-                            std::sync::Arc::make_mut(&mut account).insert("debt".into(), crate::precise::Precise::stringAdd(&loan.clone().map(Value::from).unwrap_or(Value::Null), &interest.clone().map(Value::from).unwrap_or(Value::Null)));
+                            std::sync::Arc::make_mut(&mut account).insert("debt".into(), crate::precise::Precise::stringAdd(&loan.map(Value::from).unwrap_or(Value::Null), &interest.map(Value::from).unwrap_or(Value::Null)));
                         }
                         std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string_k(&coinEntry, "walletBalance", &[]));
                         let mut free: Option<String> = self.safe_string2(&coinEntry, Value::Str("availableToWithdraw".into()), Value::Str("free".into()), &[]).as_str().map(str::to_owned);
@@ -6368,10 +6368,10 @@ impl Bybit {
                     }
                 }  else {
                     let mut account: crate::value::Dict = self.account().into_dict();
-                    let mut loan: Option<String> = self.safe_string_k_opt(&entry, "loan", &[]);
-                    let mut interest: Option<String> = self.safe_string_k_opt(&entry, "interest", &[]);
+                    let mut loan: Option<String> = self.safe_string_k(&entry, "loan", &[]).as_str().map(str::to_owned);
+                    let mut interest: Option<String> = self.safe_string_k(&entry, "interest", &[]).as_str().map(str::to_owned);
                     if (loan.is_some()) && (interest.is_some()) {
-                        std::sync::Arc::make_mut(&mut account).insert("debt".into(), crate::precise::Precise::stringAdd(&loan.clone().map(Value::from).unwrap_or(Value::Null), &interest.clone().map(Value::from).unwrap_or(Value::Null)));
+                        std::sync::Arc::make_mut(&mut account).insert("debt".into(), crate::precise::Precise::stringAdd(&loan.map(Value::from).unwrap_or(Value::Null), &interest.map(Value::from).unwrap_or(Value::Null)));
                     }
                     std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string2(&entry, Value::Str("total".into()), Value::Str("walletBalance".into()), &[]));
                     std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_n(&entry, Value::from(vec![Value::Str("free".into()), Value::Str("availableBalanceWithoutConvert".into()), Value::Str("availableBalance".into()), Value::Str("transferBalance".into())]), &[]));
@@ -6463,22 +6463,22 @@ impl Bybit {
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchBalance".into()), &[Value::from(&paramsSubType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isSpot && (marginMode.is_some()) {
             let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[&paramsMarginMode]);
-            response = self.private_get_v5_spot_cross_margin_trade_account(&[__ws_arg_17]).await;
+            response = self.private_get_v5_spot_cross_margin_trade_account(&[__ws_arg_17]).await.into_opt_dict();
         }  else if isFunding {
             // use this endpoint only we have no other choice
             // because it requires transfer permission
             request.insert("accountType".into(), Value::Str("FUND".into()));
             let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&paramsMarginMode]);
-            response = self.private_get_v5_asset_transfer_query_account_coins_balance(&[__ws_arg_18]).await;
+            response = self.private_get_v5_asset_transfer_query_account_coins_balance(&[__ws_arg_18]).await.into_opt_dict();
         }  else {
             request.insert("accountType".into(), unifiedType);
             let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-            response = self.private_get_v5_account_wallet_balance(&[__ws_arg_19]).await;
+            response = self.private_get_v5_account_wallet_balance(&[__ws_arg_19]).await.into_opt_dict();
         }
-        return self.parse_balance(response);
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }

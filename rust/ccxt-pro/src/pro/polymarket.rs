@@ -1508,14 +1508,14 @@ impl Polymarket {
 
     pub async fn load_positions_snapshot(&mut self, mut client: Value, mut messageHash: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut positions: Vec<Value> = crate::types::IntoRaw::into_raw(self.fetch_positions(None, Value::Null).await).as_array().cloned().unwrap_or_default();
+        let mut positions: Vec<crate::types::Position> = (match self.fetch_positions(None, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         {
                         let mut i: i64 = 0;
             let mut __for_first_658: bool = true;
             while { if !__for_first_658 { i += 1; } __for_first_658 = false; i < (positions.len() as i64) } {
-            cache.append(positions.get(i as usize).cloned().unwrap_or(Value::Null));
+            cache.append(positions.get(i as usize).map(crate::Value::from).unwrap_or_default());
         }
         }
         // don't remove the future from the .futures cache

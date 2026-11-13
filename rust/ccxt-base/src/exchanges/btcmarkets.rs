@@ -657,18 +657,18 @@ impl Btcmarkets {
         if (code != Value::Null) {
             currency = Some(self.currency(code));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (method.as_str() == Some("privateGetTransfers")) {
             let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_get_transfers(&[__ws_arg_0]).await;
+            response = self.private_get_transfers(&[__ws_arg_0]).await.into_opt_list();
         }  else if (method.as_str() == Some("privateGetDeposits")) {
             let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_get_deposits(&[__ws_arg_1]).await;
+            response = self.private_get_deposits(&[__ws_arg_1]).await.into_opt_list();
         }  else {
             let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_withdrawals(&[__ws_arg_2]).await;
+            response = self.private_get_withdrawals(&[__ws_arg_2]).await.into_opt_list();
         }
-        return self.parse_transactions(response, currency.as_ref(), &[since, limit]);
+        return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
 
     Value::Null
 }

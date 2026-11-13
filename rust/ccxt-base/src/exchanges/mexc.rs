@@ -3168,18 +3168,18 @@ impl Mexc {
             }
             if (since != Value::Null) && (until.is_none()) {
                 // we have to calculate it assuming we can get at most 2000 entries per request
-                let mut spotWindow: Value = Value::Int((500 * duration)); // maxLimit is 500 for spot
+                let mut spotWindow: i64 = (500 * duration); // maxLimit is 500 for spot
                 let mut now: i64 = self.milliseconds();
-                let mut latestStart: Value = (match (&(Value::from(now)), &(spotWindow)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-                request.insert("endTime".into(), (if (since.as_f64().unwrap_or(f64::NAN) < latestStart.as_f64().unwrap_or(f64::NAN)) { self.sum(&[since.clone(), spotWindow.clone()]) } else { Value::from(now) }));
+                let mut latestStart: i64 = (now - spotWindow);
+                request.insert("endTime".into(), (if ((since.as_i64().is_some() && since.as_i64() < Some(latestStart))) { self.sum(&[since.clone(), Value::from(spotWindow)]) } else { Value::from(now) }));
             }
             if omitUntil && (until.is_some()) {
                 if (limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0)) {
                     request.insert("startTime".into(), (match (&(Value::from(until)), &(((match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                         Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
                 }  else {
-                    let mut spotWindow: Value = Value::Int((500 * duration)); // maxLimit is 500 for spot
-                    request.insert("startTime".into(), (match (&(Value::from(until)), &(spotWindow)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+                    let mut spotWindow: i64 = (500 * duration); // maxLimit is 500 for spot
+                    request.insert("startTime".into(), Value::from((if let Some(__l) = until { Some(__l - spotWindow) } else { None })));
                 }
             }
             if (limit != Value::Null) {
@@ -3857,11 +3857,11 @@ impl Mexc {
         let mut test: bool = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("test".into()), &[]);
         let mut request: crate::value::Dict = self.create_spot_order_request(market.clone(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), marginMode, paramsOmitted]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if test {
-            response = self.spot_private_post_order_test(&[Value::from(&request)]).await;
+            response = self.spot_private_post_order_test(&[Value::from(&request)]).await.into_opt_dict();
         }  else {
-            response = self.spot_private_post_order(&[Value::Dict(request)]).await;
+            response = self.spot_private_post_order(&[Value::Dict(request)]).await.into_opt_dict();
         }
         //
         // spot
@@ -3882,7 +3882,7 @@ impl Mexc {
         //         "transactTime": 1661992652132
         //     }
         //
-        let mut order: indexmap::IndexMap<String, Value> = self.parse_order(response, market).as_map().cloned().unwrap_or_default();
+        let mut order: indexmap::IndexMap<String, Value> = self.parse_order(&response, market).as_map().cloned().unwrap_or_default();
         order.insert("side".into(), side);
         order.insert("type".into(), type_var);
         if (self.safe_string(Value::Map(order.clone()), Value::Str("price".into()), &[]) == Value::Null) {
@@ -4329,11 +4329,11 @@ impl Mexc {
                     }
                 }
             }  else if (until.is_some()) {
-                let mut maxTimeTillEnd: Value = self.safe_integer_k(self.options.clone(), "maxTimeTillEnd", &[]);
-                if (maxTimeTillEnd == Value::Null) {
+                let mut maxTimeTillEnd: Option<i64> = self.safe_integer_k(self.options.clone(), "maxTimeTillEnd", &[]).as_i64();
+                if (maxTimeTillEnd.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a numeric options[\"maxTimeTillEnd\"]".into()))));
                 }
-                request.insert("start_time".into(), (match (&(Value::from(until)), &(maxTimeTillEnd)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+                request.insert("start_time".into(), Value::from((if let (Some(__l), Some(__r)) = (until, maxTimeTillEnd) { Some(__l - __r) } else { None })));
                 request.insert("end_time".into(), Value::from(until));
             }
             if (limit != Value::Null) {
@@ -4537,18 +4537,18 @@ impl Mexc {
             let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOpenOrders".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
             let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut query: crate::value::Dict = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-            let mut response: Value = Value::Null;
+            let mut response: Option<crate::value::List> = None;
             if (marginMode.is_some()) {
                 if (marginMode.as_deref() != Some("isolated")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() does not support marginMode ".into())).into()), marginMode.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" for spot-margin trading".into()))));
                 }
                 let __ws_arg_26 = self.extend(Value::Map(request.clone()), &[&query]);
-                response = self.spot_private_get_margin_open_orders(&[__ws_arg_26]).await;
+                response = self.spot_private_get_margin_open_orders(&[__ws_arg_26]).await.into_opt_list();
             }  else {
                 let __ws_arg_27 = self.extend(Value::Map(request.clone()), &[&query]);
-                response = self.spot_private_get_open_orders(&[__ws_arg_27]).await;
+                response = self.spot_private_get_open_orders(&[__ws_arg_27]).await.into_opt_list();
             }
-            return self.parse_orders(response, market.as_ref(), &[since.clone(), limit.clone()]);
+            return self.parse_orders(&response, market.as_ref(), &[since.clone(), limit.clone()]);
         }  else {
             let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
             let mut swapParams: Value = self.omit(&paramsMarketType, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);

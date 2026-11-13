@@ -2872,14 +2872,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
-        let mut orders: Value = crate::types::IntoRaw::into_raw(self.fetch_orders(outcome.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_22).await);
+        let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(outcome.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_22).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut trades: Vec<Value> = Vec::new();
         let mut ordersLength: f64 = ((orders.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1354: bool = true;
             while { if !__for_first_1354 { i += 1; } __for_first_1354 = false; (i as f64) < ordersLength } {
-            let mut order: Value = orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut order: Value = orders.get(i as usize).map(crate::Value::from).unwrap_or_default();
             trades.push(self.order_to_trade(order));
         }
         }

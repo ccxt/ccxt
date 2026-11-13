@@ -1477,7 +1477,7 @@ impl Coinbase {
     m
 })]).into_dict();
         let mut currencyId: Option<String> = self.safe_string_k(&currency, "code", &[currencyIdV3.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-        let mut typeV3: Option<String> = self.safe_string_k_opt(account.clone(), "name", &[]);
+        let mut typeV3: Option<String> = self.safe_string_k(account.clone(), "name", &[]).as_str().map(str::to_owned);
         let mut typeV2: Option<String> = self.safe_string_k(account.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = typeV3.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() }).into_list();
         return Value::Map({
@@ -3674,7 +3674,7 @@ if _try_result.is_err() {
         if (totalUsdBalance.is_some()) || (futuresBuyingPower.is_some()) {
             let mut total: Value = (if (totalUsdBalance.is_some()) { totalUsdBalance.clone().map(Value::from).unwrap_or(Value::Null) } else { futuresBuyingPower.clone().map(Value::from).unwrap_or(Value::Null) });
             let mut free: Value = (if (futuresBuyingPower.is_some()) { futuresBuyingPower.clone().map(Value::from).unwrap_or(Value::Null) } else { total.clone() });
-            let mut used: Value = crate::precise::Precise::stringSub(&total, &free);
+            let mut used: Option<String> = crate::precise::Precise::stringSub(&total, &free).as_str().map(str::to_owned);
             let mut balanceResult: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), response.clone());
@@ -3683,7 +3683,7 @@ if _try_result.is_err() {
             balanceResult.insert("USD".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("free".to_string(), free.clone());
-        m.insert("used".to_string(), used.clone());
+        m.insert("used".to_string(), used.map(Value::from).unwrap_or(Value::Null));
         m.insert("total".to_string(), total.clone());
     m
 }));
@@ -5621,10 +5621,10 @@ if _try_result.is_err() {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchTrades".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut until: Option<i64> = untilparamsUntilVariable.get(0).and_then(Value::as_i64);
         let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (until != Value::Null) {
-            request.insert("end".into(), Value::from(self.number_to_string(Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))))));
+        if (until.is_some()) {
+            request.insert("end".into(), Value::from(self.number_to_string(Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })))))));
         }  else if (since != Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades() requires a `until` parameter when you use `since` argument".into()))));
         }

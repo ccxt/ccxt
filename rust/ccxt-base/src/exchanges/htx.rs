@@ -3920,24 +3920,24 @@ impl Htx {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if !isSpot {
             if (subTypeStr.as_deref() == Some("linear")) {
                 request.insert("business_type".into(), Value::Str("all".into())); // override default to fetch all linear markets
                 let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-                response = self.contract_public_get_linear_swap_api_v1_swap_contract_info(&[__ws_arg_2]).await;
+                response = self.contract_public_get_linear_swap_api_v1_swap_contract_info(&[__ws_arg_2]).await.into_opt_dict();
             }  else if (subTypeStr.as_deref() == Some("inverse")) {
                 if (typeStr.as_deref() == Some("future")) {
                     let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-                    response = self.contract_public_get_api_v1_contract_contract_info(&[__ws_arg_3]).await;
+                    response = self.contract_public_get_api_v1_contract_contract_info(&[__ws_arg_3]).await.into_opt_dict();
                 }  else if (typeStr.as_deref() == Some("swap")) {
                     let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-                    response = self.contract_public_get_swap_api_v1_swap_contract_info(&[__ws_arg_4]).await;
+                    response = self.contract_public_get_swap_api_v1_swap_contract_info(&[__ws_arg_4]).await.into_opt_dict();
                 }
             }
         }  else {
             let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-            response = self.spot_public_get_v1_common_symbols(&[__ws_arg_5]).await;
+            response = self.spot_public_get_v1_common_symbols(&[__ws_arg_5]).await.into_opt_dict();
         }
         //
         // spot
@@ -4025,7 +4025,7 @@ impl Htx {
         //         "ts":1640736207263
         //     }
         //
-        let mut markets: crate::value::List = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_list();
+        let mut markets: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut numMarkets: i64 = markets.len() as i64;
         if numMarkets < 1 {
             panic!("{}", crate::exchange_errors::operation_failed(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() returned an empty response: ".into())).into()), json_stringify(&response))));
@@ -8711,7 +8711,7 @@ impl Htx {
         let mut query: Value = self.omit(&paramsSubType, Value::from(vec![Value::Str("stop".into()), Value::Str("stopLossTakeProfit".into()), Value::Str("trailing".into()), Value::Str("trigger".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);
         let mut response: Value = Value::Null;
         if (marketType.as_deref() == Some("spot")) {
-            let mut clientOrderId: Option<String> = self.safe_string2_opt(query.clone(), Value::Str("client-order-id".into()), Value::Str("clientOrderId".into()), &[]);
+            let mut clientOrderId: Option<String> = self.safe_string2(query.clone(), Value::Str("client-order-id".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
             if (clientOrderId.is_none()) {
                 request.insert("order-id".into(), id.clone());
                 let __ws_arg_80 = self.extend(Value::Map(request.clone()), &[query.clone()]);
@@ -9501,11 +9501,11 @@ impl Htx {
                         let mut i: i64 = 0;
             let mut __for_first_786: bool = true;
             while { if !__for_first_786 { i += 1; } __for_first_786 = false; i < (allAddresses.len() as i64) } {
-            let mut address: Value = allAddresses.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut noteMatch: bool = (note == Value::Null) || (self.safe_string_k(address.clone(), "note", &[]).as_str() == note.as_str());
-            let mut networkMatch: bool = (networkCode == Value::Null) || (self.safe_string_k(address.clone(), "network", &[]).as_str() == networkCode.as_str());
+            let mut address: crate::value::Dict = allAddresses.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut noteMatch: bool = (note == Value::Null) || (self.safe_string_k(&address, "note", &[]).as_str() == note.as_str());
+            let mut networkMatch: bool = (networkCode == Value::Null) || (self.safe_string_k(&address, "network", &[]).as_str() == networkCode.as_str());
             if noteMatch && networkMatch {
-                addresses.push(address);
+                addresses.push(Value::Dict(address));
             }
         }
         }

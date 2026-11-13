@@ -1690,13 +1690,13 @@ impl Zebpay {
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isSpot: bool = type_var.as_deref() == Some("spot");
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isSpot {
-            response = self.private_spot_get_v2_account_balance(&[Value::from(&paramsMarketType)]).await;
+            response = self.private_spot_get_v2_account_balance(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
         }  else {
-            response = self.private_swap_get_v1_wallet_balance(&[Value::Dict(paramsMarketType)]).await;
+            response = self.private_swap_get_v1_wallet_balance(&[Value::Dict(paramsMarketType)]).await.into_opt_dict();
         }
-        return self.parse_balance(response);
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }

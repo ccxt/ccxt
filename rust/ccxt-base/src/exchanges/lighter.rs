@@ -1709,7 +1709,7 @@ if _try_result.is_err() {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }
         }
         let groupingTypeparamsGroupingTypeVariable: Vec<Value> = self.handle_option_integer_and_params(params, method, Value::Str("groupingType".into()), &[Value::Int(3)]).as_array().cloned().unwrap_or_default();
-        let mut groupingType: Value = groupingTypeparamsGroupingTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut groupingType: Option<i64> = groupingTypeparamsGroupingTypeVariable.get(0).and_then(Value::as_i64);
         let mut paramsGroupingType: crate::value::Dict = groupingTypeparamsGroupingTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict(); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         let mut orderRequests: Value = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, Value::Dict(paramsGroupingType)]);
         let mut totalOrderRequests: f64 = ((orderRequests.len() as i64) as f64);
@@ -1742,7 +1742,7 @@ if _try_result.is_err() {
         }  else {
             let mut signingPayload: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("grouping_type".to_string(), groupingType);
+                    m.insert("grouping_type".to_string(), Value::from(groupingType));
                     m.insert("orders".to_string(), orderRequests);
                     m.insert("nonce".to_string(), self.safe_integer_k(order.clone(), "nonce", &[]));
                     m.insert("api_key_index".to_string(), apiKeyIndex);
@@ -4306,10 +4306,10 @@ if _try_result.is_err() {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100)));
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params2(&paramsApiKeyIndex, Value::Str("fetchMyTrades".into()), Value::Str("until".into()), Value::Str("from".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut until: Option<i64> = untilparamsUntilVariable.get(0).and_then(Value::as_i64);
         let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (until != Value::Null) {
-            request.insert("from".into(), until);
+        if (until.is_some()) {
+            request.insert("from".into(), Value::from(until));
         }
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {

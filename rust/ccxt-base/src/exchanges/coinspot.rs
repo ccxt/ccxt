@@ -962,10 +962,10 @@ impl Coinspot {
                                 let mut i: i64 = 0;
                 let mut __for_first_583: bool = true;
                 while { if !__for_first_583 { i += 1; } __for_first_583 = false; i < (currencyIdsMap.len() as i64) } {
-                let mut currencyId: Value = currencyIdsMap.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), None);
+                let mut currencyId: Option<String> = currencyIdsMap.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
                 let mut account: crate::value::Dict = self.account().into_dict();
-                std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string(balances.clone(), currencyId, &[]));
+                std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string(balances.clone(), currencyId.map(Value::from).unwrap_or(Value::Null), &[]));
                 if (code.is_some()) {
                     result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
                 }
@@ -999,13 +999,13 @@ impl Coinspot {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchBalance", &[Value::Str("privatePostMyBalances".into())]).as_str().map(str::to_owned);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("private_post_ro_my_balances")) || (method.as_deref() == Some("privatePostRoMyBalances")) {
-            response = self.private_post_ro_my_balances(&[params.clone()]).await;
+            response = self.private_post_ro_my_balances(&[params.clone()]).await.into_opt_dict();
         }  else {
-            response = self.private_post_my_balances(&[params]).await;
+            response = self.private_post_my_balances(&[params]).await.into_opt_dict();
         }
-        return self.parse_balance(response);
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }

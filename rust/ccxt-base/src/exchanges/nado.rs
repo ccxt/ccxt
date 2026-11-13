@@ -840,9 +840,9 @@ impl Nado {
         let mut expiration: Option<String> = expirationparamsExpirationVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsExpiration: crate::value::Dict = expirationparamsExpirationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let recvWindowparamsRecvWindowVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsExpiration, Value::Str("createOrder".into()), Value::Str("recvWindow".into()), &[Value::Int(5000)]).as_array().cloned().unwrap_or_default();
-        let mut recvWindow: Value = recvWindowparamsRecvWindowVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut recvWindow: Option<i64> = recvWindowparamsRecvWindowVariable.get(0).and_then(Value::as_i64);
         let mut paramsRecvWindow: crate::value::Dict = recvWindowparamsRecvWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut nonce: Option<String> = self.create_order_nonce(recvWindow);
+        let mut nonce: Option<String> = self.create_order_nonce(Value::from(recvWindow));
         let mut requestId: Option<i64> = self.safe_integer_k(&paramsRecvWindow, "id", &[]).as_i64();
         let mut spotLeverage: Option<bool> = self.safe_bool2(Value::from(&paramsRecvWindow), Value::Str("spotLeverage".into()), Value::Str("spot_leverage".into()), &[]).as_bool();
         let mut sender: Option<String> = self.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
@@ -909,12 +909,12 @@ impl Nado {
             }  else {
                 triggerPrice = takeProfitTriggerPrice;
             }
-            let mut triggerPriceX18: Value = self.convert_to_x18(triggerPrice.as_deref()).map(Value::from).unwrap_or(Value::Null);
+            let mut triggerPriceX18: Option<String> = self.convert_to_x18(triggerPrice.as_deref());
             let mut priceRequirement: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            priceRequirement.insert(format!("{}{}", Value::Str("oracle_price_".into()), oracleSide), triggerPriceX18);
+            priceRequirement.insert(format!("{}{}", Value::Str("oracle_price_".into()), oracleSide), triggerPriceX18.map(Value::from).unwrap_or(Value::Null));
             let mut trigger: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("price_trigger".to_string(), Value::Map({
@@ -1080,9 +1080,9 @@ impl Nado {
         let mut expiration: Option<String> = expirationparamsExpirationVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsExpiration: crate::value::Dict = expirationparamsExpirationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let recvWindowparamsRecvWindowVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsExpiration, Value::Str("editOrder".into()), Value::Str("recvWindow".into()), &[Value::Int(5000)]).as_array().cloned().unwrap_or_default();
-        let mut recvWindow: Value = recvWindowparamsRecvWindowVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut recvWindow: Option<i64> = recvWindowparamsRecvWindowVariable.get(0).and_then(Value::as_i64);
         let mut paramsRecvWindow: crate::value::Dict = recvWindowparamsRecvWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut cancelNonce: Value = self.create_order_nonce(recvWindow).map(Value::from).unwrap_or(Value::Null);
+        let mut cancelNonce: Value = self.create_order_nonce(Value::from(recvWindow)).map(Value::from).unwrap_or(Value::Null);
         let mut orderNonce: Option<String> = crate::precise::Precise::stringAdd(&cancelNonce, &Value::Str("1".into())).as_str().map(str::to_owned);
         let mut rawAppendix: Option<String> = self.safe_string_k(&paramsRecvWindow, "appendix", &[]).as_str().map(str::to_owned);
         let mut appendix: Value = rawAppendix.clone().map(Value::from).unwrap_or(Value::Null);
@@ -1270,9 +1270,9 @@ impl Nado {
         let mut paramsSubaccount: crate::value::Dict = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut sender: Option<String> = self.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let recvWindowparamsRecvWindowVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsSubaccount, Value::Str("cancelAllOrders".into()), Value::Str("recvWindow".into()), &[Value::Int(5000)]).as_array().cloned().unwrap_or_default();
-        let mut recvWindow: Value = recvWindowparamsRecvWindowVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut recvWindow: Option<i64> = recvWindowparamsRecvWindowVariable.get(0).and_then(Value::as_i64);
         let mut paramsRecvWindow: crate::value::Dict = recvWindowparamsRecvWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut nonce: Option<String> = self.create_order_nonce(recvWindow);
+        let mut nonce: Option<String> = self.create_order_nonce(Value::from(recvWindow));
         let mut tx: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sender".to_string(), sender.map(Value::from).unwrap_or(Value::Null));
@@ -1403,9 +1403,9 @@ impl Nado {
         }
         }
         let recvWindowparamsRecvWindowVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsSubaccount, Value::Str("cancelOrders".into()), Value::Str("recvWindow".into()), &[Value::Int(5000)]).as_array().cloned().unwrap_or_default();
-        let mut recvWindow: Value = recvWindowparamsRecvWindowVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut recvWindow: Option<i64> = recvWindowparamsRecvWindowVariable.get(0).and_then(Value::as_i64);
         let mut paramsRecvWindow: crate::value::Dict = recvWindowparamsRecvWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut nonce: Option<String> = self.create_order_nonce(recvWindow);
+        let mut nonce: Option<String> = self.create_order_nonce(Value::from(recvWindow));
         let mut tx: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sender".to_string(), sender.map(Value::from).unwrap_or(Value::Null));
@@ -1556,12 +1556,12 @@ impl Nado {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders only support trigger".into()))));
         }
         let recvWindowparamsRecvWindowVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsOmitted, Value::Str("fetchOrders".into()), Value::Str("recvWindow".into()), &[Value::Int(5000)]).as_array().cloned().unwrap_or_default();
-        let mut recvWindow: Value = recvWindowparamsRecvWindowVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut recvWindow: Option<i64> = recvWindowparamsRecvWindowVariable.get(0).and_then(Value::as_i64);
         let mut paramsRecvWindow: crate::value::Dict = recvWindowparamsRecvWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut tx: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sender".to_string(), sender.map(Value::from).unwrap_or(Value::Null));
-                m.insert("recvTime".to_string(), Value::from(self.number_to_string(self.sum(&[Value::Int(self.milliseconds()), recvWindow]))));
+                m.insert("recvTime".to_string(), Value::from(self.number_to_string(self.sum(&[Value::Int(self.milliseconds()), Value::from(recvWindow)]))));
             m
         });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2475,10 +2475,10 @@ impl Nado {
                         let mut i: i64 = 0;
             let mut __for_first_987: bool = true;
             while { if !__for_first_987 { i += 1; } __for_first_987 = false; i < (pairs.len() as i64) } {
-            let mut rawPair: Value = pairs.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut pairProductId: Option<String> = self.safe_string_k(rawPair.clone(), "product_id", &[]).as_str().map(str::to_owned);
+            let mut rawPair: crate::value::Dict = pairs.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut pairProductId: Option<String> = self.safe_string_k(&rawPair, "product_id", &[]).as_str().map(str::to_owned);
             if (pairProductId.is_some()) {
-                pairsById.insert(pairProductId.as_deref().unwrap_or("null").to_string(), rawPair);
+                pairsById.insert(pairProductId.as_deref().unwrap_or("null").to_string(), Value::Dict(rawPair));
             }
         }
         }

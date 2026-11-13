@@ -1083,7 +1083,7 @@ impl Lbank {
             let mut __for_first_917: bool = true;
             while { if !__for_first_917 { i += 1; } __for_first_917 = false; i < (data.len() as i64) } {
             let mut market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut marketId: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
+            let mut marketId: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut baseId: Option<String> = parts.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut quoteId: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
@@ -1995,11 +1995,11 @@ impl Lbank {
                                 let mut i: i64 = 0;
                 let mut __for_first_919: bool = true;
                 while { if !__for_first_919 { i += 1; } __for_first_919 = false; i < (currencies.len() as i64) } {
-                let mut currencyId: Value = currencies.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), None);
+                let mut currencyId: Option<String> = currencies.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
                 let mut account: crate::value::Dict = self.account().into_dict();
-                std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string(&used, currencyId.clone(), &[]));
-                std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string(&free, currencyId.clone(), &[]));
+                std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string(&used, Value::from(currencyId.as_deref()), &[]));
+                std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string(&free, currencyId.map(Value::from).unwrap_or(Value::Null), &[]));
                 if (code.is_some()) {
                     result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
                 }
@@ -2664,7 +2664,7 @@ impl Lbank {
         let mut timeInForce: Option<String> = None;
         let mut postOnly: bool = false;
         let mut type_var: String = "limit".to_string();
-        let mut rawType: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("type".into()), Value::Str("tradeType".into()), &[]); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
+        let mut rawType: Option<String> = self.safe_string2(order.clone(), Value::Str("type".into()), Value::Str("tradeType".into()), &[]).as_str().map(str::to_owned); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = rawType.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut side: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut typePart: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned); // market, maker, ioc, fok or undefined (limit)

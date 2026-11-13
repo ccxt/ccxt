@@ -2747,7 +2747,7 @@ impl Toobit {
         });
         if hasStopLoss {
             request.insert("stopLoss".into(), self.safe_value_k(&stopLoss, "triggerPrice", &[]));
-            let mut limitPrice: Option<String> = self.safe_string_k_opt(&stopLoss, "price", &[]);
+            let mut limitPrice: Option<String> = self.safe_string_k(&stopLoss, "price", &[]).as_str().map(str::to_owned);
             if (limitPrice.is_some()) {
                 request.insert("slOrderType".into(), Value::Str("LIMIT".into()));
                 request.insert("slLimitPrice".into(), self.price_to_precision(symbol.clone(), limitPrice.map(Value::from).unwrap_or(Value::Null)));
@@ -2759,7 +2759,7 @@ impl Toobit {
         }
         if hasTakeProfit {
             request.insert("takeProfit".into(), self.safe_value_k(&takeProfit, "triggerPrice", &[]));
-            let mut limitPrice: Option<String> = self.safe_string_k_opt(&takeProfit, "price", &[]);
+            let mut limitPrice: Option<String> = self.safe_string_k(&takeProfit, "price", &[]).as_str().map(str::to_owned);
             if (limitPrice.is_some()) {
                 request.insert("tpOrderType".into(), Value::Str("LIMIT".into()));
                 request.insert("tpLimitPrice".into(), self.price_to_precision(symbol, limitPrice.map(Value::from).unwrap_or(Value::Null)));
@@ -3518,15 +3518,15 @@ impl Toobit {
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchLedger".into()), None, &[Value::from(&paramsUntil)]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::List> = None;
         if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_25 = self.extend(&requestUntil, &[&paramsMarketType]);
-            response = self.private_get_api_v1_account_balance_flow(&[__ws_arg_25]).await;
+            response = self.private_get_api_v1_account_balance_flow(&[__ws_arg_25]).await.into_opt_list();
         }  else {
             let __ws_arg_26 = self.extend(requestUntil, &[&paramsMarketType]);
-            response = self.private_get_api_v1_futures_balance_flow(&[__ws_arg_26]).await;
+            response = self.private_get_api_v1_futures_balance_flow(&[__ws_arg_26]).await.into_opt_list();
         }
-        return self.parse_ledger(response, currency.as_ref(), &[since, limit]);
+        return self.parse_ledger(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

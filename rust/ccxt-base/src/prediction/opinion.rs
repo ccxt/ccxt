@@ -480,11 +480,11 @@ impl Opinion {
                                 let mut i: i64 = 0;
                 let mut __for_first_1385: bool = true;
                 while { if !__for_first_1385 { i += 1; } __for_first_1385 = false; (i as f64) < rawMarketsLength } {
-                let mut raw: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
-                fetchedRawRows.push(raw.clone());
-                let mut marketType: Option<i64> = self.safe_integer_k(raw.clone(), "marketType", &[]).as_i64();
+                let mut raw: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                fetchedRawRows.push(Value::from(&raw));
+                let mut marketType: Option<i64> = self.safe_integer_k(&raw, "marketType", &[]).as_i64();
                 if (marketType == Some(1)) {
-                    let mut event: crate::value::Dict = self.parse_event(raw.clone()).into_dict();
+                    let mut event: crate::value::Dict = self.parse_event(Value::from(&raw)).into_dict();
                     let mut childMarkets: crate::value::List = self.safe_list_k(&event, "markets", &[Value::from(vec![])]).into_list();
                     let mut childMarketsLength: f64 = ((childMarkets.len() as i64) as f64);
                     {
@@ -500,7 +500,7 @@ impl Opinion {
                         eventsList.push(Value::Dict(event));
                     }
                 }  else {
-                    flatMarkets.push(self.parse_opinion_market(raw, None));
+                    flatMarkets.push(self.parse_opinion_market(Value::Dict(raw), None));
                 }
             }
             }
@@ -1728,7 +1728,7 @@ impl Opinion {
             m
         });
         let mut signature: Option<String> = self.sign_opinion_order(Value::Map(order), (self.safe_string_k(quoteToken, "ctfExchangeAddress", &[Value::Str("".into())])).as_str().unwrap_or_default());
-        let mut signatureNo0x: Value = self.remove0x_prefix(Value::from(signature.as_deref()));
+        let mut signatureNo0x: Option<String> = self.remove0x_prefix(Value::from(signature.as_deref())).as_str().map(str::to_owned);
         let __ws_arg_17 = self.number_to_string(price);
         let __ws_arg_18 = self.seconds();
         let mut orderBody: crate::value::Dict = self.extend(Value::Map({
@@ -1746,7 +1746,7 @@ impl Opinion {
                 m.insert("side".to_string(), Value::Str(format!("{}", sideInt).into()));
                 m.insert("signatureType".to_string(), Value::Str(format!("{}", signatureType).into()));
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
-                m.insert("sign".to_string(), signatureNo0x.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(64); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
+                m.insert("sign".to_string(), (if let Some(__s) = signatureNo0x.as_deref() { Value::from(__s.chars().skip(0).take(64).collect::<String>()) } else { Value::Null }));
                 m.insert("contractAddress".to_string(), Value::Str("".into()));
                 m.insert("currencyAddress".to_string(), quoteTokenAddress.map(Value::from).unwrap_or(Value::Null));
                 m.insert("topicId".to_string(), Value::from(topicId));

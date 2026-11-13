@@ -351,9 +351,9 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("watchTicker".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isGenerationTwo: bool = generation == Some(2.0);
+        let mut isGenerationTwo: bool = generation == Some(2);
         let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -420,9 +420,9 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("watchTickers".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isGenerationTwo: bool = generation == Some(2.0);
+        let mut isGenerationTwo: bool = generation == Some(2);
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut symbolsLength: i64 = (if (symbolsNormalized == Value::Null) { 0 } else { symbolsNormalized.len() as i64 });
         if isGenerationTwo && (symbolsLength == 0) {
@@ -728,9 +728,9 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isGenerationTwo: bool = generation == Some(2.0);
+        let mut isGenerationTwo: bool = generation == Some(2);
         let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -950,9 +950,9 @@ impl Bithumb {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("watchTrades".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationparamsGenerationVariable.get(0).and_then(Value::as_f64);
+        let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isGenerationTwo: bool = generation == Some(2.0);
+        let mut isGenerationTwo: bool = generation == Some(2);
         let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1213,8 +1213,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("watchBalance".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationVariable.get(0).and_then(Value::as_f64);
-        if (generation != Some(2.0)) {
+        let mut generation: Option<i64> = generationVariable.get(0).and_then(Value::as_i64);
+        if (generation != Some(2)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() is only supported for the generation 2 API".into()))));
         }
         self.authenticate(&[]).await;
@@ -1405,8 +1405,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationVariable: Vec<Value> = self.handle_option_integer_and_params(params.clone(), Value::Str("watchOrders".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
-        let mut generation: Option<f64> = generationVariable.get(0).and_then(Value::as_f64);
-        if (generation != Some(2.0)) {
+        let mut generation: Option<i64> = generationVariable.get(0).and_then(Value::as_i64);
+        if (generation != Some(2)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchOrders() is only supported for the generation 2 API".into()))));
         }
         self.authenticate(&[]).await;

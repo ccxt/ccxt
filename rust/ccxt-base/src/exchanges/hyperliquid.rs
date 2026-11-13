@@ -2420,8 +2420,8 @@ impl Hyperliquid {
 
     pub fn price_to_precision(&self, mut symbol: Value, mut price: Value) -> Value {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut priceStr: Value = Value::from(self.number_to_string(price.clone()));
-        let mut priceStrParts: Vec<Value> = Value::Array(if let Some(__s) = priceStr.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+        let mut priceStr: Option<String> = self.number_to_string(price.clone());
+        let mut priceStrParts: Vec<Value> = Value::Array(if let Some(__s) = priceStr.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut integerPart: Option<String> = priceStrParts.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut significantDigits: i64 = i64::max(5, ((integerPart.as_deref().unwrap_or_default().chars().count() as i64)));
         let mut result: Option<String> = self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), Value::from(significantDigits), &[Value::Int(crate::runtime::SIGNIFICANT_DIGITS), self.paddingMode.clone()]).as_str().map(str::to_owned);
@@ -4148,7 +4148,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut timeInForceLower: Option<String> = self.safe_string_lower_k(orderParams.clone(), "timeInForce", &[Value::from(defaultTimeInForce)]).as_str().map(str::to_owned);
             let mut timeInForce: String = self.capitalize(timeInForceLower.map(Value::from).unwrap_or(Value::Null)).to_string();
-            let mut clientOrderId: Option<String> = self.safe_string2_opt(orderParams.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
+            let mut clientOrderId: Option<String> = self.safe_string2(orderParams.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
             let mut triggerPrice: Value = self.safe_string2(orderParams.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
             let mut stopLossPrice: Option<String> = self.safe_string_k(orderParams.clone(), "stopLossPrice", &[triggerPrice.clone()]).as_str().map(str::to_owned);
             let mut takeProfitPrice: Option<String> = self.safe_string_k(orderParams.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
@@ -4798,17 +4798,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_823: bool = true;
             while { if !__for_first_823 { i += 1; } __for_first_823 = false; i < (historicalOrders.len() as i64) } {
-            let mut rawOrder: Value = historicalOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut entry: crate::value::Dict = self.safe_dict_k(rawOrder.clone(), "order", &[rawOrder.clone()]).into_dict();
+            let mut rawOrder: crate::value::Dict = historicalOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict_k(&rawOrder, "order", &[Value::from(&rawOrder)]).into_dict();
             let mut oid: Option<String> = self.safe_string_k_opt(&entry, "oid", &[]);
             if (oid.is_some()) {
                 if !(matches!((&deduplicatedByOid, &oid.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let Value::Dict(__d) = &mut deduplicatedByOid { std::sync::Arc::make_mut(__d).insert(oid.as_deref().unwrap_or("null").to_string(), rawOrder.clone()); }
+                    if let Value::Dict(__d) = &mut deduplicatedByOid { std::sync::Arc::make_mut(__d).insert(oid.as_deref().unwrap_or("null").to_string(), Value::from(&rawOrder)); }
                 }  else {
                     let mut existingTimestamp: Option<i64> = self.safe_integer((if let (Some(__m), Some(__k)) = (deduplicatedByOid.as_map(), oid.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("statusTimestamp".into()), &[]).as_i64();
-                    let mut currentTimestamp: Option<i64> = self.safe_integer_k(rawOrder.clone(), "statusTimestamp", &[]).as_i64();
+                    let mut currentTimestamp: Option<i64> = self.safe_integer_k(&rawOrder, "statusTimestamp", &[]).as_i64();
                     if (currentTimestamp.is_some()) && ((existingTimestamp.is_none()) || (currentTimestamp.is_some() && existingTimestamp.is_some() && currentTimestamp > existingTimestamp)) {
-                        if let Value::Dict(__d) = &mut deduplicatedByOid { std::sync::Arc::make_mut(__d).insert(oid.as_deref().unwrap_or("null").to_string(), rawOrder); }
+                        if let Value::Dict(__d) = &mut deduplicatedByOid { std::sync::Arc::make_mut(__d).insert(oid.as_deref().unwrap_or("null").to_string(), Value::Dict(rawOrder)); }
                     }
                 }
             }
@@ -6685,14 +6685,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_827: bool = true;
             while { if !__for_first_827 { i += 1; } __for_first_827 = false; i < (records.len() as i64) } {
-            let mut record: Value = records.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if (self.safe_string_k(record.clone(), "type", &[]).as_str() == Some("vaultDeposit")) {
-                let mut delta: crate::value::Dict = self.safe_dict_k(record.clone(), "delta", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut record: crate::value::Dict = records.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            if (self.safe_string_k(&record, "type", &[]).as_str() == Some("vaultDeposit")) {
+                let mut delta: crate::value::Dict = self.safe_dict_k(&record, "delta", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]).into_dict();
                 if (self.safe_string_k(&delta, "vault", &[Value::Str("".into())]).as_str() == Value::Str(format!("{}{}", Value::Str("0x".into()), vaultAddress).into()).as_str()) {
-                    deposits.push(record);
+                    deposits.push(Value::Dict(record));
                 }
             }
         }
@@ -6784,14 +6784,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_828: bool = true;
             while { if !__for_first_828 { i += 1; } __for_first_828 = false; i < (records.len() as i64) } {
-            let mut record: Value = records.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            if (self.safe_string_k(record.clone(), "type", &[]).as_str() == Some("vaultWithdraw")) {
-                let mut delta: crate::value::Dict = self.safe_dict_k(record.clone(), "delta", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut record: crate::value::Dict = records.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            if (self.safe_string_k(&record, "type", &[]).as_str() == Some("vaultWithdraw")) {
+                let mut delta: crate::value::Dict = self.safe_dict_k(&record, "delta", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]).into_dict();
                 if (self.safe_string_k(&delta, "vault", &[Value::Str("".into())]).as_str() == Value::Str(format!("{}{}", Value::Str("0x".into()), vaultAddress).into()).as_str()) {
-                    withdrawals.push(record);
+                    withdrawals.push(Value::Dict(record));
                 }
             }
         }

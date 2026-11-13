@@ -1754,10 +1754,10 @@ impl Coinbaseinternational {
                         let mut i: i64 = 0;
             let mut __for_first_255: bool = true;
             while { if !__for_first_255 { i += 1; } __for_first_255 = false; (i as f64) < symbolsAndTimeframesLength } {
-            let mut current: Value = symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut currentTimeframe: Option<String> = self.safe_string(current.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
+            let mut current: crate::value::List = symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
+            let mut currentTimeframe: Option<String> = self.safe_string(&current, Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut resolution: Option<String> = self.safe_string(self.timeframes.clone(), currentTimeframe.clone().map(Value::from).unwrap_or(Value::Null), &[currentTimeframe.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-            let mut market: crate::types::Market = (match self.market((self.safe_string(current, Value::Int(0), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut market: crate::types::Market = (match self.market((self.safe_string(&current, Value::Int(0), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             std::sync::Arc::make_mut(&mut channels).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("chart.trades.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), Value::Str(".".into())).into()), resolution.map(Value::from).unwrap_or(Value::Null)).into()));
         }
         }
@@ -1839,10 +1839,10 @@ impl Coinbaseinternational {
                         let mut i: i64 = 0;
             let mut __for_first_256: bool = true;
             while { if !__for_first_256 { i += 1; } __for_first_256 = false; (i as f64) < symbolsAndTimeframesLength } {
-            let mut current: Value = symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut timeframe: Option<String> = self.safe_string(current.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
+            let mut current: crate::value::List = symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
+            let mut timeframe: Option<String> = self.safe_string(&current, Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut resolution: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone().map(Value::from).unwrap_or(Value::Null), &[timeframe.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-            let mut market: crate::types::Market = (match self.market((self.safe_string(current, Value::Int(0), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut market: crate::types::Market = (match self.market((self.safe_string(&current, Value::Int(0), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("chart.trades.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), Value::Str(".".into())).into()), resolution.map(Value::from).unwrap_or(Value::Null)).into()));
         }
         }

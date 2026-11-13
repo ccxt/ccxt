@@ -2184,14 +2184,14 @@ impl Bittrade {
                 m.insert("id".to_string(), account.get("id").cloned().unwrap_or(Value::Null));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (method == "privateGetAccountAccountsIdBalance") {
             let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_account_accounts_id_balance(&[__ws_arg_8]).await;
+            response = self.private_get_account_accounts_id_balance(&[__ws_arg_8]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() does not support the ".into())).into()), method).into()), Value::Str(" method".into()))));
         }
-        return self.parse_balance(response);
+        return self.parse_balance(&response);
         Value::Null
         }).await?))
     }

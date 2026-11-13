@@ -925,7 +925,7 @@ impl Pacifica {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let aggLevelparamsAggLevelVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("aggLevel".into()), &[Value::Int(1)]).as_array().cloned().unwrap_or_default();
-        let mut aggLevel: Value = aggLevelparamsAggLevelVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut aggLevel: Option<i64> = aggLevelparamsAggLevelVariable.get(0).and_then(Value::as_i64);
         let mut paramsAggLevel: crate::value::Dict = aggLevelparamsAggLevelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
@@ -952,7 +952,7 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("book".into()));
         m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-        m.insert("agg_level".to_string(), aggLevel);
+        m.insert("agg_level".to_string(), Value::from(aggLevel));
     m
 }));
             m
@@ -990,7 +990,7 @@ impl Pacifica {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let aggLevelparamsAggLevelVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("aggLevel".into()), &[Value::Int(1)]).as_array().cloned().unwrap_or_default();
-        let mut aggLevel: Value = aggLevelparamsAggLevelVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut aggLevel: Option<i64> = aggLevelparamsAggLevelVariable.get(0).and_then(Value::as_i64);
         let mut paramsAggLevel: crate::value::Dict = aggLevelparamsAggLevelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subMessageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
@@ -1018,7 +1018,7 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::Str("book".into()));
         m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-        m.insert("agg_level".to_string(), aggLevel);
+        m.insert("agg_level".to_string(), Value::from(aggLevel));
     m
 }));
             m
@@ -1112,8 +1112,8 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tickers: Value = crate::types::IntoRaw::into_raw(self.watch_tickers((Value::from(vec![symbol.clone()])).to_opt_str_vec(), params).await);
-        return get_value(&tickers, &symbol);
+        let mut tickers: crate::types::Tickers = (match self.watch_tickers((Value::from(vec![symbol.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return crate::value::KeyRead::read(&&tickers, &symbol);
         Value::Null
         }).await?))
     }

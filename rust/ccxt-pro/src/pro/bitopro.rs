@@ -852,8 +852,8 @@ impl Bitopro {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
-        let mut datetime: Option<String> = self.safe_string_k_opt(message, "datetime", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(message.clone(), "timestamp", &[]).as_i64();
+        let mut datetime: Option<String> = self.safe_string_k(message, "datetime", &[]).as_str().map(str::to_owned);
         let mut currencies: Vec<Value> = object_keys(&data).as_array().cloned().unwrap_or_default();
         // merge updates into the existing balance object instead of building a
         // fresh one: a consumer awakened by an earlier message holds a
@@ -868,8 +868,8 @@ impl Bitopro {
             });
         }
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data.clone()); }
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp); }
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), datetime.clone().map(Value::from).unwrap_or(Value::Null)); }
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), datetime.map(Value::from).unwrap_or(Value::Null)); }
         {
                         let mut i: i64 = 0;
             let mut __for_first_132: bool = true;

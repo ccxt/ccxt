@@ -1522,8 +1522,8 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_535: bool = true;
             while { if !__for_first_535 { i += 1; } __for_first_535 = false; i < (rawLiquidations.len() as i64) } {
-            let mut rawLiquidation: Value = rawLiquidations.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut liquidation: crate::value::Dict = self.parse_ws_liquidation(rawLiquidation, None).into_dict();
+            let mut rawLiquidation: crate::value::Dict = rawLiquidations.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut liquidation: crate::value::Dict = self.parse_ws_liquidation(Value::Dict(rawLiquidation), None).into_dict();
             let mut symbol: String = self.safe_string_k(&liquidation, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.liquidations.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);

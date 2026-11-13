@@ -732,14 +732,14 @@ impl Kalshi {
         // markets — then flatten those markets.
         if queriesLength > 0 {
             let mut eventParams: Value = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into())]), &[]);
-            let mut events: Value = crate::types::IntoRaw::into_raw(self.fetch_events(eventParams).await);
+            let mut events: Vec<crate::types::PredictionEvent> = (match self.fetch_events(eventParams).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut eventsLength: f64 = ((events.len() as i64) as f64);
             let mut queryMarkets: Vec<Value> = Vec::new();
             {
                                 let mut ei: i64 = 0;
                 let mut __for_first_1259: bool = true;
                 while { if !__for_first_1259 { ei += 1; } __for_first_1259 = false; (ei as f64) < eventsLength } {
-                let mut eventMarkets: crate::value::List = self.safe_list_k(events.as_array().map(Vec::as_slice).unwrap_or_default().get(ei as usize).cloned().unwrap_or(Value::Null), "markets", &[Value::from(vec![])]).into_list();
+                let mut eventMarkets: crate::value::List = self.safe_list_k(events.get(ei as usize).map(crate::Value::from).unwrap_or_default(), "markets", &[Value::from(vec![])]).into_list();
                 let mut eventMarketsLength: f64 = ((eventMarkets.len() as i64) as f64);
                 {
                                         let mut mi: i64 = 0;
@@ -1569,8 +1569,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     }
         //
-        let mut marketAny: Value = crate::Value::from(market);
-        let mut outcomeObj: crate::value::Dict = self.safe_outcome(self.safe_string_k(marketAny.clone(), "outcome", &[]), &[marketAny]).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(self.safe_string_k(&market, "outcome", &[]), &[crate::Value::from(market)]).into_dict();
         let mut outcomeLabel: Option<String> = (if ((market.is_some()) && (market.is_some())) { self.safe_string_upper_k(&market, "label", &[self.safe_string_upper_k(crate::value::KeyRead::key_read(&market, "info"), "outcomeLabel", &[Value::Str("YES".into())])]).as_str().map(str::to_owned) } else { Some("YES".to_string()) });
         let mut isNo: bool = outcomeLabel.as_deref() == Some("NO");
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(raw.clone(), "updated_time", &[]));
@@ -1991,15 +1990,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1275: bool = true;
             while { if !__for_first_1275 { i += 1; } __for_first_1275 = false; i < (candles.len() as i64) } {
-            let mut candle: Value = candles.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut priceObj: crate::value::Dict = self.safe_dict_k(candle.clone(), "price", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut candle: crate::value::Dict = candles.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut priceObj: crate::value::Dict = self.safe_dict_k(&candle, "price", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut openPrice: Option<f64> = self.safe_number_k(&priceObj, "open_dollars", &[]).as_f64();
             let mut previousPrice: Option<f64> = self.safe_number_k(&priceObj, "previous_dollars", &[]).as_f64();
             if (openPrice.is_some()) || (previousPrice.is_some()) {
-                usableCandles.push(candle);
+                usableCandles.push(Value::Dict(candle));
             }
         }
         }
@@ -2112,10 +2111,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1276: bool = true;
             while { if !__for_first_1276 { i += 1; } __for_first_1276 = false; i < (trades.len() as i64) } {
-            let mut trade: Value = trades.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut tradeTicker: Option<String> = self.safe_string2(trade.clone(), Value::Str("ticker".into()), Value::Str("market_ticker".into()), &[]).as_str().map(str::to_owned);
+            let mut trade: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut tradeTicker: Option<String> = self.safe_string2(&trade, Value::Str("ticker".into()), Value::Str("market_ticker".into()), &[]).as_str().map(str::to_owned);
             if (tradeTicker.is_none()) || (tradeTicker == ticker) {
-                filteredTrades.push(trade);
+                filteredTrades.push(Value::Dict(trade));
             }
         }
         }
@@ -2146,8 +2145,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut amountFp: Option<f64> = self.safe_number2(trade.clone(), Value::Str("count_fp".into()), Value::Str("size_fp".into()), &[]).as_f64();
         let mut amount: Option<f64> = self.safe_number_k(trade.clone(), "count", &[Value::from(amountFp)]).as_f64();
         let mut rawSide: Option<String> = self.safe_string_lower_k(trade.clone(), "taker_side", &[]).as_str().map(str::to_owned);
-        let mut marketAny: Value = crate::Value::from(market);
-        let mut outcomeObj: crate::value::Dict = self.safe_outcome(self.safe_string_k(marketAny.clone(), "outcome", &[]), &[marketAny]).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(self.safe_string_k(&market, "outcome", &[]), &[crate::Value::from(market)]).into_dict();
         let mut marketInfo: crate::value::Dict = self.safe_dict_k(&outcomeObj, "info", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2545,9 +2543,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1282: bool = true;
             while { if !__for_first_1282 { i += 1; } __for_first_1282 = false; i < (parsed.len() as i64) } {
-            let mut settlement: Value = parsed.get(i as usize).cloned().unwrap_or(Value::Null);
-            if (wantedOutcome.is_none()) || (self.safe_string_k(settlement.clone(), "outcome", &[]).as_str() == wantedOutcome.as_deref()) {
-                result.push(settlement);
+            let mut settlement: crate::value::Dict = parsed.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            if (wantedOutcome.is_none()) || (self.safe_string_k(&settlement, "outcome", &[]).as_str() == wantedOutcome.as_deref()) {
+                result.push(Value::Dict(settlement));
             }
         }
         }
@@ -2814,13 +2812,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         // kalshi's status filter takes a single value (resting|executed|canceled); "closed" spans
         // both executed and canceled, so fetch every order and keep the non-open ones client-side
-        let mut orders: Value = crate::types::IntoRaw::into_raw(self.fetch_orders(outcome.as_str(), None, None, params).await);
+        let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(outcome.as_str(), None, None, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1283: bool = true;
             while { if !__for_first_1283 { i += 1; } __for_first_1283 = false; i < (orders.len() as i64) } {
-            let mut order: Value = orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut order: Value = orders.get(i as usize).map(crate::Value::from).unwrap_or_default();
             let mut status: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
             if (status.as_deref() == Some("closed")) || (status.as_deref() == Some("canceled")) {
                 result.push(order);

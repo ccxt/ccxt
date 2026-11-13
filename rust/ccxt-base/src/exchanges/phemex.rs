@@ -3888,8 +3888,8 @@ impl Phemex {
                 let mut costString: Option<String> = self.cost_to_precision(symbol.clone(), cost).as_str().map(str::to_owned);
                 request.insert("quoteQtyEv".into(), self.to_ev(costString.map(Value::from).unwrap_or(Value::Null), &[(market).raw.clone()]));
             }  else {
-                let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount.clone());
-                request.insert("baseQtyEv".into(), self.to_ev(amountString, &[(market).raw.clone()]));
+                let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount.clone()).as_str().map(str::to_owned);
+                request.insert("baseQtyEv".into(), self.to_ev(amountString.map(Value::from).unwrap_or(Value::Null), &[(market).raw.clone()]));
             }
         }  else if (market).swap {
             let mut hedged: Value = self.safe_bool_k(orderParams.clone(), "hedged", &[Value::Bool(false)]);
@@ -3990,8 +3990,8 @@ impl Phemex {
             if isStableSettled {
                 request.insert("priceRp".into(), self.price_to_precision(symbol.clone(), price.clone()));
             }  else {
-                let mut priceString: Value = Value::from(self.number_to_string(price));
-                request.insert("priceEp".into(), self.to_ep(priceString, Some(&market)));
+                let mut priceString: Option<String> = self.number_to_string(price);
+                request.insert("priceEp".into(), self.to_ep(priceString.map(Value::from).unwrap_or(Value::Null), Some(&market)));
             }
         }
         let mut takeProfitPrice: Option<String> = self.safe_string_k(orderParams.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);

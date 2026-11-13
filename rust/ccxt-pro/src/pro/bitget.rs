@@ -3394,10 +3394,10 @@ impl Bitget {
                     if (code != Value::Null) && (matches!((&self.balance, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         account = self.safe_dict(self.balance.clone(), code.clone(), &[account.clone()]);
                     }
-                    let mut borrow: Option<String> = self.safe_string_k_opt(&entry, "borrow", &[]);
+                    let mut borrow: Option<String> = self.safe_string_k(&entry, "borrow", &[]).as_str().map(str::to_owned);
                     let mut debts: Option<String> = self.safe_string_k(&entry, "debts", &[]).as_str().map(str::to_owned);
                     if (borrow.is_some()) || (debts.is_some()) {
-                        add_element_to_object(&mut account, &Value::Str("debt".into()), crate::precise::Precise::stringAdd(&borrow.clone().map(Value::from).unwrap_or(Value::Null), &debts.map(Value::from).unwrap_or(Value::Null)));
+                        add_element_to_object(&mut account, &Value::Str("debt".into()), crate::precise::Precise::stringAdd(&borrow.map(Value::from).unwrap_or(Value::Null), &debts.map(Value::from).unwrap_or(Value::Null)));
                     }
                     add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string_k(&entry, "available", &[]));
                     add_element_to_object(&mut account, &Value::Str("used".into()), self.safe_string_k(&entry, "locked", &[]));
@@ -3414,10 +3414,10 @@ impl Bitget {
                 if (code != Value::Null) && (matches!((&self.balance, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     account = self.safe_dict(self.balance.clone(), code.clone(), &[account.clone()]);
                 }
-                let mut borrow: Option<String> = self.safe_string_k_opt(rawBalance.clone(), "borrow", &[]);
+                let mut borrow: Option<String> = self.safe_string_k(rawBalance.clone(), "borrow", &[]).as_str().map(str::to_owned);
                 if (borrow.is_some()) {
                     let mut interest: Option<String> = self.safe_string_k(rawBalance.clone(), "interest", &[]).as_str().map(str::to_owned);
-                    add_element_to_object(&mut account, &Value::Str("debt".into()), crate::precise::Precise::stringAdd(&borrow.clone().map(Value::from).unwrap_or(Value::Null), &interest.map(Value::from).unwrap_or(Value::Null)));
+                    add_element_to_object(&mut account, &Value::Str("debt".into()), crate::precise::Precise::stringAdd(&borrow.map(Value::from).unwrap_or(Value::Null), &interest.map(Value::from).unwrap_or(Value::Null)));
                 }
                 let mut freeQuery: String = "available".to_string();
                 if (matches!(&rawBalance, Value::Dict(__d) if __d.contains_key("maxTransferOut"))) {
