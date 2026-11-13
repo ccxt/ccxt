@@ -2825,7 +2825,7 @@ func (this *Polymarket) ParsePredictionOrder(order any, optionalArgs ...any) map
 		"datetime":           this.Iso8601(ts),
 		"lastTradeTimestamp": nil,
 		"status":             status,
-		"outcome":            mkt["outcome"],
+		"outcome":            this.SafeString(mkt, "outcome"),
 		"outcomeId":          this.SafeString(mkt, "outcomeId"),
 		"label":              this.SafeString(mkt, "label"),
 		"market":             this.SafeString(mkt, "market"),

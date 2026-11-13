@@ -4827,7 +4827,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var notionalStringAbs *string = Precise.StringAbs(notionalString)
 	var maintenanceMarginPercentageString *string = nil
 	for i := 0; i < len(leverageBracket); i++ {
-		var bracket any = DerefScalar(leverageBracket[i])
+		var bracket any = leverageBracket[i]
 		if Precise.StringLt(notionalStringAbs, this.SafeString(bracket, 0)) {
 			break
 		}
@@ -5203,7 +5203,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 	var leverageBracket []any = SafeListTyped(leverageBrackets, symbol)
 	var maintenanceMarginPercentageString *string = nil
 	for i := 0; i < len(leverageBracket); i++ {
-		var bracket any = DerefScalar(leverageBracket[i])
+		var bracket any = leverageBracket[i]
 		if Precise.StringLt(notionalStringAbs, this.SafeString(bracket, 0)) {
 			break
 		}

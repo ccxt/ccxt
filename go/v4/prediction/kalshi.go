@@ -1266,8 +1266,7 @@ func (this *Kalshi) ParsePredictionTicker(raw any, optionalArgs ...any) map[stri
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var marketAny any = market
-	var outcomeObj map[string]any = this.SafeOutcome(this.SafeString(marketAny, "outcome"), marketAny)
+	var outcomeObj map[string]any = this.SafeOutcome(this.SafeString(market, "outcome"), market)
 	var outcomeLabel *string = func() *string {
 		if market != nil {
 			return this.SafeStringUpper(market, "label", this.SafeStringUpper(market["info"], "outcomeLabel", "YES"))
@@ -1848,8 +1847,7 @@ func (this *Kalshi) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	var amountFp *float64 = this.SafeNumber2(trade, "count_fp", "size_fp")
 	var amount *float64 = this.SafeNumber(trade, "count", amountFp)
 	var rawSide *string = this.SafeStringLower(trade, "taker_side")
-	var marketAny any = market
-	var outcomeObj map[string]any = this.SafeOutcome(this.SafeString(marketAny, "outcome"), marketAny)
+	var outcomeObj map[string]any = this.SafeOutcome(this.SafeString(market, "outcome"), market)
 	var marketInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var requestedOutcomeLabel *string = this.SafeStringLower(outcomeObj, "label", this.SafeStringLower(marketInfo, "outcomeLabel"))
 	var outcomeSymbol *string = this.SafeString(outcomeObj, "outcome")

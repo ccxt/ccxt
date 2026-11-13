@@ -1025,10 +1025,9 @@ func (this *Binance) ParsePredictionTicker(raw any, optionalArgs ...any) map[str
 	//
 	//     { "marketId": 5567895, "lastTradePrice": "0.52" }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var marketAny any = market
-	var outcomeObj map[string]any = this.SafeOutcome(this.SafeString(marketAny, "outcome"), marketAny)
+	var outcomeObj map[string]any = this.SafeOutcome(this.SafeString(market, "outcome"), market)
 	// the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
 	// any other outcome of a binary market mirrors as 1 - price
 	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
@@ -1394,11 +1393,11 @@ func (this *Binance) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes107219 []any = r.Value
-		if retRes107219 == nil {
+		var retRes107119 []any = r.Value
+		if retRes107119 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes107219)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes107119)}
 		}
 		return nil
 	}
@@ -1522,11 +1521,11 @@ func (this *Binance) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes115519 []any = r.Value
-		if retRes115519 == nil {
+		var retRes115419 []any = r.Value
+		if retRes115419 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes115519)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes115419)}
 		}
 		return nil
 	}
@@ -1902,11 +1901,11 @@ func (this *Binance) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes142119 []any = r.Value
-		if retRes142119 == nil {
+		var retRes142019 []any = r.Value
+		if retRes142019 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(retRes142119)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(retRes142019)}
 		}
 		return nil
 	}

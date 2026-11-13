@@ -4190,7 +4190,7 @@ func (this *Predictfun) OutcomeForToken(tokenId *string, optionalArgs ...any) an
 	// for the outcome asked about, so the caller's outcome is only a hint. safeOutcome falls
 	// back to it on any cache miss, which stamped the requested outcome onto rows from other
 	// markets - and the outcome filter afterwards then kept them, as they now matched
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var hintId *string = this.SafeString(market, "outcomeId")
 	if (tokenId == nil) || (hintId == tokenId || (hintId != nil && tokenId != nil && *hintId == *tokenId)) {

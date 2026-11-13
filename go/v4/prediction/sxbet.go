@@ -1687,7 +1687,7 @@ func (this *Sxbet) ParsePredictionOrder(order any, optionalArgs ...any) map[stri
 	//         "updatedAt": "2026-07-31T18:45:42.838Z"
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var orderId *string = this.SafeString2(order, "id", "orderId")
 	var marketHash *string = this.SafeString(order, "marketHash", "")
@@ -2078,7 +2078,7 @@ func (this *Sxbet) ParseSxbetV3Fill(fill any, optionalArgs ...any) any {
 	//         "updatedAt": "2026-07-31T18:47:12.837Z", "settlement": null
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketHash *string = this.SafeString(fill, "marketHash", "")
 	var isBettingOutcomeOne *bool = this.SafeBool(fill, "isBettingOutcomeOne", true)
@@ -2439,7 +2439,7 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 	//                         "settleDate": "2026-08-01T00:10:00.000Z" }
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketHash *string = this.SafeString(trade, "marketHash", "")
 	var isBettingOutcomeOne *bool = this.SafeBool(trade, "isBettingOutcomeOne", true)
@@ -2805,10 +2805,9 @@ func (this *Sxbet) ParsePredictionTicker(raw any, optionalArgs ...any) map[strin
 	//         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var marketAny any = market
-	var outcomeObj map[string]any = this.SafeOutcome(this.SafeString(marketAny, "outcome"), marketAny)
+	var outcomeObj map[string]any = this.SafeOutcome(this.SafeString(market, "outcome"), market)
 	var outcomeId *string = this.SafeString(outcomeObj, "outcomeId")
 	var marketHash *string = this.SafeString(raw, "marketHash")
 	var isOutcomeOne bool = (outcomeId == marketHash || (outcomeId != nil && marketHash != nil && *outcomeId == *marketHash))

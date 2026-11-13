@@ -4099,7 +4099,7 @@ func (this *Paradex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	}
 	var deposits []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row any = DerefScalar(rows[i])
+		var row any = rows[i]
 		if (allKinds != nil && *allKinds) || (this.SafeString(row, "kind") != nil && *this.SafeString(row, "kind") == "DEPOSIT") {
 			deposits = append(deposits, row)
 		}
@@ -4214,7 +4214,7 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	}
 	var deposits []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row any = DerefScalar(rows[i])
+		var row any = rows[i]
 		if (allKinds != nil && *allKinds) || (this.SafeString(row, "kind") != nil && *this.SafeString(row, "kind") == "WITHDRAWAL") {
 			deposits = append(deposits, row)
 		}

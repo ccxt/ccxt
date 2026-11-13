@@ -1036,7 +1036,7 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 		if isRaw {
 			var deltas []any = ccxt.SafeListTyped(message, 1)
 			for i := 0; i < len(deltas); i++ {
-				var delta any = ccxt.DerefScalar(deltas[i])
+				var delta any = deltas[i]
 				var delta2 *float64 = this.SafeNumber(delta, 2)
 				var size any = func() any {
 					if (delta2 != nil) && (!(*delta2 >= 0)) {

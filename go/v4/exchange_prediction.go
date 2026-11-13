@@ -505,8 +505,8 @@ func (this *PredictionExchange) HasOutcome(outcomeIdOrSymbol any) bool {
 	return false
 }
 func (this *PredictionExchange) SafeOutcome(outcomeIdOrSymbol any, optionalArgs ...any) map[string]any {
-	outcomeObj := GetArg(optionalArgs, 0, nil)
-	_ = outcomeObj
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
 	if !IsEqual(outcomeIdOrSymbol, nil) {
 		if (this.Outcomes != nil) && (InOp(this.Outcomes, outcomeIdOrSymbol)) {
 			return MapTyped(this.SafeValue(this.Outcomes, outcomeIdOrSymbol))
@@ -515,8 +515,8 @@ func (this *PredictionExchange) SafeOutcome(outcomeIdOrSymbol any, optionalArgs 
 			return MapTyped(this.SafeValue(this.Outcomes_by_id, outcomeIdOrSymbol))
 		}
 	}
-	if outcomeObj != nil {
-		return MapTyped(outcomeObj)
+	if market != nil {
+		return MapTyped(market)
 	}
 	// stub for an unknown handle; it only carries the identity keys, not the market fields
 	var outcomeObjValue map[string]any = map[string]any{
@@ -530,9 +530,14 @@ func (this *PredictionExchange) SafeOutcome(outcomeIdOrSymbol any, optionalArgs 
 	return outcomeObjValue
 }
 func (this *PredictionExchange) SafeOutcomeSymbol(outcomeIdOrSymbol any, optionalArgs ...any) any {
+	// outcomeObj may be any outcome-shaped dict, not only a market: read it here instead of
+	// handing it to safeOutcome (whose fallback slot is a Market)
 	outcomeObj := GetArg(optionalArgs, 0, nil)
 	_ = outcomeObj
-	var outcomeObjValue map[string]any = this.SafeOutcome(outcomeIdOrSymbol, outcomeObj)
+	if !this.HasOutcome(outcomeIdOrSymbol) && (outcomeObj != nil) {
+		return this.SafeString(outcomeObj, "outcome")
+	}
+	var outcomeObjValue map[string]any = this.SafeOutcome(outcomeIdOrSymbol)
 	return outcomeObjValue["outcome"]
 }
 func (this *PredictionExchange) ShortenSlug(slug any) any {

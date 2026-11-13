@@ -1284,7 +1284,7 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]an
 	var cachedOrders ccxt.WsArrayCache = this.Orders
 	var snapshotIds map[string]any = map[string]any{}
 	for i := 0; i < len(orders); i++ {
-		var order any = ccxt.DerefScalar(orders[i])
+		var order any = orders[i]
 		var parsed map[string]any = this.ParseWsOrder(order)
 		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol != nil {

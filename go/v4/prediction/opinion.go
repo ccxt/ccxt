@@ -1977,7 +1977,7 @@ func (this *Opinion) loadTradeMarketBody(ch chan ccxt.AsyncResult[ccxt.MarketInt
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
 func (this *Opinion) ParsePredictionTrade(trade any, optionalArgs ...any) any {
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var tokenId *string = this.SafeString(trade, "tokenId")
 	var outcomeObj map[string]any = this.SafeOutcome(tokenId, market)
@@ -2175,7 +2175,7 @@ func (this *Opinion) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
 func (this *Opinion) ParsePredictionPosition(position any, optionalArgs ...any) any {
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var tokenId *string = this.SafeString(position, "tokenId")
 	var outcomeObj map[string]any = this.SafeOutcome(tokenId, market)
