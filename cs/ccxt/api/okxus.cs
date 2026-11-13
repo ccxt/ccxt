@@ -417,6 +417,13 @@ public partial class okxus : okx
         return await this.callAsync<Dictionary<string, object>> ("publicGetPublicDeltaHedgeCurrencies",parameters);
     }
 
+    /// <summary>Calls the publicGetPublicCorporateActions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicCorporateActions (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicCorporateActions",parameters);
+    }
+
     /// <summary>Calls the publicGetRubikStatTradingDataSupportCoin endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicGetRubikStatTradingDataSupportCoin (object parameters = null)
