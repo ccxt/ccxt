@@ -6040,7 +6040,7 @@ export class BaseExchange {
         } as any;
     }
 
-    parseOHLCVs (ohlcvs: NullableList, market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false): OHLCV[] {
+    parseOHLCVs (ohlcvs: NullableList, market: Market = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false): OHLCV[] {
         if (ohlcvs === undefined) {
             return [];
         }

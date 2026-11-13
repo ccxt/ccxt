@@ -1663,7 +1663,7 @@ export default class binance extends Exchange {
 
     override priceToPrecision (outcome: Str, price: any): string {
         const market = this.market (outcome);
-        const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'price', 0.0001);
+        const prec = this.safeNumber (this.safeDict (market, 'precision', {}), 'price', 0.0001);
         let decimals = 4;
         if ((prec !== undefined) && (prec > 0)) {
             decimals = this.precisionFromString (this.numberToString (prec));
@@ -1673,7 +1673,7 @@ export default class binance extends Exchange {
 
     override amountToPrecision (outcome: Str, amount: any): string {
         const market = this.market (outcome);
-        const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'amount', 0.01);
+        const prec = this.safeNumber (this.safeDict (market, 'precision', {}), 'amount', 0.01);
         let decimals = 2;
         if ((prec !== undefined) && (prec > 0)) {
             decimals = this.precisionFromString (this.numberToString (prec));

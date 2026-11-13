@@ -3,7 +3,7 @@
 
 import deepcoinRest from '../deepcoin.js';
 import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
-import type { Dict, FeeString, Int, List, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade, int } from '../base/types.js';
+import type { Dict, FeeString, Int, List, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade, int, MarketInterface } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -115,7 +115,7 @@ export default class deepcoin extends deepcoinRest {
         return newValue;
     }
 
-    createPublicRequest (market: Dict, requestId: number, topicID: string, suffix: string = '', unWatch: boolean = false): Dict {
+    createPublicRequest (market: Market, requestId: number, topicID: string, suffix: string = '', unWatch: boolean = false): Dict {
         let marketId = this.safeString (market, 'symbol', ''); // spot markets use symbol with slash
         if (this.safeString (market, 'type') === 'swap') {
             marketId = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', ''); // swap markets use symbol without slash
@@ -136,7 +136,7 @@ export default class deepcoin extends deepcoinRest {
         return request;
     }
 
-    async watchPublic (market: Dict, messageHash: string, topicID: string, params: Dict = {}, suffix: string = ''): Promise<any> {
+    async watchPublic (market: Market, messageHash: string, topicID: string, params: Dict = {}, suffix: string = ''): Promise<any> {
         const marketType = this.safeString (market, 'type', '');
         const url = this.safeString (this.urls['api']['ws']['public'], marketType, '');
         const requestId = this.requestId ();
@@ -148,7 +148,7 @@ export default class deepcoin extends deepcoinRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
     }
 
-    async unWatchPublic (market: Dict, messageHash: string, topicID: string, params: Dict = {}, subscription: Dict = {}, suffix: string = ''): Promise<any> {
+    async unWatchPublic (market: MarketInterface, messageHash: string, topicID: string, params: Dict = {}, subscription: Dict = {}, suffix: string = ''): Promise<any> {
         const marketType = this.safeString (market, 'type', '');
         const url = this.safeString (this.urls['api']['ws']['public'], marketType, '');
         const requestId = this.requestId ();

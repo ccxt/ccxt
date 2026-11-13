@@ -822,7 +822,7 @@ export default class btcturk extends Exchange {
         return this.parseOHLCVs (rows, market, timeframe, since, limitResolved);
     }
 
-    override parseOHLCVs (ohlcvs: NullableList, market: any = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false) {
+    override parseOHLCVs (ohlcvs: NullableList, market: Market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false) {
         const rows = this.toArray (ohlcvs);
         const results: OHLCV[] = [];
         for (let i = 0; i < rows.length; i++) {
